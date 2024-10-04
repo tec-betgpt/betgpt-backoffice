@@ -1,6 +1,12 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Login from "@/views/auth/Login.vue";
 import { useAuthStore } from "@/stores/auth";
+import DefaultLayout from "@/layouts/default.vue";
+import BlankLayout from "@/layouts/blank.vue";
+
+import Login from "@/views/auth/Login.vue";
+import Register from "@/views/auth/Register.vue";
+import Recover from "@/views/auth/Recover.vue";
+import Home from "@/views/Home.vue";
 
 const routes = [
   {
@@ -11,6 +17,25 @@ const routes = [
     path: "/login",
     name: "login",
     component: Login,
+    meta: { layout: BlankLayout },
+  },
+  {
+    path: "/register",
+    name: "register",
+    component: Register,
+    meta: { layout: BlankLayout },
+  },
+  {
+    path: "/recover",
+    name: "recover",
+    component: Recover,
+    meta: { layout: BlankLayout },
+  },
+  {
+    path: "/home",
+    name: "home",
+    component: Home,
+    meta: { layout: DefaultLayout, requiresAuth: true },
   },
 ];
 

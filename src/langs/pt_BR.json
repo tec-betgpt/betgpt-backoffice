@@ -1,5 +1,8 @@
 {
   "login_your_account": "Entre na sua conta",
+  "login_info1": "Digite seu email e senha abaixo para realizar o login.",
+  "register_info1": "Digite seu email, a senha e a confirmação de senha abaixo para realizar o cadastro.",
+  "recover_info1": "Digite seu email abaixo para iniciar a recuperação de conta.",
   "slogan": "O Caminho do Sucesso no Mercado Bet com a Melhor Assessoria Estratégica do Brasil",
   "or": "Ou",
   "forget_password": "Esqueceu a senha?",
@@ -8,6 +11,7 @@
   "signup": "Cadastre-se",
   "email": "E-mail",
   "password": "Senha",
+  "password_confirmation": "Confirmação de senha",
   "recover_password": "Recupere a sua senha",
   "recover": "Recuperar",
   "sended_email": "Te enviamos um e-mail",
