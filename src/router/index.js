@@ -47,13 +47,21 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
 
-  if (!authStore.user && localStorage.getItem("authToken")) {
+  if (
+    !authStore.user &&
+    localStorage.getItem("authToken") &&
+    !authStore.loading
+  ) {
     await authStore.fetchUser();
   }
 
+  console.log("chegou aqui");
+
   if (to.meta.requiresAuth && !authStore.user) {
+    console.log("foi de beise");
     next({ name: "login" });
   } else {
+    console.log("foi de beise2");
     if (to.name === "root") {
       next({ name: "home" });
     } else {

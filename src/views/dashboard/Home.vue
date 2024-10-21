@@ -1,11 +1,24 @@
 <template>
   <div>
-    <div class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+    <div
+      v-if="loading"
+      class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4"
+    >
+      <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
+        <div class="flex justify-between items-center mb-2">
+          <Skeleton class="h-4 w-1/3" />
+          <Skeleton class="h-4 w-5" />
+        </div>
+        <Skeleton class="h-8 w-2/3 mb-2" />
+        <Skeleton class="h-4 w-1/2" />
+      </div>
+    </div>
+    <div class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4" v-else>
       <Card>
         <CardHeader
           class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-          <CardTitle class="text-sm font-medium"> Clientes </CardTitle>
+          <CardTitle class="text-sm font-medium">Clientes</CardTitle>
           <Building2 class="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -13,11 +26,12 @@
           <p class="text-xs text-muted-foreground">+0.0% do último mês</p>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader
           class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-          <CardTitle class="text-sm font-medium"> Jogadores </CardTitle>
+          <CardTitle class="text-sm font-medium">Jogadores</CardTitle>
           <Users class="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -25,11 +39,12 @@
           <p class="text-xs text-muted-foreground">+0.0% do último mês</p>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader
           class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-          <CardTitle class="text-sm font-medium"> Depósitos </CardTitle>
+          <CardTitle class="text-sm font-medium">Depósitos</CardTitle>
           <CreditCard class="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -37,11 +52,12 @@
           <p class="text-xs text-muted-foreground">+0.0% da última semana</p>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader
           class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-          <CardTitle class="text-sm font-medium"> Saques </CardTitle>
+          <CardTitle class="text-sm font-medium">Saques</CardTitle>
           <HandCoins class="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -57,12 +73,14 @@
 import { ref, onMounted } from "vue";
 import api from "@/services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, Users, CreditCard, HandCoins } from "lucide-vue-next";
 
 const houses = ref(0);
 const players = ref(0);
 const deposits = ref(0);
 const withdraws = ref(0);
+const loading = ref(true);
 
 const loadContent = async () => {
   try {
@@ -73,6 +91,8 @@ const loadContent = async () => {
     withdraws.value = response.data.data.withdraws;
   } catch (error) {
     console.error("Erro ao buscar dados:", error);
+  } finally {
+    loading.value = false;
   }
 };
 

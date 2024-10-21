@@ -129,7 +129,7 @@
             <DropdownMenuSeparator />
             <DropdownMenuItem>Configurações</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem @click="logout">Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </header>
@@ -173,4 +173,15 @@ import {
   Settings,
   Users2,
 } from "lucide-vue-next";
+
+import { useAuthStore } from "@/stores/auth";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const authStore = useAuthStore();
+
+const logout = async () => {
+  authStore.logout();
+  router.push("/login");
+};
 </script>

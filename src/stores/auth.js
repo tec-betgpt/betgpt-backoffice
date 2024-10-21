@@ -5,6 +5,7 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
     token: null,
+    loading: false,
   }),
   actions: {
     setUserData(user, token) {
@@ -24,6 +25,7 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async fetchUser() {
+      this.loading = true;
       try {
         const response = await api.get("/auth/user", { withCredentials: true });
 
@@ -35,6 +37,8 @@ export const useAuthStore = defineStore("auth", {
       } catch (error) {
         this.clearUserData();
         console.error("Erro ao buscar o usuário:", error);
+      } finally {
+        this.loading = false;
       }
     },
 
