@@ -6,7 +6,7 @@ import BlankLayout from "@/layouts/blank.vue";
 import Login from "@/views/auth/Login.vue";
 import Register from "@/views/auth/Register.vue";
 import Recover from "@/views/auth/Recover.vue";
-import Home from "@/views/Home.vue";
+import Home from "@/views/dashboard/Home.vue";
 
 const routes = [
   {
