@@ -121,7 +121,7 @@
           <DropdownMenuTrigger as-child>
             <Button variant="secondary" size="icon" class="rounded-full">
               <CircleUser class="h-5 w-5" />
-              <span class="sr-only">Toggle user menu</span>
+              <span class="sr-only">User menu</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
