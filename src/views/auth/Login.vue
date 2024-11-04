@@ -2,7 +2,7 @@
   <div
     class="container relative h-[800px] flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0 min-h-screen"
   >
-    <router-link
+    <!--<router-link
       :to="'/register'"
       :class="
         cn(
@@ -12,7 +12,7 @@
       "
     >
       {{ $t("signup") }}
-    </router-link>
+    </router-link>-->
     <div
       class="relative h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex hidden lg:block"
     >
