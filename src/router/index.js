@@ -19,12 +19,12 @@ const routes = [
     component: Login,
     meta: { layout: BlankLayout },
   },
-  {
+  /*{
     path: "/register",
     name: "register",
     component: Register,
     meta: { layout: BlankLayout },
-  },
+  },*/
   {
     path: "/recover",
     name: "recover",

@@ -18,25 +18,18 @@
         <CardHeader
           class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-          <CardTitle class="text-sm font-medium">Clientes</CardTitle>
-          <Building2 class="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold">+{{ houses }}</div>
-          <p class="text-xs text-muted-foreground">+0.0% do último mês</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader
-          class="flex flex-row items-center justify-between space-y-0 pb-2"
-        >
           <CardTitle class="text-sm font-medium">Jogadores</CardTitle>
           <Users class="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">+{{ players }}</div>
-          <p class="text-xs text-muted-foreground">+0.0% do último mês</p>
+          <div class="text-2xl font-bold">+{{ players.count }}</div>
+          <p class="text-xs text-muted-foreground">
+            {{
+              players.percentage > 0
+                ? "+" + players.percentage
+                : players.percentage
+            }}% do último mês
+          </p>
         </CardContent>
       </Card>
 
@@ -44,12 +37,46 @@
         <CardHeader
           class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-          <CardTitle class="text-sm font-medium">Depósitos</CardTitle>
+          <CardTitle class="text-sm font-medium">Active Now</CardTitle>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            class="h-4 w-4 text-muted-foreground"
+          >
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">+{{ activeNow.count }}</div>
+          <p class="text-xs text-muted-foreground">
+            +{{ activeNow.change }} desde o último dia
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
+          <CardTitle class="text-sm font-medium">Depósitos 7D</CardTitle>
           <CreditCard class="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">{{ $toCurrency(deposits) }}</div>
-          <p class="text-xs text-muted-foreground">+0.0% da última semana</p>
+          <div class="text-2xl font-bold">
+            {{ $toCurrency(deposits.total) }}
+          </div>
+          <p class="text-xs text-muted-foreground">
+            {{
+              deposits.percentage > 0
+                ? "+" + deposits.percentage
+                : deposits.percentage
+            }}% da última semana
+          </p>
         </CardContent>
       </Card>
 
@@ -57,12 +84,91 @@
         <CardHeader
           class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-          <CardTitle class="text-sm font-medium">Saques</CardTitle>
+          <CardTitle class="text-sm font-medium">Saques 7D</CardTitle>
           <HandCoins class="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">{{ $toCurrency(withdraws) }}</div>
-          <p class="text-xs text-muted-foreground">+0.0% da última semana</p>
+          <div class="text-2xl font-bold">
+            {{ $toCurrency(withdraws.total) }}
+          </div>
+          <p class="text-xs text-muted-foreground">
+            {{
+              withdraws.percentage > 0
+                ? "+" + withdraws.percentage
+                : withdraws.percentage
+            }}% da última semana
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+
+    <!-- Gráfico de visão geral e últimos depósitos -->
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-3">
+      <Card class="col-span-4">
+        <CardHeader>
+          <CardTitle>Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div v-if="loading">
+            <Skeleton class="pl-5 h-64 w-full" />
+          </div>
+          <div v-else>
+            <BarChart
+              :data="deposits.monthly_counts"
+              :categories="['total']"
+              :index="'name'"
+              :rounded-corners="4"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card class="col-span-3">
+        <CardHeader>
+          <CardTitle>Últimos Depósitos</CardTitle>
+          <CardDescription>
+            <Skeleton class="h-5 w-full" v-if="loading" />
+            <span v-else>
+              Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
+            </span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div v-if="loading" class="space-y-4">
+            <div v-for="n in 6" :key="n" class="flex items-center space-x-4">
+              <Skeleton class="h-9 w-9 rounded-full" />
+              <div class="flex-1 space-y-1">
+                <Skeleton class="h-4 w-1/2" />
+                <Skeleton class="h-4 w-1/3" />
+              </div>
+              <Skeleton class="h-4 w-10" />
+            </div>
+          </div>
+          <div v-else class="space-y-8">
+            <div
+              v-for="deposit in deposits.last6"
+              :key="deposit.id"
+              class="flex items-center"
+            >
+              <Avatar class="h-9 w-9">
+                <AvatarFallback
+                  >{{ deposit.player.name.charAt(0)
+                  }}{{ deposit.player.name.charAt(1) }}</AvatarFallback
+                >
+              </Avatar>
+              <div class="ml-4 space-y-1">
+                <p class="text-sm font-medium leading-none">
+                  {{ deposit.player.name }}
+                </p>
+                <p class="text-sm text-muted-foreground">
+                  {{ deposit.player.email }}
+                </p>
+              </div>
+              <div class="ml-auto font-medium">
+                +{{ $toCurrency(deposit.value / 100) }}
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -70,23 +176,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import api from "@/services/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, Users, CreditCard, HandCoins } from "lucide-vue-next";
+import { BarChart } from "@/components/ui/chart-bar";
+import { Users, CreditCard, HandCoins } from "lucide-vue-next";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-const houses = ref(0);
-const players = ref(0);
-const deposits = ref(0);
-const withdraws = ref(0);
+const players = ref({ count: 0, percentage: 0 });
+const activeNow = ref({ count: 0, change: 0 });
+const deposits = ref({
+  total: 0,
+  percentage: 0,
+  last6: [],
+  monthly_counts: [],
+});
+const withdraws = ref({ total: 0, percentage: 0 });
 const loading = ref(true);
 
 const loadContent = async () => {
   try {
     const response = await api.get("/utils/home");
-    houses.value = response.data.data.houses;
     players.value = response.data.data.players;
+    activeNow.value = response.data.data.active_now;
     deposits.value = response.data.data.deposits;
     withdraws.value = response.data.data.withdraws;
   } catch (error) {
