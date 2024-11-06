@@ -296,6 +296,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useHouseStore } from "@/stores/house";
 import api from "@/services/api";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -319,7 +320,9 @@ import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
-const selectedHouse = ref();
+
+const houseStore = useHouseStore();
+const selectedHouse = ref(houseStore.selectedHouse);
 
 const loading = ref(true);
 const houses = ref(null);
@@ -345,7 +348,9 @@ const loadContent = async () => {
       end_date: selectedRange.value.end?.toString(),
     };
 
-    if (selectedHouse.value) {
+    const houseId = houseStore.selectedHouse;
+
+    if (houseId) {
       paramsQuery.house_id = selectedHouse.value;
     }
 
@@ -368,7 +373,7 @@ const loadContent = async () => {
       houses.value = response.data.data.houses;
 
       if (!selectedHouse.value) {
-        selectedHouse.value = 1;
+        selectedHouse.value = response.data.data.houses[0].id;
       }
     }
   } catch (error) {
@@ -379,6 +384,7 @@ const loadContent = async () => {
 };
 
 const applyFilter = () => {
+  houseStore.setSelectedHouse(selectedHouse.value);
   loadContent();
 };
 

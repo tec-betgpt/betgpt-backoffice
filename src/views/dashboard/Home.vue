@@ -204,6 +204,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { useHouseStore } from "@/stores/house";
 import api from "@/services/api";
 import {
   Card,
@@ -228,7 +229,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-const selectedHouse = ref();
+const houseStore = useHouseStore();
+const selectedHouse = ref(houseStore.selectedHouse);
+
 const players = ref({ count: 0, percentage: 0 });
 const activeNow = ref({ count: 0, change: 0 });
 const deposits = ref({
@@ -247,8 +250,10 @@ const loadContent = async () => {
 
     let response;
 
-    if (selectedHouse.value) {
-      response = await api.get("/utils/home?house_id=" + selectedHouse.value);
+    const houseId = houseStore.selectedHouse;
+
+    if (houseId) {
+      response = await api.get("/utils/home?house_id=" + houseId);
     } else {
       response = await api.get("/utils/home");
     }
@@ -262,7 +267,7 @@ const loadContent = async () => {
       houses.value = response.data.data.houses;
 
       if (!selectedHouse.value) {
-        selectedHouse.value = 1;
+        selectedHouse.value = response.data.data.houses[0].id;
       }
     }
   } catch (error) {
@@ -273,6 +278,7 @@ const loadContent = async () => {
 };
 
 const applyFilter = () => {
+  houseStore.setSelectedHouse(selectedHouse.value);
   loadContent();
 };
 
