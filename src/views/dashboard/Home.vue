@@ -1,5 +1,21 @@
 <template>
   <div>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-3xl font-bold tracking-tight">Dashboard</h2>
+      <div class="flex items-center space-x-2" v-if="houses && houses.length">
+        <Select v-model="selectedHouse">
+          <SelectTrigger class="w-[200px]">
+            <SelectValue placeholder="Selecione uma casa" />
+          </SelectTrigger>
+          <SelectContent>
+            <template v-for="(item, index) in houses" :key="index">
+              <SelectItem :value="item.id">{{ item.name }}</SelectItem>
+            </template>
+          </SelectContent>
+        </Select>
+        <Button @click="applyFilter">Filtrar</Button>
+      </div>
+    </div>
     <div
       v-if="loading"
       class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4"
@@ -37,7 +53,7 @@
         <CardHeader
           class="flex flex-row items-center justify-between space-y-0 pb-2"
         >
-          <CardTitle class="text-sm font-medium">Active Now</CardTitle>
+          <CardTitle class="text-sm font-medium">Jogadores Ativos</CardTitle>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -68,7 +84,7 @@
         </CardHeader>
         <CardContent>
           <div class="text-2xl font-bold">
-            {{ $toCurrency(deposits.total) }}
+            {{ $toCurrency(deposits.total / 100) }}
           </div>
           <p class="text-xs text-muted-foreground">
             {{
@@ -89,7 +105,7 @@
         </CardHeader>
         <CardContent>
           <div class="text-2xl font-bold">
-            {{ $toCurrency(withdraws.total) }}
+            {{ $toCurrency(withdraws.total / 100) }}
           </div>
           <p class="text-xs text-muted-foreground">
             {{
@@ -102,22 +118,32 @@
       </Card>
     </div>
 
-    <!-- Gráfico de visão geral e últimos depósitos -->
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-3">
       <Card class="col-span-4">
         <CardHeader>
-          <CardTitle>Overview</CardTitle>
+          <Skeleton class="h-6 w-full" v-if="loading" />
+          <CardTitle v-else>Quantidade de Depósitos</CardTitle>
         </CardHeader>
         <CardContent>
           <div v-if="loading">
-            <Skeleton class="pl-5 h-64 w-full" />
+            <Skeleton class="pl-5 h-72 w-full" />
           </div>
           <div v-else>
             <BarChart
               :data="deposits.monthly_counts"
-              :categories="['total']"
+              :categories="['Total']"
               :index="'name'"
               :rounded-corners="4"
+              :y-formatter="
+                (tick, i) => {
+                  return typeof tick === 'number'
+                    ? `${new Intl.NumberFormat('pt-BR')
+                        .format(tick)
+                        .toString()}`
+                    : '';
+                }
+              "
+              :custom-tooltip="CustomChartTooltip"
             />
           </div>
         </CardContent>
@@ -125,7 +151,8 @@
 
       <Card class="col-span-3">
         <CardHeader>
-          <CardTitle>Últimos Depósitos</CardTitle>
+          <Skeleton class="h-5 w-full mb-1" v-if="loading" />
+          <CardTitle v-else>Últimos Depósitos</CardTitle>
           <CardDescription>
             <Skeleton class="h-5 w-full" v-if="loading" />
             <span v-else>
@@ -146,7 +173,7 @@
           </div>
           <div v-else class="space-y-8">
             <div
-              v-for="deposit in deposits.last6"
+              v-for="deposit in deposits.lasts"
               :key="deposit.id"
               class="flex items-center"
             >
@@ -187,9 +214,21 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart } from "@/components/ui/chart-bar";
+import CustomChartTooltip from "@/components/ui/chart-line/CustomChartTooltip.vue";
 import { Users, CreditCard, HandCoins } from "lucide-vue-next";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
+const selectedHouse = ref();
 const players = ref({ count: 0, percentage: 0 });
 const activeNow = ref({ count: 0, change: 0 });
 const deposits = ref({
@@ -199,20 +238,42 @@ const deposits = ref({
   monthly_counts: [],
 });
 const withdraws = ref({ total: 0, percentage: 0 });
+const houses = ref(null);
 const loading = ref(true);
 
 const loadContent = async () => {
   try {
-    const response = await api.get("/utils/home");
+    loading.value = true;
+
+    let response;
+
+    if (selectedHouse.value) {
+      response = await api.get("/utils/home?house_id=" + selectedHouse.value);
+    } else {
+      response = await api.get("/utils/home");
+    }
+
     players.value = response.data.data.players;
     activeNow.value = response.data.data.active_now;
     deposits.value = response.data.data.deposits;
     withdraws.value = response.data.data.withdraws;
+
+    if (response.data.data.houses !== undefined) {
+      houses.value = response.data.data.houses;
+
+      if (!selectedHouse.value) {
+        selectedHouse.value = 1;
+      }
+    }
   } catch (error) {
     console.error("Erro ao buscar dados:", error);
   } finally {
     loading.value = false;
   }
+};
+
+const applyFilter = () => {
+  loadContent();
 };
 
 onMounted(() => {
