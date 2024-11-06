@@ -4,23 +4,23 @@
       class="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex"
     >
       <nav class="flex flex-col items-center gap-4 px-2 sm:py-5">
-        <a
-          href="#"
+        <router-link
+          :to="{ name: 'home' }"
           class="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
         >
           <Package2 class="h-4 w-4 transition-all group-hover:scale-110" />
           <span class="sr-only">BetGPT</span>
-        </a>
+        </router-link>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
-              <a
-                href="#"
+              <router-link
+                :to="{ name: 'home' }"
                 class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
               >
                 <Home class="h-5 w-5" />
                 <span class="sr-only">Dashboard</span>
-              </a>
+              </router-link>
             </TooltipTrigger>
             <TooltipContent side="right">Dashboard</TooltipContent>
           </Tooltip>
@@ -42,15 +42,15 @@
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
-              <a
-                href="#"
+              <router-link
+                :to="{ name: 'analytics' }"
                 class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
               >
                 <LineChart class="h-5 w-5" />
-                <span class="sr-only">Analytics</span>
-              </a>
+                <span class="sr-only">Relatórios</span>
+              </router-link>
             </TooltipTrigger>
-            <TooltipContent side="right">Analytics</TooltipContent>
+            <TooltipContent side="right">Relatórios</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </nav>
@@ -84,31 +84,31 @@
           </SheetTrigger>
           <SheetContent side="left" class="sm:max-w-xs">
             <nav class="grid gap-6 text-lg font-medium">
-              <a
-                href="#"
+              <router-link
+                :to="{ name: 'home' }"
                 class="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
               >
                 <Package2
                   class="h-5 w-5 transition-all group-hover:scale-110"
                 />
                 <span class="sr-only">BetGPT</span>
-              </a>
-              <a
-                href="#"
+              </router-link>
+              <router-link
+                :to="{ name: 'home' }"
                 class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
               >
                 <Home class="h-5 w-5" />
                 Dashboard
-              </a>
-              <a
-                href="#"
+              </router-link>
+              <router-link
+                :to="{ name: 'analytics' }"
                 class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
               >
-                <Users2 class="h-5 w-5" />
-                Clientes
-              </a>
+                <LineChart class="h-5 w-5" />
+                Relatórios
+              </router-link>
               <a
-                href="#"
+                href="javascritp:;"
                 class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
               >
                 <Settings class="h-5 w-5" />
@@ -119,14 +119,18 @@
         </Sheet>
         <Breadcrumb class="hidden md:flex">
           <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink as-child>
-                <a href="#">Dashboard</a>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Home</BreadcrumbPage>
+            <BreadcrumbItem v-for="(crumb, index) in breadcrumbs" :key="index">
+              <template v-if="crumb.path">
+                <BreadcrumbLink as-child>
+                  <router-link :to="{ path: crumb.path }">{{
+                    crumb.title
+                  }}</router-link>
+                </BreadcrumbLink>
+              </template>
+              <template v-else>
+                <BreadcrumbPage>{{ crumb.title }}</BreadcrumbPage>
+              </template>
+              <BreadcrumbSeparator v-if="index < breadcrumbs.length - 1" />
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -189,11 +193,51 @@ import {
   LineChart,
 } from "lucide-vue-next";
 
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import { useRouter } from "vue-router";
 
+interface BreadcrumbItem {
+  name: string;
+  title: string;
+  path: string | null;
+}
+
+const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+
+const breadcrumbs = computed(() => {
+  const breadcrumbItems: BreadcrumbItem[] = [
+    {
+      name: "home",
+      title: "Dashboard",
+      path: "/home",
+    },
+  ];
+
+  // Adiciona as rotas correspondentes da hierarquia
+  route.matched.forEach((routeRecord, index) => {
+    const name = routeRecord.name as string;
+    const title = routeRecord.meta.title as string;
+
+    if (index === route.matched.length - 1) {
+      breadcrumbItems.push({
+        name,
+        title,
+        path: null,
+      });
+    } else {
+      breadcrumbItems.push({
+        name,
+        title,
+        path: routeRecord.path,
+      });
+    }
+  });
+
+  return breadcrumbItems;
+});
 
 const logout = async () => {
   authStore.logout();

@@ -7,6 +7,7 @@ import Login from "@/views/auth/Login.vue";
 import Register from "@/views/auth/Register.vue";
 import Recover from "@/views/auth/Recover.vue";
 import Home from "@/views/dashboard/Home.vue";
+import Analytics from "@/views/dashboard/Analytics.vue";
 
 const routes = [
   {
@@ -17,25 +18,31 @@ const routes = [
     path: "/login",
     name: "login",
     component: Login,
-    meta: { layout: BlankLayout },
+    meta: { layout: BlankLayout, title: "Login" },
   },
   /*{
     path: "/register",
     name: "register",
     component: Register,
-    meta: { layout: BlankLayout },
+    meta: { layout: BlankLayout, title: "Cadastrar" },
   },*/
   {
     path: "/recover",
     name: "recover",
     component: Recover,
-    meta: { layout: BlankLayout },
+    meta: { layout: BlankLayout, title: "Recuperar" },
   },
   {
     path: "/home",
     name: "home",
     component: Home,
-    meta: { layout: DefaultLayout, requiresAuth: true },
+    meta: { layout: DefaultLayout, requiresAuth: true, title: "Home" },
+  },
+  {
+    path: "/analytics",
+    name: "analytics",
+    component: Analytics,
+    meta: { layout: DefaultLayout, requiresAuth: true, title: "Relatórios" },
   },
 ];
 

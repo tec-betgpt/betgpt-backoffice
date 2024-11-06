@@ -28,14 +28,14 @@ api.interceptors.response.use(
         type: "critical",
         title: i18n.global.t("internal_error"),
         subtitle: i18n.global.t("try_again_later"),
-        assistiveButton: i18n.global.t("back"),
+        assistiveButton: i18n.global.t("close"),
       });
     } else if (error.code === "ERR_NETWORK") {
       showDialog({
         type: "critical",
         title: i18n.global.t("connection_error"),
         subtitle: i18n.global.t("please_verify_connection"),
-        assistiveButton: i18n.global.t("back"),
+        assistiveButton: i18n.global.t("close"),
         size: "large",
       });
     } else if (
@@ -48,7 +48,7 @@ api.interceptors.response.use(
         type: "critical",
         title: i18n.global.t("error_ocurried"),
         subtitle: error.response.data.message,
-        assistiveButton: i18n.global.t("back"),
+        assistiveButton: i18n.global.t("close"),
       });
     }
 
