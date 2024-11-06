@@ -316,7 +316,7 @@ import CustomChartTooltipPercent from "@/components/ui/chart-line/CustomChartToo
 import CustomChartTooltip from "@/components/ui/chart-line/CustomChartTooltip.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 
-const currentDate = today(getLocalTimeZone());
+const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
 const selectedHouse = ref();
