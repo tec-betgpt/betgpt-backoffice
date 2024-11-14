@@ -3,12 +3,12 @@
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-3xl font-bold tracking-tight">Relatórios</h2>
       <div class="flex items-center space-x-2">
-        <Select v-if="houses && houses.length" v-model="selectedHouse">
+        <Select v-if="projects && projects.length" v-model="selectedProject">
           <SelectTrigger class="w-[200px]">
             <SelectValue placeholder="Selecione uma casa" />
           </SelectTrigger>
           <SelectContent>
-            <template v-for="(item, index) in houses" :key="index">
+            <template v-for="(item, index) in projects" :key="index">
               <SelectItem :value="item.id">{{ item.name }}</SelectItem>
             </template>
           </SelectContent>
@@ -228,7 +228,7 @@
         </CardContent>
       </Card>
 
-      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6">
+      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
         <Card class="col-span-3">
           <CardHeader class="pb-3">
             <Skeleton class="h-6 w-full" v-if="loading" />
@@ -290,13 +290,65 @@
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader class="pb-3">
+          <Skeleton class="h-6 w-full" v-if="loading" />
+          <CardTitle v-else
+            >Taxa % Cadastro Depósito do Dia por período</CardTitle
+          >
+        </CardHeader>
+        <CardContent>
+          <div v-if="loading">
+            <Skeleton class="pl-5 h-80 w-full" />
+          </div>
+          <div v-else>
+            <LineChart
+              :data="registrationDepositRatePeriod"
+              index="date"
+              :categories="['% Cadastro Depósito']"
+              :y-formatter="
+                (tick, i) =>
+                  typeof tick === 'number' ? `${tick.toFixed(2)}%` : ''
+              "
+              :custom-tooltip="CustomChartTooltipPercent"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader class="pb-3">
+          <Skeleton class="h-6 w-full" v-if="loading" />
+          <CardTitle v-else
+            >Porcentagem Conversão Depósitos Pagos por período</CardTitle
+          >
+        </CardHeader>
+        <CardContent>
+          <div v-if="loading">
+            <Skeleton class="pl-5 h-80 w-full" />
+          </div>
+          <div v-else>
+            <LineChart
+              :data="depositConversionRatePeriod"
+              index="date"
+              :categories="['% Conversão Depósitos Pagos']"
+              :y-formatter="
+                (tick, i) =>
+                  typeof tick === 'number' ? `${tick.toFixed(2)}%` : ''
+              "
+              :custom-tooltip="CustomChartTooltipPercent"
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useHouseStore } from "@/stores/house";
+import { useProjectStore } from "@/stores/project";
 import api from "@/services/api";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -312,20 +364,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import CustomChartTooltipPrice from "@/components/ui/chart-line/CustomChartTooltipPrice.vue";
-import CustomChartTooltipPercent from "@/components/ui/chart-line/CustomChartTooltipPercent.vue";
-import CustomChartTooltip from "@/components/ui/chart-line/CustomChartTooltip.vue";
+import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
+import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
+import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 
 const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
 
-const houseStore = useHouseStore();
-const selectedHouse = ref(houseStore.selectedHouse);
+const projectStore = useProjectStore();
+const selectedProject = ref(projectStore.selectedProject);
 
 const loading = ref(true);
-const houses = ref(null);
+const projects = ref(null);
 const depositsPeriod = ref([]);
 const usersPeriod = ref([]);
 const percentNetDepositsPeriod = ref([]);
@@ -335,24 +387,17 @@ const percentFtdDayPeriod = ref([]);
 const valueNetDepositsPeriod = ref([]);
 const valueDepositsPeriod = ref([]);
 const valueWithdrawsPeriod = ref([]);
+const registrationDepositRatePeriod = ref([]);
+const depositConversionRatePeriod = ref([]);
 
 const loadContent = async () => {
   loading.value = true;
   try {
-    let paramsQuery: {
-      start_date: string | undefined;
-      end_date: string | undefined;
-      house_id?: string;
-    } = {
+    let paramsQuery = {
       start_date: selectedRange.value.start?.toString(),
       end_date: selectedRange.value.end?.toString(),
+      project_id: selectedProject.value,
     };
-
-    const houseId = houseStore.selectedHouse;
-
-    if (houseId) {
-      paramsQuery.house_id = selectedHouse.value;
-    }
 
     const response = await api.get("/utils/analytics", {
       params: paramsQuery,
@@ -369,11 +414,16 @@ const loadContent = async () => {
     valueDepositsPeriod.value = response.data.data.value_deposits_period;
     valueWithdrawsPeriod.value = response.data.data.value_withdraws_period;
 
-    if (response.data.data.houses !== undefined) {
-      houses.value = response.data.data.houses;
+    registrationDepositRatePeriod.value =
+      response.data.data.registration_deposit_rate_period;
+    depositConversionRatePeriod.value =
+      response.data.data.deposit_conversion_rate_period;
 
-      if (!selectedHouse.value) {
-        selectedHouse.value = response.data.data.houses[0].id;
+    if (response.data.data.projects !== undefined) {
+      projects.value = response.data.data.projects;
+
+      if (!selectedProject.value) {
+        selectedProject.value = response.data.data.projects[0].id;
       }
     }
   } catch (error) {
@@ -384,7 +434,7 @@ const loadContent = async () => {
 };
 
 const applyFilter = () => {
-  houseStore.setSelectedHouse(selectedHouse.value);
+  projectStore.setSelectedProject(selectedProject.value);
   loadContent();
 };
 
