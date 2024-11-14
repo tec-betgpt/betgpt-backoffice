@@ -44,6 +44,17 @@ const routes = [
     component: Analytics,
     meta: { layout: DefaultLayout, requiresAuth: true, title: "Relatórios" },
   },
+  {
+    path: "/clients",
+    name: "clients",
+    component: Analytics,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "admin",
+      title: "Relatórios",
+    },
+  },
 ];
 
 const router = createRouter({
@@ -62,13 +73,9 @@ router.beforeEach(async (to, from, next) => {
     await authStore.fetchUser();
   }
 
-  console.log("chegou aqui");
-
   if (to.meta.requiresAuth && !authStore.user) {
-    console.log("foi de beise");
     next({ name: "login" });
   } else {
-    console.log("foi de beise2");
     if (to.name === "root") {
       next({ name: "home" });
     } else {

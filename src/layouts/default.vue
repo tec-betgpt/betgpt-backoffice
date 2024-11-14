@@ -25,20 +25,6 @@
             <TooltipContent side="right">Dashboard</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <!--<TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <a
-                href="#"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-              >
-                <Users2 class="h-5 w-5" />
-                <span class="sr-only">Clientes</span>
-              </a>
-            </TooltipTrigger>
-            <TooltipContent side="right">Clientes</TooltipContent>
-          </Tooltip> </TooltipProvider
-        >-->
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
@@ -51,6 +37,34 @@
               </router-link>
             </TooltipTrigger>
             <TooltipContent side="right">Relatórios</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <a
+                href="#"
+                class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+              >
+                <Building2 class="h-5 w-5" />
+                <span class="sr-only">Clientes</span>
+              </a>
+            </TooltipTrigger>
+            <TooltipContent side="right">Clientes</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <a
+                href="#"
+                class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+              >
+                <Users2 class="h-5 w-5" />
+                <span class="sr-only">Usuários</span>
+              </a>
+            </TooltipTrigger>
+            <TooltipContent side="right">Usuários</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </nav>
@@ -106,6 +120,20 @@
               >
                 <LineChart class="h-5 w-5" />
                 Relatórios
+              </router-link>
+              <router-link
+                :to="{ name: 'analytics' }"
+                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+              >
+                <Building2 class="h-5 w-5" />
+                Clientes
+              </router-link>
+              <router-link
+                :to="{ name: 'analytics' }"
+                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+              >
+                <Users2 class="h-5 w-5" />
+                Usuários
               </router-link>
               <a
                 href="javascritp:;"
@@ -191,6 +219,7 @@ import {
   Settings,
   Users2,
   LineChart,
+  Building2,
 } from "lucide-vue-next";
 
 import { computed } from "vue";
