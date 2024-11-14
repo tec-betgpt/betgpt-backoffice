@@ -264,7 +264,7 @@
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">
-              {{ (deposits.conversion_rate / 100).toFixed(2) }}%
+              {{ deposits.conversion_rate }}%
             </div>
           </CardContent>
         </Card>
@@ -430,7 +430,7 @@
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">
-              {{ (withdraws.conversion_rate / 100).toFixed(2) }}%
+              {{ withdraws.conversion_rate }}%
             </div>
           </CardContent>
         </Card>
@@ -468,9 +468,25 @@
         </div>
       </div>
       <div
-        class="grid gap-4 md:grid-cols-1 md:gap-8 lg:grid-cols-3 mb-3"
+        class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4 mb-3"
         v-else
       >
+        <Card>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="text-sm font-medium"
+              >Quantidade de Cadastros do Dia</CardTitle
+            >
+            <Users class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">
+              +{{ players.registered_users_day }}
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
@@ -498,7 +514,7 @@
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">
-              +{{ players.ftd_registered_users_count }}
+              +{{ players.ftd_registered_users_count / 100 }}
             </div>
           </CardContent>
         </Card>
