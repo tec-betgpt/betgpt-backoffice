@@ -27,10 +27,8 @@ const df = new DateFormatter("en-US", {
   dateStyle: "medium",
 });
 
-// Inicialize o valor local com a prop modelValue
 const value = ref(props.modelValue);
 
-// Assista mudanças no value e emita para o pai
 watch(value, (newValue) => {
   emit("update:modelValue", newValue);
 });
@@ -70,6 +68,7 @@ watch(value, (newValue) => {
           v-model="value"
           weekday-format="short"
           :number-of-months="2"
+          locale="pt-BR"
           initial-focus
           :placeholder="value.start"
         />
