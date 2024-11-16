@@ -16,6 +16,7 @@
             </template>
           </SelectContent>
         </Select>
+        <DatePicker v-model="selectedDate" />
         <Button @click="applyFilter">Filtrar</Button>
       </div>
     </div>
@@ -42,7 +43,7 @@
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
-            <CardTitle class="text-sm font-medium">Jogadores</CardTitle>
+            <CardTitle class="text-sm font-medium">Jogadores Totais</CardTitle>
             <Users class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -52,7 +53,7 @@
                 players.percentage > 0
                   ? "+" + players.percentage
                   : players.percentage
-              }}% do último mês
+              }}% desde o mês anterior
             </p>
           </CardContent>
         </Card>
@@ -61,7 +62,9 @@
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
           >
-            <CardTitle class="text-sm font-medium">Jogadores Ativos</CardTitle>
+            <CardTitle class="text-sm font-medium"
+              >Jogadores Ativos Totais</CardTitle
+            >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -99,7 +102,7 @@
                 deposits.percentage > 0
                   ? "+" + deposits.percentage
                   : deposits.percentage
-              }}% da última semana
+              }}% desde a semana anterior
             </p>
           </CardContent>
         </Card>
@@ -120,7 +123,7 @@
                 withdraws.percentage > 0
                   ? "+" + withdraws.percentage
                   : withdraws.percentage
-              }}% da última semana
+              }}% desde a semana anterior
             </p>
           </CardContent>
         </Card>
@@ -614,13 +617,28 @@
                     {{ deposit.player.email }}
                   </p>
                 </div>
-                <div class="ml-auto">
+                <div class="ml-auto text-right">
                   <span class="font-medium"
                     >+{{ $toCurrency(deposit.value / 100) }}</span
                   >
-                  <p class="text-xs text-muted-foreground text-right">
-                    {{ formatDate(deposit.created_at) }}
-                  </p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p class="text-xs text-muted-foreground text-right">
+                          {{ $moment(deposit.created_at).fromNow() }}
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          {{
+                            $moment(deposit.created_at).format(
+                              "DD/MM/YYYY HH:mm:ss"
+                            )
+                          }}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>
@@ -634,7 +652,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useProjectStore } from "@/stores/project";
-import moment from "moment";
 import api from "@/services/api";
 import {
   Card,
@@ -667,36 +684,69 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import DatePicker from "@/components/custom/DatePicker.vue";
+import {
+  CalendarDate,
+  DateFormatter,
+  getLocalTimeZone,
+  parseDate,
+  today,
+} from "@internationalized/date";
 
 const projectStore = useProjectStore();
 const selectedProject = ref(projectStore.selectedProject);
 
-const players = ref({ count: 0, percentage: 0 });
+const players = ref({
+  count: 0,
+  percentage: 0,
+  ftd_general_percent: 0,
+  ftd_registered_users_count: 0,
+  ftd_registered_users_percent: 0,
+  registered_users_day: 0,
+});
 const activeNow = ref({ count: 0, change: 0 });
 const deposits = ref({
   total: 0,
   percentage: 0,
   last6: [],
   monthly_counts: [],
+  average_ticket: 0,
+  conversion_rate: 0,
+  generated_deposits: 0,
+  paid_deposits: 0,
+  total_ftd_amount: 0,
+  total_ftd_count: 0,
+  total_net_deposits: 0,
+  total_paid_deposits: 0,
+  total_pending_deposits: 0,
 });
 const withdraws = ref({ total: 0, percentage: 0 });
 const projects = ref(null);
 const loading = ref(true);
-const formatDate = (date: any) => moment(date).format("DD/MM/YYYY");
+const selectedDate = ref();
+
+const currentDate = today(getLocalTimeZone());
+selectedDate.value = new CalendarDate(
+  currentDate.year,
+  currentDate.month,
+  currentDate.day - 1
+);
 
 const loadContent = async () => {
   try {
     loading.value = true;
-
-    let response;
-
-    const projectId = projectStore.selectedProject;
-
-    if (projectId) {
-      response = await api.get("/utils/home?project_id=" + projectId);
-    } else {
-      response = await api.get("/utils/home");
-    }
+    const response = await api.get("/utils/home", {
+      params: {
+        project_id: selectedProject.value,
+        date: selectedDate.value,
+      },
+    });
 
     players.value = response.data.data.players;
     activeNow.value = response.data.data.active_now;

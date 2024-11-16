@@ -8,11 +8,13 @@ import { toCurrency } from "./filters/currencyFilter";
 import "tippy.js/dist/tippy.css";
 import { useAuthStore } from "@/stores/auth";
 import moment from "moment";
+import "moment/dist/locale/pt-br";
 
 import "./assets/styles/main.css";
 
 const app = createApp(App);
 const pinia = createPinia();
+moment.locale("pt-br");
 
 app.config.globalProperties.$toCurrency = toCurrency;
 app.config.globalProperties.$moment = moment;
