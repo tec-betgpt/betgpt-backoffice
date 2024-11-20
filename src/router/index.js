@@ -8,6 +8,7 @@ import Register from "@/views/auth/Register.vue";
 import Recover from "@/views/auth/Recover.vue";
 import Home from "@/views/dashboard/Home.vue";
 import Analytics from "@/views/dashboard/Analytics.vue";
+import Projects from "@/views/dashboard/Projects.vue";
 
 const routes = [
   {
@@ -30,29 +31,53 @@ const routes = [
     path: "/recover",
     name: "recover",
     component: Recover,
-    meta: { layout: BlankLayout, title: "Recuperar" },
+    meta: {
+      layout: BlankLayout,
+      title: "Recuperar",
+    },
   },
   {
     path: "/home",
     name: "home",
     component: Home,
-    meta: { layout: DefaultLayout, requiresAuth: true, title: "Home" },
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Home",
+      permission: "member|client",
+    },
   },
   {
     path: "/analytics",
     name: "analytics",
     component: Analytics,
-    meta: { layout: DefaultLayout, requiresAuth: true, title: "Relatórios" },
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Relatórios",
+      permission: "member|client",
+    },
   },
   {
-    path: "/clients",
-    name: "clients",
+    path: "/projects",
+    name: "projects",
+    component: Projects,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member",
+      title: "Projetos",
+    },
+  },
+  {
+    path: "/users",
+    name: "users",
     component: Analytics,
     meta: {
       layout: DefaultLayout,
       requiresAuth: true,
-      permission: "admin",
-      title: "Relatórios",
+      permission: "member",
+      title: "Usuários",
     },
   },
 ];
