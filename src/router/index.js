@@ -9,6 +9,7 @@ import Recover from "@/views/auth/Recover.vue";
 import Home from "@/views/dashboard/Home.vue";
 import Analytics from "@/views/dashboard/Analytics.vue";
 import Projects from "@/views/dashboard/Projects.vue";
+import Users from "@/views/dashboard/Users.vue";
 
 const routes = [
   {
@@ -72,7 +73,7 @@ const routes = [
   {
     path: "/users",
     name: "users",
-    component: Analytics,
+    component: Users,
     meta: {
       layout: DefaultLayout,
       requiresAuth: true,

@@ -1,77 +1,109 @@
 <template>
   <div class="p-6">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-xl font-bold">Gerenciar Projetos</h1>
-      <Button @click="openCreateModal" :disabled="isProcessing">
-        {{ isProcessing ? "Carregando..." : "Novo Projeto" }}
-      </Button>
-    </div>
-
-    <!-- Skeleton para Carregamento -->
-    <div v-if="isLoading">
-      <div class="space-y-4">
-        <div v-for="n in 5" :key="n" class="flex items-center justify-between">
-          <Skeleton class="h-6 w-1/3" />
-          <Skeleton class="h-6 w-1/5" />
-          <Skeleton class="h-6 w-1/4" />
+    <Card>
+      <CardHeader>
+        <CardTitle>Gerenciar Projetos</CardTitle>
+        <CardDescription>
+          Gerencie seus projetos, altere status e edite informações.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div v-if="isLoading">
+          <div class="space-y-4">
+            <Skeleton class="h-6 w-full" />
+            <Skeleton class="h-6 w-full" />
+            <Skeleton class="h-6 w-full" />
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Tabela -->
-    <div v-else>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableCell>Nome</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Ações</TableCell>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow v-for="project in projects" :key="project.id">
-            <TableCell>{{ project.name }}</TableCell>
-            <TableCell>
-              <Badge
-                :variant="
-                  getStatus(project) === 'active' ? 'success' : 'destructive'
-                "
-              >
-                {{ getStatus(project) === "active" ? "Ativo" : "Inativo" }}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <div class="flex space-x-2">
-                <Button
-                  variant="outline"
-                  @click="openEditModal(project)"
-                  :disabled="isProcessing"
-                >
-                  {{ isProcessing ? "Carregando..." : "Editar" }}
-                </Button>
-                <Button
-                  :variant="
-                    getStatus(project) === 'active' ? 'destructive' : 'success'
-                  "
-                  @click="toggleStatus(project)"
-                  :disabled="isProcessing"
-                >
-                  {{
-                    isProcessing
-                      ? "Carregando..."
-                      : getStatus(project) === "active"
-                      ? "Inativar"
-                      : "Ativar"
-                  }}
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </div>
+        <Table v-else>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Data Criação</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="project in projects" :key="project.id">
+              <TableCell class="font-medium">{{ project.id }}</TableCell>
+              <TableCell class="font-medium">{{ project.name }}</TableCell>
+              <TableCell class="font-medium">{{
+                $moment(project.created_at).format("DD/MM/YYYY HH:mm:ss")
+              }}</TableCell>
+              <TableCell>
+                <div class="flex items-center">
+                  <LucideSpinner
+                    v-if="processingStatusId === project.id"
+                    class="mr-2 h-4 w-4 animate-spin"
+                  />
+                  <Badge
+                    v-else
+                    :variant="
+                      getStatus(project) === 'active'
+                        ? 'success'
+                        : 'destructive'
+                    "
+                  >
+                    {{ getStatus(project) === "active" ? "Ativo" : "Inativo" }}
+                  </Badge>
+                </div>
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
+                    <Button
+                      aria-haspopup="true"
+                      size="icon"
+                      variant="ghost"
+                      :disabled="isProcessing"
+                    >
+                      <MoreHorizontal class="h-4 w-4" />
+                      <span class="sr-only">Ações</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem @click="openEditModal(project)">
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      @mousedown="toggleStatus(project)"
+                      :disabled="processingAction === `status-${project.id}`"
+                    >
+                      <div class="flex items-center">
+                        <LucideSpinner
+                          v-if="processingAction === `status-${project.id}`"
+                          class="mr-2 h-4 w-4 animate-spin"
+                        />
+                        {{
+                          processingAction === `status-${project.id}`
+                            ? getStatus(project) === "active"
+                              ? "Desativando..."
+                              : "Ativando..."
+                            : getStatus(project) === "active"
+                            ? "Inativar"
+                            : "Ativar"
+                        }}
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardContent>
+      <CardFooter>
+        <Button @click="openCreateModal">
+          {{ isProcessing ? "Carregando..." : "Novo Projeto" }}
+        </Button>
+      </CardFooter>
+    </Card>
 
-    <!-- Modal para criar/editar -->
     <Dialog v-model:open="showModal">
       <DialogContent>
         <DialogHeader>
@@ -91,11 +123,15 @@
               />
             </div>
             <Button type="submit" :disabled="isProcessing">
+              <LucideSpinner
+                v-if="isProcessing"
+                class="mr-2 h-4 w-4 animate-spin"
+              />
               {{
                 isProcessing
                   ? "Carregando..."
                   : isEditing
-                  ? "Salvar Alterações"
+                  ? "Salvar"
                   : "Criar Projeto"
               }}
             </Button>
@@ -108,16 +144,33 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { toast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast/use-toast";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableHeader,
   TableRow,
   TableCell,
+  TableHead,
   TableBody,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -127,11 +180,16 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MoreHorizontal } from "lucide-vue-next";
+import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import api from "@/services/api";
 
+const { toast } = useToast();
+const processingAction = ref(null);
 const projects = ref([]);
 const isLoading = ref(true);
 const isProcessing = ref(false);
+const processingStatusId = ref(null);
 const showModal = ref(false);
 const isEditing = ref(false);
 const form = ref({
@@ -146,7 +204,7 @@ const getStatus = (project) => {
 const fetchProjects = async () => {
   try {
     const response = await api.get("/projects");
-    projects.value = response.data;
+    projects.value = response.data.data;
   } catch {
     toast({
       title: "Erro",
@@ -160,6 +218,8 @@ const fetchProjects = async () => {
 
 const toggleStatus = async (project) => {
   isProcessing.value = true;
+  processingAction.value = `status-${user.id}`;
+  processingStatusId.value = project.id;
   try {
     const response = await api.patch(`/projects/${project.id}/toggle`);
     if (response.status === 200) {
@@ -182,6 +242,8 @@ const toggleStatus = async (project) => {
     });
   } finally {
     isProcessing.value = false;
+    processingStatusId.value = null;
+    processingAction.value = null;
   }
 };
 
@@ -202,7 +264,7 @@ const createProject = async () => {
   try {
     const response = await api.post("/projects", form.value);
     if (response.status === 201) {
-      projects.value.push(response.data);
+      projects.value.push(response.data.data);
       toast({
         title: "Sucesso",
         description: "Projeto criado com sucesso.",
@@ -229,7 +291,7 @@ const updateProject = async () => {
       const projectIndex = projects.value.findIndex(
         (p) => p.id === form.value.id
       );
-      projects.value[projectIndex] = response.data;
+      projects.value[projectIndex] = response.data.data;
       toast({
         title: "Sucesso",
         description: "Projeto atualizado com sucesso.",
