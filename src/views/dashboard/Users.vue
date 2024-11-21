@@ -20,19 +20,17 @@
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
-              <TableHead>Primeiro Nome</TableHead>
-              <TableHead>Sobrenome</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>E-mail</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Acesso</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="user in users" :key="user.id">
               <TableCell>{{ user.id }}</TableCell>
-              <TableCell>{{ user.first_name }}</TableCell>
-              <TableCell>{{ user.last_name }}</TableCell>
+              <TableCell>{{ user.first_name }} {{ user.last_name }}</TableCell>
               <TableCell>{{ user.email }}</TableCell>
               <TableCell>
                 <div class="flex items-center">
@@ -127,7 +125,7 @@
         <form @submit.prevent="isEditing ? updateUser() : createUser()">
           <div class="space-y-4">
             <div>
-              <Label for="first_name">Primeiro Nome</Label>
+              <Label for="first_name">Nome</Label>
               <Input
                 id="first_name"
                 v-model="form.first_name"
@@ -154,7 +152,7 @@
               />
             </div>
             <div>
-              <Label for="role">Perfil</Label>
+              <Label for="role">Acesso</Label>
               <select
                 id="role"
                 v-model="form.role"
