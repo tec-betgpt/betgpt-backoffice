@@ -39,30 +39,34 @@
             <TooltipContent side="right">Relatórios</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <TooltipProvider>
+        <TooltipProvider
+          v-if="authStore.user && authStore.user.type === 'member'"
+        >
           <Tooltip>
             <TooltipTrigger as-child>
-              <a
-                href="#"
+              <router-link
+                :to="{ name: 'projects' }"
                 class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
               >
                 <Building2 class="h-5 w-5" />
-                <span class="sr-only">Clientes</span>
-              </a>
+                <span class="sr-only">Projetos</span>
+              </router-link>
             </TooltipTrigger>
-            <TooltipContent side="right">Clientes</TooltipContent>
+            <TooltipContent side="right">Projetos</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <TooltipProvider>
+        <TooltipProvider
+          v-if="authStore.user && authStore.user.type === 'member'"
+        >
           <Tooltip>
             <TooltipTrigger as-child>
-              <a
-                href="#"
+              <router-link
+                :to="{ name: 'users' }"
                 class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
               >
                 <Users2 class="h-5 w-5" />
                 <span class="sr-only">Usuários</span>
-              </a>
+              </router-link>
             </TooltipTrigger>
             <TooltipContent side="right">Usuários</TooltipContent>
           </Tooltip>
@@ -122,14 +126,16 @@
                 Relatórios
               </router-link>
               <router-link
-                :to="{ name: 'analytics' }"
+                v-if="authStore.user && authStore.user.type === 'member'"
+                :to="{ name: 'projects' }"
                 class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
               >
                 <Building2 class="h-5 w-5" />
-                Clientes
+                Projetos
               </router-link>
               <router-link
-                :to="{ name: 'analytics' }"
+                v-if="authStore.user && authStore.user.type === 'member'"
+                :to="{ name: 'users' }"
                 class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
               >
                 <Users2 class="h-5 w-5" />
@@ -245,7 +251,6 @@ const breadcrumbs = computed(() => {
     },
   ];
 
-  // Adiciona as rotas correspondentes da hierarquia
   route.matched.forEach((routeRecord, index) => {
     const name = routeRecord.name as string;
     const title = routeRecord.meta.title as string;

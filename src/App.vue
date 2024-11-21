@@ -10,6 +10,7 @@
     <component v-else :is="layout">
       <router-view></router-view>
     </component>
+    <Toaster />
   </div>
 </template>
 
@@ -19,6 +20,7 @@ import { useRoute } from "vue-router";
 import DefaultLayout from "@/layouts/default.vue";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
+import { Toaster } from "@/components/ui/toast";
 
 const route = useRoute();
 const authStore = useAuthStore();

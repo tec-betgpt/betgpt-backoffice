@@ -29,8 +29,8 @@ export const useAuthStore = defineStore("auth", {
       try {
         const response = await api.get("/auth/user", { withCredentials: true });
 
-        if (response.data) {
-          this.setUserData(response.data, this.token);
+        if (response.data.data) {
+          this.setUserData(response.data.data, this.token);
         } else {
           this.clearUserData();
         }
