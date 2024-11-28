@@ -146,8 +146,8 @@
           <SelectContent>
             <SelectItem
               v-for="project in projects"
-              :key="project.project_id"
-              :value="project.project_id"
+              :key="project.id"
+              :value="project.id"
             >
               {{ project.name }}
             </SelectItem>
