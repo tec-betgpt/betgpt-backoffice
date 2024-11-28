@@ -1,13 +1,13 @@
 <template>
-  <div class="p-6 space-y-6">
-    <div>
+  <div>
+    <div class="mb-4">
       <h3 class="text-lg font-medium">Configurações de Projetos</h3>
       <p class="text-sm text-muted-foreground">
         Gerencie seus grupos e selecione seu projeto favorito.
       </p>
     </div>
 
-    <Separator />
+    <Separator class="mb-3" />
 
     <div class="space-y-4">
       <div>
@@ -35,7 +35,7 @@
               <Button
                 size="sm"
                 @click="markAsFavorite(group.id)"
-                :variant="favoriteGroupId === group.id ? 'success' : 'outline'"
+                variant="outline"
                 :disabled="markingFavoriteGroupId === group.id"
               >
                 <LucideSpinner
@@ -118,7 +118,11 @@
             </div>
           </div>
         </div>
-        <Button @click="createGroup" :disabled="creatingGroup">
+        <Button
+          @click="createGroup"
+          :disabled="creatingGroup"
+          variant="outline"
+        >
           <LucideSpinner
             v-if="creatingGroup"
             class="mr-2 h-4 w-4 animate-spin"
@@ -128,9 +132,9 @@
       </div>
     </div>
 
-    <Separator />
+    <Separator class="my-5" />
 
-    <div>
+    <div class="mb-3">
       <h4 class="text-md font-medium mb-2">Projeto Favorito</h4>
       <div v-if="loading">
         <div class="space-y-4">
@@ -156,7 +160,7 @@
       </div>
     </div>
 
-    <Button @click="saveSettings" class="mt-4" :disabled="savingSettings">
+    <Button @click="saveSettings" :disabled="savingSettings">
       <LucideSpinner v-if="savingSettings" class="mr-2 h-4 w-4 animate-spin" />
       Salvar Configurações
     </Button>

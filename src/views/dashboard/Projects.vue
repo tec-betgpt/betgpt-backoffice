@@ -1,14 +1,14 @@
 <template>
-  <div class="p-6">
+  <div class="space-y-6 p-10 pb-16">
+    <div class="space-y-0.5">
+      <h2 class="text-2xl font-bold tracking-tight">Gerenciar Projetos</h2>
+      <p class="text-muted-foreground">
+        Gerencie seus projetos, altere status e edite informações.
+      </p>
+    </div>
     <Card>
-      <CardHeader>
-        <CardTitle>Gerenciar Projetos</CardTitle>
-        <CardDescription>
-          Gerencie seus projetos, altere status e edite informações.
-        </CardDescription>
-      </CardHeader>
       <CardContent>
-        <div v-if="isLoading">
+        <div v-if="isLoading" class="mt-6">
           <div class="space-y-4">
             <Skeleton class="h-6 w-full" />
             <Skeleton class="h-6 w-full" />
