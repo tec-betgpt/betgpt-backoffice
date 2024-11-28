@@ -4,15 +4,15 @@
       <h2 class="text-3xl font-bold tracking-tight">Dashboard</h2>
       <div
         class="flex items-center space-x-2"
-        v-if="projects && projects.length"
+        v-if="projectFilters && projectFilters.length"
       >
-        <Select v-model="selectedProject">
-          <SelectTrigger class="w-[200px]">
-            <SelectValue placeholder="Selecione uma casa" />
+        <Select v-model="selectedFilterId">
+          <SelectTrigger class="w-[250px]">
+            <SelectValue placeholder="Selecione um grupo ou projeto" />
           </SelectTrigger>
           <SelectContent>
-            <template v-for="(item, index) in projects" :key="index">
-              <SelectItem :value="item.id">{{ item.name }}</SelectItem>
+            <template v-for="(item, index) in projectFilters" :key="index">
+              <SelectItem :value="item.id">{{ item.label }}</SelectItem>
             </template>
           </SelectContent>
         </Select>
@@ -698,9 +698,10 @@ import {
   parseDate,
   today,
 } from "@internationalized/date";
+import { useToast } from "@/components/ui/toast/use-toast";
 
 const projectStore = useProjectStore();
-const selectedProject = ref(projectStore.selectedProject);
+const { toast } = useToast();
 
 const players = ref({
   count: 0,
@@ -727,9 +728,13 @@ const deposits = ref({
   total_pending_deposits: 0,
 });
 const withdraws = ref({ total: 0, percentage: 0 });
-const projects = ref(null);
+const projects = ref([]);
 const loading = ref(true);
 const selectedDate = ref();
+
+const projectFilters = ref([]);
+const selectedFilterId = ref(projectStore.selectedProject);
+const loadingFilters = ref(true);
 
 const currentDate = today(getLocalTimeZone());
 selectedDate.value = new CalendarDate(
@@ -738,12 +743,53 @@ selectedDate.value = new CalendarDate(
   currentDate.day - 1
 );
 
-const loadContent = async () => {
+const fetchFilters = async () => {
   try {
-    loading.value = true;
+    loadingFilters.value = true;
+    const response = await api.get("/user/configurations/project-filters");
+    const filters = response.data.data || [];
+
+    projectFilters.value = filters.map((filter) => ({
+      id: filter.id,
+      label: filter.label,
+    }));
+
+    if (filters.length > 0) {
+      if (!selectedFilterId.value) {
+        const favoriteFilter = filters.find((filter) => filter.is_favorite);
+        selectedFilterId.value = favoriteFilter
+          ? favoriteFilter.id
+          : filters[0].id;
+      }
+    }
+  } catch (error) {
+    toast({
+      title: "Erro ao carregar filtros",
+      description: "Não foi possível carregar os filtros de projetos.",
+      variant: "destructive",
+    });
+  } finally {
+    loadingFilters.value = false;
+  }
+};
+
+const applyFilter = async () => {
+  loading.value = true;
+  if (!selectedFilterId.value) {
+    toast({
+      title: "Erro",
+      description: "Selecione um grupo ou projeto antes de filtrar.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  projectStore.setSelectedProject(selectedFilterId.value);
+
+  try {
     const response = await api.get("/utils/home", {
       params: {
-        project_id: selectedProject.value,
+        filter_id: selectedFilterId.value,
         date: selectedDate.value,
       },
     });
@@ -752,27 +798,22 @@ const loadContent = async () => {
     activeNow.value = response.data.data.active_now;
     deposits.value = response.data.data.deposits;
     withdraws.value = response.data.data.withdraws;
-
-    if (response.data.data.projects !== undefined) {
-      projects.value = response.data.data.projects;
-
-      if (!selectedProject.value) {
-        selectedProject.value = response.data.data.projects[0].id;
-      }
-    }
   } catch (error) {
-    console.error("Erro ao buscar dados:", error);
+    toast({
+      title: "Erro ao carregar dados",
+      description: "Não foi possível aplicar o filtro selecionado.",
+      variant: "destructive",
+    });
   } finally {
     loading.value = false;
   }
 };
 
-const applyFilter = () => {
-  projectStore.setSelectedProject(selectedProject.value);
-  loadContent();
-};
-
 onMounted(() => {
-  loadContent();
+  fetchFilters().then(() => {
+    if (selectedFilterId.value) {
+      applyFilter();
+    }
+  });
 });
 </script>

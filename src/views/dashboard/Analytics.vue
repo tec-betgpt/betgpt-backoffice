@@ -2,14 +2,17 @@
   <div>
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-3xl font-bold tracking-tight">Relatórios</h2>
-      <div class="flex items-center space-x-2">
-        <Select v-if="projects && projects.length" v-model="selectedProject">
-          <SelectTrigger class="w-[200px]">
-            <SelectValue placeholder="Selecione uma casa" />
+      <div
+        class="flex items-center space-x-2"
+        v-if="projectFilters && projectFilters.length"
+      >
+        <Select v-model="selectedFilterId">
+          <SelectTrigger class="w-[250px]">
+            <SelectValue placeholder="Selecione um grupo ou projeto" />
           </SelectTrigger>
           <SelectContent>
-            <template v-for="(item, index) in projects" :key="index">
-              <SelectItem :value="item.id">{{ item.name }}</SelectItem>
+            <template v-for="(item, index) in projectFilters" :key="index">
+              <SelectItem :value="item.id">{{ item.label }}</SelectItem>
             </template>
           </SelectContent>
         </Select>
@@ -364,6 +367,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/components/ui/toast/use-toast";
 import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
@@ -372,9 +376,12 @@ import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
+const { toast } = useToast();
 
 const projectStore = useProjectStore();
-const selectedProject = ref(projectStore.selectedProject);
+const projectFilters = ref([]);
+const selectedFilterId = ref(projectStore.selectedProject);
+const loadingFilters = ref(true);
 
 const loading = ref(true);
 const projects = ref(null);
@@ -390,17 +397,56 @@ const valueWithdrawsPeriod = ref([]);
 const registrationDepositRatePeriod = ref([]);
 const depositConversionRatePeriod = ref([]);
 
-const loadContent = async () => {
-  loading.value = true;
+const fetchFilters = async () => {
   try {
-    let paramsQuery = {
-      start_date: selectedRange.value.start?.toString(),
-      end_date: selectedRange.value.end?.toString(),
-      project_id: selectedProject.value,
-    };
+    loadingFilters.value = true;
+    const response = await api.get("/user/configurations/project-filters");
+    const filters = response.data.data || [];
 
+    projectFilters.value = filters.map((filter) => ({
+      id: filter.id,
+      label: filter.label,
+    }));
+
+    if (filters.length > 0) {
+      if (!selectedFilterId.value) {
+        const favoriteFilter = filters.find((filter) => filter.is_favorite);
+        selectedFilterId.value = favoriteFilter
+          ? favoriteFilter.id
+          : filters[0].id;
+      }
+    }
+  } catch (error) {
+    toast({
+      title: "Erro ao carregar filtros",
+      description: "Não foi possível carregar os filtros de projetos.",
+      variant: "destructive",
+    });
+  } finally {
+    loadingFilters.value = false;
+  }
+};
+
+const applyFilter = async () => {
+  loading.value = true;
+  if (!selectedFilterId.value) {
+    toast({
+      title: "Erro",
+      description: "Selecione um grupo ou projeto antes de filtrar.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  projectStore.setSelectedProject(selectedFilterId.value);
+
+  try {
     const response = await api.get("/utils/analytics", {
-      params: paramsQuery,
+      params: {
+        start_date: selectedRange.value.start?.toString(),
+        end_date: selectedRange.value.end?.toString(),
+        filter_id: selectedFilterId.value,
+      },
     });
 
     depositsPeriod.value = response.data.data.deposits_period;
@@ -418,27 +464,22 @@ const loadContent = async () => {
       response.data.data.registration_deposit_rate_period;
     depositConversionRatePeriod.value =
       response.data.data.deposit_conversion_rate_period;
-
-    if (response.data.data.projects !== undefined) {
-      projects.value = response.data.data.projects;
-
-      if (!selectedProject.value) {
-        selectedProject.value = response.data.data.projects[0].id;
-      }
-    }
   } catch (error) {
-    console.error("Erro ao buscar dados:", error);
+    toast({
+      title: "Erro ao carregar dados",
+      description: "Não foi possível aplicar o filtro selecionado.",
+      variant: "destructive",
+    });
   } finally {
     loading.value = false;
   }
 };
 
-const applyFilter = () => {
-  projectStore.setSelectedProject(selectedProject.value);
-  loadContent();
-};
-
 onMounted(() => {
-  loadContent();
+  fetchFilters().then(() => {
+    if (selectedFilterId.value) {
+      applyFilter();
+    }
+  });
 });
 </script>

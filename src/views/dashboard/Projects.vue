@@ -30,9 +30,9 @@
             <TableRow v-for="project in projects" :key="project.id">
               <TableCell class="font-medium">{{ project.id }}</TableCell>
               <TableCell class="font-medium">{{ project.name }}</TableCell>
-              <TableCell class="font-medium">{{
-                $moment(project.created_at).format("DD/MM/YYYY HH:mm:ss")
-              }}</TableCell>
+              <TableCell class="font-medium">
+                {{ $moment(project.created_at).format("DD/MM/YYYY HH:mm:ss") }}
+              </TableCell>
               <TableCell>
                 <div class="flex items-center">
                   <LucideSpinner
@@ -104,24 +104,34 @@
       </CardFooter>
     </Card>
 
-    <Dialog v-model:open="showModal">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet v-model:open="showModal">
+      <SheetContent position="right" size="lg">
+        <SheetHeader>
+          <SheetTitle>
             {{ isEditing ? "Editar Projeto" : "Novo Projeto" }}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+          <SheetDescription>
+            {{
+              isEditing
+                ? "Edite as informações do projeto"
+                : "Crie um novo projeto"
+            }}
+          </SheetDescription>
+        </SheetHeader>
         <form @submit.prevent="isEditing ? updateProject() : createProject()">
-          <div class="space-y-4">
-            <div>
+          <div class="grid gap-4 py-4">
+            <div class="grid grid-cols-4 items-center gap-4">
               <Label for="name">Nome do Projeto</Label>
               <Input
                 id="name"
                 v-model="form.name"
                 placeholder="Digite o nome do projeto"
+                class="col-span-3"
                 required
               />
             </div>
+          </div>
+          <SheetFooter>
             <Button type="submit" :disabled="isProcessing">
               <LucideSpinner
                 v-if="isProcessing"
@@ -135,10 +145,10 @@
                   : "Criar Projeto"
               }}
             </Button>
-          </div>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   </div>
 </template>
 
@@ -172,11 +182,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -218,7 +230,7 @@ const fetchProjects = async () => {
 
 const toggleStatus = async (project) => {
   isProcessing.value = true;
-  processingAction.value = `status-${user.id}`;
+  processingAction.value = `status-${project.id}`;
   processingStatusId.value = project.id;
   try {
     const response = await api.patch(`/projects/${project.id}/toggle`);

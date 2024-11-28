@@ -72,22 +72,6 @@
           </Tooltip>
         </TooltipProvider>
       </nav>
-      <nav class="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <a
-                href="#"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-              >
-                <Settings class="h-5 w-5" />
-                <span class="sr-only">Configurações</span>
-              </a>
-            </TooltipTrigger>
-            <TooltipContent side="right">Configurações</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </nav>
     </aside>
     <div class="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
       <header
@@ -141,13 +125,6 @@
                 <Users2 class="h-5 w-5" />
                 Usuários
               </router-link>
-              <a
-                href="javascritp:;"
-                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-              >
-                <Settings class="h-5 w-5" />
-                Configurações
-              </a>
             </nav>
           </SheetContent>
         </Sheet>
@@ -179,7 +156,11 @@
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Configurações</DropdownMenuItem>
+            <DropdownMenuItem
+              ><router-link :to="{ name: 'configurations.profile' }"
+                >Configurações</router-link
+              ></DropdownMenuItem
+            >
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="logout">Logout</DropdownMenuItem>
           </DropdownMenuContent>

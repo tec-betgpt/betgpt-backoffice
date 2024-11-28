@@ -11,6 +11,13 @@ import Analytics from "@/views/dashboard/Analytics.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
 
+import ConfigurationLayout from "@/views/configurations/Layout.vue";
+import ConfigurationProfile from "@/views/configurations/Profile.vue";
+import ConfigurationSecurity from "@/views/configurations/Security.vue";
+import ConfigurationNotifications from "@/views/configurations/Notifications.vue";
+import ConfigurationProjects from "@/views/configurations/Projects.vue";
+import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
+
 const routes = [
   {
     path: "/",
@@ -80,6 +87,68 @@ const routes = [
       permission: "member",
       title: "Usuários",
     },
+  },
+  // Configurations routes
+  {
+    path: "/configurations",
+    component: ConfigurationLayout,
+    meta: {
+      requiresAuth: true,
+      title: "Configurações",
+    },
+    children: [
+      { path: "", redirect: "/configurations/profile" },
+      {
+        path: "profile",
+        name: "configurations.profile",
+        component: ConfigurationProfile,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Perfil",
+        },
+      },
+      {
+        path: "security",
+        name: "configurations.security",
+        component: ConfigurationSecurity,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Segurança",
+        },
+      },
+      {
+        path: "notifications",
+        name: "configurations.notifications",
+        component: ConfigurationNotifications,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Notificações",
+        },
+      },
+      {
+        path: "projects",
+        name: "configurations.projects",
+        component: ConfigurationProjects,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Projetos",
+        },
+      },
+      {
+        path: "confirm-email-change/:token",
+        name: "configurations.confirm-email-change",
+        component: ConfigurationConfirmEmailChange,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Confirmação de E-mail",
+        },
+      },
+    ],
   },
 ];
 
