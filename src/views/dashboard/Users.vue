@@ -15,7 +15,6 @@
             <Skeleton class="h-6 w-full" />
           </div>
         </div>
-
         <Table v-else>
           <TableHeader>
             <TableRow>
@@ -82,7 +81,6 @@
                         }}
                       </div>
                     </DropdownMenuItem>
-
                     <DropdownMenuItem
                       @mousedown="toggleStatus(user)"
                       :disabled="processingAction === `status-${user.id}`"
@@ -115,88 +113,104 @@
       </CardFooter>
     </Card>
 
-    <Dialog v-model:open="showModal">
-      <DialogContent class="max-h-screen overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet v-model:open="showModal">
+      <SheetContent position="right" size="lg">
+        <SheetHeader>
+          <SheetTitle>
             {{ isEditing ? "Editar Usuário" : "Novo Usuário" }}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+          <SheetDescription>
+            {{
+              isEditing
+                ? "Edite as informações do usuário"
+                : "Crie um novo usuário"
+            }}
+          </SheetDescription>
+        </SheetHeader>
         <form @submit.prevent="isEditing ? updateUser() : createUser()">
-          <div class="space-y-4">
-            <div>
+          <div class="grid gap-4 py-4">
+            <div class="grid grid-cols-4 items-center gap-4">
               <Label for="first_name">Nome</Label>
               <Input
                 id="first_name"
                 v-model="form.first_name"
                 placeholder="Digite o primeiro nome"
+                class="col-span-3"
                 required
               />
             </div>
-            <div>
+            <div class="grid grid-cols-4 items-center gap-4">
               <Label for="last_name">Sobrenome</Label>
               <Input
                 id="last_name"
                 v-model="form.last_name"
                 placeholder="Digite o sobrenome"
+                class="col-span-3"
                 required
               />
             </div>
-            <div>
+            <div class="grid grid-cols-4 items-center gap-4">
               <Label for="email">Email</Label>
               <Input
                 id="email"
                 v-model="form.email"
                 placeholder="Digite o email"
+                class="col-span-3"
                 required
               />
             </div>
-            <div>
+            <div class="grid grid-cols-4 items-center gap-4">
               <Label for="role">Acesso</Label>
-              <select
-                id="role"
-                v-model="form.role"
-                class="border rounded-md p-2 w-full"
-                required
-              >
-                <option value="client">Cliente</option>
-                <option value="member">Membro</option>
-              </select>
+              <Select id="role" v-model="form.role">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Selecione um perfil" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="client">Cliente</SelectItem>
+                  <SelectItem value="member">Membro</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div v-if="form.role === 'client'">
+            <div class="grid grid-cols-4 gap-4" v-if="form.role === 'client'">
               <Label>Projetos</Label>
-              <div class="space-y-2 max-h-64 overflow-y-auto">
+              <div class="space-y-2 max-h-72 overflow-y-auto col-span-3">
                 <div
                   v-for="project in projects"
                   :key="project.id"
                   class="flex items-center"
                 >
-                  <input
-                    type="checkbox"
-                    :value="project.id"
-                    v-model="form.project_ids"
+                  <Checkbox
+                    :checked="form.project_ids.includes(project.id)"
+                    @update:checked="onCheckboxChange(project.id, $event)"
+                    :id="'project-' + project.id"
                   />
-                  <span class="ml-2">{{ project.name }}</span>
+                  <Label
+                    class="ml-2 font-normal"
+                    :for="'project-' + project.id"
+                    >{{ project.name }}</Label
+                  >
                 </div>
               </div>
             </div>
-            <Button type="submit" :disabled="isProcessing">
-              <LucideSpinner
-                v-if="isProcessing"
-                class="mr-2 h-4 w-4 animate-spin"
-              />
-              {{
-                isProcessing
-                  ? "Carregando..."
-                  : isEditing
-                  ? "Salvar"
-                  : "Criar Usuário"
-              }}
-            </Button>
+            <SheetFooter>
+              <Button type="submit" :disabled="isProcessing">
+                <LucideSpinner
+                  v-if="isProcessing"
+                  class="mr-2 h-4 w-4 animate-spin"
+                />
+                {{
+                  isProcessing
+                    ? "Carregando..."
+                    : isEditing
+                    ? "Salvar"
+                    : "Criar Usuário"
+                }}
+              </Button>
+            </SheetFooter>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   </div>
 </template>
 
@@ -230,11 +244,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -396,6 +420,14 @@ const toggleStatus = async (user) => {
 
 const getStatus = (user) => {
   return user.statuses?.[0]?.name || "inactive";
+};
+
+const onCheckboxChange = (id, checked) => {
+  if (checked) {
+    form.value.project_ids.push(id);
+  } else {
+    form.value.project_ids = form.value.project_ids.filter((pid) => pid !== id);
+  }
 };
 
 onMounted(fetchUsersAndProjects);
