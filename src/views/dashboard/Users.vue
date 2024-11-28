@@ -1,14 +1,14 @@
 <template>
-  <div class="p-6">
+  <div class="space-y-6 p-10 pb-16">
+    <div class="space-y-0.5">
+      <h2 class="text-2xl font-bold tracking-tight">Gerenciar Usuários</h2>
+      <p class="text-muted-foreground">
+        Liste, edite, gerencie usuários e altere status.
+      </p>
+    </div>
     <Card>
-      <CardHeader>
-        <CardTitle>Gerenciar Usuários</CardTitle>
-        <CardDescription>
-          Liste, edite, gerencie usuários e altere status.
-        </CardDescription>
-      </CardHeader>
       <CardContent>
-        <div v-if="isLoading">
+        <div v-if="isLoading" class="mt-6">
           <div class="space-y-4">
             <Skeleton class="h-6 w-full" />
             <Skeleton class="h-6 w-full" />

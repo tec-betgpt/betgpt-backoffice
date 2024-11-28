@@ -1,11 +1,16 @@
 <template>
-  <div>
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="text-3xl font-bold tracking-tight">Relatórios</h2>
-      <div
-        class="flex items-center space-x-2"
-        v-if="projectFilters && projectFilters.length"
-      >
+  <div class="space-y-6 p-10 pb-16">
+    <div class="space-y-0.5">
+      <h2 class="text-2xl font-bold tracking-tight">Relatórios</h2>
+      <p class="text-muted-foreground">
+        Relatórios e métricas de um período específico.
+      </p>
+    </div>
+    <div
+      class="flex items-center justify-end mb-3"
+      v-if="projectFilters && projectFilters.length"
+    >
+      <div class="flex items-center space-x-2">
         <Select v-model="selectedFilterId">
           <SelectTrigger class="w-[250px]">
             <SelectValue placeholder="Selecione um grupo ou projeto" />
