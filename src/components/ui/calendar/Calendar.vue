@@ -1,59 +1,20 @@
-<script setup>
-import { cn } from '@/lib/utils';
-import { CalendarRoot, useForwardPropsEmits } from 'radix-vue';
-import { computed } from 'vue';
-import {
-  CalendarCell,
-  CalendarCellTrigger,
-  CalendarGrid,
-  CalendarGridBody,
-  CalendarGridHead,
-  CalendarGridRow,
-  CalendarHeadCell,
-  CalendarHeader,
-  CalendarHeading,
-  CalendarNextButton,
-  CalendarPrevButton,
-} from '.';
+<script lang="ts" setup>
+import { cn } from '@/lib/utils'
+import { CalendarRoot, type CalendarRootEmits, type CalendarRootProps, useForwardPropsEmits } from 'radix-vue'
+import { computed, type HTMLAttributes } from 'vue'
+import { CalendarCell, CalendarCellTrigger, CalendarGrid, CalendarGridBody, CalendarGridHead, CalendarGridRow, CalendarHeadCell, CalendarHeader, CalendarHeading, CalendarNextButton, CalendarPrevButton } from '.'
 
-const props = defineProps({
-  modelValue: { type: null, required: false },
-  multiple: { type: Boolean, required: false },
-  defaultValue: { type: null, required: false },
-  defaultPlaceholder: { type: null, required: false },
-  placeholder: { type: null, required: false },
-  pagedNavigation: { type: Boolean, required: false },
-  preventDeselect: { type: Boolean, required: false },
-  weekStartsOn: { type: Number, required: false },
-  weekdayFormat: { type: String, required: false },
-  calendarLabel: { type: String, required: false },
-  fixedWeeks: { type: Boolean, required: false },
-  maxValue: { type: null, required: false },
-  minValue: { type: null, required: false },
-  locale: { type: String, required: false },
-  numberOfMonths: { type: Number, required: false },
-  disabled: { type: Boolean, required: false },
-  readonly: { type: Boolean, required: false },
-  initialFocus: { type: Boolean, required: false },
-  isDateDisabled: { type: Function, required: false },
-  isDateUnavailable: { type: Function, required: false },
-  dir: { type: String, required: false },
-  nextPage: { type: Function, required: false },
-  prevPage: { type: Function, required: false },
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
-  class: { type: null, required: false },
-});
+const props = defineProps<CalendarRootProps & { class?: HTMLAttributes['class'] }>()
 
-const emits = defineEmits(['update:modelValue', 'update:placeholder']);
+const emits = defineEmits<CalendarRootEmits>()
 
 const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
+  const { class: _, ...delegated } = props
 
-  return delegated;
-});
+  return delegated
+})
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
+const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
@@ -72,23 +33,24 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       <CalendarGrid v-for="month in grid" :key="month.value.toString()">
         <CalendarGridHead>
           <CalendarGridRow>
-            <CalendarHeadCell v-for="day in weekDays" :key="day">
+            <CalendarHeadCell
+              v-for="day in weekDays" :key="day"
+            >
               {{ day }}
             </CalendarHeadCell>
           </CalendarGridRow>
         </CalendarGridHead>
         <CalendarGridBody>
-          <CalendarGridRow
-            v-for="(weekDates, index) in month.rows"
-            :key="`weekDate-${index}`"
-            class="mt-2 w-full"
-          >
+          <CalendarGridRow v-for="(weekDates, index) in month.rows" :key="`weekDate-${index}`" class="mt-2 w-full">
             <CalendarCell
               v-for="weekDate in weekDates"
               :key="weekDate.toString()"
               :date="weekDate"
             >
-              <CalendarCellTrigger :day="weekDate" :month="month.value" />
+              <CalendarCellTrigger
+                :day="weekDate"
+                :month="month.value"
+              />
             </CalendarCell>
           </CalendarGridRow>
         </CalendarGridBody>

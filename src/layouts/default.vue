@@ -1,180 +1,5 @@
-<template>
-  <div class="flex min-h-screen w-full flex-col bg-muted/40">
-    <aside
-      class="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex"
-    >
-      <nav class="flex flex-col items-center gap-4 px-2 sm:py-5">
-        <router-link
-          :to="{ name: 'home' }"
-          class="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
-        >
-          <Package2 class="h-4 w-4 transition-all group-hover:scale-110" />
-          <span class="sr-only">BetGPT</span>
-        </router-link>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                :to="{ name: 'home' }"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-              >
-                <Home class="h-5 w-5" />
-                <span class="sr-only">Dashboard</span>
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent side="right">Dashboard</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                :to="{ name: 'analytics' }"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-              >
-                <LineChart class="h-5 w-5" />
-                <span class="sr-only">Relatórios</span>
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent side="right">Relatórios</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider
-          v-if="authStore.user && authStore.user.type === 'member'"
-        >
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                :to="{ name: 'projects' }"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-              >
-                <Building2 class="h-5 w-5" />
-                <span class="sr-only">Projetos</span>
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent side="right">Projetos</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider
-          v-if="authStore.user && authStore.user.type === 'member'"
-        >
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                :to="{ name: 'users' }"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-              >
-                <Users2 class="h-5 w-5" />
-                <span class="sr-only">Usuários</span>
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent side="right">Usuários</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </nav>
-    </aside>
-    <div class="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-      <header
-        class="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6"
-      >
-        <Sheet>
-          <SheetTrigger as-child>
-            <Button size="icon" variant="outline" class="sm:hidden">
-              <PanelLeft class="h-5 w-5" />
-              <span class="sr-only">Menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" class="sm:max-w-xs">
-            <nav class="grid gap-6 text-lg font-medium">
-              <router-link
-                :to="{ name: 'home' }"
-                class="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
-              >
-                <Package2
-                  class="h-5 w-5 transition-all group-hover:scale-110"
-                />
-                <span class="sr-only">BetGPT</span>
-              </router-link>
-              <router-link
-                :to="{ name: 'home' }"
-                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-              >
-                <Home class="h-5 w-5" />
-                Dashboard
-              </router-link>
-              <router-link
-                :to="{ name: 'analytics' }"
-                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-              >
-                <LineChart class="h-5 w-5" />
-                Relatórios
-              </router-link>
-              <router-link
-                v-if="authStore.user && authStore.user.type === 'member'"
-                :to="{ name: 'projects' }"
-                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-              >
-                <Building2 class="h-5 w-5" />
-                Projetos
-              </router-link>
-              <router-link
-                v-if="authStore.user && authStore.user.type === 'member'"
-                :to="{ name: 'users' }"
-                class="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-              >
-                <Users2 class="h-5 w-5" />
-                Usuários
-              </router-link>
-            </nav>
-          </SheetContent>
-        </Sheet>
-        <Breadcrumb class="hidden md:flex">
-          <BreadcrumbList>
-            <BreadcrumbItem v-for="(crumb, index) in breadcrumbs" :key="index">
-              <template v-if="crumb.path">
-                <BreadcrumbLink as-child>
-                  <router-link :to="{ path: crumb.path }">{{
-                    crumb.title
-                  }}</router-link>
-                </BreadcrumbLink>
-              </template>
-              <template v-else>
-                <BreadcrumbPage>{{ crumb.title }}</BreadcrumbPage>
-              </template>
-              <BreadcrumbSeparator v-if="index < breadcrumbs.length - 1" />
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div class="relative ml-auto flex-1 md:grow-0">&nbsp;</div>
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <Button variant="secondary" size="icon" class="rounded-full">
-              <CircleUser class="h-5 w-5" />
-              <span class="sr-only">User menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              ><router-link :to="{ name: 'configurations.profile' }"
-                >Configurações</router-link
-              ></DropdownMenuItem
-            >
-            <DropdownMenuSeparator />
-            <DropdownMenuItem @click="logout">Logout</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
-      <main class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
-        <router-view></router-view>
-      </main>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -191,7 +16,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarHeader,
+  SidebarInset,
+} from "@/components/ui/sidebar";
 import {
   Tooltip,
   TooltipContent,
@@ -199,19 +37,19 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import {
-  CircleUser,
   Home,
-  PanelLeft,
-  Package2,
-  Settings,
-  Users2,
   LineChart,
   Building2,
+  Users2,
+  LogOut,
+  Package2,
+  ChevronsUpDown,
 } from "lucide-vue-next";
 
-import { computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 interface BreadcrumbItem {
   name: string;
@@ -223,11 +61,12 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
+// Breadcrumbs
 const breadcrumbs = computed(() => {
   const breadcrumbItems: BreadcrumbItem[] = [
     {
       name: "home",
-      title: "Dashboard",
+      title: "Home",
       path: "/home",
     },
   ];
@@ -254,8 +93,276 @@ const breadcrumbs = computed(() => {
   return breadcrumbItems;
 });
 
+const navMenu = computed(() => {
+  const menu = [
+    {
+      name: "Home",
+      url: { name: "home" },
+      icon: Home,
+      show: true,
+    },
+    {
+      name: "Relatórios",
+      url: { name: "analytics" },
+      icon: LineChart,
+      show: true,
+    },
+    {
+      name: "Projetos",
+      url: { name: "projects" },
+      icon: Building2,
+      show: authStore.user?.type === "member",
+    },
+    {
+      name: "Usuários",
+      url: { name: "users" },
+      icon: Users2,
+      show: authStore.user?.type === "member",
+    },
+  ];
+
+  return menu.filter((item) => item.show);
+});
+
+// Times (Projects)
+const projects = computed(() => workspaceStore.projects);
+const activeProject = computed(() => workspaceStore.activeProject || null);
+
+const workspaceStore = useWorkspaceStore();
+
+const setActiveProject = async (
+  project: typeof workspaceStore.activeProject
+) => {
+  await workspaceStore.setActiveProject(project);
+};
+
+const stateResponsive = ref(false);
+const setResponsive = () => {
+  stateResponsive.value = !stateResponsive.value;
+};
+
+onMounted(async () => {
+  const user = authStore.user;
+  if (user) {
+    await workspaceStore.loadInitialData(user?.preferences, user?.projects);
+  }
+});
+
+// Logout
 const logout = async () => {
   authStore.logout();
   router.push("/login");
 };
 </script>
+
+<template>
+  <SidebarProvider>
+    <Sidebar collapsible="icon">
+      <SidebarHeader v-if="activeProject">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <SidebarMenuButton
+                  size="lg"
+                  class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <div
+                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+                  >
+                    <component
+                      v-if="activeProject && activeProject.media.length"
+                      :is="activeProject.media[0]"
+                      class="size-4"
+                    />
+                    <Package2
+                      class="h-4 w-4 transition-all group-hover:scale-110"
+                      v-else
+                    />
+                  </div>
+                  <div class="grid flex-1 text-left text-sm leading-tight">
+                    <span class="truncate font-semibold">{{
+                      activeProject.name
+                    }}</span>
+                    <span class="truncate text-xs">Projeto</span>
+                  </div>
+                  <ChevronsUpDown class="ml-auto" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                align="start"
+                side="bottom"
+                :side-offset="4"
+              >
+                <DropdownMenuLabel class="text-xs text-muted-foreground">
+                  Projetos
+                </DropdownMenuLabel>
+                <DropdownMenuItem
+                  v-for="project in workspaceStore.projects"
+                  :key="project.name"
+                  class="gap-2 p-2"
+                  @click="setActiveProject(project)"
+                >
+                  <div
+                    class="flex size-6 items-center justify-center rounded-sm border"
+                  >
+                    <component
+                      v-if="project && project.media.length"
+                      :is="project.media[0]"
+                      class="size-4 shrink-0"
+                    />
+                    <Package2
+                      class="h-4 w-4 transition-all group-hover:scale-110"
+                      v-else
+                    />
+                  </div>
+                  {{ project.name }}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Projeto</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem v-for="item in navMenu" :key="item.name">
+              <TooltipProvider :disabled="!stateResponsive">
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <SidebarMenuButton as-child>
+                      <router-link
+                        :to="item.url"
+                        class="flex items-center p-2 rounded-md transition-colors"
+                        :class="{
+                          'bg-sidebar-accent text-sidebar-accent-foreground':
+                            route.name === item.url.name,
+                          'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
+                        }"
+                      >
+                        <component :is="item.icon" class="mr-2" />
+                        <span>{{ item.name }}</span>
+                      </router-link>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{{ item.name }}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <SidebarMenuButton
+                  size="lg"
+                  class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <Avatar class="h-8 w-8 rounded-lg">
+                    <AvatarImage
+                      :src="authStore.user?.avatar"
+                      :alt="authStore.user?.name"
+                    />
+                    <AvatarFallback class="rounded-lg">
+                      {{ authStore.user?.initials }}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div class="grid flex-1 text-left text-sm leading-tight">
+                    <span class="truncate font-semibold">{{
+                      authStore.user?.first_name
+                    }}</span>
+                    <span class="truncate text-xs">{{
+                      authStore.user?.email
+                    }}</span>
+                  </div>
+                  <ChevronsUpDown class="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                side="bottom"
+                align="end"
+                :side-offset="4"
+              >
+                <DropdownMenuLabel class="p-0 font-normal">
+                  <div
+                    class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
+                  >
+                    <Avatar class="h-8 w-8 rounded-lg">
+                      <AvatarImage
+                        :src="authStore.user?.avatar"
+                        :alt="authStore.user?.name"
+                      />
+                      <AvatarFallback class="rounded-lg">
+                        {{ authStore.user?.initials }}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div class="grid flex-1 text-left text-sm leading-tight">
+                      <span class="truncate font-semibold">{{
+                        authStore.user?.name
+                      }}</span>
+                      <span class="truncate text-xs">{{
+                        authStore.user?.email
+                      }}</span>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  ><router-link :to="{ name: 'configurations.profile' }"
+                    >Configurações</router-link
+                  ></DropdownMenuItem
+                >
+                <DropdownMenuSeparator />
+                <DropdownMenuItem @click="logout">
+                  <LogOut />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+    <SidebarInset>
+      <header
+        class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
+      >
+        <div class="flex items-center gap-2 px-4">
+          <SidebarTrigger @click="setResponsive()" class="-ml-1" />
+          <Separator orientation="vertical" class="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem
+                v-for="(crumb, index) in breadcrumbs"
+                :key="index"
+              >
+                <template v-if="crumb.path">
+                  <BreadcrumbLink as-child>
+                    <router-link :to="{ path: crumb.path }">
+                      {{ crumb.title }}
+                    </router-link>
+                  </BreadcrumbLink>
+                </template>
+                <template v-else>
+                  <BreadcrumbPage>{{ crumb.title }}</BreadcrumbPage>
+                </template>
+                <BreadcrumbSeparator v-if="index < breadcrumbs.length - 1" />
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
+      <main class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
+        <router-view></router-view>
+      </main>
+    </SidebarInset>
+  </SidebarProvider>
+</template>

@@ -212,7 +212,6 @@ const fetchProjectsAndGroups = async () => {
     groups.value = groupsResponse.data.data;
     favoriteProjectId.value = projectsResponse.data.data.favorite_project_id;
     favoriteGroupId.value = projectsResponse.data.data.favorite_group_id;
-    console.log(projects.value);
   } catch (error) {
     toast({
       title: "Erro",

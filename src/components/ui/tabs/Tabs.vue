@@ -1,18 +1,11 @@
-<script setup>
-import { TabsRoot, useForwardPropsEmits } from 'radix-vue';
+<script setup lang="ts">
+import type { TabsRootEmits, TabsRootProps } from 'radix-vue'
+import { TabsRoot, useForwardPropsEmits } from 'radix-vue'
 
-const props = defineProps({
-  defaultValue: { type: null, required: false },
-  orientation: { type: String, required: false },
-  dir: { type: String, required: false },
-  activationMode: { type: String, required: false },
-  modelValue: { type: null, required: false },
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
-});
-const emits = defineEmits(['update:modelValue']);
+const props = defineProps<TabsRootProps>()
+const emits = defineEmits<TabsRootEmits>()
 
-const forwarded = useForwardPropsEmits(props, emits);
+const forwarded = useForwardPropsEmits(props, emits)
 </script>
 
 <template>
