@@ -1,62 +1,20 @@
-<script setup>
-import { cn } from '@/lib/utils';
-import { RangeCalendarRoot, useForwardPropsEmits } from 'radix-vue';
-import { computed } from 'vue';
-import {
-  RangeCalendarCell,
-  RangeCalendarCellTrigger,
-  RangeCalendarGrid,
-  RangeCalendarGridBody,
-  RangeCalendarGridHead,
-  RangeCalendarGridRow,
-  RangeCalendarHeadCell,
-  RangeCalendarHeader,
-  RangeCalendarHeading,
-  RangeCalendarNextButton,
-  RangeCalendarPrevButton,
-} from '.';
+<script lang="ts" setup>
+import { cn } from '@/lib/utils'
+import { RangeCalendarRoot, type RangeCalendarRootEmits, type RangeCalendarRootProps, useForwardPropsEmits } from 'radix-vue'
+import { computed, type HTMLAttributes } from 'vue'
+import { RangeCalendarCell, RangeCalendarCellTrigger, RangeCalendarGrid, RangeCalendarGridBody, RangeCalendarGridHead, RangeCalendarGridRow, RangeCalendarHeadCell, RangeCalendarHeader, RangeCalendarHeading, RangeCalendarNextButton, RangeCalendarPrevButton } from '.'
 
-const props = defineProps({
-  defaultPlaceholder: { type: null, required: false },
-  defaultValue: { type: Object, required: false },
-  modelValue: { type: Object, required: false },
-  placeholder: { type: null, required: false },
-  pagedNavigation: { type: Boolean, required: false },
-  preventDeselect: { type: Boolean, required: false },
-  weekStartsOn: { type: Number, required: false },
-  weekdayFormat: { type: String, required: false },
-  calendarLabel: { type: String, required: false },
-  fixedWeeks: { type: Boolean, required: false },
-  maxValue: { type: null, required: false },
-  minValue: { type: null, required: false },
-  locale: { type: String, required: false },
-  numberOfMonths: { type: Number, required: false },
-  disabled: { type: Boolean, required: false },
-  readonly: { type: Boolean, required: false },
-  initialFocus: { type: Boolean, required: false },
-  isDateDisabled: { type: Function, required: false },
-  isDateUnavailable: { type: Function, required: false },
-  dir: { type: String, required: false },
-  nextPage: { type: Function, required: false },
-  prevPage: { type: Function, required: false },
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
-  class: { type: null, required: false },
-});
+const props = defineProps<RangeCalendarRootProps & { class?: HTMLAttributes['class'] }>()
 
-const emits = defineEmits([
-  'update:modelValue',
-  'update:placeholder',
-  'update:startValue',
-]);
+const emits = defineEmits<RangeCalendarRootEmits>()
 
 const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
+  const { class: _, ...delegated } = props
 
-  return delegated;
-});
+  return delegated
+})
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
+const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
@@ -75,23 +33,24 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       <RangeCalendarGrid v-for="month in grid" :key="month.value.toString()">
         <RangeCalendarGridHead>
           <RangeCalendarGridRow>
-            <RangeCalendarHeadCell v-for="day in weekDays" :key="day">
+            <RangeCalendarHeadCell
+              v-for="day in weekDays" :key="day"
+            >
               {{ day }}
             </RangeCalendarHeadCell>
           </RangeCalendarGridRow>
         </RangeCalendarGridHead>
         <RangeCalendarGridBody>
-          <RangeCalendarGridRow
-            v-for="(weekDates, index) in month.rows"
-            :key="`weekDate-${index}`"
-            class="mt-2 w-full"
-          >
+          <RangeCalendarGridRow v-for="(weekDates, index) in month.rows" :key="`weekDate-${index}`" class="mt-2 w-full">
             <RangeCalendarCell
               v-for="weekDate in weekDates"
               :key="weekDate.toString()"
               :date="weekDate"
             >
-              <RangeCalendarCellTrigger :day="weekDate" :month="month.value" />
+              <RangeCalendarCellTrigger
+                :day="weekDate"
+                :month="month.value"
+              />
             </RangeCalendarCell>
           </RangeCalendarGridRow>
         </RangeCalendarGridBody>

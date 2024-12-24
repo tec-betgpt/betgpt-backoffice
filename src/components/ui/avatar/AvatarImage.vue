@@ -1,11 +1,7 @@
-<script setup>
-import { AvatarImage } from 'radix-vue';
+<script setup lang="ts">
+import { AvatarImage, type AvatarImageProps } from 'radix-vue'
 
-const props = defineProps({
-  src: { type: String, required: true },
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
-});
+const props = defineProps<AvatarImageProps>()
 </script>
 
 <template>

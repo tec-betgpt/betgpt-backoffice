@@ -1,14 +1,7 @@
-<script setup>
-import { TooltipProvider } from 'radix-vue';
+<script setup lang="ts">
+import { TooltipProvider, type TooltipProviderProps } from 'radix-vue'
 
-const props = defineProps({
-  delayDuration: { type: Number, required: false },
-  skipDelayDuration: { type: Number, required: false },
-  disableHoverableContent: { type: Boolean, required: false },
-  disableClosingTrigger: { type: Boolean, required: false },
-  disabled: { type: Boolean, required: false },
-  ignoreNonKeyboardFocus: { type: Boolean, required: false },
-});
+const props = defineProps<TooltipProviderProps>()
 </script>
 
 <template>
