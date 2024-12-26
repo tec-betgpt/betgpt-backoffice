@@ -23,7 +23,7 @@
           {{ $t('verification_code_app') }}
         </DialogDescription>
 
-        <Pin class="w-full flex justify-center" :finish="disable2fa" />
+        <CustomPinInput class="w-full flex justify-center" :finish="disable2fa" />
       </div>
       <div class="flex justify-center w-full align-middle">
         <LucideSpinner v-if="loading" class="mr-2 h-6 w-6 animate-spin" />
@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+
 import {
   Dialog,
   DialogTrigger,
@@ -54,9 +55,11 @@ import { Button } from '@/components/ui/button'
 import api from "@/services/api.js";
 import Form from "vform";
 import { useToast } from "@/components/ui/toast/use-toast";
-import {useAuthStore} from "@/stores/auth";
-import Pin from "@/components/custom/CustomPinInput.vue";
 const { toast } = useToast();
+import i18n from "@/i18n";
+import {useAuthStore} from "@/stores/auth";
+import CustomPinInput from "@/components/custom/CustomPinInput.vue";
+
 const userAuth = useAuthStore()
 const isDialogOpen = ref(false);
 const loading = ref(false);
@@ -73,14 +76,25 @@ const form2fa = ref(new Form({
 }))
 
 const disable2fa = async (code: Array<string>) => {
+  if (code.length < 6) {
+    toast({
+      title: i18n.global.t("warning"),
+      description:  i18n.global.t("error_not_code"),
+      duration:3000,
+      variant:'destructive'
+    });
+    return
+  }
   loading.value = true;
 
   try {
     form2fa.value.two_factor_code = code.join("");
+
     const response = await form2fa.value.post("/user/configurations/disable-two-factor");
     step.value = true;
 
     toast({
+      title: i18n.global.t("success"),
       description:  response.data.message,
       duration:3000
     });
@@ -89,11 +103,7 @@ const disable2fa = async (code: Array<string>) => {
     console.error("Erro ao desativar 2FA:", error);
     step.value = true;
 
-    toast({
 
-      description:  error.data.message,
-      duration:3000
-    });
   } finally {
     closeDialog();
     loading.value = false;

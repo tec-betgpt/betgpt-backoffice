@@ -112,7 +112,7 @@
           </p>
         </div>
         <div class="flex flex-col justify-center align-middle gap-2">
-          <Pin :finish="twoFactorLogin" class="flex justify-center"/>
+          <Pin :finish="twoFactorLogin" class="flex justify-center" :loading="loading"/>
           <p class="text-xs text-end text-gray-500 font-normal cursor-pointer" @click="getRecoveryCode">
             {{ $t("no_access_two_factor") }}
           </p>
@@ -156,8 +156,9 @@
           </CardContent>
         </Card>
         <div class="flex flex-col justify-center align-middle gap-3">
-          <Button @click="recoveryCode">
-            <p>{{ $t("confirm") }}</p>
+          <Button @click="recoveryCode" :disabled="loadingRecovery" >
+            <p v-if="!loadingRecovery"> {{ $t("confirm") }}</p>
+            <LucideSpinner v-else class="mr-2 h-4 w-4 animate-spin"/>
           </Button>
           <Button @click="recoveryScreen = !recoveryScreen" variant="outline">
             <p>{{ $t("back") }}</p>
@@ -175,7 +176,7 @@
               {{ $t("redirect_to_login") }}
             </DialogDescription>
             <DialogFooter>
-              <Button @click="ScreenTwoFactor = false">
+              <Button @click="ScreenTwoFactor = false" >
                 <p v-if="!loadingRecovery">{{ $t("continue") }}</p>
               </Button>
             </DialogFooter>
@@ -203,7 +204,9 @@ import Pin from "@/components/custom/CustomPinInput.vue";
 import {Card, CardContent} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader} from "@/components/ui/dialog";
-
+import { useToast } from "@/components/ui/toast/use-toast";
+const { toast } = useToast();
+import i18n from "@/i18n";
 Form.axios = api;
 
 const isDialog = ref(false)
@@ -240,12 +243,13 @@ function removeCode(value:string){
 function timeTwoFactor() {
   resend.value = false
   const intervalId = setInterval(() => {
-
+    time.value--;
     if (time.value < 1) {
       clearInterval(intervalId); // Use o identificador aqui
       resend.value = true;
+      time.value = 0;
     }
-    time.value--;
+
   }, 1000);
 
 
@@ -296,6 +300,15 @@ const login = async () => {
   }
 };
 const twoFactorLogin = async (code:Array<string>) => {
+  if (code.length < 6) {
+    toast({
+      title: i18n.global.t("warning"),
+      description:  i18n.global.t("error_not_code"),
+      duration:3000,
+      variant:'destructive'
+    });
+    return
+  }
   loading.value = true;
   try {
     form.value.two_factor_code = ''
@@ -322,6 +335,12 @@ const resendTwoFactorLogin = async () => {
     const response = await api.get(`/auth/login/two-factor/${id.value[0]}`,);
     time.value = 60
     timeTwoFactor()
+    toast({
+      title: i18n.global.t("success"),
+      description:  response.data.message,
+      duration:3000,
+
+    });
   } catch (error) {
     console.error("Erro ao reenviar o código:", error);
   } finally {
@@ -341,7 +360,15 @@ const getRecoveryCode = async ()=>{
   }
 }
 const recoveryCode = async ()=>{
-
+  if (securityCode.value.length < 10) {
+    toast({
+      title: i18n.global.t("warning"),
+      description:  i18n.global.t("error_not_code"),
+      duration:3000,
+      variant:'destructive'
+    });
+    return
+  }
   form.value.recovery_code = securityCode.value.join("-")
   console.log(form.value)
   try {

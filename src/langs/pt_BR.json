@@ -10,7 +10,7 @@
   "account_recovery_info" : "Não consegue acessar sua conta? Siga as etapas para recuperar o acesso de forma segura.",
   "two_factor_disabled" : "Autenticação em Duas Etapas Desativada",
   "two_factor_disabled_success" : "A autenticação em duas etapas foi desativada com sucesso utilizando sua chave de recuperação.",
-  "redirect_to_login" : "             Para continuar, você será redirecionado para a tela de login. Por favor, insira suas credenciais para acessar sua conta novamente.",
+  "redirect_to_login" : "Para continuar, você será redirecionado para a tela de login. Por favor, insira suas credenciais para acessar sua conta novamente.",
   "continue" : "Continuar",
   "click_keywords_order" : "Clique nas palavras-chave na ordem correta que você configurou para verificar sua identidade.",
   "slogan": "O Caminho do Sucesso no Mercado Bet com a Melhor Assessoria Estratégica do Brasil",
@@ -74,10 +74,10 @@
   "verification_code_email": "Enviamos um código de verificação para o seu e-mail. Por favor, verifique sua caixa de entrada e insira o código abaixo para continuar.",
   "verification_code_app": "Abra o aplicativo de autenticação em seu dispositivo e insira o código de verificação gerado para continuar.",
   "cancel": "Cancelar",
-  "success_title": "Sucesso",
+  "success": "Sucesso",
   "success_description": "Autenticação de dois fatores desativada com sucesso.",
-  "error_title": "Erro",
+  "error": "Erro",
   "error_description_disable_2fa": "Não foi possível desativar o 2FA. Tente novamente.",
-  "error_description_next_step": "Não foi possível avançar para o próximo passo."
-
+  "error_description_next_step": "Não foi possível avançar para o próximo passo.",
+  "error_not_code": "Insira o código para continuar"
 }

@@ -106,7 +106,7 @@ import ClipboardButton from "@/components/custom/ClipboardButton.vue";
 
 
 
-
+import i18n from "@/i18n";
 const { toast } = useToast();
 const isDialogOpen = ref(false);
 const step = ref({type:"",step:true});
@@ -150,22 +150,28 @@ const active2fa = async () => {
     closeDialog()
     step.value.step = true
     qrCode.value = [];
-    toast({
-      description: error.data.message,
-      variant: "destructive",
-    });
+
   } finally {
     loading.value = false
   }
 };
 const validate2fa = async (code:Array<string>)=>{
+  if (code.length < 6) {
+    toast({
+      title: i18n.global.t("warning"),
+      description:  i18n.global.t("error_not_code"),
+      duration:3000,
+      variant:'destructive'
+    });
+    return
+  }
   loading.value = true
-
   try {
     form2fa.value.two_factor_code = code.join("");
    const response = await form2fa.value.post("/user/configurations/validate-two-factor")
 
     toast({
+      title: i18n.global.t("success"),
       description:  response.data.message,
       duration:3000
     });
@@ -179,18 +185,11 @@ const validate2fa = async (code:Array<string>)=>{
     step.value.step = true
     step.value.type = ""
     finish.value = true
-    toast({
-      description: error.data.message,
-      variant: "destructive",
-      duration:3000
-    });
   }finally {
     loading.value = false
 
 
   }
 }
-// function delay(ms: number): Promise<void> {
-//   return new Promise(resolve => setTimeout(resolve, ms));
-// }
+
 </script>
