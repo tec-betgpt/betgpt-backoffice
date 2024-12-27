@@ -74,14 +74,10 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 
 import TwoFactorAuth from "@/views/configurations/SecurityTwoFactor/TwoFactorAuth.vue";
-const codeTwoFactor = ref([])
+
 const { toast } = useToast();
 const loading = ref(false);
-const loading2fa = ref(false)
-const qrCode = ref("")
-const authStore = useAuthStore();
-const isDialog = ref(false);
-const step = ref(true)
+
 
 
 const form = ref(
@@ -92,11 +88,6 @@ const form = ref(
   })
 );
 
-const form2fa = ref(new Form({
-      two_factor_code:"",
-      type:""
-    }))
-
 const submit = async () => {
   loading.value = true;
   try {
@@ -104,7 +95,7 @@ const submit = async () => {
     toast({
       title: "Sucesso",
       description: "Senha alterada com sucesso.",
-      variant: "success",
+
     });
     form.value.reset();
   } catch (error) {
@@ -118,120 +109,5 @@ const submit = async () => {
     loading.value = false;
   }
 };
-//Disable
-const disable2fa = async () => {
-  loading2fa.value = true
-  try {
-    if (codeTwoFactor.value.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Por favor, insira o código de dois fatores.",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    form2fa.value.two_factor_code = codeTwoFactor.value.join("");
-    await form2fa.value.post("/user/configurations/disable-two-factor");
-
-    toast({
-      title: "Sucesso",
-      description: "Autenticação de dois fatores desativada com sucesso.",
-      variant: "success",
-    });
-
-    codeTwoFactor.value = [];
-    step.value = true;
-    isDialog.value = false
-  } catch (error: any) {
-    console.error("Erro ao desativar 2FA:", error);
-    toast({
-      title: "Erro",
-      description:
-          error?.response?.data?.message || "Não foi possível desativar o 2FA. Tente novamente.",
-      variant: "destructive",
-    });
-  }finally {
-    loading2fa.value = false
-    codeTwoFactor.value = []
-
-  }
-};
-const nextStep = async () => {
-  loading2fa.value = true
-  try {
-
-    if (authStore.user.preferences.auth2fa === "email") {
-      await api.get(`/auth/login/two-factor/${authStore.user.id}`);
-    }
-    step.value = false;
-  } catch (error: any) {
-    console.error("Erro ao avançar para o próximo passo do 2FA:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível avançar para o próximo passo.",
-      variant: "destructive",
-    });
-  }finally {
-    loading2fa.value = false
-
-  }
-};
-
-const openDialog = async ()=>{
-  console.log(isDialog.value)
-  isDialog.value = !isDialog.value;
-  console.log(isDialog.value)
-}
-//Active
-const active2fa = async (type: string) => {
-  step.value = false;
-  loading2fa.value = true;
-  try {
-    form2fa.value.type = type;
-    qrCode.value = "";
-    const response = await form2fa.value.post("/user/configurations/active-two-factor");
-    console.log(response.data);
-    if (response.data.message === "Scan this QR code with your authenticator app.") {
-      qrCode.value = response.data.data;
-    }
-  } catch (error: any) {
-    isDialog.value = false
-    step.value = true
-    console.error("Erro ao ativar 2FA:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível ativar o 2FA. Tente novamente.",
-      variant: "destructive",
-    });
-  } finally {
-    loading2fa.value = false;
-  }
-};
-const validate2fa = async ()=>{
-  loading2fa.value = true
-  try {
-    form2fa.value.two_factor_code = codeTwoFactor.value.join("");
-    console.log(form2fa.value)
-     await form2fa.value.post("/user/configurations/validate-two-factor")
-    toast({
-      title: "Sucesso",
-      description: "Autenticação de dois fatores validada com sucesso.",
-      variant: "success",
-    });
-  }catch (error){
-    console.error("Erro ao validar 2FA:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível validar o 2FA. Tente novamente.",
-      variant: "destructive",
-    });
-  }finally {
-    loading2fa.value = false
-    codeTwoFactor.value = []
-  }
-}
-const status2fa = async ()=>{
-
-}
 </script>

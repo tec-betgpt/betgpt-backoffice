@@ -113,9 +113,6 @@ const disable2fa = async (code: Array<string>) => {
 
 const nextStep = async () => {
 
-
- console.log(userAuth.user.preferences.auth2fa);
-
   loading.value = true;
   try {
     step.value = false;

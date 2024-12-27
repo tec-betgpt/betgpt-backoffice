@@ -266,10 +266,7 @@ const handleLoginResponse = (response) => {
     authStore.setUserData(userAuth, tokenAuth);
     router.push("/");
   } else {
-    console.error(
-        "Token ou usuário não encontrados no response:",
-        response.data
-    );
+
 
     if (response.data.data[1]) {
       id.value = response.data.data;
@@ -315,7 +312,7 @@ const twoFactorLogin = async (code:Array<string>) => {
     form.value.two_factor_code = code.join("");
 
 
-    console.log(form.value.two_factor_code);
+
     const response = await form.value.post(
         "/auth/login/two-factor",
         {},
@@ -355,8 +352,6 @@ const getRecoveryCode = async ()=>{
     recoveryScreen.value = false
   } catch (error) {
     console.error("Erro ao reenviar o código:", error);
-  } finally {
-
   }
 }
 const recoveryCode = async ()=>{
@@ -370,7 +365,7 @@ const recoveryCode = async ()=>{
     return
   }
   form.value.recovery_code = securityCode.value.join("-")
-  console.log(form.value)
+
   try {
     loadingRecovery.value = true
     const response = await form.value.post(`/auth/validate-recovery-code`);

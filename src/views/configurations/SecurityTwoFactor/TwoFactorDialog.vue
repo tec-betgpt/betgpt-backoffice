@@ -141,7 +141,6 @@ const active2fa = async () => {
   try {
     qrCode.value = [];
     const response = await form2fa.value.post("/user/configurations/active-two-factor");
-    console.log(response.data);
     if (response.data.message === "app") {
       qrCode.value = response.data.data
     }
