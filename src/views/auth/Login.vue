@@ -18,7 +18,7 @@
     >
       <div class="absolute inset-0 bg-zinc-900" />
       <div class="relative z-20 flex items-center text-lg font-medium">
-        <img src="/logo-betgpt_2x.png" class="mr-2" />
+        <img src="/logo-elevate-square-white.png" class="mr-2 w-28" />
       </div>
       <div class="relative z-20 mt-auto">
         <blockquote class="space-y-2">
