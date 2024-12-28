@@ -21,6 +21,10 @@ const sidebarNavItems: Item[] = [
     title: "Projetos",
     route: "configurations.projects",
   },
+  {
+    title: "Integrações",
+    route: "configurations.projects",
+  },
 ];
 
 const router = useRouter();
