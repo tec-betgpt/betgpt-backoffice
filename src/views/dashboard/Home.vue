@@ -494,7 +494,7 @@
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">
-              +{{ players.ftd_registered_users_count / 100 }}
+              +{{ players.ftd_registered_users_count }}
             </div>
           </CardContent>
         </Card>
