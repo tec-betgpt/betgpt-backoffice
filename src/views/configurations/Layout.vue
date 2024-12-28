@@ -23,7 +23,7 @@ const sidebarNavItems: Item[] = [
   },
   {
     title: "Integrações",
-    route: "configurations.projects",
+    route: "configurations.integrations",
   },
 ];
 
