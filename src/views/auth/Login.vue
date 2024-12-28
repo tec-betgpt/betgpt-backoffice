@@ -1,6 +1,6 @@
 <template>
   <div
-      class="container relative h-[800px] flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0 min-h-screen"
+    class="container relative h-[800px] flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0 min-h-screen"
   >
     <!--<router-link
       :to="'/register'"
@@ -14,10 +14,10 @@
       {{ $t("signup") }}
     </router-link>-->
     <div
-        class="relative h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex hidden lg:block"
+      class="relative h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex hidden lg:block"
     >
-      <div class="absolute inset-0 bg-zinc-900"/>
-      <div class="relative z-20 flex items-center text-lg font-medium"
+      <div class="absolute inset-0 bg-zinc-900" />
+      <div class="relative z-20 flex items-center text-lg font-medium">
         <img src="/logo-elevate-square-white.png" class="mr-2 w-28" />
       </div>
       <div class="relative z-20 mt-auto">
@@ -27,7 +27,9 @@
       </div>
     </div>
     <div v-if="!ScreenTwoFactor" class="lg:p-8">
-      <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+      <div
+        class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
+      >
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
             {{ $t("login_your_account") }}
@@ -42,22 +44,22 @@
               <div class="grid gap-1 mb-2">
                 <Label class="sr-only" for="email"> Email </Label>
                 <Input
-                    id="email"
-                    placeholder="email@betgpt.com.br"
-                    type="email"
-                    auto-capitalize="none"
-                    auto-complete="email"
-                    auto-correct="off"
-                    v-model="form.email"
-                    :class="{
-                'is-invalid': form.errors.has('email'),
-              }"
-                    :disabled="loading"
+                  id="email"
+                  placeholder="email@betgpt.com.br"
+                  type="email"
+                  auto-capitalize="none"
+                  auto-complete="email"
+                  auto-correct="off"
+                  v-model="form.email"
+                  :class="{
+                    'is-invalid': form.errors.has('email'),
+                  }"
+                  :disabled="loading"
                 />
                 <p
-                    role="alert"
-                    v-if="form.errors.get('email')"
-                    class="text-sm font-medium text-destructive"
+                  role="alert"
+                  v-if="form.errors.get('email')"
+                  class="text-sm font-medium text-destructive"
                 >
                   {{ form.errors.get("email") }}
                 </p>
@@ -65,19 +67,19 @@
               <div class="grid gap-1">
                 <Label class="sr-only" for="password"> Password </Label>
                 <Input
-                    id="password"
-                    placeholder="******"
-                    type="password"
-                    v-model="form.password"
-                    :class="{
-                'is-invalid': form.errors.has('password'),
-              }"
-                    :disabled="loading"
+                  id="password"
+                  placeholder="******"
+                  type="password"
+                  v-model="form.password"
+                  :class="{
+                    'is-invalid': form.errors.has('password'),
+                  }"
+                  :disabled="loading"
                 />
                 <p
-                    role="alert"
-                    v-if="form.errors.get('password')"
-                    class="text-sm font-medium text-destructive"
+                  role="alert"
+                  v-if="form.errors.get('password')"
+                  class="text-sm font-medium text-destructive"
                 >
                   {{ form.errors.get("password") }}
                 </p>
@@ -90,8 +92,8 @@
 
               <Button :disabled="loading" type="submit">
                 <LucideSpinner
-                    v-if="loading"
-                    class="mr-2 h-4 w-4 animate-spin"
+                  v-if="loading"
+                  class="mr-2 h-4 w-4 animate-spin"
                 />
                 {{ $t("enter") }}
               </Button>
@@ -102,7 +104,10 @@
     </div>
 
     <div v-else class="lg:p-8">
-      <div v-if="recoveryScreen" class="mx-auto flex w-full flex-col justify-center align-middle space-y-6 sm:w-[400px]">
+      <div
+        v-if="recoveryScreen"
+        class="mx-auto flex w-full flex-col justify-center align-middle space-y-6 sm:w-[400px]"
+      >
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
             {{ $t("login_used_two_factor") }}
@@ -112,23 +117,38 @@
           </p>
         </div>
         <div class="flex flex-col justify-center align-middle gap-2">
-          <Pin :finish="twoFactorLogin" class="flex justify-center" :loading="loading"/>
-          <p class="text-xs text-end text-gray-500 font-normal cursor-pointer" @click="getRecoveryCode">
+          <Pin
+            :finish="twoFactorLogin"
+            class="flex justify-center"
+            :loading="loading"
+          />
+          <p
+            class="text-xs text-end text-gray-500 font-normal cursor-pointer"
+            @click="getRecoveryCode"
+          >
             {{ $t("no_access_two_factor") }}
           </p>
         </div>
         <div class="flex flex-col justify-center align-middle gap-3">
-          <Button v-if="id[1] == 'email'" @click="resendTwoFactorLogin" :disabled="!resend" class="flex gap-1">
-            <p> {{ time > 1 ? $t('resend_code_in') : $t('resend') }} </p>
-            <p> {{ time == 0 ? '' : time }}</p>
+          <Button
+            v-if="id[1] == 'email'"
+            @click="resendTwoFactorLogin"
+            :disabled="!resend"
+            class="flex gap-1"
+          >
+            <p>{{ time > 1 ? $t("resend_code_in") : $t("resend") }}</p>
+            <p>{{ time == 0 ? "" : time }}</p>
           </Button>
           <Button @click="back" variant="outline">
-            <p>{{ $t('back') }}</p>
+            <p>{{ $t("back") }}</p>
           </Button>
         </div>
       </div>
 
-      <div v-else class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]">
+      <div
+        v-else
+        class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]"
+      >
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
             {{ $t("account_recovery") }}
@@ -138,8 +158,15 @@
           </p>
         </div>
         <Card>
-          <CardContent class="flex flex-wrap gap-2 p-6 justify-center align-middle h-30">
-            <Badge v-for="(value, key) in previewCode" :key="key" class="cursor-pointer" @click="selectCode(value)">
+          <CardContent
+            class="flex flex-wrap gap-2 p-6 justify-center align-middle h-30"
+          >
+            <Badge
+              v-for="(value, key) in previewCode"
+              :key="key"
+              class="cursor-pointer"
+              @click="selectCode(value)"
+            >
               {{ value }}
             </Badge>
           </CardContent>
@@ -149,16 +176,23 @@
         </p>
 
         <Card>
-          <CardContent class="flex flex-wrap gap-2 p-6 justify-center align-middle h-30">
-            <Badge v-for="(value, key) in securityCode" :key="key" class="cursor-pointer" @click="removeCode(value)">
+          <CardContent
+            class="flex flex-wrap gap-2 p-6 justify-center align-middle h-30"
+          >
+            <Badge
+              v-for="(value, key) in securityCode"
+              :key="key"
+              class="cursor-pointer"
+              @click="removeCode(value)"
+            >
               {{ value }}
             </Badge>
           </CardContent>
         </Card>
         <div class="flex flex-col justify-center align-middle gap-3">
-          <Button @click="recoveryCode" :disabled="loadingRecovery" >
-            <p v-if="!loadingRecovery"> {{ $t("confirm") }}</p>
-            <LucideSpinner v-else class="mr-2 h-4 w-4 animate-spin"/>
+          <Button @click="recoveryCode" :disabled="loadingRecovery">
+            <p v-if="!loadingRecovery">{{ $t("confirm") }}</p>
+            <LucideSpinner v-else class="mr-2 h-4 w-4 animate-spin" />
           </Button>
           <Button @click="recoveryScreen = !recoveryScreen" variant="outline">
             <p>{{ $t("back") }}</p>
@@ -176,7 +210,7 @@
               {{ $t("redirect_to_login") }}
             </DialogDescription>
             <DialogFooter>
-              <Button @click="ScreenTwoFactor = false" >
+              <Button @click="ScreenTwoFactor = false">
                 <p v-if="!loadingRecovery">{{ $t("continue") }}</p>
               </Button>
             </DialogFooter>
@@ -184,64 +218,67 @@
         </Dialog>
       </div>
     </div>
-
-
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, watch} from "vue";
-import {useRouter} from "vue-router";
-import {useAuthStore} from "@/stores/auth";
+import { ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
 import Form from "vform";
-import {cn} from "@/lib/utils";
-import { Loader2 as LucideSpinner} from "lucide-vue-next";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { Loader2 as LucideSpinner } from "lucide-vue-next";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import Pin from "@/components/custom/CustomPinInput.vue";
-import {Card, CardContent} from "@/components/ui/card";
-import {Badge} from "@/components/ui/badge";
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader} from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast/use-toast";
 const { toast } = useToast();
 import i18n from "@/i18n";
 Form.axios = api;
 
-const isDialog = ref(false)
-const previewCode =  ref<Array<string>>([])
-const securityCode = ref<Array<string>>([])
-const recoveryScreen = ref(true)
+const isDialog = ref(false);
+const previewCode = ref<Array<string>>([]);
+const securityCode = ref<Array<string>>([]);
+const recoveryScreen = ref(true);
 const router = useRouter();
 const authStore = useAuthStore();
 const loading = ref(false);
-const loadingRecovery = ref(false)
-const time = ref(0)
+const loadingRecovery = ref(false);
+const time = ref(0);
 const ScreenTwoFactor = ref(false);
-const id = ref([])
-const resend = ref(false)
+const id = ref([]);
+const resend = ref(false);
 const form = ref(
-    new Form({
-      email: "",
-      password: "",
-      two_factor_code: "",
-      recovery_code:""
-    })
+  new Form({
+    email: "",
+    password: "",
+    two_factor_code: "",
+    recovery_code: "",
+  })
 );
 
-
-function selectCode(value:string){
-  if (securityCode.value.filter((v:string) => v == value).length >0) {
-    return
+function selectCode(value: string) {
+  if (securityCode.value.filter((v: string) => v == value).length > 0) {
+    return;
   }
-  securityCode.value.push(value)
+  securityCode.value.push(value);
 }
-function removeCode(value:string){
-  securityCode.value = securityCode.value.filter((v:string) => v !== value)
+function removeCode(value: string) {
+  securityCode.value = securityCode.value.filter((v: string) => v !== value);
 }
 function timeTwoFactor() {
-  resend.value = false
+  resend.value = false;
   const intervalId = setInterval(() => {
     time.value--;
     if (time.value < 1) {
@@ -249,34 +286,27 @@ function timeTwoFactor() {
       resend.value = true;
       time.value = 0;
     }
-
   }, 1000);
-
-
 }
-function back(){
-  ScreenTwoFactor.value = false
+function back() {
+  ScreenTwoFactor.value = false;
 }
 const handleLoginResponse = (response) => {
-
-  const tokenAuth = response.data.data? response.data.data.token: null
-  const userAuth =  response.data.data? response.data.data.user: null;
+  const tokenAuth = response.data.data ? response.data.data.token : null;
+  const userAuth = response.data.data ? response.data.data.user : null;
 
   if (tokenAuth && userAuth) {
     authStore.setUserData(userAuth, tokenAuth);
     router.push("/");
   } else {
-
-
     if (response.data.data[1]) {
       id.value = response.data.data;
-      console.log(id.value)
+      console.log(id.value);
       ScreenTwoFactor.value = true;
-      if(id.value[1] == 'email') {
-        time.value = 60
-        timeTwoFactor()
+      if (id.value[1] == "email") {
+        time.value = 60;
+        timeTwoFactor();
       }
-
     }
   }
 };
@@ -284,9 +314,9 @@ const login = async () => {
   loading.value = true;
   try {
     const response = await form.value.post(
-        "/auth/login",
-        {},
-        {withCredentials: true}
+      "/auth/login",
+      {},
+      { withCredentials: true }
     );
 
     handleLoginResponse(response);
@@ -296,27 +326,25 @@ const login = async () => {
     loading.value = false;
   }
 };
-const twoFactorLogin = async (code:Array<string>) => {
+const twoFactorLogin = async (code: Array<string>) => {
   if (code.length < 6) {
     toast({
       title: i18n.global.t("warning"),
-      description:  i18n.global.t("error_not_code"),
-      duration:3000,
-      variant:'destructive'
+      description: i18n.global.t("error_not_code"),
+      duration: 3000,
+      variant: "destructive",
     });
-    return
+    return;
   }
   loading.value = true;
   try {
-    form.value.two_factor_code = ''
+    form.value.two_factor_code = "";
     form.value.two_factor_code = code.join("");
 
-
-
     const response = await form.value.post(
-        "/auth/login/two-factor",
-        {},
-        {withCredentials: true}
+      "/auth/login/two-factor",
+      {},
+      { withCredentials: true }
     );
 
     handleLoginResponse(response);
@@ -327,55 +355,52 @@ const twoFactorLogin = async (code:Array<string>) => {
   }
 };
 const resendTwoFactorLogin = async () => {
-  resend.value = false
+  resend.value = false;
   try {
-    const response = await api.get(`/auth/login/two-factor/${id.value[0]}`,);
-    time.value = 60
-    timeTwoFactor()
+    const response = await api.get(`/auth/login/two-factor/${id.value[0]}`);
+    time.value = 60;
+    timeTwoFactor();
     toast({
       title: i18n.global.t("success"),
-      description:  response.data.message,
-      duration:3000,
-
+      description: response.data.message,
+      duration: 3000,
     });
   } catch (error) {
     console.error("Erro ao reenviar o código:", error);
   } finally {
-
   }
 };
-const getRecoveryCode = async ()=>{
-
+const getRecoveryCode = async () => {
   try {
-    const response = await api.get(`/auth/validate-recovery-code/${id.value[0]}`,);
-     previewCode.value = response.data.data
-    recoveryScreen.value = false
+    const response = await api.get(
+      `/auth/validate-recovery-code/${id.value[0]}`
+    );
+    previewCode.value = response.data.data;
+    recoveryScreen.value = false;
   } catch (error) {
     console.error("Erro ao reenviar o código:", error);
   }
-}
-const recoveryCode = async ()=>{
+};
+const recoveryCode = async () => {
   if (securityCode.value.length < 10) {
     toast({
       title: i18n.global.t("warning"),
-      description:  i18n.global.t("error_not_code"),
-      duration:3000,
-      variant:'destructive'
+      description: i18n.global.t("error_not_code"),
+      duration: 3000,
+      variant: "destructive",
     });
-    return
+    return;
   }
-  form.value.recovery_code = securityCode.value.join("-")
+  form.value.recovery_code = securityCode.value.join("-");
 
   try {
-    loadingRecovery.value = true
+    loadingRecovery.value = true;
     const response = await form.value.post(`/auth/validate-recovery-code`);
-    isDialog.value = true
-
+    isDialog.value = true;
   } catch (error) {
     console.error("Erro ao reenviar o código:", error);
   } finally {
-    loadingRecovery.value = false
+    loadingRecovery.value = false;
   }
-}
-
+};
 </script>
