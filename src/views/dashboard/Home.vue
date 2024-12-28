@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 p-10 max-[450px]:p-2  pb-16 w-full">
+  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">Dashboard</h2>
       <p class="text-muted-foreground">Métricas de um dia específico.</p>
@@ -10,7 +10,7 @@
     >
       <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
         <Select v-model="selectedFilterId">
-          <SelectTrigger class="md:w-[250px] ">
+          <SelectTrigger class="md:w-[250px]">
             <SelectValue placeholder="Selecione um grupo ou projeto" />
           </SelectTrigger>
           <SelectContent>
@@ -19,20 +19,17 @@
             </template>
           </SelectContent>
         </Select>
-        <div class=" flex gap-2   w-full">
+        <div class="flex gap-2 w-full">
           <DatePicker v-model="selectedDate" class="max-[450px]:flex-2" />
-          <Button class="max-[450px]:flex-1"  @click="applyFilter">Filtrar</Button>
+          <Button class="max-[450px]:flex-1" @click="applyFilter"
+            >Filtrar</Button
+          >
         </div>
-
-
       </div>
     </div>
 
     <div>
-      <div
-        v-if="loading"
-        :class="responsiveClass"
-      >
+      <div v-if="loading" :class="responsiveClass">
         <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
@@ -42,10 +39,7 @@
           <Skeleton class="h-4 w-1/2" />
         </div>
       </div>
-      <div
-        :class="responsiveClass"
-        v-else
-      >
+      <div :class="responsiveClass" v-else>
         <Card class="">
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
@@ -166,10 +160,7 @@
     </div>
 
     <div>
-      <div
-        v-if="loading"
-        :class="responsiveClass"
-      >
+      <div v-if="loading" :class="responsiveClass">
         <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
@@ -179,10 +170,7 @@
           <Skeleton class="h-4 w-1/2" />
         </div>
       </div>
-      <div
-          :class="responsiveClass"
-        v-else
-      >
+      <div :class="responsiveClass" v-else>
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
@@ -246,10 +234,7 @@
     </div>
 
     <div>
-      <div
-        v-if="loading"
-        :class="responsiveClass"
-      >
+      <div v-if="loading" :class="responsiveClass">
         <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
@@ -259,10 +244,7 @@
           <Skeleton class="h-4 w-1/2" />
         </div>
       </div>
-      <div
-          :class="responsiveClass"
-        v-else
-      >
+      <div :class="responsiveClass" v-else>
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
@@ -330,10 +312,7 @@
     </div>
 
     <div>
-      <div
-        v-if="loading"
-        :class="responsiveClass"
-      >
+      <div v-if="loading" :class="responsiveClass">
         <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
@@ -343,10 +322,7 @@
           <Skeleton class="h-4 w-1/2" />
         </div>
       </div>
-      <div
-          :class="responsiveClass"
-        v-else
-      >
+      <div :class="responsiveClass" v-else>
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
@@ -464,10 +440,7 @@
     </div>
 
     <div>
-      <div
-        v-if="loading"
-        :class="responsiveClass"
-      >
+      <div v-if="loading" :class="responsiveClass">
         <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
@@ -477,10 +450,7 @@
           <Skeleton class="h-4 w-1/2" />
         </div>
       </div>
-      <div
-          :class="responsiveClass"
-        v-else
-      >
+      <div :class="responsiveClass" v-else>
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
@@ -548,7 +518,7 @@
     </div>
 
     <div>
-      <div class="flex max-[450px]:flex-col  gap-4">
+      <div class="flex max-[450px]:flex-col gap-4">
         <Card class="md:w-2/4">
           <CardHeader>
             <Skeleton class="h-6 w-full" v-if="loading" />
@@ -707,8 +677,8 @@ import {
 } from "@internationalized/date";
 import { useToast } from "@/components/ui/toast/use-toast";
 
-
-const responsiveClass = "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3"
+const responsiveClass =
+  "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3";
 const projectStore = useProjectStore();
 const { toast } = useToast();
 
@@ -749,7 +719,7 @@ const currentDate = today(getLocalTimeZone());
 selectedDate.value = new CalendarDate(
   currentDate.year,
   currentDate.month,
-  currentDate.day - 1
+  currentDate.day
 );
 
 const fetchFilters = async () => {
