@@ -44,6 +44,7 @@ import {
   LogOut,
   Package2,
   ChevronsUpDown,
+  Send,
 } from "lucide-vue-next";
 
 import { ref, computed, onMounted } from "vue";
@@ -105,6 +106,12 @@ const navMenu = computed(() => {
       name: "Relatórios",
       url: { name: "analytics" },
       icon: LineChart,
+      show: true,
+    },
+    {
+      name: "SMS Funnel",
+      url: { name: "sms-funnel" },
+      icon: Send,
       show: true,
     },
     {

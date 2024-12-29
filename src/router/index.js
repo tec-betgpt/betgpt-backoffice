@@ -8,6 +8,7 @@ import Register from "@/views/auth/Register.vue";
 import Recover from "@/views/auth/Recover.vue";
 import Home from "@/views/dashboard/Home.vue";
 import Analytics from "@/views/dashboard/Analytics.vue";
+import SmsFunnel from "@/views/dashboard/SmsFunnel.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
 
@@ -64,6 +65,17 @@ const routes = [
       layout: DefaultLayout,
       requiresAuth: true,
       title: "Relatórios",
+      permission: "member|client",
+    },
+  },
+  {
+    path: "/sms-funnel",
+    name: "sms-funnel",
+    component: SmsFunnel,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "SMS Funnel",
       permission: "member|client",
     },
   },
