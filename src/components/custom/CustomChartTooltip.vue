@@ -24,7 +24,7 @@ defineProps<{
       >
         <div class="flex items-center">
           <span
-            class="w-1 h-7 mr-4 rounded-full"
+            class="w-2 h-2 mr-4 rounded-full"
             :style="{ background: item.color }"
           />
           <span>{{ item.name }}</span>

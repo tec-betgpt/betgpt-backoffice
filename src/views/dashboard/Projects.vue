@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 p-10 pb-16">
+  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">Gerenciar Projetos</h2>
       <p class="text-muted-foreground">
