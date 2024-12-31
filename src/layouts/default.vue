@@ -66,8 +66,8 @@ const authStore = useAuthStore();
 const breadcrumbs = computed(() => {
   const breadcrumbItems: BreadcrumbItem[] = [
     {
-      name: "home",
-      title: "Home",
+      name: "Elevate",
+      title: "Elevate",
       path: "/home",
     },
   ];
@@ -368,7 +368,9 @@ const logout = async () => {
         </div>
       </header>
       <main class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
-        <router-view></router-view>
+        <div class="mx-auto w-full min-w-0">
+          <router-view></router-view>
+        </div>
       </main>
     </SidebarInset>
   </SidebarProvider>

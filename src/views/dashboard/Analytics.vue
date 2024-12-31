@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 p-10 pb-16">
+  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">Relatórios</h2>
       <p class="text-muted-foreground">
@@ -10,9 +10,9 @@
       class="flex items-center justify-end mb-3"
       v-if="projectFilters && projectFilters.length"
     >
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
         <Select v-model="selectedFilterId">
-          <SelectTrigger class="w-[250px]">
+          <SelectTrigger class="md:w-[250px]">
             <SelectValue placeholder="Selecione um grupo ou projeto" />
           </SelectTrigger>
           <SelectContent>
@@ -21,8 +21,12 @@
             </template>
           </SelectContent>
         </Select>
-        <DateRangePicker v-model="selectedRange" />
-        <Button @click="applyFilter">Filtrar</Button>
+        <div class="flex gap-2 w-full">
+          <DateRangePicker v-model="selectedRange" class="max-[450px]:flex-2" />
+          <Button class="max-[450px]:flex-1" @click="applyFilter"
+            >Filtrar</Button
+          >
+        </div>
       </div>
     </div>
 

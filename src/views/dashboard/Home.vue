@@ -517,111 +517,108 @@
       </div>
     </div>
 
-    <div>
-      <div class="flex max-[450px]:flex-col gap-4">
-        <Card class="md:w-2/4">
-          <CardHeader>
-            <Skeleton class="h-6 w-full" v-if="loading" />
-            <CardTitle v-else>Total de Depósitos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div v-if="loading">
-              <Skeleton class="pl-5 h-72 w-full" />
-            </div>
-            <div v-else>
-              <BarChart
-                :data="deposits.monthly_counts"
-                :categories="['Total']"
-                :index="'name'"
-                :rounded-corners="4"
-                :y-formatter="
-                  (tick, i) =>
-                    typeof tick === 'number'
-                      ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })
-                          .format(tick / 100)
-                          .toString()}`
-                      : ''
-                "
-                :custom-tooltip="CustomChartTooltipPrice"
-              />
-            </div>
-          </CardContent>
-        </Card>
+    <div class="grid gap-4 md:gap-8 lg:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <Skeleton class="h-6 w-full" v-if="loading" />
+          <CardTitle v-else>Total de Depósitos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div v-if="loading">
+            <Skeleton class="pl-5 h-72 w-full" />
+          </div>
+          <div v-else>
+            <BarChart
+              :data="deposits.monthly_counts"
+              :categories="['Total']"
+              :index="'name'"
+              :rounded-corners="4"
+              :y-formatter="
+                (tick, i) =>
+                  typeof tick === 'number'
+                    ? `R$ ${new Intl.NumberFormat('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                        .format(tick / 100)
+                        .toString()}`
+                    : ''
+              "
+              :custom-tooltip="CustomChartTooltipPrice"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card class="md:w-2/4">
-          <CardHeader>
-            <Skeleton class="h-5 w-full mb-1" v-if="loading" />
-            <CardTitle v-else>Últimos Depósitos</CardTitle>
-            <CardDescription>
-              <Skeleton class="h-5 w-full" v-if="loading" />
-              <span v-else>
-                Tiveram {{ deposits.count30days }} depósitos nos últimos 30
-                dias.
-              </span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div v-if="loading" class="space-y-4">
-              <div v-for="n in 6" :key="n" class="flex items-center space-x-4">
-                <Skeleton class="h-9 w-9 rounded-full" />
-                <div class="flex-1 space-y-1">
-                  <Skeleton class="h-4 w-1/2" />
-                  <Skeleton class="h-4 w-1/3" />
-                </div>
-                <Skeleton class="h-4 w-10" />
+      <Card>
+        <CardHeader>
+          <Skeleton class="h-5 w-full mb-1" v-if="loading" />
+          <CardTitle v-else>Últimos Depósitos</CardTitle>
+          <CardDescription>
+            <Skeleton class="h-5 w-full" v-if="loading" />
+            <span v-else>
+              Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
+            </span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div v-if="loading" class="space-y-4">
+            <div v-for="n in 6" :key="n" class="flex items-center space-x-4">
+              <Skeleton class="h-9 w-9 rounded-full" />
+              <div class="flex-1 space-y-1">
+                <Skeleton class="h-4 w-1/2" />
+                <Skeleton class="h-4 w-1/3" />
+              </div>
+              <Skeleton class="h-4 w-10" />
+            </div>
+          </div>
+          <div v-else class="space-y-8">
+            <div
+              v-for="deposit in deposits.lasts"
+              :key="deposit.id"
+              class="flex items-center"
+            >
+              <Avatar class="h-9 w-9">
+                <AvatarFallback
+                  >{{ deposit.player.name.charAt(0)
+                  }}{{ deposit.player.name.charAt(1) }}</AvatarFallback
+                >
+              </Avatar>
+              <div class="ml-4 space-y-1">
+                <p class="text-sm font-medium leading-none">
+                  {{ deposit.player.name }}
+                </p>
+                <p class="text-sm text-muted-foreground">
+                  {{ deposit.player.email }}
+                </p>
+              </div>
+              <div class="ml-auto text-right">
+                <span class="font-medium"
+                  >+{{ $toCurrency(deposit.value / 100) }}</span
+                >
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p class="text-xs text-muted-foreground text-right">
+                        {{ $moment(deposit.created_at).fromNow() }}
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        {{
+                          $moment(deposit.created_at).format(
+                            "DD/MM/YYYY HH:mm:ss"
+                          )
+                        }}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
-            <div v-else class="space-y-8">
-              <div
-                v-for="deposit in deposits.lasts"
-                :key="deposit.id"
-                class="flex items-center"
-              >
-                <Avatar class="h-9 w-9">
-                  <AvatarFallback
-                    >{{ deposit.player.name.charAt(0)
-                    }}{{ deposit.player.name.charAt(1) }}</AvatarFallback
-                  >
-                </Avatar>
-                <div class="ml-4 space-y-1">
-                  <p class="text-sm font-medium leading-none">
-                    {{ deposit.player.name }}
-                  </p>
-                  <p class="text-sm text-muted-foreground">
-                    {{ deposit.player.email }}
-                  </p>
-                </div>
-                <div class="ml-auto text-right">
-                  <span class="font-medium"
-                    >+{{ $toCurrency(deposit.value / 100) }}</span
-                  >
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <p class="text-xs text-muted-foreground text-right">
-                          {{ $moment(deposit.created_at).fromNow() }}
-                        </p>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          {{
-                            $moment(deposit.created_at).format(
-                              "DD/MM/YYYY HH:mm:ss"
-                            )
-                          }}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>
