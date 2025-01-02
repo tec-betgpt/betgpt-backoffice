@@ -10,9 +10,9 @@
       class="flex items-center justify-end mb-3"
       v-if="projectFilters && projectFilters.length"
     >
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
         <Select v-model="selectedFilterId">
-          <SelectTrigger class="w-[250px]">
+          <SelectTrigger class="md:w-[250px]">
             <SelectValue placeholder="Selecione um grupo ou projeto" />
           </SelectTrigger>
           <SelectContent>
@@ -21,8 +21,12 @@
             </template>
           </SelectContent>
         </Select>
-        <DateRangePicker v-model="selectedRange" />
-        <Button @click="applyFilter">Filtrar</Button>
+        <div class="flex gap-2 w-full">
+          <DateRangePicker v-model="selectedRange" class="max-[450px]:flex-2" />
+          <Button class="max-[450px]:flex-1" @click="applyFilter"
+            >Filtrar</Button
+          >
+        </div>
       </div>
     </div>
 
@@ -286,7 +290,7 @@ import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { Mail, MailCheck, MailPlus } from "lucide-vue-next";
 
 const responsiveClass =
-  "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3";
+  "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-3 mb-3";
 
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
 const startDate = currentDate.subtract({ days: 28 });
