@@ -81,7 +81,7 @@
         </div>
       </div>
 
-      <div>
+      <!--<div>
         <div v-if="loading" :class="responsiveClass">
           <div v-for="n in 3" :key="n" class="p-4 bg-white rounded shadow">
             <div class="flex justify-between items-center mb-2">
@@ -139,10 +139,10 @@
             </CardContent>
           </Card>
         </div>
-      </div>
+      </div>-->
 
       <div>
-        <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
+        <div class="grid gap-4 md:grid-cols-1 lg:grid-cols-1 mb-3">
           <Card class="col-span-3">
             <CardHeader class="pb-3">
               <Skeleton class="h-6 w-full" v-if="loading" />
@@ -162,7 +162,7 @@
               </div>
             </CardContent>
           </Card>
-          <Card class="col-span-3">
+          <!--<Card class="col-span-3">
             <CardHeader class="pb-3">
               <Skeleton class="h-6 w-full" v-if="loading" />
               <CardTitle v-else>Whatsapp Enviado</CardTitle>
@@ -180,7 +180,7 @@
                 />
               </div>
             </CardContent>
-          </Card>
+          </Card>-->
         </div>
       </div>
 
