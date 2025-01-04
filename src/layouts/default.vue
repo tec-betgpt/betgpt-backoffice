@@ -45,6 +45,7 @@ import {
   Package2,
   ChevronsUpDown,
   Send,
+  ChartNoAxesCombined,
 } from "lucide-vue-next";
 
 import { ref, computed, onMounted } from "vue";
@@ -112,6 +113,12 @@ const navMenu = computed(() => {
       name: "SMS Funnel",
       url: { name: "sms-funnel" },
       icon: Send,
+      show: true,
+    },
+    {
+      name: "Google Analytics",
+      url: { name: "google-analytics" },
+      icon: ChartNoAxesCombined,
       show: true,
     },
     {

@@ -9,6 +9,7 @@ import Recover from "@/views/auth/Recover.vue";
 import Home from "@/views/dashboard/Home.vue";
 import Analytics from "@/views/dashboard/Analytics.vue";
 import SmsFunnel from "@/views/dashboard/SmsFunnel.vue";
+import GoogleAnalytics from "@/views/dashboard/GoogleAnalytics.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
 
@@ -76,6 +77,17 @@ const routes = [
       layout: DefaultLayout,
       requiresAuth: true,
       title: "SMS Funnel",
+      permission: "member|client",
+    },
+  },
+  {
+    path: "/google-analytics",
+    name: "google-analytics",
+    component: GoogleAnalytics,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Google Analytics",
       permission: "member|client",
     },
   },
