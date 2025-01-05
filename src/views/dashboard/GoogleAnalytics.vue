@@ -44,7 +44,7 @@
             <LineChart
               :data="usersPeriod"
               index="date"
-              :categories="['Usuários Ativos', 'Usuários Registrados']"
+              :categories="['Usuários Novos', 'Usuários Ativos']"
               :y-formatter="
                 (tick, i) =>
                   typeof tick === 'number'
@@ -100,25 +100,52 @@
         </Card>
       </div>
 
-      <Card>
-        <CardHeader class="pb-3">
-          <Skeleton class="h-6 w-full" v-if="loading" />
-          <CardTitle v-else>Total de Primeiros Compradores</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div v-if="loading">
-            <Skeleton class="pl-5 h-80 w-full" />
-          </div>
-          <div v-else>
-            <LineChart
-              :data="firstTimePurchasersPeriod"
-              index="date"
-              :categories="['Primeiros Compradores']"
-              :custom-tooltip="CustomChartTooltip"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
+        <Card class="col-span-3">
+          <CardHeader class="pb-3">
+            <Skeleton class="h-6 w-full" v-if="loading" />
+            <CardTitle v-else>Total de Primeiros Compradores</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div v-if="loading">
+              <Skeleton class="pl-5 h-80 w-full" />
+            </div>
+            <div v-else>
+              <LineChart
+                :data="firstTimePurchasersPeriod"
+                index="date"
+                :categories="['Primeiros Compradores']"
+                :custom-tooltip="CustomChartTooltip"
+              />
+            </div>
+          </CardContent>
+        </Card>
+        <Card class="col-span-3">
+          <CardHeader class="pb-3">
+            <Skeleton class="h-6 w-full" v-if="loading" />
+            <CardTitle v-else>Taxa de Engajamento por período</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div v-if="loading">
+              <Skeleton class="pl-5 h-80 w-full" />
+            </div>
+            <div v-else>
+              <LineChart
+                :data="engagementRatePeriod"
+                index="date"
+                :categories="['% Taxa de Engajamento']"
+                :y-formatter="
+                  (tick, i) =>
+                    typeof tick === 'number'
+                      ? `${(tick / 100).toFixed(2)}%`
+                      : ''
+                "
+                :custom-tooltip="CustomChartTooltipPercent"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader class="pb-3">
@@ -144,10 +171,66 @@
         </CardContent>
       </Card>
 
-      <Card>
+      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
+        <Card class="col-span-3">
+          <CardHeader class="pb-3">
+            <Skeleton class="h-6 w-full" v-if="loading" />
+            <CardTitle v-else>Receita Total</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div v-if="loading">
+              <Skeleton class="pl-5 h-80 w-full" />
+            </div>
+            <div v-else>
+              <LineChart
+                :data="totalRevenuePeriod"
+                index="date"
+                :categories="['Receita']"
+                :y-formatter="
+                  (tick, i) =>
+                    typeof tick === 'number'
+                      ? `R$ ${new Intl.NumberFormat('pt-BR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                          .format(tick / 100)
+                          .toString()}`
+                      : ''
+                "
+                :custom-tooltip="CustomChartTooltipPrice"
+              />
+            </div>
+          </CardContent>
+        </Card>
+        <Card class="col-span-3">
+          <CardHeader class="pb-3">
+            <Skeleton class="h-6 w-full" v-if="loading" />
+            <CardTitle v-else
+              >Tempo médio de engajamento por sessão (segundos)</CardTitle
+            >
+          </CardHeader>
+          <CardContent>
+            <div v-if="loading">
+              <Skeleton class="pl-5 h-80 w-full" />
+            </div>
+            <div v-else>
+              <LineChart
+                :data="engagementDurationSessionPeriod"
+                index="date"
+                :categories="['Tempo médio']"
+                :custom-tooltip="CustomChartTooltip"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
+      <Card class="col-span-3">
         <CardHeader class="pb-3">
           <Skeleton class="h-6 w-full" v-if="loading" />
-          <CardTitle v-else>Taxa de Engajamento por período</CardTitle>
+          <CardTitle v-else>ARPPU</CardTitle>
         </CardHeader>
         <CardContent>
           <div v-if="loading">
@@ -155,16 +238,144 @@
           </div>
           <div v-else>
             <LineChart
-              :data="engagementRatePeriod"
+              :data="arppuPeriod"
               index="date"
-              :categories="['% Taxa de Engajamento']"
+              :categories="['ARPPU']"
               :y-formatter="
                 (tick, i) =>
-                  typeof tick === 'number' ? `${(tick / 100).toFixed(2)}%` : ''
+                  typeof tick === 'number'
+                    ? `R$ ${new Intl.NumberFormat('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                        .format(tick / 100)
+                        .toString()}`
+                    : ''
               "
-              :custom-tooltip="CustomChartTooltipPercent"
+              :custom-tooltip="CustomChartTooltipPrice"
             />
           </div>
+        </CardContent>
+      </Card>
+      <Card class="col-span-3">
+        <CardHeader class="pb-3">
+          <Skeleton class="h-6 w-full" v-if="loading" />
+          <CardTitle v-else>ARPU</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div v-if="loading">
+            <Skeleton class="pl-5 h-80 w-full" />
+          </div>
+          <div v-else>
+            <LineChart
+              :data="arpuPeriod"
+              index="date"
+              :categories="['ARPU']"
+              :y-formatter="
+                (tick, i) =>
+                  typeof tick === 'number'
+                    ? `R$ ${new Intl.NumberFormat('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                        .format(tick / 100)
+                        .toString()}`
+                    : ''
+              "
+              :custom-tooltip="CustomChartTooltipPrice"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Aquisição de Tráfego</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table class="min-w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Grupo</TableHead>
+                <TableHead>Sessões</TableHead>
+                <TableHead>Sessões Engajadas</TableHead>
+                <TableHead>Taxa de Engajamento</TableHead>
+                <TableHead>Tempo Médio de Engajamento por Sessão</TableHead>
+                <TableHead>Eventos por Sessão</TableHead>
+                <TableHead>Contagem de Eventos</TableHead>
+                <TableHead>Eventos Principais</TableHead>
+                <TableHead>Taxa de Eventos Principais por Sessão</TableHead>
+                <TableHead>Receita Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <template v-if="loading">
+                <TableRow v-for="n in 5" :key="`loading-${n}`">
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                </TableRow>
+              </template>
+              <template v-else>
+                <TableRow
+                  v-for="(group_session, index) in groupSessions"
+                  :key="index"
+                >
+                  <TableCell>{{ index }}</TableCell>
+                  <TableCell>{{ group_session.sessions }}</TableCell>
+                  <TableCell>{{ group_session.engagedSessions }}</TableCell>
+                  <TableCell
+                    >{{ group_session.engagementRate.toFixed(2) }}%</TableCell
+                  >
+                  <TableCell>{{
+                    formatDuration(group_session.averageEngagementDuration)
+                  }}</TableCell>
+                  <TableCell>{{
+                    (group_session.eventsPerSession / 100).toFixed(2)
+                  }}</TableCell>
+                  <TableCell>{{ group_session.eventCount }}</TableCell>
+                  <TableCell>{{ group_session.keyEvents }}</TableCell>
+                  <TableCell
+                    >{{
+                      (group_session.sessionKeyEventRate / 100).toFixed(2)
+                    }}%</TableCell
+                  >
+                  <TableCell>{{
+                    $toCurrency(group_session.totalRevenue / 100)
+                  }}</TableCell>
+                </TableRow>
+              </template>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
@@ -189,6 +400,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import moment from "moment";
+import "moment/dist/locale/pt-br";
 import { useToast } from "@/components/ui/toast/use-toast";
 import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
@@ -213,6 +435,11 @@ const returningUsersPeriod = ref([]);
 const firstTimePurchasersPeriod = ref([]);
 const payingActivePeriod = ref([]);
 const engagementRatePeriod = ref([]);
+const totalRevenuePeriod = ref([]);
+const engagementDurationSessionPeriod = ref([]);
+const arppuPeriod = ref([]);
+const arpuPeriod = ref([]);
+const groupSessions = ref([]);
 
 const fetchFilters = async () => {
   try {
@@ -273,6 +500,12 @@ const applyFilter = async () => {
       response.data.data.first_time_purchasers_period;
     payingActivePeriod.value = response.data.data.paying_active_period;
     engagementRatePeriod.value = response.data.data.engagement_rate_period;
+    totalRevenuePeriod.value = response.data.data.total_revenue;
+    engagementDurationSessionPeriod.value =
+      response.data.data.engagement_duration_per_sessions;
+    arppuPeriod.value = response.data.data.arppu;
+    arpuPeriod.value = response.data.data.arpu;
+    groupSessions.value = response.data.data.group_sessions;
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
@@ -282,6 +515,14 @@ const applyFilter = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const formatDuration = (averageEngagementDuration) => {
+  const duration = moment.duration(averageEngagementDuration, "seconds");
+  if (duration.asMinutes() < 1) {
+    return `${duration.seconds()}s`;
+  }
+  return `${duration.minutes()}min ${duration.seconds()}s`;
 };
 
 onMounted(() => {
