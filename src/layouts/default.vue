@@ -41,6 +41,7 @@ import {
   LineChart,
   Building2,
   Users2,
+  Bot,
   LogOut,
   Package2,
   ChevronsUpDown,
@@ -133,6 +134,14 @@ const navMenu = computed(() => {
       icon: Users2,
       show: authStore.user?.type === "member",
     },
+    {
+      name: "Ia",
+      url: { name: "ia" },
+      icon: Bot,
+      show: true,
+      //show: authStore.user?.type === "member",
+      
+    }
   ];
 
   return menu.filter((item) => item.show);

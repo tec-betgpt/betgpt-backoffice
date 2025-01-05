@@ -12,6 +12,7 @@ import SmsFunnel from "@/views/dashboard/SmsFunnel.vue";
 import GoogleAnalytics from "@/views/dashboard/GoogleAnalytics.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
+import Ia from "@/views/dashboard/Ia.vue";
 
 import ConfigurationLayout from "@/views/configurations/Layout.vue";
 import ConfigurationProfile from "@/views/configurations/Profile.vue";
@@ -115,6 +116,7 @@ const routes = [
   },
   // Configurations routes
   {
+
     path: "/configurations",
     component: ConfigurationLayout,
     meta: {
@@ -185,6 +187,18 @@ const routes = [
       },
     ],
   },
+  //IA
+  {
+    path: "/ia",
+    name: "ia",
+    component: Ia,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: false,
+      permission: "member",
+      title: "Ia",
+    },
+  }
 ];
 
 const router = createRouter({
