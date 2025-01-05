@@ -346,6 +346,40 @@
                 </TableRow>
               </template>
               <template v-else>
+                <TableRow>
+                  <TableCell><b>Total</b></TableCell>
+                  <TableCell>{{ groupSessionsStats.totalSessions }}</TableCell>
+                  <TableCell>{{
+                    groupSessionsStats.totalEngagedSessions
+                  }}</TableCell>
+                  <TableCell
+                    >{{
+                      groupSessionsStats.averageEngagementRate.toFixed(2)
+                    }}%</TableCell
+                  >
+                  <TableCell>{{
+                    formatDuration(groupSessionsStats.averageEngagementDuration)
+                  }}</TableCell>
+                  <TableCell>{{
+                    (groupSessionsStats.averageEventsPerSession / 100).toFixed(
+                      2
+                    )
+                  }}</TableCell>
+                  <TableCell>{{
+                    groupSessionsStats.totalEventCount
+                  }}</TableCell>
+                  <TableCell>{{ groupSessionsStats.totalKeyEvents }}</TableCell>
+                  <TableCell
+                    >{{
+                      (
+                        groupSessionsStats.averageSessionKeyEventRate / 100
+                      ).toFixed(2)
+                    }}%</TableCell
+                  >
+                  <TableCell>{{
+                    $toCurrency(groupSessionsStats.totalRevenue / 100)
+                  }}</TableCell>
+                </TableRow>
                 <TableRow
                   v-for="(group_session, index) in groupSessions"
                   :key="index"
@@ -383,7 +417,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useProjectStore } from "@/stores/project";
 import api from "@/services/api";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
@@ -440,6 +474,72 @@ const engagementDurationSessionPeriod = ref([]);
 const arppuPeriod = ref([]);
 const arpuPeriod = ref([]);
 const groupSessions = ref([]);
+const groupSessionsStats = computed(() => {
+  const sessionsArray = Object.values(groupSessions.value);
+
+  const totalSessions = sessionsArray.reduce(
+    (acc, session) => acc + session.sessions,
+    0
+  );
+  const totalEngagedSessions = sessionsArray.reduce(
+    (acc, session) => acc + session.engagedSessions,
+    0
+  );
+  const totalEventCount = sessionsArray.reduce(
+    (acc, session) => acc + session.eventCount,
+    0
+  );
+  const totalKeyEvents = sessionsArray.reduce(
+    (acc, session) => acc + session.keyEvents,
+    0
+  );
+  const totalRevenue = sessionsArray.reduce(
+    (acc, session) => acc + session.totalRevenue,
+    0
+  );
+
+  const count = sessionsArray.length;
+  const averageEngagementRate =
+    count > 0
+      ? sessionsArray.reduce(
+          (acc, session) => acc + session.engagementRate,
+          0
+        ) / count
+      : 0;
+  const averageEngagementDuration =
+    count > 0
+      ? sessionsArray.reduce(
+          (acc, session) => acc + session.averageEngagementDuration,
+          0
+        ) / count
+      : 0;
+  const averageEventsPerSession =
+    count > 0
+      ? sessionsArray.reduce(
+          (acc, session) => acc + session.eventsPerSession,
+          0
+        ) / count
+      : 0;
+  const averageSessionKeyEventRate =
+    count > 0
+      ? sessionsArray.reduce(
+          (acc, session) => acc + session.sessionKeyEventRate,
+          0
+        ) / count
+      : 0;
+
+  return {
+    totalSessions,
+    totalEngagedSessions,
+    averageEngagementRate,
+    averageEngagementDuration,
+    averageEventsPerSession,
+    totalEventCount,
+    totalKeyEvents,
+    averageSessionKeyEventRate,
+    totalRevenue,
+  };
+});
 
 const fetchFilters = async () => {
   try {
