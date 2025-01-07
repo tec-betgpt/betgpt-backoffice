@@ -47,6 +47,7 @@ import {
   ChevronsUpDown,
   Send,
   ChartNoAxesCombined,
+    Album
 } from "lucide-vue-next";
 
 import { ref, computed, onMounted } from "vue";
@@ -132,6 +133,12 @@ const navMenu = computed(() => {
       name: "Usuários",
       url: { name: "users" },
       icon: Users2,
+      show: authStore.user?.type === "member",
+    },
+    {
+      name:"Textos Motivacionais",
+      url:{name:"texts"},
+      icon: Album,
       show: authStore.user?.type === "member",
     },
     {

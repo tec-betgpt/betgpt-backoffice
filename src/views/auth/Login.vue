@@ -26,7 +26,9 @@
         </blockquote>
       </div>
     </div>
-    <div v-if="!ScreenTwoFactor" class="lg:p-8">
+
+
+    <div v-if="!ScreenTwoFactor && !loading" class="lg:p-8">
       <div
         class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
       >
@@ -106,7 +108,9 @@
         </div>
       </div>
     </div>
-
+    <div v-else-if="loading">
+      <CustomLoading/>
+    </div>
     <div v-else class="lg:p-8">
       <div
         v-if="recoveryScreen"
@@ -226,7 +230,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
@@ -249,6 +253,7 @@ import {
 import { useToast } from "@/components/ui/toast/use-toast";
 const { toast } = useToast();
 import i18n from "@/i18n";
+import CustomLoading from "@/components/custom/CustomLoading.vue";
 Form.axios = api;
 
 const isDialog = ref(false);
@@ -322,7 +327,7 @@ const login = async () => {
       {},
       { withCredentials: true }
     );
-
+    await delay(10000)
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
@@ -407,4 +412,8 @@ const recoveryCode = async () => {
     loadingRecovery.value = false;
   }
 };
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 </script>
