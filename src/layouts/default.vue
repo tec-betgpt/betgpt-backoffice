@@ -28,7 +28,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
   SidebarHeader,
-  SidebarInset,
+  SidebarInset, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import {
   Tooltip,
@@ -47,13 +47,18 @@ import {
   ChevronsUpDown,
   Send,
   ChartNoAxesCombined,
-    Album
+    Album,
+  Wrench,
+  FolderDot,
+  ChevronRight,
+  SquareStack
 } from "lucide-vue-next";
 
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible";
 
 interface BreadcrumbItem {
   name: string;
@@ -104,54 +109,81 @@ const navMenu = computed(() => {
       url: { name: "home" },
       icon: Home,
       show: true,
+
     },
     {
-      name: "Relatórios",
+      name: "Métricas",
       url: { name: "analytics" },
       icon: LineChart,
       show: true,
+      type: "report",
     },
     {
       name: "SMS Funnel",
       url: { name: "sms-funnel" },
       icon: Send,
       show: true,
+      type: "utils",
     },
     {
       name: "Google Analytics",
       url: { name: "google-analytics" },
       icon: ChartNoAxesCombined,
       show: true,
+      type: "report",
     },
     {
       name: "Projetos",
       url: { name: "projects" },
       icon: Building2,
       show: authStore.user?.type === "member",
+      type: "management",
     },
     {
       name: "Usuários",
       url: { name: "users" },
       icon: Users2,
       show: authStore.user?.type === "member",
+      type: "management",
     },
     {
-      name:"Textos Motivacionais",
-      url:{name:"texts"},
+      name: "Textos Motivacionais",
+      url: { name: "texts" },
       icon: Album,
       show: authStore.user?.type === "member",
+      type: "management",
     },
     {
       name: "Ia",
       url: { name: "ia" },
       icon: Bot,
       show: true,
-      //show: authStore.user?.type === "member",
-      
-    }
+      type: "utils",
+    },
   ];
 
   return menu.filter((item) => item.show);
+});
+
+const navCategory = computed(() => {
+  const category = [
+    {
+      name: "Ferramentas",
+      icon: Wrench,
+      options: navMenu.value.filter((item) => item.type === "utils"),
+    },
+    {
+      name: "Gerenciamento",
+      icon: SquareStack ,
+      options: navMenu.value.filter((item) => item.type === "management"),
+    },
+    {
+      name:"Relatórios",
+      icon: FolderDot,
+      options: navMenu.value.filter((item) => item.type === "report"),
+    }
+  ];
+  return category;
 });
 
 // Times (Projects)
@@ -259,29 +291,66 @@ const logout = async () => {
         <SidebarGroup>
           <SidebarGroupLabel>Projeto</SidebarGroupLabel>
           <SidebarMenu>
-            <SidebarMenuItem v-for="item in navMenu" :key="item.name">
+            <SidebarMenuItem>
               <TooltipProvider :disabled="!stateResponsive">
                 <Tooltip>
                   <TooltipTrigger as-child>
                     <SidebarMenuButton as-child>
                       <router-link
-                        :to="item.url"
-                        class="flex items-center p-2 rounded-md transition-colors"
-                        :class="{
-                          'bg-sidebar-accent text-sidebar-accent-foreground':
-                            route.name === item.url.name,
-                          'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
-                        }"
+                          :to="navMenu[0].url"
+                          class="flex items-center p-2 rounded-md transition-colors"
+                          :class="{
+                                      'bg-sidebar-accent text-sidebar-accent-foreground':
+                                        route.name === navMenu[0].url.name,
+                                      'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
+                                    }"
                       >
-                        <component :is="item.icon" class="mr-2" />
-                        <span>{{ item.name }}</span>
+                        <component :is="navMenu[0].icon" class="mr-2" />
+                        <span>{{ navMenu[0].name }}</span>
                       </router-link>
                     </SidebarMenuButton>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{{ item.name }}</TooltipContent>
+                  <TooltipContent side="right">{{ navMenu[0].name }}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </SidebarMenuItem>
+            <Collapsible v-for="item in navCategory" :key="item.name" as-child class="group/collapsible">
+
+              <SidebarMenuItem>
+                <CollapsibleTrigger as-child>
+                  <SidebarMenuButton :tooltip="item.name">
+                      <component :is="item.icon"/>
+                      <span>{{item.name}}</span>
+                    <ChevronRight class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem v-for="subItem in item.options" :key="subItem.name">
+                      <SidebarMenuSubButton as-child>
+                        <router-link
+                            :to="subItem.url"
+                            class="flex items-center p-2 rounded-md transition-colors"
+                            :class="{
+                                      'bg-sidebar-accent text-sidebar-accent-foreground':
+                                        route.name === subItem.url.name,
+                                      'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
+                                    }"
+                        >
+                          <component :is="subItem.icon" class="mr-2" />
+                          <span>{{ subItem.name }}</span>
+                        </router-link>
+                      </SidebarMenuSubButton>
+
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+
+
+            </Collapsible>
+
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
