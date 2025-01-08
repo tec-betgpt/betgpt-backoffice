@@ -23,7 +23,10 @@
             class="mt-1"
         />
       </div>
-      <Button type="submit">Salvar</Button>
+      <Button type="submit" :disabled="loadingSave">   <LucideSpinner
+          v-if="loadingSave"
+          class="mr-2 h-4 w-4 animate-spin"
+      />Salvar</Button>
     </form>
     <Table >
       <TableHeader>
@@ -98,7 +101,12 @@
                 class="mt-1"
             />
           </div>
-          <Button type="submit">Editar</Button>
+          <Button type="submit" :disabled="loading">
+            <LucideSpinner
+                v-if="loading"
+                class="mr-2 h-4 w-4 animate-spin"
+            />
+            Editar</Button>
         </form>
       </SheetContent>
 
@@ -148,6 +156,7 @@ import {
 import {Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle} from "@/components/ui/sheet";
 import {useToast} from "@/components/ui/toast";
 import i18n from "@/i18n";
+import { Loader2 as LucideSpinner } from "lucide-vue-next";
 
 const { toast } = useToast();
 Form.axios = api;
@@ -163,10 +172,10 @@ const pages = ref({
   total: 0,
   last: 0,
 });
-const isDialog = ref(false);
 const showModal = ref(false);
 const editId = ref()
-
+const loading = ref(false)
+const loadingSave = ref(false)
 async function fetchMessages(pageId: number = pageCurrent.value) {
   try {
     const response = await form.value.get(`/utils/message-loading?page=${pageId}`);
@@ -183,19 +192,27 @@ fetchMessages();
 
 async function submit() {
   try {
+    loadingSave.value = true;
     const response = await form.value.post("/utils/message-loading");
     console.log(response);
     form.value.reset();
-    // toast({
-    //   title: i18n.global.t(""),
-    //   description:  i18n.global.t(""),
-    //   duration:3000,
-    //   variant:'destructive'
-    // });
+    toast({
+      title: i18n.global.t("success"),
+      description:  i18n.global.t(""),
+      duration:3000,
+    });
     await fetchMessages();
 
   } catch (error) {
     console.error("Erro ao enviar formulário:", error);
+    toast({
+      title: i18n.global.t("error"),
+      description:  i18n.global.t(error.response.data.message),
+      duration:3000,
+      variant:'destructive'
+    });
+  }finally {
+    loadingSave.value = false
   }
 }
 
@@ -211,19 +228,30 @@ async function remove(id: number) {
 
 async function edit(id) {
   try {
+    loading.value = true
     const response = await form.value.put(`/utils/message-loading/${id}`);
     console.log(response);
     form.value.reset();
     await fetchMessages();
     showModal.value = false;
+    toast({
+      title: i18n.global.t("success"),
+      description:  i18n.global.t(""),
+      duration:3000,
+    });
   } catch (error) {
     console.error("Erro ao editar mensagem:", error);
+    toast({
+      title: i18n.global.t("error"),
+      description:  i18n.global.t(error.response.data.message),
+      duration:3000,
+      variant:'destructive'
+    });
+  }finally {
+    loading.value = false
   }
 }
 
-function closeDialog() {
-  isDialog.value = false;
-}
 function openModal(id){
   editId.value = id;
   showModal.value = true;
