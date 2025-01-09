@@ -1,6 +1,6 @@
 <template>
   <div
-    class="container relative h-[800px] flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0 min-h-screen"
+    class=" relative flex flex-col items-center   lg:max-w-none lg:flex-row lg:px-0 min-h-screen"
   >
     <!--<router-link
       :to="'/register'"
@@ -13,22 +13,30 @@
     >
       {{ $t("signup") }}
     </router-link>-->
-    <div
-      class="relative h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex hidden lg:block"
+    <transition
+        name="shrink"
+        @before-leave="beforeLeave"
+        @leave="leave"
     >
-      <div class="absolute inset-0 bg-zinc-900" />
-      <div class="relative z-20 flex items-center text-lg font-medium">
-        <img src="/logo-elevate-square-white.png" class="mr-2 w-28" />
+      <div
+          v-if="!loading"
+          class="relative min-h-screen w-1/2 flex-col bg-muted p-10 text-white dark:border-r lg:flex hidden"
+          ref="animatedDiv"
+      >
+        <div class="absolute inset-0 bg-zinc-900" />
+        <div class="relative z-20 flex items-center text-lg font-medium">
+          <img src="/logo-elevate-white.png" class="mr-2 w-28" />
+        </div>
+        <div class="relative z-20 mt-auto" >
+          <blockquote class="space-y-2">
+            <p class="text-lg">{{ $t("slogan") }}</p>
+          </blockquote>
+        </div>
       </div>
-      <div class="relative z-20 mt-auto">
-        <blockquote class="space-y-2">
-          <p class="text-lg">{{ $t("slogan") }}</p>
-        </blockquote>
-      </div>
-    </div>
+    </transition>
 
 
-    <div v-if="!ScreenTwoFactor && !loading" class="lg:p-8">
+    <div v-if="!ScreenTwoFactor && !loading" class=" flex justify-center items-center align-middle min-h-screen lg:w-1/2">
       <div
         class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
       >
@@ -108,9 +116,11 @@
         </div>
       </div>
     </div>
-    <div v-else-if="loading">
-      <CustomLoading/>
-    </div>
+    <transition  v-else-if="loading">
+      <div class="flex align-middle justify-center items-center min-h-screen flex-1">
+        <CustomLoading/>
+      </div>
+    </transition>
     <div v-else class="lg:p-8">
       <div
         v-if="recoveryScreen"
@@ -321,13 +331,14 @@ const handleLoginResponse = (response) => {
 };
 const login = async () => {
   loading.value = true;
+  await delay(10000)
   try {
     const response = await form.value.post(
       "/auth/login",
       {},
       { withCredentials: true }
     );
-    await delay(10000)
+
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
@@ -415,5 +426,28 @@ const recoveryCode = async () => {
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+const animatedDiv = ref(null);
+const sloganContainer = ref(null);
+const beforeLeave = (el) => {
+  el.style.width = `${el.offsetWidth}px`;
 
+};
+const leave = (el, done) => {
+  const animation = el.animate(
+      [
+        { width: `${el.offsetWidth}px` },
+        { width: "0px" },
+      ],
+      {
+
+        duration: 500,
+        easing: "ease-in-out",
+
+      }
+  );
+
+  animation.onfinish = () => {
+
+     done();
+  };};
 </script>
