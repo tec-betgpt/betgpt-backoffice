@@ -18,7 +18,7 @@
     <img src="/logo-elevate-square-black.png" class="w-[100px] h-fit" alt="">
     <div class="flex flex-col gap-2">
       <div class="flex gap-2">
-        <img src="/quotationMarks.svg" class="w-[14px] h-fit" alt=""/>
+        <Quote />
         <p class="max-w-[440px]">
           {{ message.message }}
         </p>
