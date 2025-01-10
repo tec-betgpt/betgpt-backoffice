@@ -14,12 +14,12 @@
 
   <!--    </CardContent>-->
   <!--  </Card>-->
-  <div class="flex flex-col justify-center items-center ">
+  <div class="flex flex-col justify-center items-center flex-1 ">
     <img src="/logo-elevate-square-black.png" class="w-[100px] h-fit" alt="">
     <div class="flex flex-col gap-2">
       <div class="flex gap-2">
-        <img src="/svgviewer-output%20(3).svg" class="w-[14px] h-fit" alt=""/>
-        <p class="w-[380px]">
+        <img src="/quotationMarks.svg" class="w-[14px] h-fit" alt=""/>
+        <p class="max-w-[440px]">
           {{ message.message }}
         </p>
 

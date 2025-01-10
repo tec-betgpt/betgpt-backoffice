@@ -4,7 +4,7 @@
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">Textos</h2>
       <p class="text-muted-foreground">
-        Visão geral e métricas detalhadas de SMS e WhatsApp.
+
       </p>
     </div>
     <form class="mb-6 space-y-4 py-4" @submit.prevent="submit">
@@ -198,7 +198,7 @@ async function submit() {
     form.value.reset();
     toast({
       title: i18n.global.t("success"),
-      description:  i18n.global.t(""),
+      description:  i18n.global.t(response.data.message),
       duration:3000,
     });
     await fetchMessages();
@@ -220,8 +220,19 @@ async function remove(id: number) {
   try {
     const response = await form.value.delete(`/utils/message-loading/${id}`);
     console.log(response);
+    toast({
+      title: i18n.global.t("success"),
+      description:  i18n.global.t(response.data.message),
+      duration:3000,
+    });
     await fetchMessages();
   } catch (error) {
+    toast({
+      title: i18n.global.t("error"),
+      description:  i18n.global.t(error.response.data.message),
+      duration:3000,
+      variant:'destructive'
+    });
     console.error("Erro ao remover mensagem:", error);
   }
 }
@@ -236,7 +247,7 @@ async function edit(id) {
     showModal.value = false;
     toast({
       title: i18n.global.t("success"),
-      description:  i18n.global.t(""),
+      description:  i18n.global.t(response.data.message),
       duration:3000,
     });
   } catch (error) {

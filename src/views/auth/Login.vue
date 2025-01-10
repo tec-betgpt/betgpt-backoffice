@@ -38,7 +38,7 @@
 
     <div v-if="!ScreenTwoFactor && !loading" class=" flex justify-center items-center align-middle min-h-screen lg:w-1/2">
       <div
-        class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
+        class=" flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
       >
         <div class="lg:hidden">
           <img src="/logo-elevate-black.png" class="w-64 mx-auto mb-5" />
@@ -117,14 +117,14 @@
       </div>
     </div>
     <transition  v-else-if="loading">
-      <div class="flex align-middle justify-center items-center min-h-screen flex-1">
+      <div class="items-center justify-center align-middle  flex min-h-screen mx-10 sm:w-full">
         <CustomLoading/>
       </div>
     </transition>
-    <div v-else class="lg:p-8">
+    <div v-else class="flex justify-center items-center align-middle min-h-screen lg:w-1/2 w-full">
       <div
         v-if="recoveryScreen"
-        class="mx-auto flex w-full flex-col justify-center align-middle space-y-6 sm:w-[400px]"
+        class="mx-10 flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
       >
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
@@ -165,7 +165,7 @@
 
       <div
         v-else
-        class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]"
+        class="mx-10 flex w-full flex-col justify-center space-y-6 sm:w-[400px]"
       >
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
@@ -331,14 +331,14 @@ const handleLoginResponse = (response) => {
 };
 const login = async () => {
   loading.value = true;
- // await delay(10000)
+
   try {
     const response = await form.value.post(
       "/auth/login",
       {},
       { withCredentials: true }
     );
-
+    await delay(2000)
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
@@ -366,7 +366,7 @@ const twoFactorLogin = async (code: Array<string>) => {
       {},
       { withCredentials: true }
     );
-
+    await delay(2000)
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login com dois fatores:", error);
