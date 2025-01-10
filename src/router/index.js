@@ -21,6 +21,7 @@ import ConfigurationNotifications from "@/views/configurations/Notifications.vue
 import ConfigurationProjects from "@/views/configurations/Projects.vue";
 import ConfigurationIntegrations from "@/views/configurations/Integrations.vue";
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
+import Texts from "@/views/dashboard/Texts.vue";
 
 const routes = [
   {
@@ -102,6 +103,17 @@ const routes = [
       permission: "member",
       title: "Projetos",
     },
+  },
+  {
+    path: '/texts',
+    name:'texts',
+    component: Texts,
+    meta:{
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member",
+      title: "Textos"
+    }
   },
   {
     path: "/users",

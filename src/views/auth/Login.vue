@@ -1,6 +1,6 @@
 <template>
   <div
-    class="container relative h-[800px] flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0 min-h-screen"
+    class=" relative flex flex-col items-center   lg:max-w-none lg:flex-row lg:px-0 min-h-screen"
   >
     <!--<router-link
       :to="'/register'"
@@ -13,22 +13,32 @@
     >
       {{ $t("signup") }}
     </router-link>-->
-    <div
-      class="relative h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex hidden lg:block"
+    <transition
+        name="shrink"
+        @before-leave="beforeLeave"
+        @leave="leave"
     >
-      <div class="absolute inset-0 bg-zinc-900" />
-      <div class="relative z-20 flex items-center text-lg font-medium">
-        <img src="/logo-elevate-square-white.png" class="mr-2 w-28" />
-      </div>
-      <div class="relative z-20 mt-auto">
-        <blockquote class="space-y-2">
-          <p class="text-lg">{{ $t("slogan") }}</p>
-        </blockquote>
-      </div>
-    </div>
-    <div v-if="!ScreenTwoFactor" class="lg:p-8">
       <div
-        class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
+          v-if="!loading"
+          class="relative min-h-screen w-1/2 flex-col bg-muted p-10 text-white dark:border-r lg:flex hidden"
+          ref="animatedDiv"
+      >
+        <div class="absolute inset-0 bg-zinc-900" />
+        <div class="relative z-20 flex items-center text-lg font-medium">
+          <img src="/logo-elevate-white.png" class="mr-2 w-28" />
+        </div>
+        <div class="relative z-20 mt-auto" >
+          <blockquote class="space-y-2">
+            <p class="text-lg">{{ $t("slogan") }}</p>
+          </blockquote>
+        </div>
+      </div>
+    </transition>
+
+
+    <div v-if="!ScreenTwoFactor && !loading" class=" flex justify-center items-center align-middle min-h-screen lg:w-1/2">
+      <div
+        class=" flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
       >
         <div class="lg:hidden">
           <img src="/logo-elevate-black.png" class="w-64 mx-auto mb-5" />
@@ -106,11 +116,15 @@
         </div>
       </div>
     </div>
-
-    <div v-else class="lg:p-8">
+    <transition  v-else-if="loading">
+      <div class="items-center justify-center align-middle  flex min-h-screen mx-10 sm:w-full">
+        <CustomLoading/>
+      </div>
+    </transition>
+    <div v-else class="flex justify-center items-center align-middle min-h-screen lg:w-1/2 w-full">
       <div
         v-if="recoveryScreen"
-        class="mx-auto flex w-full flex-col justify-center align-middle space-y-6 sm:w-[400px]"
+        class="mx-10 flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
       >
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
@@ -151,7 +165,7 @@
 
       <div
         v-else
-        class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]"
+        class="mx-10 flex w-full flex-col justify-center space-y-6 sm:w-[400px]"
       >
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
@@ -226,7 +240,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
@@ -249,6 +263,7 @@ import {
 import { useToast } from "@/components/ui/toast/use-toast";
 const { toast } = useToast();
 import i18n from "@/i18n";
+import CustomLoading from "@/components/custom/CustomLoading.vue";
 Form.axios = api;
 
 const isDialog = ref(false);
@@ -316,13 +331,14 @@ const handleLoginResponse = (response) => {
 };
 const login = async () => {
   loading.value = true;
+
   try {
     const response = await form.value.post(
       "/auth/login",
       {},
       { withCredentials: true }
     );
-
+    await delay(2000)
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
@@ -350,7 +366,7 @@ const twoFactorLogin = async (code: Array<string>) => {
       {},
       { withCredentials: true }
     );
-
+    await delay(2000)
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login com dois fatores:", error);
@@ -407,4 +423,31 @@ const recoveryCode = async () => {
     loadingRecovery.value = false;
   }
 };
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+const animatedDiv = ref(null);
+const sloganContainer = ref(null);
+const beforeLeave = (el) => {
+  el.style.width = `${el.offsetWidth}px`;
+
+};
+const leave = (el, done) => {
+  const animation = el.animate(
+      [
+        { width: `${el.offsetWidth}px` },
+        { width: "0px" },
+      ],
+      {
+
+        duration: 500,
+        easing: "ease-in-out",
+
+      }
+  );
+
+  animation.onfinish = () => {
+
+     done();
+  };};
 </script>

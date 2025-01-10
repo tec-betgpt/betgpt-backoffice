@@ -171,7 +171,7 @@ const validate2fa = async (code:Array<string>)=>{
 
     toast({
       title: i18n.global.t("success"),
-      description:  response.data.message,
+      description:   i18n.global.t(response.data.message),
       duration:3000
     });
 
