@@ -331,7 +331,7 @@ const handleLoginResponse = (response) => {
 };
 const login = async () => {
   loading.value = true;
-  await delay(10000)
+ // await delay(10000)
   try {
     const response = await form.value.post(
       "/auth/login",

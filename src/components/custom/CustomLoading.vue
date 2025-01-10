@@ -47,7 +47,6 @@ const message = ref({
 async function getMessage() {
   const response = await api.get('/message-loading')
   message.value = response.data.data
-  console.log(message.value)
 }
 
 getMessage()
