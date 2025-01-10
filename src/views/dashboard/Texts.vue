@@ -228,7 +228,7 @@ async function remove(id: number) {
       description:  i18n.global.t(response.data.message),
       duration:3000,
     });
-    await fetchMessages();
+
   } catch (error) {
     toast({
       title: i18n.global.t("error"),
