@@ -35,7 +35,8 @@
 
 import api from "@/services/api";
 import {ref} from "vue";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader} from "@/components/ui/card";
+import { Quote } from 'lucide-vue-next';
+
 
 
 const message = ref({
