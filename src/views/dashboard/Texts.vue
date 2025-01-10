@@ -44,7 +44,7 @@
             <div class=" align-middle justify-start gap-4 flex ">
               <Button @click="openModal(item.id)">Editar</Button>
 
-              <Button variant="destructive" @click="remove(item.id)">Remover</Button>
+              <Button variant="destructive" :disabled="loadingRemove" @click="remove(item.id)">Remover</Button>
             </div>
 
           </TableCell>
