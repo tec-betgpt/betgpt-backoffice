@@ -176,6 +176,7 @@ const showModal = ref(false);
 const editId = ref()
 const loading = ref(false)
 const loadingSave = ref(false)
+const loadingRemove =  ref(false)
 async function fetchMessages(pageId: number = pageCurrent.value) {
   try {
     const response = await form.value.get(`/utils/message-loading?page=${pageId}`);
@@ -218,8 +219,10 @@ async function submit() {
 
 async function remove(id: number) {
   try {
+    loadingRemove.value = true
     const response = await form.value.delete(`/utils/message-loading/${id}`);
     console.log(response);
+    await fetchMessages();
     toast({
       title: i18n.global.t("success"),
       description:  i18n.global.t(response.data.message),
@@ -234,6 +237,8 @@ async function remove(id: number) {
       variant:'destructive'
     });
     console.error("Erro ao remover mensagem:", error);
+  }finally {
+    loadingRemove.value = false
   }
 }
 
