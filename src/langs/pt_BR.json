@@ -79,5 +79,12 @@
   "error": "Erro",
   "error_description_disable_2fa": "Não foi possível desativar o 2FA. Tente novamente.",
   "error_description_next_step": "Não foi possível avançar para o próximo passo.",
-  "error_not_code": "Insira o código para continuar"
+  "error_not_code": "Insira o código para continuar",
+  "message_create_success": "Mensagem criada com sucesso.",
+  "message_create_error": "Erro ao criar a mensagem.",
+  "message_update_success": "Mensagem atualizada com sucesso.",
+  "message_update_error": "Erro ao atualizar a mensagem.",
+  "message_delete_success": "Mensagem excluída com sucesso.",
+  "message_delete_error": "Erro ao excluir a mensagem.",
+  "message_not_found": "Mensagem não encontrada."
 }

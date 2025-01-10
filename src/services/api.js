@@ -46,8 +46,8 @@ api.interceptors.response.use(
     ) {
       showDialog({
         type: "critical",
-        title: i18n.global.t("error_ocurried"),
-        subtitle: error.response.data.message,
+       title: i18n.global.t("error_ocurried"),
+        subtitle: i18n.global.t(error.response.data.message),
         assistiveButton: i18n.global.t("close"),
       });
     }
