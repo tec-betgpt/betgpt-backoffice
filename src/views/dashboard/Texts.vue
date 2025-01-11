@@ -26,8 +26,8 @@
           </TableHeader>
           <TableBody>
             <TableRow v-if="valuesTable" v-for="item in valuesTable" :key="item.id">
-              <TableCell class="sm:w-2/4 text-ellipsis	text-wrap			 ">{{ item.message }}</TableCell>
-              <TableCell class="sm:w-1/4 text-ellipsis text-wrap				">{{ item.signature }}</TableCell>
+              <TableCell class="sm:w-2/4 text-ellipsis	text-wrap	font-medium		 ">{{ item.message }}</TableCell>
+              <TableCell class="sm:w-1/4 text-ellipsis text-wrap	font-medium			">{{ item.signature }}</TableCell>
               <TableCell class="w-1/4">
                 <DropdownMenu>
                   <DropdownMenuTrigger as-child>
