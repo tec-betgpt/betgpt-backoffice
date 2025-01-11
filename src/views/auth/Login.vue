@@ -13,28 +13,26 @@
     >
       {{ $t("signup") }}
     </router-link>-->
-    <transition
-        name="shrink"
-        @before-leave="beforeLeave"
-        @leave="leave"
-    >
-      <div
-          v-if="!loading"
-          class="relative min-h-screen w-1/2 flex-col bg-muted p-10 text-white dark:border-r lg:flex hidden"
-          ref="animatedDiv"
-      >
-        <div class="absolute inset-0 bg-zinc-900" />
-        <div class="relative z-20 flex items-center text-lg font-medium">
-          <img src="/logo-elevate-white.png" class="mr-2 w-28" />
-        </div>
-        <div class="relative z-20 mt-auto" >
-          <blockquote class="space-y-2">
-            <p class="text-lg">{{ $t("slogan") }}</p>
-          </blockquote>
-        </div>
-      </div>
-    </transition>
+    <div
 
+        class="relative min-h-screen flex-col bg-muted  text-white dark:border-r lg:flex hidden overflow-hidden transition-all duration-1000"
+        :class="{ 'w-0 p-0': loading, ' p-10 w-1/2': !loading }"
+        ref="animatedDiv"
+    >
+      <div class="absolute inset-0 bg-zinc-900" />
+      <div
+          :class="{ 'opacity-0': loading, 'opacity-100	': !loading }"
+          class="relative z-20 flex items-center text-lg font-medium">
+        <img src="/logo-elevate-white.png" class="mr-2 w-28" />
+      </div>
+      <div
+          :class="{ 'opacity-0': loading, 'opacity-100	': !loading }"
+          class="relative z-20 mt-auto" >
+        <blockquote class="space-y-2">
+          <p class="text-lg">{{ $t("slogan") }}</p>
+        </blockquote>
+      </div>
+    </div>
 
     <div v-if="!ScreenTwoFactor && !loading" class=" flex justify-center items-center align-middle min-h-screen lg:w-1/2">
       <div
@@ -427,27 +425,5 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 const animatedDiv = ref(null);
-const sloganContainer = ref(null);
-const beforeLeave = (el) => {
-  el.style.width = `${el.offsetWidth}px`;
 
-};
-const leave = (el, done) => {
-  const animation = el.animate(
-      [
-        { width: `${el.offsetWidth}px` },
-        { width: "0px" },
-      ],
-      {
-
-        duration: 500,
-        easing: "ease-in-out",
-
-      }
-  );
-
-  animation.onfinish = () => {
-
-     done();
-  };};
 </script>

@@ -16,15 +16,16 @@
   <!--  </Card>-->
   <div class="flex flex-col justify-center items-center flex-1 ">
     <img src="/logo-elevate-square-black.png" class="w-[100px] h-fit" alt="">
-    <div class="flex flex-col gap-2">
-      <div class="flex gap-2">
-        <Quote />
-        <p class="max-w-[440px]">
-          {{ message.message }}
-        </p>
-
-      </div>
-      <p class="text-left font-serif text-gray-700">{{ message.signature }}</p>
+    <div
+        :class="{ 'opacity-0': !message.message, 'opacity-100	': message.message }"
+        class="flex flex-col gap-3 transition-opacity duration-1000 ">
+          <div  class="flex gap-1">
+            <Quote :size="20" :stroke-width="1.75" absoluteStrokeWidth />
+            <p class="max-w-[440px]">
+              {{ message.message }}
+            </p>
+          </div>
+          <p class="text-left font-serif text-gray-700">{{ message.signature }}</p>
     </div>
   </div>
 </template>
