@@ -1,115 +1,149 @@
 <template>
-  <div class="p-6">
+  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
 
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">Textos</h2>
       <p class="text-muted-foreground">
-
+        Gerencie os textos e edite informações.
       </p>
     </div>
-    <form class="mb-6 space-y-4 py-4" @submit.prevent="submit">
+    <Card>
+      <CardContent>
+        <div v-if="isLoading" class="mt-6">
+          <div class="space-y-4">
+            <Skeleton class="h-6 w-full" />
+            <Skeleton class="h-6 w-full" />
+            <Skeleton class="h-6 w-full" />
+          </div>
+        </div>
+        <Table v-else>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Texto</TableHead>
+              <TableHead>Assinatura</TableHead>
+              <TableHead>Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-if="valuesTable" v-for="item in valuesTable" :key="item.id">
+              <TableCell class="sm:w-2/4 text-ellipsis	text-wrap	font-medium		 ">{{ item.message }}</TableCell>
+              <TableCell class="sm:w-1/4 text-ellipsis text-wrap	font-medium			">{{ item.signature }}</TableCell>
+              <TableCell class="w-1/4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
+                    <Button
+                        aria-haspopup="true"
+                        size="icon"
+                        variant="ghost"
+                        :disabled="loadingRemove||loading"
+                    >
+                      <MoreHorizontal class="h-4 w-4" />
+                      <span class="sr-only">Ações</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem @click="openModal(item.id)">
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem @click="remove(item.id)">
+                      <div class="flex items-center">
+                        Remover
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
 
-      <div>
-        <Label for="message" class="block text-sm font-medium">Texto</Label>
-        <Input v-model="form.message" id="message" class="mt-1"/>
-      </div>
-      <div>
-        <Label for="signature" class="block text-sm font-medium">Assinatura</Label>
-        <Input
-            id="signature"
-            placeholder="Assinatura"
+            </TableRow>
+            <TableFooter class=" flex items-center justify-start w-full py-4 bg-white">
+              <Pagination v-if="pages.last>1" v-slot="{ page }" :total="pages.total" :sibling-count="1" show-edges :default-page="1">
+                <PaginationList v-slot="{ items }" class="flex items-center gap-2">
+                  <PaginationFirst as-child @click="fetchMessages(1)" />
+                  <PaginationPrev as-child @click="fetchMessages(pageCurrent-1)"/>
 
-            v-model="form.signature"
-            class="mt-1"
-        />
-      </div>
-      <Button type="submit" :disabled="loadingSave">   <LucideSpinner
-          v-if="loadingSave"
-          class="mr-2 h-4 w-4 animate-spin"
-      />Salvar</Button>
-    </form>
-    <Table >
-      <TableHeader>
-        <TableRow>
-          <TableHead>Texto</TableHead>
-          <TableHead>Assinatura</TableHead>
-          <TableHead>Ações</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableRow v-if="valuesTable" v-for="item in valuesTable" :key="item.id">
-          <TableCell class="w-2/4">{{ item.message }}</TableCell>
-          <TableCell class="w-1/4">{{ item.signature }}</TableCell>
-          <TableCell class="w-2/4">
-            <div class=" align-middle justify-start gap-4 flex ">
-              <Button @click="openModal(item.id)">Editar</Button>
+                  <template v-for="(item, index) in items">
+                    <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
+                      <Button class="w-9 h-9 p-0" :variant="item.value === page ? 'default' : 'outline'" @click="fetchMessages(index+1)">
+                        {{ item.value }}
+                      </Button>
+                    </PaginationListItem>
+                    <PaginationEllipsis v-else :key="item.type" :index="index" />
+                  </template>
 
-              <Button variant="destructive" :disabled="loadingRemove" @click="remove(item.id)">Remover</Button>
-            </div>
+                  <PaginationNext @click="fetchMessages(pageCurrent+1)" />
+                  <PaginationLast @click="fetchMessages(pages.last)" />
+                </PaginationList>
+              </Pagination>
+            </TableFooter>
+          </TableBody>
+        </Table>
 
-          </TableCell>
+      </CardContent>
+      <CardFooter>
+      <Button @click="openModal()">
+        {{ loadingSave ? "Carregando..." : "Novo Texto" }}
+      </Button>
+    </CardFooter>
+    </Card>
 
-        </TableRow>
-        <TableFooter class=" flex items-center justify-start w-full py-4 bg-white">
-          <Pagination v-slot="{ page }" :total="pages.total" :sibling-count="1" show-edges :default-page="1">
-            <PaginationList v-slot="{ items }" class="flex items-center gap-2">
-              <PaginationFirst as-child @click="fetchMessages(1)" />
-              <PaginationPrev as-child @click="fetchMessages(pageCurrent-1)"/>
 
-              <template v-for="(item, index) in items">
-                <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
-                  <Button class="w-9 h-9 p-0" :variant="item.value === page ? 'default' : 'outline'" @click="fetchMessages(index+1)">
-                    {{ item.value }}
-                  </Button>
-                </PaginationListItem>
-                <PaginationEllipsis v-else :key="item.type" :index="index" />
-              </template>
 
-              <PaginationNext @click="fetchMessages(pageCurrent+1)" />
-              <PaginationLast @click="fetchMessages(pages.last)" />
-            </PaginationList>
-          </Pagination>
-
-        </TableFooter>
-      </TableBody>
-    </Table>
     <Sheet v-model:open="showModal">
-      <SheetContent  position="right" size="lg">
+      <SheetContent position="right" size="lg">
         <SheetHeader>
-          <SheetTitle>Editar Texto</SheetTitle>
-          <!--          <SheetClose-->
-          <!--              class="absolute right-4 top-4"-->
-          <!--              @click="closeDialog"-->
-          <!--          >-->
-          <!--            <X :size="18" :stroke-width="1.75" absoluteStrokeWidth/>-->
-          <!--          </SheetClose>-->
-
+          <SheetTitle>
+            {{ isEditing ? "Editar Texto" : "Novo Texto" }}
+          </SheetTitle>
+          <SheetDescription>
+            {{
+              isEditing
+                  ? "Edite as informações do Texto"
+                  : "Crie um novo Texto"
+            }}
+          </SheetDescription>
         </SheetHeader>
-        <form @submit.prevent="edit(editId)" class="gap-4 flex flex-col">
-
-          <div>
-            <Label for="message" class="block text-sm font-medium">Texto</Label>
-            <Input v-model="form.message" id="message" class="mt-1"/>
+        <form @submit.prevent="isEditing ? edit(isEditing) : submit()">
+          <div class="grid gap-4 py-4">
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="name">Texto</Label>
+              <Input
+                  id="name"
+                  v-model="form.message"
+                  placeholder="Digite o Texto"
+                  class="col-span-3"
+                  required
+              />
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="name">Assinatura</Label>
+              <Input
+                  id="name"
+                  v-model="form.signature"
+                  placeholder="Digite a Assinatura"
+                  class="col-span-3"
+                  required
+              />
+            </div>
           </div>
-          <div>
-            <Label for="signature" class="block text-sm font-medium">Assinatura</Label>
-            <Input
-                id="signature"
-                placeholder="Assinatura"
-
-                v-model="form.signature"
-                class="mt-1"
-            />
-          </div>
-          <Button type="submit" :disabled="loading">
-            <LucideSpinner
-                v-if="loading"
-                class="mr-2 h-4 w-4 animate-spin"
-            />
-            Editar</Button>
+          <SheetFooter>
+            <Button type="submit" :disabled="loading">
+              <LucideSpinner
+                  v-if="loading"
+                  class="mr-2 h-4 w-4 animate-spin"
+              />
+              {{
+                loading
+                    ? "Salvando..."
+                    : isEditing
+                        ? "Salvar"
+                        : "Criar Texto"
+              }}
+            </Button>
+          </SheetFooter>
         </form>
       </SheetContent>
-
     </Sheet>
 
   </div>
@@ -133,16 +167,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { X } from "lucide-vue-next";
+
+import {MoreHorizontal, X} from "lucide-vue-next";
 import {
   Pagination,
   PaginationEllipsis,
@@ -153,10 +179,27 @@ import {
   PaginationNext,
   PaginationPrev,
 } from "@/components/ui/pagination";
-import {Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle} from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle
+} from "@/components/ui/sheet";
 import {useToast} from "@/components/ui/toast";
 import i18n from "@/i18n";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {Card, CardContent, CardFooter} from "@/components/ui/card";
+import {Skeleton} from "@/components/ui/skeleton";
 
 const { toast } = useToast();
 Form.axios = api;
@@ -173,10 +216,11 @@ const pages = ref({
   last: 0,
 });
 const showModal = ref(false);
-const editId = ref()
+const isLoading = ref(true)
 const loading = ref(false)
 const loadingSave = ref(false)
 const loadingRemove =  ref(false)
+const isEditing = ref(false)
 async function fetchMessages(pageId: number = pageCurrent.value) {
   try {
     const response = await form.value.get(`/utils/message-loading?page=${pageId}`);
@@ -186,6 +230,8 @@ async function fetchMessages(pageId: number = pageCurrent.value) {
     valuesTable.value = response.data.data.data;
   } catch (error) {
     console.error("Erro ao buscar mensagens:", error);
+  }finally {
+    isLoading.value = false;
   }
 }
 
@@ -193,8 +239,9 @@ fetchMessages();
 
 async function submit() {
   try {
-    loadingSave.value = true;
+    loading.value = true;
     const response = await form.value.post("/utils/message-loading");
+
     console.log(response);
     form.value.reset();
     toast({
@@ -213,8 +260,12 @@ async function submit() {
       variant:'destructive'
     });
   }finally {
-    loadingSave.value = false
+    loading.value = false
+    showModal.value = false
   }
+}
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function remove(id: number) {
@@ -246,6 +297,7 @@ async function edit(id) {
   try {
     loading.value = true
     const response = await form.value.put(`/utils/message-loading/${id}`);
+
     console.log(response);
     form.value.reset();
     await fetchMessages();
@@ -265,11 +317,12 @@ async function edit(id) {
     });
   }finally {
     loading.value = false
+    showModal.value = false
   }
 }
 
 function openModal(id){
-  editId.value = id;
+  isEditing.value = id;
   showModal.value = true;
 }
 </script>
