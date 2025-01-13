@@ -10,6 +10,7 @@ import Home from "@/views/dashboard/Home.vue";
 import Analytics from "@/views/dashboard/Analytics.vue";
 import SmsFunnel from "@/views/dashboard/SmsFunnel.vue";
 import GoogleAnalytics from "@/views/dashboard/GoogleAnalytics.vue";
+import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
 import Ia from "@/views/dashboard/Ia.vue";
@@ -94,6 +95,17 @@ const routes = [
     },
   },
   {
+    path: "/active-campaign",
+    name: "active-campaign",
+    component: ActiveCampaign,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Active Campaign",
+      permission: "member|client",
+    },
+  },
+  {
     path: "/projects",
     name: "projects",
     component: Projects,
@@ -105,15 +117,15 @@ const routes = [
     },
   },
   {
-    path: '/texts',
-    name:'texts',
+    path: "/texts",
+    name: "texts",
     component: Texts,
-    meta:{
+    meta: {
       layout: DefaultLayout,
       requiresAuth: true,
       permission: "member",
-      title: "Textos"
-    }
+      title: "Textos",
+    },
   },
   {
     path: "/users",
@@ -128,7 +140,6 @@ const routes = [
   },
   // Configurations routes
   {
-
     path: "/configurations",
     component: ConfigurationLayout,
     meta: {
@@ -210,7 +221,7 @@ const routes = [
       permission: "member",
       title: "Ia",
     },
-  }
+  },
 ];
 
 const router = createRouter({

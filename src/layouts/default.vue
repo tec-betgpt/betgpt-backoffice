@@ -28,7 +28,10 @@ import {
   SidebarProvider,
   SidebarTrigger,
   SidebarHeader,
-  SidebarInset, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton,
+  SidebarInset,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import {
   Tooltip,
@@ -47,18 +50,23 @@ import {
   ChevronsUpDown,
   Send,
   ChartNoAxesCombined,
-    Album,
+  MailCheck,
+  Album,
   Wrench,
   FolderDot,
   ChevronRight,
-  SquareStack
+  SquareStack,
 } from "lucide-vue-next";
 
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
-import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface BreadcrumbItem {
   name: string;
@@ -109,7 +117,6 @@ const navMenu = computed(() => {
       url: { name: "home" },
       icon: Home,
       show: true,
-
     },
     {
       name: "Métricas",
@@ -129,6 +136,13 @@ const navMenu = computed(() => {
       name: "Google Analytics",
       url: { name: "google-analytics" },
       icon: ChartNoAxesCombined,
+      show: true,
+      type: "report",
+    },
+    {
+      name: "Active Campaign",
+      url: { name: "active-campaign" },
+      icon: MailCheck,
       show: true,
       type: "report",
     },
@@ -174,14 +188,14 @@ const navCategory = computed(() => {
     },
     {
       name: "Gerenciamento",
-      icon: SquareStack ,
+      icon: SquareStack,
       options: navMenu.value.filter((item) => item.type === "management"),
     },
     {
-      name:"Relatórios",
+      name: "Relatórios",
       icon: FolderDot,
       options: navMenu.value.filter((item) => item.type === "report"),
-    }
+    },
   ];
   return category;
 });
@@ -297,60 +311,66 @@ const logout = async () => {
                   <TooltipTrigger as-child>
                     <SidebarMenuButton as-child>
                       <router-link
-                          :to="navMenu[0].url"
-                          class="flex items-center p-2 rounded-md transition-colors"
-                          :class="{
-                                      'bg-sidebar-accent text-sidebar-accent-foreground':
-                                        route.name === navMenu[0].url.name,
-                                      'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
-                                    }"
+                        :to="navMenu[0].url"
+                        class="flex items-center p-2 rounded-md transition-colors"
+                        :class="{
+                          'bg-sidebar-accent text-sidebar-accent-foreground':
+                            route.name === navMenu[0].url.name,
+                          'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
+                        }"
                       >
                         <component :is="navMenu[0].icon" class="mr-2" />
                         <span>{{ navMenu[0].name }}</span>
                       </router-link>
                     </SidebarMenuButton>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{{ navMenu[0].name }}</TooltipContent>
+                  <TooltipContent side="right">{{
+                    navMenu[0].name
+                  }}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </SidebarMenuItem>
-            <Collapsible v-for="item in navCategory" :key="item.name" as-child class="group/collapsible">
-
+            <Collapsible
+              v-for="item in navCategory"
+              :key="item.name"
+              as-child
+              class="group/collapsible"
+            >
               <SidebarMenuItem>
                 <CollapsibleTrigger as-child>
                   <SidebarMenuButton :tooltip="item.name">
-                      <component :is="item.icon"/>
-                      <span>{{item.name}}</span>
-                    <ChevronRight class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-
+                    <component :is="item.icon" />
+                    <span>{{ item.name }}</span>
+                    <ChevronRight
+                      class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                    />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    <SidebarMenuSubItem v-for="subItem in item.options" :key="subItem.name">
+                    <SidebarMenuSubItem
+                      v-for="subItem in item.options"
+                      :key="subItem.name"
+                    >
                       <SidebarMenuSubButton as-child>
                         <router-link
-                            :to="subItem.url"
-                            class="flex items-center p-2 rounded-md transition-colors"
-                            :class="{
-                                      'bg-sidebar-accent text-sidebar-accent-foreground':
-                                        route.name === subItem.url.name,
-                                      'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
-                                    }"
+                          :to="subItem.url"
+                          class="flex items-center p-2 rounded-md transition-colors"
+                          :class="{
+                            'bg-sidebar-accent text-sidebar-accent-foreground':
+                              route.name === subItem.url.name,
+                            'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
+                          }"
                         >
                           <component :is="subItem.icon" class="mr-2" />
                           <span>{{ subItem.name }}</span>
                         </router-link>
                       </SidebarMenuSubButton>
-
                     </SidebarMenuSubItem>
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>
-
-
             </Collapsible>
-
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
