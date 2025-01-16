@@ -44,7 +44,7 @@
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem @click="openModal(item.id)">
+                    <DropdownMenuItem @click="openModal(item)">
                       Editar
                     </DropdownMenuItem>
                     <DropdownMenuItem @click="remove(item.id)">
@@ -296,6 +296,7 @@ async function remove(id: number) {
 async function edit(id) {
   try {
     loading.value = true
+    console.log(id,form.value)
     const response = await form.value.put(`/utils/message-loading/${id}`);
 
     console.log(response);
@@ -321,8 +322,12 @@ async function edit(id) {
   }
 }
 
-function openModal(id){
-  isEditing.value = id;
+function openModal(item){
+  if(item){
+    form.value.message = item.message;
+    form.value.signature = item.signature
+    isEditing.value = item.id;
+  }
   showModal.value = true;
 }
 </script>
