@@ -313,36 +313,9 @@
             <TableBody>
               <template v-if="loading">
                 <TableRow v-for="n in 5" :key="`loading-${n}`">
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
+                  <TableCell v-for="m in 10" :key="`loading-cell-${n}-${m}`">
+                    <Skeleton class="h-4 w-full bg-gray-300" />
+                  </TableCell>
                 </TableRow>
               </template>
               <template v-else>
