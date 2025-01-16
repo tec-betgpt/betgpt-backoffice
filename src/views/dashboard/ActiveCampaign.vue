@@ -44,12 +44,17 @@
                 <TableHead>Número de Cliques</TableHead>
                 <TableHead>Número de Cancelamentos</TableHead>
                 <TableHead>Número de Bounces</TableHead>
+                <TableHead>Taxa de Abertura (%)</TableHead>
+                <TableHead>Taxa de Abertura para Clique (%)</TableHead>
+                <TableHead>Taxa de Cliques (%)</TableHead>
+                <TableHead>Taxa de Cancelamento de Inscrições (%)</TableHead>
+                <TableHead>Taxa de Rejeição (%)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <template v-if="loading">
                 <TableRow v-for="n in 5" :key="`loading-${n}`">
-                  <TableCell colspan="7">
+                  <TableCell v-for="m in 12" :key="`loading-cell-${n}-${m}`">
                     <Skeleton class="h-4 w-full bg-gray-300" />
                   </TableCell>
                 </TableRow>
@@ -58,13 +63,70 @@
                 <TableRow v-for="(campaign, index) in campaigns" :key="index">
                   <TableCell>{{ campaign.name }}</TableCell>
                   <TableCell>{{
-                    $moment(campaign.ldate).format("DD/MM/YYYY HH:mm:ss")
+                    campaign.ldate
+                      ? $moment(campaign.ldate)
+                          .utc()
+                          .format("DD/MM/YYYY HH:mm:ss")
+                      : "-"
                   }}</TableCell>
                   <TableCell>{{ campaign.send_amt }}</TableCell>
                   <TableCell>{{ campaign.uniqueopens }}</TableCell>
                   <TableCell>{{ campaign.subscriberclicks }}</TableCell>
                   <TableCell>{{ campaign.unsubscribes }}</TableCell>
                   <TableCell>{{ campaign.softbounces }}</TableCell>
+                  <TableCell>
+                    {{
+                      campaign.send_amt - campaign.softbounces === 0
+                        ? "0%"
+                        : (
+                            (campaign.uniqueopens /
+                              (campaign.send_amt - campaign.softbounces)) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
+                  <TableCell>
+                    {{
+                      campaign.uniqueopens === 0
+                        ? "0%"
+                        : (
+                            (campaign.subscriberclicks / campaign.uniqueopens) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
+                  <TableCell>
+                    {{
+                      campaign.send_amt - campaign.softbounces === 0
+                        ? "0%"
+                        : (
+                            (campaign.subscriberclicks /
+                              (campaign.send_amt - campaign.softbounces)) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
+                  <TableCell>
+                    {{
+                      campaign.send_amt - campaign.softbounces === 0
+                        ? "0%"
+                        : (
+                            (campaign.unsubscribes /
+                              (campaign.send_amt - campaign.softbounces)) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
+                  <TableCell>
+                    {{
+                      campaign.send_amt === 0
+                        ? "0%"
+                        : (
+                            (campaign.softbounces / campaign.send_amt) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell><b>Total</b></TableCell>
@@ -74,6 +136,64 @@
                   <TableCell>{{ campaignsStats.subscriberclicks }}</TableCell>
                   <TableCell>{{ campaignsStats.unsubscribes }}</TableCell>
                   <TableCell>{{ campaignsStats.softbounces }}</TableCell>
+                  <TableCell>
+                    {{
+                      campaignsStats.send_amt - campaignsStats.softbounces === 0
+                        ? "0%"
+                        : (
+                            (campaignsStats.uniqueopens /
+                              (campaignsStats.send_amt -
+                                campaignsStats.softbounces)) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
+                  <TableCell>
+                    {{
+                      campaignsStats.uniqueopens === 0
+                        ? "0%"
+                        : (
+                            (campaignsStats.subscriberclicks /
+                              campaignsStats.uniqueopens) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
+                  <TableCell>
+                    {{
+                      campaignsStats.send_amt - campaignsStats.softbounces === 0
+                        ? "0%"
+                        : (
+                            (campaignsStats.subscriberclicks /
+                              (campaignsStats.send_amt -
+                                campaignsStats.softbounces)) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
+                  <TableCell>
+                    {{
+                      campaignsStats.send_amt - campaignsStats.softbounces === 0
+                        ? "0%"
+                        : (
+                            (campaignsStats.unsubscribes /
+                              (campaignsStats.send_amt -
+                                campaignsStats.softbounces)) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
+                  <TableCell>
+                    {{
+                      campaignsStats.send_amt === 0
+                        ? "0%"
+                        : (
+                            (campaignsStats.softbounces /
+                              campaignsStats.send_amt) *
+                            100
+                          ).toFixed(2) + "%"
+                    }}
+                  </TableCell>
                 </TableRow>
               </template>
             </TableBody>
