@@ -57,28 +57,29 @@
               </TableCell>
 
             </TableRow>
-            <TableFooter class=" flex items-center justify-start w-full py-4 bg-white">
-              <Pagination v-if="pages.last>1" v-slot="{ page }" :total="pages.total" :sibling-count="1" show-edges :default-page="1">
-                <PaginationList v-slot="{ items }" class="flex items-center gap-2">
-                  <PaginationFirst as-child @click="fetchMessages(1)" />
-                  <PaginationPrev as-child @click="fetchMessages(pageCurrent-1)"/>
 
-                  <template v-for="(item, index) in items">
-                    <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
-                      <Button class="w-9 h-9 p-0" :variant="item.value === page ? 'default' : 'outline'" @click="fetchMessages(index+1)">
-                        {{ item.value }}
-                      </Button>
-                    </PaginationListItem>
-                    <PaginationEllipsis v-else :key="item.type" :index="index" />
-                  </template>
 
-                  <PaginationNext @click="fetchMessages(pageCurrent+1)" />
-                  <PaginationLast @click="fetchMessages(pages.last)" />
-                </PaginationList>
-              </Pagination>
-            </TableFooter>
           </TableBody>
+
         </Table>
+        <Pagination v-if="pages.last>1" v-slot="{ page }" :total="pages.total" :sibling-count="1" show-edges :default-page="1">
+          <PaginationList v-slot="{ items }" class="flex items-center gap-2">
+            <PaginationFirst as-child @click="fetchMessages(1)" />
+            <PaginationPrev as-child @click="fetchMessages(pageCurrent-1)"/>
+
+            <template v-for="(item, index) in items">
+              <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
+                <Button class="w-9 h-9 p-0" :variant="item.value === page ? 'default' : 'outline'" @click="fetchMessages(index+1)">
+                  {{ item.value }}
+                </Button>
+              </PaginationListItem>
+              <PaginationEllipsis v-else :key="item.type" :index="index" />
+            </template>
+
+            <PaginationNext @click="fetchMessages(pageCurrent+1)" />
+            <PaginationLast @click="fetchMessages(pages.last)" />
+          </PaginationList>
+        </Pagination>
 
       </CardContent>
       <CardFooter>
@@ -223,6 +224,7 @@ const loadingRemove =  ref(false)
 const isEditing = ref(false)
 async function fetchMessages(pageId: number = pageCurrent.value) {
   try {
+     isLoading.value = true
     const response = await form.value.get(`/utils/message-loading?page=${pageId}`);
     pageCurrent.value = pageId;
     pages.value.total = response.data.data.total;
