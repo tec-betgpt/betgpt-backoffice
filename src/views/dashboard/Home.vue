@@ -30,7 +30,7 @@
 
     <div>
       <div v-if="loading" :class="responsiveClass">
-        <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
+        <div v-for="n in 4" :key="n" class="p-4  rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
             <Skeleton class="h-4 w-5" />
@@ -133,7 +133,7 @@
 
     <div>
       <div v-if="loading" class="grid gap-4 md:grid-cols-1 mb-3">
-        <div class="col-span-4 p-4 bg-white rounded shadow">
+        <div class="col-span-4 p-4  rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/6" />
             <Skeleton class="h-4 w-5" />
@@ -161,7 +161,7 @@
 
     <div>
       <div v-if="loading" :class="responsiveClass">
-        <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
+        <div v-for="n in 4" :key="n" class="p-4  rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
             <Skeleton class="h-4 w-5" />
@@ -235,7 +235,7 @@
 
     <div>
       <div v-if="loading" :class="responsiveClass">
-        <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
+        <div v-for="n in 4" :key="n" class="p-4  rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
             <Skeleton class="h-4 w-5" />
@@ -313,7 +313,7 @@
 
     <div>
       <div v-if="loading" :class="responsiveClass">
-        <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
+        <div v-for="n in 4" :key="n" class="p-4  rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
             <Skeleton class="h-4 w-5" />
@@ -392,7 +392,7 @@
         v-if="loading"
         class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3"
       >
-        <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
+        <div v-for="n in 4" :key="n" class="p-4  rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
             <Skeleton class="h-4 w-5" />
@@ -441,7 +441,7 @@
 
     <div>
       <div v-if="loading" :class="responsiveClass">
-        <div v-for="n in 4" :key="n" class="p-4 bg-white rounded shadow">
+        <div v-for="n in 4" :key="n" class="p-4  rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
             <Skeleton class="h-4 w-5" />
