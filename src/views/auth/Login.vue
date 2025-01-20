@@ -34,13 +34,17 @@
       </div>
     </div>
 
-    <div v-if="!ScreenTwoFactor && !loading" class=" flex justify-center items-center align-middle min-h-screen lg:w-1/2">
+    <div v-if="!ScreenTwoFactor && !loading" class="  w-full flex px-10 justify-center items-center align-middle min-h-screen lg:w-1/2">
       <div
-        class=" flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
+        class=" flex w-full flex-col justify-center space-y-6 sm:w-[350px]  "
       >
-        <div class="lg:hidden">
-          <img src="/logo-elevate-black.png" class="w-64 mx-auto mb-5" />
+        <div class="sm:hidden">
+          <img v-if="mode =='light'" src="/logo-elevate-black.png" class="w-64 mx-auto mb-5" alt="Logo Mobile" />
+          <img v-else src="/logo-elevate-white.png" class="w-64 mx-auto mb-5" alt="Logo Mobile" />
+
         </div>
+
+
 
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
@@ -102,7 +106,7 @@
                 </router-link>
               </div>
 
-              <Button :disabled="loading" type="submit">
+              <Button :disabled="loading" class="" type="submit">
                 <LucideSpinner
                   v-if="loading"
                   class="mr-2 h-4 w-4 animate-spin"
@@ -114,11 +118,11 @@
         </div>
       </div>
     </div>
-    <transition  v-else-if="loading">
-      <div class="items-center justify-center align-middle  flex min-h-screen mx-10 sm:w-full">
+
+      <div   v-else-if="loading" class="items-center justify-center align-middle  flex min-h-screen mx-10 sm:w-full">
         <CustomLoading/>
       </div>
-    </transition>
+
     <div v-else class="flex justify-center items-center align-middle min-h-screen lg:w-1/2 w-full">
       <div
         v-if="recoveryScreen"
@@ -262,7 +266,9 @@ import { useToast } from "@/components/ui/toast/use-toast";
 const { toast } = useToast();
 import i18n from "@/i18n";
 import CustomLoading from "@/components/custom/CustomLoading.vue";
+import {useColorMode} from "@vueuse/core";
 Form.axios = api;
+const mode = useColorMode()
 
 const isDialog = ref(false);
 const previewCode = ref<Array<string>>([]);
@@ -318,7 +324,6 @@ const handleLoginResponse = (response) => {
   } else {
     if (response.data.data[1]) {
       id.value = response.data.data;
-      console.log(id.value);
       ScreenTwoFactor.value = true;
       if (id.value[1] == "email") {
         time.value = 60;

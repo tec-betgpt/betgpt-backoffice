@@ -56,9 +56,10 @@ import {
   FolderDot,
   ChevronRight,
   SquareStack,
+    Sun,
+    Moon
 } from "lucide-vue-next";
-
-import { ref, computed, onMounted } from "vue";
+import {ref, computed, onMounted, watch} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -67,6 +68,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {useColorMode} from "@vueuse/core";
+import {Switch} from "@/components/ui/switch";
 
 interface BreadcrumbItem {
   name: string;
@@ -77,7 +80,6 @@ interface BreadcrumbItem {
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-
 // Breadcrumbs
 const breadcrumbs = computed(() => {
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -216,7 +218,7 @@ const stateResponsive = ref(false);
 const setResponsive = () => {
   stateResponsive.value = !stateResponsive.value;
 };
-
+const mode = useColorMode()
 onMounted(async () => {
   const user = authStore.user;
   if (user) {
@@ -229,6 +231,8 @@ const logout = async () => {
   authStore.logout();
   router.push("/login");
 };
+
+
 </script>
 
 <template>

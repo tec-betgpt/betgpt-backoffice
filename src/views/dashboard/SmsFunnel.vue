@@ -33,7 +33,7 @@
     <div class="space-y-4">
       <div>
         <div v-if="loading" :class="responsiveClass">
-          <div v-for="n in 3" :key="n" class="p-4 bg-white rounded shadow">
+          <div v-for="n in 3" :key="n" class="p-4  rounded shadow">
             <div class="flex justify-between items-center mb-2">
               <Skeleton class="h-4 w-1/3" />
               <Skeleton class="h-4 w-5" />
