@@ -81,6 +81,22 @@
         </Button>
       </div>
     </form>
+    <Separator class="my-2"/>
+    <div>
+      <Label for="theme">Tema</Label>
+      <Select v-model="theme" id="theme">
+        <SelectTrigger class="col-span-3">
+          <SelectValue placeholder="Selecione uma métrica e ordem" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="auto">Sistema</SelectItem>
+          <SelectItem value="dark">Preto</SelectItem>
+          <SelectItem value="light">Claro</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+
+
   </div>
 </template>
 
@@ -105,13 +121,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-
+import {useColorMode} from "@vueuse/core";
+const theme = ref(localStorage.getItem('theme') || 'auto')
 const { toast } = useToast();
 const authStore = useAuthStore();
 const loading = ref(false);
 const loadingCancelEmailChange = ref(false);
 const emailChangeRequest = ref(false);
 
+const mode = useColorMode()
 const form = ref(
   new Form({
     first_name: "",
@@ -121,6 +139,14 @@ const form = ref(
   })
 );
 
+watch(theme,()=>{
+      setTheme()
+})
+const setTheme = async ()=>{
+  localStorage.setItem('theme', theme.value);
+  const mode = useColorMode()
+  mode.value = theme.value;
+}
 const submit = async () => {
   loading.value = true;
   try {
