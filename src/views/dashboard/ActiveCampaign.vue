@@ -54,14 +54,7 @@
               <template v-else>
                 <TableRow  v-for="(campaign, index) in campaigns" :key="index">
                   <TableCell>{{ campaign.name }}</TableCell>
-                  <TableCell>{{
-                      campaign.ldate
-                          ? $moment(campaign.ldate)
-                              .utc()
-                              .format("DD/MM/YYYY")
-                          : "-"
-                    }}
-                  </TableCell>
+                  <TableCell> {{$moment(campaign.ldate).format("DD/MM/YYYY") }}</TableCell>
                   <TableCell>{{ campaign.send_amt }}</TableCell>
                   <TableCell>{{ campaign.uniqueopens }}</TableCell>
                   <TableCell>{{ campaign.subscriberclicks }}</TableCell>
