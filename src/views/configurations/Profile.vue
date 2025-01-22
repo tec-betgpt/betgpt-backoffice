@@ -7,6 +7,19 @@
       </p>
     </div>
     <Separator class="mb-3" />
+    <div class="my-2">
+      <Label for="theme">Tema</Label>
+      <Select v-model="theme" id="theme">
+        <SelectTrigger class="col-span-3">
+          <SelectValue placeholder="Selecione uma métrica e ordem" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="auto">Sistema</SelectItem>
+          <SelectItem value="dark">Preto</SelectItem>
+          <SelectItem value="light">Claro</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
     <form @submit.prevent="submit" @keydown="form.onKeydown($event)">
       <div class="mb-3">
         <Label for="first_name">Primeiro nome</Label>
@@ -81,20 +94,8 @@
         </Button>
       </div>
     </form>
-    <Separator class="my-2"/>
-    <div>
-      <Label for="theme">Tema</Label>
-      <Select v-model="theme" id="theme">
-        <SelectTrigger class="col-span-3">
-          <SelectValue placeholder="Selecione uma métrica e ordem" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="auto">Sistema</SelectItem>
-          <SelectItem value="dark">Preto</SelectItem>
-          <SelectItem value="light">Claro</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
+
+
 
 
   </div>
