@@ -219,6 +219,7 @@ const setResponsive = () => {
   stateResponsive.value = !stateResponsive.value;
 };
 const mode = useColorMode()
+mode.value = localStorage.getItem('theme') || 'auto'
 onMounted(async () => {
   const user = authStore.user;
   if (user) {
