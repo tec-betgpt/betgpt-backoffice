@@ -33,26 +33,26 @@
           <CardTitle>Campanhas</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table class="min-w-full">
+          <Table class="min-w-full transition-all delay-500 ease-linear">
             <TableHeader>
-              <TableRow  v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+              <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
                 <TableHead
                     v-for="header in headerGroup.headers" :key="header.id" :data-pinned="header.column.getIsPinned()"
                 >
-                  <FlexRender  :render="header.column.columnDef.header" :props="header.getContext()" />
+                  <FlexRender :render="header.column.columnDef.header" :props="header.getContext()"/>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <template v-if="loading">
-                <TableRow  v-for="n in 5" :key="`loading-${n}`">
+                <TableRow v-for="n in 5" :key="`loading-${n}`">
                   <TableCell v-for="m in 12" :key="`loading-cell-${n}-${m}`">
                     <Skeleton class="h-4 w-full bg-gray-300"/>
                   </TableCell>
                 </TableRow>
               </template>
               <template v-else>
-                <TableRow  v-for="(campaign, index) in campaigns" :key="index">
+                <TableRow v-for="(campaign, index) in campaigns" :key="index">
                   <TableCell>{{ campaign.name }}</TableCell>
                   <TableCell> {{$moment(campaign.ldate).format("DD/MM/YYYY") }}</TableCell>
                   <TableCell>{{ campaign.send_amt }}</TableCell>
@@ -188,21 +188,23 @@
 
           </Table>
           <CardFooter class="py-4 w-full">
-            <Pagination class="w-full" v-if="pages.last>1" v-slot="{ page }" :total="pages.total" :items-per-page="10"   :sibling-count="1" show-edges :default-page="1">
+            <Pagination class="w-full" v-if="pages.last>1" v-slot="{ page }" :total="pages.total" :items-per-page="10"
+                        :sibling-count="1" show-edges :default-page="1">
               <PaginationList v-slot="{ items }" class="flex items-center gap-2">
                 <PaginationFirst as-child @click="applyFilter()"/>
-                <PaginationPrev as-child @click="applyFilter(pages.current-1)"/>
-                <template  v-for="(item, index) in items" >
+                <PaginationPrev as-child @click="applyFilter(pages.current--)"/>
+                <template v-for="(item, index) in items">
                   <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
-                    <Button class="w-9 h-9 p-0" :variant="item.value === pages.current ? 'default' : 'outline'" @click="applyFilter(index+1)">
+                    <Button class="w-9 h-9 p-0" :variant="item.value === pages.current ? 'default' : 'outline'"
+                            @click="applyFilter(index+1)">
                       {{ item.value }}
                     </Button>
                   </PaginationListItem>
-                  <PaginationEllipsis v-else :key="item.type" :index="index" />
+                  <PaginationEllipsis v-else :key="item.type" :index="index"/>
                 </template>
 
-                <PaginationNext as-child @click="applyFilter(pages.current+1)"/>
-                <PaginationLast as-child  @click="applyFilter(pages.last)"/>
+                <PaginationNext as-child @click="applyFilter(pages.current++)"/>
+                <PaginationLast as-child @click="applyFilter(pages.last)"/>
               </PaginationList>
             </Pagination>
           </CardFooter>
@@ -251,8 +253,8 @@ import {
 import moment from "moment";
 import "moment/dist/locale/pt-br";
 import {useToast} from "@/components/ui/toast/use-toast";
-import { CaretSortIcon, ChevronDownIcon } from '@radix-icons/vue'
-import { Input } from '@/components/ui/input'
+import {CaretSortIcon, ChevronDownIcon} from '@radix-icons/vue'
+import {Input} from '@/components/ui/input'
 
 import {
   ColumnFiltersState,
@@ -354,7 +356,7 @@ const applyFilter = async (current) => {
         start_date: selectedRange.value.start?.toString(),
         end_date: selectedRange.value.end?.toString(),
         filter_id: selectedFilterId.value,
-        order_by:orderId.value
+        order_by: orderId.value
       },
     });
 
@@ -379,13 +381,13 @@ const applyFilter = async (current) => {
 const columnHelper = createColumnHelper<CampaignMetrics>()
 const columns = [
   columnHelper.accessor('name', {
-    header({ column }) {
+    header({column}) {
       return "Nome da Campanha";
     },
-    cell: ({ row }) => h('div', { class: 'capitalize' }, row.getValue('name')),
+    cell: ({row}) => h('div', {class: 'capitalize'}, row.getValue('name')),
   }),
   columnHelper.accessor('ldate', {
-    header({ column }) {
+    header({column}) {
       return h(Button, {
         variant: 'ghost',
         onClick: () => {
@@ -393,12 +395,12 @@ const columns = [
           applyFilter();
         },
         class: 'h-fit text-pretty my-1',
-      }, () => ['Última Data de Envio', h(CaretSortIcon, { class: '' })]);
+      }, () => ['Última Data de Envio', h(CaretSortIcon, {class: ''})]);
     },
-    cell: ({ row }) => h('div', { class: 'lowercase' }, row.getValue('formatted_date')),
+    cell: ({row}) => h('div', {class: 'lowercase'}, row.getValue('formatted_date')),
   }),
   columnHelper.accessor('send_amt', {
-    header({ column }) {
+    header({column}) {
       return h(Button, {
         variant: 'ghost',
         onClick: () => {
@@ -406,12 +408,12 @@ const columns = [
           applyFilter();
         },
         class: 'h-fit text-pretty my-1',
-      }, () => ['Número de Envios', h(CaretSortIcon, { class: '' })]);
+      }, () => ['Número de Envios', h(CaretSortIcon, {class: ''})]);
     },
-    cell: ({ row }) => row.getValue('send_amt'),
+    cell: ({row}) => row.getValue('send_amt'),
   }),
   columnHelper.accessor('uniqueopens', {
-    header({ column }) {
+    header({column}) {
       return h(Button, {
         variant: 'ghost',
         onClick: () => {
@@ -419,12 +421,12 @@ const columns = [
           applyFilter();
         },
         class: 'h-fit text-pretty my-1',
-      }, () => ['Número de Aberturas', h(CaretSortIcon, { class: '' })]);
+      }, () => ['Número de Aberturas', h(CaretSortIcon, {class: ''})]);
     },
-    cell: ({ row }) => row.getValue('uniqueopens'),
+    cell: ({row}) => row.getValue('uniqueopens'),
   }),
   columnHelper.accessor('subscriberclicks', {
-    header({ column }) {
+    header({column}) {
       return h(Button, {
         variant: 'ghost',
         onClick: () => {
@@ -432,12 +434,12 @@ const columns = [
           applyFilter();
         },
         class: 'h-fit text-pretty my-1',
-      }, () => ['Número de Cliques', h(CaretSortIcon, { class: '' })]);
+      }, () => ['Número de Cliques', h(CaretSortIcon, {class: ''})]);
     },
-    cell: ({ row }) => row.getValue('subscriberclicks'),
+    cell: ({row}) => row.getValue('subscriberclicks'),
   }),
   columnHelper.accessor('unsubscribes', {
-    header({ column }) {
+    header({column}) {
       return h(Button, {
         variant: 'ghost',
         onClick: () => {
@@ -445,12 +447,12 @@ const columns = [
           applyFilter();
         },
         class: 'h-fit text-pretty my-1 ',
-      }, () => ['Número de Cancelamentos', h(CaretSortIcon, { class: '' })]);
+      }, () => ['Número de Cancelamentos', h(CaretSortIcon, {class: ''})]);
     },
-    cell: ({ row }) => row.getValue('unsubscribes'),
+    cell: ({row}) => row.getValue('unsubscribes'),
   }),
   columnHelper.accessor('softbounces', {
-    header({ column }) {
+    header({column}) {
       return h(Button, {
         variant: 'ghost',
         onClick: () => {
@@ -458,35 +460,33 @@ const columns = [
           applyFilter();
         },
         class: 'h-fit text-pretty my-1',
-      }, () => ['Número de Bounces', h(CaretSortIcon, { class: '' })]);
+      }, () => ['Número de Bounces', h(CaretSortIcon, {class: ''})]);
     },
-    cell: ({ row }) => row.getValue('softbounces'),
+    cell: ({row}) => row.getValue('softbounces'),
   }),
 
   columnHelper.accessor('rate_opens', {
     header: 'Taxa de Abertura (%)',
-    cell: ({ row }) => `${row.getValue('rate_opens')}%`,
+    cell: ({row}) => `${row.getValue('rate_opens')}%`,
   }),
   columnHelper.accessor('rate_opens_click', {
     header: 'Taxa de Abertura para Clique (%)',
-    cell: ({ row }) => `${row.getValue('rate_opens_click')}%`,
+    cell: ({row}) => `${row.getValue('rate_opens_click')}%`,
   }),
   columnHelper.accessor('rate_clicks', {
     header: 'Taxa de Cliques (%)',
-    cell: ({ row }) => `${row.getValue('rate_clicks')}%`,
+    cell: ({row}) => `${row.getValue('rate_clicks')}%`,
   }),
   columnHelper.accessor('rate_unsubscriptions', {
     header: 'Taxa de Cancelamento de Inscrições (%)',
-    cell: ({ row }) => `${row.getValue('rate_unsubscriptions')}%`,
+    cell: ({row}) => `${row.getValue('rate_unsubscriptions')}%`,
   }),
   columnHelper.accessor('rate_rejections', {
     header: 'Taxa de Rejeição (%)',
-    cell: ({ row }) => `${row.getValue('rate_rejections')}%`,
+    cell: ({row}) => `${row.getValue('rate_rejections')}%`,
   }),
 
 ];
-
-
 
 
 const table = useVueTable({
