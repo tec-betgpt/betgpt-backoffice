@@ -33,7 +33,13 @@
           <CardTitle>Campanhas</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table class="min-w-full transition-all delay-500 ease-linear">
+          <Input class="max-w-sm" placeholder="Filtrar campanha..."
+
+                 v-model="nameCampaigns"
+                 @update:model-value="applyFilter"
+          />
+
+          <Table class="min-w-full transition-all delay-500 ease-linear my-2">
             <TableHeader>
               <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
                 <TableHead
@@ -289,6 +295,7 @@ const pages = ref({
   total: 0,
   last: 0
 })
+const nameCampaigns = ref()
 const campaignsStats = computed(() => {
   const totalStats = {
     send_amt: 0,
