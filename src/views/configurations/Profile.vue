@@ -11,7 +11,7 @@
       <Label for="theme">Tema</Label>
       <Select v-model="theme" id="theme">
         <SelectTrigger class="col-span-3">
-          <SelectValue placeholder="Selecione uma métrica e ordem" />
+          <SelectValue placeholder="Selecione um Tema" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="auto">Sistema</SelectItem>
