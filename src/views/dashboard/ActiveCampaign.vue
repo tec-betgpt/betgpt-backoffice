@@ -1,237 +1,63 @@
 <template>
-  <div class="space-y-6 p-10 max-w-full">
+  <div class="space-y-6 sm:p-10 p-1 max-w-full">
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">Active Campaign</h2>
       <p class="text-muted-foreground">
         Métricas baseadas nas campanhas do Active Campaign.
       </p>
     </div>
-    <div
-        class="flex flex-col items-start justify-end mb-3 gap-2"
-        v-if="projectFilters && projectFilters.length"
-    >
-      <div class="flex sm:flex-row flex-col  gap-2">
-        <Select v-model="selectedFilterId">
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Selecione um grupo ou projeto"/>
-          </SelectTrigger>
-          <SelectContent>
-            <template v-for="(item, index) in projectFilters" :key="index">
-              <SelectItem :value="item.id">{{ item.label }}</SelectItem>
-            </template>
-          </SelectContent>
-        </Select>
-        <DateRangePicker v-model="selectedRange" class="flex-1"/>
-        <Button class="flex-1" @click="applyFilter">Filtrar</Button>
-      </div>
 
+    <div v-if="projectFilters && projectFilters.length"
+         class="flex sm:flex-row flex-col w-full  items-start gap-2">
+      <Select v-model="selectedFilterId">
+        <SelectTrigger class="sm:w-[250px] w-full">
+          <SelectValue placeholder="Selecione um grupo ou projeto"/>
+        </SelectTrigger>
+        <SelectContent>
+          <template v-for="(item, index) in projectFilters" :key="index">
+            <SelectItem :value="item.id">{{ item.label }}</SelectItem>
+          </template>
+        </SelectContent>
+      </Select>
+      <DateRangePicker v-model="selectedRange" class=""/>
+      <Button class="sm:w-fit w-full" @click="applyFilter">Filtrar</Button>
     </div>
-
     <div>
-      <Card>
+      <Card class="w-full">
         <CardHeader>
           <CardTitle>Campanhas</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table class="min-w-full transition-all delay-500 ease-linear">
-            <TableHeader>
-              <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-                <TableHead
-                    v-for="header in headerGroup.headers" :key="header.id" :data-pinned="header.column.getIsPinned()"
-                >
-                  <FlexRender :render="header.column.columnDef.header" :props="header.getContext()"/>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <template v-if="loading">
-                <TableRow v-for="n in 5" :key="`loading-${n}`">
-                  <TableCell v-for="m in 12" :key="`loading-cell-${n}-${m}`">
-                    <Skeleton class="h-4 w-full bg-gray-300"/>
-                  </TableCell>
-                </TableRow>
-              </template>
-              <template v-else>
-                <TableRow v-for="(campaign, index) in campaigns" :key="index">
-                  <TableCell>{{ campaign.name }}</TableCell>
-                  <TableCell> {{$moment(campaign.ldate).format("DD/MM/YYYY") }}</TableCell>
-                  <TableCell>{{ campaign.send_amt }}</TableCell>
-                  <TableCell>{{ campaign.uniqueopens }}</TableCell>
-                  <TableCell>{{ campaign.subscriberclicks }}</TableCell>
-                  <TableCell>{{ campaign.unsubscribes }}</TableCell>
-                  <TableCell>{{ campaign.softbounces }}</TableCell>
-                  <TableCell>
-                    {{
-                      campaign.send_amt - campaign.softbounces === 0
-                          ? "0%"
-                          : (
-                          (campaign.uniqueopens /
-                              (campaign.send_amt - campaign.softbounces)) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                  <TableCell>
-                    {{
-                      campaign.uniqueopens === 0
-                          ? "0%"
-                          : (
-                          (campaign.subscriberclicks / campaign.uniqueopens) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                  <TableCell>
-                    {{
-                      campaign.send_amt - campaign.softbounces === 0
-                          ? "0%"
-                          : (
-                          (campaign.subscriberclicks /
-                              (campaign.send_amt - campaign.softbounces)) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                  <TableCell>
-                    {{
-                      campaign.send_amt - campaign.softbounces === 0
-                          ? "0%"
-                          : (
-                          (campaign.unsubscribes /
-                              (campaign.send_amt - campaign.softbounces)) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                  <TableCell>
-                    {{
-                      campaign.send_amt === 0
-                          ? "0%"
-                          : (
-                          (campaign.softbounces / campaign.send_amt) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell><b>Total</b></TableCell>
-                  <TableCell></TableCell>
-                  <TableCell>{{ campaignsStats.send_amt }}</TableCell>
-                  <TableCell>{{ campaignsStats.uniqueopens }}</TableCell>
-                  <TableCell>{{ campaignsStats.subscriberclicks }}</TableCell>
-                  <TableCell>{{ campaignsStats.unsubscribes }}</TableCell>
-                  <TableCell>{{ campaignsStats.softbounces }}</TableCell>
-                  <TableCell>
-                    {{
-                      campaignsStats.send_amt - campaignsStats.softbounces === 0
-                          ? "0%"
-                          : (
-                          (campaignsStats.uniqueopens /
-                              (campaignsStats.send_amt -
-                                  campaignsStats.softbounces)) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                  <TableCell>
-                    {{
-                      campaignsStats.uniqueopens === 0
-                          ? "0%"
-                          : (
-                          (campaignsStats.subscriberclicks /
-                              campaignsStats.uniqueopens) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                  <TableCell>
-                    {{
-                      campaignsStats.send_amt - campaignsStats.softbounces === 0
-                          ? "0%"
-                          : (
-                          (campaignsStats.subscriberclicks /
-                              (campaignsStats.send_amt -
-                                  campaignsStats.softbounces)) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                  <TableCell>
-                    {{
-                      campaignsStats.send_amt - campaignsStats.softbounces === 0
-                          ? "0%"
-                          : (
-                          (campaignsStats.unsubscribes /
-                              (campaignsStats.send_amt -
-                                  campaignsStats.softbounces)) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                  <TableCell>
-                    {{
-                      campaignsStats.send_amt === 0
-                          ? "0%"
-                          : (
-                          (campaignsStats.softbounces /
-                              campaignsStats.send_amt) *
-                          100
-                      ).toFixed(2) + "%"
-                    }}
-                  </TableCell>
-                </TableRow>
 
-              </template>
-            </TableBody>
+          <CustomDataTable :data="campaigns"
+                           :columns="columns"
+                           :loading="loading"
+                           :update-text="handlerText"
+                           :find="applyFilter"
+                           :result="campaignsStats"/>
 
-
-          </Table>
-          <CardFooter class="py-4 w-full">
-            <Pagination class="w-full" v-if="pages.last>1" v-slot="{ page }" :total="pages.total" :items-per-page="10"
-                        :sibling-count="1" show-edges :default-page="1">
-              <PaginationList v-slot="{ items }" class="flex items-center gap-2">
-                <PaginationFirst as-child @click="applyFilter()"/>
-                <PaginationPrev as-child @click="applyFilter(pages.current--)"/>
-                <template v-for="(item, index) in items">
-                  <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
-                    <Button class="w-9 h-9 p-0" :variant="item.value === pages.current ? 'default' : 'outline'"
-                            @click="applyFilter(index+1)">
-                      {{ item.value }}
-                    </Button>
-                  </PaginationListItem>
-                  <PaginationEllipsis v-else :key="item.type" :index="index"/>
-                </template>
-
-                <PaginationNext as-child @click="applyFilter(pages.current++)"/>
-                <PaginationLast as-child @click="applyFilter(pages.last)"/>
-              </PaginationList>
-            </Pagination>
-          </CardFooter>
         </CardContent>
+        <CardFooter class="py-4 w-full">
+          <CustomPagination :pages="{
+              current:pages.current,
+            last:pages.last,
+            total:pages.total}"
+                            :select-page="applyFilter"/>
+        </CardFooter>
       </Card>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, computed, h} from "vue";
+import {ref, onMounted, computed, h, watch} from "vue";
 import {useProjectStore} from "@/stores/project";
 import api from "@/services/api";
-import {CalendarDate, getLocalTimeZone, today} from "@internationalized/date";
+import {getLocalTimeZone, today} from "@internationalized/date";
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Button} from "@/components/ui/button";
-import {
-  Pagination,
-  PaginationEllipsis,
-  PaginationFirst,
-  PaginationLast,
-  PaginationList,
-  PaginationListItem,
-  PaginationNext,
-  PaginationPrev,
-} from "@/components/ui/pagination";
+
 import {
   Select,
   SelectContent,
@@ -241,62 +67,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell, TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import moment from "moment";
 import "moment/dist/locale/pt-br";
 import {useToast} from "@/components/ui/toast/use-toast";
-import {CaretSortIcon, ChevronDownIcon} from '@radix-icons/vue'
-import {Input} from '@/components/ui/input'
+import {CaretSortIcon} from '@radix-icons/vue'
 
 import {
-  ColumnFiltersState,
   createColumnHelper,
-  FlexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useVueTable,
+
 } from '@tanstack/vue-table'
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 
-import {cn} from "@/lib/utils";
+import {ArrowDown, ArrowUp} from "lucide-vue-next";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
+import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 
 const currentDate = today(getLocalTimeZone()).subtract({days: 0});
 const startDate = currentDate.subtract({days: 28});
 const selectedRange = ref({start: startDate, end: currentDate});
 const {toast} = useToast();
-
 const projectStore = useProjectStore();
 const projectFilters = ref([]);
 const selectedFilterId = ref(projectStore.selectedProject);
 const loadingFilters = ref(true);
 const orderId = ref()
+const order = ref(false)
 const loading = ref(true);
-const projects = ref(null);
-const campaigns = ref<CampaignMetrics[]>();
+const campaigns = ref<CampaignMetrics[]>([]);
 const pages = ref({
   current: 1,
   total: 0,
   last: 0
 })
+
 const campaignsStats = computed(() => {
   const totalStats = {
+    message:'Total',
+    blank:'',
     send_amt: 0,
     uniqueopens: 0,
     subscriberclicks: 0,
     unsubscribes: 0,
     softbounces: 0,
+    rate_opens: "0%",
+    rate_opens_click: "0%",
+    rate_clicks: "0%",
+    rate_unsubscriptions: "0%",
+    rate_rejections: "0%",
   };
+
   campaigns.value.forEach((campaign) => {
     totalStats.send_amt += campaign.send_amt;
     totalStats.uniqueopens += campaign.uniqueopens;
@@ -304,8 +124,37 @@ const campaignsStats = computed(() => {
     totalStats.unsubscribes += campaign.unsubscribes;
     totalStats.softbounces += campaign.softbounces;
   });
+
+  const delivered = totalStats.send_amt - totalStats.softbounces;
+
+  totalStats.rate_opens =
+      delivered === 0
+          ? "0%"
+          : ((totalStats.uniqueopens / delivered) * 100).toFixed(2) + "%";
+
+  totalStats.rate_opens_click =
+      totalStats.uniqueopens === 0
+          ? "0%"
+          : ((totalStats.subscriberclicks / totalStats.uniqueopens) * 100).toFixed(2) + "%";
+
+  totalStats.rate_clicks =
+      delivered === 0
+          ? "0%"
+          : ((totalStats.subscriberclicks / delivered) * 100).toFixed(2) + "%";
+
+  totalStats.rate_unsubscriptions =
+      delivered === 0
+          ? "0%"
+          : ((totalStats.unsubscribes / delivered) * 100).toFixed(2) + "%";
+
+  totalStats.rate_rejections =
+      totalStats.send_amt === 0
+          ? "0%"
+          : ((totalStats.softbounces / totalStats.send_amt) * 100).toFixed(2) + "%";
+
   return totalStats;
 });
+
 
 const fetchFilters = async () => {
   try {
@@ -337,7 +186,11 @@ const fetchFilters = async () => {
   }
 };
 
-const applyFilter = async (current) => {
+const name = ref()
+const handlerText = (text:string)=>{
+    name.value = text
+}
+const applyFilter = async (current: number) => {
   loading.value = true;
   if (!selectedFilterId.value) {
     toast({
@@ -349,14 +202,15 @@ const applyFilter = async (current) => {
   }
 
   projectStore.setSelectedProject(selectedFilterId.value);
-
   try {
-    const response = await api.get(`/utils/active-campaign?page=${current ?? pages?.value?.current}`, {
+    const response = await api.get(`/utils/active-campaign?page=${ current?current:pages.value.current}`, {
       params: {
         start_date: selectedRange.value.start?.toString(),
         end_date: selectedRange.value.end?.toString(),
         filter_id: selectedFilterId.value,
-        order_by: orderId.value
+        order_by: orderId.value,
+        type_order: order.value ? 'asc' : 'desc',
+        campaign_name: name.value
       },
     });
 
@@ -366,6 +220,8 @@ const applyFilter = async (current) => {
       total: response.data.data.campaigns.pagination.total,
       last: response.data.data.campaigns.pagination.last_page
     };
+
+    console.log(pages.value)
   } catch (error) {
     console.log(error)
     toast({
@@ -388,121 +244,99 @@ const columns = [
   }),
   columnHelper.accessor('ldate', {
     header({column}) {
-      return h(Button, {
-        variant: 'ghost',
-        onClick: () => {
-          orderId.value = 'ldate';
-          applyFilter();
-        },
-        class: 'h-fit text-pretty my-1',
-      }, () => ['Última Data de Envio', h(CaretSortIcon, {class: ''})]);
+      return createHeaderButton('Última Data de Envio', 'ldate');
     },
-    cell: ({row}) => h('div', {class: 'lowercase'}, row.getValue('formatted_date')),
+    cell: ({row}) => h('div', {class: 'capitalize'}, moment(row.getValue('ldate')).format("DD/MM/YYYY")),
   }),
   columnHelper.accessor('send_amt', {
     header({column}) {
-      return h(Button, {
-        variant: 'ghost',
-        onClick: () => {
-          orderId.value = 'send_amt';
-          applyFilter();
-        },
-        class: 'h-fit text-pretty my-1',
-      }, () => ['Número de Envios', h(CaretSortIcon, {class: ''})]);
+      return createHeaderButton('Número de Envios', 'send_amt');
     },
-    cell: ({row}) => row.getValue('send_amt'),
+    cell: ({row}) => h('div', {class: ''}, row.getValue('send_amt')),
   }),
   columnHelper.accessor('uniqueopens', {
     header({column}) {
-      return h(Button, {
-        variant: 'ghost',
-        onClick: () => {
-          orderId.value = 'uniqueopens';
-          applyFilter();
-        },
-        class: 'h-fit text-pretty my-1',
-      }, () => ['Número de Aberturas', h(CaretSortIcon, {class: ''})]);
+      return createHeaderButton('Número de Aberturas', 'uniqueopens');
     },
-    cell: ({row}) => row.getValue('uniqueopens'),
+    cell: ({row}) => h('div', {class: ''}, row.getValue('uniqueopens')),
   }),
   columnHelper.accessor('subscriberclicks', {
     header({column}) {
-      return h(Button, {
-        variant: 'ghost',
-        onClick: () => {
-          orderId.value = 'subscriberclicks';
-          applyFilter();
-        },
-        class: 'h-fit text-pretty my-1',
-      }, () => ['Número de Cliques', h(CaretSortIcon, {class: ''})]);
+      return createHeaderButton('Número de Cliques', 'subscriberclicks');
     },
-    cell: ({row}) => row.getValue('subscriberclicks'),
+    cell: ({row}) => h('div', {class: ''}, row.getValue('subscriberclicks')),
+
   }),
   columnHelper.accessor('unsubscribes', {
     header({column}) {
-      return h(Button, {
-        variant: 'ghost',
-        onClick: () => {
-          orderId.value = 'unsubscribes';
-          applyFilter();
-        },
-        class: 'h-fit text-pretty my-1 ',
-      }, () => ['Número de Cancelamentos', h(CaretSortIcon, {class: ''})]);
+      return createHeaderButton('Número de Cancelamentos', 'unsubscribes');
     },
-    cell: ({row}) => row.getValue('unsubscribes'),
+    cell: ({row}) => h('div', {class: ''}, row.getValue('unsubscribes')),
   }),
   columnHelper.accessor('softbounces', {
     header({column}) {
-      return h(Button, {
-        variant: 'ghost',
-        onClick: () => {
-          orderId.value = 'softbounces';
-          applyFilter();
-        },
-        class: 'h-fit text-pretty my-1',
-      }, () => ['Número de Bounces', h(CaretSortIcon, {class: ''})]);
+      return createHeaderButton('Número de Bounces', 'softbounces');
     },
-    cell: ({row}) => row.getValue('softbounces'),
-  }),
+    cell: ({row}) => h('div', {class: ''}, row.getValue('softbounces')),
 
+  }),
   columnHelper.accessor('rate_opens', {
     header: 'Taxa de Abertura (%)',
-    cell: ({row}) => `${row.getValue('rate_opens')}%`,
+    cell: ({row}) => h('div', {class: ''},
+        (row.getValue('send_amt') - row.getValue('softbounces')) === 0 ? "0%" : ((row.getValue('uniqueopens') / (row.getValue('send_amt') - row.getValue('softbounces'))) * 100).toFixed(2) + "%"
+    ),
+
   }),
   columnHelper.accessor('rate_opens_click', {
     header: 'Taxa de Abertura para Clique (%)',
-    cell: ({row}) => `${row.getValue('rate_opens_click')}%`,
+    cell: ({row}) => h('div', {class: ''},
+        row.getValue('uniqueopens') === 0 ? "0%" : ((row.getValue('subscriberclicks') / row.getValue('uniqueopens')) * 100).toFixed(2) + "%"
+        ,)
+
   }),
   columnHelper.accessor('rate_clicks', {
     header: 'Taxa de Cliques (%)',
-    cell: ({row}) => `${row.getValue('rate_clicks')}%`,
+    cell: ({row}) => h('div', {class: ''},
+        (row.getValue('send_amt') - row.getValue('softbounces')) === 0 ? "0%" : ((row.getValue('subscriberclicks') / (row.getValue('send_amt') - row.getValue('softbounces'))) * 100).toFixed(2) + "%"
+    ),
+
   }),
   columnHelper.accessor('rate_unsubscriptions', {
     header: 'Taxa de Cancelamento de Inscrições (%)',
-    cell: ({row}) => `${row.getValue('rate_unsubscriptions')}%`,
+    cell: ({row}) => h('div', {class: ''},
+        (row.getValue('send_amt') - row.getValue('softbounces')) === 0 ? "0%" : ((row.getValue('unsubscribes') / (row.getValue('send_amt') - row.getValue('softbounces'))) * 100).toFixed(2) + "%"
+    ),
+
   }),
   columnHelper.accessor('rate_rejections', {
     header: 'Taxa de Rejeição (%)',
-    cell: ({row}) => `${row.getValue('rate_rejections')}%`,
+    cell: ({row}) => h('div', {class: ''},
+        row.getValue('send_amt') === 0 ? "0%" : ((row.getValue('softbounces') / row.getValue('send_amt')) * 100).toFixed(2) + "%")
+
   }),
 
 ];
 
-
-const table = useVueTable({
-  campaigns,
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getExpandedRowModel: getExpandedRowModel(),
-  state: {
-    columnPinning: {
-      left: ['status'],
+function createHeaderButton(label: string, columnKey: string) {
+  return h(Button, {
+    variant: orderId.value === columnKey ? 'default' : 'ghost',
+    onClick: () => {
+      orderId.value = columnKey;
+      order.value = !order.value
+      applyFilter();
     },
-  },
-})
+    class: 'h-fit text-pretty my-1',
+  }, () => [
+    label,
+    h(
+        orderId.value === columnKey
+            ? (order.value ? ArrowDown : ArrowUp)
+            : CaretSortIcon,
+        {class: ''}
+    )
+  ]);
+}
+
 onMounted(() => {
   fetchFilters().then(() => {
     if (selectedFilterId.value) {
@@ -511,20 +345,19 @@ onMounted(() => {
   });
 });
 type CampaignMetrics = {
-  formatted_date: string; // Data formatada
-  id: string; // ID da campanha
-  ldate: string; // Data original no formato ISO
-  name: string; // Nome da campanha
-  rate_clicks: number; // Taxa de cliques
-  rate_opens: number; // Taxa de aberturas
-  rate_opens_click: number; // Relação entre aberturas e cliques
-  rate_rejections: number; // Taxa de rejeições
-  rate_unsubscriptions: number; // Taxa de descadastramento
-  send_amt: number; // Total de envios
-  softbounces: number; // Número de bounces leves
-  subscriberclicks: number; // Número de cliques únicos
-  uniqueopens: number; // Número de aberturas únicas
-  unsubscribes: number; // Número de descadastramentos
+
+  ldate: string;
+  name: string;
+  rate_clicks: number;
+  rate_opens: number;
+  rate_opens_click: number;
+  rate_rejections: number;
+  rate_unsubscriptions: number;
+  send_amt: number;
+  softbounces: number;
+  subscriberclicks: number;
+  uniqueopens: number;
+  unsubscribes: number;
 };
 
 </script>
