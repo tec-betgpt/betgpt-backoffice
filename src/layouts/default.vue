@@ -56,10 +56,10 @@ import {
   FolderDot,
   ChevronRight,
   SquareStack,
-    Sun,
-    Moon
+  Sun,
+  Moon,
 } from "lucide-vue-next";
-import {ref, computed, onMounted, watch} from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -68,8 +68,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {useColorMode} from "@vueuse/core";
-import {Switch} from "@/components/ui/switch";
+import { useColorMode } from "@vueuse/core";
+import { Switch } from "@/components/ui/switch";
 
 interface BreadcrumbItem {
   name: string;
@@ -132,7 +132,7 @@ const navMenu = computed(() => {
       url: { name: "sms-funnel" },
       icon: Send,
       show: true,
-      type: "utils",
+      type: "report",
     },
     {
       name: "Google Analytics",
@@ -170,7 +170,7 @@ const navMenu = computed(() => {
       type: "management",
     },
     {
-      name: "Ia",
+      name: "IA",
       url: { name: "ia" },
       icon: Bot,
       show: true,
@@ -218,8 +218,8 @@ const stateResponsive = ref(false);
 const setResponsive = () => {
   stateResponsive.value = !stateResponsive.value;
 };
-const mode = useColorMode()
-mode.value = localStorage.getItem('theme') || 'auto'
+const mode = useColorMode();
+mode.value = localStorage.getItem("theme") || "auto";
 onMounted(async () => {
   const user = authStore.user;
   if (user) {
@@ -232,8 +232,6 @@ const logout = async () => {
   authStore.logout();
   router.push("/login");
 };
-
-
 </script>
 
 <template>

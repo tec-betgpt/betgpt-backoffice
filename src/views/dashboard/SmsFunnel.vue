@@ -33,7 +33,7 @@
     <div class="space-y-4">
       <div>
         <div v-if="loading" :class="responsiveClass">
-          <div v-for="n in 3" :key="n" class="p-4  rounded shadow">
+          <div v-for="n in 3" :key="n" class="p-4 rounded shadow">
             <div class="flex justify-between items-center mb-2">
               <Skeleton class="h-4 w-1/3" />
               <Skeleton class="h-4 w-5" />
@@ -231,7 +231,7 @@
                 <template v-else>
                   <TableRow v-for="(recharge, index) in recharges" :key="index">
                     <TableCell>{{
-                      $moment(recharge.date).format("DD/MM/YYYY HH:mm:ss")
+                      $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss")
                     }}</TableCell>
                     <TableCell>{{ recharge.description }}</TableCell>
                     <TableCell>{{ recharge.service }}</TableCell>
