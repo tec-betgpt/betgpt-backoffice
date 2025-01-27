@@ -120,7 +120,26 @@
     </div>
 
       <div   v-else-if="loading" class="items-center justify-center align-middle  flex min-h-screen mx-10 sm:w-full">
-        <CustomLoading/>
+
+          <div class="flex flex-col justify-center items-center flex-1">
+            <video class="w-[300px] h-fit"    loop muted autoplay >
+              <source v-if="mode =='light'" src="/animation.mp4" type="video/mp4"/>
+              <source v-else src="/elevate_preta.mp4" type="video/mp4"/>
+            </video>
+            <div
+                :class="{ 'opacity-0': !message.message, 'opacity-100	': message.message }"
+                class="flex flex-col gap-3 transition-opacity duration-1000 ">
+              <div  class="flex gap-1">
+                <Quote :size="20" :stroke-width="1.75" absoluteStrokeWidth />
+                <p class="max-w-[440px]">
+                  {{ message.message }}
+                </p>
+              </div>
+              <p class="text-left font-serif text-gray-700">{{ message.signature }}</p>
+            </div>
+          </div>
+
+
       </div>
 
     <div v-else class="flex justify-center items-center align-middle min-h-screen lg:w-1/2 w-full">
@@ -242,13 +261,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import {onBeforeMount, onMounted, ref} from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
 import Form from "vform";
 import { cn } from "@/lib/utils";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
+import {Loader2 as LucideSpinner, Quote} from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -341,7 +360,7 @@ const login = async () => {
       {},
       { withCredentials: true }
     );
-    await delay(2000)
+
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
@@ -363,13 +382,12 @@ const twoFactorLogin = async (code: Array<string>) => {
   try {
     form.value.two_factor_code = "";
     form.value.two_factor_code = code.join("");
-
     const response = await form.value.post(
       "/auth/login/two-factor",
       {},
       { withCredentials: true }
     );
-    await delay(2000)
+
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login com dois fatores:", error);
@@ -430,5 +448,19 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 const animatedDiv = ref(null);
+const message = ref({
+  id: "",
+  message: "",
+  signature: ""
+})
+
+async function getMessage() {
+  const response = await api.get('/message-loading')
+  message.value = response.data.data
+}
+
+onMounted(()=>{
+  getMessage()
+})
 
 </script>

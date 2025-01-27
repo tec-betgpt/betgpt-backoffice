@@ -213,17 +213,18 @@ const applyFilter = async (current: number) => {
   projectStore.setSelectedProject(selectedFilterId.value);
   try {
     const response = await api.get(
-      `/utils/active-campaign?page=${current ? current : pages.value.current}`,
-      {
-        params: {
-          start_date: selectedRange.value.start?.toString(),
-          end_date: selectedRange.value.end?.toString(),
-          filter_id: selectedFilterId.value,
-          order_by: orderId.value,
-          type_order: order.value ? "asc" : "desc",
-          campaign_name: name.value,
-        },
-      }
+      `/utils/active-campaign?page=${name.value&&current?current:name.value?1:current?current:pages.value.current}`,
+        {
+          params: {
+            start_date: selectedRange.value.start?.toString(),
+            end_date: selectedRange.value.end?.toString(),
+            filter_id: selectedFilterId.value,
+            order_by: orderId.value,
+            type_order: order.value ? "asc" : "desc",
+            campaign_name: name.value,
+          },
+        }
+
     );
 
     campaigns.value = response.data.data.campaigns.campaigns;
