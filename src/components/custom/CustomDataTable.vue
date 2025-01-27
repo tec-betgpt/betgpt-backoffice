@@ -71,7 +71,7 @@ watch(name,()=>{
              v-model="name"
              @input="checkIfEmpty"
       />
-      <Button  @click="find">
+      <Button  @click="find()">
         Buscar
       </Button>
     </div>

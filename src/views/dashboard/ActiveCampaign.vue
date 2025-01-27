@@ -213,7 +213,7 @@ const applyFilter = async (current: number) => {
   projectStore.setSelectedProject(selectedFilterId.value);
   try {
     const response = await api.post(
-      `/utils/active-campaign?page=${current ? current : pages.value.current}`,
+      `/utils/active-campaign?page=${ name.value? 1:current ? current : pages.value.current}`,
         {
           start_date: selectedRange.value.start?.toString(),
           end_date: selectedRange.value.end?.toString(),
