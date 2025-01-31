@@ -29,6 +29,9 @@ const props = defineProps({
   },
   result:{
 
+  },
+  placeholder:{
+    type: String,
   }
 
 });
@@ -67,7 +70,7 @@ watch(name,()=>{
 
 <template>
     <div v-if="updateText" class="flex flex-col sm:flex-row gap-2">
-      <Input class="sm:max-w-sm  w-full" placeholder="Buscar..."
+      <Input class="sm:max-w-sm  w-full" :placeholder="placeholder?placeholder:'Buscar...'"
              v-model="name"
              @input="checkIfEmpty"
       />

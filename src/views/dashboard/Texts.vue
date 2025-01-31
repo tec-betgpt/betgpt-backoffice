@@ -16,6 +16,7 @@
             :columns="columns"
             :update-text="setSearch"
             :find="fetchMessages"
+            :placeholder="'Buscar assinatura...'"
         />
 
         <CustomPagination :select-page="fetchMessages" :pages="pages"/>
