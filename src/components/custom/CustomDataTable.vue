@@ -67,16 +67,23 @@ watch(name,()=>{
 
 <template>
     <div v-if="updateText" class="flex flex-col sm:flex-row gap-2">
-      <Input class="sm:max-w-sm  w-full" placeholder="Buscar campanha..."
+      <Input class="sm:max-w-sm  w-full" placeholder="Buscar..."
              v-model="name"
              @input="checkIfEmpty"
       />
-      <Button  @click="find()">
+      <Button  @click="find()" :disabled="loading">
         Buscar
       </Button>
+      <div class=" flex flex-1 gap-2">
+
+      </div>
+      <slot>
+
+      </slot>
+
     </div>
 
-    <Table class="w-full my-2">
+    <Table class="w-full my-2 ">
 
       <TableHeader>
         <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -88,8 +95,8 @@ watch(name,()=>{
 
       <TableBody>
         <template v-if="loading">
-          <TableRow v-for="n in 10" :key="`loading-${n}`">
-            <TableCell  v-for="n in 12" :key="n">
+          <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="`loading-${n}`">
+            <TableCell  v-for="header in headerGroup.headers" :key="n">
               <Skeleton class="h-4 w-full bg-gray-300"/>
             </TableCell>
           </TableRow>
