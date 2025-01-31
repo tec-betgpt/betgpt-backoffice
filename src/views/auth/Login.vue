@@ -122,7 +122,8 @@
       <div   v-else-if="loading" class="items-center justify-center align-middle  flex min-h-screen mx-10 sm:w-full">
 
           <div class="flex flex-col justify-center items-center flex-1">
-            <DotLottieVue style="height: 300px; width: 300px" autoplay   loop src="/FRAME.lottie" />
+            <DotLottieVue v-if="useColorMode().value == 'dark'" style="height: 300px; width: 300px" autoplay   loop src="/animation_logo_black.lottie" />
+            <DotLottieVue v-else style="height: 300px; width: 300px" autoplay   loop src="/animation_logo_white.lottie" />
 
             <div
                 :class="{ 'opacity-0': !message.message, 'opacity-100	': message.message }"

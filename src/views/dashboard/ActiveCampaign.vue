@@ -234,7 +234,6 @@ const applyFilter = async (current: number) => {
       last: response.data.data.campaigns.pagination.last_page,
     };
   } catch (error) {
-    console.log(error);
     toast({
       title: "Erro ao carregar dados",
       description: "Não foi possível aplicar o filtro selecionado.",
