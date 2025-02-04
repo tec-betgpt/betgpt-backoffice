@@ -7,106 +7,52 @@
       </p>
     </div>
     <Card>
-      <CardContent>
-        <div v-if="isLoading" class="mt-6">
-          <div class="space-y-4">
-            <Skeleton class="h-6 w-full" />
-            <Skeleton class="h-6 w-full" />
-            <Skeleton class="h-6 w-full" />
-          </div>
-        </div>
-        <Table v-else>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>E-mail</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Acesso</TableHead>
-              <TableHead>Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="user in users" :key="user.id">
-              <TableCell>{{ user.id }}</TableCell>
-              <TableCell>{{ user.first_name }} {{ user.last_name }}</TableCell>
-              <TableCell>{{ user.email }}</TableCell>
-              <TableCell>
-                <div class="flex items-center">
-                  <LucideSpinner
-                    v-if="processingStatusId === user.id"
-                    class="mr-2 h-4 w-4 animate-spin"
-                  />
-                  <Badge
-                    v-else
-                    :variant="
-                      getStatus(user) === 'active' ? 'success' : 'destructive'
-                    "
-                  >
-                    {{ getStatus(user) === "active" ? "Ativo" : "Inativo" }}
-                  </Badge>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant="success">
-                  {{ user.role === "client" ? "Cliente" : "Membro" }}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger as-child>
-                    <Button size="icon" variant="ghost">
-                      <MoreHorizontal class="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem @click="openEditModal(user)"
-                      >Editar</DropdownMenuItem
-                    >
-                    <DropdownMenuItem
-                      @mousedown="resetPassword(user)"
-                      :disabled="processingAction === `reset-${user.id}`"
-                    >
-                      <div class="flex items-center">
-                        <LucideSpinner
-                          v-if="processingAction === `reset-${user.id}`"
-                          class="mr-2 h-4 w-4 animate-spin"
-                        />
-                        {{
-                          processingAction === `reset-${user.id}`
-                            ? "Resetando senha..."
-                            : "Resetar Senha"
-                        }}
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      @mousedown="toggleStatus(user)"
-                      :disabled="processingAction === `status-${user.id}`"
-                    >
-                      <div class="flex items-center">
-                        <LucideSpinner
-                          v-if="processingAction === `status-${user.id}`"
-                          class="mr-2 h-4 w-4 animate-spin"
-                        />
-                        {{
-                          processingAction === `status-${user.id}`
-                            ? getStatus(user) === "active"
-                              ? "Desativando..."
-                              : "Ativando..."
-                            : getStatus(user) === "active"
-                            ? "Inativar"
-                            : "Ativar"
-                        }}
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+      <CardContent class="py-4 flex flex-col gap-4">
+
+        <CustomDataTable
+                         :loading="isLoading"
+                         :columns="columns"
+                         :data="users"
+                         :update-text="setSearch"
+                         :find="fetchUsersAndProjects"
+        >
+
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button variant="outline" class="ml-auto">
+                Acesso  <ChevronDownIcon class="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuCheckboxItem     :checked="accessFilter.includes('member')"
+                                            @update:checked="setAccess('member')"  class="capitalize">
+                Membro
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem :checked="accessFilter.includes('client')"
+                                        @update:checked="setAccess('client')" >
+                Cliente
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button variant="outline" class="ml-auto">
+                Status  <ChevronDownIcon class="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuCheckboxItem     :checked="statusFilter.includes('active')"
+                                            @update:checked="setStatus('active')"  class="capitalize">
+                Ativo
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem :checked="statusFilter.includes('inactive')"
+                                        @update:checked="setStatus('inactive')" >
+                Inativo
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CustomDataTable>
+        <CustomPagination :select-page="fetchUsersAndProjects" :pages="pages"/>
       </CardContent>
       <CardFooter>
         <Button @click="openCreateModal">Novo Usuário</Button>
@@ -214,8 +160,8 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
+<script setup lang="ts">
+import {ref, onMounted, h, watch} from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import {
   Card,
@@ -225,18 +171,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableCell,
-  TableHead,
-  TableBody,
-} from "@/components/ui/table";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
+  DropdownMenu, DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -262,13 +201,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MoreHorizontal } from "lucide-vue-next";
+import {MoreHorizontal, ChevronDownIcon, ArrowDown, ArrowUp} from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import api from "@/services/api";
+import {createColumnHelper} from "@tanstack/vue-table";
+import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
+import {CaretSortIcon} from "@radix-icons/vue";
 
 const { toast } = useToast();
 const processingAction = ref(null);
-const users = ref([]);
+const users = ref<User[]>([]);
 const projects = ref([]);
 const isLoading = ref(true);
 const isProcessing = ref(false);
@@ -283,15 +226,56 @@ const form = ref({
   role: "client",
   project_ids: [],
 });
-
-const fetchUsersAndProjects = async () => {
+const pages = ref({
+  current:1,
+  last:0,
+  total:0
+})
+const accessFilter = ref<Array<String>>(['client','member'])
+const statusFilter = ref<Array<string>>(["active",'inactive'])
+const setStatus = (status) => {
+  const index = statusFilter.value.indexOf(status);
+  if (index === -1) {
+    statusFilter.value.push(status);
+  } else {
+    statusFilter.value.splice(index, 1);
+  }
+};
+const setAccess = (access) => {
+  const index = accessFilter.value.indexOf(access);
+  if (index === -1) {
+    accessFilter.value.push(access);
+  } else {
+    accessFilter.value.splice(index, 1);
+  }
+};
+watch(statusFilter.value,()=>{fetchUsersAndProjects(1)})
+watch(accessFilter.value,()=>{fetchUsersAndProjects(1)})
+const fetchUsersAndProjects = async (current = pages.value.current) => {
   try {
+    isLoading.value = true
     const [userResponse, projectResponse] = await Promise.all([
-      api.get("/users"),
+      api.get(`/users?page=${current}`,{
+        params:{
+          searchName:search.value,
+          status:statusFilter.value,
+          orderBy:order.value,
+          orderDirection:direction.value?"asc":"desc",
+          access:accessFilter.value
+
+        }
+      }),
       api.get("/projects"),
     ]);
-    users.value = userResponse.data.data;
+    users.value = userResponse.data.data.user;
+    pages.value = {
+      current: userResponse.data.data.pagination.current_page,
+      last: userResponse.data.data.pagination.last_page,
+      total: userResponse.data.data.pagination.total,
+    };
+
     projects.value = projectResponse.data.data;
+
   } catch (error) {
     toast({
       title: "Erro",
@@ -431,4 +415,197 @@ const onCheckboxChange = (id, checked) => {
 };
 
 onMounted(fetchUsersAndProjects);
+
+const search = ref()
+const setSearch = (text)=>{
+  search.value = text;
+}
+
+const order = ref()
+const direction = ref(false)
+const columnHelper = createColumnHelper<User>()
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+      Button,
+      {
+        variant: order.value === columnKey ? "default" : "ghost",
+        onClick: () => {
+          order.value = columnKey;
+          direction.value = !direction.value;
+          fetchUsersAndProjects();
+        },
+        class: "h-fit text-pretty my-1",
+      },
+      () => [
+        label,
+        h(
+            order.value === columnKey
+                ? direction.value
+                    ? ArrowDown
+                    : ArrowUp
+                : CaretSortIcon,
+            { class: "" }
+        ),
+      ]
+  );
+}
+const columns = [
+  columnHelper.accessor("id", {
+    header({ column }) {
+      return createHeaderButton('ID',"id")
+    },
+    cell: ({ row }) =>
+        h("div", {}, row.getValue("id")),
+  }),
+  columnHelper.accessor('first_name', {
+
+    header({ column }) {
+      return "Nome";
+    },
+    cell: ({ row }) =>
+        h("div", { class: "capitalize" },`${row.getValue("first_name")} ${row.original.last_name}`),
+  }),
+  columnHelper.accessor("email", {
+    header({ column }) {
+      return "Email";
+    },
+    cell: ({ row }) =>
+        h("div", {}, row.getValue("email")),
+  }),
+  columnHelper.accessor("statuses", {
+    header({ column }) {
+      return "Status";
+    },
+    cell: ({ row }) =>
+        h(
+            "div",
+            { class: "capitalize" },
+            processingStatusId.value === row.getValue("id")
+                ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
+                : h(
+                    Badge,
+                    {
+                      variant:
+                          row.getValue("statuses")?.[0]?.name === "active"
+                              ? "default"
+                              : "destructive",
+                    },
+                    row.getValue("statuses")?.[0]?.name === "active"
+                        ? "Ativo"
+                        : "Inativo"
+                )
+        ),
+  }),
+  columnHelper.accessor("role", {
+    header({ column }) {
+      return "Acesso";
+    },
+    cell: ({ row }) =>
+        h("div", { class: "capitalize" }, row.getValue("role")=="member"?"Membro":"Cliente"),
+  }),
+
+
+  columnHelper.accessor("statuses", {
+    header({ column }) {
+      return "Ações";
+    },
+    cell: ({ row, table }) =>
+        h(DropdownMenu, {}, [
+          h(
+              DropdownMenuTrigger,
+              { asChild: true },
+              h(
+                  Button,
+                  { size: "icon", variant: "ghost", disabled: isProcessing.value },
+                  [
+                    h(MoreHorizontal, { class: "h-4 w-4" }),
+                    h("span", { class: "sr-only" }, "Ações"),
+                  ]
+              )
+          ),
+          h(DropdownMenuContent, { align: "end" }, [
+            h(DropdownMenuLabel, {}, "Ações"),
+            h(DropdownMenuSeparator, {}),
+            h(
+                DropdownMenuItem,
+                {
+                  onClick: () => {
+                    const project = row.original;
+                    openEditModal(project);
+                  },
+                },
+                "Editar"
+            ),
+            h(
+                DropdownMenuItem,
+                {
+                  onMousedown: () => {
+                    const user = row.original; // Obtém o usuário da linha
+                    resetPassword(user);
+                  },
+                  disabled:
+                      processingAction.value === `reset-${row.getValue("id")}`,
+                },
+                h(
+                    "div",
+                    { class: "flex items-center" },
+                    processingAction.value === `reset-${row.getValue("id")}`
+                        ? [
+                          h(LucideSpinner, {
+                            class: "mr-2 h-4 w-4 animate-spin",
+                          }),
+                          "Resetando senha...",
+                        ]
+                        : "Resetar Senha"
+                )
+            ),
+            h(
+                DropdownMenuItem,
+                {
+                  onMousedown: () => {
+                    const project = row.original;
+                    toggleStatus(project);
+                  },
+                  disabled:
+                      processingAction.value === `status-${row.getValue("id")}`,
+                },
+                processingAction.value === `status-${row.getValue("id")}`
+                    ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
+                    : h(
+                        "div",
+                        {},
+                        row.getValue("statuses")?.[0]?.name === "active"
+                            ? "Inativar"
+                            : "Ativar"
+                    )
+            ),
+          ]),
+        ]),
+  }),
+];
+
+
+
+// Primeiro, defina um tipo para a interface status
+interface Status {
+  id: string; // ID do status
+  name: string; // Nome do status (ex: 'Ativo', 'Inativo')
+  reason?: string; // Rationale de inatividade (opcional)
+  model_type?: string; // Tipos do modelo associado (ex: 'App\Models\User')
+  model_id?: number; // ID do modelo associado
+  created_at: string; // Tempo de criação (formato ISO 8601, ex: "2024-11-20T19:15:47Z")
+  updated_at?: string; // Tempo de atualização (formato ISO 8601, ex: "2024-11-20T19:15:47Z")
+}
+
+type User = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  project_ids: number[];
+  statuses: Status[];
+};
+
+
 </script>

@@ -1,24 +1,9 @@
 <template>
-
-  <!--  <Card class="max-w-[400px] ">-->
-  <!--    <CardHeader class="flex items-center justify-between">-->
-  <!--      <img src="/logo-elevate-square-black.png"  class="w-[150px] h-fit" alt="">-->
-  <!--    </CardHeader>-->
-  <!--    <CardContent class=" flex gap-2">-->
-  <!--      <img src="/svgviewer-output%20(3).svg" class="w-[18px] h-fit" alt=""/>-->
-  <!--      <CardDescription class="text-left font-bold text-xl gap-2 flex flex-col">-->
-  <!--        {{message.message}}-->
-  <!--        <p class="text-left font-extralight ">{{message.signature}}</p>-->
-  <!--      </CardDescription>-->
-
-
-  <!--    </CardContent>-->
-  <!--  </Card>-->
   <div class="flex flex-col justify-center items-center flex-1 ">
-    <video class="w-[300px] h-fit"    loop muted autoplay >
-      <source v-if="mode =='light'" src="/animation.mp4" type="video/mp4"/>
-      <source v-else src="/elevate_preta.mp4" type="video/mp4"/>
-    </video>
+
+    <DotLottieVue v-if="useColorMode().value == 'dark'" style="height: 300px; width: 300px" autoplay   loop src="/animation_logo_black.lottie" />
+    <DotLottieVue v-else style="height: 300px; width: 300px" autoplay   loop src="/animation_logo_white.lottie" />
+
     <div
         :class="{ 'opacity-0': !message.message, 'opacity-100	': message.message }"
         class="flex flex-col gap-3 transition-opacity duration-1000 ">
@@ -41,6 +26,8 @@ import api from "@/services/api";
 import {ref} from "vue";
 import { Quote } from 'lucide-vue-next';
 import {useColorMode} from "@vueuse/core";
+import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
+
 
 const mode = useColorMode()
 
