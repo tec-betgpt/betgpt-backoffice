@@ -7,95 +7,35 @@
       </p>
     </div>
     <Card>
-      <CardContent>
-        <div v-if="isLoading" class="mt-6">
-          <div class="space-y-4">
-            <Skeleton class="h-6 w-full" />
-            <Skeleton class="h-6 w-full" />
-            <Skeleton class="h-6 w-full" />
-          </div>
-        </div>
+      <CardContent class="py-4">
 
-        <Table v-else>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Data Criação</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="project in projects" :key="project.id">
-              <TableCell class="font-medium">{{ project.id }}</TableCell>
-              <TableCell class="font-medium">{{ project.name }}</TableCell>
-              <TableCell class="font-medium">
-                {{ $moment(project.created_at).format("DD/MM/YYYY HH:mm:ss") }}
-              </TableCell>
-              <TableCell>
-                <div class="flex items-center">
-                  <LucideSpinner
-                    v-if="processingStatusId === project.id"
-                    class="mr-2 h-4 w-4 animate-spin"
-                  />
-                  <Badge
-                    v-else
-                    :variant="
-                      getStatus(project) === 'active'
-                        ? 'success'
-                        : 'destructive'
-                    "
-                  >
-                    {{ getStatus(project) === "active" ? "Ativo" : "Inativo" }}
-                  </Badge>
-                </div>
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger as-child>
-                    <Button
-                      aria-haspopup="true"
-                      size="icon"
-                      variant="ghost"
-                      :disabled="isProcessing"
-                    >
-                      <MoreHorizontal class="h-4 w-4" />
-                      <span class="sr-only">Ações</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem @click="openEditModal(project)">
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      @mousedown="toggleStatus(project)"
-                      :disabled="processingAction === `status-${project.id}`"
-                    >
-                      <div class="flex items-center">
-                        <LucideSpinner
-                          v-if="processingAction === `status-${project.id}`"
-                          class="mr-2 h-4 w-4 animate-spin"
-                        />
-                        {{
-                          processingAction === `status-${project.id}`
-                            ? getStatus(project) === "active"
-                              ? "Desativando..."
-                              : "Ativando..."
-                            : getStatus(project) === "active"
-                            ? "Inativar"
-                            : "Ativar"
-                        }}
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <CustomDataTable
+                         :loading="isLoading"
+                         :data="projects"
+                         :columns="columns"
+                         :update-text="setSearch"
+                         :find="fetchProjects"
+        >
+
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button variant="outline" class="ml-auto">
+                Status  <ChevronDownIcon class="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuCheckboxItem     :checked="statusFilter.includes('active')"
+                                            @update:checked="setStatus('active')"  class="capitalize">
+                Ativo
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem :checked="statusFilter.includes('inactive')"
+                                        @update:checked="setStatus('inactive')" >
+                Inativo
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CustomDataTable>
+      <CustomPagination :select-page="fetchProjects" :pages="pages"/>
       </CardContent>
       <CardFooter>
         <Button @click="openCreateModal">
@@ -113,8 +53,8 @@
           <SheetDescription>
             {{
               isEditing
-                ? "Edite as informações do projeto"
-                : "Crie um novo projeto"
+                  ? "Edite as informações do projeto"
+                  : "Crie um novo projeto"
             }}
           </SheetDescription>
         </SheetHeader>
@@ -123,26 +63,26 @@
             <div class="grid grid-cols-4 items-center gap-4">
               <Label for="name">Nome do Projeto</Label>
               <Input
-                id="name"
-                v-model="form.name"
-                placeholder="Digite o nome do projeto"
-                class="col-span-3"
-                required
+                  id="name"
+                  v-model="form.name"
+                  placeholder="Digite o nome do projeto"
+                  class="col-span-3"
+                  required
               />
             </div>
           </div>
           <SheetFooter>
             <Button type="submit" :disabled="isProcessing">
               <LucideSpinner
-                v-if="isProcessing"
-                class="mr-2 h-4 w-4 animate-spin"
+                  v-if="isProcessing"
+                  class="mr-2 h-4 w-4 animate-spin"
               />
               {{
                 isProcessing
-                  ? "Carregando..."
-                  : isEditing
-                  ? "Salvar"
-                  : "Criar Projeto"
+                    ? "Carregando..."
+                    : isEditing
+                        ? "Salvar"
+                        : "Criar Projeto"
               }}
             </Button>
           </SheetFooter>
@@ -152,29 +92,19 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+<script setup lang="ts">
+import {ref, onMounted, h, watch} from "vue";
+import {useToast} from "@/components/ui/toast/use-toast";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
+
+import {Badge} from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
 import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableCell,
-  TableHead,
-  TableBody,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
+  DropdownMenu, DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -189,34 +119,75 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { MoreHorizontal } from "lucide-vue-next";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
+import {Label} from "@/components/ui/label";
+import {Input} from "@/components/ui/input";
+import {Skeleton} from "@/components/ui/skeleton";
+import {MoreHorizontal, ChevronDownIcon, ArrowDown, ArrowUp} from "lucide-vue-next";
+import {Loader2 as LucideSpinner} from "lucide-vue-next";
 import api from "@/services/api";
+import {createColumnHelper} from "@tanstack/vue-table";
+import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import moment from "moment";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
+import {CaretSortIcon} from "@radix-icons/vue";
 
-const { toast } = useToast();
+
+
+const statusFilter = ref<Array<string>>(["active",'inactive'])
+watch(statusFilter.value,()=>{fetchProjects(1)})
+const {toast} = useToast();
 const processingAction = ref(null);
-const projects = ref([]);
+const projects = ref<Project[]>([]);
 const isLoading = ref(true);
 const isProcessing = ref(false);
 const processingStatusId = ref(null);
 const showModal = ref(false);
 const isEditing = ref(false);
+const pages = ref({
+  current:1,
+  total:0,
+  last: 0,
+})
 const form = ref({
   id: null,
   name: "",
 });
-
+const search = ref()
+const order = ref()
+const direction = ref(false)
+const setSearch = (value: string) => {
+  search.value = value;
+}
+const setStatus = (status) => {
+  const index = statusFilter.value.indexOf(status);
+  if (index === -1) {
+    statusFilter.value.push(status);
+  } else {
+    statusFilter.value.splice(index, 1);
+  }
+};
 const getStatus = (project) => {
   return project.statuses?.[0]?.name || "inactive";
 };
 
-const fetchProjects = async () => {
+const fetchProjects = async (current = pages.value.current) => {
+
   try {
-    const response = await api.get("/projects");
-    projects.value = response.data.data;
+    isLoading.value = true
+    const response = await api.get(`/projects?page=${current}`,{
+      params:{
+      status:statusFilter.value,
+        searchName: search.value,
+        orderBy:order.value,
+        orderDirection:direction.value?"asc":"desc"
+      }
+    });
+    projects.value = response.data.data.data;
+    pages.value = {
+      current: response.data.data.current_page,
+      last: response.data.data.last_page,
+      total: response.data.data.total,
+    }
   } catch {
     toast({
       title: "Erro",
@@ -241,7 +212,7 @@ const toggleStatus = async (project) => {
       toast({
         title: "Sucesso",
         description: `Projeto ${
-          newStatus === "active" ? "ativado" : "inativado"
+            newStatus === "active" ? "ativado" : "inativado"
         } com sucesso.`,
         variant: "success",
       });
@@ -260,13 +231,13 @@ const toggleStatus = async (project) => {
 };
 
 const openEditModal = (project) => {
-  form.value = { ...project };
+  form.value = {...project};
   isEditing.value = true;
   showModal.value = true;
 };
 
 const openCreateModal = () => {
-  form.value = { id: null, name: "" };
+  form.value = {id: null, name: ""};
   isEditing.value = false;
   showModal.value = true;
 };
@@ -274,7 +245,7 @@ const openCreateModal = () => {
 const createProject = async () => {
   isProcessing.value = true;
   try {
-    const response = await api.post("/projects", form.value);
+    const response = await api.post(`/projects`, form.value);
     if (response.status === 201) {
       projects.value.push(response.data.data);
       toast({
@@ -284,7 +255,7 @@ const createProject = async () => {
       });
       showModal.value = false;
     }
-  } catch {
+  } catch(error) {
     toast({
       title: "Erro",
       description: "Erro ao criar o projeto.",
@@ -301,7 +272,7 @@ const updateProject = async () => {
     const response = await api.put(`/projects/${form.value.id}`, form.value);
     if (response.status === 200) {
       const projectIndex = projects.value.findIndex(
-        (p) => p.id === form.value.id
+          (p) => p.id === form.value.id
       );
       projects.value[projectIndex] = response.data.data;
       toast({
@@ -320,6 +291,131 @@ const updateProject = async () => {
   } finally {
     isProcessing.value = false;
   }
+};
+
+const columnHelper = createColumnHelper<Project>()
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+      Button,
+      {
+        variant: order.value === columnKey ? "default" : "ghost",
+        onClick: () => {
+          order.value = columnKey;
+          direction.value = !direction.value;
+          fetchProjects();
+        },
+        class: "h-fit text-pretty my-1",
+      },
+      () => [
+        label,
+        h(
+            order.value === columnKey
+                ? direction.value
+                    ? ArrowDown
+                    : ArrowUp
+                : CaretSortIcon,
+            { class: "" }
+        ),
+      ]
+  );
+}
+const columns = [
+  columnHelper.accessor("id", {
+    header({column}) {
+     return createHeaderButton("ID","id")
+    },
+    cell: ({row}) => h("div", {class: "capitalize"}, row.getValue("id")),
+
+  }),
+  columnHelper.accessor("name", {
+    header({header}) {
+      return "Nome";
+    },
+    cell: ({row}) => h("div", {class: "capitalize"}, row.getValue("name")),
+
+  }),
+  columnHelper.accessor("created_at", {
+    header({header}) {
+      return createHeaderButton("Data","created_at")
+    },
+    cell: ({row}) => (h("div", {}, moment(row.getValue("created_at")).format("DD/MM/YYYY HH:mm:ss"))),
+  }),
+  columnHelper.accessor("statuses", {
+    header({header}) {
+      return "Status"
+    },
+    cell: ({row}) => (
+        h('div', {class: "capitalize"},
+            processingStatusId.value === row.getValue("id") ?
+                h(LucideSpinner, {class: "mr-2 h-4 w-4 animate-spin"})
+                :
+                h(Badge, {variant: row.getValue("statuses")?.[0]?.name === 'active' ? 'default' : 'destructive'},
+                    row.getValue("statuses")?.[0]?.name === "active" ? "Ativo" : "Inativo")
+        )),
+  }),
+  columnHelper.accessor("statuses", {
+    header({header}) {
+      return "Ações"
+    },
+    cell: ({row,table}) => (
+        h(DropdownMenu, {},
+            [h(DropdownMenuTrigger, {asChild: true},
+                h(Button, {size: 'icon', variant: 'ghost', disabled: isProcessing.value},
+                    [h(MoreHorizontal, {class: "h-4 w-4"}), h('span', {class: "sr-only"}, "Ações")]
+                )
+            ),
+              h(DropdownMenuContent, {align: "end"},
+                  [h(DropdownMenuLabel, {}, "Ações"),
+                    h(DropdownMenuSeparator, {}),
+                    h(DropdownMenuItem, {onClick:()=>{
+                      const project = row.original
+                        openEditModal(project)
+                      }
+                    }, "Editar"),
+                    h(DropdownMenuItem, {
+                          onMousedown: ()=>{
+                            const project = row.original
+                            toggleStatus(project)
+                          },
+                          disable: processingAction.value === `status-${row.getValue('id')}`
+                        },
+
+                        processingAction.value === `status-${row.getValue('id')}` ?
+                            h(LucideSpinner, {class: "mr-2 h-4 w-4 animate-spin"})
+                            :
+                            h('div',{},
+                              processingAction.value === `status-${row.getValue('id')}`?
+                                  row.getValue("statuses")?.[0]?.name === "active"?"Desativando..."
+                                      : "Ativando...":
+                                  row.getValue("statuses")?.[0]?.name === "active"?"Inativar"
+                                      : "Ativar"
+
+                            )
+                    )
+
+                  ]
+              )
+
+            ]
+        )
+    )
+  })
+]
+type ProjectStatus = {
+  id: number;
+  name: string;
+  reason: string | null;
+  model_type: string;
+  model_id: number;
+  created_at: string; // ISO timestamp
+  updated_at: string; // ISO timestamp
+};
+
+type Project = {
+  id: number;
+  name: string;
+  created_at: string; // ISO timestamp
+  statuses: ProjectStatus[];
 };
 
 onMounted(fetchProjects);

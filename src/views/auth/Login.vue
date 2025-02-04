@@ -122,10 +122,9 @@
       <div   v-else-if="loading" class="items-center justify-center align-middle  flex min-h-screen mx-10 sm:w-full">
 
           <div class="flex flex-col justify-center items-center flex-1">
-            <video class="w-[300px] h-fit"    loop muted autoplay >
-              <source v-if="mode =='light'" src="/animation.mp4" type="video/mp4"/>
-              <source v-else src="/elevate_preta.mp4" type="video/mp4"/>
-            </video>
+            <DotLottieVue v-if="useColorMode().value == 'dark'" style="height: 300px; width: 300px" autoplay   loop src="/animation_logo_black.lottie" />
+            <DotLottieVue v-else style="height: 300px; width: 300px" autoplay   loop src="/animation_logo_white.lottie" />
+
             <div
                 :class="{ 'opacity-0': !message.message, 'opacity-100	': message.message }"
                 class="flex flex-col gap-3 transition-opacity duration-1000 ">
@@ -286,6 +285,7 @@ const { toast } = useToast();
 import i18n from "@/i18n";
 import CustomLoading from "@/components/custom/CustomLoading.vue";
 import {useColorMode} from "@vueuse/core";
+import {DotLottieVue} from "@lottiefiles/dotlottie-vue";
 Form.axios = api;
 const mode = useColorMode()
 
@@ -360,7 +360,7 @@ const login = async () => {
       {},
       { withCredentials: true }
     );
-
+    await delay(2000)
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
