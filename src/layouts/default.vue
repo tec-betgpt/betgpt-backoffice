@@ -217,7 +217,7 @@ const setActiveProject = async (
 ) => {
   configStore.setLoading(true);
   await workspaceStore.setActiveProject(project);
-  configStore.setLoading(false);
+  setTimeout(() => configStore.setLoading(false), 2000);
 };
 
 const stateResponsive = ref(false);
