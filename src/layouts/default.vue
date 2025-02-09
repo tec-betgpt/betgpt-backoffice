@@ -71,6 +71,8 @@ import {
 import { useColorMode } from "@vueuse/core";
 import { Switch } from "@/components/ui/switch";
 
+import CustomLoading from "@/components/custom/CustomLoading.vue";
+
 interface BreadcrumbItem {
   name: string;
   title: string;
@@ -203,15 +205,19 @@ const navCategory = computed(() => {
 });
 
 // Times (Projects)
+const workspaceStore = useWorkspaceStore();
 const projects = computed(() => workspaceStore.projects);
 const activeProject = computed(() => workspaceStore.activeProject || null);
 
-const workspaceStore = useWorkspaceStore();
+import { useConfigStore } from "@/stores/config";
+const configStore = useConfigStore();
 
 const setActiveProject = async (
   project: typeof workspaceStore.activeProject
 ) => {
+  configStore.setLoading(true);
   await workspaceStore.setActiveProject(project);
+  configStore.setLoading(false);
 };
 
 const stateResponsive = ref(false);
@@ -235,7 +241,8 @@ const logout = async () => {
 </script>
 
 <template>
-  <SidebarProvider>
+  <CustomLoading v-if="configStore.loading"></CustomLoading>
+  <SidebarProvider v-else>
     <Sidebar collapsible="icon">
       <SidebarHeader v-if="activeProject">
         <SidebarMenu>

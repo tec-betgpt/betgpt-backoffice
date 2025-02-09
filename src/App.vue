@@ -19,11 +19,13 @@ import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import DefaultLayout from "@/layouts/default.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useConfigStore } from "@/stores/config";
 import { storeToRefs } from "pinia";
 import { Toaster } from "@/components/ui/toast";
 
 const route = useRoute();
 const authStore = useAuthStore();
+const configStore = useConfigStore();
 const { loading } = storeToRefs(authStore);
 
 const layout = computed(() => route.meta.layout || DefaultLayout);
