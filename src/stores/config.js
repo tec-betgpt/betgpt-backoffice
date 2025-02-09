@@ -19,6 +19,7 @@ export const useConfigStore = defineStore("config", {
 
     async setLoading(loading) {
       this.loading = loading;
+      setTimeout(() => this.fetchConfigs(), 4000);
     },
   },
 });
