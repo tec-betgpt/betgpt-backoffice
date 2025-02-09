@@ -11,7 +11,7 @@
       <CardContent class="py-4">
 
         <CustomDataTable
-            :loading="loading"
+            :loading="isLoading"
             :data="valuesTable"
             :columns="columns"
             :update-text="setSearch"
@@ -93,33 +93,15 @@
 
 <script setup lang="ts">
 
-import {h, onMounted, ref, watch} from "vue";
+import {h, onMounted, ref} from "vue";
 import Form from "vform";
 import api from "@/services/api";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {Button} from "@/components/ui/button";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 
-import {MoreHorizontal, X} from "lucide-vue-next";
-import {
-  Pagination,
-  PaginationEllipsis,
-  PaginationFirst,
-  PaginationLast,
-  PaginationList,
-  PaginationListItem,
-  PaginationNext,
-  PaginationPrev,
-} from "@/components/ui/pagination";
+import {ArrowDown, ArrowUp, MoreHorizontal, X} from "lucide-vue-next";
+
 import {
   Sheet,
   SheetClose,
@@ -140,11 +122,11 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {Card, CardContent, CardFooter} from "@/components/ui/card";
-import {Skeleton} from "@/components/ui/skeleton";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import {createColumnHelper} from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import * as sea from "node:sea";
+import {createTableColumns, TableAction} from "@/components/custom/DataTableFunctions";
+import {CaretSortIcon} from "@radix-icons/vue";
 
 const {toast} = useToast();
 Form.axios = api;
@@ -166,6 +148,8 @@ const loading = ref(false)
 const loadingSave = ref(false)
 const loadingRemove = ref(false)
 const isEditing = ref(false)
+const order = ref()
+const direction = ref(false)
 
 async function fetchMessages(pageId: number = pages.value.current) {
   try {
@@ -173,6 +157,8 @@ async function fetchMessages(pageId: number = pages.value.current) {
     const response = await form.value.get(`/utils/message-loading?page=${pageId}`, {
       params: {
         search: search.value,
+        orderBy:order.value,
+        orderDirection:direction.value?"asc":"desc"
       }
     });
     pages.value.current = response.data.data.current_page;
@@ -185,9 +171,9 @@ async function fetchMessages(pageId: number = pages.value.current) {
     isLoading.value = false;
   }
 }
-
-fetchMessages()
-
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function submit() {
   try {
@@ -292,7 +278,31 @@ type TableItem = {
   message: string;
   signature: string;
 };
-
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+      Button,
+      {
+        variant: order.value === columnKey ? "default" : "ghost",
+        onClick: () => {
+          order.value = columnKey;
+          direction.value = !direction.value;
+          fetchMessages();
+        },
+        class: "h-fit text-pretty my-1",
+      },
+      () => [
+        label,
+        h(
+            order.value === columnKey
+                ? direction.value
+                    ? ArrowDown
+                    : ArrowUp
+                : CaretSortIcon,
+            { class: "" }
+        ),
+      ]
+  );
+}
 const columnHelper = createColumnHelper<TableItem>();
 
 const columns = [
@@ -309,7 +319,7 @@ const columns = [
   }),
   columnHelper.accessor("signature", {
     header({column}) {
-      return "Assinatura";
+      return createHeaderButton("Assinatura","signature");
     },
     cell: ({row}) =>
         h(

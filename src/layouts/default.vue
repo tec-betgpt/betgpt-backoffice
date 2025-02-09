@@ -70,6 +70,7 @@ import {
 } from "@/components/ui/collapsible";
 import { useColorMode } from "@vueuse/core";
 import { Switch } from "@/components/ui/switch";
+import { resizeDirective as vResize } from 'v-resize-observer';
 
 interface BreadcrumbItem {
   name: string;
@@ -202,9 +203,17 @@ const navCategory = computed(() => {
   return category;
 });
 
+const width = ref(0);
+const height = ref(0);
+
+const onResize = ({ width: newWidth, height: newHeight }) => {
+  width.value = newWidth;
+  height.value = newHeight;
+};
 // Times (Projects)
 const projects = computed(() => workspaceStore.projects);
 const activeProject = computed(() => workspaceStore.activeProject || null);
+
 
 const workspaceStore = useWorkspaceStore();
 
@@ -224,21 +233,35 @@ onMounted(async () => {
   const user = authStore.user;
   if (user) {
     await workspaceStore.loadInitialData(user?.preferences, user?.projects);
+
   }
 });
 
-// Logout
 const logout = async () => {
   authStore.logout();
   router.push("/login");
 };
+watch(width.value,()=>{
+  console.log(width.value);
+})
 </script>
 
 <template>
-  <SidebarProvider>
-    <Sidebar collapsible="icon">
-      <SidebarHeader v-if="activeProject">
-        <SidebarMenu>
+
+  <SidebarProvider >
+    <Sidebar collapsible="icon" >
+
+      <SidebarHeader  v-resize="onResize"  >
+        <div v-if="width > 40">
+          <img v-if="mode === 'dark'" src="/logo-elevate-white.png" alt="Logo" class="w-1/2 m-auto py-4">
+          <img v-else src="/logo-elevate-black.png" alt="Logo" class="w-1/2 m-auto py-4" />
+        </div>
+        <div v-else>
+          <img v-if="mode === 'dark'" src="/logo-elevate-square-white.png" alt="Logo" class="m-auto py-4">
+          <img v-else src="/logo-elevate-square-black.png" alt="Logo" class="m-auto py-4" />
+        </div>
+
+        <SidebarMenu v-if="activeProject">
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
@@ -249,10 +272,11 @@ const logout = async () => {
                   <div
                     class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
                   >
-                    <component
-                      v-if="activeProject && activeProject.media.length"
-                      :is="activeProject.media[0]"
-                      class="size-4"
+                    <img
+                        v-if="activeProject && activeProject.media.length"
+                        :src="activeProject.logo_url"
+                        alt="Imagem do projeto"
+                        class="size-4"
                     />
                     <Package2
                       class="h-4 w-4 transition-all group-hover:scale-110"
@@ -286,11 +310,14 @@ const logout = async () => {
                   <div
                     class="flex size-6 items-center justify-center rounded-sm border"
                   >
-                    <component
+
+                    <img
                       v-if="project && project.media.length"
-                      :is="project.media[0]"
                       class="size-4 shrink-0"
-                    />
+                      :src="project.logo_url"
+                      alt="Imagem do projeto"
+                      />
+
                     <Package2
                       class="h-4 w-4 transition-all group-hover:scale-110"
                       v-else

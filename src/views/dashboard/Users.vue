@@ -232,7 +232,7 @@ const pages = ref({
   total:0
 })
 const accessFilter = ref<Array<String>>(['client','member'])
-const statusFilter = ref<Array<string>>(["active",'inactive'])
+const statusFilter = ref<Array<string>>(["active"])
 const setStatus = (status) => {
   const index = statusFilter.value.indexOf(status);
   if (index === -1) {
@@ -460,7 +460,7 @@ const columns = [
   columnHelper.accessor('first_name', {
 
     header({ column }) {
-      return "Nome";
+      return createHeaderButton("Nome","first_name");
     },
     cell: ({ row }) =>
         h("div", { class: "capitalize" },`${row.getValue("first_name")} ${row.original.last_name}`),
