@@ -1,6 +1,6 @@
 <template>
   <div
-    class=" relative flex flex-col items-center   lg:max-w-none lg:flex-row lg:px-0 min-h-screen"
+    class="relative flex flex-col items-center lg:max-w-none lg:flex-row lg:px-0 min-h-screen"
   >
     <!--<router-link
       :to="'/register'"
@@ -14,37 +14,46 @@
       {{ $t("signup") }}
     </router-link>-->
     <div
-
-        class="relative min-h-screen flex-col bg-muted  text-white dark:border-r lg:flex hidden overflow-hidden transition-all duration-1000"
-        :class="{ 'w-0 p-0': loading, ' p-10 w-1/2': !loading }"
-        ref="animatedDiv"
+      class="relative min-h-screen flex-col bg-muted text-white dark:border-r lg:flex hidden overflow-hidden transition-all duration-1000"
+      :class="{ 'w-0 p-0': loading, ' p-10 w-1/2': !loading }"
+      ref="animatedDiv"
     >
       <div class="absolute inset-0 bg-zinc-900" />
       <div
-          :class="{ 'opacity-0': loading, 'opacity-100	': !loading }"
-          class="relative z-20 flex items-center text-lg font-medium">
+        :class="{ 'opacity-0': loading, 'opacity-100	': !loading }"
+        class="relative z-20 flex items-center text-lg font-medium"
+      >
         <img src="/logo-elevate-white.png" class="mr-2 w-28" />
       </div>
       <div
-          :class="{ 'opacity-0': loading, 'opacity-100	': !loading }"
-          class="relative z-20 mt-auto" >
+        :class="{ 'opacity-0': loading, 'opacity-100	': !loading }"
+        class="relative z-20 mt-auto"
+      >
         <blockquote class="space-y-2">
           <p class="text-lg">{{ $t("slogan") }}</p>
         </blockquote>
       </div>
     </div>
 
-    <div v-if="!ScreenTwoFactor && !loading" class="  w-full flex px-10 justify-center items-center align-middle min-h-screen lg:w-1/2">
-      <div
-        class=" flex w-full flex-col justify-center space-y-6 sm:w-[350px]  "
-      >
+    <div
+      v-if="!ScreenTwoFactor && !loading"
+      class="w-full flex px-10 justify-center items-center align-middle min-h-screen lg:w-1/2"
+    >
+      <div class="flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div class="sm:hidden">
-          <img v-if="mode =='light'" src="/logo-elevate-black.png" class="w-64 mx-auto mb-5" alt="Logo Mobile" />
-          <img v-else src="/logo-elevate-white.png" class="w-64 mx-auto mb-5" alt="Logo Mobile" />
-
+          <img
+            v-if="mode == 'light'"
+            src="/logo-elevate-black.png"
+            class="w-64 mx-auto mb-5"
+            alt="Logo Mobile"
+          />
+          <img
+            v-else
+            src="/logo-elevate-white.png"
+            class="w-64 mx-auto mb-5"
+            alt="Logo Mobile"
+          />
         </div>
-
-
 
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
@@ -119,29 +128,50 @@
       </div>
     </div>
 
-      <div   v-else-if="loading" class="items-center justify-center align-middle  flex min-h-screen mx-10 sm:w-full">
+    <div
+      v-else-if="loading"
+      class="items-center justify-center align-middle flex min-h-screen mx-10 sm:w-full"
+    >
+      <div class="flex flex-col justify-center items-center flex-1">
+        <DotLottieVue
+          v-if="useColorMode().value == 'dark'"
+          style="height: 300px; width: 300px"
+          autoplay
+          loop
+          src="/animation_logo_black.lottie"
+        />
+        <DotLottieVue
+          v-else
+          style="height: 300px; width: 300px"
+          autoplay
+          loop
+          src="/animation_logo_white.lottie"
+        />
 
-          <div class="flex flex-col justify-center items-center flex-1">
-            <DotLottieVue v-if="useColorMode().value == 'dark'" style="height: 300px; width: 300px" autoplay   loop src="/animation_logo_black.lottie" />
-            <DotLottieVue v-else style="height: 300px; width: 300px" autoplay   loop src="/animation_logo_white.lottie" />
-
-            <div
-                :class="{ 'opacity-0': !message.message, 'opacity-100	': message.message }"
-                class="flex flex-col gap-3 transition-opacity duration-1000 ">
-              <div  class="flex gap-1">
-                <Quote :size="20" :stroke-width="1.75" absoluteStrokeWidth />
-                <p class="max-w-[440px]">
-                  {{ message.message }}
-                </p>
-              </div>
-              <p class="text-left font-serif text-gray-700">{{ message.signature }}</p>
-            </div>
+        <div
+          :class="{
+            'opacity-0': !message.message,
+            'opacity-100	': message.message,
+          }"
+          class="flex flex-col gap-3 transition-opacity duration-1000"
+        >
+          <div class="flex gap-1">
+            <Quote :size="20" :stroke-width="1.75" absoluteStrokeWidth />
+            <p class="max-w-[440px]">
+              {{ message.message }}
+            </p>
           </div>
-
-
+          <p class="text-left font-serif text-gray-700">
+            {{ message.signature }}
+          </p>
+        </div>
       </div>
+    </div>
 
-    <div v-else class="flex justify-center items-center align-middle min-h-screen lg:w-1/2 w-full">
+    <div
+      v-else
+      class="flex justify-center items-center align-middle min-h-screen lg:w-1/2 w-full"
+    >
       <div
         v-if="recoveryScreen"
         class="mx-10 flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
@@ -260,13 +290,13 @@
 </template>
 
 <script setup lang="ts">
-import {onBeforeMount, onMounted, ref} from "vue";
+import { onBeforeMount, onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
 import Form from "vform";
 import { cn } from "@/lib/utils";
-import {Loader2 as LucideSpinner, Quote} from "lucide-vue-next";
+import { Loader2 as LucideSpinner, Quote } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -283,11 +313,12 @@ import {
 import { useToast } from "@/components/ui/toast/use-toast";
 const { toast } = useToast();
 import i18n from "@/i18n";
-import CustomLoading from "@/components/custom/CustomLoading.vue";
-import {useColorMode} from "@vueuse/core";
-import {DotLottieVue} from "@lottiefiles/dotlottie-vue";
+import { useColorMode } from "@vueuse/core";
+import { DotLottieVue } from "@lottiefiles/dotlottie-vue";
 Form.axios = api;
-const mode = useColorMode()
+const mode = useColorMode();
+
+import { useConfigStore } from "@/stores/config";
 
 const isDialog = ref(false);
 const previewCode = ref<Array<string>>([]);
@@ -360,7 +391,7 @@ const login = async () => {
       {},
       { withCredentials: true }
     );
-    await delay(2000)
+    await delay(2000);
     handleLoginResponse(response);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
@@ -448,19 +479,9 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 const animatedDiv = ref(null);
-const message = ref({
-  id: "",
-  message: "",
-  signature: ""
-})
 
-async function getMessage() {
-  const response = await api.get('/message-loading')
-  message.value = response.data.data
-}
+const configStore = useConfigStore();
+const message = computed(() => configStore.message);
 
-onMounted(()=>{
-  getMessage()
-})
-
+onMounted(() => {});
 </script>

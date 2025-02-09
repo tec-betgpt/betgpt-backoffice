@@ -7,6 +7,7 @@ import VueTippy from "vue-tippy";
 import { toCurrency } from "./filters/currencyFilter";
 import "tippy.js/dist/tippy.css";
 import { useAuthStore } from "@/stores/auth";
+import { useConfigStore } from "@/stores/config";
 import moment from "moment";
 import "moment/dist/locale/pt-br";
 
@@ -30,5 +31,8 @@ app.use(i18n);
 
 const authStore = useAuthStore();
 authStore.restoreSession();
+
+const configStore = useConfigStore();
+configStore.fetchConfigs();
 
 app.mount("#app");

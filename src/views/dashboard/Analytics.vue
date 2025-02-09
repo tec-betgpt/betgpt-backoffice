@@ -321,7 +321,7 @@
               :categories="['% Cadastro Depósito']"
               :y-formatter="
                 (tick, i) =>
-                  typeof tick === 'number' ? `${tick.toFixed(2)}%` : ''
+                  typeof tick === 'number' ? `${(tick / 100).toFixed(2)}%` : ''
               "
               :custom-tooltip="CustomChartTooltipPercent"
             />
@@ -347,7 +347,7 @@
               :categories="['% Conversão Depósitos Pagos']"
               :y-formatter="
                 (tick, i) =>
-                  typeof tick === 'number' ? `${tick.toFixed(2)}%` : ''
+                  typeof tick === 'number' ? `${(tick / 100).toFixed(2)}%` : ''
               "
               :custom-tooltip="CustomChartTooltipPercent"
             />
@@ -382,7 +382,7 @@ import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPer
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 
-const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
+const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
 const { toast } = useToast();
