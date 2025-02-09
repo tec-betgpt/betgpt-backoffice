@@ -322,7 +322,7 @@ const logout = async () => {
                           'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
                         }"
                       >
-                        <component :is="navMenu[0].icon" class="mr-2" />
+                        <component :is="navMenu[0].icon" />
                         <span>{{ navMenu[0].name }}</span>
                       </router-link>
                     </SidebarMenuButton>
