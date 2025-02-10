@@ -100,7 +100,7 @@ watch(name,()=>{
         <template v-if="loading">
           <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="`loading-${n}`">
             <TableCell  v-for="header in headerGroup.headers" :key="n">
-              <Skeleton class="h-4 w-full bg-gray-300"/>
+              <Skeleton v-for="index in 5" class="h-4 w-full bg-gray-300 my-4"/>
             </TableCell>
           </TableRow>
         </template>
