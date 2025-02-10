@@ -161,11 +161,11 @@ const pages = ref({
   total: 0,
   last: 0,
 })
-const form = ref({
+const form = ref( new Form({
   id: null,
   name: "",
   image: ""
-});
+}));
 const search = ref()
 const order = ref()
 const direction = ref(false)
