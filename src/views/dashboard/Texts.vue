@@ -1,5 +1,6 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">Textos</h2>
       <p class="text-muted-foreground">
@@ -8,16 +9,19 @@
     </div>
     <Card>
       <CardContent class="py-4">
+
         <CustomDataTable
-          :loading="loading"
-          :data="valuesTable"
-          :columns="columns"
-          :update-text="setSearch"
-          :find="fetchMessages"
-          :placeholder="'Buscar assinatura...'"
+            :loading="isLoading"
+            :data="valuesTable"
+            :columns="columns"
+            :update-text="setSearch"
+            :find="fetchMessages"
+            :placeholder="'Buscar assinatura...'"
         />
 
-        <CustomPagination :select-page="fetchMessages" :pages="pages" />
+        <CustomPagination :select-page="fetchMessages" :pages="pages"/>
+
+
       </CardContent>
       <CardFooter>
         <Button @click="openModal()">
@@ -25,6 +29,7 @@
         </Button>
       </CardFooter>
     </Card>
+
 
     <Sheet v-model:open="showModal">
       <SheetContent position="right" size="lg">
@@ -34,7 +39,9 @@
           </SheetTitle>
           <SheetDescription>
             {{
-              isEditing ? "Edite as informações do Texto" : "Crie um novo Texto"
+              isEditing
+                  ? "Edite as informações do Texto"
+                  : "Crie um novo Texto"
             }}
           </SheetDescription>
         </SheetHeader>
@@ -43,66 +50,58 @@
             <div class="grid grid-cols-4 items-center gap-4">
               <Label for="name">Texto</Label>
               <Input
-                id="name"
-                v-model="form.message"
-                placeholder="Digite o Texto"
-                class="col-span-3"
-                required
+                  id="name"
+                  v-model="form.message"
+                  placeholder="Digite o Texto"
+                  class="col-span-3"
+                  required
               />
             </div>
             <div class="grid grid-cols-4 items-center gap-4">
               <Label for="name">Assinatura</Label>
               <Input
-                id="name"
-                v-model="form.signature"
-                placeholder="Digite a Assinatura"
-                class="col-span-3"
-                required
+                  id="name"
+                  v-model="form.signature"
+                  placeholder="Digite a Assinatura"
+                  class="col-span-3"
+                  required
               />
             </div>
           </div>
           <SheetFooter>
             <Button type="submit" :disabled="loading">
-              <LucideSpinner v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
+              <LucideSpinner
+                  v-if="loading"
+                  class="mr-2 h-4 w-4 animate-spin"
+              />
               {{
-                loading ? "Salvando..." : isEditing ? "Salvar" : "Criar Texto"
+                loading
+                    ? "Salvando..."
+                    : isEditing
+                        ? "Salvar"
+                        : "Criar Texto"
               }}
             </Button>
           </SheetFooter>
         </form>
       </SheetContent>
     </Sheet>
+
   </div>
 </template>
 
+
 <script setup lang="ts">
-import { h, onMounted, ref, watch } from "vue";
+
+import {h, onMounted, ref} from "vue";
 import Form from "vform";
 import api from "@/services/api";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {Label} from "@/components/ui/label";
+import {Input} from "@/components/ui/input";
 
-import { MoreHorizontal, X } from "lucide-vue-next";
-import {
-  Pagination,
-  PaginationEllipsis,
-  PaginationFirst,
-  PaginationLast,
-  PaginationList,
-  PaginationListItem,
-  PaginationNext,
-  PaginationPrev,
-} from "@/components/ui/pagination";
+import {ArrowDown, ArrowUp, MoreHorizontal, X} from "lucide-vue-next";
+
 import {
   Sheet,
   SheetClose,
@@ -110,34 +109,33 @@ import {
   SheetDescription,
   SheetFooter,
   SheetHeader,
-  SheetTitle,
+  SheetTitle
 } from "@/components/ui/sheet";
-import { useToast } from "@/components/ui/toast";
+import {useToast} from "@/components/ui/toast";
 import i18n from "@/i18n";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
+import {Loader2 as LucideSpinner} from "lucide-vue-next";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuSeparator, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import {Card, CardContent, CardFooter} from "@/components/ui/card";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import { createColumnHelper } from "@tanstack/vue-table";
+import {createColumnHelper} from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import * as sea from "node:sea";
+import {createTableColumns, TableAction} from "@/components/custom/DataTableFunctions";
+import {CaretSortIcon} from "@radix-icons/vue";
 
-const { toast } = useToast();
+const {toast} = useToast();
 Form.axios = api;
 const valuesTable = ref([]);
 const form = ref(
-  new Form({
-    message: "",
-    signature: "",
-  })
+    new Form({
+      message: "",
+      signature: "",
+    })
 );
 const pages = ref({
   current: 1,
@@ -145,23 +143,24 @@ const pages = ref({
   last: 0,
 });
 const showModal = ref(false);
-const isLoading = ref(true);
-const loading = ref(false);
-const loadingSave = ref(false);
-const loadingRemove = ref(false);
-const isEditing = ref(false);
+const isLoading = ref(true)
+const loading = ref(false)
+const loadingSave = ref(false)
+const loadingRemove = ref(false)
+const isEditing = ref(false)
+const order = ref()
+const direction = ref(false)
 
 async function fetchMessages(pageId: number = pages.value.current) {
   try {
-    isLoading.value = true;
-    const response = await form.value.get(
-      `/utils/message-loading?page=${pageId}`,
-      {
-        params: {
-          search: search.value,
-        },
+    isLoading.value = true
+    const response = await form.value.get(`/utils/message-loading?page=${pageId}`, {
+      params: {
+        search: search.value,
+        orderBy:order.value,
+        orderDirection:direction.value?"asc":"desc"
       }
-    );
+    });
     pages.value.current = response.data.data.current_page;
     pages.value.total = response.data.data.total;
     pages.value.last = response.data.data.last_page;
@@ -172,8 +171,9 @@ async function fetchMessages(pageId: number = pages.value.current) {
     isLoading.value = false;
   }
 }
-
-fetchMessages();
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function submit() {
   try {
@@ -187,29 +187,30 @@ async function submit() {
       duration: 3000,
     });
     await fetchMessages();
+
   } catch (error) {
     console.error("Erro ao enviar formulário:", error);
     toast({
       title: i18n.global.t("error"),
       description: i18n.global.t(error.response.data.message),
       duration: 3000,
-      variant: "destructive",
+      variant: 'destructive'
     });
   } finally {
-    loading.value = false;
-    showModal.value = false;
+    loading.value = false
+    showModal.value = false
   }
 }
 
-const search = ref("");
+const search = ref('')
 
 async function setSearch(text) {
-  search.value = text;
+  search.value = text
 }
 
 async function remove(id: number) {
   try {
-    loadingRemove.value = true;
+    loadingRemove.value = true
     const response = await form.value.delete(`/utils/message-loading/${id}`);
     await fetchMessages();
     toast({
@@ -217,22 +218,23 @@ async function remove(id: number) {
       description: i18n.global.t(response.data.message),
       duration: 3000,
     });
+
   } catch (error) {
     toast({
       title: i18n.global.t("error"),
       description: i18n.global.t(error.response.data.message),
       duration: 3000,
-      variant: "destructive",
+      variant: 'destructive'
     });
     console.error("Erro ao remover mensagem:", error);
   } finally {
-    loadingRemove.value = false;
+    loadingRemove.value = false
   }
 }
 
-async function edit(id: any) {
+async function edit(id) {
   try {
-    loading.value = true;
+    loading.value = true
     const response = await form.value.put(`/utils/message-loading/${id}`);
 
     form.value.reset();
@@ -249,109 +251,133 @@ async function edit(id: any) {
       title: i18n.global.t("error"),
       description: i18n.global.t(error.response.data.message),
       duration: 3000,
-      variant: "destructive",
+      variant: 'destructive'
     });
   } finally {
-    loading.value = false;
-    showModal.value = false;
+    loading.value = false
+    showModal.value = false
   }
 }
 
-function openModal(item: any) {
+function openModal(item) {
   if (item) {
     form.value.message = item.message;
-    form.value.signature = item.signature;
+    form.value.signature = item.signature
     isEditing.value = item.id;
     showModal.value = true;
   } else {
     isEditing.value = false;
     showModal.value = true;
   }
+
 }
 
-onMounted(() => {
-  fetchMessages();
-});
+onMounted(()=>{fetchMessages()})
 type TableItem = {
   id: string;
   message: string;
   signature: string;
 };
-
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+      Button,
+      {
+        variant: order.value === columnKey ? "default" : "ghost",
+        onClick: () => {
+          order.value = columnKey;
+          direction.value = !direction.value;
+          fetchMessages();
+        },
+        class: "h-fit text-pretty my-1",
+      },
+      () => [
+        label,
+        h(
+            order.value === columnKey
+                ? direction.value
+                    ? ArrowDown
+                    : ArrowUp
+                : CaretSortIcon,
+            { class: "" }
+        ),
+      ]
+  );
+}
 const columnHelper = createColumnHelper<TableItem>();
 
 const columns = [
   columnHelper.accessor("message", {
-    header({ column }) {
+    header({column}) {
       return "Texto";
     },
-    cell: ({ row }) =>
-      h(
-        "div",
-        { class: "sm:w-2/4 text-ellipsis text-wrap font-medium" },
-        row.getValue("message")
-      ),
+    cell: ({row}) =>
+        h(
+            "div",
+            {class: "sm:w-2/4 text-ellipsis text-wrap font-medium"},
+            row.getValue("message")
+        ),
   }),
   columnHelper.accessor("signature", {
-    header({ column }) {
-      return "Assinatura";
+    header({column}) {
+      return createHeaderButton("Assinatura","signature");
     },
-    cell: ({ row }) =>
-      h(
-        "div",
-        { class: "sm:w-1/4 text-ellipsis text-wrap font-medium" },
-        row.getValue("signature")
-      ),
+    cell: ({row}) =>
+        h(
+            "div",
+            {class: "sm:w-1/4 text-ellipsis text-wrap font-medium"},
+            row.getValue("signature")
+        ),
   }),
   columnHelper.display({
     id: "actions",
-    header({ column }) {
+    header({column}) {
       return "Ações";
     },
-    cell: ({ row }) =>
-      h(DropdownMenu, {}, [
-        h(
-          DropdownMenuTrigger,
-          { asChild: true },
+    cell: ({row}) =>
+        h(DropdownMenu, {}, [
           h(
-            Button,
-            {
-              "aria-haspopup": "true",
-              size: "icon",
-              variant: "ghost",
-              disabled: loadingRemove.value || loading.value,
-            },
-            [
-              h(MoreHorizontal, { class: "h-4 w-4" }),
-              h("span", { class: "sr-only" }, "Ações"),
-            ]
-          )
-        ),
-        h(DropdownMenuContent, { align: "end" }, [
-          h(DropdownMenuLabel, {}, "Ações"),
-          h(DropdownMenuSeparator, {}),
-          h(
-            DropdownMenuItem,
-            {
-              onClick: () => {
-                const item = row.original;
-                openModal(item); // Função para abrir o modal de edição
-              },
-            },
-            "Editar"
+              DropdownMenuTrigger,
+              {asChild: true},
+              h(
+                  Button,
+                  {
+                    "aria-haspopup": "true",
+                    size: "icon",
+                    variant: "ghost",
+                    disabled: loadingRemove.value || loading.value,
+                  },
+                  [
+                    h(MoreHorizontal, {class: "h-4 w-4"}),
+                    h("span", {class: "sr-only"}, "Ações"),
+                  ]
+              )
           ),
-          h(
-            DropdownMenuItem,
-            {
-              onClick: () => {
-                const itemId = row.original.id;
-                remove(itemId); // Função para remover o item pelo ID
-              },
-            },
-            h("div", { class: "flex items-center" }, "Remover")
-          ),
+          h(DropdownMenuContent, {align: "end"}, [
+            h(DropdownMenuLabel, {}, "Ações"),
+            h(DropdownMenuSeparator, {}),
+            h(
+                DropdownMenuItem,
+                {
+                  onClick: () => {
+                    const item = row.original;
+                    openModal(item); // Função para abrir o modal de edição
+                  },
+                },
+                "Editar"
+            ),
+            h(
+                DropdownMenuItem,
+                {
+                  onClick: () => {
+                    const itemId = row.original.id;
+                    remove(itemId); // Função para remover o item pelo ID
+                  },
+                },
+                h("div", {class: "flex items-center"}, "Remover")
+            ),
+          ]),
         ]),
-      ]),
   }),
 ];
 </script>
+

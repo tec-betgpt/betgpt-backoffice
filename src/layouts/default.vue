@@ -70,8 +70,8 @@ import {
 } from "@/components/ui/collapsible";
 import { useColorMode } from "@vueuse/core";
 import { Switch } from "@/components/ui/switch";
-
 import CustomLoading from "@/components/custom/CustomLoading.vue";
+import { resizeDirective as vResize } from 'v-resize-observer';
 
 interface BreadcrumbItem {
   name: string;
@@ -204,6 +204,13 @@ const navCategory = computed(() => {
   return category;
 });
 
+const width = ref(0);
+const height = ref(0);
+
+const onResize = ({ width: newWidth, height: newHeight }) => {
+  width.value = newWidth;
+  height.value = newHeight;
+};
 // Times (Projects)
 const workspaceStore = useWorkspaceStore();
 const projects = computed(() => workspaceStore.projects);
@@ -213,7 +220,7 @@ import { useConfigStore } from "@/stores/config";
 const configStore = useConfigStore();
 
 const setActiveProject = async (
-  project: typeof workspaceStore.activeProject
+    project: typeof workspaceStore.activeProject
 ) => {
   configStore.setLoading(true);
   await workspaceStore.setActiveProject(project);
@@ -238,13 +245,25 @@ const logout = async () => {
   authStore.logout();
   router.push("/login");
 };
+const logoSize = computed(() => (width.value > 47 ? 'w-1/2' : 'w-[47px]'));
+
+const logoSrc = computed(() => {
+  if (width.value > 47) {
+    return mode.value === 'dark' ? '/logo-elevate-white.png' : '/logo-elevate-black.png';
+  } else {
+    return mode.value === 'dark' ? '/logo-elevate-square-white.png' : '/logo-elevate-square-black.png';
+  }
+
+});
 </script>
 
 <template>
   <CustomLoading v-if="configStore.loading"></CustomLoading>
   <SidebarProvider v-else>
     <Sidebar collapsible="icon">
-      <SidebarHeader v-if="activeProject">
+      <SidebarHeader v-if="activeProject"  v-resize="onResize">
+        <img :src="logoSrc" alt="Logo" class="m-auto py-4" :class="logoSize" />
+
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
@@ -256,11 +275,13 @@ const logout = async () => {
                   <div
                     class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
                   >
-                    <component
-                      v-if="activeProject && activeProject.media.length"
-                      :is="activeProject.media[0]"
-                      class="size-4"
+                    <img
+                        v-if="activeProject && activeProject.media.length"
+                        :src="activeProject.logo_url"
+                        alt="Imagem do projeto"
+                        class="size-4"
                     />
+
                     <Package2
                       class="h-4 w-4 transition-all group-hover:scale-110"
                       v-else
@@ -293,10 +314,11 @@ const logout = async () => {
                   <div
                     class="flex size-6 items-center justify-center rounded-sm border"
                   >
-                    <component
-                      v-if="project && project.media.length"
-                      :is="project.media[0]"
-                      class="size-4 shrink-0"
+                    <img
+                        v-if="project && project.media.length"
+                        class="size-4 shrink-0"
+                        :src="project.logo_url"
+                        alt="Imagem do projeto"
                     />
                     <Package2
                       class="h-4 w-4 transition-all group-hover:scale-110"
@@ -329,7 +351,7 @@ const logout = async () => {
                           'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
                         }"
                       >
-                        <component :is="navMenu[0].icon" />
+                        <component :is="navMenu[0].icon" class="mr-2" />
                         <span>{{ navMenu[0].name }}</span>
                       </router-link>
                     </SidebarMenuButton>
