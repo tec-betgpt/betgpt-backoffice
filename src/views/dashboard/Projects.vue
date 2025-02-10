@@ -8,35 +8,38 @@
     </div>
     <Card>
       <CardContent class="py-4">
-
         <CustomDataTable
-            :loading="isLoading"
-            :data="projects"
-            :columns="columns"
-            :update-text="setSearch"
-            :find="fetchProjects"
+          :loading="isLoading"
+          :data="projects"
+          :columns="columns"
+          :update-text="setSearch"
+          :find="fetchProjects"
         >
-
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <Button variant="outline" class="ml-auto">
                 Status
-                <ChevronDownIcon class="ml-2 h-4 w-4"/>
+                <ChevronDownIcon class="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem :checked="statusFilter.includes('active')"
-                                        @update:checked="setStatus('active')" class="capitalize">
+              <DropdownMenuCheckboxItem
+                :checked="statusFilter.includes('active')"
+                @update:checked="setStatus('active')"
+                class="capitalize"
+              >
                 Ativo
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem :checked="statusFilter.includes('inactive')"
-                                        @update:checked="setStatus('inactive')">
+              <DropdownMenuCheckboxItem
+                :checked="statusFilter.includes('inactive')"
+                @update:checked="setStatus('inactive')"
+              >
                 Inativo
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </CustomDataTable>
-        <CustomPagination :select-page="fetchProjects" :pages="pages"/>
+        <CustomPagination :select-page="fetchProjects" :pages="pages" />
       </CardContent>
       <CardFooter>
         <Button @click="openCreateModal">
@@ -54,8 +57,8 @@
           <SheetDescription>
             {{
               isEditing
-                  ? "Edite as informações do projeto"
-                  : "Crie um novo projeto"
+                ? "Edite as informações do projeto"
+                : "Crie um novo projeto"
             }}
           </SheetDescription>
         </SheetHeader>
@@ -64,34 +67,41 @@
             <div class="grid grid-cols-4 items-center gap-4">
               <Label for="name">Nome do Projeto</Label>
               <Input
-                  id="name"
-                  v-model="form.name"
-                  placeholder="Digite o nome do projeto"
-                  class="col-span-3"
-                  required
+                id="name"
+                v-model="form.name"
+                placeholder="Digite o nome do projeto"
+                class="col-span-3"
+                required
               />
-
             </div>
             <div class="flex items-center gap-4">
               <Label for="picture">Logo do Projeto</Label>
-              <Input id="picture" type="file" @change="handleFileChange"/>
+              <Input id="picture" type="file" @change="handleFileChange" />
             </div>
             <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
-            <Label v-if="form.image">Preview da Image</Label>
-            <img v-if="form.image" :src="imagePreview" class="w-full" alt="Pré-visualização da imagem"/>
+            <Label v-if="form.image">Logo Atual</Label>
+            <img
+              v-if="form.image"
+              :src="imagePreview"
+              class="w-full"
+              alt="Pré-visualização da imagem"
+            />
           </div>
           <SheetFooter>
-            <Button type="submit" :disabled="isProcessing || errorMessage !=='' ">
+            <Button
+              type="submit"
+              :disabled="isProcessing || errorMessage !== ''"
+            >
               <LucideSpinner
-                  v-if="isProcessing"
-                  class="mr-2 h-4 w-4 animate-spin"
+                v-if="isProcessing"
+                class="mr-2 h-4 w-4 animate-spin"
               />
               {{
                 isProcessing
-                    ? "Carregando..."
-                    : isEditing
-                        ? "Salvar"
-                        : "Criar Projeto"
+                  ? "Carregando..."
+                  : isEditing
+                  ? "Salvar"
+                  : "Criar Projeto"
               }}
             </Button>
           </SheetFooter>
@@ -102,18 +112,15 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, h, watch} from "vue";
-import {useToast} from "@/components/ui/toast/use-toast";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { ref, onMounted, h, watch } from "vue";
+import { useToast } from "@/components/ui/toast/use-toast";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
-import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu, DropdownMenuCheckboxItem,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -128,27 +135,31 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {Label} from "@/components/ui/label";
-import {Input} from "@/components/ui/input";
-import {MoreHorizontal, ChevronDownIcon, ArrowDown, ArrowUp} from "lucide-vue-next";
-import {Loader2 as LucideSpinner} from "lucide-vue-next";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  MoreHorizontal,
+  ChevronDownIcon,
+  ArrowDown,
+  ArrowUp,
+} from "lucide-vue-next";
+import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import api from "@/services/api";
-import {createColumnHelper} from "@tanstack/vue-table";
+import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import moment from "moment";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import {CaretSortIcon} from "@radix-icons/vue";
+import { CaretSortIcon } from "@radix-icons/vue";
 import Form from "vform";
-
 
 const imagePreview = ref();
 const errorMessage = ref("");
 
-const statusFilter = ref<Array<string>>(["active"])
+const statusFilter = ref<Array<string>>(["active"]);
 watch(statusFilter.value, () => {
-  fetchProjects(1)
-})
-const {toast} = useToast();
+  fetchProjects(1);
+});
+const { toast } = useToast();
 const processingAction = ref(null);
 const projects = ref<Project[]>([]);
 const isLoading = ref(true);
@@ -160,16 +171,17 @@ const pages = ref({
   current: 1,
   total: 0,
   last: 0,
-})
-const form = ref( new Form({
-  id: null,
-  name: "",
-  image: ""
-}));
-const search = ref()
-const order = ref()
-const direction = ref(false)
-
+});
+const form = ref(
+  new Form({
+    id: null,
+    name: "",
+    image: "",
+  })
+);
+const search = ref();
+const order = ref();
+const direction = ref(false);
 
 const handleFileChange = (event) => {
   const file = event.target.files[0];
@@ -185,16 +197,17 @@ const handleFileChange = (event) => {
 
   img.onload = () => {
     if (img.width !== img.height) {
-      errorMessage.value = "A imagem deve ser quadrada (largura igual à altura).";
+      errorMessage.value =
+        "A imagem deve ser quadrada (largura igual à altura).";
       imagePreview.value = "";
-      form.value.image = ""
+      form.value.image = "";
       URL.revokeObjectURL(img.src);
       return;
     }
     if (img.width > 512 || img.height > 512) {
       errorMessage.value = "A imagem deve ter no máximo 512x512 pixels.";
       imagePreview.value = "";
-      form.value.image = ""
+      form.value.image = "";
       URL.revokeObjectURL(img.src);
       return;
     }
@@ -209,7 +222,7 @@ const handleFileChange = (event) => {
 };
 const setSearch = (value: string) => {
   search.value = value;
-}
+};
 const setStatus = (status) => {
   const index = statusFilter.value.indexOf(status);
   if (index === -1) {
@@ -223,23 +236,22 @@ const getStatus = (project) => {
 };
 
 const fetchProjects = async (current = pages.value.current) => {
-
   try {
-    isLoading.value = true
-    const response = await api.get(`/projects?page=${current}`,{
-      params:{
-      status:statusFilter.value,
+    isLoading.value = true;
+    const response = await api.get(`/projects?page=${current}`, {
+      params: {
+        status: statusFilter.value,
         searchName: search.value,
-        orderBy:order.value,
-        orderDirection:direction.value?"asc":"desc"
-      }
+        orderBy: order.value,
+        orderDirection: direction.value ? "asc" : "desc",
+      },
     });
     projects.value = response.data.data.data;
     pages.value = {
       current: response.data.data.current_page,
       last: response.data.data.last_page,
       total: response.data.data.total,
-    }
+    };
   } catch {
     toast({
       title: "Erro",
@@ -264,7 +276,7 @@ const toggleStatus = async (project) => {
       toast({
         title: "Sucesso",
         description: `Projeto ${
-            newStatus === "active" ? "ativado" : "inativado"
+          newStatus === "active" ? "ativado" : "inativado"
         } com sucesso.`,
         variant: "success",
       });
@@ -283,14 +295,14 @@ const toggleStatus = async (project) => {
 };
 
 const openEditModal = (project) => {
-  form.value = {id: project.id,name: project.name,image:project.image_url};
-  imagePreview.value = project.image_url;
+  form.value = { id: project.id, name: project.name, image: project.logo_url };
+  imagePreview.value = project.logo_url;
   isEditing.value = true;
   showModal.value = true;
 };
 
 const openCreateModal = () => {
-  form.value = {id: null, name: ""};
+  form.value = { id: null, name: "" };
   isEditing.value = false;
   showModal.value = true;
 };
@@ -327,17 +339,15 @@ const createProject = async () => {
 const updateProject = async () => {
   isProcessing.value = true;
   try {
-    const response = await api.post(`/projects/${form.value.id}`,
-        form.value,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+    const response = await api.post(`/projects/${form.value.id}`, form.value, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
 
     if (response.status === 200) {
       const projectIndex = projects.value.findIndex(
-          (p) => p.id === form.value.id
+        (p) => p.id === form.value.id
       );
       projects.value[projectIndex] = response.data.data;
       toast({
@@ -355,121 +365,146 @@ const updateProject = async () => {
     });
   } finally {
     isProcessing.value = false;
-    form.value = {id: null,name:"",image:""}
+    form.value = { id: null, name: "", image: "" };
   }
 };
 
-
-const columnHelper = createColumnHelper<Project>()
+const columnHelper = createColumnHelper<Project>();
 
 function createHeaderButton(label: string, columnKey: string) {
   return h(
-      Button,
-      {
-        variant: order.value === columnKey ? "default" : "ghost",
-        onClick: () => {
-          order.value = columnKey;
-          direction.value = !direction.value;
-          fetchProjects();
-        },
-        class: "h-fit text-pretty my-1",
+    Button,
+    {
+      variant: order.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        order.value = columnKey;
+        direction.value = !direction.value;
+        fetchProjects();
       },
-      () => [
-        label,
-        h(
-            order.value === columnKey
-                ? direction.value
-                    ? ArrowDown
-                    : ArrowUp
-                : CaretSortIcon,
-            {class: ""}
-        ),
-      ]
+      class: "h-fit text-pretty my-1",
+    },
+    () => [
+      label,
+      h(
+        order.value === columnKey
+          ? direction.value
+            ? ArrowDown
+            : ArrowUp
+          : CaretSortIcon,
+        { class: "" }
+      ),
+    ]
   );
 }
 
 const columns = [
   columnHelper.accessor("id", {
-    header({column}) {
-      return createHeaderButton("ID", "id")
+    header({ column }) {
+      return createHeaderButton("ID", "id");
     },
-    cell: ({row}) => h("div", {class: "capitalize"}, row.getValue("id")),
-
+    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("id")),
   }),
   columnHelper.accessor("name", {
-    header({header}) {
+    header({ header }) {
       return createHeaderButton("Nome", "name");
     },
-    cell: ({row}) => h("div", {class: "capitalize"}, row.getValue("name")),
-
+    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
   }),
   columnHelper.accessor("created_at", {
-    header({header}) {
-      return createHeaderButton("Data", "created_at")
+    header({ header }) {
+      return createHeaderButton("Data", "created_at");
     },
-    cell: ({row}) => (h("div", {}, moment(row.getValue("created_at")).format("DD/MM/YYYY HH:mm:ss"))),
+    cell: ({ row }) =>
+      h(
+        "div",
+        {},
+        moment(row.getValue("created_at")).format("DD/MM/YYYY HH:mm:ss")
+      ),
   }),
   columnHelper.accessor("statuses", {
-    header({header}) {
-      return "Status"
+    header({ header }) {
+      return "Status";
     },
-    cell: ({row}) => (
-        h('div', {class: "capitalize"},
-            processingStatusId.value === row.getValue("id") ?
-                h(LucideSpinner, {class: "mr-2 h-4 w-4 animate-spin"})
-                :
-                h(Badge, {variant: row.getValue("statuses")?.[0]?.name === 'active' ? 'default' : 'destructive'},
-                    row.getValue("statuses")?.[0]?.name === "active" ? "Ativo" : "Inativo")
-        )),
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "capitalize" },
+        processingStatusId.value === row.getValue("id")
+          ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
+          : h(
+              Badge,
+              {
+                variant:
+                  row.getValue("statuses")?.[0]?.name === "active"
+                    ? "default"
+                    : "destructive",
+              },
+              row.getValue("statuses")?.[0]?.name === "active"
+                ? "Ativo"
+                : "Inativo"
+            )
+      ),
   }),
   columnHelper.accessor("statuses", {
-    header({header}) {
-      return "Ações"
+    header({ header }) {
+      return "Ações";
     },
-    cell: ({row, table}) => (
-        h(DropdownMenu, {},
-            [h(DropdownMenuTrigger, {asChild: true},
-                h(Button, {size: 'icon', variant: 'ghost', disabled: isProcessing.value},
-                    [h(MoreHorizontal, {class: "h-4 w-4"}), h('span', {class: "sr-only"}, "Ações")]
-                )
-            ),
-              h(DropdownMenuContent, {align: "end"},
-                  [h(DropdownMenuLabel, {}, "Ações"),
-                    h(DropdownMenuSeparator, {}),
-                    h(DropdownMenuItem, {
-                      onClick: () => {
-                        const project = row.original
-                        openEditModal(project)
-                      }
-                    }, "Editar"),
-                    h(DropdownMenuItem, {
-                          onMousedown: () => {
-                            const project = row.original
-                            toggleStatus(project)
-                          },
-                          disable: processingAction.value === `status-${row.getValue('id')}`
-                        },
-
-                        processingAction.value === `status-${row.getValue('id')}` ?
-                            h(LucideSpinner, {class: "mr-2 h-4 w-4 animate-spin"})
-                            :
-                            h('div', {},
-                                processingAction.value === `status-${row.getValue('id')}` ?
-                                    row.getValue("statuses")?.[0]?.name === "active" ? "Desativando..."
-                                        : "Ativando..." :
-                                    row.getValue("statuses")?.[0]?.name === "active" ? "Inativar"
-                                        : "Ativar"
-                            )
-                    )
-
-                  ]
-              )
-
+    cell: ({ row, table }) =>
+      h(DropdownMenu, {}, [
+        h(
+          DropdownMenuTrigger,
+          { asChild: true },
+          h(
+            Button,
+            { size: "icon", variant: "ghost", disabled: isProcessing.value },
+            [
+              h(MoreHorizontal, { class: "h-4 w-4" }),
+              h("span", { class: "sr-only" }, "Ações"),
             ]
-        )
-    )
-  })
-]
+          )
+        ),
+        h(DropdownMenuContent, { align: "end" }, [
+          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuSeparator, {}),
+          h(
+            DropdownMenuItem,
+            {
+              onClick: () => {
+                const project = row.original;
+                openEditModal(project);
+              },
+            },
+            "Editar"
+          ),
+          h(
+            DropdownMenuItem,
+            {
+              onMousedown: () => {
+                const project = row.original;
+                toggleStatus(project);
+              },
+              disable:
+                processingAction.value === `status-${row.getValue("id")}`,
+            },
+
+            processingAction.value === `status-${row.getValue("id")}`
+              ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
+              : h(
+                  "div",
+                  {},
+                  processingAction.value === `status-${row.getValue("id")}`
+                    ? row.getValue("statuses")?.[0]?.name === "active"
+                      ? "Desativando..."
+                      : "Ativando..."
+                    : row.getValue("statuses")?.[0]?.name === "active"
+                    ? "Inativar"
+                    : "Ativar"
+                )
+          ),
+        ]),
+      ]),
+  }),
+];
 type ProjectStatus = {
   id: number;
   name: string;
@@ -484,7 +519,7 @@ type Project = {
   id: number;
   name: string;
   created_at: string;
-  image_url: string,
+  image_url: string;
   statuses: ProjectStatus[];
 };
 
