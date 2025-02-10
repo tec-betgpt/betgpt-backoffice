@@ -71,7 +71,7 @@ import {
 import { useColorMode } from "@vueuse/core";
 import { Switch } from "@/components/ui/switch";
 import CustomLoading from "@/components/custom/CustomLoading.vue";
-import { resizeDirective as vResize } from 'v-resize-observer';
+import { resizeDirective as vResize } from "v-resize-observer";
 
 interface BreadcrumbItem {
   name: string;
@@ -220,7 +220,7 @@ import { useConfigStore } from "@/stores/config";
 const configStore = useConfigStore();
 
 const setActiveProject = async (
-    project: typeof workspaceStore.activeProject
+  project: typeof workspaceStore.activeProject
 ) => {
   configStore.setLoading(true);
   await workspaceStore.setActiveProject(project);
@@ -245,15 +245,11 @@ const logout = async () => {
   authStore.logout();
   router.push("/login");
 };
-const logoSize = computed(() => (width.value > 47 ? 'w-1/2' : 'w-[47px]'));
 
 const logoSrc = computed(() => {
-  if (width.value > 47) {
-    return mode.value === 'dark' ? '/logo-elevate-white.png' : '/logo-elevate-black.png';
-  } else {
-    return mode.value === 'dark' ? '/logo-elevate-square-white.png' : '/logo-elevate-square-black.png';
-  }
-
+  return mode.value === "dark"
+    ? "/logo-elevate-white.png"
+    : "/logo-elevate-black.png";
 });
 </script>
 
@@ -261,8 +257,10 @@ const logoSrc = computed(() => {
   <CustomLoading v-if="configStore.loading"></CustomLoading>
   <SidebarProvider v-else>
     <Sidebar collapsible="icon">
-      <SidebarHeader v-if="activeProject"  v-resize="onResize">
-        <img :src="logoSrc" alt="Logo" class="m-auto py-4" :class="logoSize" />
+      <SidebarHeader v-if="activeProject" v-resize="onResize">
+        <router-link :to="{ name: 'home' }"
+          ><img :src="logoSrc" alt="Logo" class="m-auto py-4 w-1/2"
+        /></router-link>
 
         <SidebarMenu>
           <SidebarMenuItem>
@@ -276,10 +274,10 @@ const logoSrc = computed(() => {
                     class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
                   >
                     <img
-                        v-if="activeProject && activeProject.media.length"
-                        :src="activeProject.logo_url"
-                        alt="Imagem do projeto"
-                        class="size-4"
+                      v-if="activeProject && activeProject.logo_url"
+                      :src="activeProject.logo_url"
+                      alt="Imagem do projeto"
+                      class="size-4"
                     />
 
                     <Package2
@@ -315,10 +313,10 @@ const logoSrc = computed(() => {
                     class="flex size-6 items-center justify-center rounded-sm border"
                   >
                     <img
-                        v-if="project && project.media.length"
-                        class="size-4 shrink-0"
-                        :src="project.logo_url"
-                        alt="Imagem do projeto"
+                      v-if="project && project.logo_url"
+                      class="size-4 shrink-0"
+                      :src="project.logo_url"
+                      alt="Imagem do projeto"
                     />
                     <Package2
                       class="h-4 w-4 transition-all group-hover:scale-110"
@@ -351,7 +349,7 @@ const logoSrc = computed(() => {
                           'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
                         }"
                       >
-                        <component :is="navMenu[0].icon" class="mr-2" />
+                        <component :is="navMenu[0].icon" />
                         <span>{{ navMenu[0].name }}</span>
                       </router-link>
                     </SidebarMenuButton>
