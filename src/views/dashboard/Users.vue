@@ -8,28 +8,31 @@
     </div>
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
-
         <CustomDataTable
-                         :loading="isLoading"
-                         :columns="columns"
-                         :data="users"
-                         :update-text="setSearch"
-                         :find="fetchUsersAndProjects"
+          :loading="isLoading"
+          :columns="columns"
+          :data="users"
+          :update-text="setSearch"
+          :find="fetchUsersAndProjects"
         >
-
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <Button variant="outline" class="ml-auto">
-                Acesso  <ChevronDownIcon class="ml-2 h-4 w-4" />
+                Acesso <ChevronDownIcon class="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem     :checked="accessFilter.includes('member')"
-                                            @update:checked="setAccess('member')"  class="capitalize">
+              <DropdownMenuCheckboxItem
+                :checked="accessFilter.includes('member')"
+                @update:checked="setAccess('member')"
+                class="capitalize"
+              >
                 Membro
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem :checked="accessFilter.includes('client')"
-                                        @update:checked="setAccess('client')" >
+              <DropdownMenuCheckboxItem
+                :checked="accessFilter.includes('client')"
+                @update:checked="setAccess('client')"
+              >
                 Cliente
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
@@ -37,22 +40,27 @@
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <Button variant="outline" class="ml-auto">
-                Status  <ChevronDownIcon class="ml-2 h-4 w-4" />
+                Status <ChevronDownIcon class="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem     :checked="statusFilter.includes('active')"
-                                            @update:checked="setStatus('active')"  class="capitalize">
+              <DropdownMenuCheckboxItem
+                :checked="statusFilter.includes('active')"
+                @update:checked="setStatus('active')"
+                class="capitalize"
+              >
                 Ativo
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem :checked="statusFilter.includes('inactive')"
-                                        @update:checked="setStatus('inactive')" >
+              <DropdownMenuCheckboxItem
+                :checked="statusFilter.includes('inactive')"
+                @update:checked="setStatus('inactive')"
+              >
                 Inativo
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </CustomDataTable>
-        <CustomPagination :select-page="fetchUsersAndProjects" :pages="pages"/>
+        <CustomPagination :select-page="fetchUsersAndProjects" :pages="pages" />
       </CardContent>
       <CardFooter>
         <Button @click="openCreateModal">Novo Usuário</Button>
@@ -106,8 +114,8 @@
               />
             </div>
             <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="role">Acesso</Label>
-              <Select id="role" v-model="form.role">
+              <Label for="access_type">Acesso</Label>
+              <Select id="access_type" v-model="form.access_type">
                 <SelectTrigger class="col-span-3">
                   <SelectValue placeholder="Selecione um perfil" />
                 </SelectTrigger>
@@ -117,24 +125,79 @@
                 </SelectContent>
               </Select>
             </div>
-            <div class="grid grid-cols-4 gap-4" v-if="form.role === 'client'">
-              <Label>Projetos</Label>
+            <div
+              class="grid grid-cols-4 gap-4"
+              v-if="form.access_type === 'member'"
+            >
+              <Label>Perfil</Label>
+              <div class="space-y-2 max-h-72 overflow-y-auto col-span-3">
+                <div
+                  v-for="role in globalRoles"
+                  :key="role.id"
+                  class="flex items-center"
+                >
+                  <Checkbox
+                    :checked="
+                      form.admin_roles && form.admin_roles.includes(role.name)
+                    "
+                    @update:checked="onProfileCheckboxChange(role.name, $event)"
+                    :id="'role-' + role.name"
+                  />
+                  <Label class="ml-2 font-normal" :for="'role-' + role.name">
+                    {{ role.title ? role.title : $t("role-" + role.name) }}
+                  </Label>
+                </div>
+              </div>
+            </div>
+            <div
+              class="grid grid-cols-4 gap-4"
+              v-if="form.access_type === 'client'"
+            >
+              <Label>Projetos e Perfis</Label>
               <div class="space-y-2 max-h-72 overflow-y-auto col-span-3">
                 <div
                   v-for="project in projects"
                   :key="project.id"
-                  class="flex items-center"
+                  class="space-y-2"
                 >
-                  <Checkbox
-                    :checked="form.project_ids.includes(project.id)"
-                    @update:checked="onCheckboxChange(project.id, $event)"
-                    :id="'project-' + project.id"
-                  />
-                  <Label
-                    class="ml-2 font-normal"
-                    :for="'project-' + project.id"
-                    >{{ project.name }}</Label
+                  <div class="flex items-center">
+                    <Checkbox
+                      :checked="isProjectSelected(project.id)"
+                      @update:checked="toggleProject(project.id, $event)"
+                      :id="'project-' + project.id"
+                    />
+                    <Label
+                      class="ml-2 font-medium"
+                      :for="'project-' + project.id"
+                    >
+                      {{ project.name }}
+                    </Label>
+                  </div>
+
+                  <div
+                    v-if="isProjectSelected(project.id)"
+                    class="ml-6 space-y-2"
                   >
+                    <div
+                      v-for="role in getProjectRoles(project.id)"
+                      :key="role.id"
+                      class="flex items-center"
+                    >
+                      <Checkbox
+                        :checked="isRoleSelected(project.id, role.name)"
+                        @update:checked="
+                          toggleRole(project.id, role.name, $event)
+                        "
+                        :id="'project-' + project.id + '-role-' + role.name"
+                      />
+                      <Label
+                        class="ml-2 font-normal"
+                        :for="'project-' + project.id + '-role-' + role.name"
+                      >
+                        {{ role.title || $t("role-" + role.name) }}
+                      </Label>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -161,7 +224,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, h, watch} from "vue";
+import { ref, onMounted, h, watch, computed } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import {
   Card,
@@ -175,7 +238,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu, DropdownMenuCheckboxItem,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -201,18 +265,24 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import {MoreHorizontal, ChevronDownIcon, ArrowDown, ArrowUp} from "lucide-vue-next";
+import {
+  MoreHorizontal,
+  ChevronDownIcon,
+  ArrowDown,
+  ArrowUp,
+} from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import api from "@/services/api";
-import {createColumnHelper} from "@tanstack/vue-table";
+import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import {CaretSortIcon} from "@radix-icons/vue";
+import { CaretSortIcon } from "@radix-icons/vue";
 
 const { toast } = useToast();
 const processingAction = ref(null);
 const users = ref<User[]>([]);
 const projects = ref([]);
+const roles = ref([]);
 const isLoading = ref(true);
 const isProcessing = ref(false);
 const showModal = ref(false);
@@ -223,17 +293,20 @@ const form = ref({
   first_name: "",
   last_name: "",
   email: "",
-  role: "client",
+  access_type: "client",
+  roles: [],
+  admin_roles: [],
   project_ids: [],
+  projects: [],
 });
 const pages = ref({
-  current:1,
-  last:0,
-  total:0
-})
-const accessFilter = ref<Array<String>>(['client','member'])
-const statusFilter = ref<Array<string>>(["active"])
-const setStatus = (status) => {
+  current: 1,
+  last: 0,
+  total: 0,
+});
+const accessFilter = ref<Array<String>>(["client", "member"]);
+const statusFilter = ref<Array<string>>(["active"]);
+const setStatus = (status: any) => {
   const index = statusFilter.value.indexOf(status);
   if (index === -1) {
     statusFilter.value.push(status);
@@ -241,7 +314,7 @@ const setStatus = (status) => {
     statusFilter.value.splice(index, 1);
   }
 };
-const setAccess = (access) => {
+const setAccess = (access: any) => {
   const index = accessFilter.value.indexOf(access);
   if (index === -1) {
     accessFilter.value.push(access);
@@ -249,25 +322,111 @@ const setAccess = (access) => {
     accessFilter.value.splice(index, 1);
   }
 };
-watch(statusFilter.value,()=>{fetchUsersAndProjects(1)})
-watch(accessFilter.value,()=>{fetchUsersAndProjects(1)})
+watch(statusFilter.value, () => {
+  fetchUsersAndProjects(1);
+});
+watch(accessFilter.value, () => {
+  fetchUsersAndProjects(1);
+});
+watch(
+  () => form.value.access_type,
+  (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+      form.value.roles = [];
+    }
+  }
+);
+const globalRoles = computed(() => {
+  return roles.value.filter((role) => role.project_id === null);
+});
+const onProfileCheckboxChange = (roleId, checked) => {
+  if (checked) {
+    form.value.admin_roles.push(roleId);
+  } else {
+    form.value.admin_roles = form.value.admin_roles.filter(
+      (id) => id !== roleId
+    );
+  }
+};
+
+const isProjectSelected = (projectId: number) => {
+  return (
+    form.value.projects?.some((p) => p.id === projectId && p.selected) || false
+  );
+};
+const toggleProject = (projectId: number, checked: boolean) => {
+  if (!Array.isArray(form.value.projects)) {
+    form.value.projects = []; // Inicializa como array vazio se não for um array
+  }
+
+  const projectIndex = form.value.projects.findIndex((p) => p.id === projectId);
+
+  if (checked) {
+    if (projectIndex === -1) {
+      form.value.projects.push({
+        id: projectId,
+        selected: true,
+        roles: [],
+      });
+    } else {
+      form.value.projects[projectIndex].selected = true;
+    }
+  } else {
+    if (projectIndex !== -1) {
+      form.value.projects[projectIndex].selected = false;
+      form.value.projects[projectIndex].roles = [];
+    }
+  }
+};
+
+const getProjectRoles = (projectId: number) => {
+  return Array.isArray(roles.value)
+    ? roles.value.filter((role) => role.project_id === projectId)
+    : [];
+};
+
+const isRoleSelected = (projectId: number, roleName: string) => {
+  if (!Array.isArray(form.value.projects)) return false;
+
+  const project = form.value.projects.find((p) => p.id === projectId);
+
+  return project ? project.roles.includes(roleName) : false;
+};
+
+const toggleRole = (projectId: number, roleName: string, checked: boolean) => {
+  if (!Array.isArray(form.value.projects)) return;
+
+  const projectIndex = form.value.projects.findIndex((p) => p.id === projectId);
+
+  if (projectIndex === -1) return;
+
+  if (checked) {
+    if (!form.value.projects[projectIndex].roles.includes(roleName)) {
+      form.value.projects[projectIndex].roles.push(roleName);
+    }
+  } else {
+    form.value.projects[projectIndex].roles = form.value.projects[
+      projectIndex
+    ].roles.filter((r) => r !== roleName);
+  }
+};
 const fetchUsersAndProjects = async (current = pages.value.current) => {
   try {
-    isLoading.value = true
+    isLoading.value = true;
     const [userResponse, projectResponse] = await Promise.all([
-      api.get(`/users?page=${current}`,{
-        params:{
-          searchName:search.value,
-          status:statusFilter.value,
-          orderBy:order.value,
-          orderDirection:direction.value?"asc":"desc",
-          access:accessFilter.value
-
-        }
+      api.get(`/users?page=${current}`, {
+        params: {
+          searchName: search.value,
+          status: statusFilter.value,
+          orderBy: order.value,
+          orderDirection: direction.value ? "asc" : "desc",
+          access: accessFilter.value,
+        },
       }),
       api.get("/projects"),
     ]);
-    users.value = userResponse.data.data.user;
+    users.value = userResponse.data.data.users;
+    roles.value = userResponse.data.data.roles;
     pages.value = {
       current: userResponse.data.data.pagination.current_page,
       last: userResponse.data.data.pagination.last_page,
@@ -275,7 +434,6 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
     };
 
     projects.value = projectResponse.data.data;
-
   } catch (error) {
     toast({
       title: "Erro",
@@ -287,12 +445,23 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
   }
 };
 
-const openEditModal = (user) => {
+const openEditModal = (user: any) => {
+  const projectsWithRoles = projects.value
+    .filter((project) => user.project_ids.includes(project.id))
+    .map((project) => ({
+      id: project.id,
+      selected: true,
+      roles: user.roles
+        .filter((role) => role.project_id === project.id)
+        .map((role) => role.name),
+    }));
+
   form.value = {
     ...user,
-    role: user.role,
-    project_ids: user.project_ids || [],
+    access_type: user.access_type,
+    projects: projectsWithRoles,
   };
+
   isEditing.value = true;
   showModal.value = true;
 };
@@ -303,8 +472,11 @@ const openCreateModal = () => {
     first_name: "",
     last_name: "",
     email: "",
-    role: "client",
+    access_type: "client",
     project_ids: [],
+    roles: [],
+    admin_roles: [],
+    projects: [],
   };
   isEditing.value = false;
   showModal.value = true;
@@ -416,177 +588,178 @@ const onCheckboxChange = (id, checked) => {
 
 onMounted(fetchUsersAndProjects);
 
-const search = ref()
-const setSearch = (text)=>{
+const search = ref();
+const setSearch = (text) => {
   search.value = text;
-}
+};
 
-const order = ref()
-const direction = ref(false)
-const columnHelper = createColumnHelper<User>()
+const order = ref();
+const direction = ref(false);
+const columnHelper = createColumnHelper<User>();
 function createHeaderButton(label: string, columnKey: string) {
   return h(
-      Button,
-      {
-        variant: order.value === columnKey ? "default" : "ghost",
-        onClick: () => {
-          order.value = columnKey;
-          direction.value = !direction.value;
-          fetchUsersAndProjects();
-        },
-        class: "h-fit text-pretty my-1",
+    Button,
+    {
+      variant: order.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        order.value = columnKey;
+        direction.value = !direction.value;
+        fetchUsersAndProjects();
       },
-      () => [
-        label,
-        h(
-            order.value === columnKey
-                ? direction.value
-                    ? ArrowDown
-                    : ArrowUp
-                : CaretSortIcon,
-            { class: "" }
-        ),
-      ]
+      class: "h-fit text-pretty my-1",
+    },
+    () => [
+      label,
+      h(
+        order.value === columnKey
+          ? direction.value
+            ? ArrowDown
+            : ArrowUp
+          : CaretSortIcon,
+        { class: "" }
+      ),
+    ]
   );
 }
 const columns = [
   columnHelper.accessor("id", {
     header({ column }) {
-      return createHeaderButton('ID',"id")
+      return createHeaderButton("ID", "id");
     },
-    cell: ({ row }) =>
-        h("div", {}, row.getValue("id")),
+    cell: ({ row }) => h("div", {}, row.getValue("id")),
   }),
-  columnHelper.accessor('first_name', {
-
+  columnHelper.accessor("first_name", {
     header({ column }) {
-      return createHeaderButton("Nome","first_name");
+      return createHeaderButton("Nome", "first_name");
     },
     cell: ({ row }) =>
-        h("div", { class: "capitalize" },`${row.getValue("first_name")} ${row.original.last_name}`),
+      h(
+        "div",
+        { class: "capitalize" },
+        `${row.getValue("first_name")} ${row.original.last_name}`
+      ),
   }),
   columnHelper.accessor("email", {
     header({ column }) {
       return "Email";
     },
-    cell: ({ row }) =>
-        h("div", {}, row.getValue("email")),
+    cell: ({ row }) => h("div", {}, row.getValue("email")),
   }),
   columnHelper.accessor("statuses", {
     header({ column }) {
       return "Status";
     },
     cell: ({ row }) =>
-        h(
-            "div",
-            { class: "capitalize" },
-            processingStatusId.value === row.getValue("id")
-                ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
-                : h(
-                    Badge,
-                    {
-                      variant:
-                          row.getValue("statuses")?.[0]?.name === "active"
-                              ? "default"
-                              : "destructive",
-                    },
-                    row.getValue("statuses")?.[0]?.name === "active"
-                        ? "Ativo"
-                        : "Inativo"
-                )
-        ),
+      h(
+        "div",
+        { class: "capitalize" },
+        processingStatusId.value === row.getValue("id")
+          ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
+          : h(
+              Badge,
+              {
+                variant:
+                  row.getValue("statuses")?.[0]?.name === "active"
+                    ? "default"
+                    : "destructive",
+              },
+              row.getValue("statuses")?.[0]?.name === "active"
+                ? "Ativo"
+                : "Inativo"
+            )
+      ),
   }),
-  columnHelper.accessor("role", {
+  columnHelper.accessor("access_type", {
     header({ column }) {
       return "Acesso";
     },
     cell: ({ row }) =>
-        h("div", { class: "capitalize" }, row.getValue("role")=="member"?"Membro":"Cliente"),
+      h(
+        "div",
+        { class: "capitalize" },
+        row.getValue("access_type") == "member" ? "Membro" : "Cliente"
+      ),
   }),
-
 
   columnHelper.accessor("statuses", {
     header({ column }) {
       return "Ações";
     },
     cell: ({ row, table }) =>
-        h(DropdownMenu, {}, [
+      h(DropdownMenu, {}, [
+        h(
+          DropdownMenuTrigger,
+          { asChild: true },
           h(
-              DropdownMenuTrigger,
-              { asChild: true },
-              h(
-                  Button,
-                  { size: "icon", variant: "ghost", disabled: isProcessing.value },
-                  [
-                    h(MoreHorizontal, { class: "h-4 w-4" }),
-                    h("span", { class: "sr-only" }, "Ações"),
-                  ]
-              )
+            Button,
+            { size: "icon", variant: "ghost", disabled: isProcessing.value },
+            [
+              h(MoreHorizontal, { class: "h-4 w-4" }),
+              h("span", { class: "sr-only" }, "Ações"),
+            ]
+          )
+        ),
+        h(DropdownMenuContent, { align: "end" }, [
+          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuSeparator, {}),
+          h(
+            DropdownMenuItem,
+            {
+              onClick: () => {
+                const project = row.original;
+                openEditModal(project);
+              },
+            },
+            "Editar"
           ),
-          h(DropdownMenuContent, { align: "end" }, [
-            h(DropdownMenuLabel, {}, "Ações"),
-            h(DropdownMenuSeparator, {}),
+          h(
+            DropdownMenuItem,
+            {
+              onMousedown: () => {
+                const user = row.original; // Obtém o usuário da linha
+                resetPassword(user);
+              },
+              disabled:
+                processingAction.value === `reset-${row.getValue("id")}`,
+            },
             h(
-                DropdownMenuItem,
-                {
-                  onClick: () => {
-                    const project = row.original;
-                    openEditModal(project);
-                  },
-                },
-                "Editar"
-            ),
-            h(
-                DropdownMenuItem,
-                {
-                  onMousedown: () => {
-                    const user = row.original; // Obtém o usuário da linha
-                    resetPassword(user);
-                  },
-                  disabled:
-                      processingAction.value === `reset-${row.getValue("id")}`,
-                },
-                h(
-                    "div",
-                    { class: "flex items-center" },
-                    processingAction.value === `reset-${row.getValue("id")}`
-                        ? [
-                          h(LucideSpinner, {
-                            class: "mr-2 h-4 w-4 animate-spin",
-                          }),
-                          "Resetando senha...",
-                        ]
-                        : "Resetar Senha"
+              "div",
+              { class: "flex items-center" },
+              processingAction.value === `reset-${row.getValue("id")}`
+                ? [
+                    h(LucideSpinner, {
+                      class: "mr-2 h-4 w-4 animate-spin",
+                    }),
+                    "Resetando senha...",
+                  ]
+                : "Resetar Senha"
+            )
+          ),
+          h(
+            DropdownMenuItem,
+            {
+              onMousedown: () => {
+                const project = row.original;
+                toggleStatus(project);
+              },
+              disabled:
+                processingAction.value === `status-${row.getValue("id")}`,
+            },
+            processingAction.value === `status-${row.getValue("id")}`
+              ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
+              : h(
+                  "div",
+                  {},
+                  row.getValue("statuses")?.[0]?.name === "active"
+                    ? "Inativar"
+                    : "Ativar"
                 )
-            ),
-            h(
-                DropdownMenuItem,
-                {
-                  onMousedown: () => {
-                    const project = row.original;
-                    toggleStatus(project);
-                  },
-                  disabled:
-                      processingAction.value === `status-${row.getValue("id")}`,
-                },
-                processingAction.value === `status-${row.getValue("id")}`
-                    ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
-                    : h(
-                        "div",
-                        {},
-                        row.getValue("statuses")?.[0]?.name === "active"
-                            ? "Inativar"
-                            : "Ativar"
-                    )
-            ),
-          ]),
+          ),
         ]),
+      ]),
   }),
 ];
 
-
-
-// Primeiro, defina um tipo para a interface status
 interface Status {
   id: string; // ID do status
   name: string; // Nome do status (ex: 'Ativo', 'Inativo')
@@ -602,10 +775,8 @@ type User = {
   first_name: string;
   last_name: string;
   email: string;
-  role: string;
+  access_type: string;
   project_ids: number[];
   statuses: Status[];
 };
-
-
 </script>
