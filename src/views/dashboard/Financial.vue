@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import {onMounted, ref, watch} from 'vue';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
@@ -47,7 +47,6 @@ const financialForm = ref({
   user_id: null
 });
 
-// Função para abrir o sheet para criação
 const openSheet = (type) => {
   form.value.type = type;
   isEditing.value = false;
@@ -62,12 +61,10 @@ const openSheet = (type) => {
   showModal.value = true;
 };
 
-// Função para abrir o sheet em modo de edição
 const handleEdit = (item, type) => {
   form.value.type = type;
   isEditing.value = true;
   if (type === 'setor') {
-    // Supondo que o item possua os mesmos campos do sectorForm
     sectorForm.value = { ...item };
   } else if (type === 'custo') {
     costForm.value = { ...item };
@@ -81,7 +78,6 @@ const submitSector = async () => {
   try {
     loadingSubSector.value = true;
     if (isEditing.value) {
-      // Aqui você pode implementar a atualização (PUT/PATCH)
       await api.put(`/financial/sector/${sectorForm.value.id}`, sectorForm.value);
     } else {
       await api.post('/financial/sector', sectorForm.value);
@@ -140,32 +136,34 @@ const submit = () => {
 };
 
 const edit = () => {
-  console.log('Salvando edição...');
   submit();
 };
 
-const financesByProject = ref([]);
 
-// Exemplo de função para atualizar os dados (implemente conforme sua API)
-const fetchFinancesByProject = async () => {
-  try {
-    loading.value = true;
-    // Implemente a chamada à API para atualizar os dados
-  } catch (error) {
-    console.error('Erro ao buscar dados financeiros:', error);
-  } finally {
-    loading.value = false;
-  }
-};
+const currentIndex = ref(0);
 
 const fetchSectors = async () => {
   try {
     loading.value = true;
     const response = await api.get('/financial/sector', {});
     const data = response.data.data;
-    financialData.value = data[1];
-    console.log(financialData.value);
-    sectors.value = data; // Lista de setores paginada
+    financialData.value = data;
+    sectors.value = data;
+    const allCostCenters = [];
+    sectors.value.forEach(sector => {
+      if (sector.cost_centers && Array.isArray(sector.cost_centers)) {
+        sector.cost_centers.forEach(center => {
+          allCostCenters.push({
+            id: center.cost_center_id,
+            name: center.cost_center_name
+          });
+        });
+      }
+    });
+
+    // Armazena a lista na variável ref 'cost'
+    costs.value = allCostCenters;
+    console.log(sectors.value)
   } catch (error) {
     console.error('Erro ao buscar setores:', error);
   } finally {
@@ -198,18 +196,12 @@ const fetchFilters = async () => {
   }
 };
 onMounted(fetchFilters);
-
-const financeIndicators = [
-  "Receita Bruta",
-  "(-) Impostos sobre vendas",
-  "(=) Receita Líquida",
-  "(-) Custos Operacionais",
-  "(=) Lucro Bruto",
-  "(-) Despesas Operacionais",
-  "(=) Lucro Operacional (EBIT)",
-  "(-) Despesas Financeiras",
-  "(=) Lucro Líquido"
-];
+const handleSector = async ()=>{
+  currentIndex.value =  selectedSector.value-1
+}
+watch(selectedSector, ()=>{
+  handleSector()
+})
 </script>
 
 <template>
@@ -237,7 +229,7 @@ const financeIndicators = [
     </div>
     <div>
       <div class="flex gap-4 items-center sm:w-[250px]">
-        <Select v-model="selectedSector" id="selectedSector" class="w-full max-w-sm">
+        <Select v-model="selectedSector"  id="selectedSector" class="w-full max-w-sm">
           <SelectTrigger>
             <SelectValue placeholder="Selecione um setor" />
           </SelectTrigger>
@@ -270,7 +262,7 @@ const financeIndicators = [
 
     <div class="flex gap-6 flex-wrap" v-else>
       <!-- Exemplo para centro de custo -->
-      <Card v-for="n in financialData.cost_centers" :key="n.id">
+      <Card v-for="n in financialData[currentIndex].cost_centers" :key="n.id">
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium">{{ n.cost_center_name }}</CardTitle>
           <!-- Ao clicar no SquarePen, abre o sheet em modo de edição -->
@@ -345,8 +337,8 @@ const financeIndicators = [
                     <SelectValue placeholder="Selecione um setor" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="sector in sectors" :key="sector.id" :value="sector.id">
-                      {{ sector.name }}
+                    <SelectItem v-for="sector in sectors" :key="sector.sector_id" :value="sector.sector_id">
+                      {{ sector.sector_name }}
                     </SelectItem>
                   </SelectContent>
                 </Select>
