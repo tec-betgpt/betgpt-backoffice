@@ -172,12 +172,20 @@ const navMenu = computed(() => {
       type: "management",
     },
     {
+      name: "Financeiro",
+      url: { name: "financial" },
+      icon: Bot,
+      show: true,
+      type: "report",
+    },
+    {
       name: "IA",
       url: { name: "ia" },
       icon: Bot,
       show: true,
       type: "utils",
     },
+
   ];
 
   return menu.filter((item) => item.show);

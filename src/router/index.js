@@ -23,6 +23,7 @@ import ConfigurationProjects from "@/views/configurations/Projects.vue";
 import ConfigurationIntegrations from "@/views/configurations/Integrations.vue";
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
 import Texts from "@/views/dashboard/Texts.vue";
+import Financial from "@/views/dashboard/Financial.vue";
 
 const routes = [
   {
@@ -222,6 +223,16 @@ const routes = [
       title: "Ia",
     },
   },
+  {
+    path: "/financial",
+    name: "financial",
+    component: Financial,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Financeiro",
+    }
+  }
 ];
 
 const router = createRouter({
