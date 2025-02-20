@@ -162,6 +162,25 @@
               </div>
             </CardContent>
           </Card>
+          <Card class="col-span-3">
+            <CardHeader class="pb-3">
+              <Skeleton class="h-6 w-full" v-if="loading" />
+              <CardTitle v-else>Cliques</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div v-if="loading">
+                <Skeleton class="pl-5 h-80 w-full" />
+              </div>
+              <div v-else>
+                <LineChart
+                  :data="daily.clicks"
+                  index="date"
+                  :categories="['Total Cliques']"
+                  :custom-tooltip="CustomChartTooltip"
+                />
+              </div>
+            </CardContent>
+          </Card>
           <!--<Card class="col-span-3">
             <CardHeader class="pb-3">
               <Skeleton class="h-6 w-full" v-if="loading" />
