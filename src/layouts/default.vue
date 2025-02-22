@@ -56,6 +56,7 @@ import {
   FolderDot,
   ChevronRight,
   SquareStack,
+  CircleDollarSign,
   Sun,
   Moon,
 } from "lucide-vue-next";
@@ -174,9 +175,16 @@ const navMenu = computed(() => {
     {
       name: "Financeiro",
       url: { name: "financial" },
-      icon: Bot,
+      icon: CircleDollarSign,
       show: true,
       type: "report",
+    },
+    {
+      name:"Gerenciador Financeiro",
+      url: { name: "managerfinancial" },
+      icon: CircleDollarSign,
+      show: true,
+      type: "management"
     },
     {
       name: "IA",

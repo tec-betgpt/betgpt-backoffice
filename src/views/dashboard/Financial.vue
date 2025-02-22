@@ -1,178 +1,30 @@
 <script setup lang="ts">
-import {onMounted, ref, watch} from 'vue';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
+import {onMounted, ref, watch,h} from 'vue';
+import {Card, CardHeader, CardTitle, CardContent, CardFooter} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, CreditCard, HandCoins } from 'lucide-vue-next';
 import api from "@/services/api";
-import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { useProjectStore } from "@/stores/project";
 import { getLocalTimeZone, today } from "@internationalized/date";
-import { SquarePen } from 'lucide-vue-next';
-import {Loader2 as LucideSpinner} from "lucide-vue-next";
+
+import {useToast} from "@/components/ui/toast";
+import {LineChart} from "@/components/ui/chart-line";
+const { toast } = useToast();
+import { DonutChart } from '@/components/ui/chart-donut'
 
 const loading = ref(true);
-const loadingSubSector = ref(false);
-const loadingSubCost = ref(false);
-const loadingSubFin = ref(false);
-const showModal = ref(false);
-const isEditing = ref(false);
-const sectors = ref([]);
-const costs = ref([]);
+
 const financialTransactions = ref([]);
-const form = ref({ type: '' });
-const sectorForm = ref({
-  name: '',
-  project_id: null,
-  user_id: null
-});
-const costForm = ref({
-  id: null, // adicionei id para identificar o registro durante a edição
-  name: '',
-  sector_id: null,
-});
-const financialForm = ref({
-  id: null, // adicionei id para identificar o registro durante a edição
-  cost_center_id: null,
-  type: '',
-  category_type: '',
-  percentage: null,
-  amount: null,
-  date: '',
-  description: '',
-  user_id: null
-});
 
-const openSheet = (type) => {
-  form.value.type = type;
-  isEditing.value = false;
-  // Limpar os formulários se necessário
-  if (type === 'setor') {
-    sectorForm.value = { name: '', project_id: null, user_id: null };
-  } else if (type === 'custo') {
-    costForm.value = { id: null, name: '', sector_id: null };
-  } else if (type === 'financeiro') {
-    financialForm.value = { id: null, cost_center_id: null, type: '', category_type: '', percentage: null, amount: null, date: '', description: '', user_id: null };
-  }
-  showModal.value = true;
-};
-
-const handleEdit = (item, type) => {
-  form.value.type = type;
-  isEditing.value = true;
-  if (type === 'setor') {
-    sectorForm.value = { ...item };
-  } else if (type === 'custo') {
-    costForm.value = { ...item };
-  } else if (type === 'financeiro') {
-    financialForm.value = { ...item };
-  }
-  showModal.value = true;
-};
-
-const submitSector = async () => {
-  try {
-    loadingSubSector.value = true;
-    if (isEditing.value) {
-      await api.put(`/financial/sector/${sectorForm.value.id}`, sectorForm.value);
-    } else {
-      await api.post('/financial/sector', sectorForm.value);
-    }
-    showModal.value = false;
-    fetchFinancesByProject();
-  } catch (error) {
-    console.error('Erro ao salvar setor:', error);
-  } finally {
-    loadingSubSector.value = false;
-  }
-};
-
-const submitCost = async () => {
-  try {
-    loadingSubCost.value = true;
-    if (isEditing.value) {
-      await api.put(`/financial/cost-centers/${costForm.value.id}`, costForm.value);
-    } else {
-      await api.post('/financial/cost-centers', costForm.value);
-    }
-    showModal.value = false;
-    fetchFinancesByProject();
-  } catch (error) {
-    console.error('Erro ao salvar centro de custo:', error);
-  } finally {
-    loadingSubCost.value = false;
-  }
-};
-
-const submitFinancial = async () => {
-  try {
-    loadingSubFin.value = true;
-    if (isEditing.value) {
-      await api.put(`/financial/financial-transactions/${financialForm.value.id}`, financialForm.value);
-    } else {
-      await api.post('/financial/financial-transactions', financialForm.value);
-    }
-    showModal.value = false;
-    fetchFinancesByProject();
-  } catch (error) {
-    console.error('Erro ao salvar transação financeira:', error);
-  } finally {
-    loadingSubFin.value = false;
-  }
-};
-
-const submit = () => {
-  if (form.value.type === 'setor') {
-    submitSector();
-  } else if (form.value.type === 'custo') {
-    submitCost();
-  } else if (form.value.type === 'financeiro') {
-    submitFinancial();
-  }
-};
-
-const edit = () => {
-  submit();
-};
 
 
 const currentIndex = ref(0);
 
-const fetchSectors = async () => {
-  try {
-    loading.value = true;
-    const response = await api.get('/financial/sector', {});
-    const data = response.data.data;
-    financialData.value = data;
-    sectors.value = data;
-    const allCostCenters = [];
-    sectors.value.forEach(sector => {
-      if (sector.cost_centers && Array.isArray(sector.cost_centers)) {
-        sector.cost_centers.forEach(center => {
-          allCostCenters.push({
-            id: center.cost_center_id,
-            name: center.cost_center_name
-          });
-        });
-      }
-    });
-
-    // Armazena a lista na variável ref 'cost'
-    costs.value = allCostCenters;
-    console.log(sectors.value)
-  } catch (error) {
-    console.error('Erro ao buscar setores:', error);
-  } finally {
-    loading.value = false;
-  }
-};
-onMounted(fetchSectors);
 const financialData = ref([]);
-
+const sectors = ref([]);
+const costs = ref([]);
 const projectStore = useProjectStore();
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
 const startDate = currentDate.subtract({ days: 28 });
@@ -185,23 +37,76 @@ const fetchFilters = async () => {
     loading.value = true;
     const response = await api.get("/user/configurations/project-filters");
     const filters = response.data.data || [];
+
     projectFilters.value = filters.map((filter) => ({
       id: filter.id,
       label: filter.label,
     }));
+
+    if (filters.length > 0) {
+      if (!selectedFilterId.value) {
+        const favoriteFilter = filters.find((filter) => filter.is_favorite);
+        selectedFilterId.value = favoriteFilter
+            ? favoriteFilter.id
+            : filters[0].id;
+      }
+    }
+    await fetchFinancials()
   } catch (error) {
-    console.log(error);
+    toast({
+      title: "Erro ao carregar filtros",
+      description: "Não foi possível carregar os filtros de projetos.",
+      variant: "destructive",
+    });
   } finally {
-    //loading.value = false;
+    loading.value = false;
   }
 };
 onMounted(fetchFilters);
 const handleSector = async ()=>{
+  if(!selectedSector.value) return;
   currentIndex.value =  selectedSector.value-1
 }
-watch(selectedSector, ()=>{
-  handleSector()
-})
+const compare = ref(false);
+const selectedComparisonProject = ref(null);
+const fetchFinancials = async () => {
+  try {
+    loading.value = true;
+    const response = await api.get("/financial/", {
+      params: {
+        start_date: selectedRange.value.start,
+        end_date: selectedRange.value.end,
+        filter_id: selectedFilterId.value,
+        compare: selectedComparisonProject.value,
+      },
+    });
+    financialData.value = response.data.data;
+    console.log(financialData.value)
+}catch (error){
+    console.log(error)
+  }
+  finally {
+    loading.value = false;
+    if (selectedComparisonProject.value) {
+     compare.value = true
+    }else{
+      compare.value = false
+    }
+  }
+}
+
+
+function valueFormatter(tick: number | Date) {
+
+  return typeof tick === 'number'
+      ? `R$ ${new Intl.NumberFormat('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(tick)}`
+      : ''
+
+}
+function cancelCompare(){
+  compare.value = false;
+  selectedComparisonProject.value = null
+}
 </script>
 
 <template>
@@ -209,11 +114,11 @@ watch(selectedSector, ()=>{
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">Financeiro</h2>
       <p class="text-muted-foreground">
-        TEXTO
+        Visão geral das receitas, despesas e métricas financeiras em um período específico.
       </p>
     </div>
 
-    <div class="flex sm:flex-row flex-col w-full items-start gap-2">
+    <div   v-if="projectFilters && projectFilters.length" class="flex sm:flex-row flex-col w-full items-start gap-2">
       <Select v-model="selectedFilterId">
         <SelectTrigger class="sm:w-[250px] w-full">
           <SelectValue placeholder="Selecione um grupo ou projeto" />
@@ -225,26 +130,29 @@ watch(selectedSector, ()=>{
         </SelectContent>
       </Select>
       <DateRangePicker v-model="selectedRange" />
-      <Button class="sm:w-fit w-full" @click="{}">Filtrar</Button>
+      <Button class="sm:w-fit w-full" @click="fetchFinancials">Filtrar</Button>
     </div>
     <div>
-      <div class="flex gap-4 items-center sm:w-[250px]">
-        <Select v-model="selectedSector"  id="selectedSector" class="w-full max-w-sm">
+      <div  class="flex gap-4 my-4 items-center">
+
+        <Select v-model="selectedComparisonProject" id="selectedComparisonProject" class="w-full sm:w-[250px]">
           <SelectTrigger>
-            <SelectValue placeholder="Selecione um setor" />
+            <SelectValue placeholder="Selecione um projeto para comparar"/>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="(sector, index) in sectors" :key="index" :value="sector.sector_id">
-              {{ sector.sector_name }}
+            <SelectItem v-for="(project, index) in projectFilters"   :key="index" :value="project.id">
+              {{ project.label }}
             </SelectItem>
           </SelectContent>
         </Select>
-      </div>
-      <div class="flex gap-4 my-4 items-center">
-        <Button @click="openSheet('setor')">Criar Setor</Button>
-        <Button @click="openSheet('custo')">Criar Custo</Button>
-        <Button @click="openSheet('financeiro')">Criar Financeiro</Button>
-      </div>
+        <Button @click="fetchFinancials">
+          Comparar
+        </Button>
+        <Button @click="cancelCompare" class="ml-2">
+          Cancelar Comparação
+        </Button>
+    </div>
+
     </div>
 
     <div v-if="loading" class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8 lg:grid-cols-3 xl:grid-cols-4 mb-3">
@@ -258,159 +166,269 @@ watch(selectedSector, ()=>{
           <Skeleton class="h-4 w-1/2" />
         </div>
       </Card>
+
     </div>
 
-    <div class="flex gap-6 flex-wrap" v-else>
-      <!-- Exemplo para centro de custo -->
-      <Card v-for="n in financialData[currentIndex].cost_centers" :key="n.id">
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium">{{ n.cost_center_name }}</CardTitle>
-          <!-- Ao clicar no SquarePen, abre o sheet em modo de edição -->
-          <SquarePen
-              :size="18"
-              :stroke-width="1.85"
-              class="cursor-pointer"
-              @click="handleEdit(n, 'custo')"
-          />
-        </CardHeader>
-        <CardContent class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8 lg:grid-cols-3 xl:grid-cols-4 mb-3">
-          <Card v-for="(item, index) in n.dre" :key="index">
-            <CardHeader>
-              <CardTitle class="text-sm font-medium">{{ item[0] }}</CardTitle>
-            </CardHeader>
-            <CardContent class="flex gap-2 flex-wrap">
-              <p class="text-2xl font-bold">
-                {{$toCurrency(item[1])}}
-              </p>
-            </CardContent>
-          </Card>
-        </CardContent>
-      </Card>
-    </div>
+    <div  v-else-if="!loading && !compare" class="flex flex-col gap-4 w-full">
+      <h3 class="text-xl font-bold tracking-tight">
+        DRE
+      </h3>
+      <div class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8   xl:grid-cols-4 mb-3">
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Receita Bruta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold truncate">
+              {{ $toCurrency(financialData.receita_bruta) }}
+            </div>
+            <p class="text-xs text-muted-foreground truncate">
+              % desde o mês anterior
+            </p>
+          </CardContent>
 
-    <Sheet v-model:open="showModal">
-      <SheetContent position="right" size="lg">
-        <SheetHeader>
-          <SheetTitle>
-            {{ isEditing ? `Editar ${form.type}` : `Novo ${form.type}` }}
-          </SheetTitle>
-          <SheetDescription>
-            {{ isEditing ? `Edite as informações do ${form.type}.` : `Crie um novo ${form.type}.` }}
-          </SheetDescription>
-        </SheetHeader>
+        </Card>
 
-        <form @submit.prevent="isEditing ? edit() : submit()">
-          <div class="grid gap-4 py-4">
-            <!-- Se for Setor -->
-            <template v-if="form.type === 'setor'">
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="name">Nome</Label>
-                <Input id="name" v-model="sectorForm.name" placeholder="Digite o nome" class="col-span-3" required />
-              </div>
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="project_id">Projeto</Label>
-                <div v-if="projectFilters && projectFilters.length" class="flex sm:flex-row flex-col w-full items-start gap-2">
-                  <Select v-model="selectedFilterId">
-                    <SelectTrigger class="sm:w-[250px] w-full">
-                      <SelectValue placeholder="Selecione um grupo ou projeto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <template v-for="(item, index) in projectFilters" :key="index">
-                        <SelectItem :value="item.id">{{ item.label }}</SelectItem>
-                      </template>
-                    </SelectContent>
-                  </Select>
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Receita Líquida</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold truncate">
+              {{ $toCurrency(financialData.receita_liquida) }}
+            </div>
+            <p class="text-xs text-muted-foreground truncate">
+              % desde o mês anterior
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Lucro Bruto</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold truncate">
+              {{ $toCurrency(financialData.lucro_bruto) }}
+            </div>
+            <p class="text-xs text-muted-foreground truncate" >
+              % desde o mês anterior
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Lucro Líquido</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold truncate">
+              {{ $toCurrency(financialData.lucro_liquido) }}
+            </div>
+            <p class="text-xs text-muted-foreground truncate">
+              % desde o mês anterior
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Despesas Operacionais</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold truncate">
+              {{ $toCurrency(financialData.despesas_operacionais) }}
+            </div>
+            <p class="text-xs text-muted-foreground truncate">
+              % desde o mês anterior
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Despesas Outros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold truncate">
+              {{ $toCurrency(financialData.despesas_outros) }}
+            </div>
+            <p class="text-xs text-muted-foreground truncate">
+              % desde o mês anterior
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+      <div  class="grid grid-cols-2 gap-4">
+        <Card v-if="financialData.cost_centers.length >0" class="h-fit space-y-2">
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Gastos por Centro de Custos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DonutChart :data="financialData.cost_centers"
+                        index="Centro"
+                        :value-formatter="valueFormatter"
+                        :category="'Valor'"
+
+            />
+          </CardContent>
+        </Card>
+        <Card  v-if="financialData.revenue_cost.length >0">
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Receita x Custo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LineChart :data="financialData.revenue_cost" :categories="['Receita','Custo']" index="date"
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </div>    <!-- Comparação -->
+    <div v-else>
+      <div class="grid grid-cols-2 gap-4 ">
+        <div class="col-span-1">
+          <h3 class="text-xl font-bold tracking-tight truncate">
+            DRE
+          </h3>
+          <div class="flex gap-4 flex-wrap">
+            <Card>
+              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle class="text-sm font-medium truncate">Receita Bruta</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div class="text-2xl w-full font-bold text-ellipsis overflow-hidden whitespace-nowrap truncate">
+                  {{ $toCurrency(financialData[0].receita_bruta) }}
                 </div>
-              </div>
-            </template>
+                <p class="text-xs text-muted-foreground truncate">
+                  % desde o mês anterior
+                </p>
+              </CardContent>
+            </Card>
 
-            <!-- Se for Custo -->
-            <template v-if="form.type === 'custo'">
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="name">Nome</Label>
-                <Input id="name" v-model="costForm.name" placeholder="Digite o nome" class="col-span-3" required />
-              </div>
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="sector_id">Setor</Label>
-                <Select v-model="costForm.sector_id">
-                  <SelectTrigger class="col-span-3">
-                    <SelectValue placeholder="Selecione um setor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="sector in sectors" :key="sector.sector_id" :value="sector.sector_id">
-                      {{ sector.sector_name }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </template>
-
-            <!-- Se for Financeiro -->
-            <template v-if="form.type === 'financeiro'">
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="cost_center_id">Centro de Custo</Label>
-                <Select v-model="financialForm.cost_center_id">
-                  <SelectTrigger class="col-span-3">
-                    <SelectValue placeholder="Selecione um centro de custo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="cost in costs" :key="cost.id" :value="cost.id">
-                      {{ cost.name }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="type">Tipo</Label>
-                <Select v-model="financialForm.type">
-                  <SelectTrigger class="col-span-3">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cost">Custo</SelectItem>
-                    <SelectItem value="revenue">Receita</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="category_type">Categoria</Label>
-                <Select v-model="financialForm.category_type">
-                  <SelectTrigger class="col-span-3">
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixed">Fixo</SelectItem>
-                    <SelectItem value="variable">Variável</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="percentage">Porcentagem (%)</Label>
-                <Input id="percentage" v-model="financialForm.percentage" type="number" placeholder="Opcional" class="col-span-3" min="0" />
-              </div>
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="amount">Valor</Label>
-                <Input id="amount" v-model="financialForm.amount" type="number" placeholder="Digite o valor" class="col-span-3" required />
-              </div>
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="description">Descrição</Label>
-                <Input id="description" v-model="financialForm.description" placeholder="Digite uma descrição" class="col-span-3" />
-              </div>
-            </template>
+            <Card>
+              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle class="text-sm font-medium truncate">Receita Líquida</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div class="text-2xl font-bold truncate">
+                  {{ $toCurrency(financialData[0].receita_liquida) }}
+                </div>
+                <p class="text-xs text-muted-foreground truncate">
+                  % desde o mês anterior
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle class="text-sm font-medium truncate">Lucro Bruto</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div class="text-2xl font-bold truncate">
+                  {{ $toCurrency(financialData[0].lucro_bruto) }}
+                </div>
+                <p class="text-xs text-muted-foreground truncate">
+                  % desde o mês anterior
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle class="text-sm font-medium truncate">Lucro Líquido</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div class="text-2xl font-bold truncate">
+                  {{ $toCurrency(financialData[0].lucro_liquido) }}
+                </div>
+                <p class="text-xs text-muted-foreground truncate">
+                  % desde o mês anterior
+                </p>
+              </CardContent>
+            </Card>
           </div>
+<!--          <div class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3">-->
+<!--            <Card>-->
+<!--              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">-->
+<!--                <CardTitle class="text-sm font-medium truncate">Gastos por Centro de Custos</CardTitle>-->
+<!--              </CardHeader>-->
+<!--              <CardContent>-->
+<!--                <DonutChart :data="financialData[0].cost_centers" index="name" :category="'cost'" :type="'pie'"/>-->
+<!--              </CardContent>-->
+<!--            </Card>-->
+<!--          </div>-->
+        </div>
+        <div class=" col-span-1">
+          <h3 class="text-xl font-bold tracking-tight truncate">
+            DRE
+          </h3>
+          <div class="flex gap-4 flex-wrap">
+            <Card>
+              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle class="text-sm font-medium truncate">Receita Bruta</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div class="text-2xl font-bold truncate">
+                  {{ $toCurrency(financialData[1].receita_bruta) }}
+                </div>
+                <p class="text-xs text-muted-foreground truncate">
+                  % desde o mês anterior
+                </p>
+              </CardContent>
+            </Card>
 
-          <SheetFooter>
-            <Button type="submit" :disabled="loading">
-              <LucideSpinner v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-              {{ loading ? "Salvando..." : isEditing ? "Salvar" : "Criar" }}
-            </Button>
-          </SheetFooter>
-        </form>
-      </SheetContent>
-    </Sheet>
+            <Card>
+              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle class="text-sm font-medium truncate">Receita Líquida</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div class="text-2xl font-bold truncate">
+                  {{ $toCurrency(financialData[1].receita_liquida) }}
+                </div>
+                <p class="text-xs text-muted-foreground truncate">
+                  % desde o mês anterior
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle class="text-sm font-medium truncate">Lucro Bruto</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div class="text-2xl font-bold truncate">
+                  {{ $toCurrency(financialData[1].lucro_bruto) }}
+                </div>
+                <p class="text-xs text-muted-foreground truncate">
+                  % desde o mês anterior
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle class="text-sm font-medium truncate">Lucro Líquido</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div class="text-2xl font-bold truncate">
+                  {{ $toCurrency(financialData[1].lucro_liquido) }}
+                </div>
+                <p class="text-xs text-muted-foreground truncate">
+                  % desde o mês anterior
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+<!--          <div class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3">-->
+<!--            <Card>-->
+<!--              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">-->
+<!--                <CardTitle class="text-sm font-medium truncate">Gastos por Centro de Custos</CardTitle>-->
+<!--              </CardHeader>-->
+<!--              <CardContent>-->
+<!--                <DonutChart :data="financialData[1].cost_centers" index="name" :category="'cost'" :type="'pie'"/>-->
+<!--              </CardContent>-->
+<!--            </Card>-->
+<!--          </div>-->
+        </div>
+      </div>
+    </div>
+
+
   </div>
 </template>
 
 <style scoped>
-/* Seus estilos aqui */
 </style>

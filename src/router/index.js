@@ -24,6 +24,7 @@ import ConfigurationIntegrations from "@/views/configurations/Integrations.vue";
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
 import Texts from "@/views/dashboard/Texts.vue";
 import Financial from "@/views/dashboard/Financial.vue";
+import ManagerFinancial from "@/views/dashboard/ManagerFinancial.vue";
 
 const routes = [
   {
@@ -231,6 +232,16 @@ const routes = [
       layout: DefaultLayout,
       requiresAuth: true,
       title: "Financeiro",
+    }
+  },
+  {
+    path:"/managerfinancial",
+    name:"managerfinancial",
+    component:ManagerFinancial,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Gerenciamento Financeiro",
     }
   }
 ];
