@@ -1,37 +1,294 @@
 <script setup lang="ts">
-import {onMounted, ref, watch,h} from 'vue';
-import {Card, CardHeader, CardTitle, CardContent, CardFooter} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { createColumnHelper } from "@tanstack/vue-table";
+import { h, onMounted, ref, watch } from "vue";
 import api from "@/services/api";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DateRangePicker from "@/components/custom/DateRangePicker.vue";
-import { useProjectStore } from "@/stores/project";
-import { getLocalTimeZone, today } from "@internationalized/date";
+import { useAuthStore } from "@/stores/auth";
+import { Loader2 as LucideSpinner } from "lucide-vue-next";
+import { toast } from "@/components/ui/toast";
+import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
 
-import {useToast} from "@/components/ui/toast";
-import {LineChart} from "@/components/ui/chart-line";
-const { toast } = useToast();
-import { DonutChart } from '@/components/ui/chart-donut'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import moment from "moment/moment";
+import { toCurrency } from "@/filters/currencyFilter";
+import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
 
-const loading = ref(true);
+const authStore = useAuthStore();
+interface FinancialData {
+  id: number;
+  costCenter: string;
+  category_type: string;
+  amount: string;
+  date: string;
+  description: string;
+  percentage: string;
+  type: string;
+}
+const loadingRemove = ref(false);
+function handlerOrder(column: string, direction: boolean) {
+  if (column) {
+    orderId.value = column;
+    order.value = direction;
+  }
+  fetchFinancials();
+}
+const columnHelper = createColumnHelper<FinancialData>();
+const columns = [
+  columnHelper.accessor("id", {
+    header({ column }) {
+      return createHeaderButton(
+        "ID",
+        "id",
+        orderId.value,
+        order.value,
+        handlerOrder
+      );
+    },
+    cell: ({ row }) => h("div", {}, row.getValue("id")),
+  }),
+  columnHelper.accessor("costCenter", {
+    header: "Centro de Custo",
+    cell: ({ row }) =>
+      h("div", { class: "capitalize" }, row.getValue("costCenter")),
+  }),
+  columnHelper.accessor("category_type", {
+    header: "Categoria",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "capitalize" },
+        row.getValue("category_type") == "fixed" ? "Fixa" : "Variavel"
+      ),
+  }),
+  columnHelper.accessor("amount", {
+    header({ column }) {
+      return createHeaderButton(
+        "Valor",
+        "value",
+        orderId.value,
+        order.value,
+        handlerOrder
+      );
+    },
+    cell: ({ row }) =>
+      h("div", {}, toCurrency(Number.parseInt(row.getValue("amount")))),
+  }),
+  columnHelper.accessor("date", {
+    header({ column }) {
+      return createHeaderButton(
+        "Data",
+        "date",
+        orderId.value,
+        order.value,
+        handlerOrder
+      );
+    },
+    cell: ({ row }) =>
+      h("div", {}, moment(row.getValue("date")).format("DD/MM/YYYY")),
+  }),
+  columnHelper.accessor("description", {
+    header: "Descrição",
+    cell: ({ row }) => h("div", {}, row.getValue("description")),
+  }),
+  columnHelper.accessor("percentage", {
+    header({ column }) {
+      return createHeaderButton(
+        "Porcentagem",
+        "percentage",
+        orderId.value,
+        order.value,
+        handlerOrder
+      );
+    },
 
-const financialTransactions = ref([]);
+    cell: ({ row }) =>
+      h(
+        "div",
+        {},
+        `${row.getValue("percentage") ? row.getValue("percentage") : "0"}%`
+      ),
+  }),
+  columnHelper.accessor("type", {
+    header: "Tipo",
+    cell: ({ row }) =>
+      h("div", {}, row.getValue("type") == "revenue" ? "Receita" : "Custo"),
+  }),
+  columnHelper.display({
+    id: "actions",
+    header({ column }) {
+      return "Ações";
+    },
+    cell: ({ row }) =>
+      h(DropdownMenu, {}, [
+        h(
+          DropdownMenuTrigger,
+          { asChild: true },
+          h(
+            Button,
+            {
+              "aria-haspopup": "true",
+              size: "icon",
+              variant: "ghost",
+              disabled: loadingRemove.value || loading.value,
+            },
+            [
+              h(MoreHorizontal, { class: "h-4 w-4" }),
+              h("span", { class: "sr-only" }, "Ações"),
+            ]
+          )
+        ),
+        h(DropdownMenuContent, { align: "end" }, [
+          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuSeparator, {}),
+          h(
+            DropdownMenuItem,
+            {
+              onClick: () => {
+                const item = row.original;
+                handleEdit(item, "financeiro"); // Função para abrir o modal de edição
+              },
+            },
+            "Editar"
+          ),
+          h(
+            DropdownMenuItem,
+            {
+              onClick: () => {
+                const itemId = row.original.id;
+                deleteFinancial(itemId); // Função para remover o item pelo ID
+              },
+            },
+            h("div", { class: "flex items-center" }, "Remover")
+          ),
+        ]),
+      ]),
+  }),
+];
 
+const form = ref({ type: "" });
+const financialForm = ref({});
+const orderId = ref("name");
+const order = ref(false);
+const openSheet = (type) => {
+  form.value.type = type;
+  isEditing.value = false;
+  financialForm.value = {
+    id: null,
+    cost_center_id: null,
+    type: "",
+    category_type: "",
+    percentage: null,
+    amount: null,
+    date: "",
+    description: "",
+    user_id: null,
+  };
+  showModal.value = true;
+};
 
+const handleEdit = (item, type) => {
+  form.value.type = type;
+  isEditing.value = true;
+  financialForm.value = {
+    id: item.id,
+    cost_center_id: item.cost_center_id || null,
+    type: item.type || "",
+    category_type: item.category_type || "",
+    percentage: item.percentage || 0,
+    amount: item.amount || null,
+    date: item.date || "",
+    description: item.description || "",
+    user_id: item.user_id || null,
+  };
 
-const currentIndex = ref(0);
+  showModal.value = true;
+};
 
-const financialData = ref([]);
-const sectors = ref([]);
+const deleteFinancial = async (id: number) => {
+  try {
+    loading.value = true;
+    await api.delete(`/financial/financial-transactions/${id}`);
+    toast({
+      title: "Transação financeira deletada com sucesso!",
+      description: `A transação financeira com ID ${id} foi removida.`,
+      variant: "success",
+    });
+    await fetchFinancials();
+  } catch (error) {
+    console.error("Erro ao deletar transação financeira:", error);
+    toast({
+      title: "Erro ao deletar transação financeira",
+      description:
+        "Não foi possível remover a transação financeira. Tente novamente.",
+      variant: "destructive",
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+const submitFinancial = async () => {
+  try {
+    loadingSub.value = true;
+    if (isEditing.value) {
+      await api.put(
+        `/financial/financial-transactions/${financialForm.value.id}`,
+        financialForm.value
+      );
+    } else {
+      await api.post("/financial/financial-transactions", financialForm.value);
+    }
+    showModal.value = false;
+  } catch (error) {
+    console.error("Erro ao salvar transação financeira:", error);
+  } finally {
+    loadingSub.value = false;
+    await fetchFinancials();
+  }
+};
+
+const loadingSub = ref(false);
+const showModal = ref(false);
+const isEditing = ref(false);
 const costs = ref([]);
-const projectStore = useProjectStore();
-const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
-const startDate = currentDate.subtract({ days: 28 });
-const selectedRange = ref({ start: startDate, end: currentDate });
+const financial = ref([]);
+const loadingCosts = ref(true);
+const loadingFinancials = ref(true);
+const loading = ref(true);
 const projectFilters = ref([]);
-const selectedFilterId = ref(projectStore.selectedProject);
-const selectedSector = ref(null);
+const selectedFilterId = ref(null);
 const fetchFilters = async () => {
   try {
     loading.value = true;
@@ -47,11 +304,10 @@ const fetchFilters = async () => {
       if (!selectedFilterId.value) {
         const favoriteFilter = filters.find((filter) => filter.is_favorite);
         selectedFilterId.value = favoriteFilter
-            ? favoriteFilter.id
-            : filters[0].id;
+          ? favoriteFilter.id
+          : filters[0].id;
       }
     }
-    await fetchFinancials()
   } catch (error) {
     toast({
       title: "Erro ao carregar filtros",
@@ -62,373 +318,230 @@ const fetchFilters = async () => {
     loading.value = false;
   }
 };
-onMounted(fetchFilters);
-const handleSector = async ()=>{
-  if(!selectedSector.value) return;
-  currentIndex.value =  selectedSector.value-1
-}
-const compare = ref(false);
-const selectedComparisonProject = ref(null);
-const fetchFinancials = async () => {
+const fetchCosts = async () => {
   try {
-    loading.value = true;
-    const response = await api.get("/financial/", {
-      params: {
-        start_date: selectedRange.value.start,
-        end_date: selectedRange.value.end,
-        filter_id: selectedFilterId.value,
-        compare: selectedComparisonProject.value,
-      },
+    loadingCosts.value = true;
+    const response = await api.get("/financial/cost-centers", {
+      params: { filter_id: selectedFilterId.value },
     });
-    financialData.value = response.data.data;
-    console.log(financialData.value)
-}catch (error){
-    console.log(error)
+    costs.value = response.data.data.data.map((cost) => ({
+      id: cost.id,
+      name: cost.name,
+      sector: cost.sector.name,
+    }));
+  } catch (error) {
+    console.error("Erro ao buscar centros de custo:", error);
+  } finally {
+    loadingCosts.value = false;
   }
-  finally {
-    loading.value = false;
-    if (selectedComparisonProject.value) {
-     compare.value = true
-    }else{
-      compare.value = false
-    }
+};
+const pages = ref({
+  current: 1,
+  total: 0,
+  last: 0,
+});
+const fetchFinancials = async (current = pages.value.current) => {
+  try {
+    loadingFinancials.value = true;
+    const response = await api.get(
+      `/financial/financial-transactions?page=${current}`,
+      {
+        params: {
+          filter_id: selectedFilterId.value,
+          name: nameFinancial.value,
+          sort_by: orderId.value,
+          sort_order: order.value ? "asc" : "desc",
+        },
+      }
+    );
+    financial.value = response.data.data.data.map((financial) => ({
+      id: financial.id,
+      costCenter: financial.cost_center.name,
+      category_type: financial.category_type,
+      amount: financial.amount,
+      date: financial.date,
+      description: financial.description,
+      percentage: financial.percentage,
+      type: financial.type,
+    }));
+    pages.value = {
+      current: response.data.data.current_page,
+      total: response.data.data.total,
+      last: response.data.data.last_page,
+    };
+  } catch (error) {
+    console.error("Erro ao buscar transações financeiras:", error);
+  } finally {
+    loadingFinancials.value = false;
   }
-}
-
-
-function valueFormatter(tick: number | Date) {
-
-  return typeof tick === 'number'
-      ? `R$ ${new Intl.NumberFormat('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(tick)}`
-      : ''
-
-}
-function cancelCompare(){
-  compare.value = false;
-  selectedComparisonProject.value = null
-}
+};
+onMounted(() => {
+  fetchFilters();
+});
+watch(selectedFilterId, () => {
+  fetchCosts();
+  fetchFinancials();
+});
+const nameFinancial = ref();
+const handleFinancialName = (text: string) => {
+  nameFinancial.value = text;
+};
 </script>
 
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Financeiro</h2>
+      <h2 class="text-2xl font-bold tracking-tight">
+        Gerenciamento Financeiro
+      </h2>
       <p class="text-muted-foreground">
-        Visão geral das receitas, despesas e métricas financeiras em um período específico.
+        Adicione e gerencie custos, receitas e métricas financeiras para
+        melhorar o controle do seu orçamento.
       </p>
     </div>
-
-    <div   v-if="projectFilters && projectFilters.length" class="flex sm:flex-row flex-col w-full items-start gap-2">
-      <Select v-model="selectedFilterId">
-        <SelectTrigger class="sm:w-[250px] w-full">
-          <SelectValue placeholder="Selecione um grupo ou projeto" />
-        </SelectTrigger>
-        <SelectContent>
-          <template v-for="(item, index) in projectFilters" :key="index">
-            <SelectItem :value="item.id">{{ item.label }}</SelectItem>
-          </template>
-        </SelectContent>
-      </Select>
-      <DateRangePicker v-model="selectedRange" />
-      <Button class="sm:w-fit w-full" @click="fetchFinancials">Filtrar</Button>
-    </div>
-    <div>
-      <div  class="flex gap-4 my-4 items-center">
-
-        <Select v-model="selectedComparisonProject" id="selectedComparisonProject" class="w-full sm:w-[250px]">
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione um projeto para comparar"/>
+    <div class="space-y-6">
+      <div
+        v-if="projectFilters && projectFilters.length"
+        class="flex sm:flex-row flex-col w-full items-start gap-2"
+      >
+        <Select v-model="selectedFilterId">
+          <SelectTrigger class="sm:w-[250px] w-full">
+            <SelectValue placeholder="Selecione um grupo ou projeto" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="(project, index) in projectFilters"   :key="index" :value="project.id">
-              {{ project.label }}
-            </SelectItem>
+            <template v-for="(item, index) in projectFilters" :key="index">
+              <SelectItem :value="item.id">{{ item.label }}</SelectItem>
+            </template>
           </SelectContent>
         </Select>
-        <Button @click="fetchFinancials">
-          Comparar
-        </Button>
-        <Button @click="cancelCompare" class="ml-2">
-          Cancelar Comparação
-        </Button>
-    </div>
-
-    </div>
-
-    <div v-if="loading" class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8 lg:grid-cols-3 xl:grid-cols-4 mb-3">
-      <Card v-for="n in 9" :key="n">
-        <div class="p-4 rounded shadow">
-          <div class="flex justify-between items-center mb-2">
-            <Skeleton class="h-4 w-1/3" />
-            <Skeleton class="h-4 w-5" />
-          </div>
-          <Skeleton class="h-8 w-2/3 mb-2" />
-          <Skeleton class="h-4 w-1/2" />
-        </div>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Financeiro</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CustomDataTable
+            :loading="loadingFinancials"
+            :data="financial"
+            :columns="columns"
+            :find="fetchFinancials"
+            :update-text="handleFinancialName"
+            placeholder="Buscar por descrição..."
+          />
+          <CustomPagination :select-page="fetchFinancials" :pages="pages" />
+        </CardContent>
+        <CardFooter class="flex justify-start">
+          <Button @click="openSheet('financeiro')">Novo Registro</Button>
+        </CardFooter>
       </Card>
-
     </div>
-
-    <div  v-else-if="!loading && !compare" class="flex flex-col gap-4 w-full">
-      <h3 class="text-xl font-bold tracking-tight">
-        DRE
-      </h3>
-      <div class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8   xl:grid-cols-4 mb-3">
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Receita Bruta</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl font-bold truncate">
-              {{ $toCurrency(financialData.receita_bruta) }}
-            </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
-          </CardContent>
-
-        </Card>
-
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Receita Líquida</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl font-bold truncate">
-              {{ $toCurrency(financialData.receita_liquida) }}
-            </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Lucro Bruto</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl font-bold truncate">
-              {{ $toCurrency(financialData.lucro_bruto) }}
-            </div>
-            <p class="text-xs text-muted-foreground truncate" >
-              % desde o mês anterior
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Lucro Líquido</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl font-bold truncate">
-              {{ $toCurrency(financialData.lucro_liquido) }}
-            </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Despesas Operacionais</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl font-bold truncate">
-              {{ $toCurrency(financialData.despesas_operacionais) }}
-            </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Despesas Outros</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl font-bold truncate">
-              {{ $toCurrency(financialData.despesas_outros) }}
-            </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-      <div  class="grid grid-cols-2 gap-4">
-        <Card v-if="financialData.cost_centers.length >0" class="h-fit space-y-2">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Gastos por Centro de Custos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DonutChart :data="financialData.cost_centers"
-                        index="Centro"
-                        :value-formatter="valueFormatter"
-                        :category="'Valor'"
-
-            />
-          </CardContent>
-        </Card>
-        <Card  v-if="financialData.revenue_cost.length >0">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Receita x Custo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LineChart :data="financialData.revenue_cost" :categories="['Receita','Custo']" index="date"
-            />
-          </CardContent>
-        </Card>
-      </div>
-    </div>    <!-- Comparação -->
-    <div v-else>
-      <div class="grid grid-cols-2 gap-4 ">
-        <div class="col-span-1">
-          <h3 class="text-xl font-bold tracking-tight truncate">
-            DRE
-          </h3>
-          <div class="flex gap-4 flex-wrap">
-            <Card>
-              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle class="text-sm font-medium truncate">Receita Bruta</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div class="text-2xl w-full font-bold text-ellipsis overflow-hidden whitespace-nowrap truncate">
-                  {{ $toCurrency(financialData[0].receita_bruta) }}
-                </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle class="text-sm font-medium truncate">Receita Líquida</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div class="text-2xl font-bold truncate">
-                  {{ $toCurrency(financialData[0].receita_liquida) }}
-                </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle class="text-sm font-medium truncate">Lucro Bruto</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div class="text-2xl font-bold truncate">
-                  {{ $toCurrency(financialData[0].lucro_bruto) }}
-                </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle class="text-sm font-medium truncate">Lucro Líquido</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div class="text-2xl font-bold truncate">
-                  {{ $toCurrency(financialData[0].lucro_liquido) }}
-                </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-<!--          <div class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3">-->
-<!--            <Card>-->
-<!--              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">-->
-<!--                <CardTitle class="text-sm font-medium truncate">Gastos por Centro de Custos</CardTitle>-->
-<!--              </CardHeader>-->
-<!--              <CardContent>-->
-<!--                <DonutChart :data="financialData[0].cost_centers" index="name" :category="'cost'" :type="'pie'"/>-->
-<!--              </CardContent>-->
-<!--            </Card>-->
-<!--          </div>-->
-        </div>
-        <div class=" col-span-1">
-          <h3 class="text-xl font-bold tracking-tight truncate">
-            DRE
-          </h3>
-          <div class="flex gap-4 flex-wrap">
-            <Card>
-              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle class="text-sm font-medium truncate">Receita Bruta</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div class="text-2xl font-bold truncate">
-                  {{ $toCurrency(financialData[1].receita_bruta) }}
-                </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle class="text-sm font-medium truncate">Receita Líquida</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div class="text-2xl font-bold truncate">
-                  {{ $toCurrency(financialData[1].receita_liquida) }}
-                </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle class="text-sm font-medium truncate">Lucro Bruto</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div class="text-2xl font-bold truncate">
-                  {{ $toCurrency(financialData[1].lucro_bruto) }}
-                </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle class="text-sm font-medium truncate">Lucro Líquido</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div class="text-2xl font-bold truncate">
-                  {{ $toCurrency(financialData[1].lucro_liquido) }}
-                </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-<!--          <div class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3">-->
-<!--            <Card>-->
-<!--              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">-->
-<!--                <CardTitle class="text-sm font-medium truncate">Gastos por Centro de Custos</CardTitle>-->
-<!--              </CardHeader>-->
-<!--              <CardContent>-->
-<!--                <DonutChart :data="financialData[1].cost_centers" index="name" :category="'cost'" :type="'pie'"/>-->
-<!--              </CardContent>-->
-<!--            </Card>-->
-<!--          </div>-->
-        </div>
-      </div>
-    </div>
-
-
   </div>
+
+  <Sheet v-model:open="showModal">
+    <SheetContent position="right" size="lg">
+      <SheetHeader>
+        <SheetTitle>
+          {{ isEditing ? `Editar ${form.type}` : `Novo ${form.type}` }}
+        </SheetTitle>
+        <SheetDescription>
+          {{
+            isEditing
+              ? `Edite as informações do ${form.type}.`
+              : `Crie um novo ${form.type}.`
+          }}
+        </SheetDescription>
+      </SheetHeader>
+
+      <form @submit.prevent="submitFinancial()">
+        <div class="grid gap-4 py-4">
+          <template v-if="form.type === 'financeiro'">
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="cost_center_id">Centro de Custo</Label>
+              <Select v-model="financialForm.cost_center_id">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Selecione um centro de custo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="cost in costs"
+                    :key="cost.id"
+                    :value="cost.id"
+                  >
+                    {{ cost.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="type">Tipo</Label>
+              <Select v-model="financialForm.type">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cost">Custo</SelectItem>
+                  <SelectItem value="revenue">Receita</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="category_type">Categoria</Label>
+              <Select v-model="financialForm.category_type">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Selecione a categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Fixo</SelectItem>
+                  <SelectItem value="variable">Variável</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="percentage">Porcentagem (%)</Label>
+              <Input
+                id="percentage"
+                v-model="financialForm.percentage"
+                type="number"
+                placeholder="Opcional"
+                class="col-span-3"
+                min="0"
+              />
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="amount">Valor</Label>
+              <Input
+                id="amount"
+                v-model="financialForm.amount"
+                type="number"
+                placeholder="Digite o valor"
+                class="col-span-3"
+                required
+              />
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="description">Descrição</Label>
+              <Input
+                id="description"
+                v-model="financialForm.description"
+                placeholder="Digite uma descrição"
+                class="col-span-3"
+              />
+            </div>
+          </template>
+        </div>
+
+        <SheetFooter>
+          <Button type="submit" :disabled="loadingSub">
+            <LucideSpinner
+              v-if="loadingSub"
+              class="mr-2 h-4 w-4 animate-spin"
+            />
+            {{ loadingSub ? "Salvando..." : isEditing ? "Salvar" : "Criar" }}
+          </Button>
+        </SheetFooter>
+      </form>
+    </SheetContent>
+  </Sheet>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

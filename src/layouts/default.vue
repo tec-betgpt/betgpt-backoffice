@@ -44,8 +44,6 @@ import {
   LineChart,
   Building2,
   Users2,
-  ExternalLink,
-  UserCog,
   Bot,
   LogOut,
   Package2,
@@ -56,11 +54,17 @@ import {
   Album,
   Wrench,
   FolderDot,
+  BadgeDollarSign,
   ChevronRight,
   SquareStack,
   CircleDollarSign,
+  ExternalLink,
   Sun,
   Moon,
+  Briefcase,
+  DollarSign,
+  DollarSignIcon,
+  UserCog,
 } from "lucide-vue-next";
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -188,13 +192,30 @@ const navMenu = computed(() => {
       show: true,
       type: "report",
     },
+
     {
-      name: "Financeiro",
-      url: { name: "managerfinancial" },
-      icon: CircleDollarSign,
-      show: true,
-      type: "management",
+      name: "Setor",
+      url: { name: "sector" },
+      icon: Briefcase,
+      show: authStore.user?.access_type === "member",
+      type: "financial",
     },
+
+    {
+      name: "Custo",
+      url: { name: "cost" },
+      icon: DollarSign,
+      show: authStore.user?.access_type === "member",
+      type: "financial",
+    },
+    {
+      name: "Entradas e Saídas",
+      url: { name: "financial" },
+      icon: DollarSignIcon,
+      show: authStore.user?.access_type === "member",
+      type: "financial",
+    },
+
     {
       name: "Jogadores",
       url: { name: "players" },
@@ -237,6 +258,11 @@ const navCategory = computed(() => {
       name: "Relatórios",
       icon: FolderDot,
       options: navMenu.value.filter((item) => item.type === "report"),
+    },
+    {
+      name: "Financeiro",
+      icon: BadgeDollarSign,
+      options: navMenu.value.filter((item) => item.type === "financial"),
     },
   ];
   return category;
