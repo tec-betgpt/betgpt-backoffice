@@ -55,6 +55,7 @@ import {
   Wrench,
   FolderDot,
   BadgeDollarSign,
+  Rows3,
   ChevronRight,
   SquareStack,
   CircleDollarSign,
@@ -204,7 +205,7 @@ const navMenu = computed(() => {
     {
       name: "Custo",
       url: { name: "cost" },
-      icon: DollarSign,
+      icon: Rows3,
       show: authStore.user?.access_type === "member",
       type: "financial",
     },
