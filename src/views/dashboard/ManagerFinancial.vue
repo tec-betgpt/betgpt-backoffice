@@ -28,9 +28,10 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 
 const authStore = useAuthStore();
 interface FinancialData {
+  id: number;
   costCenter: string;
-  category: string;
-  value: string;
+  category_type: string;
+  amount: string;
   date: string;
   description: string;
   percentage:string;
@@ -46,17 +47,21 @@ function handlerOrder(column:string,direction:boolean,){
 }
 const columnHelper = createColumnHelper<FinancialData >()
 const columns = [
+    columnHelper.accessor('id', {
+      header({column}) {return createHeaderButton('ID', 'id',orderId.value,order.value,handlerOrder)},
+      cell: ({row}) => h('div', {}, row.getValue("id"))
+    }),
   columnHelper.accessor('costCenter', {
     header: 'Centro de Custo',
     cell: ({row}) => h('div', {class: "capitalize"}, row.getValue("costCenter"))
   }),
-  columnHelper.accessor('category', {
+  columnHelper.accessor('category_type', {
     header: 'Categoria',
-    cell: ({row}) => h('div', {class: "capitalize"}, row.getValue("category")=='fixed'?"Fixa":"Variavel")
+    cell: ({row}) => h('div', {class: "capitalize"}, row.getValue("category_type")=='fixed'?"Fixa":"Variavel")
   }),
-  columnHelper.accessor('value', {
+  columnHelper.accessor('amount', {
     header({column}) {return createHeaderButton('Valor', 'value',orderId.value,order.value,handlerOrder)},
-    cell: ({row}) => h('div', {}, toCurrency(Number.parseInt(row.getValue("value"))))
+    cell: ({row}) => h('div', {}, toCurrency(Number.parseInt(row.getValue("amount"))))
   }),
   columnHelper.accessor('date', {
     header({column}) {return createHeaderButton("Data", 'date',orderId.value,order.value,handlerOrder)},
@@ -141,7 +146,17 @@ const openSheet = (type) => {
 const handleEdit = (item, type) => {
   form.value.type = type;
   isEditing.value = true;
-    financialForm.value = { ...item };
+  financialForm.value = {
+    id: item.id,
+    cost_center_id: item.cost_center_id || null,
+    type: item.type || '',
+    category_type: item.category_type || '',
+    percentage: item.percentage || 0,
+    amount: item.amount || null,
+    date: item.date || '',
+    description: item.description || '',
+    user_id: item.user_id || null
+  };
 
   showModal.value = true;
 };
@@ -171,6 +186,8 @@ const deleteFinancial = async (id: number) => {
 };
 
 const submitFinancial = async () => {
+  
+  
   try {
     loadingSub.value = true;
     if (isEditing.value) {
@@ -187,15 +204,8 @@ const submitFinancial = async () => {
   }
 };
 
-const submit = () => {
 
-    submitFinancial();
 
-};
-
-const edit = () => {
-  submit();
-};
 const loadingSub = ref(false);
 const showModal = ref(false);
 const isEditing = ref(false);
@@ -271,9 +281,11 @@ const fetchFinancials = async (current = pages.value.current) => {
     });
     financial.value = response.data.data.data.map(financial =>
     (
-        {costCenter:financial.cost_center.name,
-          category:financial.category_type,
-          value:financial.amount,
+        {
+          id:financial.id,
+          costCenter:financial.cost_center.name,
+          category_type:financial.category_type,
+          amount:financial.amount,
           date:financial.date,
           description:financial.description,
           percentage:financial.percentage,
@@ -282,7 +294,8 @@ const fetchFinancials = async (current = pages.value.current) => {
     pages.value = {
       current: response.data.data.current_page,
       total: response.data.data.total,
-      last: response.data.data.last_page,}
+      last: response.data.data.last_page,
+    }
 
   } catch (error) {
     console.error('Erro ao buscar transações financeiras:', error);
@@ -353,7 +366,7 @@ const handleFinancialName = (text: string) => {
         </SheetDescription>
       </SheetHeader>
 
-      <form @submit.prevent="isEditing ? edit() : submit()">
+      <form @submit.prevent="submitFinancial()">
         <div class="grid gap-4 py-4">
           <template v-if="form.type === 'financeiro'">
             <div class="grid grid-cols-4 items-center gap-4">
