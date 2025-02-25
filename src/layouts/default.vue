@@ -54,12 +54,17 @@ import {
   Album,
   Wrench,
   FolderDot,
+  BadgeDollarSign,
   ChevronRight,
   SquareStack,
   CircleDollarSign,
   ExternalLink,
   Sun,
-  Moon, Briefcase, DollarSign, DollarSignIcon, UserCog,
+  Moon,
+  Briefcase,
+  DollarSign,
+  DollarSignIcon,
+  UserCog,
 } from "lucide-vue-next";
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -190,25 +195,25 @@ const navMenu = computed(() => {
 
     {
       name: "Setor",
-      url: {name: "sector"},
+      url: { name: "sector" },
       icon: Briefcase,
       show: authStore.user?.access_type === "member",
-      type: "management",
+      type: "financial",
     },
 
     {
       name: "Custo",
-      url: {name: "cost"},
+      url: { name: "cost" },
       icon: DollarSign,
       show: authStore.user?.access_type === "member",
-      type: "management",
+      type: "financial",
     },
     {
-      name: "Financeiro",
-      url: {name: "financialManager"},
+      name: "Entradas e Saídas",
+      url: { name: "financial" },
       icon: DollarSignIcon,
       show: authStore.user?.access_type === "member",
-      type: "management",
+      type: "financial",
     },
 
     {
@@ -232,7 +237,6 @@ const navMenu = computed(() => {
       show: true,
       type: "utils",
     },
-
   ];
 
   return menu.filter((item) => item.show);
@@ -254,6 +258,11 @@ const navCategory = computed(() => {
       name: "Relatórios",
       icon: FolderDot,
       options: navMenu.value.filter((item) => item.type === "report"),
+    },
+    {
+      name: "Financeiro",
+      icon: BadgeDollarSign,
+      options: navMenu.value.filter((item) => item.type === "financial"),
     },
   ];
   return category;

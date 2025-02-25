@@ -24,7 +24,6 @@ import ConfigurationIntegrations from "@/views/configurations/Integrations.vue";
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
 import Texts from "@/views/dashboard/Texts.vue";
 import Financial from "@/views/dashboard/Financial.vue";
-import ManagerFinancial from "@/views/dashboard/ManagerFinancial.vue";
 import Sectors from "@/views/dashboard/Sectors.vue";
 import Costs from "@/views/dashboard/Costs.vue";
 import Roles from "@/views/dashboard/Roles.vue";
@@ -230,24 +229,14 @@ const routes = [
     },
   },
   {
-    path: "/financial",
-    name: "financial",
-    component: Financial,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      title: "Financeiro",
-    }
-  },
-  {
-    path:"/sector",
-    name:"sector",
-    component:Sectors,
+    path: "/sector",
+    name: "sector",
+    component: Sectors,
     meta: {
       layout: DefaultLayout,
       requiresAuth: true,
       title: "Setores",
-    }
+    },
   },
 
   {
@@ -294,9 +283,9 @@ const routes = [
     },
   },
   {
-    path: "/financialManager",
-    name: "financialManager",
-    component: ManagerFinancial,
+    path: "/financial",
+    name: "financial",
+    component: Financial,
     meta: {
       layout: DefaultLayout,
       requiresAuth: true,
