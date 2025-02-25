@@ -58,7 +58,7 @@ import {
   SquareStack,
   CircleDollarSign,
   Sun,
-  Moon,
+  Moon, Briefcase, DollarSign,
 } from "lucide-vue-next";
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -179,12 +179,28 @@ const navMenu = computed(() => {
       show: true,
       type: "report",
     },
+
     {
-      name:"Gerenciador Financeiro",
-      url: { name: "managerfinancial" },
-      icon: CircleDollarSign,
-      show: true,
-      type: "management"
+      name: "Setor",
+      url: {name: "sector"},
+      icon: Briefcase,
+      show: authStore.user?.access_type === "member",
+      type: "management",
+    },
+
+    {
+      name: "Custo",
+      url: {name: "cost"},
+      icon: Bot,
+      show: authStore.user?.access_type === "member",
+      type: "management",
+    },
+    {
+      name: "Financeiro",
+      url: {name: "financialManager"},
+      icon: Bot,
+      show: authStore.user?.access_type === "member",
+      type: "management",
     },
     {
       name: "IA",

@@ -15,7 +15,8 @@ import {Loader2 as LucideSpinner} from "lucide-vue-next";
 import { useProjectStore } from "@/stores/project";
 import {toast} from "@/components/ui/toast";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
-import {MoreHorizontal} from "lucide-vue-next";
+import {MoreHorizontal, ArrowDown, ArrowUp} from "lucide-vue-next";
+import { CaretSortIcon } from "@radix-icons/vue";
 
 import {
   DropdownMenu,
@@ -24,6 +25,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import moment from "moment/moment";
+import { toCurrency } from "@/filters/currencyFilter";
 
 const authStore = useAuthStore();
 interface FinancialData {
@@ -45,15 +48,15 @@ const columns = [
   }),
   columnHelper.accessor('category', {
     header: 'Categoria',
-    cell: ({row}) => h('div', {class: "capitalize"}, row.getValue("category"))
+    cell: ({row}) => h('div', {class: "capitalize"}, row.getValue("category")=='fixed'?"Fixa":"Variavel")
   }),
   columnHelper.accessor('value', {
     header: 'Valor',
-    cell: ({row}) => h('div', {}, (row.getValue("value")))
+    cell: ({row}) => h('div', {}, toCurrency(Number.parseInt(row.getValue("value"))))
   }),
   columnHelper.accessor('date', {
     header: 'Data',
-    cell: ({row}) => h('div', {}, row.getValue("date"))
+    cell: ({row}) => h('div', {},     moment(row.getValue("date")).format("DD/MM/YYYY"))
   }),
   columnHelper.accessor('description', {
     header: 'Descrição',
@@ -65,7 +68,7 @@ const columns = [
   }),
   columnHelper.accessor('type', {
     header: 'Tipo',
-    cell: ({row}) => h('div', {}, row.getValue("type"))
+    cell: ({row}) => h('div', {}, row.getValue("type")=='revenue'?"Receita":"Custo")
   }),
   columnHelper.display({
     id: "actions",
@@ -197,7 +200,9 @@ const costColumns = [
 const sectorColumnHelper = createColumnHelper<SectorData>();
 const sectorColumns = [
   sectorColumnHelper.accessor('id', {
-    header: 'ID',
+    header({ column }) {
+      return createHeaderButton('ID', 'id');
+    },
     cell: ({row}) => h('div', {}, row.getValue('id')),
   }),
   sectorColumnHelper.accessor('name', {
@@ -265,7 +270,33 @@ const form = ref({ type: '' });
 const sectorForm = ref({});
 const costForm = ref({});
 const financialForm = ref({});
-
+const orderId = ref('name');
+const order = ref(false);
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+      Button,
+      {
+        variant: orderId.value === columnKey ? "default" : "ghost",
+        onClick: () => {
+          orderId.value = columnKey;
+          order.value = !order.value;
+          fetchSectors()
+        },
+        class: "h-fit text-pretty my-1",
+      },
+      () => [
+        label,
+        h(
+            orderId.value === columnKey
+                ? order.value
+                    ? ArrowDown
+                    : ArrowUp
+                : CaretSortIcon,
+            { class: "" }
+        ),
+      ]
+  );
+}
 const openSheet = (type) => {
   form.value.type = type;
   isEditing.value = false;
@@ -433,7 +464,6 @@ const loadingSectors = ref(true);
 const loadingCosts = ref(true);
 const loadingFinancials = ref(true);
 const loading = ref(true);
-const projectStore = useProjectStore();
 const projectFilters = ref([]);
 const selectedFilterId = ref(null);
 const fetchFilters = async () => {
@@ -463,7 +493,6 @@ const fetchFilters = async () => {
       variant: "destructive",
     });
   } finally {
-    await  fetchSectors()
     loading.value = false;
 
   }
@@ -471,8 +500,16 @@ const fetchFilters = async () => {
 const fetchSectors = async () => {
   try {
     loadingSectors.value = true;
-    const response = await api.get('/financial/sector', {params: {filter_id: selectedFilterId.value}});
-    sectors.value = response.data.data.map(sector =>
+    const response = await api.get('/financial/sector', {
+      params: {
+        filter_id: selectedFilterId.value,
+        find_name:nameSector.value,
+        sort_by: 'name',
+        sort_order:''
+      }
+    });
+    console.log(response.data.data.data)
+    sectors.value = response.data.data.data.map(sector =>
         (
           {id:sector.id,name:sector.name,project:sector.project.name}
         ))
@@ -486,23 +523,35 @@ const fetchSectors = async () => {
 const fetchCosts = async () => {
   try {
     loadingCosts.value = true;
-    const response = await api.get('/financial/cost-centers', {params: {filter_id: selectedFilterId.value}});
-    costs.value = response.data.data.map(cost =>
+    const response = await api.get('/financial/cost-centers',
+        {params: {filter_id: selectedFilterId.value}});
+    costs.value = response.data.data.data.map(cost =>
     (
         {id:cost.id,name:cost.name,sector:cost.sector.name}
       ))
-    console.log(costs.value)
   } catch (error) {
     console.error('Erro ao buscar centros de custo:', error);
   } finally {
     loadingCosts.value = false;
   }
 };
+const pages = ref({
+  current: 1,
+  total: 0,
+  last: 0,
+});
 const fetchFinancials = async () => {
   try {
     loadingFinancials.value = true;
-    const response = await api.get('/financial/financial-transactions');
-    financial.value = response.data.data.map(financial =>
+    const response = await api.get('/financial/financial-transactions',{
+      params: {
+        filter_id: selectedFilterId.value,
+        find_name:nameFinancial.value,
+        sort_by: orderId.value,
+        sort_order: order.value ? 'asc' : 'desc'
+      }
+    });
+    financial.value = response.data.data.data.map(financial =>
     (
         {costCenter:financial.cost_center.name,
           category:financial.category_type,
@@ -512,6 +561,10 @@ const fetchFinancials = async () => {
           percentage:financial.percentage,
           type:financial.type}
       ))
+    pages.value = {
+      current: response.data.data.current_page,
+      total: response.data.data.total,
+      last: response.data.data.last_page,}
 
   } catch (error) {
     console.error('Erro ao buscar transações financeiras:', error);
@@ -523,10 +576,24 @@ onMounted(() => {
   fetchFilters()
 });
 watch(selectedFilterId,()=>{
-  fetchSectors();
+
   fetchCosts();
   fetchFinancials();
 })
+const nameSector = ref()
+const handleName = (text: string) => {
+  nameSector.value = text;
+};
+
+const nameCost = ref()
+const handleCostName = (text: string) => {
+  nameCost.value = text;
+};
+
+const nameFinancial = ref()
+const handleFinancialName = (text: string) => {
+  nameFinancial.value = text;
+};
 </script>
 
 <template>
@@ -550,32 +617,15 @@ watch(selectedFilterId,()=>{
           </SelectContent>
         </Select>
       </div>
-      <Card >
-
+      <Card>
+        <CardHeader>
+          <CardTitle>Financeiro</CardTitle>
+        </CardHeader>
         <CardContent>
-
-          <CustomDataTable :loading="loadingSectors" :data="sectors" :columns="sectorColumns"/>
+          <CustomDataTable :loading="loadingFinancials" :data="financial" :columns="columns" :find="fetchFinancials" :update-text="handleFinancialName"/>
         </CardContent>
         <CardFooter class="flex justify-start">
-          <div class="flex gap-4 my-4 items-center">
-                    <Button @click="openSheet('setor')">Criar Setor</Button>
-          </div>
-        </CardFooter>
-      </Card>
-      <Card v-if="sectors.length > 0">
-      <CardContent>
-        <CustomDataTable :loading="loadingCosts" :data="costs" :columns="costColumns"/>
-      </CardContent>
-      <CardFooter class="flex justify-start">
-        <Button v-if="sectors.length > 0" @click="openSheet('custo')">Criar Custo</Button>
-      </CardFooter>
-    </Card>
-      <Card v-if="costs.length > 0">
-        <CardContent>
-          <CustomDataTable :loading="loadingFinancials" :data="financial" :columns="columns"/>
-        </CardContent>
-        <CardFooter class="flex justify-start">
-          <Button v-if="costs.length > 0" @click="openSheet('financeiro')">Criar Financeiro</Button>
+          <Button @click="openSheet('financeiro')">Criar Financeiro</Button>
         </CardFooter>
       </Card>
 
@@ -597,62 +647,6 @@ watch(selectedFilterId,()=>{
 
       <form @submit.prevent="isEditing ? edit() : submit()">
         <div class="grid gap-4 py-4">
-          <template v-if="form.type === 'setor'">
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="name">Nome</Label>
-              <Input id="name" v-model="sectorForm.name" placeholder="Digite o nome" class="col-span-3" required />
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-<!--              <Label for="project_id">Projeto</Label>-->
-<!--              <div v-if="projectFilters && projectFilters.length" class="flex sm:flex-row flex-col w-full items-start gap-2">-->
-<!--                <Select v-model="sectorForm.project_id">-->
-<!--                  <SelectTrigger class="sm:w-[250px] w-full">-->
-<!--                    <SelectValue placeholder="Selecione um grupo ou projeto" />-->
-<!--                  </SelectTrigger>-->
-<!--                  <SelectContent>-->
-<!--                    <template v-for="(item, index) in projectFilters" :key="index">-->
-<!--                      <SelectItem :value="item.id">{{ item.label }}</SelectItem>-->
-<!--                    </template>-->
-<!--                  </SelectContent>-->
-<!--                </Select>-->
-<!--              </div>-->
-            </div>
-          </template>
-
-          <template v-if="form.type === 'custo'">
-            <div class="grid grid-cols-4 items-center gap-4"><Label for="name">Categoria</Label>
-              <div class="col-span-3">
-                <Select v-model="costForm.name">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria"/>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Marketing e Vendas">Marketing e Vendas</SelectItem>
-                    <SelectItem value="Pessoal">Pessoal</SelectItem>
-                    <SelectItem value="Administrativas">Administrativas</SelectItem>
-                    <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                    <SelectItem value="Outros">Outros</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input v-if="costForm.name === 'Outros'" v-model="costForm.otherName" placeholder="Digite o nome"
-                       class="mt-2"/>
-              </div>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="sector_id">Setor</Label>
-              <Select v-model="costForm.sector_id">
-                <SelectTrigger class="col-span-3">
-                  <SelectValue placeholder="Selecione um setor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="sector in sectors" :key="sector.id" :value="sector.id">
-                    {{ sector.name }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </template>
-
           <template v-if="form.type === 'financeiro'">
             <div class="grid grid-cols-4 items-center gap-4">
               <Label for="cost_center_id">Centro de Custo</Label>

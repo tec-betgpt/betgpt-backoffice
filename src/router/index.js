@@ -25,6 +25,8 @@ import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmail
 import Texts from "@/views/dashboard/Texts.vue";
 import Financial from "@/views/dashboard/Financial.vue";
 import ManagerFinancial from "@/views/dashboard/ManagerFinancial.vue";
+import Sectors from "@/views/dashboard/Sectors.vue";
+import Costs from "@/views/dashboard/Costs.vue";
 
 const routes = [
   {
@@ -235,15 +237,36 @@ const routes = [
     }
   },
   {
-    path:"/managerfinancial",
-    name:"managerfinancial",
-    component:ManagerFinancial,
+    path:"/sector",
+    name:"sector",
+    component:Sectors,
     meta: {
       layout: DefaultLayout,
       requiresAuth: true,
-      title: "Gerenciamento Financeiro",
+      title: "Setores",
     }
-  }
+  },
+
+  {
+    path: "/cost",
+    name: "cost",
+    component: Costs,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Custos",
+    },
+  },
+  {
+    path: "/financialManager",
+    name: "financialManager",
+    component: ManagerFinancial,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Financeiro",
+    },
+  },
 ];
 
 const router = createRouter({
