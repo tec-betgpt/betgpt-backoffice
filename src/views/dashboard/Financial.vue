@@ -81,7 +81,6 @@ const fetchFinancials = async () => {
       },
     });
     financialData.value = response.data.data;
-    console.log(financialData.value)
 }catch (error){
     console.log(error)
   }
@@ -106,6 +105,7 @@ function valueFormatter(tick: number | Date) {
 function cancelCompare(){
   compare.value = false;
   selectedComparisonProject.value = null
+  fetchFinancials()
 }
 </script>
 
@@ -168,10 +168,9 @@ function cancelCompare(){
       </Card>
 
     </div>
-
-    <div  v-else-if="!loading && !compare" class="flex flex-col gap-4 w-full">
+    <div v-else-if="!loading && !compare" class="flex flex-col gap-4 w-full">
       <h3 class="text-xl font-bold tracking-tight">
-        DRE
+        {{projectFilters.find(value => value.id == selectedFilterId).label }}
       </h3>
       <div class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8   xl:grid-cols-4 mb-3">
         <Card>
@@ -182,25 +181,20 @@ function cancelCompare(){
             <div class="text-2xl font-bold truncate">
               {{ $toCurrency(financialData.receita_bruta) }}
             </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
           </CardContent>
 
         </Card>
 
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Receita Líquida</CardTitle>
+            <CardTitle class="text-sm font-medium">Custos Operacionais</CardTitle>
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold truncate">
-              {{ $toCurrency(financialData.receita_liquida) }}
+              {{ $toCurrency(financialData.custos_operacionais) }}
             </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
           </CardContent>
+
         </Card>
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -210,9 +204,6 @@ function cancelCompare(){
             <div class="text-2xl font-bold truncate">
               {{ $toCurrency(financialData.lucro_bruto) }}
             </div>
-            <p class="text-xs text-muted-foreground truncate" >
-              % desde o mês anterior
-            </p>
           </CardContent>
         </Card>
         <Card>
@@ -223,9 +214,6 @@ function cancelCompare(){
             <div class="text-2xl font-bold truncate">
               {{ $toCurrency(financialData.lucro_liquido) }}
             </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
           </CardContent>
         </Card>
 
@@ -237,11 +225,19 @@ function cancelCompare(){
             <div class="text-2xl font-bold truncate">
               {{ $toCurrency(financialData.despesas_operacionais) }}
             </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Lucro Operacionais</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold truncate">
+              {{ $toCurrency(financialData.lucro_operacional) }}
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-sm font-medium">Despesas Outros</CardTitle>
@@ -250,14 +246,11 @@ function cancelCompare(){
             <div class="text-2xl font-bold truncate">
               {{ $toCurrency(financialData.despesas_outros) }}
             </div>
-            <p class="text-xs text-muted-foreground truncate">
-              % desde o mês anterior
-            </p>
           </CardContent>
         </Card>
       </div>
-      <div  class="grid grid-cols-2 gap-4">
-        <Card v-if="financialData.cost_centers.length >0" class="h-fit space-y-2">
+      <div class="grid grid-cols-2 gap-4">
+        <Card v-if="financialData.cost_centers.length>0" class="h-fit space-y-2">
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-sm font-medium">Gastos por Centro de Custos</CardTitle>
           </CardHeader>
@@ -270,7 +263,7 @@ function cancelCompare(){
             />
           </CardContent>
         </Card>
-        <Card  v-if="financialData.revenue_cost.length >0">
+        <Card v-if="financialData.revenue_cost.length>0">
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-sm font-medium">Receita x Custo</CardTitle>
           </CardHeader>
@@ -283,9 +276,9 @@ function cancelCompare(){
     </div>    <!-- Comparação -->
     <div v-else>
       <div class="grid grid-cols-2 gap-4 ">
-        <div class="col-span-1">
+        <div class="col-span-1 space-y-4">
           <h3 class="text-xl font-bold tracking-tight truncate">
-            DRE
+            {{projectFilters.find(value => value.id == selectedFilterId).label }}
           </h3>
           <div class="flex gap-4 flex-wrap">
             <Card>
@@ -296,9 +289,6 @@ function cancelCompare(){
                 <div class="text-2xl w-full font-bold text-ellipsis overflow-hidden whitespace-nowrap truncate">
                   {{ $toCurrency(financialData[0].receita_bruta) }}
                 </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
               </CardContent>
             </Card>
 
@@ -310,9 +300,6 @@ function cancelCompare(){
                 <div class="text-2xl font-bold truncate">
                   {{ $toCurrency(financialData[0].receita_liquida) }}
                 </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
               </CardContent>
             </Card>
             <Card>
@@ -323,9 +310,6 @@ function cancelCompare(){
                 <div class="text-2xl font-bold truncate">
                   {{ $toCurrency(financialData[0].lucro_bruto) }}
                 </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
               </CardContent>
             </Card>
             <Card>
@@ -336,26 +320,13 @@ function cancelCompare(){
                 <div class="text-2xl font-bold truncate">
                   {{ $toCurrency(financialData[0].lucro_liquido) }}
                 </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
               </CardContent>
             </Card>
           </div>
-<!--          <div class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3">-->
-<!--            <Card>-->
-<!--              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">-->
-<!--                <CardTitle class="text-sm font-medium truncate">Gastos por Centro de Custos</CardTitle>-->
-<!--              </CardHeader>-->
-<!--              <CardContent>-->
-<!--                <DonutChart :data="financialData[0].cost_centers" index="name" :category="'cost'" :type="'pie'"/>-->
-<!--              </CardContent>-->
-<!--            </Card>-->
-<!--          </div>-->
         </div>
-        <div class=" col-span-1">
+        <div class=" col-span-1 space-y-4">
           <h3 class="text-xl font-bold tracking-tight truncate">
-            DRE
+            {{projectFilters.find(value => value.id == selectedComparisonProject).label }}
           </h3>
           <div class="flex gap-4 flex-wrap">
             <Card>
@@ -366,9 +337,6 @@ function cancelCompare(){
                 <div class="text-2xl font-bold truncate">
                   {{ $toCurrency(financialData[1].receita_bruta) }}
                 </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
               </CardContent>
             </Card>
 
@@ -380,9 +348,6 @@ function cancelCompare(){
                 <div class="text-2xl font-bold truncate">
                   {{ $toCurrency(financialData[1].receita_liquida) }}
                 </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
               </CardContent>
             </Card>
             <Card>
@@ -393,9 +358,6 @@ function cancelCompare(){
                 <div class="text-2xl font-bold truncate">
                   {{ $toCurrency(financialData[1].lucro_bruto) }}
                 </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
               </CardContent>
             </Card>
             <Card>
@@ -406,22 +368,9 @@ function cancelCompare(){
                 <div class="text-2xl font-bold truncate">
                   {{ $toCurrency(financialData[1].lucro_liquido) }}
                 </div>
-                <p class="text-xs text-muted-foreground truncate">
-                  % desde o mês anterior
-                </p>
               </CardContent>
             </Card>
           </div>
-<!--          <div class="grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3">-->
-<!--            <Card>-->
-<!--              <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">-->
-<!--                <CardTitle class="text-sm font-medium truncate">Gastos por Centro de Custos</CardTitle>-->
-<!--              </CardHeader>-->
-<!--              <CardContent>-->
-<!--                <DonutChart :data="financialData[1].cost_centers" index="name" :category="'cost'" :type="'pie'"/>-->
-<!--              </CardContent>-->
-<!--            </Card>-->
-<!--          </div>-->
         </div>
       </div>
     </div>

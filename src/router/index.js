@@ -13,9 +13,6 @@ import GoogleAnalytics from "@/views/dashboard/GoogleAnalytics.vue";
 import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
-import Roles from "@/views/dashboard/Roles.vue";
-import Players from "@/views/dashboard/Players.vue";
-import UtmTracks from "@/views/dashboard/UtmTracks.vue";
 import Ia from "@/views/dashboard/Ia.vue";
 
 import ConfigurationLayout from "@/views/configurations/Layout.vue";
@@ -28,6 +25,11 @@ import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmail
 import Texts from "@/views/dashboard/Texts.vue";
 import Financial from "@/views/dashboard/Financial.vue";
 import ManagerFinancial from "@/views/dashboard/ManagerFinancial.vue";
+import Sectors from "@/views/dashboard/Sectors.vue";
+import Costs from "@/views/dashboard/Costs.vue";
+import Roles from "@/views/dashboard/Roles.vue";
+import Players from "@/views/dashboard/Players.vue";
+import UtmTracks from "@/views/dashboard/UtmTracks.vue";
 
 const routes = [
   {
@@ -143,39 +145,6 @@ const routes = [
       title: "Usuários",
     },
   },
-  {
-    path: "/roles",
-    name: "roles",
-    component: Roles,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      permission: "member",
-      title: "Perfis",
-    },
-  },
-  {
-    path: "/players",
-    name: "players",
-    component: Players,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      permission: "member|client",
-      title: "Jogadores",
-    },
-  },
-  {
-    path: "/utm-tracks",
-    name: "utm-tracks",
-    component: UtmTracks,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      permission: "member|client",
-      title: "Rastreamentos UTM",
-    },
-  },
   // Configurations routes
   {
     path: "/configurations",
@@ -268,16 +237,70 @@ const routes = [
       layout: DefaultLayout,
       requiresAuth: true,
       title: "Financeiro",
+    }
+  },
+  {
+    path:"/sector",
+    name:"sector",
+    component:Sectors,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Setores",
+    }
+  },
+
+  {
+    path: "/cost",
+    name: "cost",
+    component: Costs,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Custos",
     },
   },
   {
-    path: "/managerfinancial",
-    name: "managerfinancial",
+    path: "/roles",
+    name: "roles",
+    component: Roles,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member",
+      title: "Perfis",
+    },
+  },
+  {
+    path: "/players",
+    name: "players",
+    component: Players,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member|client",
+      title: "Jogadores",
+    },
+  },
+  {
+    path: "/utm-tracks",
+    name: "utm-tracks",
+    component: UtmTracks,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member|client",
+      title: "Rastreamentos UTM",
+    },
+  },
+  {
+    path: "/financialManager",
+    name: "financialManager",
     component: ManagerFinancial,
     meta: {
       layout: DefaultLayout,
       requiresAuth: true,
-      title: "Gerenciamento Financeiro",
+      title: "Financeiro",
     },
   },
 ];
