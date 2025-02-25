@@ -26,6 +26,9 @@ const props = defineProps({
     type: Function as () => (page: number) => void,
     required: true,
   },
+  per_pages:{
+    required:false
+  }
 });
 
 // Estado reativo local para "p", sincronizado com as props
@@ -59,7 +62,7 @@ const applyFilter = (page: number) => {
       class="w-full"
       v-if="p.last > 1"
       :total="p.total"
-      :items-per-page="10"
+      :items-per-page="per_pages?per_pages:10"
       :sibling-count="1"
       show-edges
       :default-page="1"
