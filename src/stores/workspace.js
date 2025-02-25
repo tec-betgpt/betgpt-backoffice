@@ -15,7 +15,6 @@ export const useWorkspaceStore = defineStore("workspace", {
     async setActiveProject(project) {
       if (!project) return;
 
-      console.log(project);
       this.activeProject = project;
 
       try {
@@ -49,7 +48,7 @@ export const useWorkspaceStore = defineStore("workspace", {
           this.activeProject = favoriteProject;
         }
       } else if (newProjects.length > 0) {
-        this.activeProject = newProjects[0];
+        this.activeProject = null;
       }
     },
   },

@@ -44,6 +44,8 @@ import {
   LineChart,
   Building2,
   Users2,
+  ExternalLink,
+  UserCog,
   Bot,
   LogOut,
   Package2,
@@ -166,6 +168,13 @@ const navMenu = computed(() => {
       type: "management",
     },
     {
+      name: "Perfis",
+      url: { name: "roles" },
+      icon: UserCog,
+      show: authStore.user?.access_type === "member",
+      type: "management",
+    },
+    {
       name: "Textos Motivacionais",
       url: { name: "texts" },
       icon: Album,
@@ -180,11 +189,25 @@ const navMenu = computed(() => {
       type: "report",
     },
     {
-      name:"Gerenciador Financeiro",
+      name: "Financeiro",
       url: { name: "managerfinancial" },
       icon: CircleDollarSign,
       show: true,
-      type: "management"
+      type: "management",
+    },
+    {
+      name: "Jogadores",
+      url: { name: "players" },
+      icon: Users2,
+      type: "management",
+      show: true,
+    },
+    {
+      name: "Rastreamento UTM",
+      url: { name: "utm-tracks" },
+      icon: ExternalLink,
+      type: "management",
+      show: true,
     },
     {
       name: "IA",
@@ -193,7 +216,6 @@ const navMenu = computed(() => {
       show: true,
       type: "utils",
     },
-
   ];
 
   return menu.filter((item) => item.show);

@@ -13,6 +13,9 @@ import GoogleAnalytics from "@/views/dashboard/GoogleAnalytics.vue";
 import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
+import Roles from "@/views/dashboard/Roles.vue";
+import Players from "@/views/dashboard/Players.vue";
+import UtmTracks from "@/views/dashboard/UtmTracks.vue";
 import Ia from "@/views/dashboard/Ia.vue";
 
 import ConfigurationLayout from "@/views/configurations/Layout.vue";
@@ -140,6 +143,39 @@ const routes = [
       title: "Usuários",
     },
   },
+  {
+    path: "/roles",
+    name: "roles",
+    component: Roles,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member",
+      title: "Perfis",
+    },
+  },
+  {
+    path: "/players",
+    name: "players",
+    component: Players,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member|client",
+      title: "Jogadores",
+    },
+  },
+  {
+    path: "/utm-tracks",
+    name: "utm-tracks",
+    component: UtmTracks,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member|client",
+      title: "Rastreamentos UTM",
+    },
+  },
   // Configurations routes
   {
     path: "/configurations",
@@ -232,18 +268,18 @@ const routes = [
       layout: DefaultLayout,
       requiresAuth: true,
       title: "Financeiro",
-    }
+    },
   },
   {
-    path:"/managerfinancial",
-    name:"managerfinancial",
-    component:ManagerFinancial,
+    path: "/managerfinancial",
+    name: "managerfinancial",
+    component: ManagerFinancial,
     meta: {
       layout: DefaultLayout,
       requiresAuth: true,
       title: "Gerenciamento Financeiro",
-    }
-  }
+    },
+  },
 ];
 
 const router = createRouter({
