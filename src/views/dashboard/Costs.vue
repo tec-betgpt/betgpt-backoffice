@@ -20,6 +20,7 @@ import { CaretSortIcon } from "@radix-icons/vue";
 import api from "@/services/api";
 import { toast } from "@/components/ui/toast";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import {createHeaderButton} from "@/components/custom/CustomHeaderButton";
 
 // Alinhando a interface com o que usamos no ManagerFinancial.vue
 interface CostData{
@@ -51,8 +52,17 @@ const showSuccessToast = (title: string, description: string) => {
 const showErrorToast = (title: string, description: string) => {
   toast({ title, description, variant: "destructive" });
 };
+function handlerOrder(column:string,direction:boolean,){
+  if (column) {
+    orderId.value = column;
+    order.value = direction
+  }
+  fetchCosts();
+}
 
-const fetchCosts = async (current:number) => {
+
+const fetchCosts = async (current:number= pages.value.current) => {
+
   try {
     loadingCosts.value = true;
     const response = await api.get(`/financial/cost-centers?page=${nameCost.value && current ? current : nameCost.value ? 1 : current ? current : pages.value.current}`,
@@ -124,11 +134,11 @@ const pages = ref({
 });
 const columns = [
   columnHelper.accessor('id', {
-    header: 'ID',
+    header({}){ return createHeaderButton('ID', 'id',orderId.value,order.value,handlerOrder)},
     cell: ({row}) => h('div', {}, row.getValue('id')),
   }),
   columnHelper.accessor('name', {
-    header: 'Nome',
+    header({}){ return createHeaderButton('Nome', 'name',orderId.value,order.value,handlerOrder)},
     cell: ({row}) => h('div', {class: 'capitalize'}, row.getValue('name')),
   }),
   columnHelper.accessor('sector', {

@@ -21,6 +21,7 @@ import { ArrowDown, ArrowUp, MoreHorizontal } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useProjectStore } from "@/stores/project";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import {createHeaderButton} from "@/components/custom/CustomHeaderButton";
 
 interface SectorData {
   id: number;
@@ -90,13 +91,11 @@ const submitSector = async () => {
 };
 const sectorColumns = [
   sectorColumnHelper.accessor('id', {
-    header({ column }) {
-      return createHeaderButton('ID', 'id');
-    },
+    header({ column }) {return createHeaderButton('ID', 'id',orderId.value,order.value,handlerOrder);},
     cell: ({ row }) => h('div', {}, row.getValue('id')),
   }),
   sectorColumnHelper.accessor('name', {
-    header: 'Nome',
+    header({ column }) {return createHeaderButton('Nome', 'name',orderId.value,order.value,handlerOrder);},
     cell: ({ row }) => h('div', { class: 'capitalize' }, row.getValue('name')),
   }),
   sectorColumnHelper.accessor('project', {
@@ -157,32 +156,6 @@ const sectorColumns = [
   }),
 ];
 
-function createHeaderButton(label: string, columnKey: string) {
-  return h(
-      Button,
-      {
-        variant: orderId.value === columnKey ? "default" : "ghost",
-        onClick: () => {
-          orderId.value = columnKey;
-          order.value = !order.value;
-          fetchSectors();
-        },
-        class: "h-fit text-pretty my-1",
-      },
-      () => [
-        label,
-        h(
-            orderId.value === columnKey
-                ? order.value
-                    ? ArrowDown
-                    : ArrowUp
-                : CaretSortIcon,
-            { class: "" }
-        ),
-      ]
-  );
-}
-
 const handleName = (text: string) => {
   nameSector.value = text;
 };
@@ -211,11 +184,18 @@ const fetchFilters = async () => {
     loadingSectors.value = false;
   }
 };
+function handlerOrder(column:string,direction:boolean,){
+  if (column) {
+    orderId.value = column;
+    order.value = direction
+  }
+  fetchSectors();
+}
 
-const fetchSectors = async (current: number) => {
+const fetchSectors = async (current:number = pages.value.current) => {
   try {
     loadingSectors.value = true;
-    const response = await api.get(`/financial/sector?page=${nameSector.value && current ? current : nameSector.value ? 1 : current ? current : pages.value.current}`, {
+    const response = await api.get(`/financial/sector?page=${current}`, {
       params: {
         filter_id: selectedFilterId.value,
         find_name: nameSector.value,
@@ -229,9 +209,9 @@ const fetchSectors = async (current: number) => {
       project: sector.project.name
     }));
     pages.value = {
-      current: response.data.data.pagination.current_page,
-      total: response.data.data.pagination.total,
-      last: response.data.data.pagination.last_page,
+      current: response.data.data.current_page,
+      total: response.data.data.total,
+      last: response.data.data.last_page,
     };
   } catch (error) {
     console.error('Erro ao buscar setores:', error);
@@ -289,7 +269,7 @@ const openSheet = () => {
             :find="fetchSectors"
             :update-text="handleName"
         />
-        <CustomPagination :select-page="fetchSectors" :pages="pages"/>
+        <CustomPagination :select-page="fetchSectors" :pages="pages" />
       </CardContent>
       <CardFooter class="flex justify-start">
         <div class="flex gap-4 my-4 items-center">

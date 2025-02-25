@@ -27,6 +27,9 @@ import Financial from "@/views/dashboard/Financial.vue";
 import ManagerFinancial from "@/views/dashboard/ManagerFinancial.vue";
 import Sectors from "@/views/dashboard/Sectors.vue";
 import Costs from "@/views/dashboard/Costs.vue";
+import Roles from "@/views/dashboard/Roles.vue";
+import Players from "@/views/dashboard/Players.vue";
+import UtmTracks from "@/views/dashboard/UtmTracks.vue";
 
 const routes = [
   {
@@ -255,6 +258,39 @@ const routes = [
       layout: DefaultLayout,
       requiresAuth: true,
       title: "Custos",
+    },
+  },
+  {
+    path: "/roles",
+    name: "roles",
+    component: Roles,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member",
+      title: "Perfis",
+    },
+  },
+  {
+    path: "/players",
+    name: "players",
+    component: Players,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member|client",
+      title: "Jogadores",
+    },
+  },
+  {
+    path: "/utm-tracks",
+    name: "utm-tracks",
+    component: UtmTracks,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      permission: "member|client",
+      title: "Rastreamentos UTM",
     },
   },
   {

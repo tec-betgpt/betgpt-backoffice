@@ -9,14 +9,10 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {createColumnHelper} from "@tanstack/vue-table";
 import {h, onMounted, ref, watch} from "vue";
 import api from "@/services/api";
-import {getLocalTimeZone, today} from "@internationalized/date";
 import { useAuthStore } from "@/stores/auth";
 import {Loader2 as LucideSpinner} from "lucide-vue-next";
-import { useProjectStore } from "@/stores/project";
 import {toast} from "@/components/ui/toast";
-import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import {MoreHorizontal, ArrowDown, ArrowUp} from "lucide-vue-next";
-import { CaretSortIcon } from "@radix-icons/vue";
 
 import {
   DropdownMenu,
@@ -27,6 +23,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import moment from "moment/moment";
 import { toCurrency } from "@/filters/currencyFilter";
+import {createHeaderButton} from "@/components/custom/CustomHeaderButton";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
 
 const authStore = useAuthStore();
 interface FinancialData {
@@ -39,7 +37,13 @@ interface FinancialData {
   type:string;
 }
 const loadingRemove = ref(false)
-
+function handlerOrder(column:string,direction:boolean,){
+  if (column) {
+    orderId.value = column;
+    order.value = direction
+  }
+  fetchFinancials();
+}
 const columnHelper = createColumnHelper<FinancialData >()
 const columns = [
   columnHelper.accessor('costCenter', {
@@ -51,11 +55,11 @@ const columns = [
     cell: ({row}) => h('div', {class: "capitalize"}, row.getValue("category")=='fixed'?"Fixa":"Variavel")
   }),
   columnHelper.accessor('value', {
-    header: 'Valor',
+    header({column}) {return createHeaderButton('Valor', 'value',orderId.value,order.value,handlerOrder)},
     cell: ({row}) => h('div', {}, toCurrency(Number.parseInt(row.getValue("value"))))
   }),
   columnHelper.accessor('date', {
-    header: 'Data',
+    header({column}) {return createHeaderButton("Data", 'date',orderId.value,order.value,handlerOrder)},
     cell: ({row}) => h('div', {},     moment(row.getValue("date")).format("DD/MM/YYYY"))
   }),
   columnHelper.accessor('description', {
@@ -63,7 +67,8 @@ const columns = [
     cell: ({row}) => h('div', {}, row.getValue("description"))
   }),
   columnHelper.accessor('percentage', {
-    header: 'Porcentagem',
+    header({column}) {return createHeaderButton("Porcentagem", 'percentage',orderId.value,order.value,handlerOrder)},
+
     cell: ({row}) => h('div', {}, `${row.getValue("percentage") ? row.getValue("percentage") : "0"}%`)
   }),
   columnHelper.accessor('type', {
@@ -121,252 +126,27 @@ const columns = [
         ]),
   }),
 ];
-interface SectorData{
-  id: number;
-  name: string;
-  project: string;
-}
-interface CostData{
-  id: number;
-  name: string;
-  sector: string;
-}
-const costColumnHelper = createColumnHelper<CostData>();
-const costColumns = [
-  costColumnHelper.accessor('id', {
-    header: 'ID',
-    cell: ({row}) => h('div', {}, row.getValue('id')),
-  }),
-  costColumnHelper.accessor('name', {
-    header: 'Nome',
-    cell: ({row}) => h('div', {class: 'capitalize'}, row.getValue('name')),
-  }),
-  costColumnHelper.accessor('sector', {
-    header: 'Setor',
-    cell: ({row}) => h('div', {}, row.getValue('sector')),
-  }),
-  columnHelper.display({
-    id: "actions",
-    header({column}) {
-      return "Ações";
-    },
-    cell: ({row}) =>
-        h(DropdownMenu, {}, [
-          h(
-              DropdownMenuTrigger,
-              {asChild: true},
-              h(
-                  Button,
-                  {
-                    "aria-haspopup": "true",
-                    size: "icon",
-                    variant: "ghost",
-                    disabled: loadingRemove.value || loading.value,
-                  },
-                  [
-                    h(MoreHorizontal, {class: "h-4 w-4"}),
-                    h("span", {class: "sr-only"}, "Ações"),
-                  ]
-              )
-          ),
-          h(DropdownMenuContent, {align: "end"}, [
-            h(DropdownMenuLabel, {}, "Ações"),
-            h(DropdownMenuSeparator, {}),
-            h(
-                DropdownMenuItem,
-                {
-                  onClick: () => {
-                    const item = row.original;
-                    handleEdit(item,"custo"); // Função para abrir o modal de edição
-                  },
-                },
-                "Editar"
-            ),
-            h(
-                DropdownMenuItem,
-                {
-                  onClick: () => {
-                    const itemId = row.original.id;
-                    deleteCost(itemId); // Função para remover o item pelo ID
-                  },
-                },
-                h("div", {class: "flex items-center"}, "Remover")
-            ),
-          ]),
-        ]),
-  }),
 
-];
-const sectorColumnHelper = createColumnHelper<SectorData>();
-const sectorColumns = [
-  sectorColumnHelper.accessor('id', {
-    header({ column }) {
-      return createHeaderButton('ID', 'id');
-    },
-    cell: ({row}) => h('div', {}, row.getValue('id')),
-  }),
-  sectorColumnHelper.accessor('name', {
-    header: 'Nome',
-    cell: ({row}) => h('div', {class: 'capitalize'}, row.getValue('name')),
-  }),
-  sectorColumnHelper.accessor('project', {
-    header: 'Projeto',
-    cell: ({row}) => h('div', {}, row.getValue('project')),
-  }),
-  columnHelper.display({
-    id: "actions",
-    header({column}) {
-      return "Ações";
-    },
-    cell: ({row}) =>
-        h(DropdownMenu, {}, [
-          h(
-              DropdownMenuTrigger,
-              {asChild: true},
-              h(
-                  Button,
-                  {
-                    "aria-haspopup": "true",
-                    size: "icon",
-                    variant: "ghost",
-                    disabled: loadingRemove.value || loading.value,
-                  },
-                  [
-                    h(MoreHorizontal, {class: "h-4 w-4"}),
-                    h("span", {class: "sr-only"}, "Ações"),
-                  ]
-              )
-          ),
-          h(DropdownMenuContent, {align: "end"}, [
-            h(DropdownMenuLabel, {}, "Ações"),
-            h(DropdownMenuSeparator, {}),
-            h(
-                DropdownMenuItem,
-                {
-                  onClick: () => {
-                    const item = row.original;
-                    console.log(item)
-                    handleEdit(item,"setor"); // Função para abrir o modal de edição
-                  },
-                },
-                "Editar"
-            ),
-            h(
-                DropdownMenuItem,
-                {
-                  onClick: () => {
-                    const itemId = row.original.id;
-                    deleteSector(itemId); // Função para remover o item pelo ID
-                  },
-                },
-                h("div", {class: "flex items-center"}, "Remover")
-            ),
-          ]),
-        ]),
-  }),
-
-];
 const form = ref({ type: '' });
-const sectorForm = ref({});
-const costForm = ref({});
 const financialForm = ref({});
 const orderId = ref('name');
 const order = ref(false);
-function createHeaderButton(label: string, columnKey: string) {
-  return h(
-      Button,
-      {
-        variant: orderId.value === columnKey ? "default" : "ghost",
-        onClick: () => {
-          orderId.value = columnKey;
-          order.value = !order.value;
-          fetchSectors()
-        },
-        class: "h-fit text-pretty my-1",
-      },
-      () => [
-        label,
-        h(
-            orderId.value === columnKey
-                ? order.value
-                    ? ArrowDown
-                    : ArrowUp
-                : CaretSortIcon,
-            { class: "" }
-        ),
-      ]
-  );
-}
 const openSheet = (type) => {
   form.value.type = type;
   isEditing.value = false;
-  if (type === 'setor') {
-    sectorForm.value = { name: '', project_id: selectedFilterId.value, user_id: null };
-  } else if (type === 'custo') {
-    costForm.value = { id: null, name: '', sector_id: null };
-  } else if (type === 'financeiro') {
-    financialForm.value = { id: null, cost_center_id: null, type: '', category_type: '', percentage: null, amount: null, date: '', description: '', user_id: null };
-  }
+  financialForm.value = { id: null, cost_center_id: null, type: '', category_type: '', percentage: null, amount: null, date: '', description: '', user_id: null };
   showModal.value = true;
 };
 
 const handleEdit = (item, type) => {
   form.value.type = type;
   isEditing.value = true;
-  if (type === 'setor') {
-    sectorForm.value = { ...item };
-  } else if (type === 'custo') {
-    costForm.value = { ...item };
-  } else if (type === 'financeiro') {
     financialForm.value = { ...item };
-  }
+
   showModal.value = true;
 };
 
-const deleteSector = async (id: number) => {
-  try {
-    loading.value = true;
-    await api.delete(`/financial/sector/${id}`);
-    toast({
-      title: "Setor deletado com sucesso!",
-      description: `O setor com ID ${id} foi removido.`,
-      variant: "success",
-    });
-    await fetchSectors();
-  } catch (error) {
-    console.error('Erro ao deletar setor:', error);
-    toast({
-      title: "Erro ao deletar setor",
-      description: "Não foi possível remover o setor. Tente novamente.",
-      variant: "destructive",
-    });
-  } finally {
-    loading.value = false;
-  }
-};
 
-
-const deleteCost = async (id: number) => {
-  try {
-    loading.value = true;
-    await api.delete(`/financial/cost-centers/${id}`);
-    toast({
-      title: "Centro de custo deletado com sucesso!",
-      description: `O centro de custo com ID ${id} foi removido.`,
-      variant: "success",
-    });
-    await fetchCosts();
-  } catch (error) {
-    console.error('Erro ao deletar centro de custo:', error);
-    toast({
-      title: "Erro ao deletar centro de custo",
-      description: "Não foi possível remover o centro de custo. Tente novamente.",
-      variant: "destructive",
-    });
-  } finally {
-    loading.value = false;
-  }
-};
 
 const deleteFinancial = async (id: number) => {
   try {
@@ -390,40 +170,6 @@ const deleteFinancial = async (id: number) => {
   }
 };
 
-const submitSector = async () => {
-  try {
-    loadingSub.value = true;
-    if (isEditing.value) {
-      await api.put(`/financial/sector/${sectorForm.value.id}`, sectorForm.value);
-    } else {
-      await api.post('/financial/sector', sectorForm.value);
-    }
-    showModal.value = false;
-  } catch (error) {
-    console.error('Erro ao salvar setor:', error);
-  } finally {
-    loadingSub.value = false;
-    await fetchSectors()
-  }
-};
-
-const submitCost = async () => {
-  try {
-    loadingSub.value = true;
-    if (isEditing.value) {
-      await api.put(`/financial/cost-centers/${costForm.value.id}`, costForm.value);
-    } else {
-      await api.post('/financial/cost-centers', costForm.value);
-    }
-    showModal.value = false;
-  } catch (error) {
-    console.error('Erro ao salvar centro de custo:', error);
-  } finally {
-    loadingSub.value = false;
-    await fetchCosts();
-  }
-};
-
 const submitFinancial = async () => {
   try {
     loadingSub.value = true;
@@ -442,13 +188,9 @@ const submitFinancial = async () => {
 };
 
 const submit = () => {
-  if (form.value.type === 'setor') {
-    submitSector();
-  } else if (form.value.type === 'custo') {
-    submitCost();
-  } else if (form.value.type === 'financeiro') {
+
     submitFinancial();
-  }
+
 };
 
 const edit = () => {
@@ -457,10 +199,8 @@ const edit = () => {
 const loadingSub = ref(false);
 const showModal = ref(false);
 const isEditing = ref(false);
-const sectors = ref([]);
 const costs = ref([]);
 const financial = ref([])
-const loadingSectors = ref(true);
 const loadingCosts = ref(true);
 const loadingFinancials = ref(true);
 const loading = ref(true);
@@ -497,29 +237,6 @@ const fetchFilters = async () => {
 
   }
 };
-const fetchSectors = async () => {
-  try {
-    loadingSectors.value = true;
-    const response = await api.get('/financial/sector', {
-      params: {
-        filter_id: selectedFilterId.value,
-        find_name:nameSector.value,
-        sort_by: 'name',
-        sort_order:''
-      }
-    });
-    console.log(response.data.data.data)
-    sectors.value = response.data.data.data.map(sector =>
-        (
-          {id:sector.id,name:sector.name,project:sector.project.name}
-        ))
-  } catch (error) {
-    console.error('Erro ao buscar setores:', error);
-  } finally {
-    loadingSectors.value = false;
-
-  }
-};
 const fetchCosts = async () => {
   try {
     loadingCosts.value = true;
@@ -540,15 +257,16 @@ const pages = ref({
   total: 0,
   last: 0,
 });
-const fetchFinancials = async () => {
+const fetchFinancials = async (current = pages.value.current) => {
   try {
     loadingFinancials.value = true;
-    const response = await api.get('/financial/financial-transactions',{
+    const response = await api.get(`/financial/financial-transactions?page=${current}`,{
       params: {
         filter_id: selectedFilterId.value,
-        find_name:nameFinancial.value,
+        name:nameFinancial.value,
         sort_by: orderId.value,
-        sort_order: order.value ? 'asc' : 'desc'
+        sort_order: order.value ? 'asc' : 'desc',
+
       }
     });
     financial.value = response.data.data.data.map(financial =>
@@ -576,20 +294,9 @@ onMounted(() => {
   fetchFilters()
 });
 watch(selectedFilterId,()=>{
-
   fetchCosts();
   fetchFinancials();
 })
-const nameSector = ref()
-const handleName = (text: string) => {
-  nameSector.value = text;
-};
-
-const nameCost = ref()
-const handleCostName = (text: string) => {
-  nameCost.value = text;
-};
-
 const nameFinancial = ref()
 const handleFinancialName = (text: string) => {
   nameFinancial.value = text;
@@ -622,7 +329,8 @@ const handleFinancialName = (text: string) => {
           <CardTitle>Financeiro</CardTitle>
         </CardHeader>
         <CardContent>
-          <CustomDataTable :loading="loadingFinancials" :data="financial" :columns="columns" :find="fetchFinancials" :update-text="handleFinancialName"/>
+          <CustomDataTable :loading="loadingFinancials" :data="financial" :columns="columns" :find="fetchFinancials" :update-text="handleFinancialName" placeholder="Buscar por descrição..."/>
+          <CustomPagination :select-page="fetchFinancials" :pages="pages"/>
         </CardContent>
         <CardFooter class="flex justify-start">
           <Button @click="openSheet('financeiro')">Criar Financeiro</Button>

@@ -57,8 +57,9 @@ import {
   ChevronRight,
   SquareStack,
   CircleDollarSign,
+  ExternalLink,
   Sun,
-  Moon, Briefcase, DollarSign,
+  Moon, Briefcase, DollarSign, DollarSignIcon,
 } from "lucide-vue-next";
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -191,16 +192,30 @@ const navMenu = computed(() => {
     {
       name: "Custo",
       url: {name: "cost"},
-      icon: Bot,
+      icon: DollarSign,
       show: authStore.user?.access_type === "member",
       type: "management",
     },
     {
       name: "Financeiro",
       url: {name: "financialManager"},
-      icon: Bot,
+      icon: DollarSignIcon,
       show: authStore.user?.access_type === "member",
       type: "management",
+    },
+    {
+      name: "Jogadores",
+      url: { name: "players" },
+      icon: Users2,
+      type: "management",
+      show: true,
+    },
+    {
+      name: "Rastreamento UTM",
+      url: { name: "utm-tracks" },
+      icon: ExternalLink,
+      type: "management",
+      show: true,
     },
     {
       name: "IA",
