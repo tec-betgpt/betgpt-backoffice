@@ -59,7 +59,7 @@ import {
   CircleDollarSign,
   ExternalLink,
   Sun,
-  Moon, Briefcase, DollarSign, DollarSignIcon,
+  Moon, Briefcase, DollarSign, DollarSignIcon, UserCog,
 } from "lucide-vue-next";
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -167,6 +167,13 @@ const navMenu = computed(() => {
       type: "management",
     },
     {
+      name: "Perfis",
+      url: { name: "roles" },
+      icon: UserCog,
+      show: authStore.user?.access_type === "member",
+      type: "management",
+    },
+    {
       name: "Textos Motivacionais",
       url: { name: "texts" },
       icon: Album,
@@ -203,6 +210,7 @@ const navMenu = computed(() => {
       show: authStore.user?.access_type === "member",
       type: "management",
     },
+
     {
       name: "Jogadores",
       url: { name: "players" },
