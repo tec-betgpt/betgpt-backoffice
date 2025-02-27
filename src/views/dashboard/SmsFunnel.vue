@@ -219,11 +219,15 @@
                   <TableHead>Preço</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Situação</TableHead>
+                  <TableHead>Nota Fiscal</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <template v-if="loading">
                   <TableRow v-for="n in 5" :key="`loading-${n}`">
+                    <TableCell
+                      ><Skeleton class="h-4 w-full bg-gray-300"
+                    /></TableCell>
                     <TableCell
                       ><Skeleton class="h-4 w-full bg-gray-300"
                     /></TableCell>
@@ -264,6 +268,16 @@
                         >Confirmado</span
                       >
                       <span class="text-red-600" v-else>Pendente</span>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        v-if="recharge.invoice_url"
+                        variant="outline"
+                        @click="redirectToInvoiceUrl(recharge.invoice_url)"
+                      >
+                        <Download class="w-4 h-4" />
+                      </Button>
+                      <span v-else>-</span>
                     </TableCell>
                   </TableRow>
                 </template>
@@ -306,7 +320,7 @@ import {
 import { useToast } from "@/components/ui/toast/use-toast";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
-import { Mail, MailCheck, MailPlus } from "lucide-vue-next";
+import { Mail, MailCheck, MailPlus, Download } from "lucide-vue-next";
 
 const responsiveClass =
   "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-3 mb-3";
@@ -355,6 +369,10 @@ const fetchFilters = async () => {
   } finally {
     loadingFilters.value = false;
   }
+};
+
+const redirectToInvoiceUrl = (url: any) => {
+  window.open(url, "_blank");
 };
 
 const applyFilter = async () => {

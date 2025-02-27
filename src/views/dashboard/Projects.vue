@@ -14,6 +14,9 @@
           :columns="columns"
           :update-text="setSearch"
           :find="fetchProjects"
+          :search-fields="[
+            { key: 'name', placeholder: 'Buscar por nome do projeto...' },
+          ]"
         >
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
@@ -179,9 +182,9 @@ const form = ref(
     image: "",
   })
 );
-const search = ref();
 const order = ref();
 const direction = ref(false);
+const searchValues = ref<Record<string, string>>({});
 
 const handleFileChange = (event) => {
   const file = event.target.files[0];
@@ -220,8 +223,8 @@ const handleFileChange = (event) => {
     errorMessage.value = "Erro ao carregar a imagem.";
   };
 };
-const setSearch = (value: string) => {
-  search.value = value;
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = values;
 };
 const setStatus = (status) => {
   const index = statusFilter.value.indexOf(status);
@@ -238,10 +241,16 @@ const getStatus = (project) => {
 const fetchProjects = async (current = pages.value.current) => {
   try {
     isLoading.value = true;
+
+    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
+      acc[key] = searchValues.value[key];
+      return acc;
+    }, {} as Record<string, string>);
+
     const response = await api.get(`/projects?page=${current}`, {
       params: {
+        ...searchParams,
         status: statusFilter.value,
-        searchName: search.value,
         orderBy: order.value,
         orderDirection: direction.value ? "asc" : "desc",
       },
