@@ -21,6 +21,7 @@ import api from "@/services/api";
 import { toast } from "@/components/ui/toast";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import {createHeaderButton} from "@/components/custom/CustomHeaderButton";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 // Alinhando a interface com o que usamos no ManagerFinancial.vue
 interface CostData{
@@ -32,7 +33,8 @@ interface CostData{
 const loadingCosts = ref(true);
 const loadingRemove = ref(false);
 const costs = ref<CostData[]>([]);
-
+const workspaceStore = useWorkspaceStore();
+const projectId = workspaceStore.activeProject?.id ?? null;
 const columnHelper = createColumnHelper<CostData>();
 const loadingSectors = ref(true);
 const showModal = ref(false);
@@ -67,7 +69,7 @@ const fetchCosts = async (current:number= pages.value.current) => {
     loadingCosts.value = true;
     const response = await api.get(`/financial/cost-centers?page=${nameCost.value && current ? current : nameCost.value ? 1 : current ? current : pages.value.current}`,
         {params: {
-            filter_id: selectedFilterId.value,
+            filter_id: projectId,
             find_name: nameCost.value,
             sort_by: orderId.value,
             sort_order: order.value ? 'asc' : 'desc'
@@ -113,7 +115,6 @@ const submitCost = async () => {
     if (isEditing.value) {
       await api.put(`/financial/cost-centers/${costForm.value.id}`, costForm.value);
     } else {
-      console.log(costForm.value);
       await api.post('/financial/cost-centers', costForm.value);
     }
     showModal.value = false;
@@ -230,7 +231,7 @@ const sectors = ref([]);
 const openSheet = () => {
   form.value.type = 'custo';
   isEditing.value = false;
-  costForm.value = { name: '', project_id: selectedFilterId.value, user_id: null };
+  costForm.value = { name: '', user_id: null };
   showModal.value = true;
 };
 const fetchSectors = async () => {
@@ -238,7 +239,7 @@ const fetchSectors = async () => {
     loadingSectors.value = true;
     const response = await api.get(`/financial/sector`, {
       params: {
-        filter_id: selectedFilterId.value,
+        filter_id: projectId,
 
       }
     });
@@ -254,6 +255,9 @@ const fetchSectors = async () => {
     loadingSectors.value = false;
   }
 };
+const handleText = (text: string) => {
+  nameCost.value = text;
+}
 </script>
 
 <template>
@@ -264,24 +268,19 @@ const fetchSectors = async () => {
         para
         otimizar o controle e organização do orçamento.</p>
     </div>
-    <div   v-if="projectFilters && projectFilters.length" class="flex sm:flex-row flex-col w-full items-start gap-2">
-      <Select v-model="selectedFilterId">
-        <SelectTrigger class="sm:w-[250px] w-full">
-          <SelectValue placeholder="Selecione um grupo ou projeto" />
-        </SelectTrigger>
-        <SelectContent>
-          <template v-for="(item, index) in projectFilters" :key="index">
-            <SelectItem :value="item.id">{{ item.label }}</SelectItem>
-          </template>
-        </SelectContent>
-      </Select>
-    </div>
     <Card>
       <CardHeader>
         <CardTitle>Custos</CardTitle>
       </CardHeader>
       <CardContent>
-        <CustomDataTable :data="costs" :columns="columns" :loading="loadingCosts" />
+        <CustomDataTable
+            :data="costs"
+            :columns="columns"
+            :loading="loadingCosts"
+            :find="fetchCosts"
+            :update-text="handleText"
+
+        />
       </CardContent>
       <CustomPagination :select-page="fetchCosts" :pages="pages"/>
       <CardFooter>

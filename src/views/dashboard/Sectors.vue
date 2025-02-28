@@ -18,10 +18,11 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { ArrowDown, ArrowUp, MoreHorizontal } from "lucide-vue-next";
-import { CaretSortIcon } from "@radix-icons/vue";
-import { useProjectStore } from "@/stores/project";
+
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import {createHeaderButton} from "@/components/custom/CustomHeaderButton";
+import { useWorkspaceStore } from "@/stores/workspace";
+
 
 interface SectorData {
   id: number;
@@ -31,18 +32,16 @@ interface SectorData {
 
 const loadingSectors = ref(true);
 const showModal = ref(false);
-const projectFilters = ref([]);
-const selectedFilterId = ref<number | null>(null);
 const sectors = ref<SectorData[]>([]);
 const nameSector = ref('');
 const orderId = ref('');
 const order = ref(false);
 const sectorColumnHelper = createColumnHelper<SectorData>();
-
-// Funções e variáveis relacionadas ao formulário
+const workspaceStore = useWorkspaceStore();
+const projectId = workspaceStore.activeProject?.id ?? null;
 const form = ref({ type: '' });
 const isEditing = ref(false);
-const sectorForm = ref({ name: '', project_id: null, user_id: null });
+const sectorForm = ref({ name: '', project_id:projectId,user_id: null });
 const loadingSub = ref(false);
 
 const handleEdit = (item: SectorData) => {
@@ -135,7 +134,6 @@ const sectorColumns = [
                 {
                   onClick: () => {
                     const item = row.original;
-                    console.log(item);
                     handleEdit(item);
                   },
                 },
@@ -160,30 +158,6 @@ const handleName = (text: string) => {
   nameSector.value = text;
 };
 
-const fetchFilters = async () => {
-  try {
-    loadingSectors.value = true;
-    const response = await api.get(`/user/configurations/project-filters`);
-    const filters = response.data.data || [];
-    projectFilters.value = filters.map((filter: any) => ({
-      id: filter.id,
-      label: filter.label,
-    }));
-    if (filters.length > 0 && !selectedFilterId.value) {
-      const favoriteFilter = filters.find((filter: any) => filter.is_favorite);
-      selectedFilterId.value = favoriteFilter ? favoriteFilter.id : filters[0].id;
-    }
-  } catch (error) {
-    toast({
-      title: "Erro ao carregar filtros",
-      description: "Não foi possível carregar os filtros de projetos.",
-      variant: "destructive",
-    });
-  } finally {
-    await fetchSectors();
-    loadingSectors.value = false;
-  }
-};
 function handlerOrder(column:string,direction:boolean,){
   if (column) {
     orderId.value = column;
@@ -197,7 +171,7 @@ const fetchSectors = async (current:number = pages.value.current) => {
     loadingSectors.value = true;
     const response = await api.get(`/financial/sector?page=${current}`, {
       params: {
-        filter_id: selectedFilterId.value,
+        filter_id: projectId,
         find_name: nameSector.value,
         sort_by: orderId.value,
         sort_order: order.value ? 'asc' : 'desc'
@@ -219,20 +193,18 @@ const fetchSectors = async (current:number = pages.value.current) => {
     loadingSectors.value = false;
   }
 };
-watch(selectedFilterId,()=>{
-  fetchSectors();
-})
+
 const pages = ref({
   current: 1,
   total: 0,
   last: 0,
 });
 
-onMounted(fetchFilters);
+onMounted( fetchSectors);
 const openSheet = () => {
   form.value.type = 'setor';
   isEditing.value = false;
-  sectorForm.value = { name: '', project_id: selectedFilterId.value, user_id: null };
+  sectorForm.value = { name: '',project_id: projectId, user_id: null };
   showModal.value = true;
 };
 </script>
@@ -244,19 +216,6 @@ const openSheet = () => {
       <p class="text-muted-foreground"> Gerencie os setores financeiros, adicionando ou editando informações para
         otimizar o controle do orçamento.</p>
     </div>
-    <div   v-if="projectFilters && projectFilters.length" class="flex sm:flex-row flex-col w-full items-start gap-2">
-      <Select v-model="selectedFilterId">
-        <SelectTrigger class="sm:w-[250px] w-full">
-          <SelectValue placeholder="Selecione um grupo ou projeto" />
-        </SelectTrigger>
-        <SelectContent>
-          <template v-for="(item, index) in projectFilters" :key="index">
-            <SelectItem :value="item.id">{{ item.label }}</SelectItem>
-          </template>
-        </SelectContent>
-      </Select>
-    </div>
-
     <Card>
       <CardHeader>
         <CardTitle>Setores</CardTitle>

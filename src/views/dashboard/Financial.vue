@@ -27,7 +27,6 @@ import {
 import { createColumnHelper } from "@tanstack/vue-table";
 import { h, onMounted, ref, watch } from "vue";
 import api from "@/services/api";
-import { useAuthStore } from "@/stores/auth";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { toast } from "@/components/ui/toast";
 import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
@@ -44,8 +43,10 @@ import moment from "moment/moment";
 import { toCurrency } from "@/filters/currencyFilter";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import { useWorkspaceStore } from "@/stores/workspace";
 
-const authStore = useAuthStore();
+const workspaceStore = useWorkspaceStore();
+const projectId = workspaceStore.activeProject?.id ?? null;
 interface FinancialData {
   id: number;
   costCenter: string;
@@ -289,40 +290,11 @@ const loadingFinancials = ref(true);
 const loading = ref(true);
 const projectFilters = ref([]);
 const selectedFilterId = ref(null);
-const fetchFilters = async () => {
-  try {
-    loading.value = true;
-    const response = await api.get("/user/configurations/project-filters");
-    const filters = response.data.data || [];
-
-    projectFilters.value = filters.map((filter) => ({
-      id: filter.id,
-      label: filter.label,
-    }));
-
-    if (filters.length > 0) {
-      if (!selectedFilterId.value) {
-        const favoriteFilter = filters.find((filter) => filter.is_favorite);
-        selectedFilterId.value = favoriteFilter
-          ? favoriteFilter.id
-          : filters[0].id;
-      }
-    }
-  } catch (error) {
-    toast({
-      title: "Erro ao carregar filtros",
-      description: "Não foi possível carregar os filtros de projetos.",
-      variant: "destructive",
-    });
-  } finally {
-    loading.value = false;
-  }
-};
 const fetchCosts = async () => {
   try {
     loadingCosts.value = true;
     const response = await api.get("/financial/cost-centers", {
-      params: { filter_id: selectedFilterId.value },
+      params: { filter_id: projectId},
     });
     costs.value = response.data.data.data.map((cost) => ({
       id: cost.id,
@@ -347,7 +319,7 @@ const fetchFinancials = async (current = pages.value.current) => {
       `/financial/financial-transactions?page=${current}`,
       {
         params: {
-          filter_id: selectedFilterId.value,
+          filter_id:projectId,
           name: nameFinancial.value,
           sort_by: orderId.value,
           sort_order: order.value ? "asc" : "desc",
@@ -375,13 +347,11 @@ const fetchFinancials = async (current = pages.value.current) => {
     loadingFinancials.value = false;
   }
 };
-onMounted(() => {
-  fetchFilters();
+onMounted(()=>{
+  fetchCosts()
+  fetchFinancials()
 });
-watch(selectedFilterId, () => {
-  fetchCosts();
-  fetchFinancials();
-});
+
 const nameFinancial = ref();
 const handleFinancialName = (text: string) => {
   nameFinancial.value = text;
@@ -400,21 +370,6 @@ const handleFinancialName = (text: string) => {
       </p>
     </div>
     <div class="space-y-6">
-      <div
-        v-if="projectFilters && projectFilters.length"
-        class="flex sm:flex-row flex-col w-full items-start gap-2"
-      >
-        <Select v-model="selectedFilterId">
-          <SelectTrigger class="sm:w-[250px] w-full">
-            <SelectValue placeholder="Selecione um grupo ou projeto" />
-          </SelectTrigger>
-          <SelectContent>
-            <template v-for="(item, index) in projectFilters" :key="index">
-              <SelectItem :value="item.id">{{ item.label }}</SelectItem>
-            </template>
-          </SelectContent>
-        </Select>
-      </div>
       <Card>
         <CardHeader>
           <CardTitle>Financeiro</CardTitle>
