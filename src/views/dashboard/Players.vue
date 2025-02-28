@@ -12,6 +12,9 @@
           :data="players"
           :update-text="setSearch"
           :find="fetchPlayers"
+          :search-fields="[
+            { key: 'name', placeholder: 'Buscar por nome do jogador...' },
+          ]"
         >
         </CustomDataTable>
         <CustomPagination :select-page="fetchPlayers" :pages="pages" />
@@ -89,10 +92,16 @@ const projectId = workspaceStore.activeProject?.id ?? null;
 const fetchPlayers = async (current = pages.value.current) => {
   try {
     isLoading.value = true;
+
+    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
+      acc[key] = searchValues.value[key];
+      return acc;
+    }, {} as Record<string, string>);
+
     const [playerResponse] = await Promise.all([
       api.get(`/players?page=${current}`, {
         params: {
-          searchName: search.value,
+          ...searchParams,
           orderBy: order.value ? order.value : "id",
           orderDirection: direction.value ? "asc" : "desc",
           project_id: projectId,
@@ -118,9 +127,9 @@ const fetchPlayers = async (current = pages.value.current) => {
 
 onMounted(fetchPlayers);
 
-const search = ref();
-const setSearch = (text) => {
-  search.value = text;
+const searchValues = ref<Record<string, string>>({});
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = values;
 };
 
 const order = ref();

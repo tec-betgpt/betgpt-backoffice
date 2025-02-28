@@ -14,6 +14,9 @@
           :data="users"
           :update-text="setSearch"
           :find="fetchUsersAndProjects"
+          :search-fields="[
+            { key: 'name', placeholder: 'Buscar por nome do usuário...' },
+          ]"
         >
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
@@ -413,10 +416,16 @@ const toggleRole = (projectId: number, roleName: string, checked: boolean) => {
 const fetchUsersAndProjects = async (current = pages.value.current) => {
   try {
     isLoading.value = true;
+
+    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
+      acc[key] = searchValues.value[key];
+      return acc;
+    }, {} as Record<string, string>);
+
     const [userResponse, projectResponse] = await Promise.all([
       api.get(`/users?page=${current}`, {
         params: {
-          searchName: search.value,
+          ...searchParams,
           status: statusFilter.value,
           orderBy: order.value,
           orderDirection: direction.value ? "asc" : "desc",
@@ -588,9 +597,9 @@ const onCheckboxChange = (id, checked) => {
 
 onMounted(fetchUsersAndProjects);
 
-const search = ref();
-const setSearch = (text) => {
-  search.value = text;
+const searchValues = ref<Record<string, string>>({});
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = values;
 };
 
 const order = ref();
