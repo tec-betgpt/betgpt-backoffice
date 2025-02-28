@@ -40,7 +40,7 @@ const loadingSectors = ref(true);
 const showModal = ref(false);
 const projectFilters = ref([]);
 const selectedFilterId = ref<number | null>(null);
-const nameCost = ref('');
+const nameCost = ref();
 const orderId = ref('');
 const order = ref(false);
 const form = ref({ type: '' });
@@ -279,6 +279,9 @@ const handleText = (text: string) => {
             :loading="loadingCosts"
             :find="fetchCosts"
             :update-text="handleText"
+            :search-fields="[
+               { key: 'name', placeholder: 'Buscar por nome...' }
+            ]"
 
         />
       </CardContent>

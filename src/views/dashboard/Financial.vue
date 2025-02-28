@@ -288,8 +288,6 @@ const financial = ref([]);
 const loadingCosts = ref(true);
 const loadingFinancials = ref(true);
 const loading = ref(true);
-const projectFilters = ref([]);
-const selectedFilterId = ref(null);
 const fetchCosts = async () => {
   try {
     loadingCosts.value = true;
@@ -381,7 +379,11 @@ const handleFinancialName = (text: string) => {
             :columns="columns"
             :find="fetchFinancials"
             :update-text="handleFinancialName"
-            placeholder="Buscar por descrição..."
+            :search-fields="[
+               { key: 'description',label:'', placeholder: 'Buscar por descrição...' }
+
+            ]"
+
           />
           <CustomPagination :select-page="fetchFinancials" :pages="pages" />
         </CardContent>

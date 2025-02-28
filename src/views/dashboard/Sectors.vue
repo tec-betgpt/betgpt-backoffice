@@ -33,7 +33,7 @@ interface SectorData {
 const loadingSectors = ref(true);
 const showModal = ref(false);
 const sectors = ref<SectorData[]>([]);
-const nameSector = ref('');
+const nameSector = ref();
 const orderId = ref('');
 const order = ref(false);
 const sectorColumnHelper = createColumnHelper<SectorData>();
@@ -227,6 +227,9 @@ const openSheet = () => {
             :columns="sectorColumns"
             :find="fetchSectors"
             :update-text="handleName"
+            :search-fields="[
+               { key: 'name', placeholder: 'Buscar por nome...' }
+            ]"
         />
         <CustomPagination :select-page="fetchSectors" :pages="pages" />
       </CardContent>
