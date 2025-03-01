@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">SMS Funnel Analytics</h2>
+      <h2 class="text-2xl font-bold tracking-tight">SMS</h2>
       <p class="text-muted-foreground">
-        Visão geral e métricas detalhadas de SMS e WhatsApp.
+        Relatórios de envio por SMS de um período específico.
       </p>
     </div>
     <div

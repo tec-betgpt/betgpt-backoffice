@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Google Analytics</h2>
+      <h2 class="text-2xl font-bold tracking-tight">Tráfego</h2>
       <p class="text-muted-foreground">
-        Métricas baseadas na integração com o Google Analytics.
+        Relatórios de tráfego de um período específico.
       </p>
     </div>
     <div

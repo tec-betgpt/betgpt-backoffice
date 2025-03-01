@@ -53,7 +53,7 @@ import {
   MailCheck,
   Album,
   Wrench,
-  FolderDot,
+  SlidersHorizontal,
   BadgeDollarSign,
   Rows3,
   ChevronRight,
@@ -122,152 +122,120 @@ const breadcrumbs = computed(() => {
   return breadcrumbItems;
 });
 
-const navMenu = computed(() => {
-  const menu = [
-    {
-      name: "Home",
-      url: { name: "home" },
-      icon: Home,
-      show: true,
-    },
-    {
-      name: "Métricas",
-      url: { name: "analytics" },
-      icon: LineChart,
-      show: true,
-      type: "report",
-    },
-    {
-      name: "SMS Funnel",
-      url: { name: "sms-funnel" },
-      icon: Send,
-      show: true,
-      type: "report",
-    },
-    {
-      name: "Google Analytics",
-      url: { name: "google-analytics" },
-      icon: ChartNoAxesCombined,
-      show: true,
-      type: "report",
-    },
-    {
-      name: "Active Campaign",
-      url: { name: "active-campaign" },
-      icon: MailCheck,
-      show: true,
-      type: "report",
-    },
-    {
-      name: "Projetos",
-      url: { name: "projects" },
-      icon: Building2,
-      show: authStore.user?.access_type === "member",
-      type: "management",
-    },
-    {
-      name: "Usuários",
-      url: { name: "users" },
-      icon: Users2,
-      show: authStore.user?.access_type === "member",
-      type: "management",
-    },
-    {
-      name: "Perfis",
-      url: { name: "roles" },
-      icon: UserCog,
-      show: authStore.user?.access_type === "member",
-      type: "management",
-    },
-    {
-      name: "Textos Motivacionais",
-      url: { name: "texts" },
-      icon: Album,
-      show: authStore.user?.access_type === "member",
-      type: "management",
-    },
-    {
-      name: "Financeiro",
-      url: { name: "financial" },
-      icon: CircleDollarSign,
-      show: true,
-      type: "report",
-    },
+const navMenu = computed(() => [
+  {
+    name: "Home",
+    url: { name: "home" },
+    icon: Home,
+    show: true,
+  },
+  {
+    name: "Elevate IA",
+    url: { name: "ia" },
+    icon: Bot,
+    show: true,
+  },
+  {
+    name: "Controles",
+    icon: SlidersHorizontal,
+    show: true,
+    children: [
+      {
+        name: "Performance",
+        url: { name: "performances" },
+        icon: LineChart,
+        show: true,
+      },
+      {
+        name: "Tráfego",
+        url: { name: "traffics" },
+        icon: ChartNoAxesCombined,
+        show: true,
+      },
+      {
+        name: "E-mails",
+        url: { name: "emails" },
+        icon: MailCheck,
+        show: true,
+      },
+      {
+        name: "SMS Funnel",
+        url: { name: "sms" },
+        icon: Send,
+        show: true,
+      },
+    ],
+  },
+  {
+    name: "Gerenciamento",
+    icon: SquareStack,
+    show: true,
+    children: [
+      {
+        name: "Projetos",
+        url: { name: "projects" },
+        icon: Building2,
+        show: authStore.user?.access_type === "member",
+      },
+      {
+        name: "Usuários",
+        url: { name: "users" },
+        icon: Users2,
+        show: authStore.user?.access_type === "member",
+      },
+      {
+        name: "Perfis",
+        url: { name: "roles" },
+        icon: UserCog,
+        show: authStore.user?.access_type === "member",
+      },
+      {
+        name: "Textos Motivacionais",
+        url: { name: "texts" },
+        icon: Album,
+        show: authStore.user?.access_type === "member",
+      },
+      {
+        name: "Jogadores",
+        url: { name: "players" },
+        icon: Users2,
+        show: true,
+      },
+      {
+        name: "Rastreamento UTM",
+        url: { name: "utm-tracks" },
+        icon: ExternalLink,
+        show: true,
+      },
+    ],
+  },
+  {
+    name: "Financeiro",
+    icon: CircleDollarSign,
+    show: true,
+    children: [
+      {
+        name: "Gerir Setores",
+        url: { name: "sectors" },
+        icon: Briefcase,
+        show: authStore.user?.access_type === "member",
+      },
 
-    {
-      name: "Setor",
-      url: { name: "sector" },
-      icon: Briefcase,
-      show: authStore.user?.access_type === "member",
-      type: "financial",
-    },
-
-    {
-      name: "Custo",
-      url: { name: "cost" },
-      icon: Rows3,
-      show: authStore.user?.access_type === "member",
-      type: "financial",
-    },
-    {
-      name: "Entradas e Saídas",
-      url: { name: "financial" },
-      icon: DollarSignIcon,
-      show: authStore.user?.access_type === "member",
-      type: "financial",
-    },
-
-    {
-      name: "Jogadores",
-      url: { name: "players" },
-      icon: Users2,
-      type: "management",
-      show: true,
-    },
-    {
-      name: "Rastreamento UTM",
-      url: { name: "utm-tracks" },
-      icon: ExternalLink,
-      type: "management",
-      show: true,
-    },
-    {
-      name: "IA",
-      url: { name: "ia" },
-      icon: Bot,
-      show: true,
-      type: "utils",
-    },
-  ];
-
-  return menu.filter((item) => item.show);
-});
-
-const navCategory = computed(() => {
-  const category = [
-    {
-      name: "Ferramentas",
-      icon: Wrench,
-      options: navMenu.value.filter((item) => item.type === "utils"),
-    },
-    {
-      name: "Gerenciamento",
-      icon: SquareStack,
-      options: navMenu.value.filter((item) => item.type === "management"),
-    },
-    {
-      name: "Relatórios",
-      icon: FolderDot,
-      options: navMenu.value.filter((item) => item.type === "report"),
-    },
-    {
-      name: "Financeiro",
-      icon: BadgeDollarSign,
-      options: navMenu.value.filter((item) => item.type === "financial"),
-    },
-  ];
-  return category;
-});
+      {
+        name: "Gerir Custos",
+        url: { name: "costs" },
+        icon: Rows3,
+        show: authStore.user?.access_type === "member",
+      },
+      {
+        name: "Entradas e Saídas",
+        url: { name: "registers" },
+        icon: DollarSignIcon,
+        show: authStore.user?.access_type === "member",
+      },
+    ],
+  },
+]);
 
 const width = ref(0);
 const height = ref(0);
@@ -400,72 +368,77 @@ const logoSrc = computed(() => {
         <SidebarGroup>
           <SidebarGroupLabel>Projeto</SidebarGroupLabel>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <TooltipProvider :disabled="!stateResponsive">
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <SidebarMenuButton as-child>
-                      <router-link
-                        :to="navMenu[0].url"
-                        class="flex items-center p-2 rounded-md transition-colors"
-                        :class="{
-                          'bg-sidebar-accent text-sidebar-accent-foreground':
-                            route.name === navMenu[0].url.name,
-                          'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
-                        }"
+            <template v-for="item in navMenu" :key="item.name">
+              <SidebarMenuItem v-if="!item.children">
+                <TooltipProvider :disabled="!stateResponsive">
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <SidebarMenuButton
+                        as-child
+                        :is-active="route.name === item.url.name"
                       >
-                        <component :is="navMenu[0].icon" />
-                        <span>{{ navMenu[0].name }}</span>
-                      </router-link>
-                    </SidebarMenuButton>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">{{
-                    navMenu[0].name
-                  }}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </SidebarMenuItem>
-            <Collapsible
-              v-for="item in navCategory"
-              :key="item.name"
-              as-child
-              class="group/collapsible"
-            >
-              <SidebarMenuItem>
-                <CollapsibleTrigger as-child>
-                  <SidebarMenuButton :tooltip="item.name">
-                    <component :is="item.icon" />
-                    <span>{{ item.name }}</span>
-                    <ChevronRight
-                      class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
-                    />
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <SidebarMenuSub>
-                    <SidebarMenuSubItem
-                      v-for="subItem in item.options"
-                      :key="subItem.name"
-                    >
-                      <SidebarMenuSubButton as-child>
                         <router-link
-                          :to="subItem.url"
+                          :to="item.url"
                           class="flex items-center p-2 rounded-md transition-colors"
-                          :class="{
-                            'bg-sidebar-accent text-sidebar-accent-foreground':
-                              route.name === subItem.url.name,
-                            'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
-                          }"
                         >
-                          <component :is="subItem.icon" class="mr-2" />
-                          <span>{{ subItem.name }}</span>
+                          <component :is="item.icon" />
+                          <span>{{ item.name }}</span>
                         </router-link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-                </CollapsibleContent>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">{{
+                      item.name
+                    }}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </SidebarMenuItem>
-            </Collapsible>
+
+              <Collapsible
+                v-else
+                :key="item.name"
+                as-child
+                class="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger as-child>
+                    <SidebarMenuButton :tooltip="item.name">
+                      <component :is="item.icon" />
+                      <span>{{ item.name }}</span>
+                      <ChevronRight
+                        class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                      />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      <!-- Renderiza os filhos da categoria -->
+                      <SidebarMenuSubItem
+                        v-for="child in item.children"
+                        :key="child.name"
+                      >
+                        <SidebarMenuSubButton
+                          as-child
+                          :is-active="route.name === child.url.name"
+                        >
+                          <router-link
+                            :to="child.url"
+                            class="flex items-center p-2 rounded-md transition-colors"
+                            :class="{
+                              'bg-sidebar-accent text-sidebar-accent-foreground':
+                                route.name === child.url.name,
+                              'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
+                            }"
+                          >
+                            <component :is="child.icon" class="mr-2" />
+                            <span>{{ child.name }}</span>
+                          </router-link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            </template>
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

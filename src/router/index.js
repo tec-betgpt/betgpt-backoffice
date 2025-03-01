@@ -68,84 +68,6 @@ const routes = [
     },
   },
   {
-    path: "/analytics",
-    name: "analytics",
-    component: Analytics,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      title: "Relatórios",
-      permission: "member|client",
-    },
-  },
-  {
-    path: "/sms-funnel",
-    name: "sms-funnel",
-    component: SmsFunnel,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      title: "SMS Funnel",
-      permission: "member|client",
-    },
-  },
-  {
-    path: "/google-analytics",
-    name: "google-analytics",
-    component: GoogleAnalytics,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      title: "Google Analytics",
-      permission: "member|client",
-    },
-  },
-  {
-    path: "/active-campaign",
-    name: "active-campaign",
-    component: ActiveCampaign,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      title: "Active Campaign",
-      permission: "member|client",
-    },
-  },
-  {
-    path: "/projects",
-    name: "projects",
-    component: Projects,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      permission: "member",
-      title: "Projetos",
-    },
-  },
-  {
-    path: "/texts",
-    name: "texts",
-    component: Texts,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      permission: "member",
-      title: "Textos",
-    },
-  },
-  {
-    path: "/users",
-    name: "users",
-    component: Users,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      permission: "member",
-      title: "Usuários",
-    },
-  },
-  // Configurations routes
-  {
     path: "/configurations",
     component: ConfigurationLayout,
     meta: {
@@ -216,9 +138,8 @@ const routes = [
       },
     ],
   },
-  //IA
   {
-    path: "/ia",
+    path: "/elevate-ia",
     name: "ia",
     component: Ia,
     meta: {
@@ -229,68 +150,171 @@ const routes = [
     },
   },
   {
-    path: "/sector",
-    name: "sector",
-    component: Sectors,
+    path: "/controls",
     meta: {
-      layout: DefaultLayout,
       requiresAuth: true,
-      title: "Setores",
+      title: "Relatórios",
     },
+    children: [
+      {
+        path: "performances",
+        name: "performances",
+        component: Analytics,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Performance",
+          permission: "member|client",
+        },
+      },
+      {
+        path: "traffics",
+        name: "traffics",
+        component: GoogleAnalytics,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Tráfego",
+          permission: "member|client",
+        },
+      },
+      {
+        path: "emails",
+        name: "emails",
+        component: ActiveCampaign,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "E-mails",
+          permission: "member|client",
+        },
+      },
+      {
+        path: "sms",
+        name: "sms",
+        component: SmsFunnel,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "SMS",
+          permission: "member|client",
+        },
+      },
+    ],
   },
-
   {
-    path: "/cost",
-    name: "cost",
-    component: Costs,
+    path: "/manage",
     meta: {
-      layout: DefaultLayout,
       requiresAuth: true,
-      title: "Custos",
+      title: "Gerenciamento",
     },
-  },
-  {
-    path: "/roles",
-    name: "roles",
-    component: Roles,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      permission: "member",
-      title: "Perfis",
-    },
-  },
-  {
-    path: "/players",
-    name: "players",
-    component: Players,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      permission: "member|client",
-      title: "Jogadores",
-    },
-  },
-  {
-    path: "/utm-tracks",
-    name: "utm-tracks",
-    component: UtmTracks,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      permission: "member|client",
-      title: "Rastreamentos UTM",
-    },
+    children: [
+      {
+        path: "projects",
+        name: "projects",
+        component: Projects,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          permission: "member",
+          title: "Projetos",
+        },
+      },
+      {
+        path: "texts",
+        name: "texts",
+        component: Texts,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          permission: "member",
+          title: "Textos",
+        },
+      },
+      {
+        path: "users",
+        name: "users",
+        component: Users,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          permission: "member",
+          title: "Usuários",
+        },
+      },
+      {
+        path: "roles",
+        name: "roles",
+        component: Roles,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          permission: "member",
+          title: "Perfis",
+        },
+      },
+      {
+        path: "players",
+        name: "players",
+        component: Players,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          permission: "member|client",
+          title: "Jogadores",
+        },
+      },
+      {
+        path: "utm-tracks",
+        name: "utm-tracks",
+        component: UtmTracks,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          permission: "member|client",
+          title: "Rastreamentos UTM",
+        },
+      },
+    ],
   },
   {
     path: "/financial",
-    name: "financial",
-    component: Financial,
     meta: {
-      layout: DefaultLayout,
       requiresAuth: true,
       title: "Financeiro",
     },
+    children: [
+      {
+        path: "sectors",
+        name: "sectors",
+        component: Sectors,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Setores",
+        },
+      },
+      {
+        path: "costs",
+        name: "costs",
+        component: Costs,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Custos",
+        },
+      },
+      {
+        path: "registers",
+        name: "registers",
+        component: Financial,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Financeiro",
+        },
+      },
+    ],
   },
 ];
 
