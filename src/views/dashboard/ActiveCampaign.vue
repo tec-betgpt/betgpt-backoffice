@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6 sm:p-10 p-1 max-w-full">
     <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Active Campaign</h2>
+      <h2 class="text-2xl font-bold tracking-tight">E-mails</h2>
       <p class="text-muted-foreground">
-        Métricas baseadas nas campanhas do Active Campaign.
+        Relatórios de envio por e-mails de um período específico.
       </p>
     </div>
 
@@ -34,9 +34,15 @@
             :data="campaigns"
             :columns="columns"
             :loading="loading"
-            :update-text="handlerText"
+            :update-text="setSearch"
             :find="applyFilter"
             :result="campaignsStats"
+            :search-fields="[
+              {
+                key: 'campaign_name',
+                placeholder: 'Buscar por nome da campanha...',
+              },
+            ]"
           />
         </CardContent>
         <CardFooter class="py-4 w-full">
@@ -168,6 +174,7 @@ const campaignsStats = computed(() => {
 const fetchFilters = async () => {
   try {
     loadingFilters.value = true;
+
     const response = await api.get("/user/configurations/project-filters");
     const filters = response.data.data || [];
 
@@ -195,11 +202,12 @@ const fetchFilters = async () => {
   }
 };
 
-const name = ref();
-const handlerText = (text: string) => {
-  name.value = text;
+const searchValues = ref<Record<string, string>>({});
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = values;
 };
-const applyFilter = async (current: number) => {
+
+const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
   if (!selectedFilterId.value) {
     toast({
@@ -212,20 +220,21 @@ const applyFilter = async (current: number) => {
 
   projectStore.setSelectedProject(selectedFilterId.value);
   try {
-    const response = await api.get(
-      `/utils/active-campaign?page=${name.value&&current?current:name.value?1:current?current:pages.value.current}`,
-        {
-          params: {
-            start_date: selectedRange.value.start?.toString(),
-            end_date: selectedRange.value.end?.toString(),
-            filter_id: selectedFilterId.value,
-            order_by: orderId.value,
-            type_order: order.value ? "asc" : "desc",
-            campaign_name: name.value,
-          },
-        }
+    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
+      acc[key] = searchValues.value[key];
+      return acc;
+    }, {} as Record<string, string>);
 
-    );
+    const response = await api.get(`/utils/active-campaign?page=${current}`, {
+      params: {
+        ...searchParams,
+        start_date: selectedRange.value.start?.toString(),
+        end_date: selectedRange.value.end?.toString(),
+        filter_id: selectedFilterId.value,
+        order_by: orderId.value,
+        type_order: order.value ? "asc" : "desc",
+      },
+    });
 
     campaigns.value = response.data.data.campaigns.campaigns;
     pages.value = {
