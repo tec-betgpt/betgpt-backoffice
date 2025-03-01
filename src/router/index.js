@@ -191,8 +191,8 @@ const routes = [
         },
       },
       {
-        path: "sms",
-        name: "sms",
+        path: "sms-insights",
+        name: "sms-insights",
         component: SmsFunnel,
         meta: {
           layout: DefaultLayout,
