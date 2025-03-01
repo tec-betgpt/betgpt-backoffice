@@ -52,13 +52,9 @@
             <Users class="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+{{ players.count }}</div>
+            <div class="text-2xl font-bold">{{ players.count }}</div>
             <p class="text-xs text-muted-foreground">
-              {{
-                players.percentage > 0
-                  ? "+" + players.percentage
-                  : players.percentage
-              }}% desde o mês anterior
+              +{{ players.change }} desde o último dia
             </p>
           </CardContent>
         </Card>
@@ -84,7 +80,7 @@
             </svg>
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+{{ activeNow.count }}</div>
+            <div class="text-2xl font-bold">{{ activeNow.count }}</div>
             <p class="text-xs text-muted-foreground">
               +{{ activeNow.change }} desde o último dia
             </p>
