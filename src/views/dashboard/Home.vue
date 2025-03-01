@@ -540,7 +540,9 @@
             <Skeleton class="pl-5 h-72 w-full" />
           </div>
           <div v-else>
-            <BarChart
+            <canvas id="monthlyCountsChart"></canvas>
+
+            <!--<BarChart
               :data="deposits.monthly_counts"
               :categories="['Total']"
               :index="'name'"
@@ -557,7 +559,7 @@
                     : ''
               "
               :custom-tooltip="CustomChartTooltipPrice"
-            />
+            />-->
           </div>
         </CardContent>
       </Card>
@@ -636,7 +638,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, nextTick } from "vue";
 import { useProjectStore } from "@/stores/project";
 import api from "@/services/api";
 import {
@@ -686,6 +688,8 @@ import {
   today,
 } from "@internationalized/date";
 import { useToast } from "@/components/ui/toast/use-toast";
+import { Chart, registerables } from "chart.js";
+Chart.register(...registerables);
 
 const responsiveClass =
   "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3";
@@ -803,10 +807,74 @@ const applyFilter = async () => {
   }
 };
 
-onMounted(() => {
-  fetchFilters().then(() => {
+onMounted(async () => {
+  await fetchFilters().then(async () => {
     if (selectedFilterId.value) {
-      applyFilter();
+      await applyFilter();
+    }
+  });
+
+  nextTick(() => {
+    if (!loading.value) {
+      const ctx = document
+        .getElementById("monthlyCountsChart")
+        .getContext("2d");
+
+      // Extrair os labels (nomes dos meses) e dados (valores Total)
+      const labels = deposits.value.monthly_counts.map((item) => item.name);
+      const data = deposits.value.monthly_counts.map((item) =>
+        parseInt(item.Total)
+      );
+
+      const monthlyCountsChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Total",
+              data: data,
+              backgroundColor: "rgba(255, 255, 255, 0.2)",
+              borderColor: "rgba(255, 255, 255, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  let value = context.raw;
+                  return `Total: R$ ${(value / 100)
+                    .toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })
+                    .slice(3)}`;
+                },
+              },
+            },
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: function (value) {
+                  return (
+                    "R$ " +
+                    (value / 100)
+                      .toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })
+                      .slice(3)
+                  );
+                },
+              },
+            },
+          },
+        },
+      });
     }
   });
 });
