@@ -139,6 +139,7 @@ const navMenu = computed(() => [
     name: "Controles",
     icon: SlidersHorizontal,
     show: true,
+    type: "controls",
     children: [
       {
         name: "Performance",
@@ -170,6 +171,7 @@ const navMenu = computed(() => [
     name: "Gerenciamento",
     icon: SquareStack,
     show: true,
+    type: "manage",
     children: [
       {
         name: "Projetos",
@@ -213,6 +215,7 @@ const navMenu = computed(() => [
     name: "Financeiro",
     icon: CircleDollarSign,
     show: true,
+    type: "financial",
     children: [
       {
         name: "Gerir Setores",
@@ -236,6 +239,25 @@ const navMenu = computed(() => [
     ],
   },
 ]);
+
+const openGrouped = computed(() => {
+  let openType = null;
+
+  route.matched.forEach((matchedRoute) => {
+    navMenu.value.forEach((group) => {
+      if (group.children) {
+        group.children.forEach((child) => {
+          if (child.url && child.url.name === matchedRoute.name) {
+            console.log(child.url.name);
+            openType = group.type;
+          }
+        });
+      }
+    });
+  });
+
+  return openType;
+});
 
 const width = ref(0);
 const height = ref(0);
@@ -398,6 +420,7 @@ const logoSrc = computed(() => {
                 :key="item.name"
                 as-child
                 class="group/collapsible"
+                :defaultOpen="item.type && openGrouped === item.type"
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger as-child>
@@ -411,14 +434,13 @@ const logoSrc = computed(() => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      <!-- Renderiza os filhos da categoria -->
                       <SidebarMenuSubItem
                         v-for="child in item.children"
                         :key="child.name"
                       >
                         <SidebarMenuSubButton
                           as-child
-                          :is-active="route.name === child.url.name"
+                          :isActive="route.name === child.url.name"
                         >
                           <router-link
                             :to="child.url"

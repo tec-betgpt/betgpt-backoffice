@@ -151,6 +151,7 @@ const routes = [
   },
   {
     path: "/controls",
+    name: "controls",
     meta: {
       requiresAuth: true,
       title: "Relatórios",
@@ -204,6 +205,7 @@ const routes = [
   },
   {
     path: "/manage",
+    name: "manage",
     meta: {
       requiresAuth: true,
       title: "Gerenciamento",
@@ -279,6 +281,7 @@ const routes = [
   },
   {
     path: "/financial",
+    name: "financial",
     meta: {
       requiresAuth: true,
       title: "Financeiro",
