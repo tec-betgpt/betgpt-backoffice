@@ -303,6 +303,7 @@ import { Label } from "@/components/ui/label";
 import Pin from "@/components/custom/CustomPinInput.vue";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -371,6 +372,17 @@ const handleLoginResponse = (response) => {
   if (tokenAuth && userAuth) {
     authStore.setUserData(userAuth, tokenAuth);
     router.push("/");
+
+    // Vamos fazer login no sistema de IA
+    axios.post(`${import.meta.env.VITE_PUBLIC_IA_URL}/auth/login`, {
+      email: userAuth.email,
+      password: form.value.password,
+    }).then((response) => {
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+    })
+
   } else {
     if (response.data.data[1]) {
       id.value = response.data.data;
