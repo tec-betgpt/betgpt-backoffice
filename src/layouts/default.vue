@@ -160,8 +160,8 @@ const navMenu = computed(() => [
         show: true,
       },
       {
-        name: "SMS Funnel",
-        url: { name: "sms" },
+        name: "SMS Insights",
+        url: { name: "sms-insights" },
         icon: Send,
         show: true,
       },

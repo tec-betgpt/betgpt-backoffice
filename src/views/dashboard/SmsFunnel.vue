@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">SMS</h2>
+      <h2 class="text-2xl font-bold tracking-tight">SMS Insights</h2>
       <p class="text-muted-foreground">
         Relatórios de envio por SMS de um período específico.
       </p>
