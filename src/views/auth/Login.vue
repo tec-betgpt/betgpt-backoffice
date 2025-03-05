@@ -153,18 +153,20 @@
             'opacity-0': !message.message,
             'opacity-100	': message.message,
           }"
-          class="flex flex-col gap-3 transition-opacity duration-1000"
+          class="flex flex-col gap-2 sm:max-w-[440px] w-6/7 transition-opacity duration-1000"
         >
-          <div class="flex gap-1">
+          <div class="flex items-start justify-center">
             <Quote :size="20" :stroke-width="1.75" absoluteStrokeWidth />
-            <p class="max-w-[440px]">
+            <p class=" sm:text-lg  text-sm font-sans text-center">
               {{ message.message }}
             </p>
           </div>
-          <p class="text-left font-serif text-gray-700">
+          <p class="text-left font-serif text-xs sm:text-sm opacity-70  ">
             {{ message.signature }}
           </p>
         </div>
+
+
       </div>
     </div>
 
