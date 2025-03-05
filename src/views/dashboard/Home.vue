@@ -732,6 +732,8 @@ const projectFilters = ref([]);
 const selectedFilterId = ref(projectStore.selectedProject);
 const loadingFilters = ref(true);
 
+const monthlyCountsChart = ref(null);
+
 const fetchFilters = async () => {
   try {
     loadingFilters.value = true;
@@ -805,76 +807,81 @@ const applyFilter = async () => {
   } finally {
     loading.value = false;
   }
+
+  nextTick(() => {
+    if (deposits.value && deposits.value.monthly_counts.length) {
+      updateChart();
+    }
+  });
+};
+
+const updateChart = () => {
+  const ctx = document.getElementById("monthlyCountsChart").getContext("2d");
+
+  if (monthlyCountsChart.value) {
+    monthlyCountsChart.value.destroy();
+  }
+
+  const labels = deposits.value.monthly_counts.map((item) => item.name);
+  const data = deposits.value.monthly_counts.map((item) =>
+    parseInt(item.Total)
+  );
+
+  monthlyCountsChart.value = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Total",
+          data: data,
+          backgroundColor: "rgba(255, 255, 255, 0.2)",
+          borderColor: "rgba(255, 255, 255, 1)",
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              let value = context.raw;
+              return `Total: R$ ${(value / 100)
+                .toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })
+                .slice(3)}`;
+            },
+          },
+        },
+      },
+      scales: {
+        y: {
+          ticks: {
+            callback: function (value) {
+              return (
+                "R$ " +
+                (value / 100)
+                  .toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })
+                  .slice(3)
+              );
+            },
+          },
+        },
+      },
+    },
+  });
 };
 
 onMounted(async () => {
   await fetchFilters().then(async () => {
     if (selectedFilterId.value) {
       await applyFilter();
-    }
-  });
-
-  nextTick(() => {
-    if (!loading.value) {
-      const ctx = document
-        .getElementById("monthlyCountsChart")
-        .getContext("2d");
-
-      // Extrair os labels (nomes dos meses) e dados (valores Total)
-      const labels = deposits.value.monthly_counts.map((item) => item.name);
-      const data = deposits.value.monthly_counts.map((item) =>
-        parseInt(item.Total)
-      );
-
-      const monthlyCountsChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Total",
-              data: data,
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
-              borderColor: "rgba(255, 255, 255, 1)",
-              borderWidth: 1,
-            },
-          ],
-        },
-        options: {
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: function (context) {
-                  let value = context.raw;
-                  return `Total: R$ ${(value / 100)
-                    .toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })
-                    .slice(3)}`;
-                },
-              },
-            },
-          },
-          scales: {
-            y: {
-              ticks: {
-                callback: function (value) {
-                  return (
-                    "R$ " +
-                    (value / 100)
-                      .toLocaleString("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      })
-                      .slice(3)
-                  );
-                },
-              },
-            },
-          },
-        },
-      });
     }
   });
 });
