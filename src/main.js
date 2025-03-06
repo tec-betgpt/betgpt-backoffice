@@ -5,6 +5,7 @@ import App from "./App.vue";
 import router from "./router";
 import VueTippy from "vue-tippy";
 import { toCurrency } from "./filters/currencyFilter";
+import { toK } from "./filters/numberFilter";
 import "tippy.js/dist/tippy.css";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
@@ -19,6 +20,7 @@ moment.locale("pt-br");
 
 app.config.globalProperties.$toCurrency = toCurrency;
 app.config.globalProperties.$moment = moment;
+app.config.globalProperties.$toK = toK;
 
 app.use(VueTippy, {
   directive: "tippy",
