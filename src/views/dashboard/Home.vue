@@ -540,26 +540,16 @@
             <Skeleton class="pl-5 h-72 w-full" />
           </div>
           <div v-else>
-            <canvas id="monthlyCountsChart"></canvas>
-
-            <!--<BarChart
+            <BarChart
               :data="deposits.monthly_counts"
               :categories="['Total']"
               :index="'name'"
               :rounded-corners="4"
               :y-formatter="
-                (tick, i) =>
-                  typeof tick === 'number'
-                    ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
-                        .format(tick / 100)
-                        .toString()}`
-                    : ''
+                (tick) => (typeof tick === 'number' ? $toK(tick) : '')
               "
-              :custom-tooltip="CustomChartTooltipPrice"
-            />-->
+              :custom-tooltip="CustomChartTooltipRealPrice"
+            />
           </div>
         </CardContent>
       </Card>
@@ -650,7 +640,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart } from "@/components/ui/chart-bar";
-import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
+import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import {
   Users,
@@ -808,11 +798,11 @@ const applyFilter = async () => {
     loading.value = false;
   }
 
-  nextTick(() => {
+  /*nextTick(() => {
     if (deposits.value && deposits.value.monthly_counts.length) {
       updateChart();
     }
-  });
+  });*/
 };
 
 const updateChart = () => {

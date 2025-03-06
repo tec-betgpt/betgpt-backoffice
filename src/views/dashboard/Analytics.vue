@@ -46,17 +46,9 @@
               index="date"
               :categories="['7D Depósitos', '14D Depósitos', '28D Depósitos']"
               :y-formatter="
-                (tick, i) =>
-                  typeof tick === 'number'
-                    ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
-                        .format(tick / 100)
-                        .toString()}`
-                    : ''
+                (tick) => (typeof tick === 'number' ? $toK(tick) : '')
               "
-              :custom-tooltip="CustomChartTooltipPrice"
+              :custom-tooltip="CustomChartTooltipRealPrice"
             />
           </div>
         </CardContent>
@@ -137,17 +129,9 @@
                 '28D Net Depósitos',
               ]"
               :y-formatter="
-                (tick, i) =>
-                  typeof tick === 'number'
-                    ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
-                        .format(tick / 100)
-                        .toString()}`
-                    : ''
+                (tick) => (typeof tick === 'number' ? $toK(tick) : '')
               "
-              :custom-tooltip="CustomChartTooltipPrice"
+              :custom-tooltip="CustomChartTooltipRealPrice"
             />
           </div>
         </CardContent>
@@ -224,17 +208,9 @@
               index="date"
               :categories="['Net Depósitos']"
               :y-formatter="
-                (tick, i) =>
-                  typeof tick === 'number'
-                    ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
-                        .format(tick / 100)
-                        .toString()}`
-                    : ''
+                (tick) => (typeof tick === 'number' ? $toK(tick) : '')
               "
-              :custom-tooltip="CustomChartTooltipPrice"
+              :custom-tooltip="CustomChartTooltipRealPrice"
             />
           </div>
         </CardContent>
@@ -256,17 +232,9 @@
                 index="date"
                 :categories="['Depósitos']"
                 :y-formatter="
-                  (tick, i) =>
-                    typeof tick === 'number'
-                      ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })
-                          .format(tick / 100)
-                          .toString()}`
-                      : ''
+                  (tick) => (typeof tick === 'number' ? $toK(tick) : '')
                 "
-                :custom-tooltip="CustomChartTooltipPrice"
+                :custom-tooltip="CustomChartTooltipRealPrice"
               />
             </div>
           </CardContent>
@@ -286,17 +254,9 @@
                 index="date"
                 :categories="['Saques']"
                 :y-formatter="
-                  (tick, i) =>
-                    typeof tick === 'number'
-                      ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })
-                          .format(tick / 100)
-                          .toString()}`
-                      : ''
+                  (tick) => (typeof tick === 'number' ? $toK(tick) : '')
                 "
-                :custom-tooltip="CustomChartTooltipPrice"
+                :custom-tooltip="CustomChartTooltipRealPrice"
               />
             </div>
           </CardContent>
@@ -377,6 +337,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast/use-toast";
+import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
 import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
