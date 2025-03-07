@@ -67,7 +67,7 @@ import { ShieldCheck,CopyIcon } from 'lucide-vue-next';
 Form.axios = api;
 import {useAuthStore} from "@/stores/auth";
 import { Button } from "@/components/ui/button";
-import { Input, HasError } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/toast/use-toast";

@@ -287,7 +287,7 @@ const selectedChatTitle = computed(() => {
           </SelectContent>
         </Select>
         <Select v-model="selectedChatId">
-          <SelectTrigger class="sm:w-[240px] w-full sm:hidden">
+          <SelectTrigger class="sm:w-[240px] w-full md:hidden">
             <SelectValue :placeholder="selectedChatTitle || 'Selecione um chat'" />
           </SelectTrigger>
           <SelectContent>
@@ -299,7 +299,7 @@ const selectedChatTitle = computed(() => {
       </CardHeader>
 
       <CardContent class="flex justify-center items-center gap-4">
-        <Card class="min-w-52 max-w-52 overflow-y-auto sm:block hidden min-h-[600px] ">
+        <Card class="min-w-52 max-w-52 overflow-y-auto md:block hidden min-h-[600px] ">
          <CardHeader>
            <div class="flex justify-between items-center mb-6">
              <h2 class=" text-xl font-bold">Chats IA</h2>
@@ -352,7 +352,7 @@ const selectedChatTitle = computed(() => {
                   : 'bg-white border text-gray-800'
               ]"
               >
-                <p class="text-sm font-medium break-words">{{ message.content }}</p>
+                <p class="sm:text-sm text-xs font-medium break-words">{{ message.content }}</p>
                 <a
                     v-if="message.file"
                     :href="message.file"
