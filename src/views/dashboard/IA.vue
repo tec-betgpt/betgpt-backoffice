@@ -261,32 +261,10 @@ const selectedChatTitle = computed(() => {
         Converse sobre estratégias para aprimorar receitas, lucros e outras métricas importantes.
       </p>
     </div>
-    <Card class="">
-      <CardHeader>
-        <Select v-model="selectedModel">
-          <SelectTrigger class="sm:w-[240px] w-full">
-            <SelectValue :placeholder="selectedModel || 'Selecione um Modelo'" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="openai">OpenAI</SelectItem>
-            <SelectItem value="gemini">Gemini</SelectItem>
-            <SelectItem value="claude">Claude</SelectItem>
-            <SelectItem value="deepseek">DeepSeek</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select v-model="selectedChatId">
-          <SelectTrigger class="sm:w-[240px] w-full md:hidden">
-            <SelectValue :placeholder="selectedChatTitle || 'Selecione um chat'" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem  v-for="chat in chats" :key="chat.id" :value="chat.title">
-              {{ chat.title }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </CardHeader>
+    <Card>
 
-      <CardContent class="flex justify-center items-center gap-4">
+
+      <CardContent class="flex justify-center items-center gap-4 p-4">
         <Card class="min-w-52 max-w-52 overflow-y-auto md:block hidden min-h-[600px] ">
          <CardHeader>
            <div class="flex justify-between items-center mb-6">
@@ -325,8 +303,29 @@ const selectedChatTitle = computed(() => {
           </CardContent>
 
         </Card>
-        <div class="flex flex-1 min-h-[600px] flex-col justify-between ">
-          <div class="flex flex-1 flex-col overflow-y-auto gap-3 max-h-[600px] ">
+        <div class="min-h-[600px] flex flex-1 flex-col justify-between gap-2">
+          <Select v-model="selectedChatId">
+            <SelectTrigger class=" w-full md:hidden">
+              <SelectValue :placeholder="selectedChatTitle || 'Selecione um chat'" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem  v-for="chat in chats" :key="chat.id" :value="chat.title">
+                {{ chat.title }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Select v-model="selectedModel">
+            <SelectTrigger class=" w-full">
+              <SelectValue :placeholder="selectedModel || 'Selecione um Modelo'" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="openai">OpenAI</SelectItem>
+              <SelectItem value="gemini">Gemini</SelectItem>
+              <SelectItem value="claude">Claude</SelectItem>
+              <SelectItem value="deepseek">DeepSeek</SelectItem>
+            </SelectContent>
+          </Select>
+          <div class="flex flex-1 flex-col overflow-y-auto gap-3 max-h-[550px] ">
             <div
                 v-for="message in messages"
                 :key="message.id"
@@ -353,7 +352,7 @@ const selectedChatTitle = computed(() => {
 
             </div>
           </div>
-          <div class="flex gap-3 items-center justify-center pt-4" >
+          <div class="flex gap-3 items-center justify-center  pt-4" >
             <div>
               <Label for="file">
                 <File />

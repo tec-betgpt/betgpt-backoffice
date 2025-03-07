@@ -21,6 +21,7 @@ const { toggleSidebar } = useSidebar()
 
 <template>
   <div class="flex gap-2">
+    <img :src="logoSrc" alt="Logo" class="h-7 w-7 mr-3 md:hidden" />
     <Button
         data-sidebar="trigger"
         variant="ghost"
@@ -33,7 +34,7 @@ const { toggleSidebar } = useSidebar()
       <PanelLeft />
       <span class="sr-only">Toggle Sidebar</span>
     </Button>
-    <img :src="logoSrc" alt="Logo" class="h-7 w-7" />
+
   </div>
 
 </template>
