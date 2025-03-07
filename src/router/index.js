@@ -29,6 +29,7 @@ import Costs from "@/views/dashboard/Costs.vue";
 import Roles from "@/views/dashboard/Roles.vue";
 import Players from "@/views/dashboard/Players.vue";
 import UtmTracks from "@/views/dashboard/UtmTracks.vue";
+import IA from "@/views/dashboard/IA.vue";
 
 const routes = [
   {
@@ -141,7 +142,7 @@ const routes = [
   {
     path: "/elevate-ia",
     name: "ia",
-    component: Ia,
+    component: IA,
     meta: {
       layout: DefaultLayout,
       requiresAuth: false,

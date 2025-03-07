@@ -1,10 +1,12 @@
+import type { VariantProps } from 'class-variance-authority'
 import type { HTMLAttributes } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { cva } from 'class-variance-authority'
 
 export interface SidebarProps {
   side?: 'left' | 'right'
   variant?: 'sidebar' | 'floating' | 'inset'
   collapsible?: 'offcanvas' | 'icon' | 'none'
+    collapsed?: boolean
   class?: HTMLAttributes['class']
 }
 

@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
@@ -25,14 +24,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarProvider,
+
   SidebarTrigger,
   SidebarHeader,
   SidebarInset,
   SidebarMenuSub,
   SidebarMenuSubItem,
-  SidebarMenuSubButton,
+  SidebarMenuSubButton, useSidebar
+
 } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar } from "@/components/ui/sidebar";
+
 import {
   Tooltip,
   TooltipContent,
@@ -52,18 +54,13 @@ import {
   ChartNoAxesCombined,
   MailCheck,
   Album,
-  Wrench,
   SlidersHorizontal,
-  BadgeDollarSign,
   Rows3,
   ChevronRight,
   SquareStack,
   CircleDollarSign,
   ExternalLink,
-  Sun,
-  Moon,
   Briefcase,
-  DollarSign,
   DollarSignIcon,
   UserCog,
 } from "lucide-vue-next";
@@ -77,16 +74,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useColorMode } from "@vueuse/core";
-import { Switch } from "@/components/ui/switch";
 import CustomLoading from "@/components/custom/CustomLoading.vue";
 import { resizeDirective as vResize } from "v-resize-observer";
-
 interface BreadcrumbItem {
   name: string;
   title: string;
   path: string | null;
 }
-
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -259,33 +253,33 @@ const openGrouped = computed(() => {
   return openType;
 });
 
-const width = ref(0);
-const height = ref(0);
 
-const onResize = ({ width: newWidth, height: newHeight }) => {
-  width.value = newWidth;
-  height.value = newHeight;
-};
+
 // Times (Projects)
 const workspaceStore = useWorkspaceStore();
-const projects = computed(() => workspaceStore.projects);
 const activeProject = computed(() => workspaceStore.activeProject || null);
 
 import { useConfigStore } from "@/stores/config";
+import {provideSidebarContext} from "@/components/ui/sidebar/utils";
+import {Sheet} from "@/components/ui/sheet";
 const configStore = useConfigStore();
 
 const setActiveProject = async (
-  project: typeof workspaceStore.activeProject
+    project: typeof workspaceStore.activeProject
 ) => {
   configStore.setLoading(true);
   await workspaceStore.setActiveProject(project);
   setTimeout(() => configStore.setLoading(false), 2000);
 };
 
+// Sidebar state
+const sidebarExpanded = ref(false);
 const stateResponsive = ref(false);
 const setResponsive = () => {
   stateResponsive.value = !stateResponsive.value;
 };
+
+
 const mode = useColorMode();
 mode.value = localStorage.getItem("theme") || "auto";
 onMounted(async () => {
@@ -303,79 +297,85 @@ const logout = async () => {
 
 const logoSrc = computed(() => {
   return mode.value === "dark"
-    ? "/logo-elevate-white.png"
-    : "/logo-elevate-black.png";
+      ? "/logo-elevate-white.png"
+      : "/logo-elevate-black.png";
 });
+
+const handleMenuItemClick = () => {
+  if (window.innerWidth < 768) {
+    sidebarExpanded.value = !sidebarExpanded.value;
+  }
+}
 </script>
 
 <template>
   <CustomLoading v-if="configStore.loading"></CustomLoading>
-  <SidebarProvider v-else>
-    <Sidebar collapsible="icon">
-      <SidebarHeader v-if="activeProject" v-resize="onResize">
-        <router-link :to="{ name: 'home' }"
-          ><img :src="logoSrc" alt="Logo" class="m-auto py-4 w-1/2"
-        /></router-link>
+  <SidebarProvider v-else  >
+    <Sidebar collapsible="icon" :collapsed="sidebarExpanded" >
+      <SidebarHeader v-if="activeProject">
+        <router-link :to="{ name: 'home' }"  @click="handleMenuItemClick">
+          <img :src="logoSrc" alt="Logo" class="m-auto py-4 w-1/2"/>
+        </router-link>
 
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
                 <SidebarMenuButton
-                  size="lg"
-                  class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    size="lg"
+                    class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <div
-                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+                      class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
                   >
                     <img
-                      v-if="activeProject && activeProject.logo_url"
-                      :src="activeProject.logo_url"
-                      alt="Imagem do projeto"
-                      class="size-4"
+                        v-if="activeProject && activeProject.logo_url"
+                        :src="activeProject.logo_url"
+                        alt="Imagem do projeto"
+                        class="size-4"
                     />
 
                     <Package2
-                      class="h-4 w-4 transition-all group-hover:scale-110"
-                      v-else
+                        class="h-4 w-4 transition-all group-hover:scale-110"
+                        v-else
                     />
                   </div>
                   <div class="grid flex-1 text-left text-sm leading-tight">
                     <span class="truncate font-semibold">{{
-                      activeProject.name
-                    }}</span>
+                        activeProject.name
+                      }}</span>
                     <span class="truncate text-xs">Projeto</span>
                   </div>
                   <ChevronsUpDown class="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                align="start"
-                side="bottom"
-                :side-offset="4"
+                  class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                  align="start"
+                  side="bottom"
+                  :side-offset="4"
               >
                 <DropdownMenuLabel class="text-xs text-muted-foreground">
                   Projetos
                 </DropdownMenuLabel>
                 <DropdownMenuItem
-                  v-for="project in workspaceStore.projects"
-                  :key="project.name"
-                  class="gap-2 p-2"
-                  @click="setActiveProject(project)"
+                    v-for="project in workspaceStore.projects"
+                    :key="project.name"
+                    class="gap-2 p-2"
+                    @click="setActiveProject(project)"
                 >
                   <div
-                    class="flex size-6 items-center justify-center rounded-sm border"
+                      class="flex size-6 items-center justify-center rounded-sm border"
                   >
                     <img
-                      v-if="project && project.logo_url"
-                      class="size-4 shrink-0"
-                      :src="project.logo_url"
-                      alt="Imagem do projeto"
+                        v-if="project && project.logo_url"
+                        class="size-4 shrink-0"
+                        :src="project.logo_url"
+                        alt="Imagem do projeto"
                     />
                     <Package2
-                      class="h-4 w-4 transition-all group-hover:scale-110"
-                      v-else
+                        class="h-4 w-4 transition-all group-hover:scale-110"
+                        v-else
                     />
                   </div>
                   {{ project.name }}
@@ -396,12 +396,13 @@ const logoSrc = computed(() => {
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <SidebarMenuButton
-                        as-child
-                        :is-active="route.name === item.url.name"
+                          as-child
+                          :is-active="route.name === item.url.name"
                       >
                         <router-link
-                          :to="item.url"
-                          class="flex items-center p-2 rounded-md transition-colors"
+                            :to="item.url"
+                            class="flex items-center p-2 rounded-md transition-colors"
+                            @click="handleMenuItemClick"
                         >
                           <component :is="item.icon" />
                           <span>{{ item.name }}</span>
@@ -409,18 +410,18 @@ const logoSrc = computed(() => {
                       </SidebarMenuButton>
                     </TooltipTrigger>
                     <TooltipContent side="right">{{
-                      item.name
-                    }}</TooltipContent>
+                        item.name
+                      }}</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </SidebarMenuItem>
 
               <Collapsible
-                v-else
-                :key="item.name"
-                as-child
-                class="group/collapsible"
-                :defaultOpen="item.type && openGrouped === item.type"
+                  v-else
+                  :key="item.name"
+                  as-child
+                  class="group/collapsible"
+                  :defaultOpen="item.type && openGrouped === item.type"
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger as-child>
@@ -428,24 +429,25 @@ const logoSrc = computed(() => {
                       <component :is="item.icon" />
                       <span>{{ item.name }}</span>
                       <ChevronRight
-                        class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                          class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                       />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       <SidebarMenuSubItem
-                        v-for="child in item.children"
-                        :key="child.name"
+                          v-for="child in item.children"
+                          :key="child.name"
                       >
                         <SidebarMenuSubButton
-                          as-child
-                          :isActive="route.name === child.url.name"
+                            as-child
+                            :isActive="route.name === child.url.name"
                         >
                           <router-link
-                            :to="child.url"
-                            class="flex items-center p-2 rounded-md transition-colors"
-                            :class="{
+                              :to="child.url"
+                              class="flex items-center p-2 rounded-md transition-colors"
+                              @click="handleMenuItemClick"
+                              :class="{
                               'bg-sidebar-accent text-sidebar-accent-foreground':
                                 route.name === child.url.name,
                               'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
@@ -471,13 +473,13 @@ const logoSrc = computed(() => {
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
                 <SidebarMenuButton
-                  size="lg"
-                  class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    size="lg"
+                    class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar class="h-8 w-8 rounded-lg">
                     <AvatarImage
-                      :src="authStore.user?.avatar"
-                      :alt="authStore.user?.name"
+                        :src="authStore.user?.avatar"
+                        :alt="authStore.user?.name"
                     />
                     <AvatarFallback class="rounded-lg">
                       {{ authStore.user?.initials }}
@@ -485,29 +487,29 @@ const logoSrc = computed(() => {
                   </Avatar>
                   <div class="grid flex-1 text-left text-sm leading-tight">
                     <span class="truncate font-semibold">{{
-                      authStore.user?.first_name
-                    }}</span>
+                        authStore.user?.first_name
+                      }}</span>
                     <span class="truncate text-xs">{{
-                      authStore.user?.email
-                    }}</span>
+                        authStore.user?.email
+                      }}</span>
                   </div>
                   <ChevronsUpDown class="ml-auto size-4" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                side="bottom"
-                align="end"
-                :side-offset="4"
+                  class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                  side="bottom"
+                  align="end"
+                  :side-offset="4"
               >
                 <DropdownMenuLabel class="p-0 font-normal">
                   <div
-                    class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
+                      class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
                   >
                     <Avatar class="h-8 w-8 rounded-lg">
                       <AvatarImage
-                        :src="authStore.user?.avatar"
-                        :alt="authStore.user?.name"
+                          :src="authStore.user?.avatar"
+                          :alt="authStore.user?.name"
                       />
                       <AvatarFallback class="rounded-lg">
                         {{ authStore.user?.initials }}
@@ -515,19 +517,19 @@ const logoSrc = computed(() => {
                     </Avatar>
                     <div class="grid flex-1 text-left text-sm leading-tight">
                       <span class="truncate font-semibold">{{
-                        authStore.user?.name
-                      }}</span>
+                          authStore.user?.name
+                        }}</span>
                       <span class="truncate text-xs">{{
-                        authStore.user?.email
-                      }}</span>
+                          authStore.user?.email
+                        }}</span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  ><router-link :to="{ name: 'configurations.profile' }"
-                    >Configurações</router-link
-                  ></DropdownMenuItem
+                ><router-link :to="{ name: 'configurations.profile' }" @click="handleMenuItemClick"
+                >Configurações</router-link
+                ></DropdownMenuItem
                 >
                 <DropdownMenuSeparator />
                 <DropdownMenuItem @click="logout">
@@ -542,16 +544,16 @@ const logoSrc = computed(() => {
     </Sidebar>
     <SidebarInset>
       <header
-        class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
+          class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
       >
         <div class="flex items-center gap-2 px-4">
-          <SidebarTrigger @click="setResponsive()" class="-ml-1" />
+          <SidebarTrigger @click="setResponsive()" :toggle="handleMenuItemClick" class="-ml-1" />
           <Separator orientation="vertical" class="mr-2 h-4" />
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem
-                v-for="(crumb, index) in breadcrumbs"
-                :key="index"
+                  v-for="(crumb, index) in breadcrumbs"
+                  :key="index"
               >
                 <template v-if="crumb.path">
                   <BreadcrumbLink as-child>

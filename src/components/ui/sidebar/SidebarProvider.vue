@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils'
 import { useEventListener, useMediaQuery, useVModel } from '@vueuse/core'
-import { TooltipProvider } from 'radix-vue'
+import { TooltipProvider } from 'reka-ui'
 import { computed, type HTMLAttributes, type Ref, ref } from 'vue'
 import { provideSidebarContext, SIDEBAR_COOKIE_MAX_AGE, SIDEBAR_COOKIE_NAME, SIDEBAR_KEYBOARD_SHORTCUT, SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON } from './utils'
 
 const props = withDefaults(defineProps<{
   defaultOpen?: boolean
-  open?: boolean
+  open?: boolean,
+  isOpen? :boolean,
   class?: HTMLAttributes['class']
 }>(), {
   defaultOpen: true,
@@ -45,7 +46,7 @@ function toggleSidebar() {
 useEventListener('keydown', (event: KeyboardEvent) => {
   if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
     event.preventDefault()
-    toggleSidebar()
+     toggleSidebar()
   }
 })
 
@@ -71,7 +72,7 @@ provideSidebarContext({
         '--sidebar-width': SIDEBAR_WIDTH,
         '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
       }"
-      :class="cn('group/sidebar-wrapper flex min-h-svh w-full text-sidebar-foreground has-[[data-variant=inset]]:bg-sidebar', props.class)"
+      :class="cn('group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar', props.class)"
       v-bind="$attrs"
     >
       <slot />

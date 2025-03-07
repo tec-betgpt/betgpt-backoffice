@@ -111,7 +111,7 @@ Form.axios = api;
 
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
-import { Input, HasError } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
