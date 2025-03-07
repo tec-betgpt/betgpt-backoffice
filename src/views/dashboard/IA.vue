@@ -304,16 +304,26 @@ const selectedChatTitle = computed(() => {
 
         </Card>
         <div class="min-h-[600px] flex flex-1 flex-col justify-between gap-2">
-          <Select v-model="selectedChatId">
-            <SelectTrigger class=" w-full md:hidden">
-              <SelectValue :placeholder="selectedChatTitle || 'Selecione um chat'" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem  v-for="chat in chats" :key="chat.id" :value="chat.title">
-                {{ chat.title }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <div class="flex items-center justify-between  gap-2">
+            <Select v-model="selectedChatId">
+              <SelectTrigger class=" w-full md:hidden">
+                <SelectValue :placeholder="selectedChatTitle || 'Selecione um chat'" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem  v-for="chat in chats" :key="chat.id" :value="chat.title">
+                  {{ chat.title }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+                @click="showNewChatModal = true"
+                title="Novo Chat"
+                size="icon"
+            >
+              <Plus/>
+            </Button>
+          </div>
+
           <Select v-model="selectedModel">
             <SelectTrigger class=" w-full">
               <SelectValue :placeholder="selectedModel || 'Selecione um Modelo'" />
