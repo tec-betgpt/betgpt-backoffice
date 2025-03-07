@@ -27,22 +27,10 @@ import {Sheet, SheetContent, SheetHeader, SheetTitle} from "@/components/ui/shee
 import {Separator} from "@/components/ui/separator";
 
 
-const chats = ref<Chat[]>([
-    {id: 1, title: "Chat 1"},
-  {id: 2, title: "Chat 2"},
-  {id: 3, title: "Chat 3"}])
+const chats = ref<Chat[]>([])
 const selectedChatId = ref()
 const selectedModel = ref('openai')
 const messages = ref<Message[]>([])
-messages.value = Array.from({length: 15}, (_, index) => ({
-  id: index + 1,
-  sender: index % 2 === 0 ? 'user' : 'assistant',
-  content: `Mensagem de exemplo ${index + 1}`,
-  iaModel: 'openai',
-  file: null,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-}));
 const newMessage = ref('')
 const uploadProgress = ref(0)
 const file = ref(null)
