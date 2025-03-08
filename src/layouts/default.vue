@@ -31,8 +31,9 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
   useSidebar,
+  SidebarProvider,
+  Sidebar,
 } from "@/components/ui/sidebar";
-import { SidebarProvider, Sidebar } from "@/components/ui/sidebar";
 
 import {
   Tooltip,
