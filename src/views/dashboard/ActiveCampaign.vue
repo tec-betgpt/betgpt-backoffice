@@ -236,7 +236,7 @@ const applyFilter = async (current = pages.value.current) => {
       },
     });
 
-    campaigns.value = response.data.data.campaigns.campaigns;
+    campaigns.value = response.data.data.campaigns.data;
     pages.value = {
       current: response.data.data.campaigns.pagination.current_page,
       total: response.data.data.campaigns.pagination.total,
