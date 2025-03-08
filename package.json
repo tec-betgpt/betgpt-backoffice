@@ -24,6 +24,7 @@
     "moment": "^2.30.1",
     "pinia": "^2.2.2",
     "radix-vue": "^1.9.11",
+    "reka-ui": "^2.0.2",
     "sweetalert2": "^11.14.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",

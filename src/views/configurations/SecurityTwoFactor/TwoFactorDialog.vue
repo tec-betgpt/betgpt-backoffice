@@ -42,7 +42,7 @@
               <DialogDescription> 1° {{ $t('app_scan_qr') }}</DialogDescription>
               <img v-if="qrCode[0]" :src="qrCode[0]" alt="QRCODE" class="w-1/3 mx-auto">
               <p class="text-xs text-gray-600 text-center">{{ $t('app_alternative_instruction') }}</p>
-              <p class="text-sm text-black font-bold text-center">{{ qrCode[1] }}</p>
+              <p class="text-sm font-bold text-center">{{ qrCode[1] }}</p>
             </div>
             <div class="flex flex-col gap-3">
               <DialogDescription>2° {{ $t('app_enter_code') }}</DialogDescription>
