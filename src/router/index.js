@@ -13,7 +13,6 @@ import GoogleAnalytics from "@/views/dashboard/GoogleAnalytics.vue";
 import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
-import Ia from "@/views/dashboard/Ia.vue";
 
 import ConfigurationLayout from "@/views/configurations/Layout.vue";
 import ConfigurationProfile from "@/views/configurations/Profile.vue";
@@ -147,7 +146,7 @@ const routes = [
       layout: DefaultLayout,
       requiresAuth: false,
       permission: "member",
-      title: "Ia",
+      title: "Elevate IA",
     },
   },
   {
