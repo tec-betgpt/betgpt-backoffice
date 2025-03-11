@@ -242,7 +242,6 @@ const openGrouped = computed(() => {
       if (group.children) {
         group.children.forEach((child) => {
           if (child.url && child.url.name === matchedRoute.name) {
-            console.log(child.url.name);
             openType = group.type;
           }
         });
