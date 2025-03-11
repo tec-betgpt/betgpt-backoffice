@@ -379,7 +379,7 @@ watch(selectedChatId,() => loadMessages())
                          class="max-h-32 max-w-full object-cover my-2"/>
                   </div>
                   <div v-else-if="uploadedFilePath.endsWith('.pdf')" >
-                    <iframe src="https://eppg.fgv.br/sites/default/files/teste.pdf" class=" w-full  "  />
+                    <iframe :src="uploadedFilePath" class=" w-full  "  />
                   </div>
                   <div v-else-if="uploadedFilePath.endsWith('.txt')">
                     <p> Arquivo de Texto anexado</p>
