@@ -33,14 +33,15 @@
     <div class="space-y-4">
       <div>
         <div v-if="loading" :class="responsiveClass">
-          <div v-for="n in 3" :key="n" class="p-4 rounded shadow">
-            <div class="flex justify-between items-center mb-2">
-              <Skeleton class="h-4 w-1/3" />
-              <Skeleton class="h-4 w-5" />
+          <Card v-for="n in 3" :key="n">
+            <div class="p-4 rounded shadow">
+              <div class="flex justify-between items-center mb-2">
+                <Skeleton class="h-4 w-1/3" />
+                <Skeleton class="h-4 w-5" />
+              </div>
+              <Skeleton class="h-8 w-2/3 mb-2" />
             </div>
-            <Skeleton class="h-8 w-2/3 mb-2" />
-            <Skeleton class="h-4 w-1/2" />
-          </div>
+          </Card>
         </div>
         <div :class="responsiveClass" v-else>
           <Card class="">
