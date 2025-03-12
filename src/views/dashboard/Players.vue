@@ -87,7 +87,7 @@ const pages = ref({
 });
 
 const workspaceStore = useWorkspaceStore();
-const projectId = workspaceStore.activeProject?.id ?? null;
+const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
 const fetchPlayers = async (current = pages.value.current) => {
   try {
@@ -104,7 +104,7 @@ const fetchPlayers = async (current = pages.value.current) => {
           ...searchParams,
           orderBy: order.value ? order.value : "id",
           orderDirection: direction.value ? "asc" : "desc",
-          project_id: projectId,
+          filter_id: activeGroupProjectId,
         },
       }),
     ]);

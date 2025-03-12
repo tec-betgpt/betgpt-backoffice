@@ -1,3 +1,75 @@
+<template>
+  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+    <div class="space-y-0.5">
+      <h2 class="text-2xl font-bold tracking-tight">
+        Gerenciamento de Setores
+      </h2>
+      <p class="text-muted-foreground">
+        Gerencie os setores financeiros, adicionando ou editando informações
+        para otimizar o controle do orçamento.
+      </p>
+    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Setores</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <CustomDataTable
+          :loading="loadingSectors"
+          :data="sectors"
+          :columns="sectorColumns"
+          :find="fetchSectors"
+          :update-text="handleName"
+          :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
+        />
+        <CustomPagination :select-page="fetchSectors" :pages="pages" />
+      </CardContent>
+      <CardFooter class="flex justify-start">
+        <div class="flex gap-4 my-4 items-center">
+          <Button @click="openSheet">Criar Setor</Button>
+        </div>
+      </CardFooter>
+    </Card>
+    <Sheet v-model:open="showModal">
+      <SheetContent position="right" size="lg">
+        <SheetHeader>
+          <SheetTitle>
+            {{ isEditing ? `Editar ${form.type}` : `Novo ${form.type}` }}
+          </SheetTitle>
+          <SheetDescription>
+            {{
+              isEditing
+                ? `Edite as informações do ${form.type}.`
+                : `Crie um novo ${form.type}.`
+            }}
+          </SheetDescription>
+        </SheetHeader>
+        <form @submit.prevent="submitSector">
+          <div class="grid gap-4 py-4">
+            <template v-if="form.type === 'setor'">
+              <div class="grid grid-cols-4 items-center gap-4">
+                <Label for="name">Nome</Label>
+                <Input
+                  id="name"
+                  v-model="sectorForm.name"
+                  placeholder="Digite o nome"
+                  class="col-span-3"
+                  required
+                />
+              </div>
+            </template>
+          </div>
+          <SheetFooter>
+            <Button type="submit" :disabled="loadingSub">
+              {{ loadingSub ? "Salvando..." : isEditing ? "Salvar" : "Criar" }}
+            </Button>
+          </SheetFooter>
+        </form>
+      </SheetContent>
+    </Sheet>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { h, onMounted, ref, watch } from "vue";
 import { Button } from "@/components/ui/button";
@@ -56,10 +128,14 @@ const orderId = ref("");
 const order = ref(false);
 const sectorColumnHelper = createColumnHelper<SectorData>();
 const workspaceStore = useWorkspaceStore();
-const projectId = workspaceStore.activeProject?.id ?? null;
+const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const form = ref({ type: "" });
 const isEditing = ref(false);
-const sectorForm = ref({ name: "", project_id: projectId, user_id: null });
+const sectorForm = ref({
+  name: "",
+  project_id: activeGroupProjectId,
+  user_id: null,
+});
 const loadingSub = ref(false);
 
 const handleEdit = (item: SectorData) => {
@@ -208,7 +284,7 @@ const fetchSectors = async (current: number = pages.value.current) => {
     loadingSectors.value = true;
     const response = await api.get(`/financial/sector?page=${current}`, {
       params: {
-        filter_id: projectId,
+        filter_id: activeGroupProjectId,
         find_name: nameSector.value,
         sort_by: orderId.value,
         sort_order: order.value ? "asc" : "desc",
@@ -237,83 +313,18 @@ const pages = ref({
   last: 0,
 });
 
-onMounted(fetchSectors);
+onMounted(async () => {
+  await fetchSectors();
+});
+
 const openSheet = () => {
   form.value.type = "setor";
   isEditing.value = false;
-  sectorForm.value = { name: "", project_id: projectId, user_id: null };
+  sectorForm.value = {
+    name: "",
+    project_id: activeGroupProjectId,
+    user_id: null,
+  };
   showModal.value = true;
 };
 </script>
-
-<template>
-  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">
-        Gerenciamento de Setores
-      </h2>
-      <p class="text-muted-foreground">
-        Gerencie os setores financeiros, adicionando ou editando informações
-        para otimizar o controle do orçamento.
-      </p>
-    </div>
-    <Card>
-      <CardHeader>
-        <CardTitle>Setores</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <CustomDataTable
-          :loading="loadingSectors"
-          :data="sectors"
-          :columns="sectorColumns"
-          :find="fetchSectors"
-          :update-text="handleName"
-          :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
-        />
-        <CustomPagination :select-page="fetchSectors" :pages="pages" />
-      </CardContent>
-      <CardFooter class="flex justify-start">
-        <div class="flex gap-4 my-4 items-center">
-          <Button @click="openSheet">Criar Setor</Button>
-        </div>
-      </CardFooter>
-    </Card>
-    <Sheet v-model:open="showModal">
-      <SheetContent position="right" size="lg">
-        <SheetHeader>
-          <SheetTitle>
-            {{ isEditing ? `Editar ${form.type}` : `Novo ${form.type}` }}
-          </SheetTitle>
-          <SheetDescription>
-            {{
-              isEditing
-                ? `Edite as informações do ${form.type}.`
-                : `Crie um novo ${form.type}.`
-            }}
-          </SheetDescription>
-        </SheetHeader>
-        <form @submit.prevent="submitSector">
-          <div class="grid gap-4 py-4">
-            <template v-if="form.type === 'setor'">
-              <div class="grid grid-cols-4 items-center gap-4">
-                <Label for="name">Nome</Label>
-                <Input
-                  id="name"
-                  v-model="sectorForm.name"
-                  placeholder="Digite o nome"
-                  class="col-span-3"
-                  required
-                />
-              </div>
-            </template>
-          </div>
-          <SheetFooter>
-            <Button type="submit" :disabled="loadingSub">
-              {{ loadingSub ? "Salvando..." : isEditing ? "Salvar" : "Criar" }}
-            </Button>
-          </SheetFooter>
-        </form>
-      </SheetContent>
-    </Sheet>
-  </div>
-</template>

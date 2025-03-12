@@ -1,3 +1,150 @@
+<template>
+  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+    <div class="space-y-0.5">
+      <h2 class="text-2xl font-bold tracking-tight">
+        Gerenciamento Financeiro
+      </h2>
+      <p class="text-muted-foreground">
+        Adicione e gerencie custos, receitas e métricas financeiras para
+        melhorar o controle do seu orçamento.
+      </p>
+    </div>
+    <div class="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Financeiro</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CustomDataTable
+            :loading="loadingFinancials"
+            :data="financial"
+            :columns="columns"
+            :find="fetchFinancials"
+            :update-text="handleFinancialName"
+            :search-fields="[
+              {
+                key: 'description',
+                label: '',
+                placeholder: 'Buscar por descrição...',
+              },
+            ]"
+          />
+          <CustomPagination :select-page="fetchFinancials" :pages="pages" />
+        </CardContent>
+        <CardFooter class="flex justify-start">
+          <Button @click="openSheet('financeiro')">Novo Registro</Button>
+        </CardFooter>
+      </Card>
+    </div>
+  </div>
+
+  <Sheet v-model:open="showModal">
+    <SheetContent position="right" size="lg">
+      <SheetHeader>
+        <SheetTitle>
+          {{ isEditing ? `Editar ${form.type}` : `Novo ${form.type}` }}
+        </SheetTitle>
+        <SheetDescription>
+          {{
+            isEditing
+              ? `Edite as informações do ${form.type}.`
+              : `Crie um novo ${form.type}.`
+          }}
+        </SheetDescription>
+      </SheetHeader>
+
+      <form @submit.prevent="submitFinancial()">
+        <div class="grid gap-4 py-4">
+          <template v-if="form.type === 'financeiro'">
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="cost_center_id">Centro de Custo</Label>
+              <Select v-model="financialForm.cost_center_id">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Selecione um centro de custo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="cost in costs"
+                    :key="cost.id"
+                    :value="cost.id"
+                  >
+                    {{ cost.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="type">Tipo</Label>
+              <Select v-model="financialForm.type">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cost">Custo</SelectItem>
+                  <SelectItem value="revenue">Receita</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="category_type">Categoria</Label>
+              <Select v-model="financialForm.category_type">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Selecione a categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Fixo</SelectItem>
+                  <SelectItem value="variable">Variável</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="percentage">Porcentagem (%)</Label>
+              <Input
+                id="percentage"
+                v-model="financialForm.percentage"
+                type="number"
+                placeholder="Opcional"
+                class="col-span-3"
+                min="0"
+              />
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="amount">Valor</Label>
+              <Input
+                id="amount"
+                v-model="financialForm.amount"
+                type="number"
+                placeholder="Digite o valor"
+                class="col-span-3"
+                required
+              />
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="description">Descrição</Label>
+              <Input
+                id="description"
+                v-model="financialForm.description"
+                placeholder="Digite uma descrição"
+                class="col-span-3"
+              />
+            </div>
+          </template>
+        </div>
+
+        <SheetFooter>
+          <Button type="submit" :disabled="loadingSub">
+            <LucideSpinner
+              v-if="loadingSub"
+              class="mr-2 h-4 w-4 animate-spin"
+            />
+            {{ loadingSub ? "Salvando..." : isEditing ? "Salvar" : "Criar" }}
+          </Button>
+        </SheetFooter>
+      </form>
+    </SheetContent>
+  </Sheet>
+</template>
+
 <script setup lang="ts">
 import {
   Card,
@@ -46,7 +193,7 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 const workspaceStore = useWorkspaceStore();
-const projectId = workspaceStore.activeProject?.id ?? null;
+const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 interface FinancialData {
   id: number;
   costCenter: string;
@@ -292,7 +439,7 @@ const fetchCosts = async () => {
   try {
     loadingCosts.value = true;
     const response = await api.get("/financial/cost-centers", {
-      params: { filter_id: projectId},
+      params: { filter_id: activeGroupProjectId },
     });
     costs.value = response.data.data.data.map((cost) => ({
       id: cost.id,
@@ -317,7 +464,7 @@ const fetchFinancials = async (current = pages.value.current) => {
       `/financial/financial-transactions?page=${current}`,
       {
         params: {
-          filter_id:projectId,
+          filter_id: activeGroupProjectId,
           name: nameFinancial.value,
           sort_by: orderId.value,
           sort_order: order.value ? "asc" : "desc",
@@ -345,9 +492,9 @@ const fetchFinancials = async (current = pages.value.current) => {
     loadingFinancials.value = false;
   }
 };
-onMounted(()=>{
-  fetchCosts()
-  fetchFinancials()
+onMounted(async () => {
+  await fetchCosts();
+  await fetchFinancials();
 });
 
 const nameFinancial = ref();
@@ -355,150 +502,5 @@ const handleFinancialName = (text: string) => {
   nameFinancial.value = text;
 };
 </script>
-
-<template>
-  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">
-        Gerenciamento Financeiro
-      </h2>
-      <p class="text-muted-foreground">
-        Adicione e gerencie custos, receitas e métricas financeiras para
-        melhorar o controle do seu orçamento.
-      </p>
-    </div>
-    <div class="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Financeiro</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CustomDataTable
-            :loading="loadingFinancials"
-            :data="financial"
-            :columns="columns"
-            :find="fetchFinancials"
-            :update-text="handleFinancialName"
-            :search-fields="[
-               { key: 'description',label:'', placeholder: 'Buscar por descrição...' }
-
-            ]"
-
-          />
-          <CustomPagination :select-page="fetchFinancials" :pages="pages" />
-        </CardContent>
-        <CardFooter class="flex justify-start">
-          <Button @click="openSheet('financeiro')">Novo Registro</Button>
-        </CardFooter>
-      </Card>
-    </div>
-  </div>
-
-  <Sheet v-model:open="showModal">
-    <SheetContent position="right" size="lg">
-      <SheetHeader>
-        <SheetTitle>
-          {{ isEditing ? `Editar ${form.type}` : `Novo ${form.type}` }}
-        </SheetTitle>
-        <SheetDescription>
-          {{
-            isEditing
-              ? `Edite as informações do ${form.type}.`
-              : `Crie um novo ${form.type}.`
-          }}
-        </SheetDescription>
-      </SheetHeader>
-
-      <form @submit.prevent="submitFinancial()">
-        <div class="grid gap-4 py-4">
-          <template v-if="form.type === 'financeiro'">
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="cost_center_id">Centro de Custo</Label>
-              <Select v-model="financialForm.cost_center_id">
-                <SelectTrigger class="col-span-3">
-                  <SelectValue placeholder="Selecione um centro de custo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="cost in costs"
-                    :key="cost.id"
-                    :value="cost.id"
-                  >
-                    {{ cost.name }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="type">Tipo</Label>
-              <Select v-model="financialForm.type">
-                <SelectTrigger class="col-span-3">
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cost">Custo</SelectItem>
-                  <SelectItem value="revenue">Receita</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="category_type">Categoria</Label>
-              <Select v-model="financialForm.category_type">
-                <SelectTrigger class="col-span-3">
-                  <SelectValue placeholder="Selecione a categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixed">Fixo</SelectItem>
-                  <SelectItem value="variable">Variável</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="percentage">Porcentagem (%)</Label>
-              <Input
-                id="percentage"
-                v-model="financialForm.percentage"
-                type="number"
-                placeholder="Opcional"
-                class="col-span-3"
-                min="0"
-              />
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="amount">Valor</Label>
-              <Input
-                id="amount"
-                v-model="financialForm.amount"
-                type="number"
-                placeholder="Digite o valor"
-                class="col-span-3"
-                required
-              />
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="description">Descrição</Label>
-              <Input
-                id="description"
-                v-model="financialForm.description"
-                placeholder="Digite uma descrição"
-                class="col-span-3"
-              />
-            </div>
-          </template>
-        </div>
-
-        <SheetFooter>
-          <Button type="submit" :disabled="loadingSub">
-            <LucideSpinner
-              v-if="loadingSub"
-              class="mr-2 h-4 w-4 animate-spin"
-            />
-            {{ loadingSub ? "Salvando..." : isEditing ? "Salvar" : "Criar" }}
-          </Button>
-        </SheetFooter>
-      </form>
-    </SheetContent>
-  </Sheet>
-</template>
 
 <style scoped></style>

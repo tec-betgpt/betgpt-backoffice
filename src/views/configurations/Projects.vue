@@ -33,34 +33,9 @@
             </div>
             <div class="flex space-x-2">
               <Button
-                size="sm"
-                @click="markAsFavorite(group.id)"
-                variant="outline"
-                :disabled="markingFavoriteGroupId === group.id"
-              >
-                <LucideSpinner
-                  v-if="markingFavoriteGroupId === group.id"
-                  class="mr-2 h-4 w-4 animate-spin"
-                />
-                <LucideStar
-                  v-else
-                  class="mr-2 h-4 w-4"
-                  :class="
-                    favoriteGroupId === group.id
-                      ? 'text-yellow-500'
-                      : 'text-muted-foreground'
-                  "
-                />
-                {{
-                  favoriteGroupId === group.id
-                    ? "Favorito"
-                    : markingFavoriteGroupId === group.id
-                    ? "Marcar como Favorito"
-                    : "Marcar como Favorito"
-                }}
-              </Button>
-              <Button
-                v-if="favoriteGroupId !== group.id"
+                v-if="
+                  workspaceStore.activeGroupProject?.id !== `group_${group.id}`
+                "
                 size="sm"
                 variant="destructive"
                 @click="deleteGroup(group.id)"
@@ -131,39 +106,6 @@
         </Button>
       </div>
     </div>
-
-    <Separator class="my-5" />
-
-    <div class="mb-3">
-      <h4 class="text-md font-medium mb-2">Projeto Favorito</h4>
-      <div v-if="loading">
-        <div class="space-y-4">
-          <Skeleton class="h-6 w-full" />
-          <Skeleton class="h-6 w-full" />
-        </div>
-      </div>
-      <div v-else>
-        <Select v-model="favoriteProjectId">
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Selecione um projeto" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-              v-for="project in projects"
-              :key="project.id"
-              :value="project.id"
-            >
-              {{ project.name }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-
-    <Button @click="saveSettings" :disabled="savingSettings">
-      <LucideSpinner v-if="savingSettings" class="mr-2 h-4 w-4 animate-spin" />
-      Salvar Configurações
-    </Button>
   </div>
 </template>
 
@@ -184,22 +126,21 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 as LucideSpinner, LucideStar } from "lucide-vue-next";
-import { useProjectStore } from "@/stores/project";
 import api from "@/services/api";
 
 const { toast } = useToast();
-const projectStore = useProjectStore();
+
+import { useWorkspaceStore } from "@/stores/workspace";
+const workspaceStore = useWorkspaceStore();
+
 const loading = ref(false);
 const creatingGroup = ref(false);
-const savingSettings = ref(false);
-const markingFavoriteGroupId = ref(null);
 
 const groups = ref([]);
 const projects = ref([]);
-const favoriteGroupId = ref(null);
-const favoriteProjectId = ref(null);
 const newGroupName = ref("");
 const selectedProjects = ref([]);
+const deletingGroupId = ref(null);
 
 const fetchProjectsAndGroups = async () => {
   try {
@@ -210,8 +151,6 @@ const fetchProjectsAndGroups = async () => {
     ]);
     projects.value = projectsResponse.data.data.projects;
     groups.value = groupsResponse.data.data;
-    favoriteProjectId.value = projectsResponse.data.data.favorite_project_id;
-    favoriteGroupId.value = projectsResponse.data.data.favorite_group_id;
   } catch (error) {
     toast({
       title: "Erro",
@@ -223,45 +162,6 @@ const fetchProjectsAndGroups = async () => {
   }
 };
 
-const markAsFavorite = async (groupId) => {
-  try {
-    markingFavoriteGroupId.value = groupId;
-    if (favoriteGroupId.value === groupId) {
-      await api.patch(
-        `/user/configurations/project-groups/${groupId}/unfavorite`
-      );
-      favoriteGroupId.value = null;
-
-      if (projectStore.selectedProject == `group_${groupId}`) {
-        projectStore.setSelectedProject(null);
-      }
-
-      toast({
-        title: "Sucesso",
-        description: "Grupo desfavoritado e exclúido com sucesso.",
-        variant: "success",
-      });
-    } else {
-      await api.post(`/user/configurations/project-groups/${groupId}/favorite`);
-      favoriteGroupId.value = groupId;
-      toast({
-        title: "Sucesso",
-        description: "Grupo marcado como favorito.",
-        variant: "success",
-      });
-      projectStore.setSelectedProject("group_" + groupId);
-    }
-  } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao alterar o estado do favorito.",
-      variant: "destructive",
-    });
-  } finally {
-    markingFavoriteGroupId.value = null;
-  }
-};
-
 const onCheckboxChange = (id: any, checked: any) => {
   if (checked) {
     selectedProjects.value.push(id);
@@ -269,8 +169,6 @@ const onCheckboxChange = (id: any, checked: any) => {
     selectedProjects.value = selectedProjects.value.filter((pid) => pid !== id);
   }
 };
-
-const deletingGroupId = ref(null);
 
 const deleteGroup = async (groupId) => {
   try {
@@ -335,29 +233,6 @@ const createGroup = async () => {
     });
   } finally {
     creatingGroup.value = false;
-  }
-};
-
-const saveSettings = async () => {
-  try {
-    savingSettings.value = true;
-    await api.post("/user/configurations/save-project-preferences", {
-      favorite_project_id: favoriteProjectId.value,
-    });
-    toast({
-      title: "Sucesso",
-      description: "Configurações salvas com sucesso.",
-      variant: "success",
-    });
-    projectStore.setSelectedProject("project_" + favoriteProjectId.value);
-  } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao salvar configurações.",
-      variant: "destructive",
-    });
-  } finally {
-    savingSettings.value = false;
   }
 };
 

@@ -82,7 +82,7 @@
             <SelectValue placeholder="Selecione um idioma" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem :value="1">Português</SelectItem>
+            <SelectItem value="1">Português</SelectItem>
           </SelectContent>
         </Select>
         <HasError :form="form" field="language_id" />
@@ -94,10 +94,6 @@
         </Button>
       </div>
     </form>
-
-
-
-
   </div>
 </template>
 
@@ -122,15 +118,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import {useColorMode} from "@vueuse/core";
-const theme = ref(localStorage.getItem('theme') || 'auto')
+import { useColorMode } from "@vueuse/core";
+const theme = ref(localStorage.getItem("theme") || "auto");
 const { toast } = useToast();
 const authStore = useAuthStore();
 const loading = ref(false);
 const loadingCancelEmailChange = ref(false);
 const emailChangeRequest = ref(false);
 
-const mode = useColorMode()
+const mode = useColorMode();
 const form = ref(
   new Form({
     first_name: "",
@@ -140,14 +136,14 @@ const form = ref(
   })
 );
 
-watch(theme,()=>{
-      setTheme()
-})
-const setTheme = async ()=>{
-  localStorage.setItem('theme', theme.value);
-  const mode = useColorMode()
+watch(theme, () => {
+  setTheme();
+});
+const setTheme = async () => {
+  localStorage.setItem("theme", theme.value);
+  const mode = useColorMode();
   mode.value = theme.value;
-}
+};
 const submit = async () => {
   loading.value = true;
   try {

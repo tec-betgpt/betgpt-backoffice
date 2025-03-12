@@ -165,7 +165,7 @@ watch(typeFilter.value, () => {
 });
 
 const workspaceStore = useWorkspaceStore();
-const projectId = workspaceStore.activeProject?.id ?? null;
+const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
 const searchValues = ref<Record<string, string>>({});
 
@@ -185,7 +185,7 @@ const fetchUtmTracks = async (current = pages.value.current) => {
           type: typeFilter.value,
           orderBy: order.value ? order.value : "id",
           orderDirection: direction.value ? "asc" : "desc",
-          project_id: projectId,
+          filter_id: activeGroupProjectId,
         },
       }),
     ]);
