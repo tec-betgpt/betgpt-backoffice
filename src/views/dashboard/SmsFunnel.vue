@@ -6,21 +6,8 @@
         Relatórios de envio por SMS de um período específico.
       </p>
     </div>
-    <div
-      class="flex items-center justify-end mb-3"
-      v-if="projectFilters && projectFilters.length"
-    >
+    <div class="flex items-center justify-end mb-3">
       <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
-        <Select v-model="selectedFilterId">
-          <SelectTrigger class="md:w-[250px]">
-            <SelectValue placeholder="Selecione um grupo ou projeto" />
-          </SelectTrigger>
-          <SelectContent>
-            <template v-for="(item, index) in projectFilters" :key="index">
-              <SelectItem :value="item.id">{{ item.label }}</SelectItem>
-            </template>
-          </SelectContent>
-        </Select>
         <div class="flex gap-2 w-full">
           <DateRangePicker v-model="selectedRange" class="max-[450px]:flex-2" />
           <Button class="max-[450px]:flex-1" @click="applyFilter"
@@ -326,7 +313,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, h } from "vue";
-import { useProjectStore } from "@/stores/project";
 import api from "@/services/api";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
 import {
@@ -381,13 +367,10 @@ const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
 const { toast } = useToast();
 
-const projectStore = useProjectStore();
-const projectFilters = ref([]);
-const selectedFilterId = ref(projectStore.selectedProject);
-const loadingFilters = ref(true);
+import { useWorkspaceStore } from "@/stores/workspace";
+const workspaceStore = useWorkspaceStore();
 
 const loading = ref(true);
-const projects = ref(null);
 const last = ref([]);
 const daily = ref([]);
 const recharges = ref([]);
@@ -401,36 +384,6 @@ const pages = ref({
   last: 0,
 });
 
-const fetchFilters = async () => {
-  try {
-    loadingFilters.value = true;
-    const response = await api.get("/user/configurations/project-filters");
-    const filters = response.data.data || [];
-
-    projectFilters.value = filters.map((filter) => ({
-      id: filter.id,
-      label: filter.label,
-    }));
-
-    if (filters.length > 0) {
-      if (!selectedFilterId.value) {
-        const favoriteFilter = filters.find((filter) => filter.is_favorite);
-        selectedFilterId.value = favoriteFilter
-          ? favoriteFilter.id
-          : filters[0].id;
-      }
-    }
-  } catch (error) {
-    toast({
-      title: "Erro ao carregar filtros",
-      description: "Não foi possível carregar os filtros de projetos.",
-      variant: "destructive",
-    });
-  } finally {
-    loadingFilters.value = false;
-  }
-};
-
 const redirectToInvoiceUrl = (url: any) => {
   window.open(url, "_blank");
 };
@@ -442,7 +395,7 @@ const setSearch = (values: Record<string, string>) => {
 
 const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
-  if (!selectedFilterId.value) {
+  if (!workspaceStore.activeGroupProject?.id) {
     toast({
       title: "Erro",
       description: "Selecione um grupo ou projeto antes de filtrar.",
@@ -450,8 +403,6 @@ const applyFilter = async (current = pages.value.current) => {
     });
     return;
   }
-
-  projectStore.setSelectedProject(selectedFilterId.value);
 
   try {
     const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
@@ -464,7 +415,7 @@ const applyFilter = async (current = pages.value.current) => {
         ...searchParams,
         start_date: selectedRange.value.start?.toString(),
         end_date: selectedRange.value.end?.toString(),
-        filter_id: selectedFilterId.value,
+        filter_id: workspaceStore.activeGroupProject.id,
         order_by: orderId.value,
         type_order: order.value ? "asc" : "desc",
       },
@@ -539,12 +490,8 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-onMounted(() => {
-  fetchFilters().then(() => {
-    if (selectedFilterId.value) {
-      applyFilter();
-    }
-  });
+onMounted(async () => {
+  await applyFilter();
 });
 
 type CampaignMetrics = {

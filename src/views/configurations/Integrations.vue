@@ -80,12 +80,15 @@ const integrations = ref<Array<any>>([]);
 const fetchIntegrations = async () => {
   try {
     loading.value = true;
-    const projectId = workspaceStore.activeProject?.id;
-    if (!projectId) throw new Error("Nenhum projeto ativo selecionado.");
+    const activeGroupProject = workspaceStore.activeGroupProject;
+    if (activeGroupProject.type == "group")
+      throw new Error(
+        "Para acessar as integrações é necessário que a workspace seja um projeto."
+      );
 
-    const integrationsResponse = await api.get("/integrations");
+    const integrationsResponse = await api.get("/available-integrations");
     const projectIntegrationsResponse = await api.get(
-      `/projects/${projectId}/integrations`
+      `/projects/${activeGroupProject.project_id}/integrations`
     );
 
     integrations.value = integrationsResponse.data.data.map(
@@ -105,7 +108,7 @@ const fetchIntegrations = async () => {
   } catch (error) {
     toast({
       title: "Erro",
-      description: "Erro ao carregar integrações.",
+      description: error.message,
       variant: "destructive",
     });
   } finally {
@@ -115,7 +118,7 @@ const fetchIntegrations = async () => {
 
 const saveIntegration = async (integration: any) => {
   try {
-    const projectId = workspaceStore.activeProject?.id;
+    const projectId = workspaceStore.activeGroupProject?.project_id;
     if (!projectId) throw new Error("Nenhum projeto ativo selecionado.");
 
     savingIntegration.value[integration.id] = true;

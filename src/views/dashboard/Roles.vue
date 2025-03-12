@@ -145,7 +145,7 @@ const form = ref({
   id: null,
   title: "",
   permissions: [],
-  project_id: null,
+  filter_id: null,
 });
 const pages = ref({
   current: 1,
@@ -154,10 +154,10 @@ const pages = ref({
 });
 
 const workspaceStore = useWorkspaceStore();
-const projectId = workspaceStore.activeProject?.id ?? null;
+const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
-if (projectId) {
-  form.value.project_id = projectId;
+if (activeGroupProjectId) {
+  form.value.filter_id = activeGroupProjectId;
 }
 
 const togglePermission = (permissionId, checked) => {
@@ -209,13 +209,13 @@ const openCreateModal = () => {
     id: null,
     title: "",
     permissions: [],
-    project_id: null,
+    filter_id: null,
   };
   isEditing.value = false;
   showModal.value = true;
 
-  if (projectId) {
-    form.value.project_id = projectId;
+  if (activeGroupProjectId) {
+    form.value.filter_id = activeGroupProjectId;
   }
 };
 

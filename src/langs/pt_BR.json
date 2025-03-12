@@ -124,5 +124,8 @@
   "create-custom-functions": "Criar Funções Personalizadas",
   "access-to-parameter-tracking": "Acesso ao Rastreamento de Parâmetros",
   "access-to-users": "Acesso aos Usuários",
-  "player-registrations": "Cadastros de Players"
+  "player-registrations": "Cadastros de Players",
+  "group": "Grupo",
+  "project": "Projeto",
+  "project_workspace_required": "Essa ação só pode ser realizada em um workspace de projeto."
 }

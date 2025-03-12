@@ -254,18 +254,20 @@ const openGrouped = computed(() => {
 
 // Times (Projects)
 const workspaceStore = useWorkspaceStore();
-const activeProject = computed(() => workspaceStore.activeProject || null);
+const activeGroupProject = computed(
+  () => workspaceStore.activeGroupProject || null
+);
 
 import { useConfigStore } from "@/stores/config";
 import { provideSidebarContext } from "@/components/ui/sidebar/utils";
 import { Sheet } from "@/components/ui/sheet";
 const configStore = useConfigStore();
 
-const setActiveProject = async (
-  project: typeof workspaceStore.activeProject
+const setActiveGroupProject = async (
+  project: typeof workspaceStore.activeGroupProject
 ) => {
   configStore.setLoading(true);
-  await workspaceStore.setActiveProject(project);
+  await workspaceStore.setActiveGroupProject(project);
   setTimeout(() => configStore.setLoading(false), 2000);
 };
 
@@ -281,7 +283,10 @@ mode.value = localStorage.getItem("theme") || "auto";
 onMounted(async () => {
   const user = authStore.user;
   if (user) {
-    await workspaceStore.loadInitialData(user?.preferences, user?.projects);
+    await workspaceStore.loadInitialData(
+      user?.preferences,
+      user?.group_projects
+    );
   }
 });
 
@@ -308,7 +313,7 @@ const handleMenuItemClick = () => {
   <CustomLoading v-if="configStore.loading"></CustomLoading>
   <SidebarProvider v-else>
     <Sidebar collapsible="icon" :collapsed="sidebarExpanded">
-      <SidebarHeader v-if="activeProject">
+      <SidebarHeader v-if="activeGroupProject">
         <router-link :to="{ name: 'home' }" @click="handleMenuItemClick">
           <img :src="logoSrc" alt="Logo" class="m-auto py-4 w-1/2" />
         </router-link>
@@ -325,8 +330,8 @@ const handleMenuItemClick = () => {
                     class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
                   >
                     <img
-                      v-if="activeProject && activeProject.logo_url"
-                      :src="activeProject.logo_url"
+                      v-if="activeGroupProject && activeGroupProject.logo"
+                      :src="activeGroupProject.logo"
                       alt="Imagem do projeto"
                       class="size-4"
                     />
@@ -338,9 +343,11 @@ const handleMenuItemClick = () => {
                   </div>
                   <div class="grid flex-1 text-left text-sm leading-tight">
                     <span class="truncate font-semibold">{{
-                      activeProject.name
+                      activeGroupProject.name
                     }}</span>
-                    <span class="truncate text-xs">Projeto</span>
+                    <span class="truncate text-xs">{{
+                      $t(activeGroupProject.type)
+                    }}</span>
                   </div>
                   <ChevronsUpDown class="ml-auto" />
                 </SidebarMenuButton>
@@ -355,18 +362,18 @@ const handleMenuItemClick = () => {
                   Projetos
                 </DropdownMenuLabel>
                 <DropdownMenuItem
-                  v-for="project in workspaceStore.projects"
+                  v-for="project in workspaceStore.group_projects"
                   :key="project.name"
                   class="gap-2 p-2"
-                  @click="setActiveProject(project)"
+                  @click="setActiveGroupProject(project)"
                 >
                   <div
                     class="flex size-6 items-center justify-center rounded-sm border"
                   >
                     <img
-                      v-if="project && project.logo_url"
+                      v-if="project && project.logo"
                       class="size-4 shrink-0"
-                      :src="project.logo_url"
+                      :src="project.logo"
                       alt="Imagem do projeto"
                     />
                     <Package2

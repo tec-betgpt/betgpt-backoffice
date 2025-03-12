@@ -3,27 +3,36 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRouter, RouterView } from "vue-router";
+import { useWorkspaceStore } from "@/stores/workspace";
+
+const workspaceStore = useWorkspaceStore();
+const activeGroupProject = workspaceStore.activeGroupProject;
 
 const sidebarNavItems: Item[] = [
   {
     title: "Perfil",
     route: "configurations.profile",
+    show: true,
   },
   {
     title: "Segurança",
     route: "configurations.security",
+    show: true,
   },
   {
     title: "Notificações",
     route: "configurations.notifications",
+    show: true,
   },
   {
     title: "Projetos",
     route: "configurations.projects",
+    show: true,
   },
   {
     title: "Integrações",
     route: "configurations.integrations",
+    show: activeGroupProject.type === "project",
   },
 ];
 
@@ -44,7 +53,7 @@ const router = useRouter();
     >
       <nav class="grid gap-2 text-sm text-muted-foreground">
         <Button
-          v-for="item in sidebarNavItems"
+          v-for="item in sidebarNavItems.filter((item) => item.show)"
           :key="item.title"
           variant="ghost"
           :class="
