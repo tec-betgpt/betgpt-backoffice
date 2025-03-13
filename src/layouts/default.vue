@@ -272,7 +272,7 @@ const setActiveGroupProject = async (
 };
 
 // Sidebar state
-const sidebarExpanded = ref(false);
+const sidebarExpanded = ref(true);
 const stateResponsive = ref(false);
 const setResponsive = () => {
   stateResponsive.value = !stateResponsive.value;
@@ -298,24 +298,28 @@ const logout = async () => {
 
 const logoSrc = computed(() => {
   return mode.value === "dark"
-    ? "/logo-elevate-white.png"
-    : "/logo-elevate-black.png";
+      ? sidebarExpanded.value ? "/logo-elevate-white.png" : "/logo-elevate-square-white.png"
+      : sidebarExpanded.value ? "/logo-elevate-black.png" : "/logo-elevate-square-black.png";
 });
 
 const handleMenuItemClick = () => {
   if (window.innerWidth < 768) {
-    sidebarExpanded.value = !sidebarExpanded.value;
+    sidebarExpanded.value = true;
+
   }
+  // sidebarExpanded.value = !sidebarExpanded.value;
 };
 </script>
 
 <template>
   <CustomLoading v-if="configStore.loading"></CustomLoading>
-  <SidebarProvider v-else>
-    <Sidebar collapsible="icon" :collapsed="sidebarExpanded">
+  <SidebarProvider v-else v-model:open="sidebarExpanded">
+    <Sidebar collapsible="icon"   >
       <SidebarHeader v-if="activeGroupProject">
-        <router-link :to="{ name: 'home' }" @click="handleMenuItemClick">
-          <img :src="logoSrc" alt="Logo" class="m-auto py-4 w-1/2" />
+        <router-link :to="{ name: 'home' }">
+          <img :src="logoSrc" alt="Logo"
+               :class="{'w-1/2 py-4':sidebarExpanded, 'w-6 py-1':!sidebarExpanded }"
+               class="m-auto transition-transform duration-200 ease-linear hover:scale-105"/>
         </router-link>
 
         <SidebarMenu>
@@ -405,7 +409,7 @@ const handleMenuItemClick = () => {
                         <router-link
                           :to="item.url"
                           class="flex items-center p-2 rounded-md transition-colors"
-                          @click="handleMenuItemClick"
+
                         >
                           <component :is="item.icon" />
                           <span>{{ item.name }}</span>
@@ -418,45 +422,44 @@ const handleMenuItemClick = () => {
                   </Tooltip>
                 </TooltipProvider>
               </SidebarMenuItem>
-
               <Collapsible
                 v-else
                 :key="item.name"
                 as-child
                 class="group/collapsible"
-                :defaultOpen="item.type && openGrouped === item.type"
+                :open="openGrouped === item.type"
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger as-child>
-                    <SidebarMenuButton :tooltip="item.name">
-                      <component :is="item.icon" />
+                    <SidebarMenuButton :tooltip="item.name" @click="$router.push(`/${item.type}/${item.children[0].url.name}`)">
+                      <component :is="item.icon"/>
                       <span>{{ item.name }}</span>
                       <ChevronRight
-                        class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                          class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                       />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       <SidebarMenuSubItem
-                        v-for="child in item.children"
-                        :key="child.name"
+                          v-for="child in item.children"
+                          :key="child.name"
                       >
                         <SidebarMenuSubButton
-                          as-child
-                          :isActive="route.name === child.url.name"
+                            as-child
+                            :isActive="route.name === child.url.name"
                         >
                           <router-link
-                            :to="child.url"
-                            class="flex items-center p-2 rounded-md transition-colors"
-                            @click="handleMenuItemClick"
-                            :class="{
+                              :to="child.url"
+                              class="flex items-center p-2 rounded-md transition-colors"
+
+                              :class="{
                               'bg-sidebar-accent text-sidebar-accent-foreground':
                                 route.name === child.url.name,
                               'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
                             }"
                           >
-                            <component :is="child.icon" class="mr-2" />
+                            <component :is="child.icon" class="mr-2"/>
                             <span>{{ child.name }}</span>
                           </router-link>
                         </SidebarMenuSubButton>
@@ -532,7 +535,7 @@ const handleMenuItemClick = () => {
                 <DropdownMenuItem
                   ><router-link
                     :to="{ name: 'configurations.profile' }"
-                    @click="handleMenuItemClick"
+
                     >Configurações</router-link
                   ></DropdownMenuItem
                 >
