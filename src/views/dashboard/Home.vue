@@ -8,9 +8,9 @@
     </div>
     <div class="flex items-center justify-end mb-3">
       <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
-        <div class="flex gap-2 w-full">
-          <DateRangePicker v-model="selectedRange" class="max-[450px]:flex-2" />
-          <Button class="max-[450px]:flex-1" @click="applyFilter"
+        <div class="flex flex-col sm:flex-row gap-2 w-full ">
+          <DateRangePicker v-model="selectedRange" class=""  />
+          <Button class="max-[450px]:w-full" @click="applyFilter"
             >Filtrar</Button
           >
         </div>
@@ -516,26 +516,26 @@
       </div>
     </div>
 
-    <div class="grid gap-4 md:gap-8 lg:grid-cols-2">
-      <Card>
+    <div class="sm:grid sm:grid-cols-2 sm:gap-4 mb-3 flex flex-col gap-6">
+      <Card class=" ">
         <CardHeader>
-          <Skeleton class="h-6 w-full" v-if="loading" />
+          <Skeleton class="h-6" v-if="loading" />
           <CardTitle v-else>Total de Depósitos</CardTitle>
         </CardHeader>
         <CardContent>
           <div v-if="loading">
-            <Skeleton class="pl-5 h-72 w-full" />
+            <Skeleton class="pl-5 h-72 " />
           </div>
           <div v-else>
             <BarChart
-              :data="deposits.monthly_counts"
-              :categories="['Total']"
-              :index="'name'"
-              :rounded-corners="4"
-              :y-formatter="
+                :data="deposits.monthly_counts"
+                :categories="['Total']"
+                :index="'name'"
+                :rounded-corners="4"
+                :y-formatter="
                 (tick) => (typeof tick === 'number' ? $toK(tick) : '')
               "
-              :custom-tooltip="CustomChartTooltipRealPrice"
+                :custom-tooltip="CustomChartTooltipRealPrice"
             />
           </div>
         </CardContent>
@@ -543,10 +543,10 @@
 
       <Card>
         <CardHeader>
-          <Skeleton class="h-5 w-full mb-1" v-if="loading" />
+          <Skeleton class="h-5 mb-1" v-if="loading" />
           <CardTitle v-else>Últimos Depósitos</CardTitle>
           <CardDescription>
-            <Skeleton class="h-5 w-full" v-if="loading" />
+            <Skeleton class="h-5" v-if="loading" />
             <span v-else>
               Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
             </span>
@@ -565,27 +565,27 @@
           </div>
           <div v-else class="space-y-8">
             <div
-              v-for="deposit in deposits.lasts"
-              :key="deposit.id"
-              class="flex items-center"
+                v-for="deposit in deposits.lasts"
+                :key="deposit.id"
+                class="flex items-center"
             >
               <Avatar class="h-9 w-9">
                 <AvatarFallback
-                  >{{ deposit.player.name.charAt(0)
+                >{{ deposit.player.name.charAt(0)
                   }}{{ deposit.player.name.charAt(1) }}</AvatarFallback
                 >
               </Avatar>
-              <div class="ml-4 space-y-1">
-                <p class="text-sm font-medium leading-none">
+              <div class="ml-4 space-y-1 w-1/2">
+                <p class="text-sm font-medium leading-none truncate">
                   {{ deposit.player.name }}
                 </p>
-                <p class="text-sm text-muted-foreground">
+                <p class="text-sm text-muted-foreground truncate">
                   {{ deposit.player.email }}
                 </p>
               </div>
               <div class="ml-auto text-right">
                 <span class="font-medium"
-                  >+{{ $toCurrency(deposit.value / 100) }}</span
+                >+{{ $toCurrency(deposit.value / 100) }}</span
                 >
                 <TooltipProvider>
                   <Tooltip>
@@ -598,7 +598,7 @@
                       <p>
                         {{
                           $moment(deposit.created_at).format(
-                            "DD/MM/YYYY HH:mm:ss"
+                              "DD/MM/YYYY HH:mm:ss"
                           )
                         }}
                       </p>
@@ -668,7 +668,7 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 
 const responsiveClass =
-  "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-4 mb-3";
+  "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-2 xl:grid-cols-4 mb-3";
 const { toast } = useToast();
 
 const players = ref({
