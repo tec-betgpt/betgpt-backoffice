@@ -234,24 +234,22 @@ const navMenu = computed(() => [
   },
 ]);
 
-const openGrouped = computed(() => {
-  let openType = null;
-
-  route.matched.forEach((matchedRoute) => {
-    navMenu.value.forEach((group) => {
-      if (group.children) {
-        group.children.forEach((child) => {
-          if (child.url && child.url.name === matchedRoute.name) {
-            openType = group.type;
+watch(
+    () => route.matched,
+    (matchedRoutes) => {
+      matchedRoutes.forEach((matchedRoute) => {
+        navMenu.value.forEach((group) => {
+          if (group.children) {
+            if (group.type === matchedRoute.path.split("/")[1]) {
+              collapsed.value = group.type;
+            }
           }
         });
-      }
-    });
-  });
-
-  return openType;
-});
-
+      });
+    },
+    {immediate: true, deep: true}
+);
+const collapsed = ref("");
 // Times (Projects)
 const workspaceStore = useWorkspaceStore();
 const activeGroupProject = computed(
@@ -307,8 +305,12 @@ const handleMenuItemClick = () => {
     sidebarExpanded.value = true;
 
   }
-  // sidebarExpanded.value = !sidebarExpanded.value;
 };
+
+watch(collapsed, (newCollapsed) => {
+  console.log(newCollapsed);
+})
+
 </script>
 
 <template>
@@ -427,11 +429,13 @@ const handleMenuItemClick = () => {
                 :key="item.name"
                 as-child
                 class="group/collapsible"
-                :open="openGrouped === item.type"
+                :open="item.type === collapsed"
+
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger as-child>
-                    <SidebarMenuButton :tooltip="item.name" @click="$router.push(`/${item.type}/${item.children[0].url.name}`)">
+                    <SidebarMenuButton :tooltip="item.name"
+                                       @click="collapsed = collapsed === item.type ? '' : item.type" >
                       <component :is="item.icon"/>
                       <span>{{ item.name }}</span>
                       <ChevronRight
