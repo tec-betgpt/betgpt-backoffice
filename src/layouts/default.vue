@@ -235,19 +235,19 @@ const navMenu = computed(() => [
 ]);
 
 watch(
-    () => route.matched,
-    (matchedRoutes) => {
-      matchedRoutes.forEach((matchedRoute) => {
-        navMenu.value.forEach((group) => {
-          if (group.children) {
-            if (group.type === matchedRoute.path.split("/")[1]) {
-              collapsed.value = group.type;
-            }
+  () => route.matched,
+  (matchedRoutes) => {
+    matchedRoutes.forEach((matchedRoute) => {
+      navMenu.value.forEach((group) => {
+        if (group.children) {
+          if (group.type === matchedRoute.path.split("/")[1]) {
+            collapsed.value = group.type;
           }
-        });
+        }
       });
-    },
-    {immediate: true, deep: true}
+    });
+  },
+  { immediate: true, deep: true }
 );
 const collapsed = ref("");
 // Times (Projects)
@@ -257,8 +257,8 @@ const activeGroupProject = computed(
 );
 
 import { useConfigStore } from "@/stores/config";
-
-import {Separator} from "@/components/ui/separator";
+import { provideSidebarContext } from "@/components/ui/sidebar/utils";
+import { Sheet } from "@/components/ui/sheet";
 const configStore = useConfigStore();
 
 const setActiveGroupProject = async (
@@ -296,8 +296,12 @@ const logout = async () => {
 
 const logoSrc = computed(() => {
   return mode.value === "dark"
-      ? sidebarExpanded.value ? "/logo-elevate-white.png" : "/logo-elevate-square-white.png"
-      : sidebarExpanded.value ? "/logo-elevate-black.png" : "/logo-elevate-square-black.png";
+    ? sidebarExpanded.value
+      ? "/logo-elevate-white.png"
+      : "/logo-elevate-square-white.png"
+    : sidebarExpanded.value
+    ? "/logo-elevate-black.png"
+    : "/logo-elevate-square-black.png";
 });
 
 const handleMenuItemClick = () => {
@@ -307,8 +311,6 @@ const handleMenuItemClick = () => {
   }
 };
 
-
-
 const toggleCollapsed = (type: string) => {
   if (!sidebarExpanded.value) {
     collapsed.value =  type
@@ -316,19 +318,24 @@ const toggleCollapsed = (type: string) => {
   }else{
     collapsed.value = collapsed.value === type ? '' : type
   }
-
-}
+};
 </script>
 
 <template>
   <CustomLoading v-if="configStore.loading"></CustomLoading>
   <SidebarProvider v-else v-model:open="sidebarExpanded">
-    <Sidebar collapsible="icon"   >
+    <Sidebar collapsible="icon">
       <SidebarHeader v-if="activeGroupProject">
         <router-link :to="{ name: 'home' }">
-          <img :src="logoSrc" alt="Logo"
-               :class="{'w-1/2 py-4':sidebarExpanded, 'w-6 py-1':!sidebarExpanded }"
-               class="m-auto transition-transform duration-200 ease-linear hover:scale-105"/>
+          <img
+            :src="logoSrc"
+            alt="Logo"
+            :class="{
+              'w-1/2 py-4': sidebarExpanded,
+              'w-6 py-1': !sidebarExpanded,
+            }"
+            class="m-auto transition-transform duration-200 ease-linear hover:scale-105"
+          />
         </router-link>
 
         <SidebarMenu>
@@ -418,9 +425,8 @@ const toggleCollapsed = (type: string) => {
                         <router-link
                           :to="item.url"
                           class="flex items-center p-2 rounded-md transition-colors"
-
                         >
-                          <component :is="item.icon"  />
+                          <component :is="item.icon" />
                           <span>{{ item.name }}</span>
                         </router-link>
                       </SidebarMenuButton>
@@ -454,44 +460,45 @@ const toggleCollapsed = (type: string) => {
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger as-child>
-                    <SidebarMenuButton :tooltip="item.name"
-                                       @click="toggleCollapsed(item.type)" >
+                    <SidebarMenuButton
+                      :tooltip="item.name"
+                      @click="toggleCollapsed(item.type)"
+                    >
                       <div class="flex items-center flex-col justify-center gap-1" >
-                        <Component :is="item.icon" :size="16"  />
+                        <Component
+                            :is="item.icon"
+                            :size="16"
+                        />
                         <Separator
                             :class="{'hidden':sidebarExpanded, 'bg-white':mode === 'dark', 'bg-gray-600':mode !== 'dark'}"/>
                       </div>
-
-                      <div class="flex items-center justify-between w-full ">
-                        <span>{{ item.name }}</span>
-                        <ChevronRight
-                            :stroke-width="1.30"
-                            class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
-                        />
-                      </div>
+                      <span>{{ item.name }}</span>
+                      <ChevronRight
+                          :stroke-width="1.30"
+                          class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                      />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       <SidebarMenuSubItem
-                          v-for="child in item.children"
-                          :key="child.name"
+                        v-for="child in item.children"
+                        :key="child.name"
                       >
                         <SidebarMenuSubButton
-                            as-child
-                            :isActive="route.name === child.url.name"
+                          as-child
+                          :isActive="route.name === child.url.name"
                         >
                           <router-link
-                              :to="child.url"
-                              class="flex items-center p-2 rounded-md transition-colors"
-
-                              :class="{
+                            :to="child.url"
+                            class="flex items-center p-2 rounded-md transition-colors"
+                            :class="{
                               'bg-sidebar-accent text-sidebar-accent-foreground':
                                 route.name === child.url.name,
                               'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
                             }"
                           >
-                            <component :is="child.icon" class="mr-2"/>
+                            <component :is="child.icon" class="mr-2" />
                             <span>{{ child.name }}</span>
                           </router-link>
                         </SidebarMenuSubButton>

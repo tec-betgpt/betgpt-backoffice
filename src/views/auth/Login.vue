@@ -157,16 +157,14 @@
         >
           <div class="flex items-start justify-center">
             <Quote :size="20" :stroke-width="1.75" absoluteStrokeWidth />
-            <p class=" sm:text-lg  text-sm font-sans text-center">
+            <p class="sm:text-lg text-sm font-sans text-center">
               {{ message.message }}
             </p>
           </div>
-          <p class="text-left font-serif text-xs sm:text-sm opacity-70  ">
+          <p class="text-left font-serif text-xs sm:text-sm opacity-70">
             {{ message.signature }}
           </p>
         </div>
-
-
       </div>
     </div>
 
@@ -322,6 +320,9 @@ Form.axios = api;
 const mode = useColorMode();
 
 import { useConfigStore } from "@/stores/config";
+import { useWorkspaceStore } from "@/stores/workspace";
+
+const workspaceStore = useWorkspaceStore();
 
 const isDialog = ref(false);
 const previewCode = ref<Array<string>>([]);
@@ -367,7 +368,7 @@ function timeTwoFactor() {
 function back() {
   ScreenTwoFactor.value = false;
 }
-const handleLoginResponse = (response) => {
+const handleLoginResponse = async (response) => {
   const tokenAuth = response.data.data ? response.data.data.token : null;
   const userAuth = response.data.data ? response.data.data.user : null;
 
@@ -376,15 +377,23 @@ const handleLoginResponse = (response) => {
     router.push("/");
 
     // Vamos fazer login no sistema de IA
-    axios.post(`${import.meta.env.VITE_PUBLIC_IA_URL}/auth/login`, {
-      email: userAuth.email,
-      password: form.value.password,
-    }).then((response) => {
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
-    })
+    if (import.meta.env.VITE_PUBLIC_IA_URL) {
+      axios
+        .post(`${import.meta.env.VITE_PUBLIC_IA_URL}/auth/login`, {
+          email: userAuth.email,
+          password: form.value.password,
+        })
+        .then((response) => {
+          if (response.data.token) {
+            localStorage.setItem("token", response.data.token);
+          }
+        });
+    }
 
+    await workspaceStore.loadInitialData(
+      userAuth?.preferences,
+      userAuth?.group_projects
+    );
   } else {
     if (response.data.data[1]) {
       id.value = response.data.data;
