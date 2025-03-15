@@ -186,7 +186,7 @@ const navMenu = computed(() => [
         show: authStore.user?.access_type === "member",
       },
       {
-        name: "Textos Motivacionais",
+        name: "MyElevate Insights",
         url: { name: "texts" },
         icon: Album,
         show: authStore.user?.access_type === "member",

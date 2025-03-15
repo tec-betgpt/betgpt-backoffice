@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Textos</h2>
+      <h2 class="text-2xl font-bold tracking-tight">MyElevate Insights</h2>
       <p class="text-muted-foreground">
-        Gerencie os textos e edite informações.
+        Gerencie os insights e edite informações.
       </p>
     </div>
     <Card>
