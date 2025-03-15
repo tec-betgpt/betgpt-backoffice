@@ -59,6 +59,7 @@ interface Message {
 
 
 async function loadChats() {
+  loading.value = true;
   try {
     const response = await axios.get(`${import.meta.env.VITE_PUBLIC_IA_URL}/chat/list`, {
       headers: {
@@ -275,7 +276,9 @@ watch(selectedChatId,() => loadMessages())
            </div>
          </CardHeader>
           <CardContent class="flex flex-col gap-2">
-            <div
+            <Skeleton v-if="loading" class="py-6  w-full shadow-md transition-all"/>
+            <Badge
+                v-else
                 v-for="chat in chats"
                 :key="chat.id"
                 @click="selectChat(chat.id)"
@@ -283,7 +286,7 @@ watch(selectedChatId,() => loadMessages())
                 :class="{
 
               'bg-gray-400': selectedChatId === chat.id,
-              'hover:bg-gray-200': selectedChatId !== chat.id
+
             }"
             >
               <span class=" truncate text-sm">{{ chat.title }}</span>
@@ -295,7 +298,8 @@ watch(selectedChatId,() => loadMessages())
                 <Trash2 :stroke-width="1.5" absoluteStrokeWidth />
               </Button>
 
-            </div>
+            </Badge>
+
           </CardContent>
 
         </Card>
