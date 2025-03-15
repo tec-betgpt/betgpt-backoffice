@@ -259,6 +259,7 @@ const activeGroupProject = computed(
 import { useConfigStore } from "@/stores/config";
 import { provideSidebarContext } from "@/components/ui/sidebar/utils";
 import { Sheet } from "@/components/ui/sheet";
+import {Separator} from "@/components/ui/separator";
 const configStore = useConfigStore();
 
 const setActiveGroupProject = async (
@@ -470,7 +471,7 @@ const toggleCollapsed = (type: string) => {
                             :size="16"
                         />
                         <Separator
-                            :class="{'hidden':sidebarExpanded, 'bg-white':mode === 'dark', 'bg-gray-600':mode !== 'dark'}"/>
+                            :class="{'hidden':sidebarExpanded === true, 'bg-white':mode === 'dark', 'bg-gray-600':mode !== 'dark'}"/>
                       </div>
                       <span>{{ item.name }}</span>
                       <ChevronRight
