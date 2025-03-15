@@ -257,8 +257,8 @@ const activeGroupProject = computed(
 );
 
 import { useConfigStore } from "@/stores/config";
-import { provideSidebarContext } from "@/components/ui/sidebar/utils";
-import { Sheet } from "@/components/ui/sheet";
+
+import {Separator} from "@/components/ui/separator";
 const configStore = useConfigStore();
 
 const setActiveGroupProject = async (
@@ -307,10 +307,17 @@ const handleMenuItemClick = () => {
   }
 };
 
-watch(collapsed, (newCollapsed) => {
-  console.log(newCollapsed);
-})
 
+
+const toggleCollapsed = (type: string) => {
+  if (!sidebarExpanded.value) {
+    collapsed.value =  type
+    sidebarExpanded.value = true;
+  }else{
+    collapsed.value = collapsed.value === type ? '' : type
+  }
+
+}
 </script>
 
 <template>
@@ -413,14 +420,27 @@ watch(collapsed, (newCollapsed) => {
                           class="flex items-center p-2 rounded-md transition-colors"
 
                         >
-                          <component :is="item.icon" />
+                          <component :is="item.icon"  />
                           <span>{{ item.name }}</span>
                         </router-link>
                       </SidebarMenuButton>
                     </TooltipTrigger>
-                    <TooltipContent side="right">{{
-                      item.name
-                    }}</TooltipContent>
+                    <TooltipContent
+                        side="right"
+                        align="center"
+                        :align-offset="4"
+                        :arrow-padding="8"
+                        avoid-collisions
+                        :collision-padding="10"
+                        hide-when-detached
+                        position-strategy="absolute"
+                        sticky="always"
+                        update-position-strategy="optimized"
+                     :collision-boundary="null">
+                      {{
+                        item.name
+                      }}
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </SidebarMenuItem>
@@ -435,12 +455,20 @@ watch(collapsed, (newCollapsed) => {
                 <SidebarMenuItem>
                   <CollapsibleTrigger as-child>
                     <SidebarMenuButton :tooltip="item.name"
-                                       @click="collapsed = collapsed === item.type ? '' : item.type" >
-                      <component :is="item.icon"/>
-                      <span>{{ item.name }}</span>
-                      <ChevronRight
-                          class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
-                      />
+                                       @click="toggleCollapsed(item.type)" >
+                      <div class="flex items-center flex-col justify-center gap-1" >
+                        <Component :is="item.icon" :size="16"  />
+                        <Separator
+                            :class="{'hidden':sidebarExpanded, 'bg-white':mode === 'dark', 'bg-gray-600':mode !== 'dark'}"/>
+                      </div>
+
+                      <div class="flex items-center justify-between w-full ">
+                        <span>{{ item.name }}</span>
+                        <ChevronRight
+                            :stroke-width="1.30"
+                            class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                        />
+                      </div>
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
