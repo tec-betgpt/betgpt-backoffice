@@ -259,7 +259,7 @@ const activeGroupProject = computed(
 import { useConfigStore } from "@/stores/config";
 import { provideSidebarContext } from "@/components/ui/sidebar/utils";
 import { Sheet } from "@/components/ui/sheet";
-import {Separator} from "@/components/ui/separator";
+import { Separator } from "@/components/ui/separator";
 const configStore = useConfigStore();
 
 const setActiveGroupProject = async (
@@ -308,16 +308,15 @@ const logoSrc = computed(() => {
 const handleMenuItemClick = () => {
   if (window.innerWidth < 768) {
     sidebarExpanded.value = true;
-
   }
 };
 
 const toggleCollapsed = (type: string) => {
   if (!sidebarExpanded.value) {
-    collapsed.value =  type
+    collapsed.value = type;
     sidebarExpanded.value = true;
-  }else{
-    collapsed.value = collapsed.value === type ? '' : type
+  } else {
+    collapsed.value = collapsed.value === type ? "" : type;
   }
 };
 </script>
@@ -433,20 +432,19 @@ const toggleCollapsed = (type: string) => {
                       </SidebarMenuButton>
                     </TooltipTrigger>
                     <TooltipContent
-                        side="right"
-                        align="center"
-                        :align-offset="4"
-                        :arrow-padding="8"
-                        avoid-collisions
-                        :collision-padding="10"
-                        hide-when-detached
-                        position-strategy="absolute"
-                        sticky="always"
-                        update-position-strategy="optimized"
-                     :collision-boundary="null">
-                      {{
-                        item.name
-                      }}
+                      side="right"
+                      align="center"
+                      :align-offset="4"
+                      :arrow-padding="8"
+                      avoid-collisions
+                      :collision-padding="10"
+                      hide-when-detached
+                      position-strategy="absolute"
+                      sticky="always"
+                      update-position-strategy="optimized"
+                      :collision-boundary="null"
+                    >
+                      {{ item.name }}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -457,7 +455,6 @@ const toggleCollapsed = (type: string) => {
                 as-child
                 class="group/collapsible"
                 :open="item.type === collapsed"
-
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger as-child>
@@ -465,18 +462,15 @@ const toggleCollapsed = (type: string) => {
                       :tooltip="item.name"
                       @click="toggleCollapsed(item.type)"
                     >
-                      <div class="flex items-center flex-col justify-center gap-1" >
-                        <Component
-                            :is="item.icon"
-                            :size="16"
-                        />
-                        <Separator
-                            :class="{'hidden':sidebarExpanded === true, 'bg-white':mode === 'dark', 'bg-gray-600':mode !== 'dark'}"/>
+                      <div
+                        class="flex items-center flex-col justify-center gap-1"
+                      >
+                        <Component :is="item.icon" :size="16" />
                       </div>
                       <span>{{ item.name }}</span>
                       <ChevronRight
-                          :stroke-width="1.30"
-                          class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                        :stroke-width="1.3"
+                        class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                       />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -573,9 +567,7 @@ const toggleCollapsed = (type: string) => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  ><router-link
-                    :to="{ name: 'configurations.profile' }"
-
+                  ><router-link :to="{ name: 'configurations.profile' }"
                     >Configurações</router-link
                   ></DropdownMenuItem
                 >
