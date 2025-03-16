@@ -15,52 +15,39 @@
     </div>
     <div v-else class="space-y-6">
       <div
-        v-for="integration in integrations"
-        :key="integration.id"
+        v-for="data in integrations"
+        :key="data.id"
         class="border rounded-lg p-4"
       >
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-medium">{{ integration.name }}</p>
+            <p class="font-medium">{{ data.name }}</p>
             <p class="text-sm text-muted-foreground">
               Configure os campos necessários para habilitar esta integração.
             </p>
           </div>
         </div>
         <div class="mt-4 space-y-4">
-          <div
-            v-for="field in integration.fields"
-            :key="field.key"
-            class="space-y-2"
-          >
-            <Label :for="`${integration.slug}-${field.key}`">{{
-              field.title
-            }}</Label>
+          <div v-for="field in data.fields" :key="field.key" class="space-y-2">
+            <Label :for="`${data.slug}-${data.key}`">{{ field.title }}</Label>
             <Input
-              :id="`${integration.slug}-${field.key}`"
-              v-model="integration.config[field.key]"
+              :id="`${data.slug}-${field.key}`"
+              v-model="data.config[field.key]"
               :placeholder="field.description"
             />
           </div>
         </div>
-        <Button
-          class="mt-4"
-          :disabled="savingIntegration[integration.id]"
-          @click="saveIntegration(integration)"
-        >
-          <LucideSpinner
-            v-if="savingIntegration[integration.id]"
-            class="mr-2 h-4 w-4 animate-spin"
-          />
-          Salvar Integração
-        </Button>
       </div>
     </div>
+    <Button class="mt-4" :disabled="saving" @click="saveAllIntegrations">
+      <LucideSpinner v-if="saving" class="mr-2 h-4 w-4 animate-spin" />
+      Salvar Integrações
+    </Button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
@@ -74,74 +61,63 @@ import api from "@/services/api";
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 const loading = ref(false);
-const savingIntegration = ref<Record<number, boolean>>({});
+const saving = ref(false);
 const integrations = ref<Array<any>>([]);
+const activeGroupProject = workspaceStore.activeGroupProject;
 
-const fetchIntegrations = async () => {
+async function fetchIntegrations() {
   try {
     loading.value = true;
-    const activeGroupProject = workspaceStore.activeGroupProject;
-    if (activeGroupProject.type == "group")
+
+    if (activeGroupProject.type == "group") {
       throw new Error(
         "Para acessar as integrações é necessário que a workspace seja um projeto."
       );
+    }
 
-    const integrationsResponse = await api.get("/available-integrations");
-    const projectIntegrationsResponse = await api.get(
+    const { data } = await api.get(
       `/projects/${activeGroupProject.project_id}/integrations`
     );
 
-    integrations.value = integrationsResponse.data.data.map(
-      (integration: any) => {
-        const existingConfig =
-          projectIntegrationsResponse.data.data.find(
-            (pi: any) => pi.integration_id === integration.id
-          )?.config || {};
-
-        return {
-          ...integration,
-          fields: integration.fields,
-          config: existingConfig,
-        };
-      }
-    );
+    integrations.value = data.data.map((integration) => ({
+      ...integration,
+      config: integration.integration ? integration.integration.config : {},
+    }));
   } catch (error) {
     toast({
       title: "Erro",
-      description: error.message,
+      description: "Erro ao carregar as integrações.",
       variant: "destructive",
     });
   } finally {
     loading.value = false;
   }
-};
+}
 
-const saveIntegration = async (integration: any) => {
+async function saveAllIntegrations() {
   try {
-    const projectId = workspaceStore.activeGroupProject?.project_id;
-    if (!projectId) throw new Error("Nenhum projeto ativo selecionado.");
-
-    savingIntegration.value[integration.id] = true;
-
-    await api.post(`/projects/${projectId}/integrations/${integration.slug}`, {
-      ...integration.config,
-    });
-
+    saving.value = true;
+    await api.post(
+      `/projects/${activeGroupProject.project_id}/integrations/bulk-update`,
+      integrations.value
+    );
     toast({
       title: "Sucesso",
-      description: `Integração ${integration.name} salva com sucesso.`,
+      description: "Integrações salvas com sucesso.",
       variant: "success",
     });
   } catch (error) {
     toast({
       title: "Erro",
-      description: `Erro ao salvar a integração ${integration.name}.`,
+      description: "Erro ao carregar as integrações.",
       variant: "destructive",
     });
   } finally {
-    savingIntegration.value[integration.id] = false;
+    saving.value = false;
   }
-};
+}
 
-onMounted(fetchIntegrations);
+onMounted(async () => {
+  await fetchIntegrations();
+});
 </script>
