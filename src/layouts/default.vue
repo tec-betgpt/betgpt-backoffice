@@ -215,20 +215,20 @@ const navMenu = computed(() => [
         name: "Gerir Setores",
         url: { name: "sectors" },
         icon: Briefcase,
-        show: authStore.user?.access_type === "member",
+        show: true,
       },
 
       {
         name: "Gerir Custos",
         url: { name: "costs" },
         icon: Rows3,
-        show: authStore.user?.access_type === "member",
+        show: true,
       },
       {
         name: "Entradas e Saídas",
         url: { name: "registers" },
         icon: DollarSignIcon,
-        show: authStore.user?.access_type === "member",
+        show: true,
       },
     ],
   },
@@ -322,9 +322,9 @@ const toggleCollapsed = (type: string) => {
 </script>
 
 <template>
-  <SidebarProvider v-model:open="sidebarExpanded"  >
-    <Sidebar collapsible="icon" :collapsed="sidebarExpanded"  >
-      <SidebarHeader  v-if="activeGroupProject">
+  <SidebarProvider v-model:open="sidebarExpanded">
+    <Sidebar collapsible="icon" :collapsed="sidebarExpanded">
+      <SidebarHeader v-if="activeGroupProject">
         <router-link :to="{ name: 'home' }">
           <img
             :src="logoSrc"
@@ -413,7 +413,7 @@ const toggleCollapsed = (type: string) => {
           <SidebarGroupLabel>Projeto</SidebarGroupLabel>
           <SidebarMenu>
             <template v-for="item in navMenu" :key="item.name">
-              <SidebarMenuItem v-if="!item.children">
+              <SidebarMenuItem v-if="!item.children && item.show">
                 <TooltipProvider :disabled="!stateResponsive">
                   <Tooltip>
                     <TooltipTrigger as-child>
@@ -475,28 +475,27 @@ const toggleCollapsed = (type: string) => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      <SidebarMenuSubItem
-                        v-for="child in item.children"
-                        :key="child.name"
-                      >
-                        <SidebarMenuSubButton
-                          as-child
-                          :isActive="route.name === child.url.name"
-                        >
-                          <router-link
-                            :to="child.url"
-                            class="flex items-center p-2 rounded-md transition-colors"
-                            :class="{
-                              'bg-sidebar-accent text-sidebar-accent-foreground':
-                                route.name === child.url.name,
-                              'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
-                            }"
+                      <template v-for="child in item.children">
+                        <SidebarMenuSubItem v-if="child.show" :key="child.name">
+                          <SidebarMenuSubButton
+                            as-child
+                            :isActive="route.name === child.url.name"
                           >
-                            <component :is="child.icon" class="mr-2" />
-                            <span>{{ child.name }}</span>
-                          </router-link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
+                            <router-link
+                              :to="child.url"
+                              class="flex items-center p-2 rounded-md transition-colors"
+                              :class="{
+                                'bg-sidebar-accent text-sidebar-accent-foreground':
+                                  route.name === child.url.name,
+                                'hover:bg-sidebar-hover hover:text-sidebar-hover-foreground': true,
+                              }"
+                            >
+                              <component :is="child.icon" class="mr-2" />
+                              <span>{{ child.name }}</span>
+                            </router-link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      </template>
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
@@ -517,8 +516,13 @@ const toggleCollapsed = (type: string) => {
                 >
                   <Avatar class="h-8 w-8 rounded-lg">
                     <AvatarImage
-                        v-if="authStore.user.media"
-                      :src="authStore.user?.media[0].original_url" />
+                      v-if="
+                        authStore.user &&
+                        authStore.user.media &&
+                        authStore.user.media.length
+                      "
+                      :src="authStore.user?.media[0].original_url"
+                    />
                     <AvatarFallback class="rounded-lg">
                       {{ authStore.user?.initials }}
                     </AvatarFallback>
@@ -613,7 +617,7 @@ const toggleCollapsed = (type: string) => {
           </Breadcrumb>
         </div>
       </header>
-      <CustomLoading v-if="configStore.loading"/>
+      <CustomLoading v-if="configStore.loading" />
       <main v-else class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
         <div class="mx-auto w-full min-w-0">
           <router-view></router-view>
