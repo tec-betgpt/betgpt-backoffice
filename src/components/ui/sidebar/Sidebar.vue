@@ -22,8 +22,8 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 const route = useRoute();
 
 watch(
-  route,
-  (newRoute, oldRoute) => {
+  [() => route, () => props.collapsed],
+  ([newRoute, newCollapsed], [oldRoute, oldCollapsed]) => {
     if (isMobile.value && openMobile.value) {
       setOpenMobile(false);
     }

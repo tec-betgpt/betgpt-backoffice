@@ -615,7 +615,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from "vue";
+import { ref, onMounted, computed, nextTick, watch } from "vue";
 import api from "@/services/api";
 import {
   Card,
@@ -822,4 +822,10 @@ const updateChart = () => {
 onMounted(async () => {
   await applyFilter();
 });
+watch(
+    () => workspaceStore.activeGroupProject,
+    () => {
+      applyFilter()
+    }
+);
 </script>
