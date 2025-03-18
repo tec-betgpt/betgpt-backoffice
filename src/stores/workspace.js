@@ -48,7 +48,7 @@ export const useWorkspaceStore = defineStore("workspace", {
           this.activeGroupProject = favoriteProject;
         }
       } else if (newGroupProjects.length > 0) {
-        this.activeGroupProject = null;
+        this.activeGroupProject = newGroupProjects[0];
       }
     },
   },
