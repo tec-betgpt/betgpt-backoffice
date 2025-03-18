@@ -129,7 +129,7 @@
 
   <Sheet v-model:open="imageSheet" position="right" size="lg">
 
-    <SheetContent class="flex flex-col gap-4">
+    <SheetContent class="flex flex-col gap-6">
       <SheetHeader>
         <SheetTitle>
           Atualizar Imagem de Perfil
@@ -151,17 +151,16 @@
         <SheetFooter>
           <Button :disabled="loading || !selectedImagePreview"  type="submit">
             <LucideSpinner v-if="loading" class="mr-2 h-4 w-4 animate-spin"/>
-            {{ hasImage ? "Atualizar Imagem" : "Adicionar Imagem" }}
+            {{ hasImage ? "Atualizar Imagem" : "Salvar Imagem" }}
           </Button>
         </SheetFooter>
       </form>
-      <div v-if="selectedImagePreview" class="mt-4 text-sm">
+      <div v-if="selectedImagePreview" class="mt-4 text-sm flex items-center justify-center gap-4 flex-col">
         <p>Pré-visualização:</p>
-        <img
-            :src="selectedImagePreview"
-            alt="Preview"
-            class="w-full h-auto mt-2 border rounded"
-        />
+        <Avatar size="lg">
+          <AvatarImage :src="selectedImagePreview" />>
+        </Avatar>
+
       </div>
       <div v-if="error" class="text-red-500 mt-2">
         {{ error }}
