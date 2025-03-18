@@ -257,8 +257,6 @@ const activeGroupProject = computed(
 );
 
 import { useConfigStore } from "@/stores/config";
-import { provideSidebarContext } from "@/components/ui/sidebar/utils";
-import { Sheet } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 const configStore = useConfigStore();
 
@@ -266,6 +264,7 @@ const setActiveGroupProject = async (
   project: typeof workspaceStore.activeGroupProject
 ) => {
   configStore.setLoading(true);
+  sidebarExpanded.value = false;
   await workspaceStore.setActiveGroupProject(project);
   setTimeout(() => configStore.setLoading(false), 2000);
 };
@@ -278,6 +277,7 @@ const setResponsive = () => {
 };
 
 const mode = useColorMode();
+//@ts-ignore
 mode.value = localStorage.getItem("theme") || "auto";
 onMounted(async () => {
   const user = authStore.user;
@@ -291,7 +291,7 @@ onMounted(async () => {
 
 // Logout
 const logout = async () => {
-  authStore.logout();
+  await authStore.logout();
   router.push("/login");
 };
 
@@ -322,10 +322,9 @@ const toggleCollapsed = (type: string) => {
 </script>
 
 <template>
-  <CustomLoading v-if="configStore.loading"></CustomLoading>
-  <SidebarProvider v-else v-model:open="sidebarExpanded">
-    <Sidebar collapsible="icon">
-      <SidebarHeader v-if="activeGroupProject">
+  <SidebarProvider v-model:open="sidebarExpanded"  >
+    <Sidebar collapsible="icon" :collapsed="sidebarExpanded"  >
+      <SidebarHeader  v-if="activeGroupProject">
         <router-link :to="{ name: 'home' }">
           <img
             :src="logoSrc"
@@ -518,9 +517,8 @@ const toggleCollapsed = (type: string) => {
                 >
                   <Avatar class="h-8 w-8 rounded-lg">
                     <AvatarImage
-                      :src="authStore.user?.avatar"
-                      :alt="authStore.user?.name"
-                    />
+                        v-if="authStore.user.media"
+                      :src="authStore.user?.media[0].original_url" />
                     <AvatarFallback class="rounded-lg">
                       {{ authStore.user?.initials }}
                     </AvatarFallback>
@@ -615,7 +613,8 @@ const toggleCollapsed = (type: string) => {
           </Breadcrumb>
         </div>
       </header>
-      <main class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
+      <CustomLoading v-if="configStore.loading"/>
+      <main v-else class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
         <div class="mx-auto w-full min-w-0">
           <router-view></router-view>
         </div>

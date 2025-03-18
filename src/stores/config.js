@@ -10,7 +10,7 @@ export const useConfigStore = defineStore("config", {
     async fetchConfigs() {
       try {
         const response = await api.get("/configs");
-        this.message = response.data.data.message;
+        this.message = response.data.data.message || {message: "", signature: ""};
       } catch (error) {
         console.error("Erro ao buscar configurações:", error);
         this.message = null;
@@ -18,8 +18,13 @@ export const useConfigStore = defineStore("config", {
     },
 
     async setLoading(loading) {
+      if (this.loading === loading) return;
       this.loading = loading;
-      setTimeout(() => this.fetchConfigs(), 4000);
-    },
+      if (loading) {
+        await this.fetchConfigs();
+      }
+    }
+
+    ,
   },
 });
