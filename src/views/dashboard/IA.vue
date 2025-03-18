@@ -171,7 +171,7 @@
           <div class="flex gap-3 items-center justify-center">
             <div class="flex flex-col">
               <Label for="file">
-                <File />
+                <Upload />
               </Label>
               <Input
                 id="file"
@@ -306,6 +306,8 @@ async function loadChats() {
     }
   } catch (error) {
     console.error("Erro ao carregar chats:", error);
+  } finally {
+    loading.value = false;
   }
 }
 
