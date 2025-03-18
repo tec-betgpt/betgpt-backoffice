@@ -2,7 +2,7 @@
   <div
     class="items-center justify-center align-middle flex min-h-screen w-full"
   >
-    <div class="flex flex-col justify-center items-center  w-full">
+    <div class="flex flex-col justify-center items-center w-full">
       <DotLottieVue
         :style="{ height: '300px', width: '300px' }"
         :src="loadingAnimation"
