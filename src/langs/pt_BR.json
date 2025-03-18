@@ -127,5 +127,13 @@
   "player-registrations": "Cadastros de Players",
   "group": "Grupo",
   "project": "Projeto",
-  "project_workspace_required": "Essa ação só pode ser realizada em um workspace de projeto."
+  "project_workspace_required": "Essa ação só pode ser realizada em um workspace de projeto.",
+  "profile_choose_picture": "Escolha uma foto de perfil",
+  "profile_replace_picture": "Substitua a foto de perfil",
+  "profile_remove_picture": "Remova a foto de perfil",
+  "profile_upload_picture": "Envie uma foto de perfil",
+  "profile_view_picture": "Visualize a foto de perfil",
+  "profile_edit_picture": "Edite a foto de perfil",
+  "profile_download_picture": "Baixe a foto de perfil"
+  
 }
