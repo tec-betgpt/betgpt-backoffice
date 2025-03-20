@@ -188,8 +188,8 @@ const columns = [
       h(
         "div",
         {},
-        row.original.profile
-          ? moment(row.original.project.created_at).format(
+        row.original.project_created_at
+          ? moment(row.original.project_created_at).format(
               "DD/MM/YYYY HH:mm:ss"
             )
           : "-"
@@ -201,8 +201,5 @@ type Player = {
   id: string;
   name: string;
   email: string;
-  birthday: string;
-  phone: string;
-  profile: object;
 };
 </script>

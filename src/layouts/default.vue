@@ -1,326 +1,3 @@
-<script setup lang="ts">
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
-  useSidebar,
-  SidebarProvider,
-  Sidebar,
-} from "@/components/ui/sidebar";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import {
-  Home,
-  LineChart,
-  Building2,
-  Users2,
-  Bot,
-  LogOut,
-  Package2,
-  ChevronsUpDown,
-  Send,
-  ChartNoAxesCombined,
-  MailCheck,
-  Album,
-  SlidersHorizontal,
-  Rows3,
-  ChevronRight,
-  SquareStack,
-  CircleDollarSign,
-  ExternalLink,
-  Briefcase,
-  DollarSignIcon,
-  UserCog,
-} from "lucide-vue-next";
-import { ref, computed, onMounted, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/auth";
-import { useWorkspaceStore } from "@/stores/workspace";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { useColorMode } from "@vueuse/core";
-import CustomLoading from "@/components/custom/CustomLoading.vue";
-import { resizeDirective as vResize } from "v-resize-observer";
-interface BreadcrumbItem {
-  name: string;
-  title: string;
-  path: string | null;
-}
-const route = useRoute();
-const router = useRouter();
-const authStore = useAuthStore();
-// Breadcrumbs
-const breadcrumbs = computed(() => {
-  const breadcrumbItems: BreadcrumbItem[] = [
-    {
-      name: "Elevate",
-      title: "Elevate",
-      path: "/home",
-    },
-  ];
-
-  route.matched.forEach((routeRecord, index) => {
-    const name = routeRecord.name as string;
-    const title = routeRecord.meta.title as string;
-
-    if (index === route.matched.length - 1) {
-      breadcrumbItems.push({
-        name,
-        title,
-        path: null,
-      });
-    } else {
-      breadcrumbItems.push({
-        name,
-        title,
-        path: routeRecord.path,
-      });
-    }
-  });
-
-  return breadcrumbItems;
-});
-
-const navMenu = computed(() => [
-  {
-    name: "Home",
-    url: { name: "home" },
-    icon: Home,
-    show: true,
-  },
-  {
-    name: "Elevate IA",
-    url: { name: "ia" },
-    icon: Bot,
-    show: true,
-  },
-  {
-    name: "Controles",
-    icon: SlidersHorizontal,
-    show: true,
-    type: "controls",
-    children: [
-      {
-        name: "Performance",
-        url: { name: "performances" },
-        icon: LineChart,
-        show: true,
-      },
-      {
-        name: "Tráfego",
-        url: { name: "traffics" },
-        icon: ChartNoAxesCombined,
-        show: true,
-      },
-      {
-        name: "E-mails",
-        url: { name: "emails" },
-        icon: MailCheck,
-        show: true,
-      },
-      {
-        name: "SMS Insights",
-        url: { name: "sms-insights" },
-        icon: Send,
-        show: true,
-      },
-    ],
-  },
-  {
-    name: "Gerenciamento",
-    icon: SquareStack,
-    show: true,
-    type: "manage",
-    children: [
-      {
-        name: "Projetos",
-        url: { name: "projects" },
-        icon: Building2,
-        show: authStore.user?.access_type === "member",
-      },
-      {
-        name: "Usuários",
-        url: { name: "users" },
-        icon: Users2,
-        show: authStore.user?.access_type === "member",
-      },
-      {
-        name: "Perfis",
-        url: { name: "roles" },
-        icon: UserCog,
-        show: authStore.user?.access_type === "member",
-      },
-      {
-        name: "MyElevate Insights",
-        url: { name: "texts" },
-        icon: Album,
-        show: authStore.user?.access_type === "member",
-      },
-      {
-        name: "Jogadores",
-        url: { name: "players" },
-        icon: Users2,
-        show: true,
-      },
-      {
-        name: "Rastreamento UTM",
-        url: { name: "utm-tracks" },
-        icon: ExternalLink,
-        show: true,
-      },
-    ],
-  },
-  {
-    name: "Financeiro",
-    icon: CircleDollarSign,
-    show: true,
-    type: "financial",
-    children: [
-      {
-        name: "Gerir Setores",
-        url: { name: "sectors" },
-        icon: Briefcase,
-        show: true,
-      },
-
-      {
-        name: "Gerir Custos",
-        url: { name: "costs" },
-        icon: Rows3,
-        show: true,
-      },
-      {
-        name: "Entradas e Saídas",
-        url: { name: "registers" },
-        icon: DollarSignIcon,
-        show: true,
-      },
-    ],
-  },
-]);
-
-watch(
-  () => route.matched,
-  (matchedRoutes) => {
-    matchedRoutes.forEach((matchedRoute) => {
-      navMenu.value.forEach((group) => {
-        if (group.children) {
-          if (group.type === matchedRoute.path.split("/")[1]) {
-            collapsed.value = group.type;
-          }
-        }
-      });
-    });
-  },
-  { immediate: true, deep: true }
-);
-const collapsed = ref("");
-// Times (Projects)
-const workspaceStore = useWorkspaceStore();
-const activeGroupProject = computed(
-  () => workspaceStore.activeGroupProject || null
-);
-
-import { useConfigStore } from "@/stores/config";
-import { Separator } from "@/components/ui/separator";
-const configStore = useConfigStore();
-
-const setActiveGroupProject = async (
-  project: typeof workspaceStore.activeGroupProject
-) => {
-  configStore.setLoading(true);
-  sidebarExpanded.value = false;
-  await workspaceStore.setActiveGroupProject(project);
-  setTimeout(() => configStore.setLoading(false), 2000);
-};
-
-// Sidebar state
-const sidebarExpanded = ref(true);
-const stateResponsive = ref(false);
-const setResponsive = () => {
-  stateResponsive.value = !stateResponsive.value;
-};
-
-const mode = useColorMode();
-//@ts-ignore
-mode.value = localStorage.getItem("theme") || "auto";
-onMounted(async () => {
-  const user = authStore.user;
-  if (user) {
-    await workspaceStore.loadInitialData(
-      user?.preferences,
-      user?.group_projects
-    );
-  }
-});
-
-// Logout
-const logout = async () => {
-  await authStore.logout();
-  router.push("/login");
-};
-
-const logoSrc = computed(() => {
-  return mode.value === "dark"
-    ? sidebarExpanded.value
-      ? "/logo-elevate-white.png"
-      : "/logo-elevate-square-white.png"
-    : sidebarExpanded.value
-    ? "/logo-elevate-black.png"
-    : "/logo-elevate-square-black.png";
-});
-
-const handleMenuItemClick = () => {
-  if (window.innerWidth < 768) {
-    sidebarExpanded.value = true;
-  }
-};
-
-const toggleCollapsed = (type: string) => {
-  if (!sidebarExpanded.value) {
-    collapsed.value = type;
-    sidebarExpanded.value = true;
-  } else {
-    collapsed.value = collapsed.value === type ? "" : type;
-  }
-};
-</script>
-
 <template>
   <SidebarProvider v-model:open="sidebarExpanded">
     <Sidebar collapsible="icon" :collapsed="sidebarExpanded">
@@ -626,3 +303,331 @@ const toggleCollapsed = (type: string) => {
     </SidebarInset>
   </SidebarProvider>
 </template>
+
+<script setup lang="ts">
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarTrigger,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  useSidebar,
+  SidebarProvider,
+  Sidebar,
+} from "@/components/ui/sidebar";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import {
+  Home,
+  LineChart,
+  Building2,
+  Users2,
+  Bot,
+  LogOut,
+  Package2,
+  ChevronsUpDown,
+  Send,
+  ChartNoAxesCombined,
+  MailCheck,
+  Album,
+  SlidersHorizontal,
+  Rows3,
+  ChevronRight,
+  SquareStack,
+  CircleDollarSign,
+  ExternalLink,
+  Briefcase,
+  DollarSignIcon,
+  UserCog,
+} from "lucide-vue-next";
+import { ref, computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import { useWorkspaceStore } from "@/stores/workspace";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useColorMode } from "@vueuse/core";
+import CustomLoading from "@/components/custom/CustomLoading.vue";
+import { resizeDirective as vResize } from "v-resize-observer";
+interface BreadcrumbItem {
+  name: string;
+  title: string;
+  path: string | null;
+}
+const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
+// Breadcrumbs
+const breadcrumbs = computed(() => {
+  const breadcrumbItems: BreadcrumbItem[] = [
+    {
+      name: "Elevate",
+      title: "Elevate",
+      path: "/home",
+    },
+  ];
+
+  route.matched.forEach((routeRecord, index) => {
+    const name = routeRecord.name as string;
+    const title = routeRecord.meta.title as string;
+
+    if (index === route.matched.length - 1) {
+      breadcrumbItems.push({
+        name,
+        title,
+        path: null,
+      });
+    } else {
+      breadcrumbItems.push({
+        name,
+        title,
+        path: routeRecord.path,
+      });
+    }
+  });
+
+  return breadcrumbItems;
+});
+
+const navMenu = computed(() => [
+  {
+    name: "Home",
+    url: { name: "home" },
+    icon: Home,
+    show: true,
+  },
+  {
+    name: "Elevate IA",
+    url: { name: "ia" },
+    icon: Bot,
+    show: true,
+  },
+  {
+    name: "Controles",
+    icon: SlidersHorizontal,
+    show: true,
+    type: "controls",
+    children: [
+      {
+        name: "Performance",
+        url: { name: "performances" },
+        icon: LineChart,
+        show: true,
+      },
+      {
+        name: "Tráfego",
+        url: { name: "traffics" },
+        icon: ChartNoAxesCombined,
+        show: true,
+      },
+      {
+        name: "E-mails",
+        url: { name: "emails" },
+        icon: MailCheck,
+        show: true,
+      },
+      {
+        name: "SMS Insights",
+        url: { name: "sms-insights" },
+        icon: Send,
+        show: true,
+      },
+    ],
+  },
+  {
+    name: "Gerenciamento",
+    icon: SquareStack,
+    show: true,
+    type: "manage",
+    children: [
+      {
+        name: "Projetos",
+        url: { name: "projects" },
+        icon: Building2,
+        show: authStore.user?.access_type === "member",
+      },
+      {
+        name: "Usuários",
+        url: { name: "users" },
+        icon: Users2,
+        show: authStore.user?.access_type === "member",
+      },
+      {
+        name: "Perfis",
+        url: { name: "roles" },
+        icon: UserCog,
+        show: authStore.user?.access_type === "member",
+      },
+      {
+        name: "MyElevate Insights",
+        url: { name: "texts" },
+        icon: Album,
+        show: authStore.user?.access_type === "member",
+      },
+      {
+        name: "Jogadores",
+        url: { name: "players" },
+        icon: Users2,
+        show: true,
+      },
+      {
+        name: "Rastreamento UTM",
+        url: { name: "utm-tracks" },
+        icon: ExternalLink,
+        show: true,
+      },
+    ],
+  },
+  {
+    name: "Financeiro",
+    icon: CircleDollarSign,
+    show: true,
+    type: "financial",
+    children: [
+      {
+        name: "Gerir Setores",
+        url: { name: "sectors" },
+        icon: Briefcase,
+        show: true,
+      },
+
+      {
+        name: "Gerir Custos",
+        url: { name: "costs" },
+        icon: Rows3,
+        show: true,
+      },
+      {
+        name: "Entradas e Saídas",
+        url: { name: "registers" },
+        icon: DollarSignIcon,
+        show: true,
+      },
+    ],
+  },
+]);
+
+watch(
+  () => route.matched,
+  (matchedRoutes) => {
+    matchedRoutes.forEach((matchedRoute) => {
+      navMenu.value.forEach((group) => {
+        if (group.children) {
+          if (group.type === matchedRoute.path.split("/")[1]) {
+            collapsed.value = group.type;
+          }
+        }
+      });
+    });
+  },
+  { immediate: true, deep: true }
+);
+const collapsed = ref("");
+// Times (Projects)
+const workspaceStore = useWorkspaceStore();
+const activeGroupProject = computed(
+  () => workspaceStore.activeGroupProject || null
+);
+
+import { useConfigStore } from "@/stores/config";
+import { Separator } from "@/components/ui/separator";
+const configStore = useConfigStore();
+
+const setActiveGroupProject = async (
+  project: typeof workspaceStore.activeGroupProject
+) => {
+  sidebarExpanded.value = false;
+  configStore.setLoading(true);
+  await workspaceStore.setActiveGroupProject(project);
+
+  setTimeout(() => {
+    configStore.setLoading(false);
+    sidebarExpanded.value = true;
+    document.body.style.overflow = "";
+  }, 2000);
+};
+
+// Sidebar state
+const sidebarExpanded = ref(true);
+const stateResponsive = ref(false);
+const setResponsive = () => {
+  stateResponsive.value = !stateResponsive.value;
+};
+
+const mode = useColorMode();
+//@ts-ignore
+mode.value = localStorage.getItem("theme") || "auto";
+onMounted(async () => {
+  const user = authStore.user;
+  if (user) {
+    await workspaceStore.loadInitialData(
+      user?.preferences,
+      user?.group_projects
+    );
+  }
+});
+
+// Logout
+const logout = async () => {
+  await authStore.logout();
+  router.push("/login");
+};
+
+const logoSrc = computed(() => {
+  return mode.value === "dark"
+    ? sidebarExpanded.value
+      ? "/logo-elevate-white.png"
+      : "/logo-elevate-square-white.png"
+    : sidebarExpanded.value
+    ? "/logo-elevate-black.png"
+    : "/logo-elevate-square-black.png";
+});
+
+const handleMenuItemClick = () => {
+  if (window.innerWidth < 768) {
+    sidebarExpanded.value = true;
+  }
+};
+
+const toggleCollapsed = (type: string) => {
+  if (!sidebarExpanded.value) {
+    collapsed.value = type;
+    sidebarExpanded.value = true;
+  } else {
+    collapsed.value = collapsed.value === type ? "" : type;
+  }
+};
+</script>
