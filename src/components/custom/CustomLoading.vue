@@ -3,7 +3,7 @@
     <div
       class="items-center justify-center align-middle flex min-h-screen sm:w-full"
     >
-      <div class="flex flex-col justify-center items-center flex-1">
+      <div class="flex flex-col justify-center items-center flex-1 sm:w-full">
         <DotLottieVue
           :style="{ height: '300px', width: '300px' }"
           :src="loadingAnimation"
@@ -15,7 +15,7 @@
             'opacity-0': !message.message,
             'opacity-100	': message.message,
           }"
-          class="flex flex-col gap-3 transition-opacity duration-1000"
+          class="flex flex-col gap-3 transition-opacity duration-1000 sm:max-w-[440px] w-full"
         >
           <div class="flex gap-1">
             <Quote :size="20" :stroke-width="1.75" absoluteStrokeWidth />

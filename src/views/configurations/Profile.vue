@@ -7,8 +7,8 @@
       </p>
     </div>
     <Separator class="mb-3" />
-    <div class=" flex justify-start gap-8 flex-wrap w-full">
-      <div>
+    <div class="flex justify-start gap-8 flex-wrap w-full">
+      <div class="flex-1">
         <div class="my-2">
           <Label for="theme">Tema</Label>
           <Select v-model="theme" id="theme">
@@ -23,56 +23,55 @@
           </Select>
         </div>
         <form @submit.prevent="submit" @keydown="form.onKeydown($event)">
-
           <div class="mb-3">
             <Label for="first_name">Primeiro nome</Label>
             <Input
-                type="text"
-                id="first_name"
-                placeholder="Informe o seu primeiro nome"
-                v-model="form.first_name"
-                class="mt-1"
+              type="text"
+              id="first_name"
+              placeholder="Informe o seu primeiro nome"
+              v-model="form.first_name"
+              class="mt-1"
             />
             <HasError :form="form" field="first_name" />
           </div>
           <div class="mb-3">
             <Label for="last_name">Sobrenome</Label>
             <Input
-                type="text"
-                id="last_name"
-                placeholder="Informe o seu sobrenome"
-                v-model="form.last_name"
-                class="mt-1"
+              type="text"
+              id="last_name"
+              placeholder="Informe o seu sobrenome"
+              v-model="form.last_name"
+              class="mt-1"
             />
             <HasError :form="form" field="last_name" />
           </div>
           <div class="mb-3">
             <Label for="email">E-mail</Label>
             <Input
-                type="text"
-                id="email"
-                placeholder="Informe o seu e-mail"
-                v-model="form.email"
-                class="mt-1"
-                :disabled="emailChangeRequest"
+              type="text"
+              id="email"
+              placeholder="Informe o seu e-mail"
+              v-model="form.email"
+              class="mt-1"
+              :disabled="emailChangeRequest"
             />
             <HasError :form="form" field="email" />
 
             <div
-                class="flex align-items-center text-sm font-medium mt-2"
-                v-if="emailChangeRequest"
+              class="flex align-items-center text-sm font-medium mt-2"
+              v-if="emailChangeRequest"
             >
               Existe uma solicitação de troca de e-mail, você poderá cancelar a
               solicitação clicando a seguir:
               <Button
-                  variant="outline"
-                  @click="cancelEmailChange"
-                  :disabled="loadingCancelEmailChange"
-                  class="mt-2"
+                variant="outline"
+                @click="cancelEmailChange"
+                :disabled="loadingCancelEmailChange"
+                class="mt-2"
               >
                 <LucideSpinner
-                    v-if="loadingCancelEmailChange"
-                    class="mr-2 h-4 w-4 animate-spin"
+                  v-if="loadingCancelEmailChange"
+                  class="mr-2 h-4 w-4 animate-spin"
                 />
                 Cancelar Solicitação
               </Button>
@@ -98,88 +97,86 @@
           </div>
         </form>
       </div>
-      <div  class="flex-1">
-        <div class="my-2 flex flex-col items-center justify-center gap-2 ">
+      <div class="flex-1">
+        <div class="my-2 flex flex-col items-center justify-center gap-2">
           <div class="mb-4 flex items-center justify-center gap-2">
-            <p class="text-lg font-medium">
-              Foto de Perfil
-            </p>
-            <Pencil :size="20" :stroke-width="1.55" @click="openSheet" class="cursor-pointer" />
+            <p class="text-lg font-medium">Foto de Perfil</p>
+            <Pencil
+              :size="20"
+              :stroke-width="1.55"
+              @click="openSheet"
+              class="cursor-pointer"
+            />
           </div>
           <div class="mb-4 flex flex-col items-center justify-center gap-2">
             <Avatar size="lg">
-              <AvatarImage v-if="authStore.user.media" :src="authStore.user?.media[0].original_url" />
+              <AvatarImage
+                v-if="authStore.user.media && authStore.user.media.length"
+                :src="authStore.user?.media[0].original_url"
+              />
               <AvatarFallback>
                 {{ authStore.user?.initials }}
               </AvatarFallback>
             </Avatar>
             <div>
               <p>
-                {{authStore.user.name}}
+                {{ authStore.user.name }}
               </p>
             </div>
           </div>
-
         </div>
-
       </div>
     </div>
-
   </div>
 
   <Sheet v-model:open="imageSheet" position="right" size="lg">
-
     <SheetContent class="flex flex-col gap-6">
       <SheetHeader>
-        <SheetTitle>
-          Atualizar Imagem de Perfil
-        </SheetTitle>
+        <SheetTitle> Atualizar Imagem de Perfil </SheetTitle>
       </SheetHeader>
       <form @submit.prevent="updateImage" class="space-y-4">
         <div>
           <Label for="profileImage">Imagem de Perfil</Label>
           <Input
-              type="file"
-              id="profileImage"
-              ref="fileInput"
-
-              @change="handleFileChange"
-              accept="image/*"
-              class="mt-2"
+            type="file"
+            id="profileImage"
+            ref="fileInput"
+            @change="handleFileChange"
+            accept="image/*"
+            class="mt-2"
           />
         </div>
         <SheetFooter>
-          <Button :disabled="loading || !selectedImagePreview"  type="submit">
-            <LucideSpinner v-if="loading" class="mr-2 h-4 w-4 animate-spin"/>
+          <Button :disabled="loading || !selectedImagePreview" type="submit">
+            <LucideSpinner v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
             {{ hasImage ? "Atualizar Imagem" : "Salvar Imagem" }}
           </Button>
         </SheetFooter>
       </form>
-      <div v-if="selectedImagePreview" class="mt-4 text-sm flex items-center justify-center gap-4 flex-col">
+      <div
+        v-if="selectedImagePreview"
+        class="mt-4 text-sm flex items-center justify-center gap-4 flex-col"
+      >
         <p>Pré-visualização:</p>
         <Avatar size="lg">
           <AvatarImage :src="selectedImagePreview" />>
         </Avatar>
-
       </div>
       <div v-if="error" class="text-red-500 mt-2">
         {{ error }}
       </div>
     </SheetContent>
-
   </Sheet>
-
-
 </template>
 <script setup lang="ts">
-import {ref, onMounted, watch, computed} from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
 import Form from "vform";
 Form.axios = api;
 
-import {Loader2 as LucideSpinner, Pencil} from "lucide-vue-next";
+import { Loader2 as LucideSpinner, Pencil } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -192,8 +189,14 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useColorMode } from "@vueuse/core";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle} from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 const theme = ref(localStorage.getItem("theme") || "auto");
 const { toast } = useToast();
 const authStore = useAuthStore();
@@ -210,7 +213,6 @@ const form = ref(
     image: "",
   })
 );
-
 
 watch(theme, () => {
   setTheme();
@@ -297,17 +299,19 @@ watch(
   { immediate: true }
 );
 
-const openSheet = ()=>{
+const openSheet = () => {
   form.value.image = "";
   selectedImagePreview.value = null;
   imageSheet.value = true;
-}
+};
 
 const imageSheet = ref(false);
 const fileInput = ref();
 const selectedImagePreview = ref<string | null>(null);
 const error = ref();
-const hasImage = computed(() => authStore.user?.media ? !!authStore.user.media[0]?.original_url : false);
+const hasImage = computed(() =>
+  authStore.user?.media ? !!authStore.user.media[0]?.original_url : false
+);
 const handleFileChange = (event) => {
   const file = event.target.files[0];
 
@@ -321,7 +325,6 @@ const handleFileChange = (event) => {
   img.src = URL.createObjectURL(file);
 
   img.onload = () => {
-
     if (img.width > 4096 || img.height > 2160) {
       error.value = "A imagem deve ter no máximo 4096 x 2160 pixels.";
       selectedImagePreview.value = "";
@@ -342,7 +345,7 @@ const handleFileChange = (event) => {
 const updateImage = async () => {
   if (!form.value.image) {
     error.value = "Nenhum arquivo selecionado.";
-    console.log(form.value)
+    console.log(form.value);
     return;
   }
 
@@ -358,8 +361,8 @@ const updateImage = async () => {
     toast({
       title: "Sucesso",
       description: hasImage
-          ? "Imagem atualizada com sucesso."
-          : "Imagem adicionada com sucesso.",
+        ? "Imagem atualizada com sucesso."
+        : "Imagem adicionada com sucesso.",
     });
 
     // Refresh user data or update authStore.avatar...
@@ -373,5 +376,4 @@ const updateImage = async () => {
     loading.value = false;
   }
 };
-
 </script>
