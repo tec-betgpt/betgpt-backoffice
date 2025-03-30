@@ -149,16 +149,13 @@ async function fetchMessages(pageId: number = pages.value.current) {
       return acc;
     }, {} as Record<string, string>);
 
-    const response = await form.value.get(
-      `/utils/message-loading?page=${pageId}`,
-      {
-        params: {
-          ...searchParams,
-          orderBy: order.value,
-          orderDirection: direction.value ? "asc" : "desc",
-        },
-      }
-    );
+    const response = await form.value.get(`/utils/insights?page=${pageId}`, {
+      params: {
+        ...searchParams,
+        orderBy: order.value,
+        orderDirection: direction.value ? "asc" : "desc",
+      },
+    });
     pages.value.current = response.data.data.current_page;
     pages.value.total = response.data.data.total;
     pages.value.last = response.data.data.last_page;
@@ -176,7 +173,7 @@ function delay(ms: number): Promise<void> {
 async function submit() {
   try {
     loading.value = true;
-    const response = await form.value.post("/utils/message-loading");
+    const response = await form.value.post("/utils/insights");
 
     form.value.reset();
     toast({
@@ -207,7 +204,7 @@ const setSearch = (values: Record<string, string>) => {
 async function remove(id: number) {
   try {
     loadingRemove.value = true;
-    const response = await form.value.delete(`/utils/message-loading/${id}`);
+    const response = await form.value.delete(`/utils/insights/${id}`);
     await fetchMessages();
     toast({
       title: i18n.global.t("success"),
@@ -230,7 +227,7 @@ async function remove(id: number) {
 async function edit(id) {
   try {
     loading.value = true;
-    const response = await form.value.put(`/utils/message-loading/${id}`);
+    const response = await form.value.put(`/utils/insights/${id}`);
 
     form.value.reset();
     await fetchMessages();

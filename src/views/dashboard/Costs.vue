@@ -362,7 +362,7 @@ const openSheet = () => {
 const fetchSectors = async () => {
   try {
     loadingSectors.value = true;
-    const response = await api.get(`/financial/sector`, {
+    const response = await api.get(`/financial/sectors`, {
       params: {
         filter_id: activeGroupProjectId,
       },
