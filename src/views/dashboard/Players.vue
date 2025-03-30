@@ -108,11 +108,11 @@ const fetchPlayers = async (current = pages.value.current) => {
         },
       }),
     ]);
-    players.value = playerResponse.data.data.players;
+    players.value = playerResponse.data.data;
     pages.value = {
-      current: playerResponse.data.data.pagination.current_page,
-      last: playerResponse.data.data.pagination.last_page,
-      total: playerResponse.data.data.pagination.total,
+      current: playerResponse.data.pagination.current_page,
+      last: playerResponse.data.pagination.last_page,
+      total: playerResponse.data.pagination.total_records,
     };
   } catch (error) {
     toast({
@@ -161,39 +161,24 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 const columns = [
-  columnHelper.accessor("id", {
+  columnHelper.accessor("model_id", {
     header({ column }) {
       return createHeaderButton("ID", "id");
     },
-    cell: ({ row }) => h("div", {}, row.getValue("id")),
+    cell: ({ row }) => h("div", {}, row.getValue("model_id")),
   }),
-  columnHelper.accessor("name", {
+  columnHelper.accessor("title", {
     header({ column }) {
       return createHeaderButton("Nome", "name");
     },
     cell: ({ row }) =>
-      h("div", { class: "capitalize" }, `${row.getValue("name")}`),
+      h("div", { class: "capitalize" }, `${row.getValue("title")}`),
   }),
   columnHelper.accessor("email", {
     header({ column }) {
       return createHeaderButton("E-mail", "email");
     },
     cell: ({ row }) => h("div", {}, row.getValue("email")),
-  }),
-  columnHelper.accessor("created_at", {
-    header({ header }) {
-      return "Data Criação";
-    },
-    cell: ({ row }) =>
-      h(
-        "div",
-        {},
-        row.original.project_created_at
-          ? moment(row.original.project_created_at).format(
-              "DD/MM/YYYY HH:mm:ss"
-            )
-          : "-"
-      ),
   }),
 ];
 
