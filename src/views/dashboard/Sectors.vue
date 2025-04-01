@@ -148,7 +148,7 @@ const handleEdit = (item: SectorData) => {
 const deleteSector = async (id: number) => {
   try {
     loadingSectors.value = true;
-    await api.delete(`/financial/sector/${id}`);
+    await api.delete(`/financial/sectors/${id}`);
     toast({
       title: "Setor deletado com sucesso!",
       description: `O setor com ID ${id} foi removido.`,
@@ -171,11 +171,11 @@ const submitSector = async () => {
     loadingSub.value = true;
     if (isEditing.value) {
       await api.put(
-        `/financial/sector/${sectorForm.value.id}`,
+        `/financial/sectors/${sectorForm.value.id}`,
         sectorForm.value
       );
     } else {
-      await api.post("/financial/sector", sectorForm.value);
+      await api.post("/financial/sectors", sectorForm.value);
     }
     showModal.value = false;
   } catch (error) {
@@ -282,7 +282,7 @@ function handlerOrder(column: string, direction: boolean) {
 const fetchSectors = async (current: number = pages.value.current) => {
   try {
     loadingSectors.value = true;
-    const response = await api.get(`/financial/sector?page=${current}`, {
+    const response = await api.get(`/financial/sectors?page=${current}`, {
       params: {
         filter_id: activeGroupProjectId,
         find_name: nameSector.value,
