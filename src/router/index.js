@@ -364,22 +364,15 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
-  console.log("🔍 Navegando para:", to.name);
 
-  // Se não há usuário carregado, tenta buscar usando o token armazenado
   if (!authStore.user && localStorage.getItem("authToken") && !authStore.loading) {
-    console.log("🔄 Tentando buscar usuário com token...");
     await authStore.fetchUser();
-    console.log("✅ Usuário carregado:", authStore.user);
   }
 
-  // Se a rota exige autenticação e o usuário não está logado, redireciona para login
   if (to.meta.requiresAuth && !authStore.user) {
-    console.log("🚫 Acesso negado! Usuário não autenticado.");
     return next({ name: "login" });
   }
 
-  // Se a rota exige autenticação e permissões, verifica se o usuário tem acesso
   if (to.meta.requiresAuth && to.meta.roles) {
     const hasPermission = authStore.user?.roles.some(role =>
         role.permissions.some(permission =>
@@ -387,27 +380,16 @@ router.beforeEach(async (to, from, next) => {
         )
     );
 
-    console.log("🔑 Verificando permissões...");
-    console.log("➡️ Permissões necessárias:", to.meta.roles);
-    console.log("✅ Permissões do usuário:", authStore.user?.roles.flatMap(r => r.permissions.map(p => p.name)));
-
-    // Se não tiver permissão, redireciona para home
     if (!hasPermission) {
-      console.log("🚫 Acesso negado! Usuário não tem permissão.");
       return next({ name: "home" });
-    } else {
-      console.log("✅ Acesso permitido.");
     }
   }
 
-  // Se a rota é "root", redireciona para "home"
   if (to.name === "root") {
-    console.log("🔄 Redirecionando da root para home...");
     return next({ name: "home" });
   }
 
-  console.log("✅ Navegação permitida para:", to.name);
-  next(); // Prossegue com a navegação normalmente
+  next();
 });
 
 
