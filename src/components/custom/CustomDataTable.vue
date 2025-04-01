@@ -1,91 +1,3 @@
-<script setup lang="ts">
-import { PropType, ref, watch, computed } from "vue";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { FlexRender, getCoreRowModel, useVueTable } from "@tanstack/vue-table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-
-const props = defineProps({
-  columns: {
-    type: Array as PropType<Array<any>>,
-    required: true,
-  },
-  data: {
-    type: Array as PropType<Array<Record<string, any>>>,
-    required: true,
-  },
-  loading: {
-    type: Boolean,
-    required: true,
-  },
-  updateText: {
-    type: Function,
-  },
-  find: {
-    type: Function,
-    required: true,
-  },
-  searchFields: {
-    type: Array as PropType<
-      Array<{ key: string; label: string; placeholder: string }>
-    >,
-    required: true,
-  },
-});
-
-const dataTable = ref([...props.data]);
-const searchValues = ref<Record<string, string>>({});
-
-const table = ref(
-  useVueTable({
-    data: dataTable.value,
-    columns: props.columns,
-    getCoreRowModel: getCoreRowModel(),
-  })
-);
-
-watch(
-  () => props.data,
-  (newData) => {
-    dataTable.value = [...newData];
-    table.value = useVueTable({
-      data: dataTable.value,
-      columns: props.columns,
-      getCoreRowModel: getCoreRowModel(),
-    });
-  },
-  { deep: true }
-);
-
-const checkIfEmpty = () => {
-  if (Object.values(searchValues.value).every((value) => !value)) {
-    props.find();
-  }
-};
-
-watch(
-  searchValues,
-  () => {
-    props.updateText(searchValues.value);
-  },
-  { deep: true }
-);
-
-const hasLabel = computed(() => {
-  return props.searchFields.some((field) => field.label);
-});
-</script>
-
 <template>
   <div v-if="updateText" class="flex flex-col sm:flex-row gap-2">
     <div
@@ -151,12 +63,127 @@ const hasLabel = computed(() => {
       </TableRow>
     </TableBody>
 
-    <TableFooter>
+    <TableFooter v-if="footer">
       <TableRow>
-        <TableCell v-for="r in result">
-          {{ r }}
+        <TableCell v-for="column in columns" :key="column.accessorKey">
+          {{ footerData[column.accessorKey] }}
         </TableCell>
       </TableRow>
     </TableFooter>
   </Table>
 </template>
+
+<script setup lang="ts">
+import { PropType, ref, watch, computed } from "vue";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { FlexRender, getCoreRowModel, useVueTable } from "@tanstack/vue-table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+
+const props = defineProps({
+  columns: {
+    type: Array as PropType<Array<any>>,
+    required: true,
+  },
+  data: {
+    type: Array as PropType<Array<Record<string, any>>>,
+    required: true,
+  },
+  loading: {
+    type: Boolean,
+    required: true,
+  },
+  updateText: {
+    type: Function,
+  },
+  find: {
+    type: Function,
+    required: true,
+  },
+  searchFields: {
+    type: Array as PropType<
+      Array<{ key: string; label: string; placeholder: string }>
+    >,
+    required: true,
+  },
+  footer: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const dataTable = ref([...props.data]);
+const searchValues = ref<Record<string, string>>({});
+
+const table = ref(
+  useVueTable({
+    data: dataTable.value,
+    columns: props.columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+);
+
+watch(
+  () => props.data,
+  (newData) => {
+    dataTable.value = [...newData];
+    table.value = useVueTable({
+      data: dataTable.value,
+      columns: props.columns,
+      getCoreRowModel: getCoreRowModel(),
+    });
+  },
+  { deep: true }
+);
+
+const footerData = computed(() => {
+  const footerResult: Record<string, string | number> = {};
+
+  props.columns.forEach((col: any) => {
+    const footerType = col.footer;
+    if (footerType) {
+      const values = props.data.map((row) => Number(row[col.accessorKey]) || 0);
+
+      if (footerType === "sum") {
+        footerResult[col.accessorKey] = values.reduce((a, b) => a + b, 0);
+      } else if (footerType === "avg") {
+        const total = values.reduce((a, b) => a + b, 0);
+        const avg = values.length ? total / values.length : 0;
+        footerResult[col.accessorKey] = avg.toFixed(2) + "%";
+      }
+    } else {
+      footerResult[col.accessorKey] = "";
+    }
+  });
+
+  return footerResult;
+});
+
+const checkIfEmpty = () => {
+  if (Object.values(searchValues.value).every((value) => !value)) {
+    props.find();
+  }
+};
+
+watch(
+  searchValues,
+  () => {
+    props.updateText(searchValues.value);
+  },
+  { deep: true }
+);
+
+const hasLabel = computed(() => {
+  return props.searchFields.some((field) => field.label);
+});
+</script>
