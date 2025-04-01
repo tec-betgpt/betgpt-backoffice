@@ -24,6 +24,7 @@
             :update-text="setSearch"
             :find="applyFilter"
             :result="campaignsStats"
+            :footer="true"
             :search-fields="[
               {
                 key: 'campaign_name',
@@ -230,18 +231,21 @@ const columns = [
     header({ column }) {
       return createHeaderButton("Número de Envios", "send_amt");
     },
+    footer: "sum",
     cell: ({ row }) => h("div", { class: "" }, row.getValue("send_amt")),
   }),
   columnHelper.accessor("uniqueopens", {
     header({ column }) {
       return createHeaderButton("Número de Aberturas", "uniqueopens");
     },
+    footer: "sum",
     cell: ({ row }) => h("div", { class: "" }, row.getValue("uniqueopens")),
   }),
   columnHelper.accessor("subscriberclicks", {
     header({ column }) {
       return createHeaderButton("Número de Cliques", "subscriberclicks");
     },
+    footer: "sum",
     cell: ({ row }) =>
       h("div", { class: "" }, row.getValue("subscriberclicks")),
   }),
@@ -249,86 +253,61 @@ const columns = [
     header({ column }) {
       return createHeaderButton("Número de Cancelamentos", "unsubscribes");
     },
+    footer: "sum",
     cell: ({ row }) => h("div", { class: "" }, row.getValue("unsubscribes")),
   }),
   columnHelper.accessor("softbounces", {
     header({ column }) {
       return createHeaderButton("Número de Bounces", "softbounces");
     },
+    footer: "sum",
     cell: ({ row }) => h("div", { class: "" }, row.getValue("softbounces")),
   }),
   columnHelper.accessor("rate_opens", {
-    header: "Taxa de Abertura (%)",
+    header({ column }) {
+      return createHeaderButton("Taxa de Abertura (%)", "rate_opens");
+    },
+    footer: "avg",
     cell: ({ row }) =>
-      h(
-        "div",
-        { class: "" },
-        row.getValue("send_amt") - row.getValue("softbounces") === 0
-          ? "0%"
-          : (
-              (row.getValue("uniqueopens") /
-                (row.getValue("send_amt") - row.getValue("softbounces"))) *
-              100
-            ).toFixed(2) + "%"
-      ),
+      h("div", { class: "" }, row.getValue("rate_opens") + "%"),
   }),
   columnHelper.accessor("rate_opens_click", {
-    header: "Taxa de Abertura para Clique (%)",
+    header({ column }) {
+      return createHeaderButton(
+        "Taxa de Abertura para Clique (%)",
+        "rate_opens_click"
+      );
+    },
+    footer: "avg",
     cell: ({ row }) =>
-      h(
-        "div",
-        { class: "" },
-        row.getValue("uniqueopens") === 0
-          ? "0%"
-          : (
-              (row.getValue("subscriberclicks") / row.getValue("uniqueopens")) *
-              100
-            ).toFixed(2) + "%"
-      ),
+      h("div", { class: "" }, row.getValue("rate_opens_click") + "%"),
   }),
   columnHelper.accessor("rate_clicks", {
-    header: "Taxa de Cliques (%)",
+    header({ column }) {
+      return createHeaderButton("Taxa de Cliques (%)", "rate_clicks");
+    },
+    footer: "avg",
     cell: ({ row }) =>
-      h(
-        "div",
-        { class: "" },
-        row.getValue("send_amt") - row.getValue("softbounces") === 0
-          ? "0%"
-          : (
-              (row.getValue("subscriberclicks") /
-                (row.getValue("send_amt") - row.getValue("softbounces"))) *
-              100
-            ).toFixed(2) + "%"
-      ),
+      h("div", { class: "" }, row.getValue("rate_clicks") + "%"),
   }),
   columnHelper.accessor("rate_unsubscriptions", {
-    header: "Taxa de Cancelamento de Inscrições (%)",
+    header({ column }) {
+      return createHeaderButton(
+        "Taxa de Cancelamento de Inscrições (%)",
+        "rate_unsubscriptions"
+      );
+    },
+    footer: "avg",
     cell: ({ row }) =>
-      h(
-        "div",
-        { class: "" },
-        row.getValue("send_amt") - row.getValue("softbounces") === 0
-          ? "0%"
-          : (
-              (row.getValue("unsubscribes") /
-                (row.getValue("send_amt") - row.getValue("softbounces"))) *
-              100
-            ).toFixed(2) + "%"
-      ),
+      h("div", { class: "" }, row.getValue("rate_unsubscriptions") + "%"),
   }),
   columnHelper.accessor("rate_rejections", {
-    header: "Taxa de Rejeição (%)",
+    header({ column }) {
+      return createHeaderButton("Taxa de Rejeição (%)", "rate_rejections");
+    },
+    footer: "avg",
     cell: ({ row }) =>
-      h(
-        "div",
-        { class: "" },
-        row.getValue("send_amt") === 0
-          ? "0%"
-          : (
-              (row.getValue("softbounces") / row.getValue("send_amt")) *
-              100
-            ).toFixed(2) + "%"
-      ),
+      h("div", { class: "" }, row.getValue("rate_rejections") + "%"),
   }),
 ];
 
