@@ -126,7 +126,7 @@
                 </TooltipProvider>
               </SidebarMenuItem>
               <Collapsible
-                v-else-if="item.show && item.children"
+                v-else
                 :key="item.name"
                 as-child
                 class="group/collapsible"
@@ -427,113 +427,114 @@ const navMenu = computed(() => [
     name: "Home",
     url: { name: "home" },
     icon: Home,
-    show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-dashboard")),
+    show: true,
   },
   {
     name: "Elevate IA",
     url: { name: "ia" },
     icon: Bot,
-    show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-ai")),
+    show: true,
   },
   {
     name: "Controles",
     icon: SlidersHorizontal,
-    show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-reports")),
+    show: true,
     type: "controls",
     children: [
       {
         name: "Performance",
         url: { name: "performances" },
         icon: LineChart,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-reports")),
+        show: true,
       },
       {
         name: "Tráfego",
         url: { name: "traffics" },
         icon: ChartNoAxesCombined,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-reports")),
+        show: true,
       },
       {
         name: "E-mails",
         url: { name: "emails" },
         icon: MailCheck,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-reports")),
+        show: true,
       },
       {
         name: "SMS Insights",
         url: { name: "sms-insights" },
         icon: Send,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-reports")),
+        show: true,
       },
     ],
   },
   {
     name: "Gerenciamento",
     icon: SquareStack,
-    show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-management")),
+    show: true,
     type: "manage",
     children: [
       {
         name: "Projetos",
         url: { name: "projects" },
         icon: Building2,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-project-groups")),
+        show: authStore.user?.access_type === "member",
       },
       {
         name: "Usuários",
         url: { name: "users" },
         icon: Users2,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-users")),
+        show: authStore.user?.access_type === "member",
       },
       {
         name: "Perfis",
         url: { name: "roles" },
         icon: UserCog,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-permissions")),
+        show: authStore.user?.access_type === "member",
       },
       {
         name: "MyElevate Insights",
         url: { name: "texts" },
         icon: Album,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-motivational-texts")),
+        show: authStore.user?.access_type === "member",
       },
       {
         name: "Jogadores",
         url: { name: "players" },
         icon: Users2,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "player-registrations")),
+        show: true,
       },
       {
         name: "Rastreamento UTM",
         url: { name: "utm-tracks" },
         icon: ExternalLink,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-parameter-tracking")),
+        show: true,
       },
     ],
   },
   {
     name: "Financeiro",
     icon: CircleDollarSign,
-    show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-finance")),
+    show: true,
     type: "financial",
     children: [
       {
         name: "Gerir Setores",
         url: { name: "sectors" },
         icon: Briefcase,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-finance")),
+        show: true,
       },
+
       {
         name: "Gerir Custos",
         url: { name: "costs" },
         icon: Rows3,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-finance")),
+        show: true,
       },
       {
         name: "Entradas e Saídas",
         url: { name: "registers" },
         icon: DollarSignIcon,
-        show: authStore.user?.roles.some(role => role.permissions.some(permission => permission.name === "access-to-finance")),
+        show: true,
       },
     ],
   },
