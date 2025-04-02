@@ -64,8 +64,7 @@ const routes = [
       layout: DefaultLayout,
       requiresAuth: true,
       title: "Home",
-      permission: "member|client",
-      roles: "access-to-dashboard"
+      roles: "member|client",
     },
   },
   {
@@ -75,7 +74,6 @@ const routes = [
       requiresAuth: true,
       title: "Configurações",
       permission: "member|client",
-
     },
     children: [
       { path: "", redirect: "/configurations/profile" },
@@ -88,7 +86,6 @@ const routes = [
           requiresAuth: true,
           title: "Perfil",
           permission: "member|client",
-
         },
       },
       {
@@ -100,7 +97,6 @@ const routes = [
           requiresAuth: true,
           title: "Segurança",
           permission: "member|client",
-
         },
       },
       {
@@ -112,7 +108,6 @@ const routes = [
           requiresAuth: true,
           title: "Notificações",
           permission: "member|client",
-
         },
       },
       {
@@ -134,8 +129,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Integrações",
-          permission: "member",
-          roles: "access-to-integrations"
+          roles: "member",
+          permissions: "access-to-integrations",
         },
       },
       {
@@ -158,8 +153,8 @@ const routes = [
     meta: {
       layout: DefaultLayout,
       requiresAuth: true,
-      permission: "member",
-      roles: "access-to-ai",
+      roles: "member",
+      permissions: "access-to-ai",
       title: "Elevate IA",
     },
   },
@@ -169,8 +164,8 @@ const routes = [
     meta: {
       requiresAuth: true,
       title: "Relatórios",
-      permission: "member|client",
-      roles: "access-to-reports"
+      roles: "member|client",
+      permissions: "access-to-reports",
     },
     children: [
       {
@@ -181,8 +176,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Performance",
-          permission: "member|client",
-          roles: "access-to-reports"
+          roles: "member|client",
+          permissions: "access-to-reports",
         },
       },
       {
@@ -193,8 +188,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Tráfego",
-          permission: "member|client",
-          roles: "access-to-reports"
+          roles: "member|client",
+          permissions: "access-to-reports",
         },
       },
       {
@@ -205,8 +200,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "E-mails",
-          permission: "member|client",
-          roles: "access-to-reports"
+          roles: "member|client",
+          permissions: "access-to-reports",
         },
       },
       {
@@ -217,8 +212,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "SMS",
-          permission: "member|client",
-          roles: "access-to-reports"
+          roles: "member|client",
+          permissions: "access-to-reports",
         },
       },
     ],
@@ -229,8 +224,8 @@ const routes = [
     meta: {
       requiresAuth: true,
       title: "Gerenciamento",
-      permission: "member",
-      roles: "access-to-management"
+      roles: "member",
+      permissions: "access-to-management",
     },
     children: [
       {
@@ -240,8 +235,8 @@ const routes = [
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
-          permission: "member",
-          roles: "view-projects",
+          roles: "member",
+          permissions: "view-projects",
           title: "Projetos",
         },
       },
@@ -252,8 +247,8 @@ const routes = [
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
-          permission: "member",
-          roles: "access-to-motivational-texts",
+          roles: "member",
+          permissions: "access-to-motivational-texts",
           title: "Textos",
         },
       },
@@ -264,8 +259,8 @@ const routes = [
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
-          permission: "member",
-          roles: "view-users",
+          roles: "member",
+          permissions: "view-users",
           title: "Usuários",
         },
       },
@@ -276,8 +271,8 @@ const routes = [
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
-          permission: "member",
-          roles: "access-to-permissions",
+          roles: "member",
+          permissions: "access-to-permissions",
           title: "Perfis",
         },
       },
@@ -288,8 +283,8 @@ const routes = [
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
-          permission: "member|client",
-          roles: "player-registrations",
+          roles: "member|client",
+          permissions: "player-registrations",
           title: "Jogadores",
         },
       },
@@ -300,8 +295,8 @@ const routes = [
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
-          permission: "member|client",
-          roles: "access-to-parameter-tracking",
+          roles: "member|client",
+          permissions: "access-to-parameter-tracking",
           title: "Rastreamentos UTM",
         },
       },
@@ -313,8 +308,8 @@ const routes = [
     meta: {
       requiresAuth: true,
       title: "Financeiro",
-      permission: "member",
-      roles: "access-to-finance"
+      roles: "member",
+      permissions: "access-to-finance",
     },
     children: [
       {
@@ -325,8 +320,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Setores",
-          permission: "member",
-          roles: "access-to-finance"
+          roles: "member",
+          permissions: "access-to-finance",
         },
       },
       {
@@ -337,8 +332,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Custos",
-          permission: "member",
-          roles: "access-to-finance"
+          roles: "member",
+          permissions: "access-to-finance",
         },
       },
       {
@@ -349,8 +344,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Financeiro",
-          permission: "member",
-          roles: "access-to-finance"
+          roles: "member",
+          permissions: "access-to-finance",
         },
       },
     ],
@@ -365,7 +360,11 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
 
-  if (!authStore.user && localStorage.getItem("authToken") && !authStore.loading) {
+  if (
+    !authStore.user &&
+    localStorage.getItem("authToken") &&
+    !authStore.loading
+  ) {
     await authStore.fetchUser();
   }
 
@@ -373,17 +372,17 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: "login" });
   }
 
-  if (to.meta.requiresAuth && to.meta.roles) {
-    const hasPermission = authStore.user?.roles.some(role =>
-        role.permissions.some(permission =>
-            to.meta.roles.includes(permission.name)
-        )
+  /*if (to.meta.requiresAuth && to.meta.permissions) {
+    const hasPermission = authStore.user?.permissions.some((role) =>
+      role.permissions.some((permission) =>
+        to.meta.permissions.includes(permission.name)
+      )
     );
 
     if (!hasPermission) {
       return next({ name: "home" });
     }
-  }
+  }*/
 
   if (to.name === "root") {
     return next({ name: "home" });
@@ -391,6 +390,5 @@ router.beforeEach(async (to, from, next) => {
 
   next();
 });
-
 
 export default router;
