@@ -26,9 +26,9 @@ const props = defineProps({
     type: Function as () => (page: number) => void,
     required: true,
   },
-  per_pages:{
-    required:false
-  }
+  per_pages: {
+    required: false,
+  },
 });
 
 // Estado reativo local para "p", sincronizado com as props
@@ -40,13 +40,13 @@ const p = reactive({
 
 // Atualiza "p" sempre que as props mudarem
 watch(
-    () => props.pages,
-    (newPages) => {
-      p.current = newPages.current;
-      p.total = newPages.total;
-      p.last = newPages.last;
-    },
-    { deep: true }
+  () => props.pages,
+  (newPages) => {
+    p.current = newPages.current;
+    p.total = newPages.total;
+    p.last = newPages.last;
+  },
+  { deep: true }
 );
 
 // Função para aplicar a lógica de filtro e alterar a página
@@ -59,27 +59,27 @@ const applyFilter = (page: number) => {
 
 <template>
   <Pagination
-      class="w-full"
-      v-if="p.last > 1"
-      :total="p.total"
-      :items-per-page="per_pages?per_pages:10"
-      :sibling-count="1"
-      show-edges
-      :default-page="1"
+    class="w-full"
+    v-if="p.last > 1"
+    :total="p.total"
+    :items-per-page="per_pages ? per_pages : 10"
+    :sibling-count="1"
+    show-edges
+    :default-page="1"
   >
     <PaginationList v-slot="{ items }" class="flex items-center gap-2">
       <PaginationFirst as-child @click="applyFilter(1)" />
       <PaginationPrev as-child @click="applyFilter(p.current - 1)" />
       <template v-for="(item, index) in items" :key="index">
         <PaginationListItem
-            v-if="item.type === 'page'"
-            :value="item.value"
-            as-child
+          v-if="item.type === 'page'"
+          :value="item.value"
+          as-child
         >
           <Button
-              class="w-9 h-9 p-0"
-              :variant="item.value === p.current ? 'default' : 'outline'"
-              @click="applyFilter(item.value)"
+            class="min-w-9 min-h-9 p-2"
+            :variant="item.value === p.current ? 'default' : 'outline'"
+            @click="applyFilter(item.value)"
           >
             {{ item.value }}
           </Button>
@@ -93,5 +93,4 @@ const applyFilter = (page: number) => {
   </Pagination>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
