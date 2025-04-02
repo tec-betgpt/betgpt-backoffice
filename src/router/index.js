@@ -65,6 +65,7 @@ const routes = [
       requiresAuth: true,
       title: "Home",
       permission: "member|client",
+      roles: "access-to-dashboard"
     },
   },
   {
@@ -73,6 +74,8 @@ const routes = [
     meta: {
       requiresAuth: true,
       title: "Configurações",
+      permission: "member|client",
+
     },
     children: [
       { path: "", redirect: "/configurations/profile" },
@@ -84,6 +87,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Perfil",
+          permission: "member|client",
+
         },
       },
       {
@@ -94,6 +99,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Segurança",
+          permission: "member|client",
+
         },
       },
       {
@@ -104,6 +111,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Notificações",
+          permission: "member|client",
+
         },
       },
       {
@@ -114,6 +123,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Projetos",
+          permission: "member",
         },
       },
       {
@@ -124,6 +134,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Integrações",
+          permission: "member",
+          roles: "access-to-integrations"
         },
       },
       {
@@ -134,6 +146,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Confirmação de E-mail",
+          permission: "member|client",
         },
       },
     ],
@@ -144,8 +157,9 @@ const routes = [
     component: IA,
     meta: {
       layout: DefaultLayout,
-      requiresAuth: false,
+      requiresAuth: true,
       permission: "member",
+      roles: "access-to-ai",
       title: "Elevate IA",
     },
   },
@@ -155,6 +169,8 @@ const routes = [
     meta: {
       requiresAuth: true,
       title: "Relatórios",
+      permission: "member|client",
+      roles: "access-to-reports"
     },
     children: [
       {
@@ -166,6 +182,7 @@ const routes = [
           requiresAuth: true,
           title: "Performance",
           permission: "member|client",
+          roles: "access-to-reports"
         },
       },
       {
@@ -177,6 +194,7 @@ const routes = [
           requiresAuth: true,
           title: "Tráfego",
           permission: "member|client",
+          roles: "access-to-reports"
         },
       },
       {
@@ -188,6 +206,7 @@ const routes = [
           requiresAuth: true,
           title: "E-mails",
           permission: "member|client",
+          roles: "access-to-reports"
         },
       },
       {
@@ -199,6 +218,7 @@ const routes = [
           requiresAuth: true,
           title: "SMS",
           permission: "member|client",
+          roles: "access-to-reports"
         },
       },
     ],
@@ -209,6 +229,8 @@ const routes = [
     meta: {
       requiresAuth: true,
       title: "Gerenciamento",
+      permission: "member",
+      roles: "access-to-management"
     },
     children: [
       {
@@ -219,6 +241,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           permission: "member",
+          roles: "view-projects",
           title: "Projetos",
         },
       },
@@ -230,6 +253,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           permission: "member",
+          roles: "access-to-motivational-texts",
           title: "Textos",
         },
       },
@@ -241,6 +265,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           permission: "member",
+          roles: "view-users",
           title: "Usuários",
         },
       },
@@ -252,6 +277,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           permission: "member",
+          roles: "access-to-permissions",
           title: "Perfis",
         },
       },
@@ -263,6 +289,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           permission: "member|client",
+          roles: "player-registrations",
           title: "Jogadores",
         },
       },
@@ -274,6 +301,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           permission: "member|client",
+          roles: "access-to-parameter-tracking",
           title: "Rastreamentos UTM",
         },
       },
@@ -285,6 +313,8 @@ const routes = [
     meta: {
       requiresAuth: true,
       title: "Financeiro",
+      permission: "member",
+      roles: "access-to-finance"
     },
     children: [
       {
@@ -295,6 +325,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Setores",
+          permission: "member",
+          roles: "access-to-finance"
         },
       },
       {
@@ -305,6 +337,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Custos",
+          permission: "member",
+          roles: "access-to-finance"
         },
       },
       {
@@ -315,6 +349,8 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Financeiro",
+          permission: "member",
+          roles: "access-to-finance"
         },
       },
     ],
@@ -329,23 +365,32 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
 
-  if (
-    !authStore.user &&
-    localStorage.getItem("authToken") &&
-    !authStore.loading
-  ) {
+  if (!authStore.user && localStorage.getItem("authToken") && !authStore.loading) {
     await authStore.fetchUser();
   }
 
   if (to.meta.requiresAuth && !authStore.user) {
-    next({ name: "login" });
-  } else {
-    if (to.name === "root") {
-      next({ name: "home" });
-    } else {
-      next();
+    return next({ name: "login" });
+  }
+
+  if (to.meta.requiresAuth && to.meta.roles) {
+    const hasPermission = authStore.user?.roles.some(role =>
+        role.permissions.some(permission =>
+            to.meta.roles.includes(permission.name)
+        )
+    );
+
+    if (!hasPermission) {
+      return next({ name: "home" });
     }
   }
+
+  if (to.name === "root") {
+    return next({ name: "home" });
+  }
+
+  next();
 });
+
 
 export default router;
