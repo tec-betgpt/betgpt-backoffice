@@ -40,21 +40,26 @@
           />
         </TableHead>
       </TableRow>
+      <TableRow v-if="props.head" v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+        <TableHead v-for="header in headerGroup.headers" :key="header.id">
+          {{props.head?.[header.column.id] }}
+        </TableHead>
+      </TableRow>
     </TableHeader>
 
     <TableBody>
       <template v-if="loading">
         <TableRow
           v-for="headerGroup in table.getHeaderGroups()"
-          :key="`loading-${n}`"
+          :key="`loading-${headerGroup.index}`"
         >
-          <TableCell v-for="header in headerGroup.headers" :key="n">
+          <TableCell v-for="header in headerGroup.headers" :key="header.index">
             <Skeleton v-for="index in 5" class="h-4 w-full bg-gray-300 my-4" />
           </TableCell>
         </TableRow>
       </template>
       <TableRow v-else v-for="row in table.getRowModel().rows" :key="row.id">
-        <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
+        <TableCell v-for="cell in row.getVisibleCells()"  :key="cell.id">
           <FlexRender
             :render="cell.column.columnDef.cell"
             :props="cell.getContext()"
@@ -120,11 +125,15 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  head:{
+    type: Object as PropType<Record<string, any>>,
+    required:false
+  }
+
 });
 
 const dataTable = ref([...props.data]);
 const searchValues = ref<Record<string, string>>({});
-
 const table = ref(
   useVueTable({
     data: dataTable.value,
