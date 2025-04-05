@@ -186,7 +186,7 @@
               />
             </div>
 
-            <Input v-model="newMessage" placeholder="Digite sua mensagem" />
+            <Input v-model="newMessage" placeholder="Digite sua mensagem"   @keyup.enter="sendMessage" />
             <Button @click="sendMessage" :disabled="loading">
               <ChevronRight class="md:hidden" />
               <p class="md:block hidden">Enviar mensagem</p>
