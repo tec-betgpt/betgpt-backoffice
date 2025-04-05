@@ -25,6 +25,7 @@
             :find="applyFilter"
             :result="campaignsStats"
             :footer="true"
+            :head="totalCampaigns"
             :search-fields="[
               {
                 key: 'campaign_name',
@@ -96,6 +97,7 @@ const orderId = ref();
 const order = ref(false);
 const loading = ref(true);
 const campaigns = ref<CampaignMetrics[]>([]);
+const totalCampaigns = ref();
 const pages = ref({
   current: 1,
   total: 0,
@@ -192,6 +194,7 @@ const applyFilter = async (current = pages.value.current) => {
     });
 
     campaigns.value = response.data.data.campaigns.data;
+    totalCampaigns.value = response.data.data.campaigns.total;
     pages.value = {
       current: response.data.data.campaigns.pagination.current_page,
       total: response.data.data.campaigns.pagination.total,
