@@ -73,7 +73,7 @@ const routes = [
     meta: {
       requiresAuth: true,
       title: "Configurações",
-      permission: "member|client",
+      roles: "member|client",
     },
     children: [
       { path: "", redirect: "/configurations/profile" },
@@ -85,7 +85,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Perfil",
-          permission: "member|client",
+          roles: "member|client",
         },
       },
       {
@@ -96,7 +96,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Segurança",
-          permission: "member|client",
+          roles: "member|client",
         },
       },
       {
@@ -107,7 +107,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Notificações",
-          permission: "member|client",
+          roles: "member|client",
         },
       },
       {
@@ -118,7 +118,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Projetos",
-          permission: "member",
+          roles: "member",
         },
       },
       {
@@ -141,7 +141,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Confirmação de E-mail",
-          permission: "member|client",
+          roles: "member|client",
         },
       },
     ],
@@ -153,7 +153,7 @@ const routes = [
     meta: {
       layout: DefaultLayout,
       requiresAuth: true,
-      roles: "member",
+      roles: "member|client",
       permissions: "access-to-ai",
       title: "Elevate IA",
     },
@@ -260,7 +260,7 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           roles: "member",
-          permissions: "view-users",
+          permissions: "access-to-users",
           title: "Usuários",
         },
       },
@@ -372,8 +372,8 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: "login" });
   }
 
-  /*if (to.meta.requiresAuth && to.meta.permissions) {
-    const hasPermission = authStore.user?.permissions.some((role) =>
+  if (to.meta.requiresAuth && to.meta.permissions) {
+    const hasPermission = authStore.user?.roles.some((role) =>
       role.permissions.some((permission) =>
         to.meta.permissions.includes(permission.name)
       )
@@ -382,7 +382,7 @@ router.beforeEach(async (to, from, next) => {
     if (!hasPermission) {
       return next({ name: "home" });
     }
-  }*/
+  }
 
   if (to.name === "root") {
     return next({ name: "home" });

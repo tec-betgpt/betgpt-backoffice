@@ -95,6 +95,7 @@
   "role-member-support": "Suporte",
   "role-client": "Cliente",
   "role-client-admin": "Administrador",
+  "role-client-proprietor": "Proprietário",
   "role-client-manager": "Gerente",
   "role-client-analyst": "Analista",
   "role-client-support": "Suporte",
@@ -103,7 +104,8 @@
   "access-to-dashboard": "Acesso ao Dashboard",
   "access-to-tools": "Acesso às Ferramentas",
   "access-to-ai": "Acesso à Inteligência Artificial",
-  "access-to-management": "Acesso ao Gerenciamento",
+  "access-to-client-management": "Acesso ao Gerenciamento Elevate",
+  "access-to-member-management": "Acesso ao Gerenciamento Cliente",
   "view-projects": "Visualizar Projetos",
   "edit-project": "Editar Projeto",
   "deactivate-project": "Inativar Projeto",
@@ -135,5 +137,4 @@
   "profile_view_picture": "Visualize a foto de perfil",
   "profile_edit_picture": "Edite a foto de perfil",
   "profile_download_picture": "Baixe a foto de perfil"
-  
 }
