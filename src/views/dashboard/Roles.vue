@@ -29,7 +29,12 @@
       <SheetContent position="right" size="lg">
         <SheetHeader>
           <SheetTitle>
-            {{ isEditing ? "Editar Perfil" : "Novo Perfil" }}
+            {{
+              isEditing
+                ? "Editar " +
+                  (form.title ? form.title : $t("role-" + form.name))
+                : "Novo Perfil"
+            }}
           </SheetTitle>
           <SheetDescription>
             {{
@@ -41,7 +46,10 @@
         </SheetHeader>
         <form @submit.prevent="isEditing ? updateRole() : createRole()">
           <div class="grid gap-4 py-4">
-            <div class="grid grid-cols-4 items-center gap-4">
+            <div
+              class="grid grid-cols-4 items-center gap-4"
+              v-if="!form.scope_default"
+            >
               <Label for="title">Título</Label>
               <Input
                 id="title"
@@ -103,6 +111,9 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -123,7 +134,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDownIcon, ArrowDown, ArrowUp } from "lucide-vue-next";
+import {
+  ChevronDownIcon,
+  ArrowDown,
+  ArrowUp,
+  MoreHorizontal,
+} from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import api from "@/services/api";
@@ -310,6 +326,11 @@ const columns = [
           : i18n.global.t("role-" + row.original.name)
       ),
   }),
+  columnHelper.accessor("scope_access", {
+    header: "Acesso",
+    cell: ({ row }) =>
+      h("div", {}, i18n.global.t("role-" + row.original.scope_access)),
+  }),
   columnHelper.accessor("created_at", {
     header({ header }) {
       return createHeaderButton("Data", "created_at");
@@ -322,20 +343,41 @@ const columns = [
       ),
   }),
   columnHelper.accessor("actions", {
-    header: "Ações",
-    cell: ({ row }) => {
-      if (row.original.scope_default === 1) {
-        return h("div", {}, "-");
-      }
-
-      return h(
-        Button,
-        {
-          onClick: () => openEditModal(row.original),
-        },
-        "Editar"
-      );
+    header({ column }) {
+      return "Ações";
     },
+    cell: ({ row, table }) =>
+      /*if (row.original.scope_default === 1) {
+        return h("div", {}, "-");
+      }*/
+
+      h(DropdownMenu, {}, [
+        h(
+          DropdownMenuTrigger,
+          { asChild: true },
+          h(
+            Button,
+            { size: "icon", variant: "ghost", disabled: isProcessing.value },
+            [
+              h(MoreHorizontal, { class: "h-4 w-4" }),
+              h("span", { class: "sr-only" }, "Ações"),
+            ]
+          )
+        ),
+        h(DropdownMenuContent, { align: "end" }, [
+          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuSeparator, {}),
+          h(
+            DropdownMenuItem,
+            {
+              onClick: () => {
+                openEditModal(row.original);
+              },
+            },
+            "Editar"
+          ),
+        ]),
+      ]),
   }),
 ];
 </script>

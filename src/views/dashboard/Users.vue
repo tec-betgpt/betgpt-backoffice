@@ -340,7 +340,7 @@ watch(
   }
 );
 const globalRoles = computed(() => {
-  return roles.value.filter((role) => role.project_id === null);
+  return roles.value.filter((role) => role.scope_access === "member");
 });
 const onProfileCheckboxChange = (roleId, checked) => {
   if (checked) {
@@ -384,7 +384,10 @@ const toggleProject = (projectId: number, checked: boolean) => {
 
 const getProjectRoles = (projectId: number) => {
   return Array.isArray(roles.value)
-    ? roles.value.filter((role) => role.project_id === projectId)
+    ? roles.value.filter(
+        (role) =>
+          role.project_id === projectId || role.scope_access === "client"
+      )
     : [];
 };
 
@@ -461,7 +464,10 @@ const openEditModal = (user: any) => {
       id: project.id,
       selected: true,
       roles: user.roles
-        .filter((role) => role.project_id === project.id)
+        .filter(
+          (role) =>
+            role.project_id === project.id || role.scope_access === "client"
+        )
         .map((role) => role.name),
     }));
 
