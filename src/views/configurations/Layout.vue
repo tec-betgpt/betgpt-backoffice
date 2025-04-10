@@ -32,7 +32,7 @@ const sidebarNavItems: Item[] = [
   {
     title: "Integrações",
     route: "configurations.integrations",
-    show: activeGroupProject.type === "project",
+    show: activeGroupProject?.type === "project",
   },
 ];
 

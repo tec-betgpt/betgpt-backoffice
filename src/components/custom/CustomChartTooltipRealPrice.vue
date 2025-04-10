@@ -1,14 +1,27 @@
-<script setup lang="ts">
-import { Card, CardContent } from "@/components/ui/card";
+<script lang="ts">
+import { Card, CardContent } from '@/components/ui/card'
 
-defineProps<{
-  title?: string;
-  data: {
-    name: string;
-    color: string;
-    value: any;
-  }[];
-}>();
+export default {
+  components: {
+    Card,
+    CardContent,
+  },
+
+  methods: {
+    formatToMoney(value: number) {
+      return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+    }
+  },
+
+  props: {
+    title: String,
+    data: Array<{
+      name: string
+      color: string
+      value: any
+    }>
+  }
+}
 </script>
 
 <template>
@@ -30,13 +43,7 @@ defineProps<{
           <span>{{ item.name }}</span>
         </div>
         <span class="font-semibold ml-4">
-          R$
-          {{
-            new Intl.NumberFormat("pt-BR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(item.value)
-          }}
+          R$ {{ formatToMoney(item.value) }}
         </span>
       </div>
     </CardContent>
