@@ -427,7 +427,11 @@ const navMenu = computed(() => [
     name: "Home",
     url: { name: "home" },
     icon: Home,
-    show: authStore.user?.roles.some((role) =>
+    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+        role.permissions.some(
+            (permission) => permission.name === "access-to-dashboard"
+        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+    ).some((role) =>
       role.permissions.some(
         (permission) => permission.name === "access-to-dashboard"
       )
@@ -437,25 +441,39 @@ const navMenu = computed(() => [
     name: "Elevate IA",
     url: { name: "ia" },
     icon: Bot,
-    show: authStore.user?.roles.some((role) =>
-      role.permissions.some((permission) => permission.name === "access-to-ai")
+    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+        role.permissions.some(
+            (permission) => permission.name === "access-to-ai"
+        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+    ).some((role) =>
+      role.permissions.some(
+        (permission) => permission.name === "access-to-ai"
+      )
     ),
   },
   {
     name: "Controles",
     icon: SlidersHorizontal,
-    show: authStore.user?.roles.some((role) =>
+    type: "controls",
+    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+        role.permissions.some(
+            (permission) => permission.name === "access-to-reports"
+        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+    ).some((role) =>
       role.permissions.some(
         (permission) => permission.name === "access-to-reports"
       )
     ),
-    type: "controls",
     children: [
       {
         name: "Performance",
         url: { name: "performances" },
         icon: LineChart,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-reports"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-reports"
           )
@@ -465,7 +483,11 @@ const navMenu = computed(() => [
         name: "Tráfego",
         url: { name: "traffics" },
         icon: ChartNoAxesCombined,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-reports"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-reports"
           )
@@ -475,7 +497,11 @@ const navMenu = computed(() => [
         name: "E-mails",
         url: { name: "emails" },
         icon: MailCheck,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-reports"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-reports"
           )
@@ -485,7 +511,11 @@ const navMenu = computed(() => [
         name: "SMS Insights",
         url: { name: "sms-insights" },
         icon: Send,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-reports"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-reports"
           )
@@ -496,20 +526,26 @@ const navMenu = computed(() => [
   {
     name: "Gerenciamento",
     icon: SquareStack,
-    show: authStore.user?.roles.some((role) =>
+    type: "manage",
+    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+        role.permissions.some(
+            (permission) => permission.name === "access-to-client-management" || permission.name === "access-to-member-management"
+        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+    ).some((role) =>
       role.permissions.some(
-        (permission) =>
-          permission.name === "access-to-client-management" ||
-          permission.name === "access-to-member-management"
+        (permission) => permission.name === "access-to-client-management" || permission.name === "access-to-member-management"
       )
     ),
-    type: "manage",
     children: [
       {
         name: "Projetos",
         url: { name: "projects" },
         icon: Building2,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-project-groups"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-project-groups"
           )
@@ -519,7 +555,11 @@ const navMenu = computed(() => [
         name: "Usuários",
         url: { name: "users" },
         icon: Users2,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-users"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-users"
           )
@@ -529,7 +569,11 @@ const navMenu = computed(() => [
         name: "Perfis",
         url: { name: "roles" },
         icon: UserCog,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-permissions"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-permissions"
           )
@@ -539,7 +583,11 @@ const navMenu = computed(() => [
         name: "MyElevate Insights",
         url: { name: "texts" },
         icon: Album,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-motivational-texts"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-motivational-texts"
           )
@@ -549,7 +597,11 @@ const navMenu = computed(() => [
         name: "Jogadores",
         url: { name: "players" },
         icon: Users2,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "player-registrations"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "player-registrations"
           )
@@ -559,7 +611,11 @@ const navMenu = computed(() => [
         name: "Rastreamento UTM",
         url: { name: "utm-tracks" },
         icon: ExternalLink,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-parameter-tracking"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-parameter-tracking"
           )
@@ -570,18 +626,26 @@ const navMenu = computed(() => [
   {
     name: "Financeiro",
     icon: CircleDollarSign,
-    show: authStore.user?.roles.some((role) =>
+    type: "financial",
+    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+        role.permissions.some(
+            (permission) => permission.name === "access-to-finance"
+        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+    ).some((role) =>
       role.permissions.some(
         (permission) => permission.name === "access-to-finance"
       )
     ),
-    type: "financial",
     children: [
       {
         name: "Gerir Setores",
         url: { name: "sectors" },
         icon: Briefcase,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-finance"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-finance"
           )
@@ -591,7 +655,11 @@ const navMenu = computed(() => [
         name: "Gerir Custos",
         url: { name: "costs" },
         icon: Rows3,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-finance"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-finance"
           )
@@ -601,7 +669,11 @@ const navMenu = computed(() => [
         name: "Entradas e Saídas",
         url: { name: "registers" },
         icon: DollarSignIcon,
-        show: authStore.user?.roles.some((role) =>
+        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-finance"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
           role.permissions.some(
             (permission) => permission.name === "access-to-finance"
           )
@@ -651,6 +723,13 @@ const setActiveGroupProject = async (
   }, 2000);
 };
 
+watch(activeGroupProject,async ()=>{
+  const hasAccess = authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id)
+      .some((role) => role.permissions.some((permission) => route.meta.permissions ? route.meta.permissions.includes(permission.name) : true))
+  if (!hasAccess) {
+   await router.push({ name: "home" });
+  }
+}, { immediate: true })
 // Sidebar state
 const sidebarExpanded = ref(true);
 const stateResponsive = ref(false);
