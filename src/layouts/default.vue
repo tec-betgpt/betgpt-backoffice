@@ -390,6 +390,10 @@ interface BreadcrumbItem {
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const workspaceStore = useWorkspaceStore();
+const activeGroupProject = computed(
+    () => workspaceStore.activeGroupProject || null
+);
 // Breadcrumbs
 const breadcrumbs = computed(() => {
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -700,10 +704,7 @@ watch(
 );
 const collapsed = ref("");
 // Times (Projects)
-const workspaceStore = useWorkspaceStore();
-const activeGroupProject = computed(
-  () => workspaceStore.activeGroupProject || null
-);
+
 
 import { useConfigStore } from "@/stores/config";
 import { Separator } from "@/components/ui/separator";
