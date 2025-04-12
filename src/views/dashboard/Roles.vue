@@ -46,16 +46,14 @@
         </SheetHeader>
         <form @submit.prevent="isEditing ? updateRole() : createRole()">
           <div class="grid gap-4 py-4">
-            <div
-              class="grid grid-cols-4 items-center gap-4"
-              v-if="!form.scope_default"
-            >
+            <div class="grid grid-cols-4 items-center gap-4">
               <Label for="title">Título</Label>
               <Input
                 id="title"
                 v-model="form.title"
                 placeholder="Digite o título do perfil"
                 class="col-span-3"
+                :disabled="form.scope_default == 1"
               />
             </div>
             <div class="grid grid-cols-4 items-center gap-4">
@@ -70,6 +68,7 @@
                     :checked="form.permissions.includes(permission.id)"
                     @update:checked="togglePermission(permission.id, $event)"
                     :id="'permission-' + permission.id"
+                    :disabled="form.scope_default == 1"
                   />
                   <Label
                     class="ml-2 font-normal"
@@ -81,7 +80,10 @@
               </div>
             </div>
             <SheetFooter>
-              <Button type="submit" :disabled="isProcessing">
+              <Button
+                type="submit"
+                :disabled="isProcessing || form.scope_default == 1"
+              >
                 <LucideSpinner
                   v-if="isProcessing"
                   class="mr-2 h-4 w-4 animate-spin"
@@ -190,7 +192,7 @@ const fetchRolesAndPermissions = async (current = pages.value.current) => {
   try {
     isLoading.value = true;
     const [rolesResponse, permissionsResponse] = await Promise.all([
-      api.get(`/roles?page=${current}`),
+      api.get(`/roles?page=${current}&filter_id=${form.value.filter_id}`),
       api.get("/permissions"),
     ]);
     roles.value = rolesResponse.data.data.roles;
