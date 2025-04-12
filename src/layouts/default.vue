@@ -725,10 +725,12 @@ const setActiveGroupProject = async (
 };
 
 watch(activeGroupProject,async ()=>{
-  const hasAccess = authStore.user?.access_type === "member" || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id)
-      .some((role) => role.permissions.some((permission) => route.meta.permissions ? route.meta.permissions.includes(permission.name) : true))
-  if (!hasAccess) {
-   await router.push({ name: "home" });
+  if (activeGroupProject.value) {
+    const hasAccess = authStore.user?.access_type === "member" || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id)
+        .some((role) => role.permissions.some((permission) => route.meta.permissions ? route.meta.permissions.includes(permission.name) : true))
+    if (!hasAccess) {
+      await router.push({name: "home"});
+    }
   }
 }, { immediate: true })
 // Sidebar state
