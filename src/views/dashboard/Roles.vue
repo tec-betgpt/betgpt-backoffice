@@ -214,7 +214,6 @@ const fetchRolesAndPermissions = async (current = pages.value.current) => {
 };
 
 const openEditModal = (role) => {
-  console.log(role);
   form.value = {
     ...role,
     permissions: role.permissions.map((p) => p.id),
