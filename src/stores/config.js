@@ -16,7 +16,10 @@ export const useConfigStore = defineStore("config", {
         };
       } catch (error) {
         console.error("Erro ao buscar configurações:", error);
-        this.message = null;
+        this.message = {
+          message: "",
+          signature: "",
+        };
       }
     },
 

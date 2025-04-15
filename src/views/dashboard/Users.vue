@@ -254,6 +254,7 @@ import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 const { toast } = useToast();
 const processingAction = ref(null);
@@ -275,12 +276,20 @@ const form = ref({
   admin_roles: [],
   project_ids: [],
   projects: [],
+  filter_id: null,
 });
 const pages = ref({
   current: 1,
   last: 0,
   total: 0,
 });
+const workspaceStore = useWorkspaceStore();
+const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+
+if (activeGroupProjectId) {
+  form.value.filter_id = activeGroupProjectId;
+}
+
 const accessFilter = ref<Array<String>>(["client", "member"]);
 const statusFilter = ref<Array<string>>(["active"]);
 const setStatus = (status: any) => {
@@ -402,6 +411,7 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
     const [userResponse, projectResponse] = await Promise.all([
       Users.getUsers({
         page: current,
+        filter_id: form.value.filter_id,
         ...searchParams,
         status: statusFilter.value,
         orderBy: order.value,
