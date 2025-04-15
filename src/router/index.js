@@ -300,6 +300,18 @@ const routes = [
           title: "Rastreamentos UTM",
         },
       },
+      {
+        path: "integrations",
+        name: "integrations",
+        component: Integrations,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: "access-to-integrations",
+          title: "Integrações",
+        },
+      }
     ],
   },
   {

@@ -29,11 +29,7 @@ const sidebarNavItems: Item[] = [
     route: "configurations.projects",
     show: true,
   },
-  {
-    title: "Integrações",
-    route: "configurations.integrations",
-    show: activeGroupProject.type === "project",
-  },
+
 ];
 
 const router = useRouter();
