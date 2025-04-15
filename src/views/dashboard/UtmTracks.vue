@@ -102,30 +102,16 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  MoreHorizontal,
   ChevronDownIcon,
   ArrowDown,
   ArrowUp,
 } from "lucide-vue-next";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import api from "@/services/api";
+import api from "@/services/base";
+import UtmTracks from "@/services/utmTracks";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -136,15 +122,10 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 
 const { toast } = useToast();
-const processingAction = ref(null);
 const utmTracks = ref<UtmTrack[]>([]);
 const chartRegistersUtmSource = ref();
 const chartDepositsUtmSource = ref();
 const isLoading = ref(true);
-const isProcessing = ref(false);
-const showModal = ref(false);
-const isEditing = ref(false);
-const processingStatusId = ref(null);
 const pages = ref({
   current: 1,
   last: 0,
@@ -170,34 +151,31 @@ const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const searchValues = ref<Record<string, string>>({});
 
 const fetchUtmTracks = async (current = pages.value.current) => {
-  try {
-    isLoading.value = true;
+  isLoading.value = true;
 
+  try {
     const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
       acc[key] = searchValues.value[key];
       return acc;
     }, {} as Record<string, string>);
 
     const [utmTracksResponse] = await Promise.all([
-      api.get(`/utm-tracks?page=${current}`, {
-        params: {
-          ...searchParams,
-          type: typeFilter.value,
-          orderBy: order.value ? order.value : "id",
-          orderDirection: direction.value ? "asc" : "desc",
-          filter_id: activeGroupProjectId,
-        },
+      UtmTracks.index({
+        page: current,
+        ...searchParams,
+        type: typeFilter.value,
+        orderBy: order.value ? order.value : "id",
+        orderDirection: direction.value ? "asc" : "desc",
+        filter_id: activeGroupProjectId,
       }),
     ]);
-    utmTracks.value = utmTracksResponse.data.data.utm_tracks;
-    chartRegistersUtmSource.value =
-      utmTracksResponse.data.data.registers_utm_tracks;
-    chartDepositsUtmSource.value =
-      utmTracksResponse.data.data.deposits_utm_tracks;
+    utmTracks.value = utmTracksResponse.data.utm_tracks;
+    chartRegistersUtmSource.value = utmTracksResponse.data.registers_utm_tracks;
+    chartDepositsUtmSource.value = utmTracksResponse.data.deposits_utm_tracks;
     pages.value = {
-      current: utmTracksResponse.data.data.pagination.current_page,
-      last: utmTracksResponse.data.data.pagination.last_page,
-      total: utmTracksResponse.data.data.pagination.total,
+      current: utmTracksResponse.data.pagination.current_page,
+      last: utmTracksResponse.data.pagination.last_page,
+      total: utmTracksResponse.data.pagination.total,
     };
   } catch (error) {
     toast({
@@ -205,9 +183,9 @@ const fetchUtmTracks = async (current = pages.value.current) => {
       description: "Erro ao carregar os dados.",
       variant: "destructive",
     });
-  } finally {
-    isLoading.value = false;
   }
+
+  isLoading.value = false;
 };
 
 onMounted(async () => {

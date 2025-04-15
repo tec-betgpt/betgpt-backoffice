@@ -24,62 +24,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h, watch, computed } from "vue";
+import { ref, onMounted, h } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  MoreHorizontal,
-  ChevronDownIcon,
-  ArrowDown,
-  ArrowUp,
-} from "lucide-vue-next";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import api from "@/services/api";
+import { ArrowDown, ArrowUp } from "lucide-vue-next";
+import api from "@/services/base";
+import Players from "@/services/players";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
-import moment from "moment";
 
 const { toast } = useToast();
-const processingAction = ref(null);
 const players = ref<Player[]>([]);
 const isLoading = ref(true);
-const isProcessing = ref(false);
-const showModal = ref(false);
-const isEditing = ref(false);
-const processingStatusId = ref(null);
 const pages = ref({
   current: 1,
   last: 0,
@@ -90,39 +49,40 @@ const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
 const fetchPlayers = async (current = pages.value.current) => {
-  try {
-    isLoading.value = true;
+  isLoading.value = true;
 
+  try {
     const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
       acc[key] = searchValues.value[key];
       return acc;
     }, {} as Record<string, string>);
 
     const [playerResponse] = await Promise.all([
-      api.get(`/players?page=${current}`, {
-        params: {
-          ...searchParams,
-          orderBy: order.value ? order.value : "id",
-          orderDirection: direction.value ? "asc" : "desc",
-          filter_id: activeGroupProjectId,
-        },
+      Players.index({
+        page: current,
+        ...searchParams,
+        orderBy: order.value ? order.value : "id",
+        orderDirection: direction.value ? "asc" : "desc",
+        filter_id: activeGroupProjectId,
       }),
     ]);
-    players.value = playerResponse.data.data;
+
+    players.value = playerResponse.data;
     pages.value = {
-      current: playerResponse.data.pagination.current_page,
-      last: playerResponse.data.pagination.last_page,
-      total: playerResponse.data.pagination.total_records,
+      current: playerResponse.pagination.current_page,
+      last: playerResponse.pagination.last_page,
+      total: playerResponse.pagination.total_records,
     };
   } catch (error) {
+    console.error(error)
     toast({
       title: "Erro",
       description: "Erro ao carregar os dados.",
       variant: "destructive",
     });
-  } finally {
-    isLoading.value = false;
   }
+
+  isLoading.value = false;
 };
 
 onMounted(fetchPlayers);

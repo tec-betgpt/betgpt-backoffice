@@ -4,15 +4,15 @@ import i18n from './i18n'
 import App from './App.vue'
 import router from './router'
 import VueTippy from 'vue-tippy'
-import { toCurrency } from './filters/currencyFilter'
-import { toK } from './filters/numberFilter'
+import toCurrency from '@/filters/currencyFilter'
+import toK from '@/filters/numberFilter'
 import 'tippy.js/dist/tippy.css'
 import { useAuthStore } from '@/stores/auth'
 import { useConfigStore } from '@/stores/config'
 import moment from 'moment'
 import 'moment/dist/locale/pt-br'
 import './assets/styles/main.css'
-import globalComponents from '@/components.js'
+import globalComponents from '@/boot/components'
 
 const app = createApp(App)
 const pinia = createPinia()

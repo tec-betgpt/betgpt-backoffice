@@ -305,48 +305,6 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
-  useSidebar,
-  SidebarProvider,
-  Sidebar,
-} from "@/components/ui/sidebar";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
 import {
   Home,
   LineChart,
@@ -369,19 +327,15 @@ import {
   Briefcase,
   DollarSignIcon,
   UserCog,
-} from "lucide-vue-next";
-import { ref, computed, onMounted, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/auth";
-import { useWorkspaceStore } from "@/stores/workspace";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { useColorMode } from "@vueuse/core";
-import CustomLoading from "@/components/custom/CustomLoading.vue";
-import { resizeDirective as vResize } from "v-resize-observer";
+} from 'lucide-vue-next'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useWorkspaceStore } from '@/stores/workspace'
+
+import { useColorMode } from '@vueuse/core'
+import CustomLoading from '@/components/custom/CustomLoading.vue'
+
 interface BreadcrumbItem {
   name: string;
   title: string;
@@ -390,15 +344,14 @@ interface BreadcrumbItem {
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-// Breadcrumbs
 const breadcrumbs = computed(() => {
   const breadcrumbItems: BreadcrumbItem[] = [
     {
       name: "Elevate",
       title: "Elevate",
       path: "/home",
-    },
-  ];
+    }
+  ]
 
   route.matched.forEach((routeRecord, index) => {
     const name = routeRecord.name as string;

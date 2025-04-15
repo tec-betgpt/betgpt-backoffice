@@ -307,31 +307,19 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import api from "@/services/api";
+import api from "@/services/base";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { LineChart } from "@/components/ui/chart-line";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast/use-toast";
 import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
 import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
-
+import Utils from '@/services/utils'
 import { useWorkspaceStore } from "@/stores/workspace";
-const workspaceStore = useWorkspaceStore();
 
+const workspaceStore = useWorkspaceStore();
 const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
@@ -353,48 +341,46 @@ const depositConversionRatePeriod = ref([]);
 
 const applyFilter = async () => {
   loading.value = true;
+
   if (!workspaceStore.activeGroupProject?.id) {
     toast({
       title: "Erro",
       description: "Selecione um grupo ou projeto antes de filtrar.",
       variant: "destructive",
     });
+
+    loading.value = false;
     return;
   }
 
   try {
-    const response = await api.get("/utils/analytics", {
-      params: {
-        start_date: selectedRange.value.start?.toString(),
-        end_date: selectedRange.value.end?.toString(),
-        filter_id: workspaceStore.activeGroupProject.id,
-      },
-    });
+    const { data } = await Utils.analytics({
+      start_date: selectedRange.value.start?.toString(),
+      end_date: selectedRange.value.end?.toString(),
+      filter_id: workspaceStore.activeGroupProject.id,
+    })
 
-    depositsPeriod.value = response.data.data.deposits_period;
-    usersPeriod.value = response.data.data.users_period;
-    percentNetDepositsPeriod.value =
-      response.data.data.percent_net_deposits_period;
-    netDepositsPeriod.value = response.data.data.net_deposits_period;
-    activeUsersPeriod.value = response.data.data.active_users_period;
-    percentFtdDayPeriod.value = response.data.data.percent_ftd_day_period;
-    valueNetDepositsPeriod.value = response.data.data.value_net_deposits_period;
-    valueDepositsPeriod.value = response.data.data.value_deposits_period;
-    valueWithdrawsPeriod.value = response.data.data.value_withdraws_period;
+    depositsPeriod.value = data.deposits_period;
+    usersPeriod.value = data.users_period;
+    percentNetDepositsPeriod.value = data.percent_net_deposits_period;
+    netDepositsPeriod.value = data.net_deposits_period;
+    activeUsersPeriod.value = data.active_users_period;
+    percentFtdDayPeriod.value = data.percent_ftd_day_period;
+    valueNetDepositsPeriod.value = data.value_net_deposits_period;
+    valueDepositsPeriod.value = data.value_deposits_period;
+    valueWithdrawsPeriod.value = data.value_withdraws_period;
 
-    registrationDepositRatePeriod.value =
-      response.data.data.registration_deposit_rate_period;
-    depositConversionRatePeriod.value =
-      response.data.data.deposit_conversion_rate_period;
+    registrationDepositRatePeriod.value = data.registration_deposit_rate_period;
+    depositConversionRatePeriod.value = data.deposit_conversion_rate_period;
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
       description: "Não foi possível aplicar o filtro selecionado.",
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
 
 onMounted(async () => {

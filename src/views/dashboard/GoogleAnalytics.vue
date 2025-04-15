@@ -378,30 +378,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import api from "@/services/api";
-import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { LineChart } from "@/components/ui/chart-line";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import Utils from '@/services/utils'
+import { getLocalTimeZone, today } from "@internationalized/date";
 import moment from "moment";
 import "moment/dist/locale/pt-br";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -409,17 +387,15 @@ import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
-
 import { useWorkspaceStore } from "@/stores/workspace";
-const workspaceStore = useWorkspaceStore();
 
+const workspaceStore = useWorkspaceStore();
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
 const { toast } = useToast();
 
 const loading = ref(true);
-const projects = ref(null);
 const usersPeriod = ref([]);
 const totalUsersPeriod = ref([]);
 const returningUsersPeriod = ref([]);
@@ -500,46 +476,45 @@ const groupSessionsStats = computed(() => {
 
 const applyFilter = async () => {
   loading.value = true;
+
   if (!workspaceStore.activeGroupProject?.id) {
     toast({
       title: "Erro",
       description: "Selecione um grupo ou projeto antes de filtrar.",
       variant: "destructive",
     });
+
+    loading.value = false;
     return;
   }
 
   try {
-    const response = await api.get("/utils/google-analytics", {
-      params: {
-        start_date: selectedRange.value.start?.toString(),
-        end_date: selectedRange.value.end?.toString(),
-        filter_id: workspaceStore.activeGroupProject.id,
-      },
-    });
+    const data = await Utils.getGoogleAnalytics({
+      start_date: selectedRange.value.start?.toString(),
+      end_date: selectedRange.value.end?.toString(),
+      filter_id: workspaceStore.activeGroupProject.id,
+    })
 
-    usersPeriod.value = response.data.data.users_period;
-    totalUsersPeriod.value = response.data.data.total_users_period;
-    returningUsersPeriod.value = response.data.data.returning_users_period;
-    firstTimePurchasersPeriod.value =
-      response.data.data.first_time_purchasers_period;
-    payingActivePeriod.value = response.data.data.paying_active_period;
-    engagementRatePeriod.value = response.data.data.engagement_rate_period;
-    totalRevenuePeriod.value = response.data.data.total_revenue;
-    engagementDurationSessionPeriod.value =
-      response.data.data.engagement_duration_per_sessions;
-    arppuPeriod.value = response.data.data.arppu;
-    arpuPeriod.value = response.data.data.arpu;
-    groupSessions.value = response.data.data.group_sessions;
+    usersPeriod.value = data.data.users_period;
+    totalUsersPeriod.value = data.data.total_users_period;
+    returningUsersPeriod.value = data.data.returning_users_period;
+    firstTimePurchasersPeriod.value = data.data.first_time_purchasers_period;
+    payingActivePeriod.value = data.data.paying_active_period;
+    engagementRatePeriod.value = data.data.engagement_rate_period;
+    totalRevenuePeriod.value = data.data.total_revenue;
+    engagementDurationSessionPeriod.value = data.data.engagement_duration_per_sessions;
+    arppuPeriod.value = data.data.arppu;
+    arpuPeriod.value = data.data.arpu;
+    groupSessions.value = data.data.group_sessions;
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
       description: "Não foi possível aplicar o filtro selecionado.",
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
 
 const formatDuration = (averageEngagementDuration) => {

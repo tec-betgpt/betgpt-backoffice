@@ -19,9 +19,7 @@ function showDialog(options) {
 }
 
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response && error.response.status === 500) {
       showDialog({

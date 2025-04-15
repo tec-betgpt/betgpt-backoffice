@@ -79,8 +79,7 @@
 
 <script setup lang="ts">
 import { h, onMounted, ref } from "vue";
-import Form from "vform";
-import api from "@/services/api";
+import Utils from '@/services/utils'
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -89,7 +88,6 @@ import { ArrowDown, ArrowUp, MoreHorizontal, X } from "lucide-vue-next";
 
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -111,21 +109,16 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import {
-  createTableColumns,
-  TableAction,
-} from "@/components/custom/DataTableFunctions";
 import { CaretSortIcon } from "@radix-icons/vue";
 
 const { toast } = useToast();
-Form.axios = api;
+
 const valuesTable = ref([]);
-const form = ref(
-  new Form({
-    message: "",
-    signature: "",
-  })
-);
+const form = ref({
+  message: "",
+  signature: "",
+})
+
 const pages = ref({
   current: 1,
   total: 0,
@@ -141,44 +134,42 @@ const order = ref();
 const direction = ref(false);
 
 async function fetchMessages(pageId: number = pages.value.current) {
-  try {
-    isLoading.value = true;
+  isLoading.value = true;
 
+  try {
     const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
       acc[key] = searchValues.value[key];
       return acc;
     }, {} as Record<string, string>);
 
-    const response = await form.value.get(`/utils/insights?page=${pageId}`, {
-      params: {
-        ...searchParams,
-        orderBy: order.value,
-        orderDirection: direction.value ? "asc" : "desc",
-      },
-    });
-    pages.value.current = response.data.data.current_page;
-    pages.value.total = response.data.data.total;
-    pages.value.last = response.data.data.last_page;
-    valuesTable.value = response.data.data.data;
+    const data = await Utils.getInsights({
+      page: pageId,
+      ...searchParams,
+      orderBy: order.value,
+      orderDirection: direction.value ? "asc" : "desc",
+    })
+
+    pages.value.current = data.data.current_page;
+    pages.value.total = data.data.total;
+    pages.value.last = data.data.last_page;
+    valuesTable.value = data.data.data;
   } catch (error) {
     console.error("Erro ao buscar mensagens:", error);
-  } finally {
-    isLoading.value = false;
   }
-}
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+
+  isLoading.value = false;
 }
 
 async function submit() {
-  try {
-    loading.value = true;
-    const response = await form.value.post("/utils/insights");
+  loading.value = true;
 
-    form.value.reset();
+  try {
+    const data = await Utils.storeInsights(form.value)
+
+    resetForm();
     toast({
       title: i18n.global.t("success"),
-      description: i18n.global.t(response.data.message),
+      description: i18n.global.t(data.message),
       duration: 3000,
     });
     await fetchMessages();
@@ -190,10 +181,10 @@ async function submit() {
       duration: 3000,
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
-    showModal.value = false;
   }
+
+  loading.value = false;
+  showModal.value = false;
 }
 
 const searchValues = ref<Record<string, string>>({});
@@ -202,13 +193,15 @@ const setSearch = (values: Record<string, string>) => {
 };
 
 async function remove(id: number) {
+  loadingRemove.value = true;
+
   try {
-    loadingRemove.value = true;
-    const response = await form.value.delete(`/utils/insights/${id}`);
+    const data = await Utils.destroyInsights(id)
+
     await fetchMessages();
     toast({
       title: i18n.global.t("success"),
-      description: i18n.global.t(response.data.message),
+      description: i18n.global.t(data.message),
       duration: 3000,
     });
   } catch (error) {
@@ -219,22 +212,23 @@ async function remove(id: number) {
       variant: "destructive",
     });
     console.error("Erro ao remover mensagem:", error);
-  } finally {
-    loadingRemove.value = false;
   }
+
+  loadingRemove.value = false;
 }
 
 async function edit(id) {
-  try {
-    loading.value = true;
-    const response = await form.value.put(`/utils/insights/${id}`);
+  loading.value = true;
 
-    form.value.reset();
+  try {
+    const data = await Utils.updateInsights(id, form.value)
+
+    resetForm()
     await fetchMessages();
     showModal.value = false;
     toast({
       title: i18n.global.t("success"),
-      description: i18n.global.t(response.data.message),
+      description: i18n.global.t(data.message),
       duration: 3000,
     });
   } catch (error) {
@@ -245,10 +239,15 @@ async function edit(id) {
       duration: 3000,
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
-    showModal.value = false;
   }
+
+  loading.value = false;
+  showModal.value = false;
+}
+
+const resetForm = () => {
+  form.value.message = ""
+  form.value.signature = ""
 }
 
 function openModal(item) {
@@ -266,11 +265,13 @@ function openModal(item) {
 onMounted(() => {
   fetchMessages();
 });
+
 type TableItem = {
   id: string;
   message: string;
   signature: string;
 };
+
 function createHeaderButton(label: string, columnKey: string) {
   return h(
     Button,

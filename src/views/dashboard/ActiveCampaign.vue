@@ -51,28 +51,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, h, watch } from "vue";
-import api from "@/services/api";
+import Utils from '@/services/utils'
 import { getLocalTimeZone, today } from "@internationalized/date";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import moment from "moment";
 import "moment/dist/locale/pt-br";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -167,6 +148,7 @@ const setSearch = (values: Record<string, string>) => {
 
 const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
+
   if (!workspaceStore.activeGroupProject?.id) {
     toast({
       title: "Erro",
@@ -182,23 +164,22 @@ const applyFilter = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    const response = await api.get(`/utils/active-campaign?page=${current}`, {
-      params: {
-        ...searchParams,
-        start_date: selectedRange.value.start?.toString(),
-        end_date: selectedRange.value.end?.toString(),
-        filter_id: workspaceStore.activeGroupProject.id,
-        order_by: orderId.value,
-        type_order: order.value ? "asc" : "desc",
-      },
-    });
+    const { data } = await Utils.activeCampaign({
+      page: current,
+      ...searchParams,
+      start_date: selectedRange.value.start?.toString(),
+      end_date: selectedRange.value.end?.toString(),
+      filter_id: workspaceStore.activeGroupProject.id,
+      order_by: orderId.value,
+      type_order: order.value ? "asc" : "desc",
+    })
 
-    campaigns.value = response.data.data.campaigns.data;
-    totalCampaigns.value = response.data.data.campaigns.total;
+    campaigns.value = data.campaigns.data;
+    totalCampaigns.value = data.campaigns.total;
     pages.value = {
-      current: response.data.data.campaigns.pagination.current_page,
-      total: response.data.data.campaigns.pagination.total,
-      last: response.data.data.campaigns.pagination.last_page,
+      current: data.campaigns.pagination.current_page,
+      total: data.campaigns.pagination.total,
+      last: data.campaigns.pagination.last_page,
     };
   } catch (error) {
     toast({
@@ -206,9 +187,9 @@ const applyFilter = async (current = pages.value.current) => {
       description: "Não foi possível aplicar o filtro selecionado.",
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
 
 const columnHelper = createColumnHelper<CampaignMetrics>();

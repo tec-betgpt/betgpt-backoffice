@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import api from "@/services/api";
+import api from "@/services/base.js";
 
 export const useWorkspaceStore = defineStore("workspace", {
   state: () => ({

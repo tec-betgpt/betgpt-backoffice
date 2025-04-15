@@ -41,10 +41,7 @@
             </p>
           </div>
           <div :class="cn('grid gap-6')">
-            <form
-              @submit.prevent="recover"
-              @keydown="formStep1.onKeydown($event)"
-            >
+            <form @submit.prevent="recover">
               <div class="grid gap-2">
                 <div class="grid gap-1 mb-2">
                   <Label class="sr-only" for="email"> {{ $t("email") }} </Label>
@@ -53,15 +50,8 @@
                     placeholder="email@betgpt.com.br"
                     type="email"
                     v-model="formStep1.key"
-                    :class="{ 'is-invalid': formStep1.errors.has('key') }"
                     :disabled="loading"
                   />
-                  <p
-                    v-if="formStep1.errors.get('key')"
-                    class="text-sm font-medium text-destructive"
-                  >
-                    {{ formStep1.errors.get("key") }}
-                  </p>
                 </div>
                 <Button :disabled="loading" type="submit">
                   <LucideSpinner
@@ -132,15 +122,8 @@
                     placeholder="Nova Senha"
                     type="password"
                     v-model="formStep3.password"
-                    :class="{ 'is-invalid': formStep3.errors.has('password') }"
                     :disabled="loading"
                   />
-                  <p
-                    v-if="formStep3.errors.get('password')"
-                    class="text-sm font-medium text-destructive"
-                  >
-                    {{ formStep3.errors.get("password") }}
-                  </p>
                 </div>
                 <div class="grid gap-1 mb-2">
                   <Label class="sr-only" for="password_confirmation">
@@ -151,19 +134,8 @@
                     placeholder="Confirmação de senha"
                     type="password"
                     v-model="formStep3.password_confirmation"
-                    :class="{
-                      'is-invalid': formStep3.errors.has(
-                        'password_confirmation'
-                      ),
-                    }"
                     :disabled="loading"
                   />
-                  <p
-                    v-if="formStep3.errors.get('password_confirmation')"
-                    class="text-sm font-medium text-destructive"
-                  >
-                    {{ formStep3.errors.get("password_confirmation") }}
-                  </p>
                 </div>
                 <Button :disabled="loading" type="submit">
                   <LucideSpinner
@@ -185,17 +157,17 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import api from "@/services/api";
+import api from "@/services/base";
+import Auth from '@/services/auth'
+import Recover from '@/services/recover'
+import Tokens from '@/services/tokens'
+import { buttonVariants } from "@/components/ui/button";
 import Swal from "sweetalert2";
 import Form from "vform";
 Form.axios = api;
 
 import { cn } from "@/lib/utils";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import { buttonVariants, Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
 const router = useRouter();
 const authStore = useAuthStore();
 
@@ -203,22 +175,18 @@ const step = ref(1);
 const loading = ref(false);
 const token = ref("");
 
-const formStep1 = ref(
-  new Form({
-    key: "",
-    action: "password_recovery",
-    type: "email",
-  })
-);
+const formStep1 = ref({
+  key: "",
+  action: "password_recovery",
+  type: "email",
+});
 
-const formStep3 = ref(
-  new Form({
-    email: "",
-    password: "",
-    password_confirmation: "",
-    token: "",
-  })
-);
+const formStep3 = ref({
+  email: "",
+  password: "",
+  password_confirmation: "",
+  token: "",
+})
 
 const setStep = (value) => {
   step.value = value;
@@ -235,11 +203,12 @@ const nextStep = async () => {
   }
 
   loading.value = true;
+
   try {
-    await api.post("/token/check", {
+    await Tokens.check({
       key: formStep1.value.key,
       token: token.value,
-    });
+    })
 
     setStep(3);
   } catch (error) {
@@ -256,7 +225,11 @@ const nextStep = async () => {
 const recover = async () => {
   loading.value = true;
   try {
-    await formStep1.value.post("/token/send");
+    await Tokens.send({
+      key: formStep1.value.key,
+      action: formStep1.value.action,
+      type: formStep1.value.type,
+    })
     setStep(2);
   } catch (error) {
     console.log(error);
@@ -279,21 +252,18 @@ const goBack = () => {
 const confirmNewPassword = async () => {
   loading.value = true;
   try {
-    formStep3.value.email = formStep1.value.key;
-    formStep3.value.token = token.value;
-    await formStep3.value.post("/recover/finish");
+    await Recover.finish({
+      email: formStep1.value.key,
+      token: token.value,
+    })
 
-    const response = await api.post(
-      "/auth/login",
-      {
-        email: formStep1.value.key,
-        password: formStep3.value.password,
-      },
-      { withCredentials: true }
-    );
+    const { data } = await Auth.login({
+      email: formStep1.value.key,
+      password: formStep3.value.password,
+    })
 
-    const tokenAuth = response.data.data.token;
-    const userAuth = response.data.data.user;
+    const tokenAuth = data.token;
+    const userAuth = data.user;
 
     if (tokenAuth && userAuth) {
       authStore.setUserData(userAuth, tokenAuth);

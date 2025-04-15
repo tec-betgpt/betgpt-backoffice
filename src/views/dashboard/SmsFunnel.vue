@@ -313,8 +313,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, h } from "vue";
-import api from "@/services/api";
-import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
+import api from "@/services/base";
+import Utils from "@/services/utils";
+import { getLocalTimeZone, today } from "@internationalized/date";
 import {
   Card,
   CardContent,
@@ -326,18 +327,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { LineChart } from "@/components/ui/chart-line";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -395,6 +386,7 @@ const setSearch = (values: Record<string, string>) => {
 
 const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
+
   if (!workspaceStore.activeGroupProject?.id) {
     toast({
       title: "Erro",
@@ -410,26 +402,25 @@ const applyFilter = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    const response = await api.get(`/utils/sms-funnel?page=${current}`, {
-      params: {
-        ...searchParams,
-        start_date: selectedRange.value.start?.toString(),
-        end_date: selectedRange.value.end?.toString(),
-        filter_id: workspaceStore.activeGroupProject.id,
-        order_by: orderId.value,
-        type_order: order.value ? "asc" : "desc",
-      },
-    });
+    const { data } = await Utils.getSmsfunnel({
+      page: current,
+      ...searchParams,
+      start_date: selectedRange.value.start?.toString(),
+      end_date: selectedRange.value.end?.toString(),
+      filter_id: workspaceStore.activeGroupProject.id,
+      order_by: orderId.value,
+      type_order: order.value ? "asc" : "desc",
+    })
 
-    last.value = response.data.data.last;
-    daily.value = response.data.data.daily;
-    recharges.value = response.data.data.recharges;
-    campaigns.value = response.data.data.campaigns.data;
+    last.value = data.last;
+    daily.value = data.daily;
+    recharges.value = data.recharges;
+    campaigns.value = data.campaigns.data;
 
     pages.value = {
-      current: response.data.data.campaigns.pagination.current_page,
-      total: response.data.data.campaigns.pagination.total,
-      last: response.data.data.campaigns.pagination.last_page,
+      current: data.campaigns.pagination.current_page,
+      total: data.campaigns.pagination.total,
+      last: data.campaigns.pagination.last_page,
     };
   } catch (error) {
     toast({
@@ -437,9 +428,9 @@ const applyFilter = async (current = pages.value.current) => {
       description: "Não foi possível aplicar o filtro selecionado.",
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
 
 const columnHelper = createColumnHelper<CampaignMetrics>();

@@ -146,38 +146,14 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { h, onMounted, ref, watch } from "vue";
-import api from "@/services/api";
+import Financials from '@/services/financials'
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { toast } from "@/components/ui/toast";
 import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -187,7 +163,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import moment from "moment/moment";
-import { toCurrency } from "@/filters/currencyFilter";
+import toCurrency from "@/filters/currencyFilter";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -385,9 +361,10 @@ const handleEdit = (item, type) => {
 };
 
 const deleteFinancial = async (id: number) => {
+  loading.value = true;
+
   try {
-    loading.value = true;
-    await api.delete(`/financial/financial-transactions/${id}`);
+    await Financials.destroyFinancialTransactions(id)
     toast({
       title: "Transação financeira deletada com sucesso!",
       description: `A transação financeira com ID ${id} foi removida.`,
@@ -402,29 +379,27 @@ const deleteFinancial = async (id: number) => {
         "Não foi possível remover a transação financeira. Tente novamente.",
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
 
 const submitFinancial = async () => {
+  loadingSub.value = true;
+
   try {
-    loadingSub.value = true;
     if (isEditing.value) {
-      await api.put(
-        `/financial/financial-transactions/${financialForm.value.id}`,
-        financialForm.value
-      );
+      await Financials.updateFinancialTransactions(financialForm.value.id, financialForm.value)
     } else {
-      await api.post("/financial/financial-transactions", financialForm.value);
+      await Financials.storeFinancialTransactions(financialForm.value)
     }
     showModal.value = false;
   } catch (error) {
     console.error("Erro ao salvar transação financeira:", error);
-  } finally {
-    loadingSub.value = false;
-    await fetchFinancials();
   }
+
+  await fetchFinancials();
+  loadingSub.value = false;
 };
 
 const loadingSub = ref(false);
@@ -436,21 +411,21 @@ const loadingCosts = ref(true);
 const loadingFinancials = ref(true);
 const loading = ref(true);
 const fetchCosts = async () => {
+  loadingCosts.value = true;
+
   try {
-    loadingCosts.value = true;
-    const response = await api.get("/financial/cost-centers", {
-      params: { filter_id: activeGroupProjectId },
-    });
-    costs.value = response.data.data.data.map((cost) => ({
+    const { data } = await Financials.costCenters({ filter_id: activeGroupProjectId })
+
+    costs.value = data.data.map((cost) => ({
       id: cost.id,
       name: cost.name,
       sector: cost.sector.name,
     }));
   } catch (error) {
     console.error("Erro ao buscar centros de custo:", error);
-  } finally {
-    loadingCosts.value = false;
   }
+
+  loadingCosts.value = false;
 };
 const pages = ref({
   current: 1,
@@ -458,20 +433,18 @@ const pages = ref({
   last: 0,
 });
 const fetchFinancials = async (current = pages.value.current) => {
+  loadingFinancials.value = true;
+
   try {
-    loadingFinancials.value = true;
-    const response = await api.get(
-      `/financial/financial-transactions?page=${current}`,
-      {
-        params: {
-          filter_id: activeGroupProjectId,
-          name: nameFinancial.value,
-          sort_by: orderId.value,
-          sort_order: order.value ? "asc" : "desc",
-        },
-      }
-    );
-    financial.value = response.data.data.data.map((financial) => ({
+    const { data } = await Financials.getFinancialTransactions({
+      page: current,
+      filter_id: activeGroupProjectId,
+      name: nameFinancial.value,
+      sort_by: orderId.value,
+      sort_order: order.value ? "asc" : "desc",
+    })
+
+    financial.value = data.data.map((financial) => ({
       id: financial.id,
       costCenter: financial.cost_center.name,
       category_type: financial.category_type,
@@ -482,15 +455,15 @@ const fetchFinancials = async (current = pages.value.current) => {
       type: financial.type,
     }));
     pages.value = {
-      current: response.data.data.current_page,
-      total: response.data.data.total,
-      last: response.data.data.last_page,
+      current: data.current_page,
+      total: data.total,
+      last: data.last_page,
     };
   } catch (error) {
     console.error("Erro ao buscar transações financeiras:", error);
-  } finally {
-    loadingFinancials.value = false;
   }
+
+  loadingFinancials.value = false;
 };
 onMounted(async () => {
   await fetchCosts();
@@ -502,5 +475,3 @@ const handleFinancialName = (text: string) => {
   nameFinancial.value = text;
 };
 </script>
-
-<style scoped></style>

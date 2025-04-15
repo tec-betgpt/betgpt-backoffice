@@ -1,4 +1,4 @@
-export function toK(value) {
+export default (value) => {
   if (value >= 1000000) {
     let millions = value / 1000000;
     return `R$ ${
