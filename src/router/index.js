@@ -19,7 +19,7 @@ import ConfigurationProfile from "@/views/configurations/Profile.vue";
 import ConfigurationSecurity from "@/views/configurations/Security.vue";
 import ConfigurationNotifications from "@/views/configurations/Notifications.vue";
 import ConfigurationProjects from "@/views/configurations/Projects.vue";
-import ConfigurationIntegrations from "@/views/configurations/Integrations.vue";
+import ConfigurationIntegrations from "@/views/dashboard/Integrations.vue";
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
 import Texts from "@/views/dashboard/Texts.vue";
 import Financial from "@/views/dashboard/Financial.vue";
@@ -29,6 +29,7 @@ import Roles from "@/views/dashboard/Roles.vue";
 import Players from "@/views/dashboard/Players.vue";
 import UtmTracks from "@/views/dashboard/UtmTracks.vue";
 import IA from "@/views/dashboard/IA.vue";
+import Integrations from "@/views/dashboard/Integrations.vue";
 
 const routes = [
   {
