@@ -157,15 +157,11 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import api from "@/services/base";
 import Auth from '@/services/auth'
 import Recover from '@/services/recover'
 import Tokens from '@/services/tokens'
 import { buttonVariants } from "@/components/ui/button";
 import Swal from "sweetalert2";
-import Form from "vform";
-Form.axios = api;
-
 import { cn } from "@/lib/utils";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 const router = useRouter();

@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
-import api from "@/services/base.js";
+import UserProjectGroup from "@/services/userProjectGroup";
 
 export const useWorkspaceStore = defineStore("workspace", {
   state: () => ({
@@ -18,7 +17,7 @@ export const useWorkspaceStore = defineStore("workspace", {
       this.activeGroupProject = project;
 
       try {
-        await api.post("/user/configurations/set-project-workspace", {
+        await UserProjectGroup.setProjectWorkspace({
           group_project: project.id,
         });
       } catch (error) {

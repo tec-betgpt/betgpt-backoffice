@@ -150,7 +150,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import { Button } from "@/components/ui/button";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { h, onMounted, ref, watch } from "vue";
-import Financials from '@/services/financials'
+import FinancialTransaction from "@/services/financialTransaction";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { toast } from "@/components/ui/toast";
 import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
@@ -167,6 +167,7 @@ import toCurrency from "@/filters/currencyFilter";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import CostCenter from "@/services/costCenter";
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
@@ -364,7 +365,7 @@ const deleteFinancial = async (id: number) => {
   loading.value = true;
 
   try {
-    await Financials.destroyFinancialTransactions(id)
+    await FinancialTransaction.destroy(id)
     toast({
       title: "Transação financeira deletada com sucesso!",
       description: `A transação financeira com ID ${id} foi removida.`,
@@ -389,9 +390,9 @@ const submitFinancial = async () => {
 
   try {
     if (isEditing.value) {
-      await Financials.updateFinancialTransactions(financialForm.value.id, financialForm.value)
+      await FinancialTransaction.update(financialForm.value.id, financialForm.value)
     } else {
-      await Financials.storeFinancialTransactions(financialForm.value)
+      await FinancialTransaction.store(financialForm.value)
     }
     showModal.value = false;
   } catch (error) {
@@ -414,7 +415,7 @@ const fetchCosts = async () => {
   loadingCosts.value = true;
 
   try {
-    const { data } = await Financials.costCenters({ filter_id: activeGroupProjectId })
+    const { data } = await CostCenter.index({ filter_id: activeGroupProjectId })
 
     costs.value = data.data.map((cost) => ({
       id: cost.id,
@@ -436,7 +437,7 @@ const fetchFinancials = async (current = pages.value.current) => {
   loadingFinancials.value = true;
 
   try {
-    const { data } = await Financials.getFinancialTransactions({
+    const { data } = await FinancialTransaction.index({
       page: current,
       filter_id: activeGroupProjectId,
       name: nameFinancial.value,

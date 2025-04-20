@@ -307,7 +307,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import api from "@/services/base";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
 import { LineChart } from "@/components/ui/chart-line";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -316,7 +315,7 @@ import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
-import Utils from '@/services/utils'
+import Analytics from "@/services/analytics";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 const workspaceStore = useWorkspaceStore();
@@ -354,7 +353,7 @@ const applyFilter = async () => {
   }
 
   try {
-    const { data } = await Utils.analytics({
+    const { data } = await Analytics.index({
       start_date: selectedRange.value.start?.toString(),
       end_date: selectedRange.value.end?.toString(),
       filter_id: workspaceStore.activeGroupProject.id,

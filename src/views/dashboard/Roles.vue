@@ -235,10 +235,9 @@ const createRole = async () => {
   isProcessing.value = true;
 
   try {
-    const filterId = String(form.value.filter_id).split('_')[1]
     const data = await Roles.store({
       ...form.value,
-      filter_id: Number(filterId)
+      filter_id: form.value.filter_id.split('_')[1],
     });
 
     roles.value.push(data);

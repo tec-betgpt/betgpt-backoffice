@@ -105,6 +105,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
 import Financials from '@/services/financials'
+import CostCenter from '@/services/costCenter'
 import { toast } from "@/components/ui/toast";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
@@ -117,6 +118,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
+import Sector from "@/services/sector"
 
 // Alinhando a interface com o que usamos no ManagerFinancial.vue
 interface CostData {
@@ -167,7 +169,7 @@ const fetchCosts = async (current: number = pages.value.current) => {
                 ? current
                 : pages.value.current
 
-    const { data } = await Financials.getFinancialCostCenters({
+    const { data } = await CostCenter.index({
       filter_id: activeGroupProjectId,
       find_name: nameCost.value,
       sort_by: orderId.value,
@@ -201,7 +203,7 @@ const handleEdit = (item: CostData) => {
 const deleteCost = async (id: number) => {
   try {
     loadingRemove.value = true;
-    await Financials.destroyCostCenter(id)
+    await CostCenter.destroy(id)
     showSuccessToast("Custo deletado", `O custo com ID ${id} foi removido.`);
     await fetchCosts();
   } catch (error) {
@@ -219,9 +221,9 @@ const submitCost = async () => {
   try {
     loadingSub.value = true;
     if (isEditing.value) {
-      await Financials.updateCostCenter(costForm.value.id, costForm.value)
+      await CostCenter.update(costForm.value.id, costForm.value)
     } else {
-      await Financials.storeCostCenter(costForm.value)
+      await CostCenter.store(costForm.value)
     }
     showModal.value = false;
   } catch (error) {
@@ -335,11 +337,11 @@ const fetchSectors = async () => {
   loadingSectors.value = true;
 
   try {
-    const { data } = await Financials.getSectors({
+    const { data } = await Sector.index({
       filter_id: activeGroupProjectId,
     })
 
-    sectors.value = data.map((sector: any) => ({
+    sectors.value = data.data.map((sector: any) => ({
       id: sector.id,
       name: sector.name,
     }));

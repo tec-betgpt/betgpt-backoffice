@@ -110,7 +110,6 @@ import {
   ArrowDown,
   ArrowUp,
 } from "lucide-vue-next";
-import api from "@/services/base";
 import UtmTracks from "@/services/utmTracks";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";

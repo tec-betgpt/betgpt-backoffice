@@ -115,6 +115,7 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { Loader2 as LucideSpinner, LucideStar } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import Projects from '@/services/projects'
+import UserProjectGroup from '@/services/userProjectGroup'
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
@@ -132,11 +133,11 @@ const fetchProjectsAndGroups = async () => {
 
   try {
     const [projectsResponse, groupsResponse] = await Promise.all([
-        Projects.configurationProjects(),
-        Projects.configurationProjectGroups(),
+      Projects.index(),
+      UserProjectGroup.index(),
     ]);
 
-    projects.value = projectsResponse.data.projects;
+    projects.value = projectsResponse.data;
     groups.value = groupsResponse.data;
   } catch (error) {
     toast({
@@ -161,7 +162,7 @@ const deleteGroup = async (groupId: number) => {
   deletingGroupId.value = groupId;
 
   try {
-    await Projects.removeProjectGroup(groupId)
+    await UserProjectGroup.destroy(groupId)
     groups.value = groups.value.filter((group) => group.id !== groupId);
 
     toast({
@@ -202,7 +203,7 @@ const createGroup = async () => {
   try {
     creatingGroup.value = true;
 
-    const { data } = await Projects.store({
+    const { data } = await UserProjectGroup.store({
       name: newGroupName.value,
       project_ids: selectedProjects.value,
     })

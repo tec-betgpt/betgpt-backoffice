@@ -102,10 +102,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-vue-next";
-import Financials from '@/services/financials'
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { useWorkspaceStore } from "@/stores/workspace";
+import Sector from "@/services/sector"
 
 interface SectorData {
   id: number;
@@ -142,7 +142,7 @@ const deleteSector = async (id: number) => {
   loadingSectors.value = true;
 
   try {
-    await Financials.destroyFinancialSectors(id)
+    await Sector.destroy(id)
 
     toast({
       title: "Setor deletado com sucesso!",
@@ -167,9 +167,12 @@ const submitSector = async () => {
 
   try {
     if (isEditing.value) {
-      await Financials.updateFinancialSectors(sectorForm.value.id, sectorForm.value)
+      await Sector.update(sectorForm.value.id, sectorForm.value)
     } else {
-      await Financials.storeFinancialSectors(sectorForm.value)
+      await Sector.store({
+        ...sectorForm.value,
+        project_id: activeGroupProjectId.split('_')[1],
+      })
     }
     showModal.value = false;
   } catch (error) {
@@ -278,7 +281,7 @@ const fetchSectors = async (current: number = pages.value.current) => {
   loadingSectors.value = true;
 
   try {
-    const { data } = await Financials.getSectors({
+    const { data } = await Sector.index({
       page: current,
       filter_id: activeGroupProjectId,
       find_name: nameSector.value,

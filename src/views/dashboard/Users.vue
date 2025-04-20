@@ -247,7 +247,6 @@ import {
   ArrowUp,
 } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import api from "@/services/base";
 import Users from "@/services/users";
 import Projects from "@/services/projects";
 import { createColumnHelper } from "@tanstack/vue-table";
@@ -409,7 +408,7 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
     }, {} as Record<string, string>);
 
     const [userResponse, projectResponse] = await Promise.all([
-      Users.getUsers({
+      Users.index({
         page: current,
         filter_id: form.value.filter_id,
         ...searchParams,
@@ -418,7 +417,7 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
         orderDirection: direction.value ? "asc" : "desc",
         access: accessFilter.value,
       }),
-      Projects.getProjects({}),
+      Projects.index({}),
     ]);
     users.value = userResponse.data.users;
     roles.value = userResponse.data.roles;

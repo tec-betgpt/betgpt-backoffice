@@ -31,8 +31,8 @@ export default {
     return data
   },
 
-  async logout () {
-    await api.post('/auth/logout', {}, { withCredentials: true })
+  async logout (body = {}) {
+    await api.post('/auth/logout', body, { withCredentials: true })
   },
 
   async getLoginTwoFactor (id) {

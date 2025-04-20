@@ -378,7 +378,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import Utils from '@/services/utils'
+import GoogleAnalytics from '@/services/googleAnalytics'
 import { getLocalTimeZone, today } from "@internationalized/date";
 import moment from "moment";
 import "moment/dist/locale/pt-br";
@@ -489,7 +489,7 @@ const applyFilter = async () => {
   }
 
   try {
-    const data = await Utils.getGoogleAnalytics({
+    const data = await GoogleAnalytics.index({
       start_date: selectedRange.value.start?.toString(),
       end_date: selectedRange.value.end?.toString(),
       filter_id: workspaceStore.activeGroupProject.id,

@@ -274,7 +274,6 @@ import { onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import Auth from '@/services/auth';
-import api from "@/services/base";
 import { cn } from "@/lib/utils";
 import { Loader2 as LucideSpinner, Quote } from "lucide-vue-next";
 import Pin from "@/components/custom/CustomPinInput.vue";
@@ -431,10 +430,8 @@ const resendTwoFactorLogin = async () => {
 
 const getRecoveryCode = async () => {
   try {
-    const response = await api.get(
-        `/auth/validate-recovery-code/${id.value[0]}`
-    );
-    previewCode.value = response.data.data;
+    const data = await Auth.getValidateRecoveryCode(id.value[0]);
+    previewCode.value = data.data;
     recoveryScreen.value = false;
   } catch (error) {
     console.error("Erro ao reenviar o código:", error);

@@ -1,4 +1,4 @@
-import api from './base.js';
+import api from './base';
 
 export default {
   async index (params = {}) {

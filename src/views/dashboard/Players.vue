@@ -28,7 +28,6 @@ import { ref, onMounted, h } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowUp } from "lucide-vue-next";
-import api from "@/services/base";
 import Players from "@/services/players";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";

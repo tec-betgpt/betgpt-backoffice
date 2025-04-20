@@ -70,7 +70,7 @@ async function fetchIntegrations() {
       );
     }
 
-    const { data } = await Projects.getProjectIntegrations(activeGroupProject.project_id)
+    const { data } = await Projects.integrations(activeGroupProject.project_id)
 
     integrations.value = data.map((integration: any) => ({
       ...integration,
@@ -91,7 +91,7 @@ async function saveAllIntegrations() {
   saving.value = true;
 
   try {
-    await Projects.bulkUpdateProjectIntegrations(activeGroupProject.project_id, integrations.value)
+    await Projects.bulkUpdate(activeGroupProject.project_id, integrations.value)
 
     toast({
       title: "Sucesso",

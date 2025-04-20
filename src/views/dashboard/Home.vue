@@ -559,7 +559,7 @@
 </template>
 
 <script lang="ts">
-import api from '@/services/base'
+import Home from '@/services/home'
 import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import {
@@ -662,18 +662,16 @@ export default {
       try {
         this.hideMetricsDaily = (this.selectedRange?.start.toString() === this.selectedRange?.end.toString())
 
-        const { data } = await api.get("/utils/home", {
-          params: {
-            filter_id: this.workspaceStore.activeGroupProject.id,
-            start_date: this.selectedRange.start?.toString(),
-            end_date: this.selectedRange.end?.toString(),
-          },
-        });
+        const { data } = await Home.index({
+          filter_id: this.workspaceStore.activeGroupProject.id,
+          start_date: this.selectedRange.start?.toString(),
+          end_date: this.selectedRange.end?.toString(),
+        })
 
-        this.players = data.data.players;
-        this.activeNow = data.data.active_now;
-        this.deposits = data.data.deposits;
-        this.withdraws = data.data.withdraws;
+        this.players = data.players;
+        this.activeNow = data.active_now;
+        this.deposits = data.deposits;
+        this.withdraws = data.withdraws;
       } catch (_) {
         toast({
           title: "Erro ao carregar dados",
@@ -681,6 +679,7 @@ export default {
           variant: "destructive",
         })
       }
+
       this.loading = false;
     },
   },

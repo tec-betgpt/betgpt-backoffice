@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, h, watch } from "vue";
-import Utils from '@/services/utils'
+import ActiveCampaign from "@/services/activeCampaign";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { Button } from "@/components/ui/button";
 import moment from "moment";
@@ -164,7 +164,7 @@ const applyFilter = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    const { data } = await Utils.activeCampaign({
+    const { data } = await ActiveCampaign.index({
       page: current,
       ...searchParams,
       start_date: selectedRange.value.start?.toString(),

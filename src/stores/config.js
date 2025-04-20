@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import api from "@/services/base.js";
+import Config from '@/services/config'
 
 export const useConfigStore = defineStore("config", {
   state: () => ({
@@ -9,8 +9,8 @@ export const useConfigStore = defineStore("config", {
   actions: {
     async fetchConfigs() {
       try {
-        const response = await api.get("/configs");
-        this.message = response.data.data.message || {
+        const data = await Config.index()
+        this.message = data.data.message || {
           message: "",
           signature: "",
         };

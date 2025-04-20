@@ -313,8 +313,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, h } from "vue";
-import api from "@/services/base";
-import Utils from "@/services/utils";
+import SmsFunnel from "@/services/smsFunnel";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import {
   Card,
@@ -402,7 +401,7 @@ const applyFilter = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    const { data } = await Utils.getSmsfunnel({
+    const { data } = await SmsFunnel.index({
       page: current,
       ...searchParams,
       start_date: selectedRange.value.start?.toString(),

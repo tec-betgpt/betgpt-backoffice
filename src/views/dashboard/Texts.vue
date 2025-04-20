@@ -79,13 +79,11 @@
 
 <script setup lang="ts">
 import { h, onMounted, ref } from "vue";
-import Utils from '@/services/utils'
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
+import Insights from "@/services/insights";
 import { ArrowDown, ArrowUp, MoreHorizontal, X } from "lucide-vue-next";
-
 import {
   Sheet,
   SheetContent,
@@ -142,7 +140,7 @@ async function fetchMessages(pageId: number = pages.value.current) {
       return acc;
     }, {} as Record<string, string>);
 
-    const data = await Utils.getInsights({
+    const data = await Insights.index({
       page: pageId,
       ...searchParams,
       orderBy: order.value,
@@ -164,7 +162,7 @@ async function submit() {
   loading.value = true;
 
   try {
-    const data = await Utils.storeInsights(form.value)
+    const data = await Insights.store(form.value)
 
     resetForm();
     toast({
@@ -196,7 +194,7 @@ async function remove(id: number) {
   loadingRemove.value = true;
 
   try {
-    const data = await Utils.destroyInsights(id)
+    const data = await Insights.destroy(id)
 
     await fetchMessages();
     toast({
@@ -221,7 +219,7 @@ async function edit(id) {
   loading.value = true;
 
   try {
-    const data = await Utils.updateInsights(id, form.value)
+    const data = await Insights.update(id, form.value)
 
     resetForm()
     await fetchMessages();

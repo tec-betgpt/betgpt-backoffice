@@ -141,6 +141,7 @@ import moment from "moment";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import Projects from '@/services/projects'
+import UserProjectGroup from '@/services/userProjectGroup'
 const imagePreview = ref();
 const errorMessage = ref("");
 
@@ -231,7 +232,7 @@ const fetchProjects = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    const { data } = await Projects.getProjects({
+    const { data } = await Projects.index({
       page: current,
       ...searchParams,
       status: statusFilter.value,
@@ -262,7 +263,7 @@ const toggleStatus = async (project) => {
   processingStatusId.value = project.id;
 
   try {
-    await Projects.toogleProject(project.id)
+    await Projects.toggle(project.id)
 
     const currentStatus = getStatus(project);
     const newStatus = currentStatus === "active" ? "inactive" : "active";
@@ -305,7 +306,7 @@ const createProject = async () => {
   isProcessing.value = true;
 
   try {
-    const data = await Projects.storeProject(form.value)
+    const data = await Projects.store(form.value)
 
     projects.value.push(data.data);
     toast({
@@ -328,7 +329,7 @@ const createProject = async () => {
 const updateProject = async () => {
   isProcessing.value = true;
   try {
-    const data = await Projects.storeProjectWithId(form.value.id, form.value)
+    const data = await Projects.storeWithId(form.value.id, form.value)
 
     const projectIndex = projects.value.findIndex(
       (p) => p.id === form.value.id
@@ -342,6 +343,7 @@ const updateProject = async () => {
 
     showModal.value = false;
   } catch (error) {
+    alert(error)
     toast({
       title: "Erro",
       description: "Erro ao atualizar o projeto.",
