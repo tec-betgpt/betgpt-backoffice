@@ -46,13 +46,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useWorkspaceStore } from "@/stores/workspace";
-import { useToast } from "@/components/ui/toast/use-toast";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import Projects from "@/services/projects";
-import {Skeleton} from "@/components/ui/skeleton";
-import {Card} from "@/components/ui/card";
+import { ref, onMounted } from 'vue';
+import { useWorkspaceStore } from '@/stores/workspace';
+import { useToast } from '@/components/ui/toast/use-toast';
+import { Loader2 as LucideSpinner } from 'lucide-vue-next';
+import Projects from '@/services/projects';
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
