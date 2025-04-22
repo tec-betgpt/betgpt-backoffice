@@ -18,7 +18,6 @@ import ConfigurationProfile from '@/views/configurations/Profile.vue'
 import ConfigurationSecurity from '@/views/configurations/Security.vue'
 import ConfigurationNotifications from '@/views/configurations/Notifications.vue'
 import ConfigurationProjects from '@/views/configurations/Projects.vue'
-import ConfigurationIntegrations from '@/views/configurations/Integrations.vue'
 import ConfigurationConfirmEmailChange from '@/views/configurations/ConfirmEmailChange.vue'
 import Texts from '@/views/dashboard/Texts.vue'
 import Financial from '@/views/dashboard/Financial.vue'
@@ -115,18 +114,7 @@ const routes = [
           roles: 'member',
         },
       },
-      {
-        path: 'integrations',
-        name: 'configurations.integrations',
-        component: ConfigurationIntegrations,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: 'Integrações',
-          roles: 'member',
-          permissions: 'access-to-integrations',
-        },
-      },
+
       {
         path: 'confirm-email-change/:token',
         name: 'configurations.confirm-email-change',

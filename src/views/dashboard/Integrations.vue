@@ -36,7 +36,7 @@
             />
           </div>
         </div>
-      </div>
+      </Card>
     </div>
     <Button class="mt-4" :disabled="saving" @click="saveAllIntegrations">
       <LucideSpinner v-if="saving" class="mr-2 h-4 w-4 animate-spin" />
@@ -51,6 +51,8 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import Projects from "@/services/projects";
+import {Skeleton} from "@/components/ui/skeleton";
+import {Card} from "@/components/ui/card";
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
