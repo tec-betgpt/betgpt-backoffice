@@ -3,7 +3,7 @@ import i18n from "@/i18n";
 import Swal from "sweetalert2";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_PUBLIC_API_URL,
+  baseURL: `${import.meta.env.VITE_PUBLIC_API_URL}/v1`,
   headers: { "App-Type": "0" },
   withCredentials: true,
 });
@@ -19,9 +19,7 @@ function showDialog(options) {
 }
 
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response && error.response.status === 500) {
       showDialog({

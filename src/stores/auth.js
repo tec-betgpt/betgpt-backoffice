@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
-import api from "@/services/api";
+import api from "@/services/base";
+import Auth from "@/services/auth";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -27,10 +28,10 @@ export const useAuthStore = defineStore("auth", {
     async fetchUser() {
       this.loading = true;
       try {
-        const response = await api.get("/auth/user", { withCredentials: true });
+        const data = await Auth.user()
 
-        if (response.data.data) {
-          this.setUserData(response.data.data, this.token);
+        if (data.data) {
+          this.setUserData(data.data, this.token);
         } else {
           this.clearUserData();
         }
@@ -44,7 +45,7 @@ export const useAuthStore = defineStore("auth", {
 
     async logout() {
       try {
-        await api.post("/auth/logout", {}, { withCredentials: true });
+        await Auth.logout();
         this.clearUserData();
       } catch (error) {
         console.error("Erro ao fazer logout:", error);

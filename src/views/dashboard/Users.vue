@@ -229,15 +229,6 @@
 <script setup lang="ts">
 import { ref, onMounted, h, watch, computed } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -250,32 +241,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
   MoreHorizontal,
   ChevronDownIcon,
   ArrowDown,
   ArrowUp,
 } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import api from "@/services/api";
+import Users from "@/services/users";
+import Projects from "@/services/projects";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -426,44 +399,44 @@ const toggleRole = (projectId: number, roleName: string, checked: boolean) => {
   }
 };
 const fetchUsersAndProjects = async (current = pages.value.current) => {
-  try {
-    isLoading.value = true;
+  isLoading.value = true;
 
+  try {
     const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
       acc[key] = searchValues.value[key];
       return acc;
     }, {} as Record<string, string>);
 
     const [userResponse, projectResponse] = await Promise.all([
-      api.get(`/users?page=${current}&filter_id=${form.value.filter_id}`, {
-        params: {
-          ...searchParams,
-          status: statusFilter.value,
-          orderBy: order.value,
-          orderDirection: direction.value ? "asc" : "desc",
-          access: accessFilter.value,
-        },
+      Users.index({
+        page: current,
+        filter_id: form.value.filter_id,
+        ...searchParams,
+        status: statusFilter.value,
+        orderBy: order.value,
+        orderDirection: direction.value ? "asc" : "desc",
+        access: accessFilter.value,
       }),
-      api.get("/projects"),
+      Projects.index({}),
     ]);
-    users.value = userResponse.data.data.users;
-    roles.value = userResponse.data.data.roles;
+    users.value = userResponse.data.users;
+    roles.value = userResponse.data.roles;
     pages.value = {
-      current: userResponse.data.data.pagination.current_page,
-      last: userResponse.data.data.pagination.last_page,
-      total: userResponse.data.data.pagination.total,
+      current: userResponse.data.pagination.current_page,
+      last: userResponse.data.pagination.last_page,
+      total: userResponse.data.pagination.total,
     };
 
-    projects.value = projectResponse.data.data;
+    projects.value = projectResponse.data;
   } catch (error) {
     toast({
       title: "Erro",
       description: "Erro ao carregar os dados.",
       variant: "destructive",
     });
-  } finally {
-    isLoading.value = false;
   }
+
+  isLoading.value = false;
 };
 
 const openEditModal = (user: any) => {
@@ -508,9 +481,11 @@ const openCreateModal = () => {
 
 const createUser = async () => {
   isProcessing.value = true;
+
   try {
-    const response = await api.post("/users", form.value);
-    users.value.push(response.data.data);
+    const data = await Users.storeUser(form.value);
+
+    users.value.push(data.data);
     toast({
       title: "Sucesso",
       description: "Usuário criado com sucesso.",
@@ -523,17 +498,19 @@ const createUser = async () => {
       description: "Erro ao criar o usuário.",
       variant: "destructive",
     });
-  } finally {
-    isProcessing.value = false;
   }
+
+  isProcessing.value = false;
 };
 
 const updateUser = async () => {
   isProcessing.value = true;
+
   try {
-    const response = await api.put(`/users/${form.value.id}`, form.value);
+    const data = await Users.updateUser(form.value.id, form.value);
     const index = users.value.findIndex((u) => u.id === form.value.id);
-    users.value[index] = response.data.data;
+
+    users.value[index] = data.data;
     toast({
       title: "Sucesso",
       description: "Usuário atualizado com sucesso.",
@@ -546,15 +523,17 @@ const updateUser = async () => {
       description: "Erro ao atualizar o usuário.",
       variant: "destructive",
     });
-  } finally {
-    isProcessing.value = false;
   }
+
+  isProcessing.value = false;
 };
 
 const resetPassword = async (user) => {
   processingAction.value = `reset-${user.id}`;
+
   try {
-    await api.post(`/users/${user.id}/reset-password`);
+    await Users.resetPassword(user.id);
+
     toast({
       title: "Senha Resetada",
       description: `Uma nova senha foi enviada para o email de ${user.first_name} ${user.last_name}.`,
@@ -566,48 +545,40 @@ const resetPassword = async (user) => {
       description: "Não foi possível resetar a senha. Tente novamente.",
       variant: "destructive",
     });
-  } finally {
-    processingAction.value = null;
   }
+
+  processingAction.value = null;
 };
 
 const toggleStatus = async (user) => {
   processingAction.value = `status-${user.id}`;
+
   try {
-    const response = await api.patch(`/users/${user.id}/toggle`);
-    if (response.status === 200) {
-      const currentStatus = getStatus(user);
-      const newStatus = currentStatus === "active" ? "inactive" : "active";
-      user.statuses[0].name = newStatus;
-      toast({
-        title: "Sucesso",
-        description: `Usuário ${
-          newStatus === "active" ? "ativado" : "inativado"
-        } com sucesso.`,
-        variant: "success",
-      });
-    }
-  } catch {
+    await Users.toggleUser(user.id)
+    const currentStatus = getStatus(user);
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+
+    user.statuses[0].name = newStatus;
+    toast({
+      title: "Sucesso",
+      description: `Usuário ${
+        newStatus === "active" ? "ativado" : "inativado"
+      } com sucesso.`,
+      variant: "success",
+    });
+  } catch (_) {
     toast({
       title: "Erro",
       description: "Erro ao alterar o status do usuário.",
       variant: "destructive",
     });
-  } finally {
-    processingAction.value = null;
   }
+
+  processingAction.value = null;
 };
 
 const getStatus = (user) => {
   return user.statuses?.[0]?.name || "inactive";
-};
-
-const onCheckboxChange = (id, checked) => {
-  if (checked) {
-    form.value.project_ids.push(id);
-  } else {
-    form.value.project_ids = form.value.project_ids.filter((pid) => pid !== id);
-  }
 };
 
 onMounted(fetchUsersAndProjects);

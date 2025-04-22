@@ -27,10 +27,9 @@
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "@/components/ui/toast/use-toast";
-import api from "@/services/api";
-import { Button } from "@/components/ui/button";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useAuthStore } from "@/stores/auth";
+import Users from '@/services/users'
 
 const { toast } = useToast();
 const loading = ref(true);
@@ -46,13 +45,12 @@ const verifyEmailChange = async () => {
       throw new Error("Token não fornecido.");
     }
 
-    const response = await api.post(
-      `/user/configurations/confirm-email-change/${token}`
-    );
-    success.value = response.data.success;
+    const { data } = await Users.confirmEmailChange(token)
 
-    if (success.value && response.data.data.email) {
-      authStore.user.email = response.data.data.email;
+    success.value = data.success;
+
+    if (success.value && data.email) {
+      authStore.user.email = data.email;
       authStore.user.email_change_request = null;
 
       toast({
@@ -72,9 +70,9 @@ const verifyEmailChange = async () => {
       description: "Não foi possível confirmar a alteração do e-mail.",
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
 
 const goBack = () => {

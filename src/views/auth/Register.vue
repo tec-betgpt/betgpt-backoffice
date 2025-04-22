@@ -56,18 +56,8 @@
                     auto-complete="email"
                     auto-correct="off"
                     v-model="formStep1.key"
-                    :class="{
-                      'is-invalid': formStep1.errors.has('key'),
-                    }"
                     :disabled="loading"
                   />
-                  <p
-                    role="alert"
-                    v-if="formStep1.errors.get('key')"
-                    class="text-sm font-medium text-destructive"
-                  >
-                    {{ formStep1.errors.get("key") }}
-                  </p>
                 </div>
                 <div class="grid gap-1 mb-2">
                   <Label class="sr-only" for="password">
@@ -78,18 +68,8 @@
                     placeholder="Senha"
                     type="password"
                     v-model="formStep1.password"
-                    :class="{
-                      'is-invalid': formStep1.errors.has('password'),
-                    }"
                     :disabled="loading"
                   />
-                  <p
-                    role="alert"
-                    v-if="formStep1.errors.get('password')"
-                    class="text-sm font-medium text-destructive"
-                  >
-                    {{ formStep1.errors.get("password") }}
-                  </p>
                 </div>
                 <div class="grid gap-1 mb-2">
                   <Label class="sr-only" for="password">
@@ -100,11 +80,6 @@
                     placeholder="Confirmação de senha"
                     type="password"
                     v-model="formStep1.password_confirmation"
-                    :class="{
-                      'is-invalid': formStep1.errors.has(
-                        'password_confirmation'
-                      ),
-                    }"
                     :disabled="loading"
                   />
                 </div>
@@ -164,10 +139,10 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import api from "@/services/api";
+import Register from '@/services/register'
+import Auth from '@/services/auth'
+import Tokens from '@/services/tokens'
 import Swal from "sweetalert2";
-import Form from "vform";
-Form.axios = api;
 
 import { cn } from "@/lib/utils";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
@@ -182,24 +157,22 @@ const step = ref(1);
 const loading = ref(false);
 const token = ref("");
 
-const formStep1 = ref(
-  new Form({
-    key: "",
-    action: "register",
-    type: "email",
-    password: "",
-    password_confirmation: "",
-  })
-);
+const formStep1 = ref({
+  key: "",
+  action: "register",
+  type: "email",
+  password: "",
+  password_confirmation: "",
+})
 
-const setStep = (value) => {
+const setStep = (value: any) => {
   step.value = value;
 };
 
 const register = async () => {
   loading.value = true;
   try {
-    await formStep1.value.post("/token/send");
+    await Tokens.send(formStep1.value)
     setStep(2);
   } catch (error) {
     console.log(error);
@@ -217,24 +190,20 @@ const finishRegister = async () => {
     });
   } else {
     try {
-      await api.post("/register/finish", {
+      await Register.finish({
         email: formStep1.value.key,
         password: formStep1.value.password,
         password_confirmation: formStep1.value.password_confirmation,
         token: token.value,
-      });
+      })
 
-      const response = await api.post(
-        "/auth/login",
-        {
-          email: formStep1.value.key,
-          password: formStep1.value.password,
-        },
-        { withCredentials: true }
-      );
+      const data = await Auth.login({
+        email: formStep1.value.key,
+        password: formStep1.value.password,
+      })
 
-      const tokenAuth = response.data.data.token;
-      const userAuth = response.data.data.user;
+      const tokenAuth = data.data.token;
+      const userAuth = data.data.user;
 
       if (tokenAuth && userAuth) {
         authStore.setUserData(userAuth, tokenAuth);
