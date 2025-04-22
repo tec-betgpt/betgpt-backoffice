@@ -117,8 +117,6 @@
 <script setup lang="ts">
 import { ref, onMounted, h, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -131,30 +129,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
   MoreHorizontal,
   ChevronDownIcon,
   ArrowDown,
   ArrowUp,
 } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import api from "@/services/api";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import moment from "moment";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
-import Form from "vform";
-
+import Projects from '@/services/projects'
+import UserProjectGroup from '@/services/userProjectGroup'
 const imagePreview = ref();
 const errorMessage = ref("");
 
@@ -175,13 +162,11 @@ const pages = ref({
   total: 0,
   last: 0,
 });
-const form = ref(
-  new Form({
-    id: null,
-    name: "",
-    image: "",
-  })
-);
+const form = ref({
+  id: null,
+  name: "",
+  image: "",
+})
 const order = ref();
 const direction = ref(false);
 const searchValues = ref<Record<string, string>>({});
@@ -247,19 +232,19 @@ const fetchProjects = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    const response = await api.get(`/projects?page=${current}`, {
-      params: {
-        ...searchParams,
-        status: statusFilter.value,
-        orderBy: order.value,
-        orderDirection: direction.value ? "asc" : "desc",
-      },
-    });
-    projects.value = response.data.data.data;
+    const { data } = await Projects.index({
+      page: current,
+      ...searchParams,
+      status: statusFilter.value,
+      orderBy: order.value,
+      orderDirection: direction.value ? "asc" : "desc",
+    })
+
+    projects.value = data.data;
     pages.value = {
-      current: response.data.data.current_page,
-      last: response.data.data.last_page,
-      total: response.data.data.total,
+      current: data.current_page,
+      last: data.last_page,
+      total: data.total,
     };
   } catch {
     toast({
@@ -276,31 +261,32 @@ const toggleStatus = async (project) => {
   isProcessing.value = true;
   processingAction.value = `status-${project.id}`;
   processingStatusId.value = project.id;
+
   try {
-    const response = await api.patch(`/projects/${project.id}/toggle`);
-    if (response.status === 200) {
-      const currentStatus = getStatus(project);
-      const newStatus = currentStatus === "active" ? "inactive" : "active";
-      project.statuses[0].name = newStatus;
-      toast({
-        title: "Sucesso",
-        description: `Projeto ${
-          newStatus === "active" ? "ativado" : "inativado"
-        } com sucesso.`,
-        variant: "success",
-      });
-    }
-  } catch {
+    await Projects.toggle(project.id)
+
+    const currentStatus = getStatus(project);
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+    project.statuses[0].name = newStatus;
+
+    toast({
+      title: "Sucesso",
+      description: `Projeto ${
+        newStatus === "active" ? "ativado" : "inativado"
+      } com sucesso.`,
+      variant: "success",
+    });
+  } catch (_) {
     toast({
       title: "Erro",
       description: "Erro ao alterar o status do projeto.",
       variant: "destructive",
     });
-  } finally {
-    isProcessing.value = false;
-    processingStatusId.value = null;
-    processingAction.value = null;
   }
+
+  isProcessing.value = false;
+  processingStatusId.value = null;
+  processingAction.value = null;
 };
 
 const openEditModal = (project) => {
@@ -318,64 +304,55 @@ const openCreateModal = () => {
 
 const createProject = async () => {
   isProcessing.value = true;
-  try {
-    const response = await api.post(`/projects`, form.value, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
 
-    if (response.status === 201) {
-      projects.value.push(response.data.data);
-      toast({
-        title: "Sucesso",
-        description: "Projeto criado com sucesso.",
-        variant: "default",
-      });
-      showModal.value = false;
-    }
+  try {
+    const data = await Projects.store(form.value)
+
+    projects.value.push(data.data);
+    toast({
+      title: "Sucesso",
+      description: "Projeto criado com sucesso.",
+      variant: "default",
+    });
+    showModal.value = false;
   } catch (error) {
     toast({
       title: "Erro",
       description: "Erro ao criar o projeto.",
       variant: "destructive",
     });
-  } finally {
-    isProcessing.value = false;
   }
+
+  isProcessing.value = false;
 };
 
 const updateProject = async () => {
   isProcessing.value = true;
   try {
-    const response = await api.post(`/projects/${form.value.id}`, form.value, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    const data = await Projects.storeWithId(form.value.id, form.value)
+
+    const projectIndex = projects.value.findIndex(
+      (p) => p.id === form.value.id
+    );
+    projects.value[projectIndex] = data.data;
+    toast({
+      title: "Sucesso",
+      description: "Projeto atualizado com sucesso.",
+      variant: "default",
     });
 
-    if (response.status === 200) {
-      const projectIndex = projects.value.findIndex(
-        (p) => p.id === form.value.id
-      );
-      projects.value[projectIndex] = response.data.data;
-      toast({
-        title: "Sucesso",
-        description: "Projeto atualizado com sucesso.",
-        variant: "default",
-      });
-      showModal.value = false;
-    }
+    showModal.value = false;
   } catch (error) {
+    alert(error)
     toast({
       title: "Erro",
       description: "Erro ao atualizar o projeto.",
       variant: "destructive",
     });
-  } finally {
-    isProcessing.value = false;
-    form.value = { id: null, name: "", image: "" };
   }
+
+  isProcessing.value = false;
+  form.value = { id: null, name: "", image: "" };
 };
 
 const columnHelper = createColumnHelper<Project>();

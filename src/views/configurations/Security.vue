@@ -18,7 +18,6 @@
                 v-model="form.current_password"
                 class="mt-1"
             />
-            <HasError :form="form" field="current_password" />
           </div>
           <div class="mb-3">
             <Label for="new_password">Nova Senha</Label>
@@ -29,7 +28,6 @@
                 v-model="form.new_password"
                 class="mt-1"
             />
-            <HasError :form="form" field="new_password" />
           </div>
           <div class="mb-3">
             <Label for="new_password_confirmation">Confirme a Nova Senha</Label>
@@ -40,7 +38,6 @@
                 v-model="form.new_password_confirmation"
                 class="mt-1"
             />
-            <HasError :form="form" field="new_password_confirmation" />
           </div>
           <div class="flex gap-2 justify-start">
             <Button :disabled="loading" type="submit">
@@ -53,23 +50,12 @@
 
       <TwoFactorAuth/>
     </div>
-
-
-
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import api from "@/services/api";
-import Form from "vform";
-import { ShieldCheck,CopyIcon } from 'lucide-vue-next';
+import Users from '@/services/users'
 
-Form.axios = api;
-import {useAuthStore} from "@/stores/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 
@@ -78,26 +64,23 @@ import TwoFactorAuth from "@/views/configurations/SecurityTwoFactor/TwoFactorAut
 const { toast } = useToast();
 const loading = ref(false);
 
-
-
-const form = ref(
-  new Form({
-    current_password: "",
-    new_password: "",
-    new_password_confirmation: "",
-  })
-);
+const form = ref({
+  current_password: "",
+  new_password: "",
+  new_password_confirmation: "",
+})
 
 const submit = async () => {
   loading.value = true;
   try {
-    await form.value.post("/user/configurations/change-password");
+    await Users.changePassword(form.value)
+
     toast({
       title: "Sucesso",
       description: "Senha alterada com sucesso.",
-
     });
-    form.value.reset();
+
+    reset();
   } catch (error) {
     console.error("Erro ao alterar senha:", error);
     toast({
@@ -105,9 +88,15 @@ const submit = async () => {
       description: "Não foi possível alterar sua senha. Verifique os dados.",
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
+
+const reset = () => {
+  form.value.current_password = ''
+  form.value.new_password = ''
+  form.value.new_password_confirmation = ''
+}
 
 </script>

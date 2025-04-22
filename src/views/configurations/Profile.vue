@@ -32,7 +32,6 @@
               v-model="form.first_name"
               class="mt-1"
             />
-            <HasError :form="form" field="first_name" />
           </div>
           <div class="mb-3">
             <Label for="last_name">Sobrenome</Label>
@@ -43,7 +42,6 @@
               v-model="form.last_name"
               class="mt-1"
             />
-            <HasError :form="form" field="last_name" />
           </div>
           <div class="mb-3">
             <Label for="email">E-mail</Label>
@@ -55,7 +53,6 @@
               class="mt-1"
               :disabled="emailChangeRequest"
             />
-            <HasError :form="form" field="email" />
 
             <div
               class="flex align-items-center text-sm font-medium mt-2"
@@ -87,7 +84,6 @@
                 <SelectItem value="1">Português</SelectItem>
               </SelectContent>
             </Select>
-            <HasError :form="form" field="language_id" />
           </div>
           <div class="flex gap-2 justify-start">
             <Button :disabled="loading" type="submit">
@@ -170,33 +166,12 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
+import Users from '@/services/users'
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useAuthStore } from "@/stores/auth";
-import api from "@/services/api";
-import Form from "vform";
-Form.axios = api;
 
 import { Loader2 as LucideSpinner, Pencil } from "lucide-vue-next";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { useColorMode } from "@vueuse/core";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 const theme = ref(localStorage.getItem("theme") || "auto");
 const { toast } = useToast();
 const authStore = useAuthStore();
@@ -204,32 +179,30 @@ const loading = ref(false);
 const loadingCancelEmailChange = ref(false);
 const emailChangeRequest = ref(false);
 
-const form = ref(
-  new Form({
-    first_name: "",
-    last_name: "",
-    email: "",
-    language_id: "",
-    image: "",
-  })
-);
+const form = ref({
+  first_name: "",
+  last_name: "",
+  email: "",
+  language_id: "",
+  image: "",
+})
 
 watch(theme, () => {
   setTheme();
 });
+
 const setTheme = async () => {
   localStorage.setItem("theme", theme.value);
   const mode = useColorMode();
   mode.value = theme.value;
 };
+
 const submit = async () => {
   loading.value = true;
   try {
-    const response = await form.value.post(
-      "/user/configurations/update-profile"
-    );
+    const { data } = await Users.updateProfile(form.value)
 
-    if (response.data.data.has_change_email) {
+    if (data.has_change_email) {
       emailChangeRequest.value = true;
       toast({
         title: "Sucesso",
@@ -250,24 +223,28 @@ const submit = async () => {
     loading.value = false;
   }
 };
+
 const fetchEmailChangeRequest = async () => {
   try {
-    const response = await api.get("/user/configurations/email-change-request");
+    const { data } = await Users.emailChangeRequest()
 
-    if (response.data.data) {
+    if (data) {
       emailChangeRequest.value = true;
     }
   } catch {
     emailChangeRequest.value = false;
   }
 };
+
 const cancelEmailChange = async () => {
   loadingCancelEmailChange.value = true;
   try {
-    await api.delete("/user/configurations/email-change-request");
+    await Users.emailChangeRequestCancel()
+
     loadingCancelEmailChange.value = false;
     emailChangeRequest.value = false;
     form.value.email = authStore.user.email;
+
     toast({
       title: "Sucesso",
       description: "Solicitação de troca de e-mail cancelada.",
@@ -353,11 +330,8 @@ const updateImage = async () => {
   error.value = null;
 
   try {
-    await form.value.post("/user/configurations/update-photo", {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    await Users.updatePhoto({ image: form.value.image });
+
     toast({
       title: "Sucesso",
       description: hasImage

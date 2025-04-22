@@ -111,7 +111,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -130,21 +129,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  ChevronDownIcon,
   ArrowDown,
   ArrowUp,
   MoreHorizontal,
 } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import api from "@/services/api";
+import Roles from '@/services/roles'
+import Permissions from '@/services/permissions'
 import i18n from "@/i18n";
 import moment from "moment";
 import { createColumnHelper } from "@tanstack/vue-table";
@@ -189,18 +181,20 @@ const togglePermission = (permissionId, checked) => {
 };
 
 const fetchRolesAndPermissions = async (current = pages.value.current) => {
+  isLoading.value = true;
+
   try {
-    isLoading.value = true;
     const [rolesResponse, permissionsResponse] = await Promise.all([
-      api.get(`/roles?page=${current}&filter_id=${form.value.filter_id}`),
-      api.get("/permissions"),
+      Roles.index({ page: current, filter_id: form.value.filter_id }),
+      Permissions.index(),
     ]);
-    roles.value = rolesResponse.data.data.roles;
-    permissions.value = permissionsResponse.data.data;
+
+    roles.value = rolesResponse.data.roles;
+    permissions.value = permissionsResponse.data;
     pages.value = {
-      current: rolesResponse.data.data.pagination.current_page,
-      last: rolesResponse.data.data.pagination.last_page,
-      total: rolesResponse.data.data.pagination.total,
+      current: rolesResponse.data.pagination.current_page,
+      last: rolesResponse.data.pagination.last_page,
+      total: rolesResponse.data.pagination.total,
     };
   } catch (error) {
     toast({
@@ -208,9 +202,9 @@ const fetchRolesAndPermissions = async (current = pages.value.current) => {
       description: "Erro ao carregar os dados.",
       variant: "destructive",
     });
-  } finally {
-    isLoading.value = false;
   }
+
+  isLoading.value = false;
 };
 
 const openEditModal = (role) => {
@@ -239,9 +233,14 @@ const openCreateModal = () => {
 
 const createRole = async () => {
   isProcessing.value = true;
+
   try {
-    const response = await api.post("/roles", form.value);
-    roles.value.push(response.data.data);
+    const data = await Roles.store({
+      ...form.value,
+      filter_id: form.value.filter_id.split('_')[1],
+    });
+
+    roles.value.push(data);
     toast({
       title: "Sucesso",
       description: "Perfil criada com sucesso.",
@@ -254,17 +253,19 @@ const createRole = async () => {
       description: "Erro ao criar perfil.",
       variant: "destructive",
     });
-  } finally {
-    isProcessing.value = false;
   }
+
+  isProcessing.value = false;
 };
 
 const updateRole = async () => {
   isProcessing.value = true;
+
   try {
-    const response = await api.put(`/roles/${form.value.id}`, form.value);
+    const data = await Roles.update(form.value.id, form.value);
     const index = roles.value.findIndex((r) => r.id === form.value.id);
-    roles.value[index] = response.data.data;
+
+    roles.value[index] = data;
     toast({
       title: "Sucesso",
       description: "Perfil atualizado com sucesso.",
@@ -277,14 +278,13 @@ const updateRole = async () => {
       description: "Erro ao atualizar o perfil.",
       variant: "destructive",
     });
-  } finally {
-    isProcessing.value = false;
   }
+
+  isProcessing.value = false;
 };
 
 onMounted(fetchRolesAndPermissions);
 
-const search = ref();
 const order = ref();
 const direction = ref(false);
 
@@ -349,10 +349,6 @@ const columns = [
       return "Ações";
     },
     cell: ({ row, table }) =>
-      /*if (row.original.scope_default === 1) {
-        return h("div", {}, "-");
-      }*/
-
       h(DropdownMenu, {}, [
         h(
           DropdownMenuTrigger,

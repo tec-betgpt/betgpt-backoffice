@@ -100,48 +100,25 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, onMounted, watch } from "vue";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { h, ref, onMounted } from "vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { createColumnHelper } from "@tanstack/vue-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
-import { CaretSortIcon } from "@radix-icons/vue";
-import api from "@/services/api";
+import Financials from '@/services/financials'
+import CostCenter from '@/services/costCenter'
 import { toast } from "@/components/ui/toast";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { useWorkspaceStore } from "@/stores/workspace";
+import {
+  DropdownMenu,
+  DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {Button} from "@/components/ui/button";
+import Sector from "@/services/sector"
 
 // Alinhando a interface com o que usamos no ManagerFinancial.vue
 interface CostData {
@@ -181,36 +158,34 @@ function handlerOrder(column: string, direction: boolean) {
 }
 
 const fetchCosts = async (current: number = pages.value.current) => {
+  loadingCosts.value = true;
+
   try {
-    loadingCosts.value = true;
-    const response = await api.get(
-      `/financial/cost-centers?page=${
-        nameCost.value && current
-          ? current
-          : nameCost.value
-          ? 1
-          : current
-          ? current
-          : pages.value.current
-      }`,
-      {
-        params: {
-          filter_id: activeGroupProjectId,
-          find_name: nameCost.value,
-          sort_by: orderId.value,
-          sort_order: order.value ? "asc" : "desc",
-        },
-      }
-    );
-    costs.value = response.data.data.data.map((cost) => ({
+    const page = nameCost.value && current
+        ? current
+        : nameCost.value
+            ? 1
+            : current
+                ? current
+                : pages.value.current
+
+    const { data } = await CostCenter.index({
+      filter_id: activeGroupProjectId,
+      find_name: nameCost.value,
+      sort_by: orderId.value,
+      sort_order: order.value ? "asc" : "desc",
+      page,
+    })
+
+    costs.value = data.data.map((cost) => ({
       id: cost.id,
       name: cost.name,
       sector: cost.sector.name,
     }));
     pages.value = {
-      current: response.data.data.current_page,
-      total: response.data.data.total,
-      last: response.data.data.last_page,
+      current: data.current_page,
+      total: data.total,
+      last: data.last_page,
     };
   } catch (error) {
     console.error("Erro ao buscar centros de custo:", error);
@@ -228,7 +203,7 @@ const handleEdit = (item: CostData) => {
 const deleteCost = async (id: number) => {
   try {
     loadingRemove.value = true;
-    await api.delete(`/financial/cost-centers/${id}`);
+    await CostCenter.destroy(id)
     showSuccessToast("Custo deletado", `O custo com ID ${id} foi removido.`);
     await fetchCosts();
   } catch (error) {
@@ -237,20 +212,18 @@ const deleteCost = async (id: number) => {
       "Erro ao remover custo",
       "Não foi possível remover o custo."
     );
-  } finally {
-    loadingRemove.value = false;
   }
+
+  loadingRemove.value = false;
 };
+
 const submitCost = async () => {
   try {
     loadingSub.value = true;
     if (isEditing.value) {
-      await api.put(
-        `/financial/cost-centers/${costForm.value.id}`,
-        costForm.value
-      );
+      await CostCenter.update(costForm.value.id, costForm.value)
     } else {
-      await api.post("/financial/cost-centers", costForm.value);
+      await CostCenter.store(costForm.value)
     }
     showModal.value = false;
   } catch (error) {
@@ -260,6 +233,7 @@ const submitCost = async () => {
     await fetchCosts();
   }
 };
+
 const pages = ref({
   current: 1,
   total: 0,
@@ -360,23 +334,24 @@ const openSheet = () => {
   showModal.value = true;
 };
 const fetchSectors = async () => {
+  loadingSectors.value = true;
+
   try {
-    loadingSectors.value = true;
-    const response = await api.get(`/financial/sectors`, {
-      params: {
-        filter_id: activeGroupProjectId,
-      },
-    });
-    sectors.value = response.data.data.data.map((sector: any) => ({
+    const { data } = await Sector.index({
+      filter_id: activeGroupProjectId,
+    })
+
+    sectors.value = data.data.map((sector: any) => ({
       id: sector.id,
       name: sector.name,
     }));
   } catch (error) {
     console.error("Erro ao buscar setores:", error);
-  } finally {
-    loadingSectors.value = false;
   }
+
+  loadingSectors.value = false;
 };
+
 const handleText = (text: string) => {
   nameCost.value = text;
 };

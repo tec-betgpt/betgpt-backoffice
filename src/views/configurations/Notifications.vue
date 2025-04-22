@@ -25,7 +25,6 @@
               id="communication_emails"
             />
           </div>
-          <HasError :form="form" field="communication_emails" />
 
           <div class="flex items-center justify-between rounded-lg border p-4">
             <div>
@@ -40,7 +39,6 @@
               id="marketing_emails"
             />
           </div>
-          <HasError :form="form" field="marketing_emails" />
 
           <div class="flex items-center justify-between rounded-lg border p-4">
             <div>
@@ -55,7 +53,6 @@
               id="social_emails"
             />
           </div>
-          <HasError :form="form" field="social_emails" />
 
           <div class="flex items-center justify-between rounded-lg border p-4">
             <div>
@@ -70,7 +67,6 @@
               id="security_emails"
             />
           </div>
-          <HasError :form="form" field="security_emails" />
         </div>
       </div>
 
@@ -87,32 +83,24 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { useAuthStore } from "@/stores/auth";
-import api from "@/services/api";
-import Form from "vform";
-Form.axios = api;
-
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
+import { useAuthStore } from "@/stores/auth";
+import Users from '@/services/users'
 
 const { toast } = useToast();
 const authStore = useAuthStore();
-const loading = ref(false);
 
-const form = ref(
-  new Form({
-    communication_emails: false,
-    marketing_emails: false,
-    social_emails: false,
-    security_emails: false,
-  })
-);
+const loading = ref(false);
+const form = ref({
+  communication_emails: false,
+  marketing_emails: false,
+  social_emails: false,
+  security_emails: false,
+})
 
 onMounted(() => {
   const settings = authStore.user?.preferences;
+
   if (settings) {
     form.value.communication_emails = Boolean(settings.communication_emails);
     form.value.marketing_emails = Boolean(settings.marketing_emails);
@@ -123,8 +111,10 @@ onMounted(() => {
 
 const submit = async () => {
   loading.value = true;
+
   try {
-    await form.value.post("/user/configurations/update-notifications");
+    await Users.updateNotifications(form.value)
+
     toast({
       title: "Sucesso",
       description: "Configurações de notificações atualizadas.",
@@ -136,8 +126,8 @@ const submit = async () => {
       description: "Erro ao atualizar as configurações de notificações.",
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
 </script>
