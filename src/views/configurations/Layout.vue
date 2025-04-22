@@ -29,11 +29,7 @@ const sidebarNavItems: Item[] = [
     route: "configurations.projects",
     show: true,
   },
-  {
-    title: "Integrações",
-    route: "configurations.integrations",
-    show: activeGroupProject?.type === "project",
-  },
+
 ];
 
 const router = useRouter();
@@ -47,7 +43,6 @@ const router = useRouter();
         Gerencie as configurações das suas contas e preferências de e-mail.
       </p>
     </div>
-
     <Separator class="my-6" />
     <div
       class="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]"

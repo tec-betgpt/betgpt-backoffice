@@ -368,6 +368,7 @@ import {
   ExternalLink,
   Briefcase,
   DollarSignIcon,
+  Blocks,
   UserCog,
 } from "lucide-vue-next";
 import { ref, computed, onMounted, watch } from "vue";
@@ -626,6 +627,20 @@ const navMenu = computed(() => [
           )
         ),
       },
+      {
+        name: "Integrações",
+        url: { name: "integrations" },
+        icon: Blocks,
+        show: activeGroupProject.value && activeGroupProject.value.type === "project" && ( (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
+            role.permissions.some(
+                (permission) => permission.name === "access-to-integrations"
+            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
+        ).some((role) =>
+          role.permissions.some(
+            (permission) => permission.name === "access-to-integrations"
+          )
+        )),
+      }
     ],
   },
   {

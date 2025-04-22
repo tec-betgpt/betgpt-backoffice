@@ -1,23 +1,22 @@
 <template>
-  <div>
-    <div class="mb-4">
-      <h3 class="text-lg font-medium">Integrações do Projeto</h3>
-      <p class="text-sm text-muted-foreground">
+  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+    <div class="space-y-0.5">
+      <h2  class="text-2xl font-bold tracking-tight">Integrações do Projeto</h2>
+      <p class=" text-muted-foreground">
         Gerencie as integrações do projeto.
       </p>
     </div>
 
-    <Separator class="mb-3" />
 
     <div v-if="loading" class="space-y-4">
       <Skeleton class="h-6 w-full" />
       <Skeleton class="h-6 w-full" />
     </div>
     <div v-else class="space-y-6">
-      <div
+      <Card
         v-for="data in integrations"
         :key="data.id"
-        class="border rounded-lg p-4"
+        class=" p-4"
       >
         <div class="flex items-center justify-between">
           <div>
@@ -37,7 +36,7 @@
             />
           </div>
         </div>
-      </div>
+      </Card>
     </div>
     <Button class="mt-4" :disabled="saving" @click="saveAllIntegrations">
       <LucideSpinner v-if="saving" class="mr-2 h-4 w-4 animate-spin" />
@@ -47,11 +46,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useWorkspaceStore } from "@/stores/workspace";
-import { useToast } from "@/components/ui/toast/use-toast";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import Projects from "@/services/projects";
+import { ref, onMounted } from 'vue';
+import { useWorkspaceStore } from '@/stores/workspace';
+import { useToast } from '@/components/ui/toast/use-toast';
+import { Loader2 as LucideSpinner } from 'lucide-vue-next';
+import Projects from '@/services/projects';
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
@@ -96,7 +95,6 @@ async function saveAllIntegrations() {
     toast({
       title: "Sucesso",
       description: "Integrações salvas com sucesso.",
-      variant: "success",
     });
   } catch (error) {
     toast({
