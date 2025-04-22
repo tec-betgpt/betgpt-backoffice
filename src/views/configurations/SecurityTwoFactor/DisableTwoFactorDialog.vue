@@ -40,19 +40,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose, DialogFooter
-} from "@/components/ui/dialog/index.js";
 import {Loader2 as LucideSpinner, X} from "lucide-vue-next";
-import { Button } from '@/components/ui/button'
-import api from "@/services/api.js";
+import Users from '@/services/users'
+import Auth from '@/services/auth'
 import Form from "vform";
 import { useToast } from "@/components/ui/toast/use-toast";
 const { toast } = useToast();
@@ -64,6 +54,7 @@ const userAuth = useAuthStore()
 const isDialogOpen = ref(false);
 const loading = ref(false);
 const step = ref(true);
+
 function openDialog() {
   isDialogOpen.value = true;
 }
@@ -90,12 +81,13 @@ const disable2fa = async (code: Array<string>) => {
   try {
     form2fa.value.two_factor_code = code.join("");
 
-    const response = await form2fa.value.post("/user/configurations/disable-two-factor");
+    const data = await Users.disableTwoFactor(form2fa.value)
+
     step.value = true;
 
     toast({
       title: i18n.global.t("success"),
-      description:  i18n.global.t(response.data.message),
+      description:  i18n.global.t(data.message),
       duration:3000
     });
 
@@ -112,23 +104,22 @@ const disable2fa = async (code: Array<string>) => {
 };
 
 const nextStep = async () => {
-
   loading.value = true;
+
   try {
     step.value = false;
     if (userAuth.user.preferences.auth2fa === "email") {
-      await api.get(`/auth/login/two-factor/${userAuth.user.id}`);
+      await Auth.getTwoFactor(userAuth.user.id)
     }
+
     step.value = false;
   } catch (error: any) {
     console.error("Erro ao avançar para o próximo passo do 2FA:", error);
     closeDialog()
     userAuth.fetchUser();
-  } finally {
-    loading.value = false;
-
-
   }
+
+  loading.value = false;
 };
 
 </script>

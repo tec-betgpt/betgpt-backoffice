@@ -469,6 +469,7 @@ const navMenu = computed(() => [
         (permission) => permission.name === "access-to-reports"
       )
     ),
+    type: "controls",
     children: [
       {
         name: "Performance",

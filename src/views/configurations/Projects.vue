@@ -112,54 +112,42 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 as LucideSpinner, LucideStar } from "lucide-vue-next";
-import api from "@/services/api";
+import { useWorkspaceStore } from "@/stores/workspace";
+import Projects from '@/services/projects'
+import UserProjectGroup from '@/services/userProjectGroup'
 
 const { toast } = useToast();
-
-import { useWorkspaceStore } from "@/stores/workspace";
 const workspaceStore = useWorkspaceStore();
 
 const loading = ref(false);
 const creatingGroup = ref(false);
-
-const groups = ref([]);
+const groups: any = ref([]);
 const projects = ref([]);
 const newGroupName = ref("");
 const selectedProjects = ref([]);
-const deletingGroupId = ref(null);
+const deletingGroupId: any = ref(null);
 
 const fetchProjectsAndGroups = async () => {
+  loading.value = true;
+
   try {
-    loading.value = true;
     const [projectsResponse, groupsResponse] = await Promise.all([
-      api.get("/user/configurations/projects"),
-      api.get("/user/configurations/project-groups"),
+      Projects.index(),
+      UserProjectGroup.index(),
     ]);
-    projects.value = projectsResponse.data.data.projects;
-    groups.value = groupsResponse.data.data;
+
+    projects.value = projectsResponse.data;
+    groups.value = groupsResponse.data;
   } catch (error) {
     toast({
       title: "Erro",
       description: "Erro ao carregar os dados.",
       variant: "destructive",
     });
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
 
 const onCheckboxChange = (id: any, checked: any) => {
@@ -170,10 +158,11 @@ const onCheckboxChange = (id: any, checked: any) => {
   }
 };
 
-const deleteGroup = async (groupId) => {
+const deleteGroup = async (groupId: number) => {
+  deletingGroupId.value = groupId;
+
   try {
-    deletingGroupId.value = groupId;
-    await api.delete(`/user/configurations/project-groups/${groupId}`);
+    await UserProjectGroup.destroy(groupId)
     groups.value = groups.value.filter((group) => group.id !== groupId);
 
     toast({
@@ -187,9 +176,9 @@ const deleteGroup = async (groupId) => {
       description: "Erro ao excluir o grupo.",
       variant: "destructive",
     });
-  } finally {
-    deletingGroupId.value = null;
   }
+
+  deletingGroupId.value = null;
 };
 
 const createGroup = async () => {
@@ -213,11 +202,13 @@ const createGroup = async () => {
 
   try {
     creatingGroup.value = true;
-    const response = await api.post("/user/configurations/project-groups", {
+
+    const { data } = await UserProjectGroup.store({
       name: newGroupName.value,
       project_ids: selectedProjects.value,
-    });
-    groups.value.push(response.data.data);
+    })
+
+    groups.value.push(data);
     newGroupName.value = "";
     selectedProjects.value = [];
     toast({
@@ -231,9 +222,9 @@ const createGroup = async () => {
       description: "Erro ao criar grupo.",
       variant: "destructive",
     });
-  } finally {
-    creatingGroup.value = false;
   }
+
+  creatingGroup.value = false;
 };
 
 onMounted(fetchProjectsAndGroups);

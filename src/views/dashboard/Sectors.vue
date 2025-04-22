@@ -81,13 +81,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Sheet,
   SheetContent,
@@ -97,7 +91,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import api from "@/services/api";
 import { toast } from "@/components/ui/toast";
 import { createColumnHelper } from "@tanstack/vue-table";
 import {
@@ -108,11 +101,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowDown, ArrowUp, MoreHorizontal } from "lucide-vue-next";
-
+import { MoreHorizontal } from "lucide-vue-next";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { useWorkspaceStore } from "@/stores/workspace";
+import Sector from "@/services/sector"
 
 interface SectorData {
   id: number;
@@ -146,9 +139,11 @@ const handleEdit = (item: SectorData) => {
 };
 
 const deleteSector = async (id: number) => {
+  loadingSectors.value = true;
+
   try {
-    loadingSectors.value = true;
-    await api.delete(`/financial/sectors/${id}`);
+    await Sector.destroy(id)
+
     toast({
       title: "Setor deletado com sucesso!",
       description: `O setor com ID ${id} foi removido.`,
@@ -162,29 +157,32 @@ const deleteSector = async (id: number) => {
       description: "Não foi possível remover o setor. Tente novamente.",
       variant: "destructive",
     });
-  } finally {
-    loadingSectors.value = false;
   }
+
+  loadingSectors.value = false;
 };
+
 const submitSector = async () => {
+  loadingSub.value = true;
+
   try {
-    loadingSub.value = true;
     if (isEditing.value) {
-      await api.put(
-        `/financial/sectors/${sectorForm.value.id}`,
-        sectorForm.value
-      );
+      await Sector.update(sectorForm.value.id, sectorForm.value)
     } else {
-      await api.post("/financial/sectors", sectorForm.value);
+      await Sector.store({
+        ...sectorForm.value,
+        project_id: activeGroupProjectId.split('_')[1],
+      })
     }
     showModal.value = false;
   } catch (error) {
     console.error("Erro ao salvar setor:", error);
-  } finally {
-    loadingSub.value = false;
-    await fetchSectors();
   }
+
+  loadingSub.value = false;
+  await fetchSectors();
 };
+
 const sectorColumns = [
   sectorColumnHelper.accessor("id", {
     header({ column }) {
@@ -280,31 +278,32 @@ function handlerOrder(column: string, direction: boolean) {
 }
 
 const fetchSectors = async (current: number = pages.value.current) => {
+  loadingSectors.value = true;
+
   try {
-    loadingSectors.value = true;
-    const response = await api.get(`/financial/sectors?page=${current}`, {
-      params: {
-        filter_id: activeGroupProjectId,
-        find_name: nameSector.value,
-        sort_by: orderId.value,
-        sort_order: order.value ? "asc" : "desc",
-      },
-    });
-    sectors.value = response.data.data.data.map((sector: any) => ({
+    const { data } = await Sector.index({
+      page: current,
+      filter_id: activeGroupProjectId,
+      find_name: nameSector.value,
+      sort_by: orderId.value,
+      sort_order: order.value ? "asc" : "desc",
+    })
+
+    sectors.value = data.data.map((sector: any) => ({
       id: sector.id,
       name: sector.name,
       project: sector.project.name,
     }));
     pages.value = {
-      current: response.data.data.current_page,
-      total: response.data.data.total,
-      last: response.data.data.last_page,
+      current: data.current_page,
+      total: data.total,
+      last: data.last_page,
     };
   } catch (error) {
     console.error("Erro ao buscar setores:", error);
-  } finally {
-    loadingSectors.value = false;
   }
+
+  loadingSectors.value = false;
 };
 
 const pages = ref({

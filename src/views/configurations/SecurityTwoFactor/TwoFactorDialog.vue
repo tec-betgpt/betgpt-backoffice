@@ -80,31 +80,14 @@
   </Dialog>
 </template>
 
-
 <script setup lang="ts">
 import { ref } from 'vue';
-
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose
-} from "@/components/ui/dialog/index.js";
-import { Loader2 as LucideSpinner,X } from "lucide-vue-next";
-import { Button } from '@/components/ui/button'
-import Form from "vform";
+import { Loader2 as LucideSpinner, X } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import Pin from "@/components/custom/CustomPinInput.vue";
-import {DialogFooter} from "@/components/ui/dialog";
 import {useAuthStore} from "@/stores/auth";
-import {Card, CardContent} from "@/components/ui/card";
-import {Badge} from "@/components/ui/badge";
 import ClipboardButton from "@/components/custom/ClipboardButton.vue";
-
-
+import Users from '@/services/users'
 
 import i18n from "@/i18n";
 const { toast } = useToast();
@@ -115,10 +98,10 @@ const loading = ref(false);
 const qrCode = ref<string[]>([])
 const finish = ref(true)
 const securityCode = ref<string>()
-const form2fa = ref(new Form({
+const form2fa = ref({
   two_factor_code:"",
   type:""
-}))
+})
 
 function openDialog(type:string) {
   step.value.type = type
@@ -138,23 +121,25 @@ function copySecurityCode(){
 const active2fa = async () => {
   step.value.step = false;
   loading.value = true;
+
   try {
     qrCode.value = [];
-    const response = await form2fa.value.post("/user/configurations/active-two-factor");
-    if (response.data.message === "app") {
-      qrCode.value = response.data.data
+    const data = await Users.activeTwoFactor(form2fa.value)
+
+    if (data.message === "app") {
+      qrCode.value = data.data
     }
   } catch (error:any) {
     console.error("Erro ao ativar 2FA:", error);
     closeDialog()
     step.value.step = true
     qrCode.value = [];
-
-  } finally {
-    loading.value = false
   }
+
+  loading.value = false
 };
-const validate2fa = async (code:Array<string>)=>{
+
+const validate2fa = async (code:Array<string>) => {
   if (code.length < 6) {
     toast({
       title: i18n.global.t("warning"),
@@ -165,30 +150,27 @@ const validate2fa = async (code:Array<string>)=>{
     return
   }
   loading.value = true
+
   try {
     form2fa.value.two_factor_code = code.join("");
-   const response = await form2fa.value.post("/user/configurations/validate-two-factor")
+    const data = Users.validateTwoFactor(form2fa.value)
 
     toast({
       title: i18n.global.t("success"),
-      description:   i18n.global.t(response.data.message),
+      description:   i18n.global.t(data.message),
       duration:3000
     });
 
     finish.value = false
-    securityCode.value = response.data.data
-
-  }catch (error:any){
+    securityCode.value = data.data
+  } catch (error:any) {
     console.error("Erro ao validar 2FA:", error);
     isDialogOpen.value = false;
     step.value.step = true
     step.value.type = ""
     finish.value = true
-  }finally {
-    loading.value = false
-
-
   }
-}
 
+  loading.value = false
+}
 </script>

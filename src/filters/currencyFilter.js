@@ -1,4 +1,4 @@
-export function toCurrency(value, currency = "BRL", locale = "pt-BR") {
+export default (value, currency = "BRL", locale = "pt-BR") => {
   if (typeof value !== "number") {
     return value;
   }
