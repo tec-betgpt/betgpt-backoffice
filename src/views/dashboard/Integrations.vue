@@ -97,7 +97,6 @@ async function saveAllIntegrations() {
     toast({
       title: "Sucesso",
       description: "Integrações salvas com sucesso.",
-      variant: "success",
     });
   } catch (error) {
     toast({
