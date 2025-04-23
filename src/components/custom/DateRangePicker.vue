@@ -22,8 +22,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["update:modelValue"]);
-
-const df = new DateFormatter("en-US", {
+const locale = Intl.DateTimeFormat().resolvedOptions().locale
+const df = new DateFormatter(locale, {
   dateStyle: "medium",
 });
 
@@ -35,44 +35,42 @@ watch(value, (newValue) => {
 </script>
 
 <template>
-  <div :class="cn('grid gap-2', $attrs.class ?? '')">
-    <Popover>
-      <PopoverTrigger as-child>
-        <Button
+  <Popover>
+    <PopoverTrigger as-child>
+      <Button
           id="date"
           :variant="'outline'"
           :class="
             cn(
-              'w-[300px] justify-start text-left font-normal',
+              'w-full sm:w-[300px] justify-start text-left font-normal',
               !value && 'text-muted-foreground'
             )
           "
-        >
-          <CalendarIcon class="mr-2 h-4 w-4" />
+      >
+        <CalendarIcon class="mr-2 h-4 w-4" />
 
-          <template v-if="value.start">
-            <template v-if="value.end">
-              {{ df.format(value.start.toDate(getLocalTimeZone())) }} -
-              {{ df.format(value.end.toDate(getLocalTimeZone())) }}
-            </template>
-
-            <template v-else>
-              {{ df.format(value.start.toDate(getLocalTimeZone())) }}
-            </template>
+        <template v-if="value.start">
+          <template v-if="value.end">
+            {{ df.format(value.start.toDate(getLocalTimeZone())) }} -
+            {{ df.format(value.end.toDate(getLocalTimeZone())) }}
           </template>
-          <template v-else> Selecionar data </template>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent class="w-auto p-0" align="end">
-        <RangeCalendar
+
+          <template v-else>
+            {{ df.format(value.start.toDate(getLocalTimeZone())) }}
+          </template>
+        </template>
+        <template v-else> Selecionar data </template>
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent class="w-auto p-0" align="end">
+      <RangeCalendar
           v-model="value"
           weekday-format="short"
           :number-of-months="2"
-          locale="pt-BR"
+          :locale="locale"
           initial-focus
           :placeholder="value.start"
-        />
-      </PopoverContent>
-    </Popover>
-  </div>
+      />
+    </PopoverContent>
+  </Popover>
 </template>
