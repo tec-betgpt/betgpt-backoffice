@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid min-[900px]:grid-cols-2 gap-4  ">
       <div class="">
         <h2 class="text-2xl font-bold tracking-tight">Dashboard</h2>
         <p class="text-muted-foreground">
@@ -9,16 +9,14 @@
       </div>
 
       <div class="flex items-center justify-end w-full">
-        <div class="flex items-center max-[450px]:flex-col gap-2 justify-end">
-          <div class="flex flex-col sm:flex-row gap-2 w-full ">
+        <div class="flex flex-col items-center justify-end  sm:flex-row gap-2 w-full ">
             <DateRangePicker v-model="selectedRange" />
-            <Button class="max-[450px]:w-full" @click="applyFilter">Aplicar</Button>
+            <Button class="w-full sm:w-24" @click="applyFilter">Aplicar</Button>
           </div>
-        </div>
       </div>
     </div>
 
-    <div v-if="!hideMetricsDaily">
+    <div v-if="hideMetricsDaily">
       <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
         <Card v-for="n in 4" :key="n">
           <div class="p-4 rounded shadow">
@@ -462,8 +460,8 @@
       </Card>
     </div>
 
-    <div class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-2 mb-3">
-      <Card>
+    <div class="sm:grid gap-4 md:gap-8 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
+      <Card class="mb-4 sm:mb-0">
         <CardHeader>
           <Skeleton class="h-6" v-if="loading" />
           <CardTitle v-else>Total de Depósitos</CardTitle>
