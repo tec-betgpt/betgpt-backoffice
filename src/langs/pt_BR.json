@@ -136,5 +136,7 @@
   "profile_upload_picture": "Envie uma foto de perfil",
   "profile_view_picture": "Visualize a foto de perfil",
   "profile_edit_picture": "Edite a foto de perfil",
-  "profile_download_picture": "Baixe a foto de perfil"
+  "profile_download_picture": "Baixe a foto de perfil",
+  "invalid-data": "Ops! Campo(s) inválido(s)",
+  "attention": "Ops!"
 }

@@ -21,6 +21,7 @@ function showDialog(options) {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+
     if (error.response && error.response.status === 500) {
       showDialog({
         type: "critical",
@@ -28,7 +29,27 @@ api.interceptors.response.use(
         subtitle: i18n.global.t("try_again_later"),
         assistiveButton: i18n.global.t("close"),
       });
-    } else if (error.code === "ERR_NETWORK") {
+    }
+
+    if (error.response && error.response.status === 422) {
+      const fields = []
+
+      Object.entries(error.response.data.errors).forEach(([key, value]) => {
+        return (Array.isArray(value))
+          ? fields.push(value.join(", "))
+          : fields.push(value)
+      });
+
+      Swal.fire({
+        title: i18n.global.t("attention"),
+        html: fields.join('<br>'),
+        icon: "warning",
+        confirmButtonText: i18n.global.t("close"),
+        width: "350px"
+      });
+    }
+
+    if (error.code === "ERR_NETWORK") {
       showDialog({
         type: "critical",
         title: i18n.global.t("connection_error"),
@@ -36,7 +57,9 @@ api.interceptors.response.use(
         assistiveButton: i18n.global.t("close"),
         size: "large",
       });
-    } else if (
+    }
+
+    if (
       error.response &&
       !error.response.data.success &&
       !error.response.data.errors &&
@@ -44,7 +67,7 @@ api.interceptors.response.use(
     ) {
       showDialog({
         type: "critical",
-       title: i18n.global.t("error_ocurried"),
+        title: i18n.global.t("error_ocurried"),
         subtitle: i18n.global.t(error.response.data.message),
         assistiveButton: i18n.global.t("close"),
       });

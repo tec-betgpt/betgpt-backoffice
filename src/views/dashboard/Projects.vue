@@ -141,7 +141,6 @@ import moment from "moment";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import Projects from '@/services/projects'
-import UserProjectGroup from '@/services/userProjectGroup'
 const imagePreview = ref();
 const errorMessage = ref("");
 
@@ -329,7 +328,7 @@ const createProject = async () => {
 const updateProject = async () => {
   isProcessing.value = true;
   try {
-    const data = await Projects.storeWithId(form.value.id, form.value)
+    const data = await Projects.update(form.value.id, form.value)
 
     const projectIndex = projects.value.findIndex(
       (p) => p.id === form.value.id
@@ -343,7 +342,6 @@ const updateProject = async () => {
 
     showModal.value = false;
   } catch (error) {
-    alert(error)
     toast({
       title: "Erro",
       description: "Erro ao atualizar o projeto.",
