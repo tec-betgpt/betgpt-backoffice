@@ -361,6 +361,7 @@ import {
   MailCheck,
   Album,
   SlidersHorizontal,
+  MessageCircle,
   Rows3,
   ChevronRight,
   SquareStack,
@@ -393,7 +394,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const workspaceStore = useWorkspaceStore();
 const activeGroupProject = computed(
-    () => workspaceStore.activeGroupProject || null
+  () => workspaceStore.activeGroupProject || null
 );
 // Breadcrumbs
 const breadcrumbs = computed(() => {
@@ -432,100 +433,212 @@ const navMenu = computed(() => [
     name: "Home",
     url: { name: "home" },
     icon: Home,
-    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-        role.permissions.some(
+    show:
+      (authStore.user?.access_type === "member" &&
+        authStore.user?.roles.some((role) =>
+          role.permissions.some(
             (permission) => permission.name === "access-to-dashboard"
-        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-    ).some((role) =>
-      role.permissions.some(
-        (permission) => permission.name === "access-to-dashboard"
-      )
-    ),
+          )
+        )) ||
+      authStore.user?.roles
+        .filter(
+          (role) =>
+            activeGroupProject.value &&
+            role.pivot.project_id === activeGroupProject.value.project_id
+        )
+        .some((role) =>
+          role.permissions.some(
+            (permission) => permission.name === "access-to-dashboard"
+          )
+        ),
   },
   {
     name: "Elevate IA",
-    url: { name: "ia" },
     icon: Bot,
-    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-        role.permissions.some(
+    type: "ia",
+    show:
+      (authStore.user?.access_type === "member" &&
+        authStore.user?.roles.some((role) =>
+          role.permissions.some(
             (permission) => permission.name === "access-to-ai"
-        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-    ).some((role) =>
-      role.permissions.some(
-        (permission) => permission.name === "access-to-ai"
-      )
-    ),
+          )
+        )) ||
+      authStore.user?.roles
+        .filter(
+          (role) =>
+            activeGroupProject.value &&
+            role.pivot.project_id === activeGroupProject.value.project_id
+        )
+        .some((role) =>
+          role.permissions.some(
+            (permission) => permission.name === "access-to-ai"
+          )
+        ),
+    children: [
+      {
+        name: "Chat",
+        url: { name: "chat" },
+        icon: MessageCircle,
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-ai"
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-ai"
+              )
+            ),
+      },
+      {
+        name: "Jarbas BOT",
+        url: { name: "jarbas-bot" },
+        icon: Bot,
+        show:
+          (activeGroupProject.value &&
+            activeGroupProject.value.type === "project" &&
+            authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-ai"
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-ai"
+              )
+            ),
+      },
+    ],
   },
   {
     name: "Controles",
     icon: SlidersHorizontal,
     type: "controls",
-    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-        role.permissions.some(
+    show:
+      (authStore.user?.access_type === "member" &&
+        authStore.user?.roles.some((role) =>
+          role.permissions.some(
             (permission) => permission.name === "access-to-reports"
-        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-    ).some((role) =>
-      role.permissions.some(
-        (permission) => permission.name === "access-to-reports"
-      )
-    ),
-    type: "controls",
+          )
+        )) ||
+      authStore.user?.roles
+        .filter(
+          (role) =>
+            activeGroupProject.value &&
+            role.pivot.project_id === activeGroupProject.value.project_id
+        )
+        .some((role) =>
+          role.permissions.some(
+            (permission) => permission.name === "access-to-reports"
+          )
+        ),
     children: [
       {
         name: "Performance",
         url: { name: "performances" },
         icon: LineChart,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-reports"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-reports"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-reports"
+              )
+            ),
       },
       {
         name: "Tráfego",
         url: { name: "traffics" },
         icon: ChartNoAxesCombined,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-reports"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-reports"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-reports"
+              )
+            ),
       },
       {
         name: "E-mails",
         url: { name: "emails" },
         icon: MailCheck,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-reports"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-reports"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-reports"
+              )
+            ),
       },
       {
         name: "SMS Insights",
         url: { name: "sms-insights" },
         icon: Send,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-reports"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-reports"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-reports"
+              )
+            ),
       },
     ],
   },
@@ -533,171 +646,289 @@ const navMenu = computed(() => [
     name: "Gerenciamento",
     icon: SquareStack,
     type: "manage",
-    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-        role.permissions.some(
-            (permission) => permission.name === "access-to-client-management" || permission.name === "access-to-member-management"
-        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-    ).some((role) =>
-      role.permissions.some(
-        (permission) => permission.name === "access-to-client-management" || permission.name === "access-to-member-management"
-      )
-    ),
+    show:
+      (authStore.user?.access_type === "member" &&
+        authStore.user?.roles.some((role) =>
+          role.permissions.some(
+            (permission) =>
+              permission.name === "access-to-client-management" ||
+              permission.name === "access-to-member-management"
+          )
+        )) ||
+      authStore.user?.roles
+        .filter(
+          (role) =>
+            activeGroupProject.value &&
+            role.pivot.project_id === activeGroupProject.value.project_id
+        )
+        .some((role) =>
+          role.permissions.some(
+            (permission) =>
+              permission.name === "access-to-client-management" ||
+              permission.name === "access-to-member-management"
+          )
+        ),
     children: [
       {
         name: "Projetos",
         url: { name: "projects" },
         icon: Building2,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-project-groups"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-project-groups"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-project-groups"
+              )
+            ),
       },
       {
         name: "Usuários",
         url: { name: "users" },
         icon: Users2,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-users"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-users"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-users"
+              )
+            ),
       },
       {
         name: "Perfis",
         url: { name: "roles" },
         icon: UserCog,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-permissions"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-permissions"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-permissions"
+              )
+            ),
       },
       {
         name: "MyElevate Insights",
         url: { name: "texts" },
         icon: Album,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
-                (permission) => permission.name === "access-to-motivational-texts"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-motivational-texts"
-          )
-        ),
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
+                (permission) =>
+                  permission.name === "access-to-motivational-texts"
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) =>
+                  permission.name === "access-to-motivational-texts"
+              )
+            ),
       },
       {
         name: "Jogadores",
         url: { name: "players" },
         icon: Users2,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "player-registrations"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "player-registrations"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "player-registrations"
+              )
+            ),
       },
       {
         name: "Rastreamento UTM",
         url: { name: "utm-tracks" },
         icon: ExternalLink,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
-                (permission) => permission.name === "access-to-parameter-tracking"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-parameter-tracking"
-          )
-        ),
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
+                (permission) =>
+                  permission.name === "access-to-parameter-tracking"
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) =>
+                  permission.name === "access-to-parameter-tracking"
+              )
+            ),
       },
       {
         name: "Integrações",
         url: { name: "integrations" },
         icon: Blocks,
-        show: activeGroupProject.value && activeGroupProject.value.type === "project" && ( (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          activeGroupProject.value &&
+          activeGroupProject.value.type === "project" &&
+          ((authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-integrations"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-integrations"
-          )
-        )),
-      }
+              )
+            )) ||
+            authStore.user?.roles
+              .filter(
+                (role) =>
+                  activeGroupProject.value &&
+                  role.pivot.project_id === activeGroupProject.value.project_id
+              )
+              .some((role) =>
+                role.permissions.some(
+                  (permission) => permission.name === "access-to-integrations"
+                )
+              )),
+      },
     ],
   },
   {
     name: "Financeiro",
     icon: CircleDollarSign,
     type: "financial",
-    show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-        role.permissions.some(
+    show:
+      (authStore.user?.access_type === "member" &&
+        authStore.user?.roles.some((role) =>
+          role.permissions.some(
             (permission) => permission.name === "access-to-finance"
-        )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-    ).some((role) =>
-      role.permissions.some(
-        (permission) => permission.name === "access-to-finance"
-      )
-    ),
+          )
+        )) ||
+      authStore.user?.roles
+        .filter(
+          (role) =>
+            activeGroupProject.value &&
+            role.pivot.project_id === activeGroupProject.value.project_id
+        )
+        .some((role) =>
+          role.permissions.some(
+            (permission) => permission.name === "access-to-finance"
+          )
+        ),
     children: [
       {
         name: "Gerir Setores",
         url: { name: "sectors" },
         icon: Briefcase,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-finance"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-finance"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-finance"
+              )
+            ),
       },
       {
         name: "Gerir Custos",
         url: { name: "costs" },
         icon: Rows3,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-finance"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-finance"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-finance"
+              )
+            ),
       },
       {
         name: "Entradas e Saídas",
         url: { name: "registers" },
         icon: DollarSignIcon,
-        show: (authStore.user?.access_type === "member" && authStore.user?.roles.some((role) =>
-            role.permissions.some(
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
                 (permission) => permission.name === "access-to-finance"
-            )))  || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id
-        ).some((role) =>
-          role.permissions.some(
-            (permission) => permission.name === "access-to-finance"
-          )
-        ),
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "access-to-finance"
+              )
+            ),
       },
     ],
   },
@@ -721,7 +952,6 @@ watch(
 const collapsed = ref("");
 // Times (Projects)
 
-
 import { useConfigStore } from "@/stores/config";
 import { Separator } from "@/components/ui/separator";
 const configStore = useConfigStore();
@@ -740,15 +970,32 @@ const setActiveGroupProject = async (
   }, 2000);
 };
 
-watch(activeGroupProject,async ()=>{
-  if (activeGroupProject.value) {
-    const hasAccess = authStore.user?.access_type === "member" || authStore.user?.roles.filter((role) => activeGroupProject.value && role.pivot.project_id === activeGroupProject.value.project_id)
-        .some((role) => role.permissions.some((permission) => route.meta.permissions ? route.meta.permissions.includes(permission.name) : true))
-    if (!hasAccess) {
-      await router.push({name: "home"});
+watch(
+  activeGroupProject,
+  async () => {
+    if (activeGroupProject.value) {
+      const hasAccess =
+        authStore.user?.access_type === "member" ||
+        authStore.user?.roles
+          .filter(
+            (role) =>
+              activeGroupProject.value &&
+              role.pivot.project_id === activeGroupProject.value.project_id
+          )
+          .some((role) =>
+            role.permissions.some((permission) =>
+              route.meta.permissions
+                ? route.meta.permissions.includes(permission.name)
+                : true
+            )
+          );
+      if (!hasAccess) {
+        await router.push({ name: "home" });
+      }
     }
-  }
-}, { immediate: true })
+  },
+  { immediate: true }
+);
 // Sidebar state
 const sidebarExpanded = ref(true);
 const stateResponsive = ref(false);

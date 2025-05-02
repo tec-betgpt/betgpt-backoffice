@@ -18,6 +18,8 @@ const sheet = import.meta.glob('./../components/ui/sheet/*.vue', { eager: true }
 const checkbox = import.meta.glob('./../components/ui/checkbox/*.vue', { eager: true })
 const table = import.meta.glob('./../components/ui/table/*.vue', { eager: true })
 const lineChart = import.meta.glob('./../components/ui/chart-line/*.vue', { eager: true })
+const switchComp = import.meta.glob('./../components/ui/switch/*.vue', { eager: true })
+const textarea = import.meta.glob('./../components/ui/textarea/*.vue', { eager: true })
 
 export default {
     ...card,
@@ -40,4 +42,6 @@ export default {
     ...checkbox,
     ...table,
     ...lineChart,
+	...switchComp,
+    ...textarea,
 }
