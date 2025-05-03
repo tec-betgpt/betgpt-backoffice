@@ -24,81 +24,91 @@
     </div>
 
     <form @submit.prevent="submit">
-      <div class="mb-8">
+      <div class="mb-4">
         <h4 class="text-md font-medium mb-4">Ativação do Bot</h4>
         <div class="space-y-4">
-          <div class="flex flex-col space-y-2 rounded-lg border p-4">
-            <Label for="whatsapp_number">Número de WhatsApp</Label>
-            <Input
-              v-model="formattedWhatsappNumber"
-              id="whatsapp_number"
-              placeholder="+55 (00) 00000-0000"
-              required
-              @input="formatWhatsappNumber"
-            />
-            <p class="text-sm text-muted-foreground">
-              Número que será vinculado ao Jarbas.
-            </p>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex flex-col space-y-4">
+              <div class="flex flex-col space-y-2 rounded-lg border p-4">
+                <Label for="whatsapp_number">Número de WhatsApp</Label>
+                <Input
+                  v-model="formattedWhatsappNumber"
+                  id="whatsapp_number"
+                  placeholder="+55 (00) 00000-0000"
+                  required
+                  @input="formatWhatsappNumber"
+                />
+                <p class="text-sm text-muted-foreground">
+                  Número que será vinculado ao Jarbas.
+                </p>
+              </div>
 
-          <div class="space-y-4">
-            <div class="flex flex-col space-y-2 rounded-lg border p-4">
-              <Label for="user_name">Como o Jarbas deve te chamar</Label>
-              <Input
-                v-model="form.user_name"
-                id="user_name"
-                placeholder="Ex: amigo, cliente, parceiro"
-              />
-            </div>
-
-            <div class="flex flex-col space-y-2 rounded-lg border p-4">
-              <Label for="user_role">O que você faz</Label>
-              <Input
-                v-model="form.user_role"
-                id="user_role"
-                placeholder="Ex: vendedor, gerente, atendente"
-              />
-              <p class="text-sm text-muted-foreground">
-                Descreva a sua atividade ou função principal.
-              </p>
-            </div>
-
-            <div class="flex flex-col space-y-2 rounded-lg border p-4">
-              <Label>Características do Jarbas</Label>
-              <div class="grid grid-cols-2 gap-2">
-                <div class="flex items-center space-x-2">
-                  <Checkbox
-                    v-model:checked="form.bot_traits.kind"
-                    id="trait_simpatico"
-                  />
-                  <label for="trait_simpatico" class="text-sm">Simpático</label>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <Checkbox
-                    v-model:checked="form.bot_traits.funny"
-                    id="trait_engracado"
-                  />
-                  <label for="trait_engracado" class="text-sm">Engraçado</label>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <Checkbox
-                    v-model:checked="form.bot_traits.professional"
-                    id="trait_profissional"
-                  />
-                  <label for="trait_profissional" class="text-sm"
-                    >Profissional</label
-                  >
-                </div>
-                <div class="flex items-center space-x-2">
-                  <Checkbox
-                    v-model:checked="form.bot_traits.straight"
-                    id="trait_direto"
-                  />
-                  <label for="trait_direto" class="text-sm">Direto</label>
-                </div>
+              <div class="flex flex-col space-y-2 rounded-lg border p-4">
+                <Label for="user_name">Como o Jarbas deve te chamar</Label>
+                <Input
+                  v-model="form.user_name"
+                  id="user_name"
+                  placeholder="Ex: amigo, cliente, parceiro"
+                />
               </div>
             </div>
 
+            <div class="flex flex-col space-y-4">
+              <div class="flex flex-col space-y-2 rounded-lg border p-4">
+                <Label for="user_role">O que você faz</Label>
+                <Input
+                  v-model="form.user_role"
+                  id="user_role"
+                  placeholder="Ex: vendedor, gerente, atendente"
+                />
+                <p class="text-sm text-muted-foreground">
+                  Descreva a sua atividade ou função principal.
+                </p>
+              </div>
+
+              <div class="flex flex-col space-y-2 rounded-lg border p-4">
+                <Label>Características do Jarbas</Label>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="flex items-center space-x-2">
+                    <Checkbox
+                      v-model:checked="form.bot_traits.kind"
+                      id="trait_simpatico"
+                    />
+                    <label for="trait_simpatico" class="text-sm"
+                      >Simpático</label
+                    >
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <Checkbox
+                      v-model:checked="form.bot_traits.funny"
+                      id="trait_engracado"
+                    />
+                    <label for="trait_engracado" class="text-sm"
+                      >Engraçado</label
+                    >
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <Checkbox
+                      v-model:checked="form.bot_traits.professional"
+                      id="trait_profissional"
+                    />
+                    <label for="trait_profissional" class="text-sm"
+                      >Profissional</label
+                    >
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <Checkbox
+                      v-model:checked="form.bot_traits.straight"
+                      id="trait_direto"
+                    />
+                    <label for="trait_direto" class="text-sm">Direto</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex flex-col space-y-2 rounded-lg border p-4">
               <Label for="additional_info">Informações adicionais</Label>
               <Textarea
@@ -108,29 +118,32 @@
                 class="min-h-[100px]"
               />
             </div>
-          </div>
-
-          <div class="flex items-center justify-between rounded-lg border p-4">
-            <div>
-              <Label for="bot_active">Status do Bot</Label>
-              <p class="text-sm text-muted-foreground">
-                Ative ou desative o Jarbas na plataforma.
-              </p>
+            <div class="flex flex-col space-y-4">
+              <div
+                class="flex items-center justify-between rounded-lg border p-4"
+              >
+                <div>
+                  <Label for="bot_active">Status do Bot</Label>
+                  <p class="text-sm text-muted-foreground">
+                    Ative ou desative o Jarbas na plataforma.
+                  </p>
+                </div>
+                <Switch
+                  v-model:model-value="form.bot_active"
+                  id="bot_active"
+                  :disabled="pendingFeedback"
+                  @update:model-value="handleSwitchChange"
+                />
+              </div>
+              <div v-if="pendingFeedback" class="text-sm text-yellow-600">
+                Você precisa responder o feedback abaixo para reativar o bot.
+              </div>
             </div>
-            <Switch
-              v-model:model-value="form.bot_active"
-              id="bot_active"
-              :disabled="pendingFeedback"
-              @update:model-value="handleSwitchChange"
-            />
-          </div>
-          <div v-if="pendingFeedback" class="text-sm text-yellow-600">
-            Você precisa responder o feedback abaixo para reativar o bot.
           </div>
         </div>
       </div>
 
-      <div v-if="pendingFeedback" class="mb-8">
+      <div v-if="pendingFeedback" class="mb-4">
         <Separator class="mb-6" />
         <h4 class="text-md font-medium mb-4">Feedback do Último Período</h4>
         <div class="space-y-4">
@@ -184,6 +197,22 @@
         </div>
       </div>
 
+      <div class="flex gap-2 justify-start mt-2 mb-4">
+        <Button type="submit" :disabled="loading">
+          <Loader2 v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
+          Salvar Configurações
+        </Button>
+        <Button
+          v-if="pendingFeedback"
+          type="button"
+          @click="submitFeedback"
+          :disabled="feedbackLoading || !feedbackForm.rating"
+        >
+          <Loader2 v-if="feedbackLoading" class="mr-2 h-4 w-4 animate-spin" />
+          Enviar Feedback e Reativar Bot
+        </Button>
+      </div>
+
       <Separator class="mb-6" />
 
       <div class="mb-8">
@@ -235,22 +264,6 @@
             </TableBody>
           </Table>
         </div>
-      </div>
-
-      <div class="flex gap-2 justify-start mt-4">
-        <Button type="submit" :disabled="loading">
-          <Loader2 v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-          Salvar Configurações
-        </Button>
-        <Button
-          v-if="pendingFeedback"
-          type="button"
-          @click="submitFeedback"
-          :disabled="feedbackLoading || !feedbackForm.rating"
-        >
-          <Loader2 v-if="feedbackLoading" class="mr-2 h-4 w-4 animate-spin" />
-          Enviar Feedback e Reativar Bot
-        </Button>
       </div>
     </form>
   </div>
