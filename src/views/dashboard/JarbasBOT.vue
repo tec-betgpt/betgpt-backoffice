@@ -8,6 +8,21 @@
     </div>
     <Separator class="mb-6" />
 
+    <div class="flex items-center gap-4 bg-muted rounded-xl p-6 mb-6 shadow">
+      <img
+        src="/jarbas-avatar.jpg"
+        alt="Avatar Jarbas"
+        class="w-20 h-20 rounded-full object-cover border border-primary"
+      />
+      <div>
+        <h2 class="text-xl font-bold">Oi, eu sou o Jarbas BOT</h2>
+        <p class="text-muted-foreground">
+          Vamos deixar sua experiência no WhatsApp mais eficiente? Ative o bot e
+          personalize do seu jeito!
+        </p>
+      </div>
+    </div>
+
     <form @submit.prevent="submit">
       <div class="mb-8">
         <h4 class="text-md font-medium mb-4">Ativação do Bot</h4>
@@ -15,14 +30,84 @@
           <div class="flex flex-col space-y-2 rounded-lg border p-4">
             <Label for="whatsapp_number">Número de WhatsApp</Label>
             <Input
-              v-model="form.whatsapp_number"
+              v-model="formattedWhatsappNumber"
               id="whatsapp_number"
               placeholder="+55 (00) 00000-0000"
               required
+              @input="formatWhatsappNumber"
             />
             <p class="text-sm text-muted-foreground">
               Número que será vinculado ao Jarbas.
             </p>
+          </div>
+
+          <div class="space-y-4">
+            <div class="flex flex-col space-y-2 rounded-lg border p-4">
+              <Label for="user_name">Como o Jarbas deve te chamar</Label>
+              <Input
+                v-model="form.user_name"
+                id="user_name"
+                placeholder="Ex: amigo, cliente, parceiro"
+              />
+            </div>
+
+            <div class="flex flex-col space-y-2 rounded-lg border p-4">
+              <Label for="user_role">O que você faz</Label>
+              <Input
+                v-model="form.user_role"
+                id="user_role"
+                placeholder="Ex: vendedor, gerente, atendente"
+              />
+              <p class="text-sm text-muted-foreground">
+                Descreva a sua atividade ou função principal.
+              </p>
+            </div>
+
+            <div class="flex flex-col space-y-2 rounded-lg border p-4">
+              <Label>Características do Jarbas</Label>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="flex items-center space-x-2">
+                  <Checkbox
+                    v-model:checked="form.bot_traits.kind"
+                    id="trait_simpatico"
+                  />
+                  <label for="trait_simpatico" class="text-sm">Simpático</label>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <Checkbox
+                    v-model:checked="form.bot_traits.funny"
+                    id="trait_engracado"
+                  />
+                  <label for="trait_engracado" class="text-sm">Engraçado</label>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <Checkbox
+                    v-model:checked="form.bot_traits.professional"
+                    id="trait_profissional"
+                  />
+                  <label for="trait_profissional" class="text-sm"
+                    >Profissional</label
+                  >
+                </div>
+                <div class="flex items-center space-x-2">
+                  <Checkbox
+                    v-model:checked="form.bot_traits.straight"
+                    id="trait_direto"
+                  />
+                  <label for="trait_direto" class="text-sm">Direto</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col space-y-2 rounded-lg border p-4">
+              <Label for="additional_info">Informações adicionais</Label>
+              <Textarea
+                v-model="form.additional_info"
+                id="additional_info"
+                placeholder="Informações extras que ajudem a personalizar a interação..."
+                class="min-h-[100px]"
+              />
+            </div>
           </div>
 
           <div class="flex items-center justify-between rounded-lg border p-4">
@@ -41,80 +126,6 @@
           </div>
           <div v-if="pendingFeedback" class="text-sm text-yellow-600">
             Você precisa responder o feedback abaixo para reativar o bot.
-          </div>
-        </div>
-      </div>
-
-      <Separator class="mb-6" />
-
-      <div class="mb-8">
-        <h4 class="text-md font-medium mb-4">Personalização do Bot</h4>
-        <div class="space-y-4">
-          <div class="flex flex-col space-y-2 rounded-lg border p-4">
-            <Label for="user_name">Como o Jarbas deve te chamar</Label>
-            <Input
-              v-model="form.user_name"
-              id="user_name"
-              placeholder="Ex: amigo, cliente, parceiro"
-            />
-          </div>
-
-          <div class="flex flex-col space-y-2 rounded-lg border p-4">
-            <Label for="user_role">O que você faz</Label>
-            <Input
-              v-model="form.user_role"
-              id="user_role"
-              placeholder="Ex: vendedor, gerente, atendente"
-            />
-            <p class="text-sm text-muted-foreground">
-              Descreva a sua atividade ou função principal.
-            </p>
-          </div>
-
-          <div class="flex flex-col space-y-2 rounded-lg border p-4">
-            <Label>Características do Jarbas</Label>
-            <div class="grid grid-cols-2 gap-2">
-              <div class="flex items-center space-x-2">
-                <Checkbox
-                  v-model:checked="form.bot_traits.kind"
-                  id="trait_simpatico"
-                />
-                <label for="trait_simpatico" class="text-sm">Simpático</label>
-              </div>
-              <div class="flex items-center space-x-2">
-                <Checkbox
-                  v-model:checked="form.bot_traits.funny"
-                  id="trait_engracado"
-                />
-                <label for="trait_engracado" class="text-sm">Engraçado</label>
-              </div>
-              <div class="flex items-center space-x-2">
-                <Checkbox
-                  v-model:checked="form.bot_traits.professional"
-                  id="trait_profissional"
-                />
-                <label for="trait_profissional" class="text-sm"
-                  >Profissional</label
-                >
-              </div>
-              <div class="flex items-center space-x-2">
-                <Checkbox
-                  v-model:checked="form.bot_traits.straight"
-                  id="trait_direto"
-                />
-                <label for="trait_direto" class="text-sm">Direto</label>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex flex-col space-y-2 rounded-lg border p-4">
-            <Label for="additional_info">Informações adicionais</Label>
-            <Textarea
-              v-model="form.additional_info"
-              id="additional_info"
-              placeholder="Informações extras que ajudem a personalizar a interação..."
-              class="min-h-[100px]"
-            />
           </div>
         </div>
       </div>
@@ -246,7 +257,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Loader2, Star } from "lucide-vue-next";
 import moment from "moment";
@@ -296,6 +307,44 @@ const form = ref({
   deactivation_message:
     "O bot Jarbas foi desativado. Para reativar, acesse a plataforma Elevate.",
 });
+
+const formattedWhatsappNumber = computed({
+  get: () => {
+    const num = form.value.whatsapp_number;
+    if (!num) return "";
+
+    return `+${num.substring(0, 2)} ${num.substring(2, 4)} ${num.substring(
+      4,
+      9
+    )}-${num.substring(9)}`
+      .replace(/\s$/, "")
+      .replace(/-$/, "");
+  },
+  set: (value) => {
+    form.value.whatsapp_number = value.replace(/\D/g, "");
+  },
+});
+
+const formatWhatsappNumber = (e) => {
+  let value = e.target.value.replace(/\D/g, "");
+
+  let formatted = "";
+  if (value.length > 0) {
+    formatted = `+${value.substring(0, 2)}`;
+    if (value.length > 2) {
+      formatted += ` (${value.substring(2, 4)}`;
+      if (value.length > 4) {
+        formatted += `) ${value.substring(4, 9)}`;
+        if (value.length > 9) {
+          formatted += `-${value.substring(9, 13)}`;
+        }
+      }
+    }
+  }
+
+  e.target.value = formatted;
+  form.value.whatsapp_number = value;
+};
 
 const feedbackForm = ref({
   rating: null as number | null,
@@ -436,7 +485,7 @@ const submitFeedback = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   try {
     if (activeGroupProject?.type === "group") {
       throw new Error(
@@ -445,7 +494,7 @@ onMounted(() => {
     }
 
     moment.locale("pt-br");
-    loadConfig();
+    await loadConfig();
   } catch (error) {
     console.error("Erro na inicialização:", error);
     toast({
