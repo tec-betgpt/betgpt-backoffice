@@ -20,6 +20,10 @@
           Vamos deixar sua experiência no WhatsApp mais eficiente? Ative o bot e
           personalize do seu jeito!
         </p>
+        <div class="mt-1">
+          <Badge v-if="form.bot_active == true">Ativo</Badge>
+          <Badge variant="destructive" v-else>Desativado</Badge>
+        </div>
       </div>
     </div>
 
