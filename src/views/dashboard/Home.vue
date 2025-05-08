@@ -10,7 +10,7 @@
 
       <div class="flex items-center justify-end w-full">
         <div class="flex flex-col items-center justify-end  sm:flex-row gap-2 w-full ">
-            <CustomDatePicker :model-value="test"/>
+            <CustomDatePicker v-model="selectedRange "/>
           </div>
       </div>
     </div>
@@ -601,7 +601,6 @@ export default {
   },
 
   data: () => ({
-    test: {start: today(getLocalTimeZone()).subtract({ days: 0 }), end: today(getLocalTimeZone()).subtract({ days: 0 })},
     workspaceStore: useWorkspaceStore(),
     players: {
       count: 0,
@@ -630,22 +629,12 @@ export default {
     withdraws:{ total: 0, percentage: 0 },
     projects: [],
     loading: true,
-    currentDate: today(getLocalTimeZone()).subtract({ days: 0 }),
-    startDate: today(getLocalTimeZone()).subtract({ days: 0 }),
     selectedRange: {},
     hideMetricsDaily: false,
     monthlyCountsChart: {},
   }),
 
-  async mounted() {
-    await this._start()
-  },
-
   methods: {
-    async _start () {
-      this.selectedRange = { start: this.startDate, end: this.currentDate }
-      await this.applyFilter();
-    },
 
     async applyFilter () {
       this.loading = true
@@ -687,7 +676,13 @@ export default {
   watch: {
     workspaceStore () {
       this.applyFilter()
-    }
+    },
+    selectedRange: {
+      handler () {
+        this.applyFilter()
+      }
+    },
   }
+
 }
 </script>
