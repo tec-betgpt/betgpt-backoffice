@@ -150,7 +150,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import { Button } from "@/components/ui/button";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { h, onMounted, ref, watch } from "vue";
-import FinancialTransaction from "@/services/financialTransaction";
+import FinancialTransaction from "@/services/financialTransactions";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { toast } from "@/components/ui/toast";
 import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
@@ -167,7 +167,7 @@ import toCurrency from "@/filters/currencyFilter";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
-import CostCenter from "@/services/costCenter";
+import CostCenter from "@/services/costCenters";
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;

@@ -104,8 +104,7 @@ import { h, ref, onMounted } from "vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
-import Financials from '@/services/financials'
-import CostCenter from '@/services/costCenter'
+import CostCenter from '@/services/costCenters'
 import { toast } from "@/components/ui/toast";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
