@@ -9,10 +9,8 @@
     <div class="flex items-center justify-end mb-3">
       <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
         <div class="flex flex-col sm:flex-row gap-2 w-full">
-          <DateRangePicker v-model="selectedRange" class="max-[450px]:flex-2" />
-          <Button class="max-[450px]:flex-1" @click="applyFilter"
-            >Filtrar</Button
-          >
+          <CustomDatePicker v-model="selectedRange"/>
+
         </div>
       </div>
     </div>
@@ -306,7 +304,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import {ref, onMounted, watch} from "vue";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
 import { LineChart } from "@/components/ui/chart-line";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -317,6 +315,7 @@ import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import Analytics from "@/services/analytics";
 import { useWorkspaceStore } from "@/stores/workspace";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
 const workspaceStore = useWorkspaceStore();
 const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
@@ -381,6 +380,10 @@ const applyFilter = async () => {
 
   loading.value = false;
 };
+watch(selectedRange,()=>{
+  applyFilter()
+})
+
 
 onMounted(async () => {
   await applyFilter();

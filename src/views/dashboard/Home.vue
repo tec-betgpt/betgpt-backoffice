@@ -8,10 +8,9 @@
         </p>
       </div>
 
-      <div class="flex items-center justify-end w-full">
-        <div class="flex flex-col items-center justify-end  sm:flex-row gap-2 w-full ">
-            <DateRangePicker v-model="selectedRange" />
-            <Button class="w-full sm:w-24" @click="applyFilter">Aplicar</Button>
+      <div class="flex items-center justify-start w-full">
+        <div class="flex flex-col items-center justify-start  sm:flex-row gap-2 w-full ">
+            <CustomDatePicker v-model="selectedRange "/>
           </div>
       </div>
     </div>
@@ -576,6 +575,7 @@ import { Chart, registerables } from "chart.js";
 
 const { toast } = useToast();
 import { useWorkspaceStore } from "@/stores/workspace";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
 Chart.register(...registerables);
 
@@ -587,6 +587,7 @@ export default {
   },
 
   components: {
+    CustomDatePicker,
     CustomChartTooltipRealPrice,
     DateRangePicker,
     Users,
@@ -628,22 +629,12 @@ export default {
     withdraws:{ total: 0, percentage: 0 },
     projects: [],
     loading: true,
-    currentDate: today(getLocalTimeZone()).subtract({ days: 0 }),
-    startDate: today(getLocalTimeZone()).subtract({ days: 0 }),
     selectedRange: {},
     hideMetricsDaily: false,
     monthlyCountsChart: {},
   }),
 
-  async mounted() {
-    await this._start()
-  },
-
   methods: {
-    async _start () {
-      this.selectedRange = { start: this.startDate, end: this.currentDate }
-      await this.applyFilter();
-    },
 
     async applyFilter () {
       this.loading = true
@@ -685,7 +676,13 @@ export default {
   watch: {
     workspaceStore () {
       this.applyFilter()
-    }
+    },
+    selectedRange: {
+      handler () {
+        this.applyFilter()
+      }
+    },
   }
+
 }
 </script>

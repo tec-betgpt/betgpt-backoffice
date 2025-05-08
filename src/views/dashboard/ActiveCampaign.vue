@@ -8,8 +8,7 @@
     </div>
 
     <div class="flex sm:flex-row flex-col w-full items-start gap-2">
-      <DateRangePicker v-model="selectedRange" class="" />
-      <Button class="sm:w-fit w-full" @click="applyFilter">Filtrar</Button>
+      <CustomDatePicker v-model="selectedRange" class="" />
     </div>
     <div>
       <Card class="w-full">
@@ -72,6 +71,7 @@ const selectedRange = ref({ start: startDate, end: currentDate });
 const { toast } = useToast();
 
 import { useWorkspaceStore } from "@/stores/workspace";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 const workspaceStore = useWorkspaceStore();
 
 const orderId = ref();
@@ -324,6 +324,9 @@ function createHeaderButton(label: string, columnKey: string) {
 onMounted(async () => {
   await applyFilter();
 });
+watch(selectedRange,()=>{
+  applyFilter()
+})
 type CampaignMetrics = {
   ldate: string;
   name: string;
