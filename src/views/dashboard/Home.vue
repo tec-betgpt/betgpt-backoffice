@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="grid min-[900px]:grid-cols-2 gap-4  ">
+    <div class="grid min-[900px]:grid-cols-2 gap-4">
       <div class="">
         <h2 class="text-2xl font-bold tracking-tight">Dashboard</h2>
         <p class="text-muted-foreground">
@@ -9,14 +9,19 @@
       </div>
 
       <div class="flex items-center justify-start w-full">
-        <div class="flex flex-col items-center justify-start  sm:flex-row gap-2 w-full ">
-            <CustomDatePicker v-model="selectedRange "/>
-          </div>
+        <div
+          class="flex flex-col items-center justify-end sm:flex-row gap-2 w-full"
+        >
+          <CustomDatePicker v-model="selectedRange" />
+        </div>
       </div>
     </div>
 
     <div v-if="hideMetricsDaily">
-      <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+      <div
+        v-if="loading"
+        class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+      >
         <Card v-for="n in 4" :key="n">
           <div class="p-4 rounded shadow">
             <div class="flex justify-between items-center mb-2">
@@ -29,9 +34,14 @@
         </Card>
       </div>
 
-      <div v-else class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+      <div
+        v-else
+        class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+      >
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
             <CardTitle class="text-xs font-medium">
               Jogadores Totais
             </CardTitle>
@@ -46,19 +56,21 @@
         </Card>
 
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
             <CardTitle class="text-xs font-medium">
               Jogadores Ativos Totais
             </CardTitle>
             <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                class="h-4 w-4 text-muted-foreground"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              class="h-4 w-4 text-muted-foreground"
             >
               <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
             </svg>
@@ -72,10 +84,10 @@
         </Card>
 
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              Depósitos 7D
-            </CardTitle>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="text-xs font-medium"> Depósitos 7D </CardTitle>
             <CreditCard class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -83,16 +95,20 @@
               {{ $toCurrency(deposits.total / 100) }}
             </div>
             <p class="text-xs text-muted-foreground">
-              {{ deposits.percentage > 0 ? "+" + deposits.percentage : deposits.percentage }}% desde a semana anterior
+              {{
+                deposits.percentage > 0
+                  ? "+" + deposits.percentage
+                  : deposits.percentage
+              }}% desde a semana anterior
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">
-              Saques 7D
-            </CardTitle>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="text-sm font-medium"> Saques 7D </CardTitle>
             <HandCoins class="h-6 w-6 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -100,7 +116,11 @@
               {{ $toCurrency(withdraws.total / 100) }}
             </div>
             <p class="text-xs text-muted-foreground">
-              {{ withdraws.percentage > 0 ? "+" + withdraws.percentage : withdraws.percentage }}% desde a semana anterior
+              {{
+                withdraws.percentage > 0
+                  ? "+" + withdraws.percentage
+                  : withdraws.percentage
+              }}% desde a semana anterior
             </p>
           </CardContent>
         </Card>
@@ -122,10 +142,10 @@
 
     <div v-else class="grid gap-1 md:grid-cols-1 mb-3">
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-xs font-medium">
-            Net Deposit
-          </CardTitle>
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
+          <CardTitle class="text-xs font-medium"> Net Deposit </CardTitle>
           <Users class="h-6 w-6 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -136,7 +156,10 @@
       </Card>
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+    <div
+      v-if="loading"
+      class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+    >
       <Card v-for="n in 4" :key="n">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
@@ -149,9 +172,14 @@
       </Card>
     </div>
 
-    <div v-else class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+    <div
+      v-else
+      class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+    >
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Qtd. Depósitos Gerados
           </CardTitle>
@@ -165,7 +193,9 @@
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Total Depósitos Gerados
           </CardTitle>
@@ -179,19 +209,21 @@
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">Depósitos Pagos</CardTitle>
           <CircleCheck class="h-6 w-6 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">
-            +{{ deposits.paid_deposits }}
-          </div>
+          <div class="text-2xl font-bold">+{{ deposits.paid_deposits }}</div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Total Depósitos Pagos
           </CardTitle>
@@ -205,7 +237,10 @@
       </Card>
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+    <div
+      v-if="loading"
+      class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+    >
       <Card v-for="n in 4" :key="n">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
@@ -218,23 +253,28 @@
       </Card>
     </div>
 
-    <div v-else class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+    <div
+      v-else
+      class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+    >
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Porcentagem Conversão Depósito
           </CardTitle>
           <CirclePercent class="h-6 w-6 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">
-            {{ deposits.conversion_rate }}%
-          </div>
+          <div class="text-2xl font-bold">{{ deposits.conversion_rate }}%</div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Ticket Médio Depósito
           </CardTitle>
@@ -248,21 +288,23 @@
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Quantidade Primeiros Depósitantes
           </CardTitle>
           <PiggyBank class="h-6 w-6 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">
-            +{{ deposits.total_ftd_count }}
-          </div>
+          <div class="text-2xl font-bold">+{{ deposits.total_ftd_count }}</div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Total Primeiros Depósitantes
           </CardTitle>
@@ -276,7 +318,10 @@
       </Card>
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+    <div
+      v-if="loading"
+      class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+    >
       <Card v-for="n in 4" :key="n">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
@@ -288,9 +333,14 @@
         </div>
       </Card>
     </div>
-    <div v-else class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+    <div
+      v-else
+      class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+    >
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Qtd. Saques Gerados
           </CardTitle>
@@ -304,7 +354,9 @@
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Total Saques Gerados
           </CardTitle>
@@ -318,21 +370,21 @@
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-xs font-medium">
-            Qtd. Saques Pagos
-          </CardTitle>
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
+          <CardTitle class="text-xs font-medium"> Qtd. Saques Pagos </CardTitle>
           <CircleCheck class="h-6 w-6 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">
-            +{{ withdraws.paid_withdraws }}
-          </div>
+          <div class="text-2xl font-bold">+{{ withdraws.paid_withdraws }}</div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Total Saques Pagos
           </CardTitle>
@@ -346,7 +398,10 @@
       </Card>
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3">
+    <div
+      v-if="loading"
+      class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3"
+    >
       <Card v-for="n in 4" :key="n">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
@@ -360,21 +415,23 @@
     </div>
     <div v-else class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3">
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Porcentagem Conversão Saques
           </CardTitle>
           <CirclePercent class="h-6 w-6 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">
-            {{ withdraws.conversion_rate }}%
-          </div>
+          <div class="text-2xl font-bold">{{ withdraws.conversion_rate }}%</div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Ticket Médio Saques
           </CardTitle>
@@ -388,7 +445,10 @@
       </Card>
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+    <div
+      v-if="loading"
+      class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+    >
       <Card v-for="n in 4" :key="n">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
@@ -401,9 +461,14 @@
       </Card>
     </div>
 
-    <div v-else class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+    <div
+      v-else
+      class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3"
+    >
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Quantidade de Cadastros do Dia
           </CardTitle>
@@ -417,7 +482,9 @@
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Porcentagem FTD Geral
           </CardTitle>
@@ -431,7 +498,9 @@
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Quantidade de Primeiros Depositantes dos Cadastros
           </CardTitle>
@@ -445,7 +514,9 @@
       </Card>
 
       <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
           <CardTitle class="text-xs font-medium">
             Porcentagem FTD Cadastros Depósitantes
           </CardTitle>
@@ -459,7 +530,9 @@
       </Card>
     </div>
 
-    <div class="sm:grid gap-4 md:gap-8 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
+    <div
+      class="sm:grid gap-4 md:gap-8 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3"
+    >
       <Card class="mb-4 sm:mb-0">
         <CardHeader>
           <Skeleton class="h-6" v-if="loading" />
@@ -467,16 +540,18 @@
         </CardHeader>
         <CardContent>
           <div v-if="loading">
-            <Skeleton class="pl-5 h-72 " />
+            <Skeleton class="pl-5 h-72" />
           </div>
           <div v-else>
             <BarChart
-                :data="deposits.monthly_counts"
-                :categories="['Total']"
-                :index="'name'"
-                :rounded-corners="4"
-                :y-formatter="(tick) => (typeof tick === 'number' ? $toK(tick) : '')"
-                :custom-tooltip="CustomChartTooltip"
+              :data="deposits.monthly_counts"
+              :categories="['Total']"
+              :index="'name'"
+              :rounded-corners="4"
+              :y-formatter="
+                (tick) => (typeof tick === 'number' ? $toK(tick) : '')
+              "
+              :custom-tooltip="CustomChartTooltip"
             />
           </div>
         </CardContent>
@@ -506,14 +581,22 @@
           </div>
           <div v-else class="space-y-8">
             <div
-                v-for="deposit in deposits.lasts"
-                :key="deposit.id"
-                class="flex items-center"
+              v-for="deposit in deposits.lasts"
+              :key="deposit.id"
+              class="flex items-center"
             >
               <Avatar class="h-9 w-9">
                 <AvatarFallback>
-                  {{ deposit.player.name ? deposit.player.name.charAt(0) : deposit.player.email.charAt(0).toUpperCase() }}
-                  {{ deposit.player.name ? deposit.player.name.charAt(1) : deposit.player.email.charAt(1) }}
+                  {{
+                    deposit.player.name
+                      ? deposit.player.name.charAt(0)
+                      : deposit.player.email.charAt(0).toUpperCase()
+                  }}
+                  {{
+                    deposit.player.name
+                      ? deposit.player.name.charAt(1)
+                      : deposit.player.email.charAt(1)
+                  }}
                 </AvatarFallback>
               </Avatar>
               <div class="ml-4 space-y-1 w-1/2">
@@ -526,7 +609,7 @@
               </div>
               <div class="ml-auto text-right">
                 <span class="font-medium"
-                >+{{ $toCurrency(deposit.value / 100) }}</span
+                  >+{{ $toCurrency(deposit.value / 100) }}</span
                 >
                 <TooltipProvider>
                   <Tooltip>
@@ -539,7 +622,7 @@
                       <p>
                         {{
                           $moment(deposit.created_at).format(
-                              "DD/MM/YYYY HH:mm:ss"
+                            "DD/MM/YYYY HH:mm:ss"
                           )
                         }}
                       </p>
@@ -556,7 +639,7 @@
 </template>
 
 <script lang="ts">
-import Home from '@/services/home'
+import Home from "@/services/home";
 import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import {
@@ -582,8 +665,8 @@ Chart.register(...registerables);
 export default {
   computed: {
     CustomChartTooltip() {
-      return CustomChartTooltipRealPrice
-    }
+      return CustomChartTooltipRealPrice;
+    },
   },
 
   components: {
@@ -611,7 +694,7 @@ export default {
       registered_users_day: 0,
     },
     activeNow: { count: 0, change: 0 },
-    deposits:{
+    deposits: {
       total: 0,
       percentage: 0,
       last6: [],
@@ -626,7 +709,7 @@ export default {
       total_paid_deposits: 0,
       total_pending_deposits: 0,
     },
-    withdraws:{ total: 0, percentage: 0 },
+    withdraws: { total: 0, percentage: 0 },
     projects: [],
     loading: true,
     selectedRange: {},
@@ -635,9 +718,8 @@ export default {
   }),
 
   methods: {
-
-    async applyFilter () {
-      this.loading = true
+    async applyFilter() {
+      this.loading = true;
 
       if (!this.workspaceStore.activeGroupProject?.id) {
         toast({
@@ -649,13 +731,15 @@ export default {
       }
 
       try {
-        this.hideMetricsDaily = (this.selectedRange?.start.toString() === this.selectedRange?.end.toString())
+        this.hideMetricsDaily =
+          this.selectedRange?.start.toString() ===
+          this.selectedRange?.end.toString();
 
         const { data } = await Home.index({
           filter_id: this.workspaceStore.activeGroupProject.id,
           start_date: this.selectedRange.start?.toString(),
           end_date: this.selectedRange.end?.toString(),
-        })
+        });
 
         this.players = data.players;
         this.activeNow = data.active_now;
@@ -666,7 +750,7 @@ export default {
           title: "Erro ao carregar dados",
           description: "Não foi possível aplicar o filtro selecionado.",
           variant: "destructive",
-        })
+        });
       }
 
       this.loading = false;
@@ -674,15 +758,14 @@ export default {
   },
 
   watch: {
-    workspaceStore () {
-      this.applyFilter()
+    workspaceStore() {
+      this.applyFilter();
     },
     selectedRange: {
-      handler () {
-        this.applyFilter()
-      }
+      handler() {
+        this.applyFilter();
+      },
     },
-  }
-
-}
+  },
+};
 </script>
