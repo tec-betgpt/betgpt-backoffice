@@ -9,10 +9,8 @@
     <div class="flex items-center justify-end mb-3">
       <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
         <div class="flex flex-col sm:flex-row gap-2 w-full">
-          <DateRangePicker v-model="selectedRange" class="max-[450px]:flex-2" />
-          <Button class="max-[450px]:flex-1" @click="applyFilter"
-            >Filtrar</Button
-          >
+          <CustomDatePicker v-model="selectedRange" />
+
         </div>
       </div>
     </div>
@@ -312,7 +310,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h } from "vue";
+import {ref, onMounted, h, watch} from "vue";
 import SmsFunnel from "@/services/smsFunnel";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import {
@@ -358,6 +356,7 @@ const selectedRange = ref({ start: startDate, end: currentDate });
 const { toast } = useToast();
 
 import { useWorkspaceStore } from "@/stores/workspace";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 const workspaceStore = useWorkspaceStore();
 
 const loading = ref(true);
@@ -483,7 +482,9 @@ function createHeaderButton(label: string, columnKey: string) {
 onMounted(async () => {
   await applyFilter();
 });
-
+watch(selectedRange, () => {
+  applyFilter();
+})
 type CampaignMetrics = {
   name: string;
   sms: number;

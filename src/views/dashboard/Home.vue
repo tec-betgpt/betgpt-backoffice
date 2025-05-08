@@ -8,8 +8,8 @@
         </p>
       </div>
 
-      <div class="flex items-center justify-end w-full">
-        <div class="flex flex-col items-center justify-end  sm:flex-row gap-2 w-full ">
+      <div class="flex items-center justify-start w-full">
+        <div class="flex flex-col items-center justify-start  sm:flex-row gap-2 w-full ">
             <CustomDatePicker v-model="selectedRange "/>
           </div>
       </div>

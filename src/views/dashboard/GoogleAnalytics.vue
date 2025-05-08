@@ -9,10 +9,8 @@
     <div class="flex items-center justify-end mb-3">
       <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
         <div class="flex flex-col sm:flex-row gap-2 w-full">
-          <DateRangePicker v-model="selectedRange" class="max-[450px]:flex-2" />
-          <Button class="max-[450px]:flex-1" @click="applyFilter"
-            >Filtrar</Button
-          >
+          <CustomDatePicker v-model="selectedRange"/>
+
         </div>
       </div>
     </div>
@@ -377,7 +375,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import {ref, onMounted, computed, watch} from "vue";
 import GoogleAnalytics from '@/services/googleAnalytics'
 import { getLocalTimeZone, today } from "@internationalized/date";
 import moment from "moment";
@@ -388,6 +386,7 @@ import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPer
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
 const workspaceStore = useWorkspaceStore();
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
@@ -528,4 +527,7 @@ const formatDuration = (averageEngagementDuration) => {
 onMounted(async () => {
   await applyFilter();
 });
+watch(selectedRange,()=>{
+  applyFilter()
+})
 </script>
