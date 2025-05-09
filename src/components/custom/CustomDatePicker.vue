@@ -126,7 +126,7 @@ watch(openS,(newV)=>{
 </script>
 
 <template>
-  <Popover :open="popoverOpen">
+  <Popover v-model:open="popoverOpen">
     <PopoverTrigger as-child>
       <Select
           v-model:open="openS"
@@ -135,15 +135,18 @@ watch(openS,(newV)=>{
       >
         <SelectTrigger  class="md:w-96 w-full">
           <CalendarIcon class="mr-2 h-4 w-4" />
-          <template v-if="value.start">
-            <template v-if="value.end">
-              {{ df.format(value.start.toDate(getLocalTimeZone())) }} –
-              {{ df.format(value.end.toDate(getLocalTimeZone())) }}
-            </template>
-            <template v-else>
-              {{ df.format(value.start.toDate(getLocalTimeZone())) }}
-            </template>
-          </template>
+      <template v-if="selectedPreset !== 'custom'">
+        {{ selectedPreset === 'today' ? 'Hoje' : selectedPreset === 'yesterday' ? 'Ontem' : `Últimos ${selectedPreset.replace('days', '')} dias` }}
+      </template>
+      <template v-else-if="value.start">
+        <template v-if="value.end">
+          {{ df.format(value.start.toDate(getLocalTimeZone())) }} –
+          {{ df.format(value.end.toDate(getLocalTimeZone())) }}
+        </template>
+        <template v-else>
+          {{ df.format(value.start.toDate(getLocalTimeZone())) }}
+        </template>
+      </template>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="custom">Personalizado</SelectItem>
