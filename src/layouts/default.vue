@@ -193,12 +193,7 @@
                 >
                   <Avatar class="h-8 w-8 rounded-lg">
                     <AvatarImage
-                      v-if="
-                        authStore.user &&
-                        authStore.user.media &&
-                        authStore.user.media.length
-                      "
-                      :src="authStore.user?.media[0].original_url"
+                        :src="authStore.user?.icon"
                     />
                     <AvatarFallback class="rounded-lg">
                       {{ authStore.user?.initials }}
@@ -226,10 +221,7 @@
                     class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
                   >
                     <Avatar class="h-8 w-8 rounded-lg">
-                      <AvatarImage
-                        :src="authStore.user?.avatar"
-                        :alt="authStore.user?.name"
-                      />
+
                       <AvatarFallback class="rounded-lg">
                         {{ authStore.user?.initials }}
                       </AvatarFallback>
