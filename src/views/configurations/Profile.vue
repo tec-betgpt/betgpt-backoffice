@@ -107,8 +107,8 @@
           <div class="mb-4 flex flex-col items-center justify-center gap-2">
             <Avatar size="lg">
               <AvatarImage
-                v-if="authStore.user.media && authStore.user.media.length"
-                :src="authStore.user?.media[0].original_url"
+                v-if="authStore.user.icon"
+                :src="authStore.user?.icon"
               />
               <AvatarFallback>
                 {{ authStore.user?.initials }}
