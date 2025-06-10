@@ -36,9 +36,9 @@ export default {
   /**
    * GET /v1/auth/login/two-factor/{id}
    *
-   * @param {number} id
+   * @param {string} id
    */
-  async getLoginTwoFactor (id) {
+  async getResendTwoFactor (id) {
     const { data } = await api.get(`/auth/login/two-factor/${id}`)
     return data
   },
@@ -46,7 +46,7 @@ export default {
   /**
    * GET /v1/auth/validate-recovery-code/{id}
    *
-   * @param {number} id
+   * @param {string} id
    */
   async getValidateRecoveryCode (id) {
     const { data } = await api.get(`/auth/validate-recovery-code/${id}`)
@@ -57,8 +57,7 @@ export default {
    * POST /v1/auth/validate-recovery-code
    *
    * @param {object} body
-   * @param {string} body.email
-   * @param {string} body.password
+   * @param {string} body.id
    * @param {string} body.recovery_code
    */
   async validateRecoveryCode (body) {

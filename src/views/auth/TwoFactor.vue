@@ -1,11 +1,14 @@
 <template>
-  <div
-      class="flex justify-center items-center align-middle min-h-screen lg:w-1/2 w-full"
-  >
+  <div class="h-screen w-full flex-col flex p-6 items-center align-middle relative">
+    <div class="w-full h-16 absolute z-10 ">
+      <img :src="mode == 'light' ? '/logo-elevate-square-black.png':'/logo-elevate-square-white.png'"
+           class=" h-16 ml-6"
+           alt="Logo Elevate"/>
+    </div>
     <!-- Tela de Inserção de Código PIN -->
     <div
         v-if="recoveryScreen"
-        class="mx-10 flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
+        class="mx-10 flex w-full h-screen flex-col justify-center space-y-6 sm:w-[350px]"
     >
       <div class="flex flex-col space-y-2 text-center">
         <h1 class="text-2xl font-semibold tracking-tight">
@@ -48,7 +51,7 @@
     <!-- Tela de Recuperação de Conta com Palavras-Chave -->
     <div
         v-else
-        class="mx-10 flex w-full flex-col justify-center space-y-6 sm:w-[400px]"
+        class="mx-10 flex w-full flex-col h-screen justify-center space-y-6 sm:w-[400px]"
     >
       <div class="flex flex-col space-y-2 text-center">
         <h1 class="text-2xl font-semibold tracking-tight">
@@ -139,19 +142,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import Pin from "@/components/custom/CustomPinInput.vue";
+import {useColorMode} from "@vueuse/core";
+import {useWorkspaceStore} from "@/stores/workspace";
 
 const { toast } = useToast();
 const router = useRouter();
 const authStore = useAuthStore();
 
-// Obtenha os dados da store.
-// A tela de login deve salvar esses dados na store antes de navegar para esta rota.
-const form = computed(() => authStore.twoFactorData.form);
+
 const userId = computed(() => authStore.twoFactorData.userId);
 const authMethod = computed(() => authStore.twoFactorData.authMethod);
-
+// console.log(userId.value,authMethod.value)
 
 // Variáveis de estado do componente
+const workspaceStore = useWorkspaceStore();
 const loading = ref(false);
 const loadingRecovery = ref(false);
 const recoveryScreen = ref(true);
@@ -160,7 +164,7 @@ const resend = ref(false);
 const isDialog = ref(false);
 const previewCode = ref<Array<string>>([]);
 const securityCode = ref<Array<string>>([]);
-
+const mode = useColorMode()
 /**
  * Navega de volta para a tela anterior (login).
  */
@@ -173,7 +177,7 @@ function goBack() {
  */
 function handleRecoverySuccess() {
   isDialog.value = false;
-  authStore.clearTwoFactorData(); // Limpa os dados temporários da store
+ // authStore.clearTwoFactorData(); // Limpa os dados temporários da store
   router.push("/login");
 }
 
@@ -190,9 +194,7 @@ const twoFactorLogin = async (code: Array<string>) => {
   }
   loading.value = true;
   try {
-    const localForm = { ...form.value };
-    localForm.two_factor_code = code.join("");
-    const { data } = await Auth.getLoginTwoFactor(localForm);
+    const { data } = await Auth.twoFactor({id:userId.value,two_factor_code:code.join("")});
 
     // Lógica de sucesso do login
     const tokenAuth = data ? data.token : null;
@@ -200,7 +202,11 @@ const twoFactorLogin = async (code: Array<string>) => {
 
     if (tokenAuth && userAuth) {
       authStore.setUserData(userAuth, tokenAuth);
-      authStore.clearTwoFactorData(); // Limpa os dados temporários
+     // authStore.clearTwoFactorData(); // Limpa os dados temporários
+      await workspaceStore.loadInitialData(
+          userAuth?.preferences,
+          userAuth?.group_projects
+      );
       router.push("/"); // Redireciona para a página principal
     } else {
       // Tratar caso de erro inesperado, se necessário
@@ -219,7 +225,7 @@ const twoFactorLogin = async (code: Array<string>) => {
 const resendTwoFactorLogin = async () => {
   resend.value = false;
   try {
-    const data = await Auth.getTwoFactor(userId.value);
+    const data = await Auth.getResendTwoFactor(userId.value);
     time.value = 60;
     startResendTimer();
     toast({
@@ -257,12 +263,11 @@ const submitRecoveryCode = async () => {
     return;
   }
 
-  const localForm = { ...form.value };
-  localForm.recovery_code = securityCode.value.join("-");
+
 
   try {
     loadingRecovery.value = true;
-    await Auth.validateRecoveryCode(localForm);
+    await Auth.validateRecoveryCode({id:userId.value,recovery_code:securityCode.value.join("-")});
     isDialog.value = true;
   } catch (error) {
     console.error("Erro ao validar código de recuperação:", error);
@@ -294,7 +299,7 @@ function startResendTimer() {
 
 onMounted(() => {
   // Verifica se os dados necessários existem, caso contrário, volta ao login.
-  if (!userId.value || !form.value) {
+  if (!userId.value) {
     console.error("Dados de 2FA não encontrados. Redirecionando para o login.");
     router.push('/login');
     return;

@@ -1,135 +1,150 @@
 <template>
   <div
-    class="p-6 h-screen w-screen flex flex-col   justify-start items-center align-middle "
+    class=" h-screen w-screen flex-col flex p-6 items-center align-middle relative "
   >
-    <div class="w-full h-16 flex justify-center items-center   align-middle">
-      <Progress v-model="progress"  class="md:w-2/6 w-3/4" />
+    <div class="w-full  h-16 flex justify-center items-center absolute  align-middle">
+      <Progress v-model="progress"  class="sm:w-2/5 w-2/4 max-w-80" />
     </div>
-    <div class="w-full flex h-fit justify-center items-center  align-middle ">
-      <img :src="mode == 'light' ? '/logo-elevate-square-black.png':'/logo-elevate-square-white.png'" class="h-20" alt=""/>
-    </div>
-    <div class="mx-auto flex w-full h-3/4 flex-col justify-center align-middle items-center space-y-6 sm:w-[350px] sm:p-0">
-      <template v-if="step === 1">
-        <div class="flex flex-col space-y-2 text-center">
-          <h1 class="text-2xl font-semibold tracking-tight">
-            {{ $t("recover_password") }}
-          </h1>
-          <p class="text-sm text-muted-foreground">
-            {{ $t("slogan") }}
-          </p>
-        </div>
-        <div :class="cn('grid gap-6 w-full')">
-          <form @submit.prevent="recover">
+    <div class="h-full w-full  flex flex-col justify-center align-middle items-center">
+      <div class="w-full flex h-fit justify-center items-center animate-in animate-out  align-middle ">
+        <img :src="mode == 'light' ? '/logo-elevate-square-black.png':'/logo-elevate-square-white.png'" class="h-20" alt=""/>
+      </div>
+      <div class="flex w-full  h-fit flex-col justify-center align-middle items-center space-y-6 sm:w-[350px] py-20">
+        <template v-if="step === 1">
+          <div class="flex flex-col w-full space-y-1 text-center">
+            <h1 class="text-2xl font-semibold tracking-tight">
+              {{ $t("recover_password") }}
+            </h1>
+            <p class="text-sm text-muted-foreground">
+              {{ $t("recover_text") }}
+            </p>
+          </div>
+          <form @submit.prevent="recover" class="w-full">
             <div class="grid gap-2">
-              <div class="grid gap-1 mb-2">
-                <Label class="sr-only" for="email"> {{ $t("email") }} </Label>
-                <Input
-                    id="email"
-                    placeholder="email@betgpt.com.br"
-                    type="email"
-                    v-model="formStep1.key"
-                    :disabled="loading"
-                />
+                <div class="grid gap-1 mb-2">
+                  <Label class="font-semibold text-xs" for="email"> {{ $t("email") }} </Label>
+                  <Input
+                      id="email"
+                      type="email"
+                      v-model="formStep1.key"
+                      :disabled="loading"
+                  />
+                </div>
+                <Button :disabled="loading" type="submit">
+                  <LucideSpinner
+                      v-if="loading"
+                      class="mr-2 h-4 w-4 animate-spin"
+                  />
+                  {{ $t("recover") }}
+                </Button>
               </div>
-              <Button :disabled="loading" type="submit">
-                <LucideSpinner
-                    v-if="loading"
-                    class="mr-2 h-4 w-4 animate-spin"
-                />
-                {{ $t("recover") }}
-              </Button>
-            </div>
           </form>
-        </div>
-      </template>
+        </template>
 
-      <template v-if="step === 2">
-        <div class="flex flex-col space-y-2 text-center">
-          <h1 class="text-2xl font-semibold tracking-tight">
-            {{ $t("sended_email") }}
-          </h1>
-          <p class="text-sm text-muted-foreground">
-            {{ $t("insert_code_to_your_email") }}
-          </p>
-        </div>
-        <div :class="cn('grid gap-6 w-full')">
-          <form @submit.prevent="nextStep">
-            <div class="grid gap-2">
-              <div class="grid gap-1 mb-2">
-                <Label class="sr-only" for="token">
-                  {{ $t("verification_code") }}
-                </Label>
-                <Input
-                    id="token"
-                    placeholder="Token recebido no e-mail"
-                    type="text"
-                    v-model="token"
-                    :disabled="loading"
-                />
+        <template v-if="step === 2">
+          <div class="flex flex-col space-y-1 text-center">
+            <h1 class="text-2xl font-semibold tracking-tight">
+              {{ $t("sended_email") }}
+            </h1>
+            <p class="text-sm text-muted-foreground">
+              {{ $t("insert_code_to_your_email") }}
+            </p>
+          </div>
+          <div :class="cn('grid gap-6 w-full')">
+            <form @submit.prevent="nextStep">
+              <div class="grid gap-2">
+                <div class="grid gap-1 mb-2">
+                  <Label class="text-xs font-semibold" for="token">
+                    {{ $t("verification_code") }}
+                  </Label>
+                  <Input
+                      id="token"
+                      type="text"
+                      v-model="token"
+                      :disabled="loading"
+                  />
+                </div>
+                <Button :disabled="loading" type="submit">
+                  <LucideSpinner
+                      v-if="loading"
+                      class="mr-2 h-4 w-4 animate-spin"
+                  />
+                  {{ $t("confirm") }}
+                </Button>
               </div>
-              <Button :disabled="loading" type="submit">
-                <LucideSpinner
-                    v-if="loading"
-                    class="mr-2 h-4 w-4 animate-spin"
-                />
-                {{ $t("confirm") }}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </template>
+            </form>
+          </div>
+        </template>
 
-      <template v-if="step === 3">
-        <div class="flex flex-col space-y-2 text-center">
-          <h1 class="text-2xl font-semibold tracking-tight">
-            {{ $t("create_new_password") }}
-          </h1>
-          <p class="text-sm text-muted-foreground">
-            {{ $t("new_password_instructions") }}
-          </p>
-        </div>
-        <div :class="cn('grid gap-6 w-full')">
-          <form @submit.prevent="confirmNewPassword">
-            <div class="grid gap-2">
-              <div class="grid gap-1 mb-2">
-                <Label class="sr-only" for="new_password">
-                  {{ $t("new_password") }}
-                </Label>
-                <Input
-                    id="new_password"
-                    placeholder="Nova Senha"
-                    type="password"
-                    v-model="formStep3.password"
-                    :disabled="loading"
-                />
+        <template v-if="step === 3">
+          <div class="flex flex-col space-y-2 text-center">
+            <h1 class="text-2xl font-semibold tracking-tight">
+              {{ $t("create_new_password") }}
+            </h1>
+            <p class="text-sm text-muted-foreground">
+              {{ $t("new_password_instructions") }}
+            </p>
+          </div>
+          <div :class="cn('grid gap-6 w-full')">
+            <form @submit.prevent="confirmNewPassword">
+              <div class="grid gap-2">
+                <div class="grid gap-1 mb-2">
+                  <Label class="sr-only" for="new_password">
+                    {{ $t("new_password") }}
+                  </Label>
+                  <Input
+                      id="new_password"
+                      placeholder="Nova Senha"
+                      type="password"
+                      v-model="formStep3.password"
+                      :disabled="loading"
+                  />
+                </div>
+                <div class="grid gap-1 mb-2">
+                  <Label class="sr-only" for="password_confirmation">
+                    {{ $t("confirm_password") }}
+                  </Label>
+                  <Input
+                      id="password_confirmation"
+                      placeholder="Confirmação de senha"
+                      type="password"
+                      v-model="formStep3.password_confirmation"
+                      :disabled="loading"
+                  />
+                </div>
+                <Button :disabled="loading" type="submit">
+                  <LucideSpinner
+                      v-if="loading"
+                      class="mr-2 h-4 w-4 animate-spin"
+                  />
+                  {{ $t("confirm") }}
+                </Button>
               </div>
-              <div class="grid gap-1 mb-2">
-                <Label class="sr-only" for="password_confirmation">
-                  {{ $t("confirm_password") }}
-                </Label>
-                <Input
-                    id="password_confirmation"
-                    placeholder="Confirmação de senha"
-                    type="password"
-                    v-model="formStep3.password_confirmation"
-                    :disabled="loading"
-                />
-              </div>
-              <Button :disabled="loading" type="submit">
-                <LucideSpinner
-                    v-if="loading"
-                    class="mr-2 h-4 w-4 animate-spin"
-                />
-                {{ $t("confirm") }}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </template>
-      <Button @click="goBack" class="w-full" variant="outline">
-        Voltar
-      </Button>
+            </form>
+          </div>
+        </template>
+
+        <template v-if="step === 4">
+          <div class="flex flex-col space-y-2 text-center">
+            <h1 class="text-2xl font-semibold tracking-tight">
+              {{ $t("finish") }}
+            </h1>
+            <p class="text-sm text-muted-foreground">
+              {{ $t("recover_finish_text") }}
+
+            </p>
+
+          </div>
+        </template>
+        <Button @click="goBack" v-if="step !== 4" class="sm:w-full w-3/4" variant="outline">
+          Voltar
+        </Button>
+        <Button v-else @click="finish" class="sm:w-full w-3/4" >
+            Sair
+        </Button>
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -171,7 +186,8 @@ watch(step, () => {
   switch (step.value) {
     case 1: progress.value = 33; break;
     case 2: progress.value = 66; break;
-    case 3: progress.value = 90; break;
+    case 3: progress.value = 80; break;
+    case 4: progress.value = 100; break;
   }
 },{immediate: true})
 const setStep = (value) => {
@@ -235,6 +251,7 @@ const goBack = () => {
   }
 };
 
+
 const confirmNewPassword = async () => {
   loading.value = true;
   try {
@@ -242,25 +259,14 @@ const confirmNewPassword = async () => {
       email: formStep1.value.key,
       token: token.value,
     })
-
-    const { data } = await Auth.login({
-      email: formStep1.value.key,
-      password: formStep3.value.password,
-    })
-
-    const tokenAuth = data.token;
-    const userAuth = data.user;
-
-    if (tokenAuth && userAuth) {
-      authStore.setUserData(userAuth, tokenAuth);
-      router.push("/");
-    } else {
-      router.push("/login");
-    }
+  setStep(4)
   } catch (error) {
     console.log(error);
   } finally {
     loading.value = false;
   }
 };
+const finish = () => {
+  router.push("/login");
+}
 </script>

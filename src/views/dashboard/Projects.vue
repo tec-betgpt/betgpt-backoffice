@@ -273,7 +273,7 @@ const toggleStatus = async (project) => {
       description: `Projeto ${
         newStatus === "active" ? "ativado" : "inativado"
       } com sucesso.`,
-      variant: "success",
+      variant: "default",
     });
   } catch (_) {
     toast({
