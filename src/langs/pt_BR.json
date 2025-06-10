@@ -1,6 +1,6 @@
 {
-  "login_your_account": "Entre na sua conta",
-  "login_info1": "Digite seu email e senha abaixo para realizar o login.",
+  "login_your_account": "Iniciar Sessão",
+  "login_info1": "Entre com seu e-mail e senha",
   "login_used_two_factor": "Autenticação de dois fatores ativada.",
   "login_info_two_factor": "Digite o código de verificação enviado para o seu email ou gerado pelo aplicativo de autenticação.",
   "no_access_two_factor": "Não tenho acesso ao dois fatores.",
