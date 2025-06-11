@@ -98,15 +98,12 @@
 }
 </style>
 <script setup lang="ts">
-import {onMounted, ref, computed} from "vue";
+import { ref, computed} from "vue";
 import {useRouter} from "vue-router";
 import {useAuthStore} from "@/stores/auth";
 import Auth from '@/services/auth';
-import {cn} from "@/lib/utils";
-import {Loader2 as LucideSpinner, Quote} from "lucide-vue-next";
+import {Loader2 as LucideSpinner} from "lucide-vue-next";
 import axios from "axios";
-import {useToast} from "@/components/ui/toast/use-toast";
-import i18n from "@/i18n";
 import {useColorMode} from "@vueuse/core";
 import {useConfigStore} from "@/stores/config";
 import {useWorkspaceStore} from "@/stores/workspace";
@@ -122,6 +119,16 @@ const form = ref({
 })
 
 
+/**
+ * Lida com a resposta do login, armazenando os dados do usuário e redirecionando conforme necessário.
+ *
+ * @param {Object} param - O objeto contendo os dados da resposta.
+ * @param {any} param.data - Os dados retornados pela API de login.
+ *
+ * - Se o token e os dados do usuário forem válidos, armazena as informações do usuário,
+ *   redireciona para a página inicial e realiza uma chamada adicional para autenticação externa, se configurada.
+ * - Caso contrário, verifica se há dados para autenticação de dois fatores e redireciona para a página correspondente.
+ */
 const handleLoginResponse = async ({data}: any) => {
   const tokenAuth = data ? data.token : null;
   const userAuth = data ? data.user : null;
@@ -149,17 +156,25 @@ const handleLoginResponse = async ({data}: any) => {
     );
   } else {
     if (data[1]) {
-      authStore.setTwoFactorData(data[0],data[1]);
-      router.push("/two-factor")
+      authStore.setTwoFactorData(data[0], data[1]);
+      router.push("/two-factor");
     }
   }
 };
 
+/**
+ * Realiza o processo de login, chamando a API e lidando com a resposta.
+ *
+ * - Define o estado de carregamento como ativo durante a execução.
+ * - Em caso de sucesso, delega o tratamento da resposta para `handleLoginResponse`.
+ * - Em caso de erro, exibe a mensagem de erro no console.
+ * - Garante que o estado de carregamento seja desativado ao final.
+ */
 const login = async () => {
   loading.value = true;
 
   try {
-    const data = await Auth.login(form.value)
+    const data = await Auth.login(form.value);
     handleLoginResponse(data);
   } catch (error) {
     console.error("Erro ao fazer login:", error);
@@ -167,7 +182,6 @@ const login = async () => {
     loading.value = false;
   }
 };
-
 const configStore = useConfigStore();
 const message = computed(() => configStore.message);
 

@@ -151,19 +151,15 @@
 <script setup lang="ts">
 import {ref, watch} from "vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/auth";
-import Auth from '@/services/auth'
 import Recover from '@/services/recover'
 import Tokens from '@/services/tokens'
-import { buttonVariants } from "@/components/ui/button";
 import Swal from "sweetalert2";
 import { cn } from "@/lib/utils";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { Progress } from '@/components/ui/progress'
 import {useColorMode} from "@vueuse/core";
-const router = useRouter();
-const authStore = useAuthStore();
 
+const router = useRouter();
 const step = ref(1);
 const loading = ref(false);
 const token = ref("");
@@ -173,15 +169,14 @@ const formStep1 = ref({
   action: "password_recovery",
   type: "email",
 });
-
 const formStep3 = ref({
   email: "",
   password: "",
   password_confirmation: "",
   token: "",
 })
-
 const progress = ref(0)
+
 watch(step, () => {
   switch (step.value) {
     case 1: progress.value = 33; break;
@@ -194,6 +189,15 @@ const setStep = (value) => {
   step.value = value;
 };
 
+/**
+ * Avança para o próximo passo no processo de recuperação de senha.
+ *
+ * - Verifica se o token foi informado.
+ * - Exibe uma mensagem de erro caso o token esteja ausente.
+ * - Valida o token utilizando a API e, em caso de sucesso, avança para o próximo passo.
+ * - Exibe uma mensagem de erro caso a validação do token falhe.
+ * - Garante que o estado de carregamento seja desativado ao final.
+ */
 const nextStep = async () => {
   if (!token.value) {
     Swal.fire({
@@ -210,7 +214,7 @@ const nextStep = async () => {
     await Tokens.check({
       key: formStep1.value.key,
       token: token.value,
-    })
+    });
 
     setStep(3);
   } catch (error) {
@@ -224,6 +228,14 @@ const nextStep = async () => {
   }
 };
 
+/**
+ * Envia o pedido de recuperação de senha.
+ *
+ * - Define o estado de carregamento como ativo.
+ * - Envia os dados do formulário para a API.
+ * - Em caso de sucesso, avança para o próximo passo.
+ * - Garante que o estado de carregamento seja desativado ao final.
+ */
 const recover = async () => {
   loading.value = true;
   try {
@@ -231,7 +243,7 @@ const recover = async () => {
       key: formStep1.value.key,
       action: formStep1.value.action,
       type: formStep1.value.type,
-    })
+    });
     setStep(2);
   } catch (error) {
     console.log(error);
@@ -240,33 +252,47 @@ const recover = async () => {
   }
 };
 
+/**
+ * Retorna ao passo anterior ou à página de login.
+ *
+ * - Se estiver no primeiro passo, redireciona para a página de login.
+ * - Caso contrário, redefine o formulário e retorna ao primeiro passo.
+ */
 const goBack = () => {
   if (step.value === 1) {
     router.push("/login");
   } else {
     setStep(1);
-    formStep1.value.reset();
+    formStep1.value.key ="";
     formStep3.value.token = "";
     loading.value = false;
   }
 };
 
-
+/**
+ * Confirma a nova senha no processo de recuperação.
+ *
+ * - Define o estado de carregamento como ativo.
+ * - Envia os dados da nova senha para a API.
+ * - Em caso de sucesso, avança para o passo final.
+ * - Garante que o estado de carregamento seja desativado ao final.
+ */
 const confirmNewPassword = async () => {
   loading.value = true;
   try {
-    await Recover.finish({
-      email: formStep1.value.key,
-      token: token.value,
-    })
-  setStep(4)
+    await Recover.finish(formStep3);
+    setStep(4);
   } catch (error) {
     console.log(error);
   } finally {
     loading.value = false;
   }
 };
+
+/**
+ * Finaliza o processo de recuperação de senha e redireciona para a página de login.
+ */
 const finish = () => {
   router.push("/login");
-}
+};
 </script>

@@ -129,14 +129,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/auth"; // Assumindo que você tem uma store Pinia
+import { useAuthStore } from "@/stores/auth";
 import Auth from '@/services/auth';
-import { cn } from "@/lib/utils";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import i18n from "@/i18n";
-
-// Importe os componentes de UI que você utiliza
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -148,13 +145,8 @@ import {useWorkspaceStore} from "@/stores/workspace";
 const { toast } = useToast();
 const router = useRouter();
 const authStore = useAuthStore();
-
-
 const userId = computed(() => authStore.twoFactorData.userId);
 const authMethod = computed(() => authStore.twoFactorData.authMethod);
-// console.log(userId.value,authMethod.value)
-
-// Variáveis de estado do componente
 const workspaceStore = useWorkspaceStore();
 const loading = ref(false);
 const loadingRecovery = ref(false);
@@ -165,6 +157,7 @@ const isDialog = ref(false);
 const previewCode = ref<Array<string>>([]);
 const securityCode = ref<Array<string>>([]);
 const mode = useColorMode()
+
 /**
  * Navega de volta para a tela anterior (login).
  */
@@ -177,12 +170,20 @@ function goBack() {
  */
 function handleRecoverySuccess() {
   isDialog.value = false;
- // authStore.clearTwoFactorData(); // Limpa os dados temporários da store
+  authStore.clearTwoFactorData();
   router.push("/login");
 }
 
 /**
- * Submete o código PIN para o login e, em caso de sucesso, lida com a sessão do usuário.
+ * Realiza o login utilizando autenticação de dois fatores.
+ *
+ * @param {Array<string>} code - O código de autenticação de dois fatores inserido pelo usuário.
+ *
+ * - Verifica se o código possui pelo menos 6 caracteres.
+ * - Exibe uma mensagem de erro caso o código seja inválido.
+ * - Envia o código para o servidor para validação.
+ * - Em caso de sucesso, armazena os dados do usuário e redireciona para a página inicial.
+ * - Em caso de falha, exibe uma mensagem de erro no console.
  */
 const twoFactorLogin = async (code: Array<string>) => {
   if (code.length < 6) {
@@ -196,20 +197,18 @@ const twoFactorLogin = async (code: Array<string>) => {
   try {
     const { data } = await Auth.twoFactor({id:userId.value,two_factor_code:code.join("")});
 
-    // Lógica de sucesso do login
     const tokenAuth = data ? data.token : null;
     const userAuth = data ? data.user : null;
 
     if (tokenAuth && userAuth) {
       authStore.setUserData(userAuth, tokenAuth);
-     // authStore.clearTwoFactorData(); // Limpa os dados temporários
+      authStore.clearTwoFactorData();
       await workspaceStore.loadInitialData(
           userAuth?.preferences,
           userAuth?.group_projects
       );
-      router.push("/"); // Redireciona para a página principal
+      router.push("/");
     } else {
-      // Tratar caso de erro inesperado, se necessário
       toast({ title: "Erro", description: "Resposta inesperada do servidor.", variant: "destructive" });
     }
   } catch (error) {
@@ -276,15 +275,32 @@ const submitRecoveryCode = async () => {
   }
 };
 
+/**
+ * Adiciona um código à lista de códigos de segurança, caso ele ainda não esteja presente.
+ *
+ * @param {string} value - O código a ser adicionado.
+ */
 function selectCode(value: string) {
   if (securityCode.value.includes(value)) return;
   securityCode.value.push(value);
 }
 
+/**
+ * Remove um código da lista de códigos de segurança.
+ *
+ * @param {string} value - O código a ser removido.
+ */
 function removeCode(value: string) {
   securityCode.value = securityCode.value.filter((v) => v !== value);
 }
 
+/**
+ * Inicia um temporizador para habilitar o reenvio do código de autenticação após 60 segundos.
+ *
+ * - Define `resend` como `false` para desativar o botão de reenvio.
+ * - Decrementa o valor de `time` a cada segundo.
+ * - Quando o tempo chega a 0, o temporizador é limpo e o botão de reenvio é reativado.
+ */
 function startResendTimer() {
   resend.value = false;
   const intervalId = setInterval(() => {
@@ -298,7 +314,6 @@ function startResendTimer() {
 }
 
 onMounted(() => {
-  // Verifica se os dados necessários existem, caso contrário, volta ao login.
   if (!userId.value) {
     console.error("Dados de 2FA não encontrados. Redirecionando para o login.");
     router.push('/login');

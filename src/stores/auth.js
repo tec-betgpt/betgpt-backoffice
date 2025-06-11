@@ -31,10 +31,10 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("authToken");
       delete api.defaults.headers.common["Authorization"];
     },
-    // clearTwoFactorData() {
-    //   this.twoFactorData.authMethod = null;
-    //   this.twoFactorData.userId = null;
-    // },
+    clearTwoFactorData() {
+      this.twoFactorData.authMethod = null;
+      this.twoFactorData.userId = null;
+    },
     async fetchUser() {
       this.loading = true;
       try {
