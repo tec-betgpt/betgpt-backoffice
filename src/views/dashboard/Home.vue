@@ -531,6 +531,43 @@
     </div>
 
     <div
+      v-if="!loading"
+      class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3"
+    >
+      <Card>
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
+          <CardTitle class="text-xs font-medium">
+            Tempo Médio de Retenção
+          </CardTitle>
+          <Timer class="h-6 w-6 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">
+            {{ retention.time }}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader
+          class="flex flex-row items-center justify-between space-y-0 pb-2"
+        >
+          <CardTitle class="text-xs font-medium">
+            Ticket Médio na Retenção
+          </CardTitle>
+          <DollarSign class="h-6 w-6 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div class="text-2xl font-bold">
+            {{ $toCurrency(retention.ticket_avg) }}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div
       class="sm:grid gap-4 md:gap-8 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3"
     >
       <Card class="mb-4 sm:mb-0">
@@ -651,6 +688,8 @@ import {
   CirclePercent,
   ChartLine,
   PiggyBank,
+  Timer,
+  DollarSign,
 } from "lucide-vue-next";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -681,6 +720,8 @@ export default {
     CirclePercent,
     ChartLine,
     PiggyBank,
+    Timer,
+    DollarSign,
   },
 
   data: () => ({
@@ -715,6 +756,10 @@ export default {
     selectedRange: {},
     hideMetricsDaily: false,
     monthlyCountsChart: {},
+    retention: {
+      time: "",
+      ticket_avg: 0,
+    },
   }),
 
   methods: {
@@ -745,6 +790,7 @@ export default {
         this.activeNow = data.active_now;
         this.deposits = data.deposits;
         this.withdraws = data.withdraws;
+        this.retention = data.retention;
       } catch (_) {
         toast({
           title: "Erro ao carregar dados",
