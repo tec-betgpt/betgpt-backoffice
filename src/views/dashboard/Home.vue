@@ -561,7 +561,7 @@
         </CardHeader>
         <CardContent>
           <div class="text-2xl font-bold">
-            {{ $toCurrency(retention.ticket_avg) }}
+            {{ $toCurrency(retention.ticket_avg / 100) }}
           </div>
         </CardContent>
       </Card>
