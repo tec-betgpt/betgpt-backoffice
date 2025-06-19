@@ -6,18 +6,20 @@
     </div>
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
-        <CustomDataTable
+        <CustomDataInfinite
           :loading="isLoading"
           :columns="columns"
           :data="players"
           :update-text="setSearch"
           :find="fetchPlayers"
+          :has-more="hasMore"
+          :current-page="currentPage"
           :search-fields="[
             { key: 'name', placeholder: 'Buscar por nome do jogador...' },
           ]"
-        >
-        </CustomDataTable>
-        <CustomPagination :select-page="fetchPlayers" :pages="pages" />
+          @load-more="loadMore"
+          @reset="resetData"
+        />
       </CardContent>
     </Card>
   </div>
@@ -30,24 +32,21 @@ import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowUp } from "lucide-vue-next";
 import Players from "@/services/players";
 import { createColumnHelper } from "@tanstack/vue-table";
-import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import CustomPagination from "@/components/custom/CustomPagination.vue";
+import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 const { toast } = useToast();
 const players = ref<Player[]>([]);
 const isLoading = ref(true);
-const pages = ref({
-  current: 1,
-  last: 0,
-  total: 0,
-});
+const hasMore = ref(false);
+const currentPage = ref(1);
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
-const fetchPlayers = async (current = pages.value.current) => {
+const fetchPlayers = async (page = 1) => {
+  const isInitialLoad = page === 1;
   isLoading.value = true;
 
   try {
@@ -56,23 +55,23 @@ const fetchPlayers = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    const [playerResponse] = await Promise.all([
-      Players.index({
-        page: current,
-        ...searchParams,
-        orderBy: order.value ? order.value : "id",
-        orderDirection: direction.value ? "asc" : "desc",
-        filter_id: activeGroupProjectId,
-      }),
-    ]);
+    const response = await Players.index({
+      page,
+      perPage: 10,
+      ...searchParams,
+      orderBy: order.value ? order.value : "id",
+      orderDirection: direction.value ? "asc" : "desc",
+      filter_id: activeGroupProjectId,
+    });
 
-    players.value = playerResponse.data.players;
+    if (isInitialLoad) {
+      players.value = response.data.players;
+    } else {
+      players.value = [...players.value, ...response.data.players];
+    }
 
-    pages.value = {
-      current: playerResponse.data.pagination.current_page,
-      last: playerResponse.data.pagination.last_page,
-      total: playerResponse.data.pagination.total_records,
-    };
+    hasMore.value = response.data.hasMore;
+    currentPage.value = response.data.currentPage;
   } catch (error) {
     console.error(error);
     toast({
@@ -80,12 +79,22 @@ const fetchPlayers = async (current = pages.value.current) => {
       description: "Erro ao carregar os dados.",
       variant: "destructive",
     });
+  } finally {
+    isLoading.value = false;
   }
-
-  isLoading.value = false;
 };
 
-onMounted(fetchPlayers);
+const resetData = () => {
+  players.value = [];
+  currentPage.value = 1;
+  hasMore.value = false;
+};
+
+const loadMore = (page: number) => {
+  fetchPlayers(page);
+};
+
+onMounted(() => fetchPlayers(1));
 
 const searchValues = ref<Record<string, string>>({});
 const setSearch = (values: Record<string, string>) => {
@@ -125,20 +134,20 @@ const columns = [
     header({ column }) {
       return createHeaderButton("ID", "id");
     },
-    cell: ({ row }) => h("div", {}, row.getValue("id")),
+    cell: ({ row }) => h("div", {}, row.original.id),
   }),
   columnHelper.accessor("name", {
     header({ column }) {
       return createHeaderButton("Nome", "name");
     },
     cell: ({ row }) =>
-      h("div", { class: "capitalize" }, `${row.getValue("name")}`),
+      h("div", { class: "capitalize" }, `${row.original.name}`),
   }),
   columnHelper.accessor("email", {
     header({ column }) {
       return createHeaderButton("E-mail", "email");
     },
-    cell: ({ row }) => h("div", {}, row.getValue("email")),
+    cell: ({ row }) => h("div", {}, row.original.email),
   }),
 ];
 
