@@ -66,14 +66,15 @@ const fetchPlayers = async (current = pages.value.current) => {
       }),
     ]);
 
-    players.value = playerResponse.data;
+    players.value = playerResponse.data.players;
+
     pages.value = {
-      current: playerResponse.pagination.current_page,
-      last: playerResponse.pagination.last_page,
-      total: playerResponse.pagination.total_records,
+      current: playerResponse.data.pagination.current_page,
+      last: playerResponse.data.pagination.last_page,
+      total: playerResponse.data.pagination.total_records,
     };
   } catch (error) {
-    console.error(error)
+    console.error(error);
     toast({
       title: "Erro",
       description: "Erro ao carregar os dados.",
@@ -120,18 +121,18 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 const columns = [
-  columnHelper.accessor("model_id", {
+  columnHelper.accessor("id", {
     header({ column }) {
       return createHeaderButton("ID", "id");
     },
-    cell: ({ row }) => h("div", {}, row.getValue("model_id")),
+    cell: ({ row }) => h("div", {}, row.getValue("id")),
   }),
-  columnHelper.accessor("title", {
+  columnHelper.accessor("name", {
     header({ column }) {
       return createHeaderButton("Nome", "name");
     },
     cell: ({ row }) =>
-      h("div", { class: "capitalize" }, `${row.getValue("title")}`),
+      h("div", { class: "capitalize" }, `${row.getValue("name")}`),
   }),
   columnHelper.accessor("email", {
     header({ column }) {
