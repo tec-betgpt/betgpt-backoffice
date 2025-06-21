@@ -30,7 +30,7 @@ const clip = async (value:string)=>{
         <ClipboardButton variant="Icon" type="paste"  :clip="clip" />
         <template v-for="(id, index) in 6" :key="id">
           <PinInputInput
-              class="rounded-md border  max-w-7 h-11 text-center"
+              class="rounded-md border text-black max-w-7 h-11 text-center"
               :index="index"
           />
         </template>

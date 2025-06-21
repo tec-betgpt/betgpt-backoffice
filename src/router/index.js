@@ -29,6 +29,7 @@ import UtmTracks from "@/views/dashboard/UtmTracks.vue";
 import ChatIA from "@/views/dashboard/ChatIA.vue";
 import JarbasBOT from "@/views/dashboard/JarbasBOT.vue";
 import Integrations from "@/views/dashboard/Integrations.vue";
+import TwoFactor from "@/views/auth/TwoFactor.vue";
 
 const routes = [
   {
@@ -49,6 +50,13 @@ const routes = [
       layout: BlankLayout,
       title: "Recuperar",
     },
+  },
+  {
+    path: "/two-factor",
+    name: "two-factor",
+    component: TwoFactor,
+    meta: { layout: BlankLayout,
+      title: "Autenticação de dois fatores" },
   },
   {
     path: "/home",
