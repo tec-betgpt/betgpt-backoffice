@@ -1,281 +1,51 @@
 <template>
-  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Tráfego</h2>
-      <p class="text-muted-foreground">
-        Relatórios de tráfego de um período específico.
-      </p>
-    </div>
-    <div class="flex items-center justify-end mb-3">
-      <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
-        <div class="flex flex-col sm:flex-row gap-2 w-full">
-          <CustomDatePicker v-model="selectedRange"/>
-
-        </div>
+  <div class="google-analytics-page space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <div class="space-y-0.5">
+        <h2 class="text-2xl font-bold tracking-tight">Tráfego</h2>
+        <p class="text-muted-foreground">
+          Relatórios de tráfego de um período específico.
+        </p>
+      </div>
+      <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+        <CustomDatePicker v-model="selectedRange"/>
       </div>
     </div>
 
-    <div class="space-y-4">
-      <Card>
-        <CardHeader class="pb-3">
-          <Skeleton class="h-6 w-full" v-if="loading" />
-          <CardTitle v-else>Usuários</CardTitle>
+    <div v-if="loading" class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <Card v-for="n in 8" :key="n">
+        <CardHeader>
+          <Skeleton class="h-6 w-full" />
         </CardHeader>
         <CardContent>
-          <div v-if="loading">
-            <Skeleton class="pl-5 h-80 w-full" />
-          </div>
-          <div v-else>
-            <LineChart
-              :data="usersPeriod"
-              index="date"
-              :categories="['Usuários Novos', 'Usuários Ativos']"
-              :y-formatter="
-                (tick, i) =>
-                  typeof tick === 'number'
-                    ? `${new Intl.NumberFormat('pt-BR')
-                        .format(tick)
-                        .toString()}`
-                    : ''
-              "
-              :custom-tooltip="CustomChartTooltip"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
-        <Card class="col-span-3">
-          <CardHeader class="pb-3">
-            <Skeleton class="h-6 w-full" v-if="loading" />
-            <CardTitle v-else>Total de Usuários</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div v-if="loading">
-              <Skeleton class="pl-5 h-80 w-full" />
-            </div>
-            <div v-else>
-              <LineChart
-                :data="totalUsersPeriod"
-                index="date"
-                :categories="['Total de Usuários']"
-                :custom-tooltip="CustomChartTooltip"
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <Card class="col-span-3">
-          <CardHeader class="pb-3">
-            <Skeleton class="h-6 w-full" v-if="loading" />
-            <CardTitle v-else>Usuários Recorrentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div v-if="loading">
-              <Skeleton class="pl-5 h-80 w-full" />
-            </div>
-            <div v-else>
-              <LineChart
-                :data="returningUsersPeriod"
-                index="date"
-                :categories="['Usuários Recorrentes']"
-                :custom-tooltip="CustomChartTooltip"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
-        <Card class="col-span-3">
-          <CardHeader class="pb-3">
-            <Skeleton class="h-6 w-full" v-if="loading" />
-            <CardTitle v-else>Total de Primeiros Compradores</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div v-if="loading">
-              <Skeleton class="pl-5 h-80 w-full" />
-            </div>
-            <div v-else>
-              <LineChart
-                :data="firstTimePurchasersPeriod"
-                index="date"
-                :categories="['Primeiros Compradores']"
-                :custom-tooltip="CustomChartTooltip"
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <Card class="col-span-3">
-          <CardHeader class="pb-3">
-            <Skeleton class="h-6 w-full" v-if="loading" />
-            <CardTitle v-else>Taxa de Engajamento por período</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div v-if="loading">
-              <Skeleton class="pl-5 h-80 w-full" />
-            </div>
-            <div v-else>
-              <LineChart
-                :data="engagementRatePeriod"
-                index="date"
-                :categories="['% Taxa de Engajamento']"
-                :y-formatter="
-                  (tick, i) =>
-                    typeof tick === 'number'
-                      ? `${(tick / 100).toFixed(2)}%`
-                      : ''
-                "
-                :custom-tooltip="CustomChartTooltipPercent"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader class="pb-3">
-          <Skeleton class="h-6 w-full" v-if="loading" />
-          <CardTitle v-else>Usuários Ativos Pagantes por período</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div v-if="loading">
-            <Skeleton class="pl-5 h-80 w-full" />
-          </div>
-          <div v-else>
-            <LineChart
-              :data="payingActivePeriod"
-              index="date"
-              :categories="[
-                '7D Pagantes Ativos',
-                '14D Pagantes Ativos',
-                '28D Pagantes Ativos',
-              ]"
-              :custom-tooltip="CustomChartTooltip"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
-        <Card class="col-span-3">
-          <CardHeader class="pb-3">
-            <Skeleton class="h-6 w-full" v-if="loading" />
-            <CardTitle v-else>Receita Total</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div v-if="loading">
-              <Skeleton class="pl-5 h-80 w-full" />
-            </div>
-            <div v-else>
-              <LineChart
-                :data="totalRevenuePeriod"
-                index="date"
-                :categories="['Receita']"
-                :y-formatter="
-                  (tick, i) =>
-                    typeof tick === 'number'
-                      ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })
-                          .format(tick / 100)
-                          .toString()}`
-                      : ''
-                "
-                :custom-tooltip="CustomChartTooltipPrice"
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <Card class="col-span-3">
-          <CardHeader class="pb-3">
-            <Skeleton class="h-6 w-full" v-if="loading" />
-            <CardTitle v-else
-              >Tempo médio de engajamento por sessão (segundos)</CardTitle
-            >
-          </CardHeader>
-          <CardContent>
-            <div v-if="loading">
-              <Skeleton class="pl-5 h-80 w-full" />
-            </div>
-            <div v-else>
-              <LineChart
-                :data="engagementDurationSessionPeriod"
-                index="date"
-                :categories="['Tempo médio']"
-                :custom-tooltip="CustomChartTooltip"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-
-    <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
-      <Card class="col-span-3">
-        <CardHeader class="pb-3">
-          <Skeleton class="h-6 w-full" v-if="loading" />
-          <CardTitle v-else>ARPPU</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div v-if="loading">
-            <Skeleton class="pl-5 h-80 w-full" />
-          </div>
-          <div v-else>
-            <LineChart
-              :data="arppuPeriod"
-              index="date"
-              :categories="['ARPPU']"
-              :y-formatter="
-                (tick, i) =>
-                  typeof tick === 'number'
-                    ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
-                        .format(tick / 100)
-                        .toString()}`
-                    : ''
-              "
-              :custom-tooltip="CustomChartTooltipPrice"
-            />
-          </div>
-        </CardContent>
-      </Card>
-      <Card class="col-span-3">
-        <CardHeader class="pb-3">
-          <Skeleton class="h-6 w-full" v-if="loading" />
-          <CardTitle v-else>ARPU</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div v-if="loading">
-            <Skeleton class="pl-5 h-80 w-full" />
-          </div>
-          <div v-else>
-            <LineChart
-              :data="arpuPeriod"
-              index="date"
-              :categories="['ARPU']"
-              :y-formatter="
-                (tick, i) =>
-                  typeof tick === 'number'
-                    ? `R$ ${new Intl.NumberFormat('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
-                        .format(tick / 100)
-                        .toString()}`
-                    : ''
-              "
-              :custom-tooltip="CustomChartTooltipPrice"
-            />
-          </div>
+          <Skeleton class="pl-5 h-80 w-full" />
         </CardContent>
       </Card>
     </div>
 
-    <div>
-      <Card>
+    <div v-else class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <UsersComponent :users-period="usersPeriod" />
+
+      <PayingActivePeriodComponent :payingActivePeriod="payingActivePeriod" />
+
+      <TotalUsersComponent :total-users-period="totalUsersPeriod" />
+
+      <ReturningUsersPeriodComponent :returning-users-period="returningUsersPeriod" />
+
+      <FirstTimePurchasersPeriodComponent :firstTimePurchasersPeriod="firstTimePurchasersPeriod" />
+
+      <EngagementRatePeriodComponent :engagementRatePeriod="engagementRatePeriod" />
+
+      <TotalRevenuePeriodComponent :totalRevenuePeriod="totalRevenuePeriod" />
+
+      <EngagementDurationSessionPeriodComponent :engagementDurationSessionPeriod="engagementDurationSessionPeriod" />
+
+      <ArpuPeriodComponent :arpuPeriod="arpuPeriod" />
+
+      <ArppuPeriodComponent :arppuPeriod="arppuPeriod" />
+    </div>
+
+    <Card>
         <CardHeader>
           <CardTitle>Aquisição de Tráfego</CardTitle>
         </CardHeader>
@@ -370,7 +140,6 @@
           </Table>
         </CardContent>
       </Card>
-    </div>
   </div>
 </template>
 
@@ -384,9 +153,16 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
-import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import UsersComponent from "@/components/google_analytics/UsersComponent.vue";
+import TotalUsersComponent from "@/components/google_analytics/TotalUsersComponent.vue";
+import ReturningUsersPeriodComponent from "@/components/google_analytics/ReturningUsersPeriodComponent.vue";
+import ArppuPeriodComponent from "@/components/google_analytics/ArppuPeriodComponent.vue";
+import ArpuPeriodComponent from "@/components/google_analytics/ArpuPeriodComponent.vue";
+import PayingActivePeriodComponent from "@/components/google_analytics/PayingActivePeriodComponent.vue";
+import EngagementRatePeriodComponent from "@/components/google_analytics/EngagementRatePeriodComponent.vue";
+import FirstTimePurchasersPeriodComponent from "@/components/google_analytics/FirstTimePurchasersPeriodComponent.vue";
 
 const workspaceStore = useWorkspaceStore();
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
