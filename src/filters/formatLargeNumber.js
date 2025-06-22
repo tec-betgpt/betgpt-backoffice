@@ -1,15 +1,10 @@
-export function formatLargeNumber(number) {
+export function formatLargeNumber(value) {
   const formatter = new Intl.NumberFormat('pt-BR', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })
 
-  if (number < 10000) {
-    return {
-      content: formatter.format(number),
-      separator: ''
-    }
-  }
+  const number = Number.parseFloat(value)
 
   // trilhões
   if (number >= 1000000000000) {
@@ -46,5 +41,10 @@ export function formatLargeNumber(number) {
       content: formatter.format(number),
       separator: 'mil'
     }
+  }
+
+  return {
+    content: formatter.format(number),
+    separator: ''
   }
 }
