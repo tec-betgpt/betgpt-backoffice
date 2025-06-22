@@ -63,29 +63,32 @@
         </div>
       </div>
     </div>
-      <!--Animetion-->
+
     <div class="xl:flex xsl:flex-col hidden h-screen w-full items-end bg-black relative">
-      <!-- VÍDEO COMO BACKGROUND -->
-      <video
-          src="/150l2-p0zza.webm"
-          autoplay
-          muted
-          preload="auto"
-          loop
-          playsinline
-          class="absolute top-0 left-0 w-full h-full object-cover z-0"
-      ></video>
+      <video-background
+        src="/movies/mpeg/login.mp4"
+        poster="/movies/poster/login.jpg"
+        style="width: 100%; position:absolute; top: 0; left: 0; height: 100%;"
+        :playsinline="true"
+        :sources="[
+          { src: '/movies/mpeg/login_720p.mp4', res: 1200, autoplay: true, type: 'video/mp4' },
+          { src: '/movies/mpeg/login_480p.mp4', res: 800, autoplay: true, type: 'video/mp4' },
+          { src: '/movies/mpeg/login_360p.mp4', res: 600, autoplay: true, type: 'video/mp4' },
+          { src: '/movies/mpeg/login_240p.mp4', res: 400, autoplay: true, type: 'video/mp4' },
+          { src: '/movies/webm/login_720p.webm', res: 1200, autoplay: true, type: 'video/webm' },
+          { src: '/movies/webm/login_480p.webm', res: 800, autoplay: true, type: 'video/webm' },
+          { src: '/movies/webm/login_360p.webm', res: 600, autoplay: true, type: 'video/webm' },
+          { src: '/movies/webm/login_240p.webm', res: 400, autoplay: true, type: 'video/webm' },
+        ]"
+      />
+
       <div class="h-full w-full bg-black opacity-80 absolute z-10"></div>
-      <!-- CONTEÚDO SOBRE O VÍDEO -->
+
       <div class="p-8 mb-10 pr-24 space-y-4 absolute z-20">
- <p class="text-white font-normal font-sans text-wrap animate-fade-in" style="animation-delay: 0.2s;">{{ message.message }}</p>
- <p class="text-gray-500 font-normal animate-fade-in" style="animation-delay: 0.5s;">{{ message.signature }}</p>
+        <p class="text-white font-normal font-sans text-wrap animate-fade-in" style="animation-delay: 0.2s;">{{ message.message }}</p>
+        <p class="text-gray-500 font-normal animate-fade-in" style="animation-delay: 0.5s;">{{ message.signature }}</p>
       </div>
     </div>
-
-  </div>
-  <div>
-
   </div>
 </template>
 <style>
@@ -97,7 +100,7 @@
   animation: fade-in 0.8s cubic-bezier(0.4,0,0.2,1) both;
 }
 </style>
-<script setup lang="ts">
+<script setup>
 import { ref, computed} from "vue";
 import {useRouter} from "vue-router";
 import {useAuthStore} from "@/stores/auth";
@@ -107,6 +110,7 @@ import axios from "axios";
 import {useColorMode} from "@vueuse/core";
 import {useConfigStore} from "@/stores/config";
 import {useWorkspaceStore} from "@/stores/workspace";
+import VideoBackground from 'vue-responsive-video-background-player'
 
 const workspaceStore = useWorkspaceStore();
 const mode = useColorMode();
@@ -129,7 +133,7 @@ const form = ref({
  *   redireciona para a página inicial e realiza uma chamada adicional para autenticação externa, se configurada.
  * - Caso contrário, verifica se há dados para autenticação de dois fatores e redireciona para a página correspondente.
  */
-const handleLoginResponse = async ({data}: any) => {
+const handleLoginResponse = async ({data}) => {
   const tokenAuth = data ? data.token : null;
   const userAuth = data ? data.user : null;
 
@@ -184,5 +188,4 @@ const login = async () => {
 };
 const configStore = useConfigStore();
 const message = computed(() => configStore.message);
-
 </script>
