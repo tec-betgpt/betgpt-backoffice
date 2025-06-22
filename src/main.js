@@ -11,8 +11,9 @@ import { useAuthStore } from '@/stores/auth'
 import { useConfigStore } from '@/stores/config'
 import moment from 'moment'
 import 'moment/dist/locale/pt-br'
-import './assets/styles/main.css'
 import globalComponents from '@/boot/components'
+
+import './styles/main.scss'
 
 const app = createApp(App)
 const pinia = createPinia()
