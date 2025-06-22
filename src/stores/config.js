@@ -3,7 +3,7 @@ import Config from '@/services/config'
 
 export const useConfigStore = defineStore("config", {
   state: () => ({
-    message: null,
+    message: "",
     loading: false,
   }),
   actions: {

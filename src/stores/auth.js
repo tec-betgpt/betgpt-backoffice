@@ -7,6 +7,10 @@ export const useAuthStore = defineStore("auth", {
     user: null,
     token: null,
     loading: false,
+    twoFactorData: {
+      userId: "",
+      authMethod: null,
+    },
   }),
   actions: {
     setUserData(user, token) {
@@ -16,7 +20,10 @@ export const useAuthStore = defineStore("auth", {
       localStorage.setItem("authToken", token);
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     },
-
+    setTwoFactorData(userId, authMethod){
+        this.twoFactorData.authMethod = authMethod;
+        this.twoFactorData.userId = userId;
+    },
     clearUserData() {
       this.user = null;
       this.token = null;
@@ -24,7 +31,10 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("authToken");
       delete api.defaults.headers.common["Authorization"];
     },
-
+    clearTwoFactorData() {
+      this.twoFactorData.authMethod = null;
+      this.twoFactorData.userId = null;
+    },
     async fetchUser() {
       this.loading = true;
       try {
