@@ -340,6 +340,7 @@ import {
   Home,
   LineChart,
   Building2,
+  ListFilter,
   Users2,
   Bot,
   LogOut,
@@ -755,7 +756,7 @@ const navMenu = computed(() => [
       {
         name: "Segmentos",
         url: { name: "segments" },
-        icon: Building2,
+        icon: ListFilter,
         show:
           (authStore.user?.access_type === "member" &&
             authStore.user?.roles.some((role) =>
