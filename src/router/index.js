@@ -12,6 +12,7 @@ import GoogleAnalytics from "@/views/dashboard/GoogleAnalytics.vue";
 import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
+import Segments from "@/views/dashboard/Segments.vue";
 
 import ConfigurationLayout from "@/views/configurations/Layout.vue";
 import ConfigurationProfile from "@/views/configurations/Profile.vue";
@@ -55,8 +56,7 @@ const routes = [
     path: "/two-factor",
     name: "two-factor",
     component: TwoFactor,
-    meta: { layout: BlankLayout,
-      title: "Autenticação de dois fatores" },
+    meta: { layout: BlankLayout, title: "Autenticação de dois fatores" },
   },
   {
     path: "/home",
@@ -253,6 +253,18 @@ const routes = [
           roles: "member",
           permissions: "view-projects",
           title: "Projetos",
+        },
+      },
+      {
+        path: "segments",
+        name: "segments",
+        component: Segments,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "view-segments",
+          title: "Segmentos",
         },
       },
       {
