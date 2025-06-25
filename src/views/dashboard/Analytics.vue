@@ -13,10 +13,10 @@
         </div>
       </div>
     </div>
-    <div class="grid sm:grid-cols-2 grid-cols-1 space-x-2 space-y-2" >
-      <PeriodComponent :period="depositsPeriod" title="Deposito por periodo"/>
+    <div class="grid md:grid-cols-2 grid-cols-1 gap-3" >
       <PeriodComponent :period="usersPeriod" title="Usuários" />
-      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" />
+      <PeriodComponent :period="depositsPeriod" title="Deposito por periodo"/>
+      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" class="md:col-span-2" />
       <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período" />
       <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" />
       <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia" />
@@ -87,17 +87,16 @@ const applyFilter = async () => {
 
     depositsPeriod.value = [{name:"7D Depósitos",value:data.deposits_period},{name:"14D Depósitos",value:data.deposits_period}, {name:"28D Depósitos",value:data.deposits_period}];
     usersPeriod.value = [{name:"Usuários Registrados",value:data.users_period}, {name:"Usuários Ativos",value:data.users_period}];
+    percentNetDepositsPeriod.value = [{name:"7D % Net Depósitos",value:data.percent_net_deposits_period},{name:"14D % Net Depósitos",value:data.percent_net_deposits_period}, {name:"28D % Net Depósitos",value:data.percent_net_deposits_period}];
+    netDepositsPeriod.value = [{name:"7D Net Depósitos",value:data.net_deposits_period},{name:"14D Net Depósitos",value:data.net_deposits_period}, {name:"28D Net Depósitos",value:data.net_deposits_period}];
+    activeUsersPeriod.value = [{name:"7D Usuários Ativos",value:data.active_users_period},{name:"14D Usuários Ativos",value:data.active_users_period}, {name:"28D Usuários Ativos",value:data.active_users_period}];
+    percentFtdDayPeriod.value = [{name:"% de FTD/Dia",value:data.percent_ftd_day_period}];
+    valueNetDepositsPeriod.value = [{name:"Net Depósitos",value:data.value_net_deposits_period}];
+    valueDepositsPeriod.value = [{name:"Depósitos",value:data.value_deposits_period}];
+    valueWithdrawsPeriod.value = [{name:"Saques",value:data.value_withdraws_period}];
+    registrationDepositRatePeriod.value = [{name:"% Cadastro Depósito",value:data.registration_deposit_rate_period}];
+    depositConversionRatePeriod.value = [{name:"% Conversão Depósitos Pagos",value:data.deposit_conversion_rate_period}];
 
-    percentNetDepositsPeriod.value = data.percent_net_deposits_period;
-    netDepositsPeriod.value = data.net_deposits_period;
-    activeUsersPeriod.value = data.active_users_period;
-    percentFtdDayPeriod.value = data.percent_ftd_day_period;
-    valueNetDepositsPeriod.value = data.value_net_deposits_period;
-    valueDepositsPeriod.value = data.value_deposits_period;
-    valueWithdrawsPeriod.value = data.value_withdraws_period;
-
-    registrationDepositRatePeriod.value = data.registration_deposit_rate_period;
-    depositConversionRatePeriod.value = data.deposit_conversion_rate_period;
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",

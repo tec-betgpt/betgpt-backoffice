@@ -5,24 +5,26 @@
     </CardHeader>
     <Separator />
     <CardContent>
-      <div class="grid sm:grid-cols-1 md:grid-cols-3 gap-2 mb-10">
-        <div class="variation" v-for="p in period" :key="p.name">
-          <div class="text-sm text-gray-400 pb-3">{{ p.name }}</div>
-          <div class="value flex align-baseline justify-start items-center rounded-md w-fit bg-green-700 text-green-200">
-            <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats(p.name, p.value).max }}
-          </div>
-          <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200">
-            <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats(p.name, p.value).min }}
-          </div>
-          <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
-            <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats(p.name, p.value).avg }}
-          </div>
+      <div class="grid sm:grid-cols-1 md:grid-cols-3 gap-2 mb-10 ">
+          <div  v-for="p in period" :key="p.name">
+          <div class="text-sm text-gray-400 my-3 text-nowrap   ">{{ p.name }}</div>
+            <div :class="{'variation-horizontal': period.length <= 1, 'variation': period.length > 1}">
+              <div class="value flex  align-baseline justify-start items-center bg-green-700 text-green-200">
+                <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats(p.name, p.value).max }}
+              </div>
+              <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200">
+                <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats(p.name, p.value).min }}
+              </div>
+              <div class="value flex align-baseline justify-start items-center w-full bg-gray-700 text-white">
+                <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats(p.name, p.value).avg }}
+              </div>
+            </div>
         </div>
       </div>
       <LineChart
           :data="chartData"
           index="date"
-          :categories="categories"
+          :categories="period.map(p=> p.name)"
           :y-formatter="(tick: number) => typeof tick === 'number' ? new Intl.NumberFormat('pt-BR').format(tick) : ''"
           :custom-tooltip="CustomChartTooltip"
       />
@@ -69,7 +71,6 @@ export default defineComponent({
       const max = Math.max(...values)
       const min = Math.min(...values)
       const avg = values.reduce((acc, val) => acc + val, 0) / values.length
-      console.log(max, min, avg)
       return { max, min, avg: parseFloat(avg).toFixed(2) }
     }
   }
