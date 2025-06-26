@@ -1,5 +1,13 @@
 <template>
-  <Card>
+  <Card v-if="isLoading">
+    <CardHeader>
+      <Skeleton class="h-6 w-full" />
+    </CardHeader>
+    <CardContent>
+      <Skeleton class="pl-5 h-80 w-full" />
+    </CardContent>
+  </Card>
+  <Card v-else>
     <CardHeader>
       <CardTitle>{{ title }}</CardTitle>
     </CardHeader>
@@ -7,7 +15,7 @@
     <CardContent>
       <div class="grid sm:grid-cols-1 md:grid-cols-3 gap-2 mb-10 ">
           <div  v-for="p in period" :key="p.name">
-          <div class="text-sm text-gray-400 my-3 text-nowrap   ">{{ p.name }}</div>
+          <div class="text-sm text-gray-400 my-3   ">{{ p.name }}</div>
             <div :class="{'variation-horizontal': period.length <= 1, 'variation': period.length > 1}">
               <div class="value flex  align-baseline justify-start items-center bg-green-700 text-green-200">
                 <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats(p.name, p.value).max }}
@@ -22,9 +30,10 @@
         </div>
       </div>
       <LineChart
+          v-if="categories.length > 0"
           :data="chartData"
           index="date"
-          :categories="period.map(p=> p.name)"
+          :categories="categories"
           :y-formatter="(tick: number) => typeof tick === 'number' ? new Intl.NumberFormat('pt-BR').format(tick) : ''"
           :custom-tooltip="CustomChartTooltip"
       />
@@ -53,11 +62,16 @@ export default defineComponent({
     title: {
       type: String,
       required: false
+    },
+    isLoading:{
+      type: Boolean,
+      required: true
     }
   },
   computed: {
    categories(): string[] {
-     return  this.period.map(p => p.name)
+      console.log('Categorias:', this.period.map(p => p.name));
+      return this.period.map(p => p.name)
    },
     chartData(): number[] {
       return this.period.length ? this.period[0].value : []

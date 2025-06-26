@@ -13,18 +13,18 @@
         </div>
       </div>
     </div>
-    <div class="grid md:grid-cols-2 grid-cols-1 gap-3" >
-      <PeriodComponent :period="usersPeriod" title="Usuários" />
-      <PeriodComponent :period="depositsPeriod" title="Deposito por periodo"/>
-      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" class="md:col-span-2" />
-      <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período" />
-      <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" />
-      <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia" />
-      <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Depósitos Líquidos por período" />
-      <PeriodComponent :period="valueDepositsPeriod" title="Valor de Depósitos por período" />
-      <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saques por período" />
-      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Depósito por período" />
-      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Depósito por período" />
+    <div class="grid xl:grid-cols-2 grid-cols-1 gap-3" >
+      <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" />
+      <PeriodComponent :period="depositsPeriod" title="Deposito por periodo"  :isLoading="isLoading" />
+      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" class="xl:col-span-2"  :isLoading="isLoading"  />
+      <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período"  :isLoading="isLoading" />
+      <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" :isLoading="isLoading"  />
+      <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia"  :isLoading="isLoading" />
+      <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Depósitos Líquidos por período"  :isLoading="isLoading" />
+      <PeriodComponent :period="valueDepositsPeriod" title="Valor de Depósitos por período"  :isLoading="isLoading" />
+      <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saques por período" :isLoading="isLoading"  />
+      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Depósito por período" :isLoading="isLoading"  />
+      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Depósito por período"  :isLoading="isLoading" />
     </div>
   </div>
 </template>
@@ -52,20 +52,22 @@ const { toast } = useToast();
 
 const loading = ref(true);
 const projects = ref(null);
-const depositsPeriod = ref<{ name: string; value: number }[]>([]);
-const usersPeriod = ref<{ name: string; value: number }[]>([]);
-const percentNetDepositsPeriod = ref<{ name: string; value: number;  }[]>([]);
-const netDepositsPeriod = ref<{ name: string; value: number;  }[]>([]);
-const activeUsersPeriod = ref<{ name: string; value: number; }[]>([]);
-const percentFtdDayPeriod = ref<{ name: string; value: number; }[]>([]);
-const valueNetDepositsPeriod = ref<{ name: string; value: number; }[]>([]);
-const valueDepositsPeriod = ref<{ name: string; value: number}[]>([]);
-const valueWithdrawsPeriod = ref<{ name: string; value: number; }[]>([]);
-const registrationDepositRatePeriod = ref<{ name: string; value: number; }[]>([]);
-const depositConversionRatePeriod = ref<{ name: string; value: number; }[]>([]);
+const depositsPeriod = ref<{ name: string; value: number[] }[]>([]);
+const usersPeriod = ref<{ name: string; value: number[] }[]>([]);
+const percentNetDepositsPeriod = ref<{ name: string; value: number[];  }[]>([]);
+const netDepositsPeriod = ref<{ name: string; value: number[];  }[]>([]);
+const activeUsersPeriod = ref<{ name: string; value: number[]; }[]>([]);
+const percentFtdDayPeriod = ref<{ name: string; value: number[]; }[]>([]);
+const valueNetDepositsPeriod = ref<{ name: string; value: number[]; }[]>([]);
+const valueDepositsPeriod = ref<{ name: string; value: number[]}[]>([]);
+const valueWithdrawsPeriod = ref<{ name: string; value: number[]; }[]>([]);
+const registrationDepositRatePeriod = ref<{ name: string; value: number[]; }[]>([]);
+const depositConversionRatePeriod = ref<{ name: string; value: number[]; }[]>([]);
+const isLoading = ref(true);
+
 
 const applyFilter = async () => {
-  loading.value = true;
+  isLoading.value = true;
 
   if (!workspaceStore.activeGroupProject?.id) {
     toast({
@@ -74,7 +76,7 @@ const applyFilter = async () => {
       variant: "destructive",
     });
 
-    loading.value = false;
+    isLoading.value = false;
     return;
   }
 
@@ -96,7 +98,6 @@ const applyFilter = async () => {
     valueWithdrawsPeriod.value = [{name:"Saques",value:data.value_withdraws_period}];
     registrationDepositRatePeriod.value = [{name:"% Cadastro Depósito",value:data.registration_deposit_rate_period}];
     depositConversionRatePeriod.value = [{name:"% Conversão Depósitos Pagos",value:data.deposit_conversion_rate_period}];
-
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
@@ -105,7 +106,7 @@ const applyFilter = async () => {
     });
   }
 
-  loading.value = false;
+  isLoading.value = false;
 };
 watch(selectedRange,()=>{
   applyFilter()

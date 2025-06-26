@@ -18,8 +18,8 @@
     <div class="banner-promo">
       <div class="inner p-4 grid md:grid-cols-2 xs:grid-cols-1 gap-2">
         <div>
-          <div class="title">Conheça nossas soluções</div>
-          <div class="subtitle">
+          <div class="title text-white">Conheça nossas soluções</div>
+          <div class="subtitle text-white" :class="{}">
             Aprimore o relacionamento com seus clientes usando funcionalidades que vão levá-lo ao próximo nível.
           </div>
         </div>
@@ -630,6 +630,7 @@ import { useWorkspaceStore } from '@/stores/workspace'
 import CustomDatePicker from '@/components/custom/CustomDatePicker.vue'
 import {formatLargeNumber} from '@/filters/formatLargeNumber'
 import VideoBackground from 'vue-responsive-video-background-player'
+import {useColorMode} from "@vueuse/core";
 
 Chart.register(...registerables)
 
