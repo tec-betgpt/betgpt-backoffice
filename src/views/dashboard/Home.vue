@@ -28,18 +28,18 @@
       <div class="overlay"></div>
       <video-background
         src="/movies/mpeg/dashboard.mp4"
-        poster="/images/mainfoto.jpg"
+        poster="/movies/poster/dashboard.jpg"
         style="width: 100%; position:absolute; top: 0; left: 0; height: 100%;"
         :playsinline="true"
         :sources="[
-          { src: '/movies/mpeg/0_720p.mp4', res: 1200, autoplay: true, type: 'video/mp4' },
-          { src: '/movies/mpeg/0_480p.mp4', res: 800, autoplay: true, type: 'video/mp4' },
-          { src: '/movies/mpeg/0_360p.mp4', res: 600, autoplay: true, type: 'video/mp4' },
-          { src: '/movies/mpeg/0_240p.mp4', res: 400, autoplay: true, type: 'video/mp4' },
-          { src: '/movies/webm/0_720p.webm', res: 1200, autoplay: true, type: 'video/webm' },
-          { src: '/movies/webm/0_480p.webm', res: 800, autoplay: true, type: 'video/webm' },
-          { src: '/movies/webm/0_360p.webm', res: 600, autoplay: true, type: 'video/webm' },
-          { src: '/movies/webm/0_240p.webm', res: 400, autoplay: true, type: 'video/webm' },
+          { src: '/movies/mpeg/dashboard_720p.mp4', res: 1200, autoplay: true, type: 'video/mp4' },
+          { src: '/movies/mpeg/dashboard_480p.mp4', res: 800, autoplay: true, type: 'video/mp4' },
+          { src: '/movies/mpeg/dashboard_360p.mp4', res: 600, autoplay: true, type: 'video/mp4' },
+          { src: '/movies/mpeg/dashboard_240p.mp4', res: 400, autoplay: true, type: 'video/mp4' },
+          { src: '/movies/webm/dashboard_720p.webm', res: 1200, autoplay: true, type: 'video/webm' },
+          { src: '/movies/webm/dashboard_480p.webm', res: 800, autoplay: true, type: 'video/webm' },
+          { src: '/movies/webm/dashboard_360p.webm', res: 600, autoplay: true, type: 'video/webm' },
+          { src: '/movies/webm/dashboard_240p.webm', res: 400, autoplay: true, type: 'video/webm' },
         ]"
       />
     </div>

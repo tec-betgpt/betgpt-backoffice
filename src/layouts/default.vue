@@ -192,9 +192,7 @@
                   class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar class="h-8 w-8 rounded-lg">
-                    <AvatarImage
-                        :src="authStore.user?.icon"
-                    />
+                    <AvatarImage :src="authStore.user?.icon" />
                     <AvatarFallback class="rounded-lg">
                       {{ authStore.user?.initials }}
                     </AvatarFallback>
@@ -221,7 +219,6 @@
                     class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
                   >
                     <Avatar class="h-8 w-8 rounded-lg">
-
                       <AvatarFallback class="rounded-lg">
                         {{ authStore.user?.initials }}
                       </AvatarFallback>
@@ -343,6 +340,7 @@ import {
   Home,
   LineChart,
   Building2,
+  ListFilter,
   Users2,
   Bot,
   LogOut,
@@ -752,6 +750,29 @@ const navMenu = computed(() => [
               role.permissions.some(
                 (permission) =>
                   permission.name === "access-to-motivational-texts"
+              )
+            ),
+      },
+      {
+        name: "Segmentos",
+        url: { name: "segments" },
+        icon: ListFilter,
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "view-segments"
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "view-segments"
               )
             ),
       },
