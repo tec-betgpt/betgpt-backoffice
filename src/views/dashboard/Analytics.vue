@@ -16,15 +16,15 @@
     <div class="grid xl:grid-cols-2 grid-cols-1 gap-3" >
       <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" />
       <PeriodComponent :period="depositsPeriod" title="Deposito por periodo"  :isLoading="isLoading" />
-      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" class="xl:col-span-2"  :isLoading="isLoading"  />
+      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" type="percent" class="xl:col-span-2"  :isLoading="isLoading"  />
       <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período"  :isLoading="isLoading" />
       <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" :isLoading="isLoading"  />
-      <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia"  :isLoading="isLoading" />
+      <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia" type="percent"  :isLoading="isLoading" />
       <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Depósitos Líquidos por período"  :isLoading="isLoading" />
       <PeriodComponent :period="valueDepositsPeriod" title="Valor de Depósitos por período"  :isLoading="isLoading" />
       <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saques por período" :isLoading="isLoading"  />
-      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Depósito por período" :isLoading="isLoading"  />
-      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Depósito por período"  :isLoading="isLoading" />
+      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Depósito por período" type="percent" :isLoading="isLoading"  />
+      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Depósito por período" type="percent"  :isLoading="isLoading" />
     </div>
   </div>
 </template>
