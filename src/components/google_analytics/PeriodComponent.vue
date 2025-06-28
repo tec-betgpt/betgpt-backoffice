@@ -70,7 +70,6 @@ export default defineComponent({
   },
   computed: {
    categories(): string[] {
-      console.log('Categorias:', this.period.map(p => p.name));
       return this.period.map(p => p.name)
    },
     chartData(): number[] {
