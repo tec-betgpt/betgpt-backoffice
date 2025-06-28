@@ -1,310 +1,257 @@
 <template>
-  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">SMS Insights</h2>
-      <p class="text-muted-foreground">
-        Relatórios de envio por SMS de um período específico.
-      </p>
-    </div>
-    <div class="flex items-center justify-end mb-3">
-      <div class="flex items-center max-[450px]:flex-col gap-2 w-full">
-        <div class="flex flex-col sm:flex-row gap-2 w-full">
-          <CustomDatePicker v-model="selectedRange" />
-
-        </div>
+  <div class="sms-funnel-page space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
+      <div class="space-y-0.5">
+        <h2 class="text-2xl font-bold tracking-tight">SMS Insights</h2>
+        <p class="text-muted-foreground">
+          Relatórios de envio por SMS de um período específico.
+        </p>
+      </div>
+      <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+        <CustomDatePicker v-model="selectedRange" />
       </div>
     </div>
 
-    <div class="space-y-4">
-      <div>
-        <div v-if="loading" :class="responsiveClass">
-          <Card v-for="n in 3" :key="n">
-            <div class="p-4 rounded shadow">
-              <div class="flex justify-between items-center mb-2">
-                <Skeleton class="h-4 w-1/3" />
-                <Skeleton class="h-4 w-5" />
-              </div>
-              <Skeleton class="h-8 w-2/3 mb-2" />
-            </div>
-          </Card>
-        </div>
-        <div :class="responsiveClass" v-else>
-          <Card class="">
-            <CardHeader
-              class="flex flex-row items-center justify-between space-y-0 pb-2"
-            >
-              <CardTitle class="text-sm font-medium">SMS Contratado</CardTitle>
-              <Mail class="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div class="text-2xl font-bold">+{{ last.sms.contracted }}</div>
-            </CardContent>
-          </Card>
-
-          <Card class="">
-            <CardHeader
-              class="flex flex-row items-center justify-between space-y-0 pb-2"
-            >
-              <CardTitle class="text-sm font-medium">SMS Enviado</CardTitle>
-              <MailCheck class="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div class="text-2xl font-bold">+{{ last.sms.sent }}</div>
-            </CardContent>
-          </Card>
-
-          <Card class="">
-            <CardHeader
-              class="flex flex-row items-center justify-between space-y-0 pb-2"
-            >
-              <CardTitle class="text-sm font-medium">SMS Disponível</CardTitle>
-              <MailPlus class="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div class="text-2xl font-bold">+{{ last.sms.available }}</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <!--<div>
-        <div v-if="loading" :class="responsiveClass">
-          <div v-for="n in 3" :key="n" class="p-4 bg-white rounded shadow">
+    <div v-if="loading">
+      <div  class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+        <Card v-for="n in 3" :key="n">
+          <div class="p-4 rounded shadow">
             <div class="flex justify-between items-center mb-2">
               <Skeleton class="h-4 w-1/3" />
               <Skeleton class="h-4 w-5" />
             </div>
             <Skeleton class="h-8 w-2/3 mb-2" />
-            <Skeleton class="h-4 w-1/2" />
           </div>
-        </div>
-        <div :class="responsiveClass" v-else>
-          <Card class="">
-            <CardHeader
-              class="flex flex-row items-center justify-between space-y-0 pb-2"
-            >
-              <CardTitle class="text-sm font-medium"
-                >WhatsApp Contratado</CardTitle
-              >
-              <Mail class="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div class="text-2xl font-bold">
-                +{{ last.whatsapp.contracted }}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card class="">
-            <CardHeader
-              class="flex flex-row items-center justify-between space-y-0 pb-2"
-            >
-              <CardTitle class="text-sm font-medium"
-                >WhatsApp Enviado</CardTitle
-              >
-              <MailCheck class="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div class="text-2xl font-bold">+{{ last.whatsapp.sent }}</div>
-            </CardContent>
-          </Card>
-
-          <Card class="">
-            <CardHeader
-              class="flex flex-row items-center justify-between space-y-0 pb-2"
-            >
-              <CardTitle class="text-sm font-medium"
-                >WhatsApp Disponível</CardTitle
-              >
-              <MailPlus class="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div class="text-2xl font-bold">
-                +{{ last.whatsapp.available }}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>-->
-
-      <div>
-        <div class="grid gap-4 md:grid-cols-1 lg:grid-cols-1 mb-3">
-          <Card class="col-span-3">
-            <CardHeader class="pb-3">
-              <Skeleton class="h-6 w-full" v-if="loading" />
-              <CardTitle v-else>SMS Enviado</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div v-if="loading">
-                <Skeleton class="pl-5 h-80 w-full" />
-              </div>
-              <div v-else>
-                <LineChart
-                  :data="daily.sms"
-                  index="date"
-                  :categories="['Total SMS Enviado']"
-                  :custom-tooltip="CustomChartTooltip"
-                />
-              </div>
-            </CardContent>
-          </Card>
-          <Card class="col-span-3">
-            <CardHeader class="pb-3">
-              <Skeleton class="h-6 w-full" v-if="loading" />
-              <CardTitle v-else>Cliques</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div v-if="loading">
-                <Skeleton class="pl-5 h-80 w-full" />
-              </div>
-              <div v-else>
-                <LineChart
-                  :data="daily.clicks"
-                  index="date"
-                  :categories="['Total Cliques']"
-                  :custom-tooltip="CustomChartTooltip"
-                />
-              </div>
-            </CardContent>
-          </Card>
-          <!--<Card class="col-span-3">
-            <CardHeader class="pb-3">
-              <Skeleton class="h-6 w-full" v-if="loading" />
-              <CardTitle v-else>Whatsapp Enviado</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div v-if="loading">
-                <Skeleton class="pl-5 h-80 w-full" />
-              </div>
-              <div v-else>
-                <LineChart
-                  :data="daily.whatsapp"
-                  index="date"
-                  :categories="['Total SMS Enviado']"
-                  :custom-tooltip="CustomChartTooltip"
-                />
-              </div>
-            </CardContent>
-          </Card>-->
-        </div>
-      </div>
-
-      <div>
-        <Card class="w-full">
-          <CardHeader>
-            <CardTitle>Campanhas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CustomDataTable
-              :data="campaigns"
-              :columns="columns"
-              :loading="loading"
-              :update-text="setSearch"
-              :find="applyFilter"
-              :search-fields="[
-                {
-                  key: 'name',
-                  placeholder: 'Buscar por nome da campanha...',
-                },
-              ]"
-            />
-          </CardContent>
-          <CardFooter class="py-4 w-full">
-            <CustomPagination
-              :pages="{
-                current: pages.current,
-                last: pages.last,
-                total: pages.total,
-              }"
-              :select-page="applyFilter"
-            />
-          </CardFooter>
         </Card>
       </div>
 
-      <div>
+      <div  class="mt-4 grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+        <Card v-for="n in 6" :key="n">
+          <div class="p-4 rounded shadow">
+            <div class="flex justify-between items-center mb-2">
+              <Skeleton class="h-4 w-1/3" />
+              <Skeleton class="h-4 w-5" />
+            </div>
+            <Skeleton class="h-64 w-3/3 mb-2" />
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <div v-else>
+      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">SMS Contratado</CardTitle>
+            <Mail class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">+{{ last.sms.contracted }}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">SMS Enviado</CardTitle>
+            <MailCheck class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">+{{ last.sms.sent }}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">SMS Disponível</CardTitle>
+            <MailPlus class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">+{{ last.sms.available }}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mt-4">
         <Card>
           <CardHeader>
-            <CardTitle>Últimas Recargas</CardTitle>
+            <CardTitle>SMS Enviado</CardTitle>
           </CardHeader>
+
+          <Separator />
+
           <CardContent>
-            <Table class="min-w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Serviço</TableHead>
-                  <TableHead>Créditos</TableHead>
-                  <TableHead>Preço</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Situação</TableHead>
-                  <TableHead>Nota Fiscal</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <template v-if="loading">
-                  <TableRow v-for="n in 5" :key="`loading-${n}`">
-                    <TableCell
-                      ><Skeleton class="h-4 w-full bg-gray-300"
-                    /></TableCell>
-                    <TableCell
-                      ><Skeleton class="h-4 w-full bg-gray-300"
-                    /></TableCell>
-                    <TableCell
-                      ><Skeleton class="h-4 w-full bg-gray-300"
-                    /></TableCell>
-                    <TableCell
-                      ><Skeleton class="h-4 w-full bg-gray-300"
-                    /></TableCell>
-                    <TableCell
-                      ><Skeleton class="h-4 w-full bg-gray-300"
-                    /></TableCell>
-                    <TableCell
-                      ><Skeleton class="h-4 w-full bg-gray-300"
-                    /></TableCell>
-                    <TableCell
-                      ><Skeleton class="h-4 w-full bg-gray-300"
-                    /></TableCell>
-                    <TableCell
-                      ><Skeleton class="h-4 w-full bg-gray-300"
-                    /></TableCell>
-                  </TableRow>
-                </template>
-                <template v-else>
-                  <TableRow v-for="(recharge, index) in recharges" :key="index">
-                    <TableCell>{{
-                      $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss")
-                    }}</TableCell>
-                    <TableCell>{{ recharge.description }}</TableCell>
-                    <TableCell>{{ recharge.service }}</TableCell>
-                    <TableCell>{{ recharge.credits }}</TableCell>
-                    <TableCell>{{ $toCurrency(recharge.price) }}</TableCell>
-                    <TableCell>{{ $toCurrency(recharge.total) }}</TableCell>
-                    <TableCell>
-                      <span
-                        class="text-green-600"
-                        v-if="recharge.situation == 'APPROVED'"
-                        >Confirmado</span
-                      >
-                      <span class="text-red-600" v-else>Pendente</span>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        v-if="recharge.invoice_url"
-                        variant="outline"
-                        @click="redirectToInvoiceUrl(recharge.invoice_url)"
-                      >
-                        <Download class="w-4 h-4" />
-                      </Button>
-                      <span v-else>-</span>
-                    </TableCell>
-                  </TableRow>
-                </template>
-              </TableBody>
-            </Table>
+            <div class="mb-10">
+              <div class="text-sm text-gray-400 pt-3">Total SMS Enviado</div>
+              <div class="variation-horizontal">
+                <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+                  <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('Total SMS Enviado', daily.sms).max }}
+                </div>
+                <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
+                  <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('Total SMS Enviado', daily.sms).min }}
+                </div>
+                <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
+                  <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('Total SMS Enviado', daily.sms).avg }}
+                </div>
+              </div>
+            </div>
+
+            <LineChart
+              :data="daily.sms"
+              index="date"
+              :categories="['Total SMS Enviado']"
+              :custom-tooltip="CustomChartTooltip"
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle >Cliques</CardTitle>
+          </CardHeader>
+
+          <Separator />
+
+          <CardContent>
+            <div class="mb-10">
+              <div class="text-sm text-gray-400 pt-3">Total Cliques</div>
+              <div class="variation-horizontal">
+                <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+                  <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('Total Cliques', daily.clicks).max }}
+                </div>
+                <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
+                  <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('Total Cliques', daily.clicks).min }}
+                </div>
+                <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
+                  <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('Total Cliques', daily.clicks).avg }}
+                </div>
+              </div>
+            </div>
+
+            <LineChart
+              :data="daily.clicks"
+              index="date"
+              :categories="['Total Cliques']"
+              :custom-tooltip="CustomChartTooltip"
+            />
           </CardContent>
         </Card>
       </div>
+
+      <Card class="w-full mt-4">
+        <CardHeader>
+          <CardTitle>Campanhas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CustomDataTable
+            :data="campaigns"
+            :columns="columns"
+            :loading="loading"
+            :update-text="setSearch"
+            :find="applyFilter"
+            :search-fields="[
+              {
+                key: 'name',
+                placeholder: 'Buscar por nome da campanha...',
+              },
+            ]"
+          />
+        </CardContent>
+        <CardFooter class="py-4 w-full">
+          <CustomPagination
+            :pages="{
+              current: pages.current,
+              last: pages.last,
+              total: pages.total,
+            }"
+            :select-page="applyFilter"
+          />
+        </CardFooter>
+      </Card>
+
+      <Card class="w-full mt-4">
+        <CardHeader>
+          <CardTitle>Últimas Recargas</CardTitle>
+        </CardHeader>
+
+        <Separator />
+
+        <CardContent>
+          <Table class="min-w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Serviço</TableHead>
+                <TableHead>Créditos</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Situação</TableHead>
+                <TableHead>Nota Fiscal</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <template v-if="loading">
+                <TableRow v-for="n in 5" :key="`loading-${n}`">
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                  <TableCell
+                    ><Skeleton class="h-4 w-full bg-gray-300"
+                  /></TableCell>
+                </TableRow>
+              </template>
+              <template v-else>
+                <TableRow v-for="(recharge, index) in recharges" :key="index">
+                  <TableCell>{{
+                    $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss")
+                  }}</TableCell>
+                  <TableCell>{{ recharge.description }}</TableCell>
+                  <TableCell>{{ recharge.service }}</TableCell>
+                  <TableCell>{{ recharge.credits }}</TableCell>
+                  <TableCell>{{ $toCurrency(recharge.price) }}</TableCell>
+                  <TableCell>{{ $toCurrency(recharge.total) }}</TableCell>
+                  <TableCell>
+                    <span
+                      class="text-green-600"
+                      v-if="recharge.situation == 'APPROVED'"
+                      >Confirmado</span
+                    >
+                    <span class="text-red-600" v-else>Pendente</span>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      v-if="recharge.invoice_url"
+                      variant="outline"
+                      @click="redirectToInvoiceUrl(recharge.invoice_url)"
+                    >
+                      <Download class="w-4 h-4" />
+                    </Button>
+                    <span v-else>-</span>
+                  </TableCell>
+                </TableRow>
+              </template>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>
@@ -341,7 +288,7 @@ import {
   MailPlus,
   Download,
   ArrowDown,
-  ArrowUp,
+  ArrowUp, ChartLine,
 } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -452,6 +399,17 @@ const columns = [
     cell: ({ row }) => h("div", { class: "" }, row.getValue("clicks")),
   }),
 ];
+
+function calculateStats (key: string, data: Array<any>) {
+  if (!data.length) return {}
+
+  const values = data.map((item: any) => item[key])
+  const max = Math.max(...values)
+  const min = Math.min(...values)
+  const avg = values.reduce((acc: any, val: any) => acc + val, 0) / values.length
+
+  return { max, min, avg: parseFloat(avg).toFixed(2) }
+}
 
 function createHeaderButton(label: string, columnKey: string) {
   return h(
