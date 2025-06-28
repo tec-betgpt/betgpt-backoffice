@@ -1,6 +1,6 @@
 <template>
   <div class="google-analytics-page space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
       <div class="space-y-0.5">
         <h2 class="text-2xl font-bold tracking-tight">Tráfego</h2>
         <p class="text-muted-foreground">
