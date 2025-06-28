@@ -34,8 +34,8 @@
           :data="chartData"
           index="date"
           :categories="categories"
-          :y-formatter="(tick: number) => typeof tick === 'number' ? new Intl.NumberFormat('pt-BR').format(tick) : ''"
-          :custom-tooltip="CustomChartTooltip"
+          :y-formatter="yFormatter"
+          :custom-tooltip="tooltip"
       />
     </CardContent>
   </Card>
@@ -45,6 +45,7 @@
 import { defineComponent } from 'vue'
 import { ArrowDown, ArrowUp, ChartLine } from "lucide-vue-next";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
+import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 
 export default defineComponent({
   name: "PeriodComponent",
@@ -66,15 +67,43 @@ export default defineComponent({
     isLoading:{
       type: Boolean,
       required: true
+    },
+    type: {
+      type: String as () => 'numeric' | 'percent',
+      default: 'numeric'
     }
   },
   computed: {
+    CustomChartTooltipPercent() {
+      return CustomChartTooltipPercent
+    },
+    CustomChartTooltip() {
+      return CustomChartTooltip
+    },
    categories(): string[] {
       return this.period.map(p => p.name)
    },
     chartData(): number[] {
       return this.period.length ? this.period[0].value : []
+    },
+    tooltip(){
+      return this.type === 'percent' ? this.CustomChartTooltipPercent : this.CustomChartTooltip
+    },
+    yFormatter(): (tick: number) => string {
+    if (this.type === 'percent') {
+      return (tick: number) => {
+        return   typeof tick === 'number'
+            ? `${(tick / 100).toFixed(2)}%`
+            : ''
+      }
     }
+    return (tick: number) => {
+      return typeof tick === 'number'
+        ? new Intl.NumberFormat('pt-BR').format(tick)
+        : '';
+    }
+  },
+
   },
   methods:{
     calculateStats(key, data) {
@@ -84,6 +113,10 @@ export default defineComponent({
       const max = Math.max(...values)
       const min = Math.min(...values)
       const avg = values.reduce((acc, val) => acc + val, 0) / values.length
+      if(this.type == "percent")
+      {
+        return {max: (max / 100).toFixed(2), min: (min / 100).toFixed(2), avg: (avg / 100).toFixed(2)}
+      }
       return { max, min, avg: parseFloat(avg).toFixed(2) }
     }
   }
