@@ -1,0 +1,35 @@
+.sms-funnel-page {
+  .variation {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: column;
+    font-size: .8rem;
+    margin: 15px 0 0 0;
+
+    .value {
+      padding: 4px 8px;
+      margin: 7px 5px;
+      width: auto;
+      border-radius: 8px;
+    }
+  }
+
+  .variation-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: .8rem;
+    margin: 15px 0 0 0;
+
+    .value {
+      display: flex;
+      flex-wrap: nowrap;
+      padding: 4px 8px;
+      margin: 7px 5px;
+      width: auto;
+      word-break: keep-all;
+      border-radius: 8px;
+    }
+  }
+}

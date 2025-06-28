@@ -1,20 +1,25 @@
 <template>
   <div class="space-y-6 sm:p-10 p-1 max-w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">E-mails</h2>
-      <p class="text-muted-foreground">
-        Relatórios de envio por e-mails de um período específico.
-      </p>
+    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
+      <div class="space-y-0.5">
+        <h2 class="text-2xl font-bold tracking-tight">E-mails</h2>
+        <p class="text-muted-foreground">
+          Relatórios de envio por e-mails de um período específico.
+        </p>
+      </div>
+      <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+        <CustomDatePicker v-model="selectedRange" />
+      </div>
     </div>
 
-    <div class="flex sm:flex-row flex-col w-full items-start gap-2">
-      <CustomDatePicker v-model="selectedRange" class="" />
-    </div>
     <div>
       <Card class="w-full">
         <CardHeader>
           <CardTitle>Campanhas</CardTitle>
         </CardHeader>
+
+        <Separator />
+
         <CardContent>
           <CustomDataTable
             :data="campaigns"
@@ -33,6 +38,7 @@
             ]"
           />
         </CardContent>
+
         <CardFooter class="py-4 w-full">
           <CustomPagination
             :pages="{
