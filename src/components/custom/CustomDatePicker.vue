@@ -85,13 +85,20 @@ const applyPreset = (preset: string) => {
       start = end = todayDate.subtract({ days: 1 });
       break;
     case "7days":
-      start = end.subtract({ days: 7 });
+      start = end.subtract({ days: 8 });
+      end = todayDate.subtract({ days: 1 });
       break;
     case "14days":
-      start = end.subtract({ days: 14 });
+      start = end.subtract({ days: 15 });
+      end = todayDate.subtract({ days: 1 });
       break;
     case "28days":
-      start = end.subtract({ days: 28 });
+      start = end.subtract({ days: 29 });
+      end = todayDate.subtract({ days: 1 });
+      break;
+    case "month":
+      start = todayDate.set({ day: 1 });
+      end = todayDate.subtract({ days: 1 });
       break;
   }
   value.value = { start, end };
@@ -166,6 +173,8 @@ watch(openS, (newV) => {
                 ? "Hoje"
                 : selectedPreset === "yesterday"
                 ? "Ontem"
+                : selectedPreset === "month"
+                ? "Este mês"
                 : `Últimos ${selectedPreset.replace("days", "")} dias`
             }}
           </template>
@@ -186,6 +195,7 @@ watch(openS, (newV) => {
           <SelectItem value="7days">Últimos 7 dias</SelectItem>
           <SelectItem value="14days">Últimos 14 dias</SelectItem>
           <SelectItem value="28days">Últimos 28 dias</SelectItem>
+          <SelectItem value="month">Este mês</SelectItem>
         </SelectContent>
       </Select>
     </PopoverTrigger>
