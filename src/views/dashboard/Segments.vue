@@ -626,55 +626,109 @@ const loadSavedSegment = async (segmentId: number) => {
   try {
     isLoading.value = true;
     const segment = savedSegments.value.find((s) => s.id === segmentId);
-    if (!segment) return;
+    if (!segment) {
+      toast({
+        title: "Aviso",
+        description: "Segmento não encontrado",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const newConditionGroups = segment.condition_groups.map((group) => {
+    const response = await Segments.show(segmentId);
+    const fullSegment = response.data;
+
+    const parseConditionValue = (condition: any) => {
+      try {
+        if (typeof condition.value === "object") {
+          return condition.value;
+        }
+        return JSON.parse(condition.value);
+      } catch {
+        return { value: condition.value };
+      }
+    };
+
+    const newConditionGroups = fullSegment.condition_groups.map((group) => {
       return {
         name: "Grupo de Condições",
         groupOperator: group.logic_operator,
         fields: [...allFields.value.flatMap((g) => g.fields)],
-        conditions: group.conditions.map((condition) => ({
-          conditionOperator: condition.logic_operator,
-          field: condition.field?.field_key || "",
-          operator: condition.operator,
-          value: condition.value,
-          modifier: condition.modifier || "exact",
-          dateType: condition.value_type === "date" ? "custom_date" : undefined,
-          dateModifier: condition.modifier || "exact",
-          daysOffset: 0,
-        })),
+        conditions: group.conditions.map((condition) => {
+          const valueData = parseConditionValue(condition);
+          const fieldType = condition.field?.data_type;
+
+          const baseCondition = {
+            conditionOperator: condition.logic_operator,
+            field: condition.field?.field_key || "",
+            operator: condition.operator,
+            value: valueData.value,
+            modifier: condition.modifier || "exact",
+          };
+
+          if (fieldType === "date") {
+            return {
+              ...baseCondition,
+              dateType: valueData.type || "custom_date",
+              dateModifier: valueData.dateModifier || "exact",
+              daysOffset: valueData.daysOffset || 0,
+              value:
+                valueData.type === "custom_date"
+                  ? valueData.value
+                  : new Date().toISOString().split("T")[0],
+            };
+          }
+
+          if (fieldType === "boolean") {
+            return {
+              ...baseCondition,
+              value: String(valueData.value),
+            };
+          }
+
+          return baseCondition;
+        }),
       };
     });
 
-    form.value.conditionGroups =
-      newConditionGroups.length > 0
-        ? newConditionGroups
-        : [
-            {
-              name: "Novo Grupo",
-              groupOperator: "AND",
-              fields: [...allFields.value.flatMap((g) => g.fields)],
-              conditions: [
-                {
-                  conditionOperator: "AND",
-                  field: "",
-                  operator: "",
-                  value: "",
-                  modifier: "exact",
-                },
-              ],
-            },
-          ];
+    form.value = {
+      ...form.value,
+      conditionGroups:
+        newConditionGroups.length > 0
+          ? newConditionGroups
+          : [
+              {
+                name: "Novo Grupo",
+                groupOperator: "AND",
+                fields: [...allFields.value.flatMap((g) => g.fields)],
+                conditions: [
+                  {
+                    conditionOperator: "AND",
+                    field: "",
+                    operator: "",
+                    value: "",
+                    modifier: "exact",
+                  },
+                ],
+              },
+            ],
+    };
 
     form.value.conditionGroups.forEach((group, groupIndex) => {
       group.conditions.forEach((condition) => {
         if (condition.field) {
           const validOperators = getOperators(condition, groupIndex);
-          if (!validOperators.includes(condition.operator)) {
+          if (validOperators && !validOperators.includes(condition.operator)) {
             condition.operator = "";
           }
         }
       });
+    });
+
+    toast({
+      title: "Sucesso",
+      description: "Segmento carregado com sucesso",
+      variant: "default",
     });
   } catch (error) {
     console.error("Error loading segment:", error);
@@ -749,6 +803,31 @@ const fetchSegments = async (current: number = pages.value.current) => {
   }
 };
 
+const prepareConditionValue = (condition: any, groupIndex: number) => {
+  const field = getField(condition, groupIndex);
+  if (!field) return condition.value;
+
+  if (field.data_type === "date") {
+    if (condition.dateType === "custom_date") {
+      return {
+        type: "custom_date",
+        value: condition.value,
+        dateModifier: null,
+        daysOffset: 0,
+      };
+    } else {
+      return {
+        type: "actual_date",
+        value: "actual_date",
+        dateModifier: condition.dateModifier,
+        daysOffset: condition.daysOffset || 0,
+      };
+    }
+  }
+
+  return condition.value;
+};
+
 const saveSegment = async () => {
   isProcessing.value = true;
   try {
@@ -773,15 +852,21 @@ const saveSegment = async () => {
       filter_id: activeGroupProjectId,
       conditions: {
         global_operator: form.value.globalOperator,
-        groups: form.value.conditionGroups.map((group) => ({
+        groups: form.value.conditionGroups.map((group, groupIndex) => ({
           group_operator: group.groupOperator,
-          conditions: group.conditions.map((condition) => ({
-            field: condition.field,
-            operator: condition.operator,
-            value: condition.value,
-            condition_operator: condition.conditionOperator,
-            modifier: condition.modifier,
-          })),
+          conditions: group.conditions.map((condition) => {
+            const field = getField(condition, groupIndex);
+            return {
+              field: condition.field,
+              operator: condition.operator,
+              value: prepareConditionValue(condition, groupIndex),
+              condition_operator: condition.conditionOperator,
+              modifier: condition.modifier,
+              dateType: condition.dateType,
+              dateModifier: condition.dateModifier,
+              daysOffset: condition.daysOffset,
+            };
+          }),
         })),
       },
     };
@@ -867,11 +952,30 @@ const columns = [
     header: "Condições",
     cell: ({ row }) => {
       const conditionGroups = row.original.condition_groups || [];
-      const totalConditions = conditionGroups.reduce(
-        (acc, group) => acc + (group.conditions?.length || 0),
+      const conditionsText = conditionGroups
+        .flatMap((group) =>
+          group.conditions.map((cond) => {
+            const field = cond.field?.label || cond.field?.field_key || "Campo";
+            const operator = cond.operator;
+            let value = cond.value;
+
+            if (cond.field?.data_type === "date" && typeof value === "object") {
+              if (value.type === "actual_date") {
+                value = `Data atual ${value.dateModifier} ${value.daysOffset} dias`;
+              } else {
+                value = new Date(value.value).toLocaleDateString();
+              }
+            }
+
+            return `${field} ${operator} ${value}`;
+          })
+        )
+        .join(", ");
+
+      return `${conditionsText} (${conditionGroups.reduce(
+        (acc, g) => acc + g.conditions.length,
         0
-      );
-      return `${totalConditions} condições em ${conditionGroups.length} grupos`;
+      )} condições)`;
     },
   },
   {
