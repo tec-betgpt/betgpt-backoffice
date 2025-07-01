@@ -758,7 +758,9 @@ const navMenu = computed(() => [
         url: { name: "segments" },
         icon: ListFilter,
         show:
-          (authStore.user?.access_type === "member" &&
+          (activeGroupProject.value &&
+            activeGroupProject.value.type === "project" &&
+            authStore.user?.access_type === "member" &&
             authStore.user?.roles.some((role) =>
               role.permissions.some(
                 (permission) => permission.name === "view-segments"
