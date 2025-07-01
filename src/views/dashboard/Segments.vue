@@ -146,7 +146,7 @@
                             :key="op"
                             :value="op"
                           >
-                            {{ op }}
+                            {{ $t(op) }}
                           </SelectItem>
                         </SelectGroup>
                       </SelectContent>
