@@ -1,11 +1,19 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Gerenciar Projetos</h2>
-      <p class="text-muted-foreground">
-        Gerencie seus projetos, altere status e edite informações.
-      </p>
+    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
+      <div class="space-y-0.5">
+        <h2 class="text-2xl font-bold tracking-tight">Projetos</h2>
+        <p class="text-muted-foreground">
+          Gerencie seus projetos, altere status e edite informações.
+        </p>
+      </div>
+      <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+        <Button @click="openCreateModal" class="bg-yellow-300">
+          <Plus /> {{ isProcessing ? "Carregando..." : "Novo Projeto" }}
+        </Button>
+      </div>
     </div>
+
     <Card>
       <CardContent class="py-4">
         <CustomDataTable
@@ -44,37 +52,28 @@
         </CustomDataTable>
         <CustomPagination :select-page="fetchProjects" :pages="pages" />
       </CardContent>
-      <CardFooter>
-        <Button @click="openCreateModal">
-          {{ isProcessing ? "Carregando..." : "Novo Projeto" }}
-        </Button>
-      </CardFooter>
     </Card>
 
-    <Sheet v-model:open="showModal">
-      <SheetContent position="right" size="lg">
-        <SheetHeader>
-          <SheetTitle>
+    <Dialog :open="showModal">
+      <DialogContent class="sm:max-w-[425px] grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90dvh]">
+        <DialogHeader class="p-6 pb-2">
+          <DialogTitle>
             {{ isEditing ? "Editar Projeto" : "Novo Projeto" }}
-          </SheetTitle>
-          <SheetDescription>
-            {{
-              isEditing
-                ? "Edite as informações do projeto"
-                : "Crie um novo projeto"
-            }}
-          </SheetDescription>
-        </SheetHeader>
+          </DialogTitle>
+          <DialogDescription>
+            {{ isEditing ? "Edite as informações do projeto selecionado." : "Preencha os detalhes para criar um novo projeto." }}
+          </DialogDescription>
+        </DialogHeader>
         <form @submit.prevent="isEditing ? updateProject() : createProject()">
-          <div class="grid gap-4 py-4">
+          <div class="grid gap-4 p-5">
             <div class="grid grid-cols-4 items-center gap-4">
               <Label for="name">Nome do Projeto</Label>
               <Input
-                id="name"
-                v-model="form.name"
-                placeholder="Digite o nome do projeto"
-                class="col-span-3"
-                required
+                  id="name"
+                  v-model="form.name"
+                  placeholder="Digite o nome do projeto"
+                  class="col-span-3"
+                  required
               />
             </div>
             <div class="flex items-center gap-4">
@@ -84,33 +83,42 @@
             <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
             <Label v-if="form.image">Logo Atual</Label>
             <img
-              v-if="form.image"
-              :src="imagePreview"
-              class="w-full"
-              alt="Pré-visualização da imagem"
+                v-if="form.image"
+                :src="imagePreview"
+                class="w-full"
+                alt="Pré-visualização da imagem"
             />
           </div>
-          <SheetFooter>
+
+          <DialogFooter class="p-6 pt-0">
+            <Button
+              variant="link"
+              @click="showModal = false"
+            >
+              Cancelar
+            </Button>
             <Button
               type="submit"
+              class="bg-yellow-400"
               :disabled="isProcessing || errorMessage !== ''"
             >
               <LucideSpinner
-                v-if="isProcessing"
-                class="mr-2 h-4 w-4 animate-spin"
+                  v-if="isProcessing"
+                  class="mr-2 h-4 w-4 animate-spin"
               />
               {{
                 isProcessing
-                  ? "Carregando..."
-                  : isEditing
-                  ? "Salvar"
-                  : "Criar Projeto"
+                    ? "Carregando..."
+                    : isEditing
+                        ? "Salvar"
+                        : "Criar Projeto"
               }}
             </Button>
-          </SheetFooter>
+          </DialogFooter>
+
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -134,13 +142,15 @@ import {
   ArrowDown,
   ArrowUp,
 } from "lucide-vue-next";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
+import { Loader2 as LucideSpinner, Plus } from "lucide-vue-next";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import moment from "moment";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import Projects from '@/services/projects'
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import {Dialog} from "@/components/ui/dialog";
 const imagePreview = ref();
 const errorMessage = ref("");
 

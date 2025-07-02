@@ -12,17 +12,17 @@
       <Skeleton class="h-6 w-full" />
       <Skeleton class="h-6 w-full" />
     </div>
-    <div v-else class="space-y-6">
-      <Card
-        v-for="data in integrations"
-        :key="data.id"
-        class=" p-4"
-      >
+
+    <div v-else class="grid md:grid-cols-1 lg:grid-cols-3 gap-4">
+      <Card v-for="data in integrations" :key="data.id" class="p-5">
+        <div class="mb-5">
+          <img :src="getApplicationDetail(data.name).logo" class="h-14 w-14 rounded" />
+        </div>
         <div class="flex items-center justify-between">
           <div>
             <p class="font-medium">{{ data.name }}</p>
-            <p class="text-sm text-muted-foreground">
-              Configure os campos necessários para habilitar esta integração.
+            <p class="mt-2 text-sm text-muted-foreground">
+              {{ getApplicationDetail(data.name).brief }}
             </p>
           </div>
         </div>
@@ -38,10 +38,13 @@
         </div>
       </Card>
     </div>
-    <Button class="mt-4" :disabled="saving" @click="saveAllIntegrations">
-      <LucideSpinner v-if="saving" class="mr-2 h-4 w-4 animate-spin" />
-      Salvar Integrações
-    </Button>
+
+    <div class="flex justify-end">
+      <Button class="bg-yellow-300 mt-4" :disabled="saving" @click="saveAllIntegrations">
+        <LucideSpinner v-if="saving" class="mr-2 h-4 w-4 animate-spin" />
+        Salvar Integrações
+      </Button>
+    </div>
   </div>
 </template>
 
@@ -49,8 +52,9 @@
 import { ref, onMounted } from 'vue';
 import { useWorkspaceStore } from '@/stores/workspace';
 import { useToast } from '@/components/ui/toast/use-toast';
-import { Loader2 as LucideSpinner } from 'lucide-vue-next';
+import { Loader2 as LucideSpinner, ExternalLink } from 'lucide-vue-next';
 import Projects from '@/services/projects';
+import {Card} from "@/components/ui/card";
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
@@ -84,6 +88,34 @@ async function fetchIntegrations() {
   }
 
   loading.value = false;
+}
+
+function getApplicationDetail (name: string) {
+  switch (name) {
+    case 'ActiveCampaign':
+      return {
+        logo: '/third-party/active-campaign.png',
+        brief: 'Com SMS Funnel você divulga seu produto ou serviço em tempo-real para todo Brasil e todas as operadoras'
+      }
+
+    case 'Google Analytics':
+      return {
+        logo: '/third-party/google-analytics.png',
+        brief: 'Ferramenta para analise de desempenho de sites e apps, otimizando o marketing e a experiência do usuário.'
+      }
+
+    case 'SMS Funnel':
+      return {
+        logo: '/third-party/sms-funnel.png',
+        brief: 'E-mail marketing, automação de marketing, vendas e funcionalidade de CRM.'
+      }
+
+    default:
+      return {
+        logo: '/third-party/unknown-app.png',
+        brief: 'Configure os campos necessários para habilitar esta integração.'
+      }
+  }
 }
 
 async function saveAllIntegrations() {
