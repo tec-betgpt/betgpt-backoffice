@@ -20,6 +20,7 @@
           :update-text="handleName"
           :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
         />
+        <CustomPagination :select-page="fetchSegments" :pages="pages" />
       </CardContent>
       <CardFooter class="flex justify-start">
         <div class="flex gap-4 my-4 items-center">
@@ -153,14 +154,20 @@
                     </Select>
 
                     <Input
-                      v-if="showTextInput(condition, groupIndex)"
+                      v-if="
+                        showTextInput(condition, groupIndex) &&
+                        !['empty', 'not_empty'].includes(condition.operator)
+                      "
                       v-model="condition.value"
                       placeholder="Valor"
                       class="flex-1 min-w-[240px]"
                     />
 
                     <Input
-                      v-else-if="showNumberInput(condition, groupIndex)"
+                      v-else-if="
+                        showNumberInput(condition, groupIndex) &&
+                        !['empty', 'not_empty'].includes(condition.operator)
+                      "
                       v-model.number="condition.value"
                       placeholder="Número"
                       type="number"
@@ -168,7 +175,10 @@
                     />
 
                     <div
-                      v-else-if="showDateInput(condition, groupIndex)"
+                      v-else-if="
+                        showDateInput(condition, groupIndex) &&
+                        !['empty', 'not_empty'].includes(condition.operator)
+                      "
                       class="flex items-center gap-2 flex-1"
                     >
                       <Select v-model="condition.dateType" class="flex-1">
@@ -405,9 +415,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { createColumnHelper } from "@tanstack/vue-table";
+import { useI18n } from "vue-i18n";
+const { t } = useI18n();
 
 const { toast } = useToast();
 
@@ -438,9 +451,19 @@ const operatorMap = {
     "less_than",
     "greater_or_equal",
     "less_or_equal",
+    "empty",
+    "not_empty",
   ],
-  date: ["equals", "before", "after", "on_or_before", "on_or_after"],
-  boolean: ["is", "is_not"],
+  date: [
+    "equals",
+    "before",
+    "after",
+    "on_or_before",
+    "on_or_after",
+    "empty",
+    "not_empty",
+  ],
+  boolean: ["is", "is_not", "empty", "not_empty"],
 };
 
 const form = ref({
@@ -635,21 +658,24 @@ const loadSavedSegment = async (segmentId: number) => {
       return;
     }
 
-    const response = await Segments.show(segmentId);
-    const fullSegment = response.data;
-
     const parseConditionValue = (condition: any) => {
       try {
         if (typeof condition.value === "object") {
-          return condition.value;
+          return condition.value.value ? condition.value : condition;
         }
-        return JSON.parse(condition.value);
+        const parsed = JSON.parse(condition.value);
+        return parsed.value ? parsed : parsed;
       } catch {
-        return { value: condition.value };
+        return {
+          value: condition.value,
+          type: "custom_date",
+          dateModifier: "exact",
+          daysOffset: 0,
+        };
       }
     };
 
-    const newConditionGroups = fullSegment.condition_groups.map((group) => {
+    const newConditionGroups = segment.condition_groups.map((group) => {
       return {
         name: "Grupo de Condições",
         groupOperator: group.logic_operator,
@@ -662,19 +688,25 @@ const loadSavedSegment = async (segmentId: number) => {
             conditionOperator: condition.logic_operator,
             field: condition.field?.field_key || "",
             operator: condition.operator,
-            value: valueData.value,
+            value: valueData.value?.value || valueData.value,
             modifier: condition.modifier || "exact",
           };
 
           if (fieldType === "date") {
             return {
               ...baseCondition,
-              dateType: valueData.type || "custom_date",
-              dateModifier: valueData.dateModifier || "exact",
-              daysOffset: valueData.daysOffset || 0,
+              dateType:
+                valueData.type || valueData.value?.type || "custom_date",
+              dateModifier:
+                valueData.dateModifier ||
+                valueData.value?.dateModifier ||
+                "exact",
+              daysOffset:
+                valueData.daysOffset || valueData.value?.daysOffset || 0,
               value:
-                valueData.type === "custom_date"
-                  ? valueData.value
+                valueData.type === "custom_date" ||
+                valueData.value?.type === "custom_date"
+                  ? valueData.value?.value || valueData.value
                   : new Date().toISOString().split("T")[0],
             };
           }
@@ -723,12 +755,6 @@ const loadSavedSegment = async (segmentId: number) => {
           }
         }
       });
-    });
-
-    toast({
-      title: "Sucesso",
-      description: "Segmento carregado com sucesso",
-      variant: "default",
     });
   } catch (error) {
     console.error("Error loading segment:", error);
@@ -807,6 +833,11 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
   const field = getField(condition, groupIndex);
   if (!field) return condition.value;
 
+  // Para operadores empty/not_empty, não enviamos valor
+  if (["empty", "not_empty"].includes(condition.operator)) {
+    return null;
+  }
+
   if (field.data_type === "date") {
     if (condition.dateType === "custom_date") {
       return {
@@ -838,7 +869,10 @@ const saveSegment = async () => {
     const hasValidConditions = form.value.conditionGroups.some((group) =>
       group.conditions.some(
         (condition) =>
-          condition.field && condition.operator && condition.value !== undefined
+          condition.field &&
+          condition.operator &&
+          (["empty", "not_empty"].includes(condition.operator) ||
+            condition.value !== undefined)
       )
     );
 
@@ -856,10 +890,15 @@ const saveSegment = async () => {
           group_operator: group.groupOperator,
           conditions: group.conditions.map((condition) => {
             const field = getField(condition, groupIndex);
+
+            const value = ["empty", "not_empty"].includes(condition.operator)
+              ? ""
+              : prepareConditionValue(condition, groupIndex);
+
             return {
               field: condition.field,
               operator: condition.operator,
-              value: prepareConditionValue(condition, groupIndex),
+              value: value,
               condition_operator: condition.conditionOperator,
               modifier: condition.modifier,
               dateType: condition.dateType,
@@ -955,19 +994,56 @@ const columns = [
       const conditionsText = conditionGroups
         .flatMap((group) =>
           group.conditions.map((cond) => {
-            const field = cond.field?.label || cond.field?.field_key || "Campo";
-            const operator = cond.operator;
-            let value = cond.value;
+            const field = t(
+              cond.field?.label || cond.field?.field_key || "Campo"
+            );
+            const operator = t(cond.operator);
 
-            if (cond.field?.data_type === "date" && typeof value === "object") {
-              if (value.type === "actual_date") {
-                value = `Data atual ${value.dateModifier} ${value.daysOffset} dias`;
-              } else {
-                value = new Date(value.value).toLocaleDateString();
+            // Para operadores empty/not_empty, não mostra o valor
+            if (["empty", "not_empty"].includes(cond.operator)) {
+              return `${field} ${operator.toLowerCase()}`;
+            }
+
+            let valueDisplay = cond.value;
+
+            if (cond.field?.data_type === "date") {
+              try {
+                const valueData =
+                  typeof cond.value === "string"
+                    ? JSON.parse(cond.value)
+                    : cond.value;
+                const actualValue = valueData.value
+                  ? valueData.value
+                  : valueData;
+
+                if (actualValue.type === "actual_date") {
+                  const modifierMap = {
+                    plus: t("plus"),
+                    minus: t("minus"),
+                    exact: t("exactly"),
+                  };
+                  const modifier = modifierMap[actualValue.dateModifier] || "";
+                  const days = actualValue.daysOffset || 0;
+
+                  return `${field} ${operator.toLowerCase()} ${t(
+                    "actual_date"
+                  )} ${modifier}${days > 0 ? ` ${days} ${t("days")}` : ""}`;
+                } else {
+                  const dateValue = new Date(actualValue.value);
+                  return `${field} ${operator.toLowerCase()} ${dateValue.toLocaleDateString()}`;
+                }
+              } catch {
+                return `${field} ${operator.toLowerCase()} ${cond.value}`;
               }
             }
 
-            return `${field} ${operator} ${value}`;
+            if (cond.field?.data_type === "boolean") {
+              return `${field} ${operator.toLowerCase()} ${
+                cond.value === "true" ? t("yes") : t("no")
+              }`;
+            }
+
+            return `${field} ${operator.toLowerCase()} ${valueDisplay}`;
           })
         )
         .join(", ");
@@ -975,7 +1051,7 @@ const columns = [
       return `${conditionsText} (${conditionGroups.reduce(
         (acc, g) => acc + g.conditions.length,
         0
-      )} condições)`;
+      )} ${t("conditions")})`;
     },
   },
   {
@@ -1053,6 +1129,27 @@ watch(
   (groups) => {
     groups?.forEach((group, groupIndex) => {
       group?.conditions?.forEach((condition) => {
+        if (condition.field && condition.operator) {
+          const field = getField(condition, groupIndex);
+          if (field) {
+            if (["empty", "not_empty"].includes(condition.operator)) {
+              condition.value = "";
+              condition.dateType = undefined;
+              condition.dateModifier = undefined;
+              condition.daysOffset = undefined;
+            }
+
+            if (
+              field.data_type === "date" &&
+              !showDateInput(condition, groupIndex)
+            ) {
+              condition.dateType = undefined;
+              condition.dateModifier = undefined;
+              condition.daysOffset = undefined;
+            }
+          }
+        }
+
         if (condition?.field && condition?.operator) {
           const validOperators = getOperators(condition, groupIndex);
           if (validOperators && !validOperators.includes(condition.operator)) {

@@ -176,5 +176,13 @@
   "on_or_after": "Em ou depois de",
   "between": "Entre",
   "is": "É",
-  "is_not": "Não é"
+  "is_not": "Não é",
+  "exactly": "exatamente",
+  "plus": "mais",
+  "minus": "menos",
+  "actual_date": "data atual",
+  "days": "dias",
+  "conditions": "condições",
+  "yes": "sim",
+  "no": "não"
 }
