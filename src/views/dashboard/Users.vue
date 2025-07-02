@@ -1,11 +1,20 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Gerenciar Usuários</h2>
-      <p class="text-muted-foreground">
-        Liste, edite, gerencie usuários e altere status.
-      </p>
+    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
+      <div class="space-y-0.5">
+        <h2 class="text-2xl font-bold tracking-tight">Usuários</h2>
+        <p class="text-muted-foreground">
+          Liste, edite, gerencie usuários e altere status.
+        </p>
+      </div>
+      <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+        <Button class="bg-yellow-300" @click="openCreateModal">
+          <Plus />
+          Novo Usuário
+        </Button>
+      </div>
     </div>
+
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
         <CustomDataTable
@@ -65,25 +74,22 @@
         </CustomDataTable>
         <CustomPagination :select-page="fetchUsersAndProjects" :pages="pages" />
       </CardContent>
-      <CardFooter>
-        <Button @click="openCreateModal">Novo Usuário</Button>
-      </CardFooter>
     </Card>
 
-    <Sheet v-model:open="showModal">
-      <SheetContent position="right" size="lg">
-        <SheetHeader>
-          <SheetTitle>
+    <Dialog v-model:open="showModal">
+      <DialogContent position="right" size="lg">
+        <DialogHeader>
+          <DialogTitle>
             {{ isEditing ? "Editar Usuário" : "Novo Usuário" }}
-          </SheetTitle>
-          <SheetDescription>
+          </DialogTitle>
+          <DialogDescription>
             {{
               isEditing
                 ? "Edite as informações do usuário"
                 : "Crie um novo usuário"
             }}
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
         <form @submit.prevent="isEditing ? updateUser() : createUser()">
           <div class="grid gap-4 py-4">
             <div class="grid grid-cols-4 items-center gap-4">
@@ -204,11 +210,17 @@
                 </div>
               </div>
             </div>
-            <SheetFooter>
-              <Button type="submit" :disabled="isProcessing">
+            <DialogFooter class="pt-2">
+              <Button
+                variant="ghost"
+                @click="showModal = false"
+              >
+                Cancelar
+              </Button>
+              <Button class="bg-yellow-300" type="submit" :disabled="isProcessing">
                 <LucideSpinner
                   v-if="isProcessing"
-                  class="mr-2 h-4 w-4 animate-spin"
+                  class="animate-spin"
                 />
                 {{
                   isProcessing
@@ -218,11 +230,11 @@
                     : "Criar Usuário"
                 }}
               </Button>
-            </SheetFooter>
+            </DialogFooter>
           </div>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -245,6 +257,7 @@ import {
   ChevronDownIcon,
   ArrowDown,
   ArrowUp,
+  Plus
 } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import Users from "@/services/users";
@@ -254,6 +267,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
 const { toast } = useToast();
 const processingAction = ref(null);

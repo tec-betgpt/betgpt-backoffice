@@ -64,7 +64,6 @@
             {{ isEditing ? "Edite as informações do projeto selecionado." : "Preencha os detalhes para criar um novo projeto." }}
           </DialogDescription>
         </DialogHeader>
-        <Separator />
         <form @submit.prevent="isEditing ? updateProject() : createProject()">
           <div class="grid gap-4 p-5">
             <div class="grid grid-cols-4 items-center gap-4">
