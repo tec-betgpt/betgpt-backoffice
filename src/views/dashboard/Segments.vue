@@ -186,12 +186,15 @@
                           <SelectValue placeholder="Tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="actual_date"
-                            >Data Atual</SelectItem
-                          >
-                          <SelectItem value="custom_date"
-                            >Escolher Data</SelectItem
-                          >
+                          <SelectGroup>
+                            <SelectLabel>Tipo</SelectLabel>
+                            <SelectItem value="actual_date"
+                              >Data Atual</SelectItem
+                            >
+                            <SelectItem value="custom_date"
+                              >Escolher Data</SelectItem
+                            >
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
 
@@ -214,9 +217,12 @@
                             <SelectValue placeholder="Precisão" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="exact">Exatamente</SelectItem>
-                            <SelectItem value="plus">Mais</SelectItem>
-                            <SelectItem value="minus">Menos</SelectItem>
+                            <SelectGroup>
+                              <SelectLabel>Precisão</SelectLabel>
+                              <SelectItem value="exact">Exatamente</SelectItem>
+                              <SelectItem value="plus">Mais</SelectItem>
+                              <SelectItem value="minus">Menos</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
 
@@ -232,6 +238,23 @@
                           max="365"
                         />
                       </template>
+
+                      <Select v-model="condition.dateFilter" class="flex-1">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filtrar por" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Filtrar por</SelectLabel>
+                            <SelectItem value="full_date"
+                              >Data Completa</SelectItem
+                            >
+                            <SelectItem value="m-d">Mês e Dia</SelectItem>
+                            <SelectItem value="m">Mês</SelectItem>
+                            <SelectItem value="d">Dia</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <Select
@@ -488,6 +511,7 @@ const form = ref({
       modifier?: string;
       dateType?: "actual_date" | "custom_date";
       dateModifier?: string;
+      dateFilter?: string;
       daysOffset?: number;
     }>;
   }>,
@@ -670,6 +694,7 @@ const loadSavedSegment = async (segmentId: number) => {
           value: condition.value,
           type: "custom_date",
           dateModifier: "exact",
+          dateFilter: "full_date",
           daysOffset: 0,
         };
       }
@@ -701,6 +726,10 @@ const loadSavedSegment = async (segmentId: number) => {
                 valueData.dateModifier ||
                 valueData.value?.dateModifier ||
                 "exact",
+              dateFilter:
+                valueData.dateFilter ||
+                valueData.value?.dateFilter ||
+                "full_date",
               daysOffset:
                 valueData.daysOffset || valueData.value?.daysOffset || 0,
               value:
@@ -833,7 +862,6 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
   const field = getField(condition, groupIndex);
   if (!field) return condition.value;
 
-  // Para operadores empty/not_empty, não enviamos valor
   if (["empty", "not_empty"].includes(condition.operator)) {
     return null;
   }
@@ -844,6 +872,7 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
         type: "custom_date",
         value: condition.value,
         dateModifier: null,
+        dateFilter: "full_date",
         daysOffset: 0,
       };
     } else {
@@ -851,6 +880,7 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
         type: "actual_date",
         value: "actual_date",
         dateModifier: condition.dateModifier,
+        dateFilter: condition.dateFilter,
         daysOffset: condition.daysOffset || 0,
       };
     }
@@ -903,6 +933,7 @@ const saveSegment = async () => {
               modifier: condition.modifier,
               dateType: condition.dateType,
               dateModifier: condition.dateModifier,
+              dateFilter: condition.dateFilter,
               daysOffset: condition.daysOffset,
             };
           }),
@@ -999,51 +1030,56 @@ const columns = [
             );
             const operator = t(cond.operator);
 
-            // Para operadores empty/not_empty, não mostra o valor
             if (["empty", "not_empty"].includes(cond.operator)) {
               return `${field} ${operator.toLowerCase()}`;
             }
 
-            let valueDisplay = cond.value;
-
             if (cond.field?.data_type === "date") {
               try {
-                const valueData =
-                  typeof cond.value === "string"
-                    ? JSON.parse(cond.value)
-                    : cond.value;
-                const actualValue = valueData.value
-                  ? valueData.value
-                  : valueData;
-
-                if (actualValue.type === "actual_date") {
-                  const modifierMap = {
-                    plus: t("plus"),
-                    minus: t("minus"),
-                    exact: t("exactly"),
-                  };
-                  const modifier = modifierMap[actualValue.dateModifier] || "";
-                  const days = actualValue.daysOffset || 0;
-
-                  return `${field} ${operator.toLowerCase()} ${t(
-                    "actual_date"
-                  )} ${modifier}${days > 0 ? ` ${days} ${t("days")}` : ""}`;
-                } else {
-                  const dateValue = new Date(actualValue.value);
-                  return `${field} ${operator.toLowerCase()} ${dateValue.toLocaleDateString()}`;
+                let valueData = cond.value;
+                if (typeof valueData === "string") {
+                  valueData = JSON.parse(valueData);
                 }
-              } catch {
-                return `${field} ${operator.toLowerCase()} ${cond.value}`;
+
+                if (valueData?.type === "actual_date") {
+                  const modifierMap = {
+                    plus: t("mais"),
+                    minus: t("menos"),
+                    exact: t("exatamente"),
+                  };
+                  const modifier = modifierMap[valueData.dateModifier] || "";
+                  const days = valueData.daysOffset || 0;
+
+                  if (valueData.dateFilter === "m-d") {
+                    return `${field} ${operator.toLowerCase()} ${
+                      days > 0
+                        ? `${modifier} ${days} ${t("dias")}`
+                        : modifier || t("hoje")
+                    }`;
+                  } else {
+                    return `${field} ${operator.toLowerCase()} ${t(
+                      "actual_date"
+                    )} ${modifier}${days > 0 ? ` ${days} ${t("dias")}` : ""}`;
+                  }
+                } else if (valueData?.value) {
+                  const dateValue = new Date(valueData.value);
+                  if (!isNaN(dateValue.getTime())) {
+                    return `${field} ${operator.toLowerCase()} ${dateValue.toLocaleDateString()}`;
+                  }
+                }
+              } catch (e) {
+                console.error("Erro ao processar data:", e);
               }
+              return `${field} ${operator.toLowerCase()} ${t("data_invalida")}`;
             }
 
             if (cond.field?.data_type === "boolean") {
               return `${field} ${operator.toLowerCase()} ${
-                cond.value === "true" ? t("yes") : t("no")
+                cond.value === "true" ? t("sim") : t("não")
               }`;
             }
 
-            return `${field} ${operator.toLowerCase()} ${valueDisplay}`;
+            return `${field} ${operator.toLowerCase()} ${cond.value}`;
           })
         )
         .join(", ");
@@ -1051,7 +1087,7 @@ const columns = [
       return `${conditionsText} (${conditionGroups.reduce(
         (acc, g) => acc + g.conditions.length,
         0
-      )} ${t("conditions")})`;
+      )} ${t("condições")})`;
     },
   },
   {
