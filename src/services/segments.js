@@ -74,4 +74,18 @@ export default {
     const { data } = await api.delete(`/segments/${id}`);
     return data;
   },
+
+  async contacts(segmentId, params = {}) {
+    const { response } = await api.get(`/segments/${segmentId}/contacts`, {
+      params,
+    });
+    return response.data;
+  },
+
+  async forceUpdate(segmentId, params = {}) {
+    const { response } = await api.post(`/segments/${segmentId}/force-update`, {
+      params,
+    });
+    return response.data;
+  },
 };

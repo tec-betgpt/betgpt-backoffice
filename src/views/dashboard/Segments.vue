@@ -384,6 +384,30 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <Dialog v-model:open="showContactsDialog">
+      <DialogContent class="sm:max-w-6xl h-[80vh]">
+        <DialogHeader>
+          <DialogTitle>Contatos do Segmento</DialogTitle>
+          <DialogDescription>
+            Lista de contatos que atendem às condições do segmento
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="h-full overflow-auto">
+          <CustomDataInfinite
+            :loading="isLoadingContacts"
+            :columns="contactsColumns"
+            :data="contacts"
+            :find="fetchContacts"
+            :has-more="hasMoreContacts"
+            :current-page="currentContactsPage"
+            @load-more="loadMoreContacts"
+            @reset="resetContactsData"
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -439,6 +463,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { createColumnHelper } from "@tanstack/vue-table";
@@ -454,6 +479,13 @@ const isEditing = ref(false);
 const selectedSavedSegment = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+
+const showContactsDialog = ref(false);
+const isLoadingContacts = ref(false);
+const hasMoreContacts = ref(false);
+const currentContactsPage = ref(1);
+const contacts = ref<any[]>([]);
+const currentSegmentId = ref<number | null>(null);
 
 const operatorMap = {
   string: [
@@ -1000,6 +1032,87 @@ const handleEdit = (segment: any) => {
   showModal.value = true;
 };
 
+const formatDate = (dateString: string) => {
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+  return new Date(dateString).toLocaleDateString("pt-BR", options);
+};
+
+const openContactsDialog = async (segmentId: number) => {
+  currentSegmentId.value = segmentId;
+  showContactsDialog.value = true;
+  resetContactsData();
+  await fetchContacts();
+};
+
+const resetContactsData = () => {
+  contacts.value = [];
+  currentContactsPage.value = 1;
+  hasMoreContacts.value = false;
+};
+
+const loadMoreContacts = (page: number) => {
+  fetchContacts(page);
+};
+
+const fetchContacts = async (page = 1) => {
+  if (!currentSegmentId.value) return;
+
+  isLoadingContacts.value = true;
+  try {
+    const response = await Segments.contacts(currentSegmentId.value, {
+      page,
+      perPage: 20,
+    });
+
+    if (page === 1) {
+      contacts.value = response.data.players;
+    } else {
+      contacts.value = [...contacts.value, ...response.data.players];
+    }
+
+    hasMoreContacts.value = response.data.hasMore;
+    currentContactsPage.value = response.data.currentPage;
+  } catch (error) {
+    console.error("Error loading contacts:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar os contatos",
+      variant: "destructive",
+    });
+  } finally {
+    isLoadingContacts.value = false;
+  }
+};
+
+const isUpdating = ref<number | null>(null);
+
+const forceSegmentUpdate = async (segmentId: number) => {
+  isUpdating.value = segmentId;
+  try {
+    await Segments.forceUpdate(segmentId);
+    toast({
+      title: "Sucesso",
+      description: "Atualização do segmento iniciada",
+      variant: "default",
+    });
+  } catch (error) {
+    toast({
+      title: "Erro",
+      description:
+        error.response?.data?.message || "Falha ao forçar atualização",
+      variant: "destructive",
+    });
+  } finally {
+    isUpdating.value = null;
+  }
+};
+
 const columns = [
   segmentColumnHelper.accessor("name", {
     header({ column }) {
@@ -1091,6 +1204,45 @@ const columns = [
     },
   },
   {
+    accessorKey: "total_contacts",
+    header: "Total de Contatos",
+    cell: ({ row }) => {
+      const total = row.original.total_contacts;
+      const hasContacts = total > 0;
+      const lastExecuted = row.original.last_job_execute_at;
+
+      return h(
+        "div",
+        {
+          class: "flex items-center gap-2",
+          onClick: hasContacts
+            ? () => openContactsDialog(row.original.id)
+            : undefined,
+          style: hasContacts
+            ? "cursor: pointer; text-decoration: underline;"
+            : "",
+        },
+        [
+          h("span", total || "0"),
+          !lastExecuted &&
+            h(
+              "span",
+              { class: "text-muted-foreground text-xs" },
+              "(não executado)"
+            ),
+        ]
+      );
+    },
+  },
+  {
+    accessorKey: "last_job_execute_at",
+    header: "Última Execução",
+    cell: ({ row }) => {
+      const date = row.original.last_job_execute_at;
+      return h("div", date ? formatDate(date) : "-");
+    },
+  },
+  {
     accessorKey: "actions",
     header: "Ações",
     cell: ({ row }) => {
@@ -1125,6 +1277,22 @@ const columns = [
           h(
             DropdownMenuItem,
             {
+              onClick: () => forceSegmentUpdate(row.original.id),
+            },
+            h("div", { class: "flex items-center" }, [
+              h(Loader2Icon, {
+                class: "mr-2 h-4 w-4 animate-spin",
+                style: {
+                  display:
+                    isUpdating.value === row.original.id ? "block" : "none",
+                },
+              }),
+              "Forçar Atualização",
+            ])
+          ),
+          h(
+            DropdownMenuItem,
+            {
               onClick: () => deleteSegment(row.original.id),
             },
             h("div", { class: "flex items-center text-destructive" }, "Remover")
@@ -1132,6 +1300,22 @@ const columns = [
         ]),
       ]);
     },
+  },
+];
+
+const contactsColumns = [
+  {
+    accessorKey: "id",
+    header: "ID",
+  },
+  {
+    accessorKey: "name",
+    header: "Nome",
+    cell: ({ row }) => h("div", { class: "capitalize" }, row.original.name),
+  },
+  {
+    accessorKey: "email",
+    header: "E-mail",
   },
 ];
 
