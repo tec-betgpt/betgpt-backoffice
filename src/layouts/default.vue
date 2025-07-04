@@ -1,14 +1,14 @@
 <template>
-  <SidebarProvider >
-    <Sidebar collapsible="icon" :collapsed="sidebarExpanded">
+  <SidebarProvider v-model="sidebarExpanded" >
+    <Sidebar collapsible="icon" v-model="sidebarExpanded" :collapsed="sidebarExpanded">
       <SidebarHeader v-if="activeGroupProject">
         <router-link :to="{ name: 'home' }">
           <img
             :src="logoSrc"
             alt="Logo"
             :class="{
-              'w-1/2 py-4': sidebarExpanded,
-              'w-6 py-1': !sidebarExpanded,
+              'w-1/2 py-4': !sidebarExpanded,
+              'w-6 py-1': sidebarExpanded,
             }"
             class="m-auto transition-transform duration-200 ease-linear hover:scale-105"
           />
@@ -266,6 +266,7 @@
               <BreadcrumbItem
                   v-for="(crumb, index) in breadcrumbs"
                   :key="index"
+
               >
                 <template v-if="crumb.path">
                   <BreadcrumbLink as-child>
@@ -294,7 +295,7 @@
         </div>
       </main>
     </SidebarInset>
-    <Sidebar side="right" :collapsed="sidebarIaExpanded" collapsible="offcanvas" >
+    <Sidebar side="right" :collapsed="sidebarIaExpanded" v-model="sidebarIaExpanded" collapsible="offcanvas" >
       <SidebarHeader  class="p-4 max-h-64">
         <h1 class="font-bold">
           Elevate IA
@@ -1104,11 +1105,11 @@ const logout = async () => {
 const logoSrc = computed(() => {
   return mode.value === "dark"
     ? sidebarExpanded.value
-      ? "/logo-elevate-white.png"
-      : "/logo-elevate-square-white.png"
+      ? "/logo-elevate-square-white.png"
+      : "/logo-elevate-white.png"
     : sidebarExpanded.value
-    ? "/logo-elevate-black.png"
-    : "/logo-elevate-square-black.png";
+      ? "/logo-elevate-square-black.png"
+      : "/logo-elevate-black.png";
 });
 
 const handleMenuItemClick = () => {
@@ -1118,23 +1119,31 @@ const handleMenuItemClick = () => {
 };
 
 const toggleCollapsed = (type: string) => {
-  if (!sidebarExpanded.value) {
+  console.log(sidebarExpanded,type)
+  if (sidebarExpanded.value) {
     collapsed.value = type;
     sidebarExpanded.value = true;
+
   } else {
     collapsed.value = collapsed.value === type ? "" : type;
   }
 };
 
-const toggleCollapsedIA = () => {
-  if (window.innerWidth < 768) {
-    sidebarIaExpanded.value = true;
-  }
-};
+
 const toggleSidebar = () => {
+  setResponsive()
+  if (window.innerWidth < 768) {
+    sidebarExpanded.value = true;
+    return
+  }
   sidebarExpanded.value = !sidebarExpanded.value;
 };
 const toggleSidebarIA = () => {
+  setResponsive()
+  if (window.innerWidth < 768) {
+    sidebarIaExpanded.value = true;
+    return
+  }
   sidebarIaExpanded.value = !sidebarIaExpanded.value;
 };
 </script>
