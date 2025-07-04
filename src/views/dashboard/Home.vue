@@ -1,37 +1,32 @@
 <template>
   <div class="view-home space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="grid min-[900px]:grid-cols-2 gap-4 py-10">
-      <div>
-        <h2 class="text-2xl font-bold tracking-tight">{{ greeting() }} {{ user ? user.first_name : '' }},</h2>
-        <p class="text-muted-foreground">
-          Confira as principais atualizações de hoje.
-        </p>
-      </div>
-
-      <div class="flex items-center justify-start w-full">
-        <div class="flex flex-col items-center justify-end sm:flex-row gap-2 w-full">
-          <CustomDatePicker v-model="selectedRange" />
-        </div>
-      </div>
-    </div>
-
     <div class="banner-promo">
-      <div class="inner p-4 grid md:grid-cols-2 xs:grid-cols-1 gap-2">
-        <div>
-          <div class="title text-white">Conheça nossas soluções</div>
-          <div class="subtitle text-white" :class="{}">
-            Aprimore o relacionamento com seus clientes usando funcionalidades que vão levá-lo ao próximo nível.
+      <div class="inner">
+        <div class="px-5 grid md:grid-cols-2 xs:grid-cols-1 gap-2 w-full">
+          <div>
+            <div class="text-xl font-semibold text-white">
+              {{ greeting() }} {{ user ? user.first_name : '' }},
+            </div>
+            <div class="xs:text-xs md:text-sm text-white">
+              Confira as principais atualizações de hoje.
+            </div>
+          </div>
+
+          <div class="flex justify-end items-center w-full">
+            <div class="rounded bg-card w-full md:w-auto">
+              <CustomDatePicker v-model="selectedRange"/>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="overlay"></div>
       <video-background
-        src="/movies/mpeg/dashboard.mp4"
-        poster="/movies/poster/dashboard.jpg"
-        style="width: 100%; position:absolute; top: 0; left: 0; height: 100%;"
-        :playsinline="true"
-        :sources="[
+          src="/movies/mpeg/dashboard.mp4"
+          poster="/movies/poster/dashboard.jpg"
+          style="width: 100%; position:absolute; top: 0; left: 0; height: 100%;"
+          :playsinline="true"
+          :sources="[
           { src: '/movies/mpeg/dashboard_720p.mp4', res: 1200, autoplay: true, type: 'video/mp4' },
           { src: '/movies/mpeg/dashboard_480p.mp4', res: 800, autoplay: true, type: 'video/mp4' },
           { src: '/movies/mpeg/dashboard_360p.mp4', res: 600, autoplay: true, type: 'video/mp4' },
@@ -76,10 +71,7 @@
           </CardHeader>
           <CardContent>
             <div class="number">
-              {{ formatLargeNumber(players.count).content }}
-              <span class="kind text-orange-300">
-                {{ formatLargeNumber(players.count).separator }}
-              </span>
+              {{ players.count }}
             </div>
 
             <div class="variation mt-3">
@@ -102,10 +94,7 @@
           </CardHeader>
           <CardContent>
             <div class="number">
-              {{ formatLargeNumber(activeNow.count).content }}
-              <span class="kind text-orange-300">
-                {{ formatLargeNumber(activeNow.count).separator }}
-              </span>
+              {{ activeNow.count }}
             </div>
 
             <div class="variation mt-3">
@@ -128,10 +117,7 @@
           </CardHeader>
           <CardContent>
             <div class="number">
-              {{ formatLargeNumber(players.registered_users_day).content }}
-              <span class="kind text-orange-300">
-                {{ formatLargeNumber(players.registered_users_day).separator }}
-              </span>
+              +{{ players.registered_users_day }}
             </div>
           </CardContent>
         </Card>
@@ -145,7 +131,7 @@
           <CardContent>
             <div class="number">
               {{ (players.ftd_general_percent / 100).toFixed(2) }}
-              <span class="kind text-orange-300">
+              <span class=" text-orange-300">
                 %
               </span>
             </div>
@@ -160,7 +146,7 @@
           </CardHeader>
           <CardContent>
             <div class="number">
-              {{ players.ftd_registered_users_count }}
+              +{{ players.ftd_registered_users_count }}
             </div>
           </CardContent>
         </Card>
@@ -174,7 +160,7 @@
           <CardContent>
             <div class="number">
               {{ (players.ftd_registered_users_percent / 100).toFixed(2) }}
-              <span class="kind text-orange-300">
+              <span class="text-orange-300">
                 %
               </span>
             </div>
@@ -214,10 +200,7 @@
             </CardHeader>
             <CardContent>
               <div :title="(deposits.total / 100)" class="number">
-                R$ {{ formatLargeNumber(deposits.total / 100).content }}
-                <span class="kind text-orange-300">
-                  {{ formatLargeNumber(deposits.total / 100).separator }}
-                </span>
+                {{ $toCurrency(deposits.total / 100) }}
               </div>
 
               <div class="variation mt-3">
@@ -239,10 +222,7 @@
             </CardHeader>
             <CardContent>
               <div :title="deposits.total_net_deposits" class="number">
-                R$ {{ formatLargeNumber(deposits.total_net_deposits).content }}
-                <span class="kind text-orange-300">
-                  {{ formatLargeNumber(deposits.total_net_deposits).separator }}
-                </span>
+                {{ $toCurrency(deposits.total_net_deposits / 100) }}
               </div>
             </CardContent>
           </Card>
@@ -255,11 +235,7 @@
             </CardHeader>
             <CardContent>
               <div class="number">
-               R$ {{ formatLargeNumber(deposits.average_ticket || 0 / 100).content }}
-
-                <span class="kind text-orange-300">
-                  {{ formatLargeNumber(deposits.average_ticket || 0).separator }}
-                </span>
+                {{ $toCurrency(deposits.average_ticket / 100) }}
               </div>
             </CardContent>
           </Card>
@@ -273,7 +249,7 @@
             <CardContent>
               <div class="number">
                 {{ deposits.conversion_rate }}
-                <span class="kind text-orange-300">
+                <span class="text-orange-300">
                   %
                 </span>
               </div>
@@ -289,19 +265,13 @@
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div :title="deposits.generated_deposits" class="number">
-                R$ {{ formatLargeNumber(deposits.generated_deposits).content }}
-                <span class="kind text-orange-300">
-                  {{ formatLargeNumber(deposits.generated_deposits).separator }}
-                </span>
+              <div class="number">
+                +{{ deposits.generated_deposits }}
               </div>
               <small class="text-xs">Quantidade</small>
 
-              <div :title="$toCurrency(deposits.total_pending_deposits / 100)" class="number mt-5">
-                R$ {{ formatLargeNumber(deposits.total_pending_deposits / 100).content }}
-                <span class="kind text-orange-300">
-                  {{ formatLargeNumber(deposits.total_pending_deposits / 100).separator }}
-                </span>
+              <div class="number mt-5">
+                {{ $toCurrency(deposits.total_pending_deposits / 100) }}
               </div>
               <small class="text-xs">Total</small>
             </CardContent>
@@ -312,19 +282,13 @@
               <CardTitle class="text-xs font-medium">Depósitos Pagos</CardTitle>
             </CardHeader>
             <CardContent>
-              <div :title="deposits.paid_deposits" class="number">
-                {{ formatLargeNumber(deposits.paid_deposits).content }}
-                <span class="kind text-orange-300">
-                  {{ formatLargeNumber(deposits.paid_deposits).separator }}
-                </span>
+              <div class="number">
+                +{{ deposits.paid_deposits }}
               </div>
               <small class="text-xs">Quantidade</small>
 
-              <div :title="$toCurrency(deposits.total_paid_deposits / 100)" class="number mt-5">
-                {{ formatLargeNumber(deposits.total_paid_deposits / 100).content }}
-                <span class="kind text-orange-300">
-                  {{ formatLargeNumber(deposits.total_paid_deposits / 100).separator }}
-                </span>
+              <div class="number mt-5">
+                {{ $toCurrency(deposits.total_paid_deposits / 100) }}
               </div>
               <small class="text-xs">Total</small>
             </CardContent>
@@ -337,19 +301,13 @@
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div :title="deposits.total_ftd_count" class="number">
-                {{ formatLargeNumber(deposits.total_ftd_count || 0).content }}
-                <span class="kind text-orange-300">
-                  {{ formatLargeNumber(deposits.total_ftd_count || 0).separator }}
-                </span>
+              <div class="number">
+                +{{ deposits.total_ftd_count }}
               </div>
               <small class="text-xs">Quantidade</small>
 
-              <div :title="$toCurrency(deposits.total_ftd_amount / 100)" class="number">
-                {{ formatLargeNumber(deposits.total_ftd_amount || 0 / 100).content }}
-                <span class="kind text-orange-300">
-                  {{ formatLargeNumber(deposits.total_ftd_amount || 0 / 100).separator }}
-                </span>
+              <div class="number">
+                {{ $toCurrency(deposits.total_ftd_amount / 100) }}
               </div>
               <small class="text-xs">Total</small>
             </CardContent>
@@ -476,12 +434,8 @@
             <CardTitle class="text-sm font-medium"> Saques 7D </CardTitle>
           </CardHeader>
           <CardContent>
-            <div :title="$toCurrency(withdraws.total / 100)" class="number">
-              R$ {{ formatLargeNumber(withdraws.total / 100).content }}
-
-              <span class="kind text-orange-300">
-                  {{ formatLargeNumber(withdraws.total / 100).separator }}
-                </span>
+            <div class="number">
+              {{ $toCurrency(withdraws.total / 100) }}
             </div>
 
             <div class="variation mt-3">
@@ -503,12 +457,8 @@
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div :title="$toCurrency(withdraws.average_ticket / 100)" class="number">
-              R$ {{ formatLargeNumber(withdraws.average_ticket / 100).content }}
-
-              <span class="kind text-orange-300">
-                {{ formatLargeNumber(withdraws.average_ticket / 100).separator }}
-              </span>
+            <div class="number">
+              {{ $toCurrency(withdraws.average_ticket / 100) }}
             </div>
           </CardContent>
         </Card>
@@ -520,9 +470,8 @@
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div :title="withdraws.generated_withdraws" class="number">
-              {{ withdraws.conversion_rate }}
-              <span class="kind text-orange-300">%</span>
+            <div class="number">
+              +{{ withdraws.generated_withdraws }}
             </div>
           </CardContent>
         </Card>
@@ -534,19 +483,13 @@
             <CardTitle class="text-xs font-medium">Saques Gerados</CardTitle>
           </CardHeader>
           <CardContent>
-            <div :title="withdraws.generated_withdraws" class="number">
-              {{ formatLargeNumber(withdraws.generated_withdraws || 0).content }}
-              <span class="kind text-orange-300">
-                  {{ formatLargeNumber(withdraws.generated_withdraws || 0).separator }}
-                </span>
+            <div class="number">
+              +{{ withdraws.generated_withdraws }}
             </div>
             <small class="text-xs">Quantidade</small>
 
-            <div :title="$toCurrency(withdraws.total_pending_withdraws / 100)" class="number">
-              {{ formatLargeNumber(withdraws.total_pending_withdraws / 100).content }}
-              <span class="kind text-orange-300">
-                  {{ formatLargeNumber(withdraws.total_pending_withdraws / 100).separator }}
-                </span>
+            <div class="number">
+              {{ $toCurrency(withdraws.total_pending_withdraws / 100) }}
             </div>
             <small class="text-xs">Total</small>
           </CardContent>
@@ -557,19 +500,13 @@
             <CardTitle class="text-xs font-medium"> Saques Pagos </CardTitle>
           </CardHeader>
           <CardContent>
-            <div :title="withdraws.paid_withdraws" class="number">
-              {{ formatLargeNumber(withdraws.paid_withdraws || 0).content }}
-              <span class="kind text-orange-300">
-                  {{ formatLargeNumber(withdraws.paid_withdraws || 0).separator }}
-                </span>
+            <div class="number">
+              +{{ withdraws.paid_withdraws }}
             </div>
             <small class="text-xs">Quantidade</small>
 
-            <div :title="$toCurrency(withdraws.total_paid_withdraws / 100)" class="number">
-              {{ formatLargeNumber(withdraws.total_paid_withdraws / 100).content }}
-              <span class="kind text-orange-300">
-                  {{ formatLargeNumber(withdraws.total_paid_withdraws / 100).separator }}
-                </span>
+            <div class="number">
+              {{ $toCurrency(withdraws.total_paid_withdraws / 100) }}
             </div>
             <small class="text-xs">Total</small>
           </CardContent>
@@ -593,7 +530,7 @@
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">
+            <div class="text-2xl">
               {{ retention.time }}
             </div>
           </CardContent>
@@ -606,7 +543,7 @@
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">
+            <div class="text-2xl">
               {{ $toCurrency(retention.ticket_avg / 100) }}
             </div>
           </CardContent>
