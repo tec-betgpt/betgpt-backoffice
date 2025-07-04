@@ -76,12 +76,16 @@ export default {
   },
 
   async contacts(segmentId, params = {}) {
-    const { data } = await api.get(`/segments/${segmentId}/contacts`);
+    const { data } = await api.get(`/segments/${segmentId}/contacts`, {
+      params,
+    });
     return data;
   },
 
   async forceUpdate(segmentId, params = {}) {
-    const { data } = await api.post(`/segments/${segmentId}/force-update`);
+    const { data } = await api.post(`/segments/${segmentId}/force-update`, {
+      params,
+    });
     return data;
   },
 };

@@ -399,9 +399,13 @@
             :loading="isLoadingContacts"
             :columns="contactsColumns"
             :data="contacts"
+            :update-text="setSearch"
             :find="fetchContacts"
             :has-more="hasMoreContacts"
             :current-page="currentContactsPage"
+            :search-fields="[
+              { key: 'name', placeholder: 'Buscar por nome do jogador...' },
+            ]"
             @load-more="loadMoreContacts"
             @reset="resetContactsData"
           />
@@ -422,6 +426,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ArrowDown, ArrowUp } from "lucide-vue-next";
+import { CaretSortIcon } from "@radix-icons/vue";
 import {
   Dialog,
   DialogContent,
@@ -1060,14 +1066,56 @@ const loadMoreContacts = (page: number) => {
   fetchContacts(page);
 };
 
+const orderContacts = ref();
+const directionContacts = ref(false);
+const columnHelperContacts = createColumnHelper<User>();
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+    Button,
+    {
+      variant: orderContacts.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        orderContacts.value = columnKey;
+        directionContacts.value = !directionContacts.value;
+        fetchContacts();
+      },
+      class: "h-fit text-pretty my-1",
+    },
+    () => [
+      label,
+      h(
+        orderContacts.value === columnKey
+          ? directionContacts.value
+            ? ArrowDown
+            : ArrowUp
+          : CaretSortIcon,
+        { class: "" }
+      ),
+    ]
+  );
+}
+
+const searchValues = ref<Record<string, string>>({});
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = values;
+};
+
 const fetchContacts = async (page = 1) => {
   if (!currentSegmentId.value) return;
 
   isLoadingContacts.value = true;
   try {
+    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
+      acc[key] = searchValues.value[key];
+      return acc;
+    }, {} as Record<string, string>);
+
     const response = await Segments.contacts(currentSegmentId.value, {
       page,
       perPage: 20,
+      ...searchParams,
+      orderBy: orderContacts.value ? orderContacts.value : "id",
+      orderDirection: directionContacts.value ? "asc" : "desc",
     });
 
     if (page === 1) {
@@ -1304,19 +1352,25 @@ const columns = [
 ];
 
 const contactsColumns = [
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
-  {
-    accessorKey: "name",
-    header: "Nome",
-    cell: ({ row }) => h("div", { class: "capitalize" }, row.original.name),
-  },
-  {
-    accessorKey: "email",
-    header: "E-mail",
-  },
+  columnHelperContacts.accessor("id", {
+    header({ column }) {
+      return createHeaderButton("ID", "id");
+    },
+    cell: ({ row }) => h("div", {}, row.original.id),
+  }),
+  columnHelperContacts.accessor("name", {
+    header({ column }) {
+      return createHeaderButton("Nome", "name");
+    },
+    cell: ({ row }) =>
+      h("div", { class: "capitalize" }, `${row.original.name}`),
+  }),
+  columnHelperContacts.accessor("email", {
+    header({ column }) {
+      return createHeaderButton("E-mail", "email");
+    },
+    cell: ({ row }) => h("div", {}, row.original.email),
+  }),
 ];
 
 const pages = ref({
