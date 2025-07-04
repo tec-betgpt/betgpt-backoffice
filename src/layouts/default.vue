@@ -1,5 +1,5 @@
 <template>
-  <SidebarProvider v-model:open="sidebarExpanded">
+  <SidebarProvider >
     <Sidebar collapsible="icon" :collapsed="sidebarExpanded">
       <SidebarHeader v-if="activeGroupProject">
         <router-link :to="{ name: 'home' }">
@@ -252,20 +252,20 @@
     </Sidebar>
     <SidebarInset>
       <header
-        class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
+          class="flex w-full h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
       >
-        <div class="flex items-center gap-2 px-4">
+        <div class="flex items-center gap-2 w-full px-4">
           <SidebarTrigger
-            @click="setResponsive()"
-            :toggle="handleMenuItemClick"
-            class="-ml-1"
+              :toggle="toggleSidebar"
+              class="-ml-1"
           />
+
           <Separator orientation="vertical" class="mr-2 h-4" />
-          <Breadcrumb>
+          <Breadcrumb class="flex-1">
             <BreadcrumbList>
               <BreadcrumbItem
-                v-for="(crumb, index) in breadcrumbs"
-                :key="index"
+                  v-for="(crumb, index) in breadcrumbs"
+                  :key="index"
               >
                 <template v-if="crumb.path">
                   <BreadcrumbLink as-child>
@@ -281,6 +281,10 @@
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          <SidebarTrigger
+              :toggle="toggleSidebarIA"
+              class="-ml-1"
+          />
         </div>
       </header>
       <CustomLoading v-if="configStore.loading" />
@@ -290,10 +294,65 @@
         </div>
       </main>
     </SidebarInset>
+    <Sidebar side="right" :collapsed="sidebarIaExpanded" collapsible="offcanvas" >
+      <SidebarHeader  class="p-4 max-h-64">
+        <h1 class="font-bold">
+          Elevate IA
+        </h1>
+        <div>
+          <p class="text-[16px] py-4">
+            Histórico
+          </p>
+          <div>
+            <p class="border-b-2 text-[10px] truncate pb-2">Como fazer um bolo de laranja</p>
+          </div>
+        </div>
+      </SidebarHeader>
+      <SidebarContent class="p-4 ">
+        <Card class="h-full w-full  p-2 bg-[#1c1c1c]">
+          <div class="flex flex-col h-full">
+            <div class="flex-1 overflow-y-auto" ref="messageContainerRef">
+              <div v-for="message in messages" :key="message.id" class="mb-4">
+                <div>
+                  <div  class="space-x-2 pb-2" :class="(message.sender === 'user' ? 'flex justify-end' : 'flex justify-start')">
+                    <Avatar class="h-4 w-4 rounded-lg">
+                      <AvatarImage :src="authStore.user?.icon" />
+                      <AvatarFallback class="rounded-lg">
+                        {{ authStore.user?.initials }}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p class="text-[10px]">{{message.sender === 'user'? 'Você':'I.A'}}</p>
+                  </div>
+                  <p class="text-[12px]" :class="(message.sender === 'user' ? 'flex text-end' : 'flex text-start')">{{ message.content }}</p>
+                  <div v-if="message.file" class="mt-2">
+                    <a :href="message.file" target="_blank" class="text-blue-500 hover:underline">
+                      {{ extractFileName(message.file) }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </SidebarContent>
+      <SidebarFooter  class="p-4  grid grid-cols-1 gap-2">
+        <Textarea placeholder="Digite aqui..."  />
+        <Button class="bg-yellow-300">
+          Enviar
+        </Button>
+        <Button variant="ghost">
+          <Paperclip /> Anexar arquivo
+        </Button>
+        <p class="text-[8px]">
+          As respostas podem mostrar informações imprecisas qualquer duvida entre em contato conosco.
+        </p>
+      </SidebarFooter>
+    </Sidebar>
   </SidebarProvider>
 </template>
 
 <script setup lang="ts">
+import { Paperclip } from 'lucide-vue-next';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Breadcrumb,
@@ -969,6 +1028,10 @@ const collapsed = ref("");
 
 import { useConfigStore } from "@/stores/config";
 import { Separator } from "@/components/ui/separator";
+import {Card} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Textarea} from "@/components/ui/textarea";
+import ElevateAI from "@/components/layout/ElevateAI.vue";
 const configStore = useConfigStore();
 
 const setActiveGroupProject = async (
@@ -1013,6 +1076,7 @@ watch(
 );
 // Sidebar state
 const sidebarExpanded = ref(true);
+const sidebarIaExpanded = ref(true);
 const stateResponsive = ref(false);
 const setResponsive = () => {
   stateResponsive.value = !stateResponsive.value;
@@ -1060,5 +1124,17 @@ const toggleCollapsed = (type: string) => {
   } else {
     collapsed.value = collapsed.value === type ? "" : type;
   }
+};
+
+const toggleCollapsedIA = () => {
+  if (window.innerWidth < 768) {
+    sidebarIaExpanded.value = true;
+  }
+};
+const toggleSidebar = () => {
+  sidebarExpanded.value = !sidebarExpanded.value;
+};
+const toggleSidebarIA = () => {
+  sidebarIaExpanded.value = !sidebarIaExpanded.value;
 };
 </script>

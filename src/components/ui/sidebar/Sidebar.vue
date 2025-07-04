@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onMounted } from "vue";
+import {watch, onMounted, computed} from "vue";
 import { useRoute } from "vue-router";
 import type { SidebarProps } from ".";
 import { cn } from "@/lib/utils";
@@ -83,7 +83,7 @@ onMounted(() => {
     v-else
     class="group peer hidden md:block"
     :data-state="state"
-    :data-collapsible="state === 'collapsed' ? collapsible : ''"
+    :data-collapsible="collapsed ? collapsible : ''"
     :data-variant="variant"
     :data-side="side"
   >
