@@ -67,7 +67,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div class="grid gap-2 md:grid-cols-3 sm:grid-cols-1">
         <Card v-if="hideMetricsDaily" class="item">
           <CardHeader class="space-y-0 pb-2">
             <CardTitle class="text-sm font-medium">
@@ -191,8 +191,8 @@
         </div>
       </div>
 
-      <div >
-        <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+      <div>
+        <div v-if="loading" class="grid gap-2 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
           <Card v-for="n in 4" :key="n">
             <div class="p-4 rounded shadow">
               <div class="flex justify-between items-center mb-2">
@@ -205,7 +205,7 @@
           </Card>
         </div>
 
-        <div v-else class="grid gap-4 md:grid-cols-4 sm:grid-cols-1">
+        <div v-else class="grid gap-2 md:grid-cols-4 sm:grid-cols-1">
           <Card v-if="hideMetricsDaily" class="item">
             <CardHeader>
               <CardTitle class="text-xs font-medium">
@@ -281,7 +281,7 @@
           </Card>
         </div>
 
-        <div class="grid mt-5 gap-4 md:grid-cols-3 sm:grid-cols-1">
+        <div class="grid mt-2 gap-2 md:grid-cols-3 sm:grid-cols-1">
           <Card class="item">
             <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle class="text-xs font-medium">
@@ -357,7 +357,7 @@
         </div>
       </div>
 
-      <div class="sm:grid mt-5 gap-4 md:gap-8 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
+      <div class="grid mt-2 gap-2 w-full  sm:grid-cols-1 xl:grid-cols-2 ">
         <Card>
           <CardHeader>
             <Skeleton class="h-6" v-if="loading" />
@@ -369,6 +369,7 @@
             </div>
             <div v-else>
               <BarChart
+                  class="w-full"
                   :data="deposits.monthly_counts"
                   :categories="['Total']"
                   :index="'name'"
@@ -388,9 +389,7 @@
             <CardTitle v-else>Últimos Depósitos</CardTitle>
             <CardDescription>
               <Skeleton class="h-5" v-if="loading" />
-              <span v-else>
-              Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
-            </span>
+
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -404,11 +403,11 @@
                 <Skeleton class="h-4 w-10" />
               </div>
             </div>
-            <div v-else class="space-y-8">
+            <div v-else class="space-y-8 ">
               <div
                   v-for="deposit in deposits.lasts"
                   :key="deposit.id"
-                  class="flex items-center"
+                  class="flex "
               >
                 <Avatar class="h-9 w-9">
                   <AvatarFallback>
@@ -424,7 +423,7 @@
                     }}
                   </AvatarFallback>
                 </Avatar>
-                <div class="ml-4 space-y-1 w-1/2">
+                <div class=" space-y-1 w-1/3  ml-2">
                   <p class="text-sm font-medium leading-none truncate">
                     {{ deposit.player.name }}
                   </p>
@@ -432,29 +431,29 @@
                     {{ deposit.player.email }}
                   </p>
                 </div>
-                <div class="ml-auto text-right">
-                <span class="font-medium"
-                >+{{ $toCurrency(deposit.value / 100) }}</span
-                >
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <p class="text-xs text-muted-foreground text-right">
-                          {{ $moment(deposit.created_at).fromNow() }}
-                        </p>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          {{
-                            $moment(deposit.created_at).format(
-                                "DD/MM/YYYY HH:mm:ss"
-                            )
-                          }}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+<!--                <div class="text-right">-->
+<!--                  <span class="font-medium"-->
+<!--                  >+{{ $toCurrency(deposit.value / 100) }}</span-->
+<!--                  >-->
+<!--                  <TooltipProvider>-->
+<!--                    <Tooltip>-->
+<!--                      <TooltipTrigger asChild>-->
+<!--                        <p class="text-xs text-muted-foreground text-right">-->
+<!--                          {{ $moment(deposit.created_at).fromNow() }}-->
+<!--                        </p>-->
+<!--                      </TooltipTrigger>-->
+<!--                      <TooltipContent>-->
+<!--                        <p>-->
+<!--                          {{-->
+<!--                            $moment(deposit.created_at).format(-->
+<!--                                "DD/MM/YYYY HH:mm:ss"-->
+<!--                            )-->
+<!--                          }}-->
+<!--                        </p>-->
+<!--                      </TooltipContent>-->
+<!--                    </Tooltip>-->
+<!--                  </TooltipProvider>-->
+<!--                </div>-->
               </div>
             </div>
           </CardContent>
@@ -470,7 +469,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div class="grid gap-2 md:grid-cols-3 sm:grid-cols-1">
         <Card class="item" v-if="hideMetricsDaily">
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-sm font-medium"> Saques 7D </CardTitle>
@@ -484,7 +483,7 @@
                 </span>
             </div>
 
-            <div class="variation mt-3">
+            <div class="variation mt-2">
               <div v-if="withdraws.percentage > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
                 <ArrowUp class="h-4 w-4 mr-1" /> {{ withdraws.percentage }}%
               </div>
