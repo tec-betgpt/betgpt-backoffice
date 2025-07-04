@@ -20,6 +20,7 @@
           :update-text="handleName"
           :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
         />
+        <CustomPagination :select-page="fetchSegments" :pages="pages" />
       </CardContent>
       <CardFooter class="flex justify-start">
         <div class="flex gap-4 my-4 items-center">
@@ -153,14 +154,20 @@
                     </Select>
 
                     <Input
-                      v-if="showTextInput(condition, groupIndex)"
+                      v-if="
+                        showTextInput(condition, groupIndex) &&
+                        !['empty', 'not_empty'].includes(condition.operator)
+                      "
                       v-model="condition.value"
                       placeholder="Valor"
                       class="flex-1 min-w-[240px]"
                     />
 
                     <Input
-                      v-else-if="showNumberInput(condition, groupIndex)"
+                      v-else-if="
+                        showNumberInput(condition, groupIndex) &&
+                        !['empty', 'not_empty'].includes(condition.operator)
+                      "
                       v-model.number="condition.value"
                       placeholder="Número"
                       type="number"
@@ -168,7 +175,10 @@
                     />
 
                     <div
-                      v-else-if="showDateInput(condition, groupIndex)"
+                      v-else-if="
+                        showDateInput(condition, groupIndex) &&
+                        !['empty', 'not_empty'].includes(condition.operator)
+                      "
                       class="flex items-center gap-2 flex-1"
                     >
                       <Select v-model="condition.dateType" class="flex-1">
@@ -176,12 +186,15 @@
                           <SelectValue placeholder="Tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="actual_date"
-                            >Data Atual</SelectItem
-                          >
-                          <SelectItem value="custom_date"
-                            >Escolher Data</SelectItem
-                          >
+                          <SelectGroup>
+                            <SelectLabel>Tipo</SelectLabel>
+                            <SelectItem value="actual_date"
+                              >Data Atual</SelectItem
+                            >
+                            <SelectItem value="custom_date"
+                              >Escolher Data</SelectItem
+                            >
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
 
@@ -204,9 +217,12 @@
                             <SelectValue placeholder="Precisão" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="exact">Exatamente</SelectItem>
-                            <SelectItem value="plus">Mais</SelectItem>
-                            <SelectItem value="minus">Menos</SelectItem>
+                            <SelectGroup>
+                              <SelectLabel>Precisão</SelectLabel>
+                              <SelectItem value="exact">Exatamente</SelectItem>
+                              <SelectItem value="plus">Mais</SelectItem>
+                              <SelectItem value="minus">Menos</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
 
@@ -222,6 +238,23 @@
                           max="365"
                         />
                       </template>
+
+                      <Select v-model="condition.dateFilter" class="flex-1">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filtrar por" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Filtrar por</SelectLabel>
+                            <SelectItem value="full_date"
+                              >Data Completa</SelectItem
+                            >
+                            <SelectItem value="m-d">Mês e Dia</SelectItem>
+                            <SelectItem value="m">Mês</SelectItem>
+                            <SelectItem value="d">Dia</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <Select
@@ -351,6 +384,34 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <Dialog v-model:open="showContactsDialog">
+      <DialogContent class="sm:max-w-6xl h-[80vh]">
+        <DialogHeader>
+          <DialogTitle>Contatos do Segmento</DialogTitle>
+          <DialogDescription>
+            Lista de contatos que atendem às condições do segmento
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="h-full overflow-auto">
+          <CustomDataInfinite
+            :loading="isLoadingContacts"
+            :columns="contactsColumns"
+            :data="contacts"
+            :update-text="setSearch"
+            :find="fetchContacts"
+            :has-more="hasMoreContacts"
+            :current-page="currentContactsPage"
+            :search-fields="[
+              { key: 'name', placeholder: 'Buscar por nome do jogador...' },
+            ]"
+            @load-more="loadMoreContacts"
+            @reset="resetContactsData"
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -365,6 +426,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ArrowDown, ArrowUp } from "lucide-vue-next";
+import { CaretSortIcon } from "@radix-icons/vue";
 import {
   Dialog,
   DialogContent,
@@ -405,9 +468,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
+import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { createColumnHelper } from "@tanstack/vue-table";
+import { useI18n } from "vue-i18n";
+const { t } = useI18n();
 
 const { toast } = useToast();
 
@@ -418,6 +485,13 @@ const isEditing = ref(false);
 const selectedSavedSegment = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+
+const showContactsDialog = ref(false);
+const isLoadingContacts = ref(false);
+const hasMoreContacts = ref(false);
+const currentContactsPage = ref(1);
+const contacts = ref<any[]>([]);
+const currentSegmentId = ref<number | null>(null);
 
 const operatorMap = {
   string: [
@@ -438,9 +512,19 @@ const operatorMap = {
     "less_than",
     "greater_or_equal",
     "less_or_equal",
+    "empty",
+    "not_empty",
   ],
-  date: ["equals", "before", "after", "on_or_before", "on_or_after"],
-  boolean: ["is", "is_not"],
+  date: [
+    "equals",
+    "before",
+    "after",
+    "on_or_before",
+    "on_or_after",
+    "empty",
+    "not_empty",
+  ],
+  boolean: ["is", "is_not", "empty", "not_empty"],
 };
 
 const form = ref({
@@ -465,6 +549,7 @@ const form = ref({
       modifier?: string;
       dateType?: "actual_date" | "custom_date";
       dateModifier?: string;
+      dateFilter?: string;
       daysOffset?: number;
     }>;
   }>,
@@ -635,21 +720,25 @@ const loadSavedSegment = async (segmentId: number) => {
       return;
     }
 
-    const response = await Segments.show(segmentId);
-    const fullSegment = response.data;
-
     const parseConditionValue = (condition: any) => {
       try {
         if (typeof condition.value === "object") {
-          return condition.value;
+          return condition.value.value ? condition.value : condition;
         }
-        return JSON.parse(condition.value);
+        const parsed = JSON.parse(condition.value);
+        return parsed.value ? parsed : parsed;
       } catch {
-        return { value: condition.value };
+        return {
+          value: condition.value,
+          type: "custom_date",
+          dateModifier: "exact",
+          dateFilter: "full_date",
+          daysOffset: 0,
+        };
       }
     };
 
-    const newConditionGroups = fullSegment.condition_groups.map((group) => {
+    const newConditionGroups = segment.condition_groups.map((group) => {
       return {
         name: "Grupo de Condições",
         groupOperator: group.logic_operator,
@@ -662,19 +751,29 @@ const loadSavedSegment = async (segmentId: number) => {
             conditionOperator: condition.logic_operator,
             field: condition.field?.field_key || "",
             operator: condition.operator,
-            value: valueData.value,
+            value: valueData.value?.value || valueData.value,
             modifier: condition.modifier || "exact",
           };
 
           if (fieldType === "date") {
             return {
               ...baseCondition,
-              dateType: valueData.type || "custom_date",
-              dateModifier: valueData.dateModifier || "exact",
-              daysOffset: valueData.daysOffset || 0,
+              dateType:
+                valueData.type || valueData.value?.type || "custom_date",
+              dateModifier:
+                valueData.dateModifier ||
+                valueData.value?.dateModifier ||
+                "exact",
+              dateFilter:
+                valueData.dateFilter ||
+                valueData.value?.dateFilter ||
+                "full_date",
+              daysOffset:
+                valueData.daysOffset || valueData.value?.daysOffset || 0,
               value:
-                valueData.type === "custom_date"
-                  ? valueData.value
+                valueData.type === "custom_date" ||
+                valueData.value?.type === "custom_date"
+                  ? valueData.value?.value || valueData.value
                   : new Date().toISOString().split("T")[0],
             };
           }
@@ -723,12 +822,6 @@ const loadSavedSegment = async (segmentId: number) => {
           }
         }
       });
-    });
-
-    toast({
-      title: "Sucesso",
-      description: "Segmento carregado com sucesso",
-      variant: "default",
     });
   } catch (error) {
     console.error("Error loading segment:", error);
@@ -807,12 +900,17 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
   const field = getField(condition, groupIndex);
   if (!field) return condition.value;
 
+  if (["empty", "not_empty"].includes(condition.operator)) {
+    return null;
+  }
+
   if (field.data_type === "date") {
     if (condition.dateType === "custom_date") {
       return {
         type: "custom_date",
         value: condition.value,
         dateModifier: null,
+        dateFilter: "full_date",
         daysOffset: 0,
       };
     } else {
@@ -820,6 +918,7 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
         type: "actual_date",
         value: "actual_date",
         dateModifier: condition.dateModifier,
+        dateFilter: condition.dateFilter,
         daysOffset: condition.daysOffset || 0,
       };
     }
@@ -838,7 +937,10 @@ const saveSegment = async () => {
     const hasValidConditions = form.value.conditionGroups.some((group) =>
       group.conditions.some(
         (condition) =>
-          condition.field && condition.operator && condition.value !== undefined
+          condition.field &&
+          condition.operator &&
+          (["empty", "not_empty"].includes(condition.operator) ||
+            condition.value !== undefined)
       )
     );
 
@@ -856,14 +958,20 @@ const saveSegment = async () => {
           group_operator: group.groupOperator,
           conditions: group.conditions.map((condition) => {
             const field = getField(condition, groupIndex);
+
+            const value = ["empty", "not_empty"].includes(condition.operator)
+              ? ""
+              : prepareConditionValue(condition, groupIndex);
+
             return {
               field: condition.field,
               operator: condition.operator,
-              value: prepareConditionValue(condition, groupIndex),
+              value: value,
               condition_operator: condition.conditionOperator,
               modifier: condition.modifier,
               dateType: condition.dateType,
               dateModifier: condition.dateModifier,
+              dateFilter: condition.dateFilter,
               daysOffset: condition.daysOffset,
             };
           }),
@@ -930,6 +1038,129 @@ const handleEdit = (segment: any) => {
   showModal.value = true;
 };
 
+const formatDate = (dateString: string) => {
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+  return new Date(dateString).toLocaleDateString("pt-BR", options);
+};
+
+const openContactsDialog = async (segmentId: number) => {
+  currentSegmentId.value = segmentId;
+  showContactsDialog.value = true;
+  resetContactsData();
+  await fetchContacts();
+};
+
+const resetContactsData = () => {
+  contacts.value = [];
+  currentContactsPage.value = 1;
+  hasMoreContacts.value = false;
+};
+
+const loadMoreContacts = (page: number) => {
+  fetchContacts(page);
+};
+
+const orderContacts = ref();
+const directionContacts = ref(false);
+const columnHelperContacts = createColumnHelper<User>();
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+    Button,
+    {
+      variant: orderContacts.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        orderContacts.value = columnKey;
+        directionContacts.value = !directionContacts.value;
+        fetchContacts();
+      },
+      class: "h-fit text-pretty my-1",
+    },
+    () => [
+      label,
+      h(
+        orderContacts.value === columnKey
+          ? directionContacts.value
+            ? ArrowDown
+            : ArrowUp
+          : CaretSortIcon,
+        { class: "" }
+      ),
+    ]
+  );
+}
+
+const searchValues = ref<Record<string, string>>({});
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = values;
+};
+
+const fetchContacts = async (page = 1) => {
+  if (!currentSegmentId.value) return;
+
+  isLoadingContacts.value = true;
+  try {
+    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
+      acc[key] = searchValues.value[key];
+      return acc;
+    }, {} as Record<string, string>);
+
+    const response = await Segments.contacts(currentSegmentId.value, {
+      page,
+      perPage: 20,
+      ...searchParams,
+      orderBy: orderContacts.value ? orderContacts.value : "id",
+      orderDirection: directionContacts.value ? "asc" : "desc",
+    });
+
+    if (page === 1) {
+      contacts.value = response.data.players;
+    } else {
+      contacts.value = [...contacts.value, ...response.data.players];
+    }
+
+    hasMoreContacts.value = response.data.hasMore;
+    currentContactsPage.value = response.data.currentPage;
+  } catch (error) {
+    console.error("Error loading contacts:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar os contatos",
+      variant: "destructive",
+    });
+  } finally {
+    isLoadingContacts.value = false;
+  }
+};
+
+const isUpdating = ref<number | null>(null);
+
+const forceSegmentUpdate = async (segmentId: number) => {
+  isUpdating.value = segmentId;
+  try {
+    await Segments.forceUpdate(segmentId);
+    toast({
+      title: "Sucesso",
+      description: "Atualização do segmento iniciada",
+      variant: "default",
+    });
+  } catch (error) {
+    toast({
+      title: "Erro",
+      description:
+        error.response?.data?.message || "Falha ao forçar atualização",
+      variant: "destructive",
+    });
+  } finally {
+    isUpdating.value = null;
+  }
+};
+
 const columns = [
   segmentColumnHelper.accessor("name", {
     header({ column }) {
@@ -955,19 +1186,61 @@ const columns = [
       const conditionsText = conditionGroups
         .flatMap((group) =>
           group.conditions.map((cond) => {
-            const field = cond.field?.label || cond.field?.field_key || "Campo";
-            const operator = cond.operator;
-            let value = cond.value;
+            const field = t(
+              cond.field?.label || cond.field?.field_key || "Campo"
+            );
+            const operator = t(cond.operator);
 
-            if (cond.field?.data_type === "date" && typeof value === "object") {
-              if (value.type === "actual_date") {
-                value = `Data atual ${value.dateModifier} ${value.daysOffset} dias`;
-              } else {
-                value = new Date(value.value).toLocaleDateString();
-              }
+            if (["empty", "not_empty"].includes(cond.operator)) {
+              return `${field} ${operator.toLowerCase()}`;
             }
 
-            return `${field} ${operator} ${value}`;
+            if (cond.field?.data_type === "date") {
+              try {
+                let valueData = cond.value;
+                if (typeof valueData === "string") {
+                  valueData = JSON.parse(valueData);
+                }
+
+                if (valueData?.type === "actual_date") {
+                  const modifierMap = {
+                    plus: t("mais"),
+                    minus: t("menos"),
+                    exact: t("exatamente"),
+                  };
+                  const modifier = modifierMap[valueData.dateModifier] || "";
+                  const days = valueData.daysOffset || 0;
+
+                  if (valueData.dateFilter === "m-d") {
+                    return `${field} ${operator.toLowerCase()} ${
+                      days > 0
+                        ? `${modifier} ${days} ${t("dias")}`
+                        : modifier || t("hoje")
+                    }`;
+                  } else {
+                    return `${field} ${operator.toLowerCase()} ${t(
+                      "actual_date"
+                    )} ${modifier}${days > 0 ? ` ${days} ${t("dias")}` : ""}`;
+                  }
+                } else if (valueData?.value) {
+                  const dateValue = new Date(valueData.value);
+                  if (!isNaN(dateValue.getTime())) {
+                    return `${field} ${operator.toLowerCase()} ${dateValue.toLocaleDateString()}`;
+                  }
+                }
+              } catch (e) {
+                console.error("Erro ao processar data:", e);
+              }
+              return `${field} ${operator.toLowerCase()} ${t("data_invalida")}`;
+            }
+
+            if (cond.field?.data_type === "boolean") {
+              return `${field} ${operator.toLowerCase()} ${
+                cond.value === "true" ? t("sim") : t("não")
+              }`;
+            }
+
+            return `${field} ${operator.toLowerCase()} ${cond.value}`;
           })
         )
         .join(", ");
@@ -975,7 +1248,46 @@ const columns = [
       return `${conditionsText} (${conditionGroups.reduce(
         (acc, g) => acc + g.conditions.length,
         0
-      )} condições)`;
+      )} ${t("condições")})`;
+    },
+  },
+  {
+    accessorKey: "total_contacts",
+    header: "Total de Contatos",
+    cell: ({ row }) => {
+      const total = row.original.total_contacts;
+      const hasContacts = total > 0;
+      const lastExecuted = row.original.last_job_execute_at;
+
+      return h(
+        "div",
+        {
+          class: "flex items-center gap-2",
+          onClick: hasContacts
+            ? () => openContactsDialog(row.original.id)
+            : undefined,
+          style: hasContacts
+            ? "cursor: pointer; text-decoration: underline;"
+            : "",
+        },
+        [
+          h("span", total || "0"),
+          !lastExecuted &&
+            h(
+              "span",
+              { class: "text-muted-foreground text-xs" },
+              "(não executado)"
+            ),
+        ]
+      );
+    },
+  },
+  {
+    accessorKey: "last_job_execute_at",
+    header: "Última Execução",
+    cell: ({ row }) => {
+      const date = row.original.last_job_execute_at;
+      return h("div", date ? formatDate(date) : "-");
     },
   },
   {
@@ -1013,6 +1325,22 @@ const columns = [
           h(
             DropdownMenuItem,
             {
+              onClick: () => forceSegmentUpdate(row.original.id),
+            },
+            h("div", { class: "flex items-center" }, [
+              h(Loader2Icon, {
+                class: "mr-2 h-4 w-4 animate-spin",
+                style: {
+                  display:
+                    isUpdating.value === row.original.id ? "block" : "none",
+                },
+              }),
+              "Forçar Atualização",
+            ])
+          ),
+          h(
+            DropdownMenuItem,
+            {
               onClick: () => deleteSegment(row.original.id),
             },
             h("div", { class: "flex items-center text-destructive" }, "Remover")
@@ -1021,6 +1349,28 @@ const columns = [
       ]);
     },
   },
+];
+
+const contactsColumns = [
+  columnHelperContacts.accessor("id", {
+    header({ column }) {
+      return createHeaderButton("ID", "id");
+    },
+    cell: ({ row }) => h("div", {}, row.original.id),
+  }),
+  columnHelperContacts.accessor("name", {
+    header({ column }) {
+      return createHeaderButton("Nome", "name");
+    },
+    cell: ({ row }) =>
+      h("div", { class: "capitalize" }, `${row.original.name}`),
+  }),
+  columnHelperContacts.accessor("email", {
+    header({ column }) {
+      return createHeaderButton("E-mail", "email");
+    },
+    cell: ({ row }) => h("div", {}, row.original.email),
+  }),
 ];
 
 const pages = ref({
@@ -1053,6 +1403,27 @@ watch(
   (groups) => {
     groups?.forEach((group, groupIndex) => {
       group?.conditions?.forEach((condition) => {
+        if (condition.field && condition.operator) {
+          const field = getField(condition, groupIndex);
+          if (field) {
+            if (["empty", "not_empty"].includes(condition.operator)) {
+              condition.value = "";
+              condition.dateType = undefined;
+              condition.dateModifier = undefined;
+              condition.daysOffset = undefined;
+            }
+
+            if (
+              field.data_type === "date" &&
+              !showDateInput(condition, groupIndex)
+            ) {
+              condition.dateType = undefined;
+              condition.dateModifier = undefined;
+              condition.daysOffset = undefined;
+            }
+          }
+        }
+
         if (condition?.field && condition?.operator) {
           const validOperators = getOperators(condition, groupIndex);
           if (validOperators && !validOperators.includes(condition.operator)) {
