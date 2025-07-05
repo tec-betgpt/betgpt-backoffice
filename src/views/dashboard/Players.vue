@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Lista de Jogadores</h2>
-      <p class="text-muted-foreground">Os jogadores vinculados ao projeto.</p>
+      <h2 class="text-2xl font-bold tracking-tight">Lista de Clientes</h2>
+      <p class="text-muted-foreground">Os clientes vinculados ao projeto.</p>
     </div>
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">

@@ -351,6 +351,7 @@ import {
   MailCheck,
   Album,
   SlidersHorizontal,
+  View,
   MessageCircle,
   Rows3,
   ChevronRight,
@@ -510,6 +511,104 @@ const navMenu = computed(() => [
             .some((role) =>
               role.permissions.some(
                 (permission) => permission.name === "access-to-ai"
+              )
+            ),
+      },
+    ],
+  },
+  {
+    name: "Audiências",
+    icon: View,
+    type: "audiences",
+    show:
+      (authStore.user?.access_type === "member" &&
+        authStore.user?.roles.some((role) =>
+          role.permissions.some(
+            (permission) => permission.name === "access-to-reports"
+          )
+        )) ||
+      authStore.user?.roles
+        .filter(
+          (role) =>
+            activeGroupProject.value &&
+            role.pivot.project_id === activeGroupProject.value.project_id
+        )
+        .some((role) =>
+          role.permissions.some(
+            (permission) => permission.name === "access-to-reports"
+          )
+        ),
+    children: [
+      {
+        name: "Clientes",
+        url: { name: "clients" },
+        icon: Users2,
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "player-registrations"
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "player-registrations"
+              )
+            ),
+      },
+      {
+        name: "Segmentos",
+        url: { name: "segments" },
+        icon: ListFilter,
+        show:
+          (activeGroupProject.value &&
+            activeGroupProject.value.type === "project" &&
+            authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "view-segments"
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) => permission.name === "view-segments"
+              )
+            ),
+      },
+      {
+        name: "Atribuições",
+        url: { name: "attributions" },
+        icon: ExternalLink,
+        show:
+          (authStore.user?.access_type === "member" &&
+            authStore.user?.roles.some((role) =>
+              role.permissions.some(
+                (permission) =>
+                  permission.name === "access-to-parameter-tracking"
+              )
+            )) ||
+          authStore.user?.roles
+            .filter(
+              (role) =>
+                activeGroupProject.value &&
+                role.pivot.project_id === activeGroupProject.value.project_id
+            )
+            .some((role) =>
+              role.permissions.some(
+                (permission) =>
+                  permission.name === "access-to-parameter-tracking"
               )
             ),
       },
@@ -750,79 +849,6 @@ const navMenu = computed(() => [
               role.permissions.some(
                 (permission) =>
                   permission.name === "access-to-motivational-texts"
-              )
-            ),
-      },
-      {
-        name: "Segmentos",
-        url: { name: "segments" },
-        icon: ListFilter,
-        show:
-          (activeGroupProject.value &&
-            activeGroupProject.value.type === "project" &&
-            authStore.user?.access_type === "member" &&
-            authStore.user?.roles.some((role) =>
-              role.permissions.some(
-                (permission) => permission.name === "view-segments"
-              )
-            )) ||
-          authStore.user?.roles
-            .filter(
-              (role) =>
-                activeGroupProject.value &&
-                role.pivot.project_id === activeGroupProject.value.project_id
-            )
-            .some((role) =>
-              role.permissions.some(
-                (permission) => permission.name === "view-segments"
-              )
-            ),
-      },
-      {
-        name: "Jogadores",
-        url: { name: "players" },
-        icon: Users2,
-        show:
-          (authStore.user?.access_type === "member" &&
-            authStore.user?.roles.some((role) =>
-              role.permissions.some(
-                (permission) => permission.name === "player-registrations"
-              )
-            )) ||
-          authStore.user?.roles
-            .filter(
-              (role) =>
-                activeGroupProject.value &&
-                role.pivot.project_id === activeGroupProject.value.project_id
-            )
-            .some((role) =>
-              role.permissions.some(
-                (permission) => permission.name === "player-registrations"
-              )
-            ),
-      },
-      {
-        name: "Rastreamento UTM",
-        url: { name: "utm-tracks" },
-        icon: ExternalLink,
-        show:
-          (authStore.user?.access_type === "member" &&
-            authStore.user?.roles.some((role) =>
-              role.permissions.some(
-                (permission) =>
-                  permission.name === "access-to-parameter-tracking"
-              )
-            )) ||
-          authStore.user?.roles
-            .filter(
-              (role) =>
-                activeGroupProject.value &&
-                role.pivot.project_id === activeGroupProject.value.project_id
-            )
-            .some((role) =>
-              role.permissions.some(
-                (permission) =>
-                  permission.name === "access-to-parameter-tracking"
               )
             ),
       },
