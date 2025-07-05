@@ -8,7 +8,7 @@
               {{ greeting() }} {{ user ? user.first_name : '' }},
             </div>
             <div class="xs:text-xs md:text-sm text-white">
-              Confira as principais atualizações de hoje.
+              Confira as principais atualizações de:
             </div>
           </div>
 
@@ -58,7 +58,7 @@
           Visão Geral dos Jogadores
         </div>
         <div class="subtitle">
-          Configura os últimos indicadores e mais recentes
+          Configura os últimos indicadores
         </div>
       </div>
 
