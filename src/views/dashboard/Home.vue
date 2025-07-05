@@ -173,7 +173,7 @@
           Visão Geral dos Depósitos
         </div>
         <div class="subtitle">
-          Configura os últimos indicadores e mais recentes
+          Confira os últimos indicadores
         </div>
       </div>
 
@@ -424,7 +424,7 @@
           Visão Geral dos Saques
         </div>
         <div class="subtitle">
-          Configura os últimos indicadores e mais recentes
+          Confira os últimos indicadores
         </div>
       </div>
 
