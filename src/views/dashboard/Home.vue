@@ -58,7 +58,7 @@
           Visão Geral dos Jogadores
         </div>
         <div class="subtitle">
-          Configura os últimos indicadores
+          Confira os últimos indicadores
         </div>
       </div>
 
