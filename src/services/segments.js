@@ -82,6 +82,13 @@ export default {
     return data;
   },
 
+  async exportContacts(segmentId, params = {}) {
+    return api.get(`/segments/${segmentId}/contacts`, {
+      params: { ...params, export: 1 },
+      responseType: "blob",
+    });
+  },
+
   async forceUpdate(segmentId, params = {}) {
     const { data } = await api.post(`/segments/${segmentId}/force-update`, {
       params,

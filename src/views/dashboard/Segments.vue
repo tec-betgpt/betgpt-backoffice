@@ -404,10 +404,15 @@
             :has-more="hasMoreContacts"
             :current-page="currentContactsPage"
             :search-fields="[
-              { key: 'name', placeholder: 'Buscar por nome do jogador...' },
+              {
+                key: 'all_fields',
+                placeholder: 'Buscar por nome ou e-mail...',
+              },
             ]"
             @load-more="loadMoreContacts"
             @reset="resetContactsData"
+            :exportable="true"
+            @export="handleExportContacts"
           />
         </div>
       </DialogContent>
@@ -426,7 +431,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowDown, ArrowUp } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, RefreshCcw } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import {
   Dialog,
@@ -1027,6 +1032,41 @@ const deleteSegment = async (segmentId: number) => {
   }
 };
 
+const handleExportContacts = async () => {
+  try {
+    toast({
+      title: "Sucesso!",
+      description: "O arquivo está sendo preparado para download...",
+      variant: "success",
+    });
+
+    const params = {
+      ...searchValues.value,
+      orderBy: orderContacts.value || "id",
+      orderDirection: directionContacts.value ? "asc" : "desc",
+    };
+
+    const { data } = await Segments.exportContacts(
+      currentSegmentId.value,
+      params
+    );
+    const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `segment-${currentSegmentId.value}-contacts.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    toast({
+      title: "Erro",
+      description: "Falha ao exportar contatos",
+      variant: "destructive",
+    });
+  }
+};
+
 const handleEdit = (segment: any) => {
   isEditing.value = true;
   form.value.id = segment.id;
@@ -1143,12 +1183,12 @@ const isUpdating = ref<number | null>(null);
 const forceSegmentUpdate = async (segmentId: number) => {
   isUpdating.value = segmentId;
   try {
-    await Segments.forceUpdate(segmentId);
     toast({
       title: "Sucesso",
-      description: "Atualização do segmento iniciada",
+      description: "Atualização do segmento iniciada...",
       variant: "default",
     });
+    await Segments.forceUpdate(segmentId);
   } catch (error) {
     toast({
       title: "Erro",
@@ -1172,85 +1212,20 @@ const columns = [
         handlerOrder
       );
     },
-    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
-  }),
-  {
-    accessorKey: "description",
-    header: "Descrição",
-  },
-  {
-    accessorKey: "conditions",
-    header: "Condições",
     cell: ({ row }) => {
-      const conditionGroups = row.original.condition_groups || [];
-      const conditionsText = conditionGroups
-        .flatMap((group) =>
-          group.conditions.map((cond) => {
-            const field = t(
-              cond.field?.label || cond.field?.field_key || "Campo"
-            );
-            const operator = t(cond.operator);
-
-            if (["empty", "not_empty"].includes(cond.operator)) {
-              return `${field} ${operator.toLowerCase()}`;
-            }
-
-            if (cond.field?.data_type === "date") {
-              try {
-                let valueData = cond.value;
-                if (typeof valueData === "string") {
-                  valueData = JSON.parse(valueData);
-                }
-
-                if (valueData?.type === "actual_date") {
-                  const modifierMap = {
-                    plus: t("mais"),
-                    minus: t("menos"),
-                    exact: t("exatamente"),
-                  };
-                  const modifier = modifierMap[valueData.dateModifier] || "";
-                  const days = valueData.daysOffset || 0;
-
-                  if (valueData.dateFilter === "m-d") {
-                    return `${field} ${operator.toLowerCase()} ${
-                      days > 0
-                        ? `${modifier} ${days} ${t("dias")}`
-                        : modifier || t("hoje")
-                    }`;
-                  } else {
-                    return `${field} ${operator.toLowerCase()} ${t(
-                      "actual_date"
-                    )} ${modifier}${days > 0 ? ` ${days} ${t("dias")}` : ""}`;
-                  }
-                } else if (valueData?.value) {
-                  const dateValue = new Date(valueData.value);
-                  if (!isNaN(dateValue.getTime())) {
-                    return `${field} ${operator.toLowerCase()} ${dateValue.toLocaleDateString()}`;
-                  }
-                }
-              } catch (e) {
-                console.error("Erro ao processar data:", e);
-              }
-              return `${field} ${operator.toLowerCase()} ${t("data_invalida")}`;
-            }
-
-            if (cond.field?.data_type === "boolean") {
-              return `${field} ${operator.toLowerCase()} ${
-                cond.value === "true" ? t("sim") : t("não")
-              }`;
-            }
-
-            return `${field} ${operator.toLowerCase()} ${cond.value}`;
-          })
-        )
-        .join(", ");
-
-      return `${conditionsText} (${conditionGroups.reduce(
-        (acc, g) => acc + g.conditions.length,
-        0
-      )} ${t("condições")})`;
+      return h("div", { class: "flex flex-col" }, [
+        h("div", { class: "capitalize" }, row.getValue("name")),
+        h(
+          "div",
+          {
+            class: "text-xs text-muted-foreground mt-1 line-clamp-2",
+            title: row.original.description, // Mostra tooltip com a descrição completa
+          },
+          row.original.description || "Sem descrição"
+        ),
+      ]);
     },
-  },
+  }),
   {
     accessorKey: "total_contacts",
     header: "Total de Contatos",
@@ -1284,9 +1259,40 @@ const columns = [
   },
   {
     accessorKey: "last_job_execute_at",
-    header: "Última Execução",
+    header: "Última Atualização",
     cell: ({ row }) => {
       const date = row.original.last_job_execute_at;
+      return h("div", { class: "flex items-center gap-2" }, [
+        h("div", date ? formatDate(date) : "-"),
+        h(
+          Button,
+          {
+            variant: "ghost",
+            size: "icon",
+            class: "h-8 w-8",
+            onClick: (e) => {
+              e.stopPropagation();
+              forceSegmentUpdate(row.original.id);
+            },
+            disabled: isUpdating.value === row.original.id,
+          },
+          [
+            h(RefreshCcw, {
+              class: "h-4 w-4",
+              class: {
+                "animate-spin": isUpdating.value === row.original.id,
+              },
+            }),
+          ]
+        ),
+      ]);
+    },
+  },
+  {
+    accessorKey: "updated_at",
+    header: "Editado pela última vez",
+    cell: ({ row }) => {
+      const date = row.original.updated_at;
       return h("div", date ? formatDate(date) : "-");
     },
   },
@@ -1321,22 +1327,6 @@ const columns = [
               onClick: () => handleEdit(row.original),
             },
             "Editar"
-          ),
-          h(
-            DropdownMenuItem,
-            {
-              onClick: () => forceSegmentUpdate(row.original.id),
-            },
-            h("div", { class: "flex items-center" }, [
-              h(Loader2Icon, {
-                class: "mr-2 h-4 w-4 animate-spin",
-                style: {
-                  display:
-                    isUpdating.value === row.original.id ? "block" : "none",
-                },
-              }),
-              "Forçar Atualização",
-            ])
           ),
           h(
             DropdownMenuItem,

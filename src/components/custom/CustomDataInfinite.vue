@@ -6,9 +6,9 @@
         :key="field.key"
         class="grid w-full max-w-sm items-center gap-1.5"
       >
-        <Label v-if="field.label" :for="'input-' + field.key">{{
-          field.label
-        }}</Label>
+        <Label v-if="field.label" :for="'input-' + field.key">
+          {{ field.label }}
+        </Label>
         <Input
           :id="'input-' + field.key"
           class="sm:max-w-sm w-full"
@@ -17,6 +17,7 @@
           @input="checkIfEmpty"
         />
       </div>
+
       <Button
         :class="hasLabel ? 'mt-0 lg:mt-6' : ''"
         @click="resetAndFetch"
@@ -24,7 +25,19 @@
       >
         Buscar
       </Button>
-      <div class="flex flex-1 gap-2"></div>
+
+      <div class="flex-1 flex items-end justify-end">
+        <Button
+          v-if="exportable"
+          variant="ghost"
+          :disabled="loading"
+          @click="$emit('export')"
+        >
+          <Download class="mr-2 h-4 w-4" />
+          Exportar
+        </Button>
+      </div>
+
       <slot></slot>
     </div>
 
@@ -106,6 +119,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Download } from "lucide-vue-next";
 
 const props = defineProps({
   columns: {
@@ -141,9 +155,10 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  exportable: Boolean,
 });
 
-const emit = defineEmits(["load-more", "reset"]);
+const emit = defineEmits(["load-more", "reset", "export"]);
 
 const isLoadingMore = ref(false);
 const isInitialLoading = ref(true);
