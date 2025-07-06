@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Rastreamentos UTM</h2>
+      <h2 class="text-2xl font-bold tracking-tight">Atribuições</h2>
       <p class="text-muted-foreground">
         Os rastreamentos UTM de todos os segmentos.
       </p>
@@ -105,11 +105,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  ChevronDownIcon,
-  ArrowDown,
-  ArrowUp,
-} from "lucide-vue-next";
+import { ChevronDownIcon, ArrowDown, ArrowUp } from "lucide-vue-next";
 import UtmTracks from "@/services/utmTracks";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
