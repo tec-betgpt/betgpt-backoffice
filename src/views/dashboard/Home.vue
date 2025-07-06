@@ -39,7 +39,7 @@
       />
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-3 mb-3 mt-4">
+    <div v-if="loading" class="grid gap-4 min-[720px]:grid-cols-2 xl:grid-cols-3 mb-3 mt-4">
       <Card v-for="n in 16" :key="n">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
@@ -53,20 +53,21 @@
     </div>
 
     <div v-else>
-      <div class="title-section">
-        <div class="title">
+      <div class="pb-5 pt-10">
+        <div class="text-xl">
           Visão Geral dos Jogadores
         </div>
-        <div class="subtitle">
+        <div class="text-sm text-muted-foreground">
           Confira os últimos indicadores
         </div>
       </div>
 
-      <div class="grid gap-2 md:grid-cols-3 sm:grid-cols-1">
+      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
         <Card v-if="hideMetricsDaily" class="item">
-          <CardHeader class="space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">
-              Total
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Total de Registros</span>
+              <GlossaryTooltipComponent description="Total de usuários registrados na base da Elevate" />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -87,9 +88,10 @@
         </Card>
 
         <Card v-if="hideMetricsDaily" class="item">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              Ativos
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Usuários Ativos</span>
+              <GlossaryTooltipComponent description="Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias" />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -110,9 +112,10 @@
         </Card>
 
         <Card class="item">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              Cadastros do Dia
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Novos Registros</span>
+              <GlossaryTooltipComponent description="Total de usuários que completaram o cadastro no sistema no periodo especifico" />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -123,9 +126,10 @@
         </Card>
 
         <Card class="item">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              FTD Geral
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Taxa de Conversão Geral</span>
+              <GlossaryTooltipComponent description="Percentual de usuários cadastrados que realizaram uma primeira transação validada." />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -139,9 +143,10 @@
         </Card>
 
         <Card class="item">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              Primeiros Depositantes
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Primeiros Depositantes</span>
+              <GlossaryTooltipComponent description="Usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro." />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -152,9 +157,10 @@
         </Card>
 
         <Card class="item">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              Converção FTD
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Taxa de Conversão em D0</span>
+              <GlossaryTooltipComponent description="Percentual de usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro." />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -168,17 +174,17 @@
         </Card>
       </div>
 
-      <div class="title-section pt-10">
-        <div class="title">
+      <div class="pb-5 pt-10">
+        <div class="text-xl">
           Visão Geral dos Depósitos
         </div>
-        <div class="subtitle">
+        <div class="text-sm text-muted-foreground">
           Confira os últimos indicadores
         </div>
       </div>
 
       <div >
-        <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+        <div v-if="loading" class="grid gap-4 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
           <Card v-for="n in 4" :key="n">
             <div class="p-4 rounded shadow">
               <div class="flex justify-between items-center mb-2">
@@ -191,11 +197,12 @@
           </Card>
         </div>
 
-        <div v-else class="grid gap-2 md:grid-cols-4 sm:grid-cols-1">
+        <div v-else class="grid gap-4 md:grid-cols-4 sm:grid-cols-1">
           <Card v-if="hideMetricsDaily" class="item">
-            <CardHeader>
-              <CardTitle class="text-xs font-medium">
-                Depósitos 7D
+            <CardHeader class="pb-2">
+              <CardTitle class="text-xs font-medium flex justify-between items-center">
+                <span>Total de Entradas 7D</span>
+                <GlossaryTooltipComponent description="Total de entradas dos últimos 7 dias." />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -212,13 +219,15 @@
                 </div>
                 desde a semana anterior
               </div>
-
             </CardContent>
           </Card>
 
           <Card class="item">
-            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle class="text-xs font-medium"> Net Deposit </CardTitle>
+            <CardHeader class="pb-2">
+              <CardTitle class="text-xs font-medium flex justify-between items-center">
+                <span>Volume Líquido de Entradas</span>
+                <GlossaryTooltipComponent description="Valor total líquido de entradas financeiras na plataforma (ex: depósitos, pagamentos ou compras)." />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div :title="deposits.total_net_deposits" class="number">
@@ -228,9 +237,10 @@
           </Card>
 
           <Card class="item">
-            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle class="text-xs font-medium">
-                Ticket Médio Depósito
+            <CardHeader class="pb-2">
+              <CardTitle class="text-xs font-medium flex justify-between items-center">
+                <span>Ticket Médio de Entradas</span>
+                <GlossaryTooltipComponent description="Valor médio por transação de entrada confirmadas realizada pelos usuários" />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -241,9 +251,10 @@
           </Card>
 
           <Card class="item">
-            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle class="text-xs font-medium">
-                Porcentagem Conversão
+            <CardHeader class="pb-2">
+              <CardTitle class="text-xs font-medium flex justify-between items-center">
+                <span>Taxa de Aprovação</span>
+                <GlossaryTooltipComponent description="Taxa de aprovação de entradas geradas e entradas confirmadas" />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -257,11 +268,12 @@
           </Card>
         </div>
 
-        <div class="grid mt-5 gap-2 md:grid-cols-3 sm:grid-cols-1">
+        <div class="mt-5 grid gap-4 md:grid-cols-3 sm:grid-cols-1">
           <Card class="item">
-            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle class="text-xs font-medium">
-                Depósitos Gerados
+            <CardHeader class="pb-2">
+              <CardTitle class="text-xs font-medium flex justify-between items-center">
+                <span>Entradas Geradas</span>
+                <GlossaryTooltipComponent description="Valor total de transações de entrada iniciadas, independentemente da confirmação." />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -278,8 +290,11 @@
           </Card>
 
           <Card class="item">
-            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle class="text-xs font-medium">Depósitos Pagos</CardTitle>
+            <CardHeader class="pb-2">
+              <CardTitle class="text-xs font-medium flex justify-between items-center">
+                <span>Entradas Confirmadas</span>
+                <GlossaryTooltipComponent description="Valor total de transações de entrada confirmadas com sucesso." />
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div class="number">
@@ -295,9 +310,10 @@
           </Card>
 
           <Card class="item">
-            <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle class="text-xs font-medium">
-                Primeiros Depósitantes
+            <CardHeader class="pb-2">
+              <CardTitle class="text-xs font-medium flex justify-between items-center">
+                <span>Primeiras Entradas</span>
+                <GlossaryTooltipComponent description="Total de entradas financeiras geradas por usuários que realizaram sua primeira transação" />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -315,17 +331,29 @@
         </div>
       </div>
 
-      <div class="sm:grid mt-5 gap-4 md:gap-8 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
-        <Card class="mb-2">
-          <CardHeader>
-            <Skeleton class="h-6" v-if="loading" />
-            <CardTitle v-else>Total de Depósitos</CardTitle>
+      <div v-if="loading" class="grid gap-4 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+        <Card v-for="n in 4" :key="n">
+          <div class="p-4 rounded shadow">
+            <div class="flex justify-between items-center mb-2">
+              <Skeleton class="h-4 w-1/3" />
+              <Skeleton class="h-4 w-5" />
+            </div>
+            <Skeleton class="h-8 w-2/3 mb-2" />
+            <Skeleton class="h-4 w-1/2" />
+          </div>
+        </Card>
+      </div>
+
+      <div v-else class="sm:grid mt-5 gap-4 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
+        <Card class="mb-4">
+          <CardHeader class="pb-2">
+            <CardTitle class="font-medium flex justify-between items-center">
+              <span>Histórico de Entradas</span>
+              <GlossaryTooltipComponent description="Soma geral de todas as entradas financeiras geradas e confirmadas mês a mês." />
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div v-if="loading">
-              <Skeleton class="pl-5 h-72" />
-            </div>
-            <div v-else>
+            <div>
               <BarChart
                   :data="deposits.monthly_counts"
                   :categories="['Total']"
@@ -340,15 +368,16 @@
           </CardContent>
         </Card>
 
-        <Card class="mb-2">
-          <CardHeader>
-            <Skeleton class="h-5 mb-1" v-if="loading" />
-            <CardTitle v-else>Últimos Depósitos</CardTitle>
-            <CardDescription>
-              <Skeleton class="h-5" v-if="loading" />
-              <span v-else>
-              Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
-            </span>
+        <Card class="mb-4">
+          <CardHeader class="pb-2">
+            <CardTitle class="font-medium flex justify-between items-center">
+              <span>Últimas Entradas</span>
+              <GlossaryTooltipComponent description="Lista com as últimas transações de entrada efetuadas pelos usuários." />
+            </CardTitle>
+            <CardDescription class="pb-5">
+              <span>
+                Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
+              </span>
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -419,19 +448,21 @@
         </Card>
       </div>
 
-      <div class="title-section pt-10">
-        <div class="title">
+      <div class="pb-5 pt-10">
+        <div class="text-xl">
           Visão Geral dos Saques
         </div>
-        <div class="subtitle">
+        <div class="text-sm text-muted-foreground">
           Confira os últimos indicadores
         </div>
       </div>
 
-      <div class="grid gap-2 md:grid-cols-3 sm:grid-cols-1">
+      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
         <Card class="item" v-if="hideMetricsDaily">
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium"> Saques 7D </CardTitle>
+            <CardTitle class="text-sm font-medium">
+              Saques 7D
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div class="number">
@@ -451,9 +482,10 @@
         </Card>
 
         <Card class="item">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              Ticket Médio Saques
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Ticket Médio de Saída</span>
+              <GlossaryTooltipComponent description="Valor médio por transação de saída processada." />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -464,9 +496,10 @@
         </Card>
 
         <Card class="item">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              Porcentagem Conversão
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Taxa de Aprovação</span>
+              <GlossaryTooltipComponent description="Taxa de aprovação de saídas solicitadas e saídas processadas" />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -477,10 +510,13 @@
         </Card>
       </div>
 
-      <div class="grid mt-5 gap-2 md:grid-cols-2 sm:grid-cols-1">
+      <div class="grid mt-5 gap-4 md:grid-cols-2 sm:grid-cols-1">
         <Card class="item">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">Saques Gerados</CardTitle>
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Saídas Solicitadas</span>
+              <GlossaryTooltipComponent description="Valor total de solicitações de retirada feitas pelos usuários." />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div class="number">
@@ -496,8 +532,11 @@
         </Card>
 
         <Card class="item">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium"> Saques Pagos </CardTitle>
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Saídas Processadas</span>
+              <GlossaryTooltipComponent description="Valor total de saídas que foram processadas e pagas com sucesso." />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div class="number">
@@ -513,20 +552,21 @@
         </Card>
       </div>
 
-      <div class="title-section pt-10">
-        <div class="title">
+      <div class="pb-5 pt-10">
+        <div class="text-xl">
           Retenção
         </div>
-        <div class="subtitle">
+        <div class="text-sm text-muted-foreground">
           Veja os últimos indicadores e mais recentes
         </div>
       </div>
 
-      <div class="grid gap-2 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3">
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-2 mb-3">
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              Tempo Médio de Retenção
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Tempo Médio de Retenção</span>
+              <GlossaryTooltipComponent description="Tempo médio entre a primeira transação do usuário e sua última transação." />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -537,9 +577,10 @@
         </Card>
 
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-xs font-medium">
-              Ticket Médio na Retenção
+          <CardHeader class="pb-2">
+            <CardTitle class="text-xs font-medium flex justify-between items-center">
+              <span>Ticket Médio Pós-Ativação</span>
+              <GlossaryTooltipComponent description="Valor médio transacionado por usuários desde a primeira transação." />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -568,6 +609,7 @@ import CustomDatePicker from '@/components/custom/CustomDatePicker.vue'
 import {formatLargeNumber} from '@/filters/formatLargeNumber'
 import VideoBackground from 'vue-responsive-video-background-player'
 import {useColorMode} from "@vueuse/core";
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 
 Chart.register(...registerables)
 
@@ -579,6 +621,7 @@ export default {
   },
 
   components: {
+    GlossaryTooltipComponent,
     ChevronDownIcon,
     CustomDatePicker,
     CustomChartTooltipRealPrice,
