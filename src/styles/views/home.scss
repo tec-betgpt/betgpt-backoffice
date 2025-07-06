@@ -30,8 +30,17 @@
   }
 
   .item {
+    cursor: pointer;
+
+    &:hover {
+      background: #383636; // Altere para a cor desejada
+      transition: background 0.2s;
+    }
     .number {
       font-size: 1.8rem;
+      @media (max-width: 600px) {
+        font-size: 1.6rem;
+      }
       word-break: keep-all;
       display: flex;
       flex-wrap: nowrap;
@@ -40,6 +49,9 @@
 
     .kind {
       font-size: 1.3rem;
+      @media (max-width: 600px) {
+        font-size: 1.1rem;
+      }
       font-weight: 700;
       margin: 5px 0 0 5px;
     }

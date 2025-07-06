@@ -257,7 +257,7 @@
           </Card>
         </div>
 
-        <div class="grid mt-5 gap-4 md:grid-cols-3 sm:grid-cols-1">
+        <div class="grid mt-2 gap-2 md:grid-cols-3 sm:grid-cols-1">
           <Card class="item">
             <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle class="text-xs font-medium">
@@ -315,7 +315,7 @@
         </div>
       </div>
 
-      <div class="sm:grid mt-5 gap-4 md:gap-8 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
+      <div class="sm:grid mt-2 gap-2 min-[720px]:grid-cols-1 sm:grid-cols-2 mb-3">
         <Card>
           <CardHeader>
             <Skeleton class="h-6" v-if="loading" />
@@ -632,6 +632,9 @@ export default {
   },
 
   methods: {
+    alterView(){
+
+    },
     formatLargeNumber,
     async _user () {
       const { data } = await Auth.user()
