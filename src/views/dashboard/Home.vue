@@ -331,17 +331,29 @@
         </div>
       </div>
 
-      <div class="sm:grid mt-5 gap-4 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
+      <div v-if="loading" class="grid gap-4 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+        <Card v-for="n in 4" :key="n">
+          <div class="p-4 rounded shadow">
+            <div class="flex justify-between items-center mb-2">
+              <Skeleton class="h-4 w-1/3" />
+              <Skeleton class="h-4 w-5" />
+            </div>
+            <Skeleton class="h-8 w-2/3 mb-2" />
+            <Skeleton class="h-4 w-1/2" />
+          </div>
+        </Card>
+      </div>
+
+      <div v-else class="sm:grid mt-5 gap-4 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
         <Card class="mb-4">
-          <CardHeader>
-            <Skeleton class="h-6" v-if="loading" />
-            <CardTitle v-else>Total de Depósitos</CardTitle>
+          <CardHeader class="pb-2">
+            <CardTitle class="font-medium flex justify-between items-center">
+              <span>Histórico de Entradas</span>
+              <GlossaryTooltipComponent description="Soma geral de todas as entradas financeiras geradas e confirmadas mês a mês." />
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div v-if="loading">
-              <Skeleton class="pl-5 h-72" />
-            </div>
-            <div v-else>
+            <div>
               <BarChart
                   :data="deposits.monthly_counts"
                   :categories="['Total']"
@@ -357,14 +369,15 @@
         </Card>
 
         <Card class="mb-4">
-          <CardHeader>
-            <Skeleton class="h-5 mb-1" v-if="loading" />
-            <CardTitle v-else>Últimas Entradas</CardTitle>
-            <CardDescription>
-              <Skeleton class="h-5" v-if="loading" />
-              <span v-else>
-              Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
-            </span>
+          <CardHeader class="pb-2">
+            <CardTitle class="font-medium flex justify-between items-center">
+              <span>Últimas Entradas</span>
+              <GlossaryTooltipComponent description="Lista com as últimas transações de entrada efetuadas pelos usuários." />
+            </CardTitle>
+            <CardDescription class="pb-5">
+              <span>
+                Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
+              </span>
             </CardDescription>
           </CardHeader>
           <CardContent>
