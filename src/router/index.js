@@ -234,6 +234,54 @@ const routes = [
     ],
   },
   {
+    path: "/audiences",
+    name: "audiences",
+    meta: {
+      requiresAuth: true,
+      title: "Audiências",
+      roles: "member",
+      permissions: "access-to-management",
+    },
+    children: [
+      {
+        path: "segments",
+        name: "segments",
+        component: Segments,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "view-segments",
+          title: "Segmentos",
+        },
+      },
+      {
+        path: "clients",
+        name: "clients",
+        component: Players,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: "player-registrations",
+          title: "Jogadores",
+        },
+      },
+      {
+        path: "attributions",
+        name: "attributions",
+        component: UtmTracks,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: "access-to-parameter-tracking",
+          title: "Rastreamentos UTM",
+        },
+      },
+    ],
+  },
+  {
     path: "/manage",
     name: "manage",
     meta: {
@@ -253,18 +301,6 @@ const routes = [
           roles: "member",
           permissions: "view-projects",
           title: "Projetos",
-        },
-      },
-      {
-        path: "segments",
-        name: "segments",
-        component: Segments,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member",
-          permissions: "view-segments",
-          title: "Segmentos",
         },
       },
       {
@@ -301,30 +337,6 @@ const routes = [
           roles: "member",
           permissions: "access-to-permissions",
           title: "Perfis",
-        },
-      },
-      {
-        path: "players",
-        name: "players",
-        component: Players,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member|client",
-          permissions: "player-registrations",
-          title: "Jogadores",
-        },
-      },
-      {
-        path: "utm-tracks",
-        name: "utm-tracks",
-        component: UtmTracks,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member|client",
-          permissions: "access-to-parameter-tracking",
-          title: "Rastreamentos UTM",
         },
       },
       {

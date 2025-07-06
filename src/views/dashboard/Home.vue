@@ -1,5 +1,5 @@
 <template>
-  <div class="view-home space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+  <div class="view-home p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="banner-promo">
       <div class="inner">
         <div class="px-5 grid md:grid-cols-2 xs:grid-cols-1 gap-2 w-full">
@@ -8,7 +8,7 @@
               {{ greeting() }} {{ user ? user.first_name : '' }},
             </div>
             <div class="xs:text-xs md:text-sm text-white">
-              Confira as principais atualizações de hoje.
+              Confira as principais atualizações
             </div>
           </div>
 
@@ -39,7 +39,7 @@
       />
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-3 mb-3">
+    <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-3 mb-3 mt-4">
       <Card v-for="n in 16" :key="n">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
@@ -58,7 +58,7 @@
           Visão Geral dos Jogadores
         </div>
         <div class="subtitle">
-          Configura os últimos indicadores e mais recentes
+          Confira os últimos indicadores
         </div>
       </div>
 
@@ -173,12 +173,12 @@
           Visão Geral dos Depósitos
         </div>
         <div class="subtitle">
-          Configura os últimos indicadores e mais recentes
+          Confira os últimos indicadores
         </div>
       </div>
 
-      <div>
-        <div v-if="loading" class="grid gap-2 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
+      <div >
+        <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
           <Card v-for="n in 4" :key="n">
             <div class="p-4 rounded shadow">
               <div class="flex justify-between items-center mb-2">
@@ -257,7 +257,7 @@
           </Card>
         </div>
 
-        <div class="grid mt-2 gap-2 md:grid-cols-3 sm:grid-cols-1">
+        <div class="grid mt-5 gap-4 md:grid-cols-3 sm:grid-cols-1">
           <Card class="item">
             <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle class="text-xs font-medium">
@@ -315,7 +315,7 @@
         </div>
       </div>
 
-      <div class="grid mt-2 gap-2 w-full  sm:grid-cols-1 xl:grid-cols-2 ">
+      <div class="sm:grid mt-5 gap-4 md:gap-8 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
         <Card>
           <CardHeader>
             <Skeleton class="h-6" v-if="loading" />
@@ -327,7 +327,6 @@
             </div>
             <div v-else>
               <BarChart
-                  class="w-full"
                   :data="deposits.monthly_counts"
                   :categories="['Total']"
                   :index="'name'"
@@ -347,7 +346,9 @@
             <CardTitle v-else>Últimos Depósitos</CardTitle>
             <CardDescription>
               <Skeleton class="h-5" v-if="loading" />
-
+              <span v-else>
+              Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
+            </span>
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -361,11 +362,11 @@
                 <Skeleton class="h-4 w-10" />
               </div>
             </div>
-            <div v-else class="space-y-8 ">
+            <div v-else class="space-y-8">
               <div
                   v-for="deposit in deposits.lasts"
                   :key="deposit.id"
-                  class="flex "
+                  class="flex items-center"
               >
                 <Avatar class="h-9 w-9">
                   <AvatarFallback>
@@ -389,29 +390,29 @@
                     {{ deposit.player.email }}
                   </p>
                 </div>
-<!--                <div class="text-right">-->
-<!--                  <span class="font-medium"-->
-<!--                  >+{{ $toCurrency(deposit.value / 100) }}</span-->
-<!--                  >-->
-<!--                  <TooltipProvider>-->
-<!--                    <Tooltip>-->
-<!--                      <TooltipTrigger asChild>-->
-<!--                        <p class="text-xs text-muted-foreground text-right">-->
-<!--                          {{ $moment(deposit.created_at).fromNow() }}-->
-<!--                        </p>-->
-<!--                      </TooltipTrigger>-->
-<!--                      <TooltipContent>-->
-<!--                        <p>-->
-<!--                          {{-->
-<!--                            $moment(deposit.created_at).format(-->
-<!--                                "DD/MM/YYYY HH:mm:ss"-->
-<!--                            )-->
-<!--                          }}-->
-<!--                        </p>-->
-<!--                      </TooltipContent>-->
-<!--                    </Tooltip>-->
-<!--                  </TooltipProvider>-->
-<!--                </div>-->
+                <div class="ml-auto text-right">
+                <span class="font-medium"
+                >+{{ $toCurrency(deposit.value / 100) }}</span
+                >
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p class="text-xs text-muted-foreground text-right">
+                          {{ $moment(deposit.created_at).fromNow() }}
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          {{
+                            $moment(deposit.created_at).format(
+                                "DD/MM/YYYY HH:mm:ss"
+                            )
+                          }}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -423,7 +424,7 @@
           Visão Geral dos Saques
         </div>
         <div class="subtitle">
-          Configura os últimos indicadores e mais recentes
+          Confira os últimos indicadores
         </div>
       </div>
 
@@ -476,7 +477,7 @@
         </Card>
       </div>
 
-      <div class="grid mt-5 gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <div class="grid mt-5 gap-2 md:grid-cols-2 sm:grid-cols-1">
         <Card class="item">
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-xs font-medium">Saques Gerados</CardTitle>
@@ -521,7 +522,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3">
+      <div class="grid gap-2 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3">
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-xs font-medium">
