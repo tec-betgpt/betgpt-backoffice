@@ -284,7 +284,10 @@
         </div>
       </header>
       <CustomLoading v-if="configStore.loading" />
-      <main v-else class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
+      <main
+        v-else
+        class="grid flex-1 items-start gap-4 p-4 pt-0 sm:px-6 sm:py-0"
+      >
         <div class="mx-auto w-full min-w-0">
           <router-view></router-view>
         </div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="view-home space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+  <div class="view-home p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="banner-promo">
       <div class="inner">
         <div class="px-5 grid md:grid-cols-2 xs:grid-cols-1 gap-2 w-full">
@@ -39,7 +39,7 @@
       />
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-3 mb-3">
+    <div v-if="loading" class="grid gap-4 md:gap-8 min-[720px]:grid-cols-2 xl:grid-cols-3 mb-3 mt-4">
       <Card v-for="n in 16" :key="n">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
