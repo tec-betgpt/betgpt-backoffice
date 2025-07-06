@@ -8,7 +8,7 @@
               {{ greeting() }} {{ user ? user.first_name : '' }},
             </div>
             <div class="xs:text-xs md:text-sm text-white">
-              Confira as principais atualizações de:
+              Confira as principais atualizações
             </div>
           </div>
 
@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div class="grid gap-2 md:grid-cols-3 sm:grid-cols-1">
         <Card v-if="hideMetricsDaily" class="item">
           <CardHeader class="space-y-0 pb-2">
             <CardTitle class="text-sm font-medium">
@@ -191,7 +191,7 @@
           </Card>
         </div>
 
-        <div v-else class="grid gap-4 md:grid-cols-4 sm:grid-cols-1">
+        <div v-else class="grid gap-2 md:grid-cols-4 sm:grid-cols-1">
           <Card v-if="hideMetricsDaily" class="item">
             <CardHeader>
               <CardTitle class="text-xs font-medium">
@@ -257,7 +257,7 @@
           </Card>
         </div>
 
-        <div class="grid mt-5 gap-4 md:grid-cols-3 sm:grid-cols-1">
+        <div class="grid mt-5 gap-2 md:grid-cols-3 sm:grid-cols-1">
           <Card class="item">
             <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle class="text-xs font-medium">
@@ -316,7 +316,7 @@
       </div>
 
       <div class="sm:grid mt-5 gap-4 md:gap-8 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
-        <Card>
+        <Card class="mb-2">
           <CardHeader>
             <Skeleton class="h-6" v-if="loading" />
             <CardTitle v-else>Total de Depósitos</CardTitle>
@@ -340,7 +340,7 @@
           </CardContent>
         </Card>
 
-        <Card>
+        <Card class="mb-2">
           <CardHeader>
             <Skeleton class="h-5 mb-1" v-if="loading" />
             <CardTitle v-else>Últimos Depósitos</CardTitle>
@@ -428,7 +428,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div class="grid gap-2 md:grid-cols-3 sm:grid-cols-1">
         <Card class="item" v-if="hideMetricsDaily">
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-sm font-medium"> Saques 7D </CardTitle>
@@ -477,7 +477,7 @@
         </Card>
       </div>
 
-      <div class="grid mt-5 gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <div class="grid mt-5 gap-2 md:grid-cols-2 sm:grid-cols-1">
         <Card class="item">
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-xs font-medium">Saques Gerados</CardTitle>
@@ -522,7 +522,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3">
+      <div class="grid gap-2 md:grid-cols-2 md:gap-8 lg:grid-cols-2 mb-3">
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-xs font-medium">
