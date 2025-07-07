@@ -75,7 +75,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-4 sm:grid-cols-1">
+      <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-2 2xl:grid-cols-4 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-3 sm:grid-cols-1'">
         <Card v-if="hideMetricsDaily" class="item">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
@@ -242,7 +242,7 @@
             </div>
             <small class="text-xs">Quantidade</small>
 
-            <div class="number">
+            <div class="number mt-5">
               {{ $toCurrency(deposits.total_ftd_amount / 100) }}
             </div>
             <small class="text-xs">Total</small>
@@ -259,7 +259,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-4 sm:grid-cols-1'">
         <Card v-if="hideMetricsDaily" class="item">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
@@ -328,9 +328,9 @@
                   <<UserRoundPlus /> />
                 </Avatar>
                 <span class="text-xs font-medium">Novos Registros</span>
-
-                <GlossaryTooltipComponent description="Total de usuários que completaram o cadastro no sistema no periodo especifico" />
               </div>
+
+              <GlossaryTooltipComponent description="Total de usuários que completaram o cadastro no sistema no periodo especifico" />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -410,7 +410,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-2 sm:grid-cols-1'">
         <Card class="item" v-if="hideMetricsDaily">
           <CardHeader class="pb-2">
             <CardTitle>
