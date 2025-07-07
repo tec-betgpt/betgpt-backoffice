@@ -39,8 +39,8 @@
       />
     </div>
 
-    <div v-if="loading" class="grid gap-4 min-[720px]:grid-cols-2 xl:grid-cols-3 mb-3 mt-4">
-      <Card v-for="n in 16" :key="n">
+    <div v-if="loading">
+      <Card class="w-full">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
             <Skeleton class="h-4 w-1/3" />
@@ -50,9 +50,206 @@
           <Skeleton class="h-4 w-1/2" />
         </div>
       </Card>
+
+      <div class="grid gap-4 min-[720px]:grid-cols-2 xl:grid-cols-3 mb-3 mt-4">
+        <Card v-for="n in 24" :key="n">
+          <div class="p-4 rounded shadow">
+            <div class="flex justify-between items-center mb-2">
+              <Skeleton class="h-4 w-1/3" />
+              <Skeleton class="h-4 w-5" />
+            </div>
+            <Skeleton class="h-8 w-2/3 mb-2" />
+            <Skeleton class="h-4 w-1/2" />
+          </div>
+        </Card>
+      </div>
     </div>
 
     <div v-else>
+      <div class="pb-5 pt-10">
+        <div class="text-xl">
+          Visão Geral dos Depósitos
+        </div>
+        <div class="text-sm text-muted-foreground">
+          Confira os últimos indicadores
+        </div>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-4 sm:grid-cols-1">
+        <Card v-if="hideMetricsDaily" class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1" shape="square">
+                  <CalendarCheck2 />
+                </Avatar>
+                <span class="text-xs font-medium ml-3">Total de Entradas 7D</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Total de entradas dos últimos 7 dias." />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div :title="(deposits.total / 100)" class="number">
+              {{ $toCurrency(deposits.total / 100) }}
+            </div>
+
+            <div class="variation mt-3">
+              <div v-if="deposits.percentage > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+                <ArrowUp class="h-4 w-4 mr-1" /> {{ deposits.percentage }}%
+              </div>
+              <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
+                <ArrowDown class="h-4 w-4" /> {{ deposits.percentage }}%
+              </div>
+              desde a semana anterior
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1" shape="square">
+                  <Banknote />
+                </Avatar>
+                <span class="text-xs font-medium ml-3">Volume Líquido de Entradas</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Valor total líquido de entradas financeiras na plataforma (ex: depósitos, pagamentos ou compras)." />
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div :title="deposits.total_net_deposits" class="number">
+              {{ $toCurrency(deposits.total_net_deposits / 100) }}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1" shape="square">
+                  <ChartCandlestick />
+                </Avatar>
+                <span class="text-xs font-medium ml-3">Ticket Médio de Entradas</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Valor médio por transação de entrada confirmadas realizada pelos usuários" />
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div class="number">
+              {{ $toCurrency(deposits.average_ticket / 100) }}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1" shape="square">
+                  <CirclePercent />
+                </Avatar>
+                <span class="text-xs font-medium ml-3">Taxa de Aprovação</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Taxa de aprovação de entradas geradas e entradas confirmadas" />
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div class="number">
+              {{ deposits.conversion_rate }}%
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div class="mt-5 grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <BanknoteArrowDown />
+                </Avatar>
+                <span class="text-xs font-medium">Entradas Geradas</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Valor total de transações de entrada iniciadas, independentemente da confirmação." />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="number">
+              +{{ deposits.generated_deposits }}
+            </div>
+            <small class="text-xs">Quantidade</small>
+
+            <div class="number mt-5">
+              {{ $toCurrency(deposits.total_pending_deposits / 100) }}
+            </div>
+            <small class="text-xs">Total</small>
+          </CardContent>
+        </Card>
+
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <DollarSign />
+                </Avatar>
+                <span class="text-xs font-medium">Entradas Confirmadas</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Valor total de transações de entrada confirmadas com sucesso." />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="number">
+              +{{ deposits.paid_deposits }}
+            </div>
+            <small class="text-xs">Quantidade</small>
+
+            <div class="number mt-5">
+              {{ $toCurrency(deposits.total_paid_deposits / 100) }}
+            </div>
+            <small class="text-xs">Total</small>
+          </CardContent>
+        </Card>
+
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <ListCheck />
+                </Avatar>
+                <span class="text-xs font-medium">Primeiras Entradas</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Total de entradas financeiras geradas por usuários que realizaram sua primeira transação" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="number">
+              +{{ deposits.total_ftd_count }}
+            </div>
+            <small class="text-xs">Quantidade</small>
+
+            <div class="number">
+              {{ $toCurrency(deposits.total_ftd_amount / 100) }}
+            </div>
+            <small class="text-xs">Total</small>
+          </CardContent>
+        </Card>
+      </div>
+
       <div class="pb-5 pt-10">
         <div class="text-xl">
           Visão Geral dos Jogadores
@@ -65,8 +262,14 @@
       <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
         <Card v-if="hideMetricsDaily" class="item">
           <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Total de Registros</span>
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <Users />
+                </Avatar>
+                <span class="text-xs font-medium">Total de Registros</span>
+              </div>
+
               <GlossaryTooltipComponent description="Total de usuários registrados na base da Elevate" />
             </CardTitle>
           </CardHeader>
@@ -89,8 +292,14 @@
 
         <Card v-if="hideMetricsDaily" class="item">
           <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Usuários Ativos</span>
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <UserRound />
+                </Avatar>
+                <span class="text-xs font-medium">Usuários Ativos</span>
+              </div>
+
               <GlossaryTooltipComponent description="Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias" />
             </CardTitle>
           </CardHeader>
@@ -113,9 +322,15 @@
 
         <Card class="item">
           <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Novos Registros</span>
-              <GlossaryTooltipComponent description="Total de usuários que completaram o cadastro no sistema no periodo especifico" />
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <<UserRoundPlus /> />
+                </Avatar>
+                <span class="text-xs font-medium">Novos Registros</span>
+
+                <GlossaryTooltipComponent description="Total de usuários que completaram o cadastro no sistema no periodo especifico" />
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -127,25 +342,34 @@
 
         <Card class="item">
           <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Taxa de Conversão Geral</span>
-              <GlossaryTooltipComponent description="Percentual de usuários cadastrados que realizaram uma primeira transação validada." />
-            </CardTitle>
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <CirclePercent />
+                </Avatar>
+                <span class="text-xs font-medium">Taxa de Conversão Geral</span>
+            </div>
+
+            <GlossaryTooltipComponent description="Percentual de usuários cadastrados que realizaram uma primeira transação validada." />
+          </CardTitle>
           </CardHeader>
           <CardContent>
             <div class="number">
-              {{ (players.ftd_general_percent / 100).toFixed(2) }}
-              <span class=" text-orange-300">
-                %
-              </span>
+              {{ (players.ftd_general_percent / 100).toFixed(2) }}%
             </div>
           </CardContent>
         </Card>
 
         <Card class="item">
           <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Primeiros Depositantes</span>
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <Wallet />
+                </Avatar>
+                <span class="text-xs font-medium">Primeiros Depositantes</span>
+              </div>
+
               <GlossaryTooltipComponent description="Usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro." />
             </CardTitle>
           </CardHeader>
@@ -158,17 +382,20 @@
 
         <Card class="item">
           <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Taxa de Conversão em D0</span>
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <CirclePercent />
+                </Avatar>
+                <span class="text-xs font-medium">Taxa de Conversão em D0</span>
+              </div>
+
               <GlossaryTooltipComponent description="Percentual de usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro." />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div class="number">
-              {{ (players.ftd_registered_users_percent / 100).toFixed(2) }}
-              <span class="text-orange-300">
-                %
-              </span>
+              {{ (players.ftd_registered_users_percent / 100).toFixed(2) }}%
             </div>
           </CardContent>
         </Card>
@@ -176,175 +403,198 @@
 
       <div class="pb-5 pt-10">
         <div class="text-xl">
-          Visão Geral dos Depósitos
+          Visão Geral dos Saques
         </div>
         <div class="text-sm text-muted-foreground">
           Confira os últimos indicadores
         </div>
       </div>
 
-      <div >
-        <div v-if="loading" class="grid gap-4 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
-          <Card v-for="n in 4" :key="n">
-            <div class="p-4 rounded shadow">
-              <div class="flex justify-between items-center mb-2">
-                <Skeleton class="h-4 w-1/3" />
-                <Skeleton class="h-4 w-5" />
+      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+        <Card class="item" v-if="hideMetricsDaily">
+          <CardHeader class="pb-2">
+            <CardTitle>
+              <div class="flex justify-start items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <CalendarArrowUp />
+                </Avatar>
+                <span class="text-xs font-medium">Saques 7D</span>
               </div>
-              <Skeleton class="h-8 w-2/3 mb-2" />
-              <Skeleton class="h-4 w-1/2" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="number">
+              {{ $toCurrency(withdraws.total / 100) }}
             </div>
-          </Card>
-        </div>
 
-        <div v-else class="grid gap-4 md:grid-cols-4 sm:grid-cols-1">
-          <Card v-if="hideMetricsDaily" class="item">
-            <CardHeader class="pb-2">
-              <CardTitle class="text-xs font-medium flex justify-between items-center">
-                <span>Total de Entradas 7D</span>
-                <GlossaryTooltipComponent description="Total de entradas dos últimos 7 dias." />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div :title="(deposits.total / 100)" class="number">
-                {{ $toCurrency(deposits.total / 100) }}
+            <div class="variation mt-3">
+              <div v-if="withdraws.percentage > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+                <ArrowUp class="h-4 w-4 mr-1" /> {{ withdraws.percentage }}%
               </div>
-
-              <div class="variation mt-3">
-                <div v-if="deposits.percentage > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
-                  <ArrowUp class="h-4 w-4 mr-1" /> {{ deposits.percentage }}%
-                </div>
-                <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
-                  <ArrowDown class="h-4 w-4" /> {{ deposits.percentage }}%
-                </div>
-                desde a semana anterior
+              <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
+                <ArrowDown class="h-4 w-4" /> {{ withdraws.percentage }}%
               </div>
-            </CardContent>
-          </Card>
-
-          <Card class="item">
-            <CardHeader class="pb-2">
-              <CardTitle class="text-xs font-medium flex justify-between items-center">
-                <span>Volume Líquido de Entradas</span>
-                <GlossaryTooltipComponent description="Valor total líquido de entradas financeiras na plataforma (ex: depósitos, pagamentos ou compras)." />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div :title="deposits.total_net_deposits" class="number">
-                {{ $toCurrency(deposits.total_net_deposits / 100) }}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card class="item">
-            <CardHeader class="pb-2">
-              <CardTitle class="text-xs font-medium flex justify-between items-center">
-                <span>Ticket Médio de Entradas</span>
-                <GlossaryTooltipComponent description="Valor médio por transação de entrada confirmadas realizada pelos usuários" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div class="number">
-                {{ $toCurrency(deposits.average_ticket / 100) }}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card class="item">
-            <CardHeader class="pb-2">
-              <CardTitle class="text-xs font-medium flex justify-between items-center">
-                <span>Taxa de Aprovação</span>
-                <GlossaryTooltipComponent description="Taxa de aprovação de entradas geradas e entradas confirmadas" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div class="number">
-                {{ deposits.conversion_rate }}
-                <span class="text-orange-300">
-                  %
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div class="mt-5 grid gap-4 md:grid-cols-3 sm:grid-cols-1">
-          <Card class="item">
-            <CardHeader class="pb-2">
-              <CardTitle class="text-xs font-medium flex justify-between items-center">
-                <span>Entradas Geradas</span>
-                <GlossaryTooltipComponent description="Valor total de transações de entrada iniciadas, independentemente da confirmação." />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div class="number">
-                +{{ deposits.generated_deposits }}
-              </div>
-              <small class="text-xs">Quantidade</small>
-
-              <div class="number mt-5">
-                {{ $toCurrency(deposits.total_pending_deposits / 100) }}
-              </div>
-              <small class="text-xs">Total</small>
-            </CardContent>
-          </Card>
-
-          <Card class="item">
-            <CardHeader class="pb-2">
-              <CardTitle class="text-xs font-medium flex justify-between items-center">
-                <span>Entradas Confirmadas</span>
-                <GlossaryTooltipComponent description="Valor total de transações de entrada confirmadas com sucesso." />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div class="number">
-                +{{ deposits.paid_deposits }}
-              </div>
-              <small class="text-xs">Quantidade</small>
-
-              <div class="number mt-5">
-                {{ $toCurrency(deposits.total_paid_deposits / 100) }}
-              </div>
-              <small class="text-xs">Total</small>
-            </CardContent>
-          </Card>
-
-          <Card class="item">
-            <CardHeader class="pb-2">
-              <CardTitle class="text-xs font-medium flex justify-between items-center">
-                <span>Primeiras Entradas</span>
-                <GlossaryTooltipComponent description="Total de entradas financeiras geradas por usuários que realizaram sua primeira transação" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div class="number">
-                +{{ deposits.total_ftd_count }}
-              </div>
-              <small class="text-xs">Quantidade</small>
-
-              <div class="number">
-                {{ $toCurrency(deposits.total_ftd_amount / 100) }}
-              </div>
-              <small class="text-xs">Total</small>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <div v-if="loading" class="grid gap-4 min-[720px]:grid-cols-2 xl:grid-cols-4 mb-3">
-        <Card v-for="n in 4" :key="n">
-          <div class="p-4 rounded shadow">
-            <div class="flex justify-between items-center mb-2">
-              <Skeleton class="h-4 w-1/3" />
-              <Skeleton class="h-4 w-5" />
+              desde a semana anterior
             </div>
-            <Skeleton class="h-8 w-2/3 mb-2" />
-            <Skeleton class="h-4 w-1/2" />
-          </div>
+          </CardContent>
+        </Card>
+
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <ChartNoAxesColumn />
+                </Avatar>
+                <span class="text-xs font-medium">Ticket Médio de Saída</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Valor médio por transação de saída processada." />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="number">
+              {{ $toCurrency(withdraws.average_ticket / 100) }}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <BadgeCheck />
+                </Avatar>
+                <span class="text-xs font-medium">Taxa de Aprovação</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Taxa de aprovação de saídas solicitadas e saídas processadas" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="number">
+              +{{ withdraws.generated_withdraws }}
+            </div>
+          </CardContent>
         </Card>
       </div>
 
-      <div v-else class="sm:grid mt-5 gap-4 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
+      <div class="grid mt-5 gap-4 md:grid-cols-2 sm:grid-cols-1">
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <Check />
+                </Avatar>
+                <span class="text-xs font-medium">Saídas Solicitadas</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Valor total de solicitações de retirada feitas pelos usuários." />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="number">
+              +{{ withdraws.generated_withdraws }}
+            </div>
+            <small class="text-xs">Quantidade</small>
+
+            <div class="number">
+              {{ $toCurrency(withdraws.total_pending_withdraws / 100) }}
+            </div>
+            <small class="text-xs">Total</small>
+          </CardContent>
+        </Card>
+
+        <Card class="item">
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <BanknoteArrowUp />
+                </Avatar>
+                <span class="text-xs font-medium">Saídas Processadas</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Valor total de saídas que foram processadas e pagas com sucesso." />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="number">
+              +{{ withdraws.paid_withdraws }}
+            </div>
+            <small class="text-xs">Quantidade</small>
+
+            <div class="number pt-4">
+              {{ $toCurrency(withdraws.total_paid_withdraws / 100) }}
+            </div>
+            <small class="text-xs">Total</small>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div class="pb-5 pt-10">
+        <div class="text-xl">
+          Retenção
+        </div>
+        <div class="text-sm text-muted-foreground">
+          Veja os últimos indicadores e mais recentes
+        </div>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-2 mb-3">
+        <Card>
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <Hourglass />
+                </Avatar>
+                <span class="text-xs font-medium">Tempo Médio de Retenção</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Tempo médio entre a primeira transação do usuário e sua última transação." />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl">
+              {{ retention.time }}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader class="pb-2">
+            <CardTitle class="flex-row flex justify-between items-center">
+              <div class="flex justify-between items-center">
+                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                  <ChartNoAxesColumn />
+                </Avatar>
+                <span class="text-xs font-medium">Ticket Médio Pós-Ativação</span>
+              </div>
+
+              <GlossaryTooltipComponent description="Valor médio transacionado por usuários desde a primeira transação." />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl">
+              {{ $toCurrency(retention.ticket_avg / 100) }}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div class="pb-5 pt-10">
+        <div class="text-xl">
+          Histórico e Últimas de Entradas
+        </div>
+        <div class="text-sm text-muted-foreground">
+          Veja o gráfico e informações mais recentes
+        </div>
+      </div>
+
+      <div class="sm:grid gap-4 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
         <Card class="mb-4">
           <CardHeader class="pb-2">
             <CardTitle class="font-medium flex justify-between items-center">
@@ -381,17 +631,7 @@
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div v-if="loading" class="space-y-4">
-              <div v-for="n in 6" :key="n" class="flex items-center space-x-4">
-                <Skeleton class="h-9 w-9 rounded-full" />
-                <div class="flex-1 space-y-1">
-                  <Skeleton class="h-4 w-1/2" />
-                  <Skeleton class="h-4 w-1/3" />
-                </div>
-                <Skeleton class="h-4 w-10" />
-              </div>
-            </div>
-            <div v-else class="space-y-8">
+            <div class="space-y-8">
               <div
                   v-for="deposit in deposits.lasts"
                   :key="deposit.id"
@@ -447,149 +687,6 @@
           </CardContent>
         </Card>
       </div>
-
-      <div class="pb-5 pt-10">
-        <div class="text-xl">
-          Visão Geral dos Saques
-        </div>
-        <div class="text-sm text-muted-foreground">
-          Confira os últimos indicadores
-        </div>
-      </div>
-
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
-        <Card class="item" v-if="hideMetricsDaily">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">
-              Saques 7D
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              {{ $toCurrency(withdraws.total / 100) }}
-            </div>
-
-            <div class="variation mt-3">
-              <div v-if="withdraws.percentage > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
-                <ArrowUp class="h-4 w-4 mr-1" /> {{ withdraws.percentage }}%
-              </div>
-              <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
-                <ArrowDown class="h-4 w-4" /> {{ withdraws.percentage }}%
-              </div>
-              desde a semana anterior
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Ticket Médio de Saída</span>
-              <GlossaryTooltipComponent description="Valor médio por transação de saída processada." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              {{ $toCurrency(withdraws.average_ticket / 100) }}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Taxa de Aprovação</span>
-              <GlossaryTooltipComponent description="Taxa de aprovação de saídas solicitadas e saídas processadas" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              +{{ withdraws.generated_withdraws }}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div class="grid mt-5 gap-4 md:grid-cols-2 sm:grid-cols-1">
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Saídas Solicitadas</span>
-              <GlossaryTooltipComponent description="Valor total de solicitações de retirada feitas pelos usuários." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              +{{ withdraws.generated_withdraws }}
-            </div>
-            <small class="text-xs">Quantidade</small>
-
-            <div class="number">
-              {{ $toCurrency(withdraws.total_pending_withdraws / 100) }}
-            </div>
-            <small class="text-xs">Total</small>
-          </CardContent>
-        </Card>
-
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Saídas Processadas</span>
-              <GlossaryTooltipComponent description="Valor total de saídas que foram processadas e pagas com sucesso." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              +{{ withdraws.paid_withdraws }}
-            </div>
-            <small class="text-xs">Quantidade</small>
-
-            <div class="number">
-              {{ $toCurrency(withdraws.total_paid_withdraws / 100) }}
-            </div>
-            <small class="text-xs">Total</small>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div class="pb-5 pt-10">
-        <div class="text-xl">
-          Retenção
-        </div>
-        <div class="text-sm text-muted-foreground">
-          Veja os últimos indicadores e mais recentes
-        </div>
-      </div>
-
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-2 mb-3">
-        <Card>
-          <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Tempo Médio de Retenção</span>
-              <GlossaryTooltipComponent description="Tempo médio entre a primeira transação do usuário e sua última transação." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl">
-              {{ retention.time }}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader class="pb-2">
-            <CardTitle class="text-xs font-medium flex justify-between items-center">
-              <span>Ticket Médio Pós-Ativação</span>
-              <GlossaryTooltipComponent description="Valor médio transacionado por usuários desde a primeira transação." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl">
-              {{ $toCurrency(retention.ticket_avg / 100) }}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   </div>
 </template>
@@ -599,17 +696,36 @@ import Home from '@/services/home'
 import Auth from '@/services/auth'
 import CustomChartTooltipRealPrice from '@/components/custom/CustomChartTooltipRealPrice.vue'
 import DateRangePicker from '@/components/custom/DateRangePicker.vue'
-import {ArrowUp, ArrowDown, ChevronDownIcon} from 'lucide-vue-next'
+import {
+  ArrowDown,
+  ArrowUp,
+  BadgeCheck,
+  Banknote,
+  BanknoteArrowDown,
+  BanknoteArrowUp,
+  CalendarArrowUp,
+  CalendarCheck2,
+  ChartCandlestick,
+  ChartNoAxesColumn,
+  Check,
+  ChevronDownIcon,
+  CirclePercent,
+  DollarSign,
+  Hourglass,
+  ListCheck,
+  UserRound,
+  UserRoundPlus,
+  Users,
+  Wallet
+} from 'lucide-vue-next'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { Chart, registerables } from 'chart.js'
-
-const { toast } = useToast()
 import { useWorkspaceStore } from '@/stores/workspace'
 import CustomDatePicker from '@/components/custom/CustomDatePicker.vue'
-import {formatLargeNumber} from '@/filters/formatLargeNumber'
 import VideoBackground from 'vue-responsive-video-background-player'
-import {useColorMode} from "@vueuse/core";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
+
+const { toast } = useToast()
 
 Chart.register(...registerables)
 
@@ -621,14 +737,31 @@ export default {
   },
 
   components: {
-    GlossaryTooltipComponent,
-    ChevronDownIcon,
-    CustomDatePicker,
-    CustomChartTooltipRealPrice,
-    DateRangePicker,
-    ArrowUp,
     ArrowDown,
-    VideoBackground
+    ArrowUp,
+    BadgeCheck,
+    Banknote,
+    BanknoteArrowDown,
+    BanknoteArrowUp,
+    CalendarArrowUp,
+    CalendarCheck2,
+    ChartCandlestick,
+    ChartNoAxesColumn,
+    Check,
+    ChevronDownIcon,
+    CirclePercent,
+    CustomChartTooltipRealPrice,
+    CustomDatePicker,
+    DateRangePicker,
+    DollarSign,
+    GlossaryTooltipComponent,
+    Hourglass,
+    ListCheck,
+    UserRound,
+    UserRoundPlus,
+    Users,
+    VideoBackground,
+    Wallet,
   },
 
   data: () => ({
@@ -675,7 +808,6 @@ export default {
   },
 
   methods: {
-    formatLargeNumber,
     async _user () {
       const { data } = await Auth.user()
       this.user = data
