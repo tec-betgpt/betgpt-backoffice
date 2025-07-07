@@ -1,6 +1,6 @@
 <template>
-  <div class="google-analytics-page space-y-6   pb-16 w-full">
-    <div class="grid min-[900px]:grid-cols-2 gap-4 py-10">
+  <div class="google-analytics-page p-10 max-[450px]:p-2 pb-16 w-full">
+    <div class="grid min-[900px]:grid-cols-2 gap-4 pb-10">
       <div>
         <h2 class="text-2xl font-bold tracking-tight">Performance</h2>
         <p class="text-muted-foreground">
@@ -13,7 +13,7 @@
         </div>
       </div>
     </div>
-    <div class="grid xl:grid-cols-2 grid-cols-1 gap-3" >
+    <div class="grid xl:grid-cols-2 grid-cols-1 gap-4" >
       <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" />
       <PeriodComponent :period="depositsPeriod" title="Deposito por periodo"  :isLoading="isLoading" />
       <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" type="percent" class="xl:col-span-2"  :isLoading="isLoading"  />

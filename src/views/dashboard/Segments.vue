@@ -186,12 +186,15 @@
                           <SelectValue placeholder="Tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="actual_date"
-                            >Data Atual</SelectItem
-                          >
-                          <SelectItem value="custom_date"
-                            >Escolher Data</SelectItem
-                          >
+                          <SelectGroup>
+                            <SelectLabel>Tipo</SelectLabel>
+                            <SelectItem value="actual_date"
+                              >Data Atual</SelectItem
+                            >
+                            <SelectItem value="custom_date"
+                              >Escolher Data</SelectItem
+                            >
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
 
@@ -214,9 +217,12 @@
                             <SelectValue placeholder="Precisão" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="exact">Exatamente</SelectItem>
-                            <SelectItem value="plus">Mais</SelectItem>
-                            <SelectItem value="minus">Menos</SelectItem>
+                            <SelectGroup>
+                              <SelectLabel>Precisão</SelectLabel>
+                              <SelectItem value="exact">Exatamente</SelectItem>
+                              <SelectItem value="plus">Mais</SelectItem>
+                              <SelectItem value="minus">Menos</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
 
@@ -232,6 +238,23 @@
                           max="365"
                         />
                       </template>
+
+                      <Select v-model="condition.dateFilter" class="flex-1">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filtrar por" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Filtrar por</SelectLabel>
+                            <SelectItem value="full_date"
+                              >Data Completa</SelectItem
+                            >
+                            <SelectItem value="m-d">Mês e Dia</SelectItem>
+                            <SelectItem value="m">Mês</SelectItem>
+                            <SelectItem value="d">Dia</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <Select
@@ -361,6 +384,39 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <Dialog v-model:open="showContactsDialog">
+      <DialogContent class="sm:max-w-6xl h-[80vh]">
+        <DialogHeader>
+          <DialogTitle>Contatos do Segmento</DialogTitle>
+          <DialogDescription>
+            Lista de contatos que atendem às condições do segmento
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="h-full overflow-auto">
+          <CustomDataInfinite
+            :loading="isLoadingContacts"
+            :columns="contactsColumns"
+            :data="contacts"
+            :update-text="setSearch"
+            :find="fetchContacts"
+            :has-more="hasMoreContacts"
+            :current-page="currentContactsPage"
+            :search-fields="[
+              {
+                key: 'all_fields',
+                placeholder: 'Buscar por nome ou e-mail...',
+              },
+            ]"
+            @load-more="loadMoreContacts"
+            @reset="resetContactsData"
+            :exportable="true"
+            @export="handleExportContacts"
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -375,6 +431,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ArrowDown, ArrowUp, RefreshCcw } from "lucide-vue-next";
+import { CaretSortIcon } from "@radix-icons/vue";
 import {
   Dialog,
   DialogContent,
@@ -416,6 +474,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { createColumnHelper } from "@tanstack/vue-table";
@@ -431,6 +490,13 @@ const isEditing = ref(false);
 const selectedSavedSegment = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+
+const showContactsDialog = ref(false);
+const isLoadingContacts = ref(false);
+const hasMoreContacts = ref(false);
+const currentContactsPage = ref(1);
+const contacts = ref<any[]>([]);
+const currentSegmentId = ref<number | null>(null);
 
 const operatorMap = {
   string: [
@@ -488,6 +554,7 @@ const form = ref({
       modifier?: string;
       dateType?: "actual_date" | "custom_date";
       dateModifier?: string;
+      dateFilter?: string;
       daysOffset?: number;
     }>;
   }>,
@@ -670,6 +737,7 @@ const loadSavedSegment = async (segmentId: number) => {
           value: condition.value,
           type: "custom_date",
           dateModifier: "exact",
+          dateFilter: "full_date",
           daysOffset: 0,
         };
       }
@@ -701,6 +769,10 @@ const loadSavedSegment = async (segmentId: number) => {
                 valueData.dateModifier ||
                 valueData.value?.dateModifier ||
                 "exact",
+              dateFilter:
+                valueData.dateFilter ||
+                valueData.value?.dateFilter ||
+                "full_date",
               daysOffset:
                 valueData.daysOffset || valueData.value?.daysOffset || 0,
               value:
@@ -833,7 +905,6 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
   const field = getField(condition, groupIndex);
   if (!field) return condition.value;
 
-  // Para operadores empty/not_empty, não enviamos valor
   if (["empty", "not_empty"].includes(condition.operator)) {
     return null;
   }
@@ -844,6 +915,7 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
         type: "custom_date",
         value: condition.value,
         dateModifier: null,
+        dateFilter: "full_date",
         daysOffset: 0,
       };
     } else {
@@ -851,6 +923,7 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
         type: "actual_date",
         value: "actual_date",
         dateModifier: condition.dateModifier,
+        dateFilter: condition.dateFilter,
         daysOffset: condition.daysOffset || 0,
       };
     }
@@ -903,6 +976,7 @@ const saveSegment = async () => {
               modifier: condition.modifier,
               dateType: condition.dateType,
               dateModifier: condition.dateModifier,
+              dateFilter: condition.dateFilter,
               daysOffset: condition.daysOffset,
             };
           }),
@@ -958,6 +1032,41 @@ const deleteSegment = async (segmentId: number) => {
   }
 };
 
+const handleExportContacts = async () => {
+  try {
+    toast({
+      title: "Sucesso!",
+      description: "O arquivo está sendo preparado para download...",
+      variant: "success",
+    });
+
+    const params = {
+      ...searchValues.value,
+      orderBy: orderContacts.value || "id",
+      orderDirection: directionContacts.value ? "asc" : "desc",
+    };
+
+    const { data } = await Segments.exportContacts(
+      currentSegmentId.value,
+      params
+    );
+    const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `segment-${currentSegmentId.value}-contacts.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    toast({
+      title: "Erro",
+      description: "Falha ao exportar contatos",
+      variant: "destructive",
+    });
+  }
+};
+
 const handleEdit = (segment: any) => {
   isEditing.value = true;
   form.value.id = segment.id;
@@ -967,6 +1076,129 @@ const handleEdit = (segment: any) => {
   selectedSavedSegment.value = segment.id;
   loadSavedSegment(segment.id);
   showModal.value = true;
+};
+
+const formatDate = (dateString: string) => {
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+  return new Date(dateString).toLocaleDateString("pt-BR", options);
+};
+
+const openContactsDialog = async (segmentId: number) => {
+  currentSegmentId.value = segmentId;
+  showContactsDialog.value = true;
+  resetContactsData();
+  await fetchContacts();
+};
+
+const resetContactsData = () => {
+  contacts.value = [];
+  currentContactsPage.value = 1;
+  hasMoreContacts.value = false;
+};
+
+const loadMoreContacts = (page: number) => {
+  fetchContacts(page);
+};
+
+const orderContacts = ref();
+const directionContacts = ref(false);
+const columnHelperContacts = createColumnHelper<User>();
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+    Button,
+    {
+      variant: orderContacts.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        orderContacts.value = columnKey;
+        directionContacts.value = !directionContacts.value;
+        fetchContacts();
+      },
+      class: "h-fit text-pretty my-1",
+    },
+    () => [
+      label,
+      h(
+        orderContacts.value === columnKey
+          ? directionContacts.value
+            ? ArrowDown
+            : ArrowUp
+          : CaretSortIcon,
+        { class: "" }
+      ),
+    ]
+  );
+}
+
+const searchValues = ref<Record<string, string>>({});
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = values;
+};
+
+const fetchContacts = async (page = 1) => {
+  if (!currentSegmentId.value) return;
+
+  isLoadingContacts.value = true;
+  try {
+    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
+      acc[key] = searchValues.value[key];
+      return acc;
+    }, {} as Record<string, string>);
+
+    const response = await Segments.contacts(currentSegmentId.value, {
+      page,
+      perPage: 20,
+      ...searchParams,
+      orderBy: orderContacts.value ? orderContacts.value : "id",
+      orderDirection: directionContacts.value ? "asc" : "desc",
+    });
+
+    if (page === 1) {
+      contacts.value = response.data.players;
+    } else {
+      contacts.value = [...contacts.value, ...response.data.players];
+    }
+
+    hasMoreContacts.value = response.data.hasMore;
+    currentContactsPage.value = response.data.currentPage;
+  } catch (error) {
+    console.error("Error loading contacts:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar os contatos",
+      variant: "destructive",
+    });
+  } finally {
+    isLoadingContacts.value = false;
+  }
+};
+
+const isUpdating = ref<number | null>(null);
+
+const forceSegmentUpdate = async (segmentId: number) => {
+  isUpdating.value = segmentId;
+  try {
+    toast({
+      title: "Sucesso",
+      description: "Atualização do segmento iniciada...",
+      variant: "default",
+    });
+    await Segments.forceUpdate(segmentId);
+  } catch (error) {
+    toast({
+      title: "Erro",
+      description:
+        error.response?.data?.message || "Falha ao forçar atualização",
+      variant: "destructive",
+    });
+  } finally {
+    isUpdating.value = null;
+  }
 };
 
 const columns = [
@@ -980,78 +1212,88 @@ const columns = [
         handlerOrder
       );
     },
-    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
+    cell: ({ row }) => {
+      return h("div", { class: "flex flex-col" }, [
+        h("div", { class: "capitalize" }, row.getValue("name")),
+        h(
+          "div",
+          {
+            class: "text-xs text-muted-foreground mt-1 line-clamp-2",
+            title: row.original.description, // Mostra tooltip com a descrição completa
+          },
+          row.original.description || "Sem descrição"
+        ),
+      ]);
+    },
   }),
   {
-    accessorKey: "description",
-    header: "Descrição",
+    accessorKey: "total_contacts",
+    header: "Total de Contatos",
+    cell: ({ row }) => {
+      const total = row.original.total_contacts;
+      const hasContacts = total > 0;
+      const lastExecuted = row.original.last_job_execute_at;
+
+      return h(
+        "div",
+        {
+          class: "flex items-center gap-2",
+          onClick: hasContacts
+            ? () => openContactsDialog(row.original.id)
+            : undefined,
+          style: hasContacts
+            ? "cursor: pointer; text-decoration: underline;"
+            : "",
+        },
+        [
+          h("span", total || "0"),
+          !lastExecuted &&
+            h(
+              "span",
+              { class: "text-muted-foreground text-xs" },
+              "(não executado)"
+            ),
+        ]
+      );
+    },
   },
   {
-    accessorKey: "conditions",
-    header: "Condições",
+    accessorKey: "last_job_execute_at",
+    header: "Última Atualização",
     cell: ({ row }) => {
-      const conditionGroups = row.original.condition_groups || [];
-      const conditionsText = conditionGroups
-        .flatMap((group) =>
-          group.conditions.map((cond) => {
-            const field = t(
-              cond.field?.label || cond.field?.field_key || "Campo"
-            );
-            const operator = t(cond.operator);
-
-            // Para operadores empty/not_empty, não mostra o valor
-            if (["empty", "not_empty"].includes(cond.operator)) {
-              return `${field} ${operator.toLowerCase()}`;
-            }
-
-            let valueDisplay = cond.value;
-
-            if (cond.field?.data_type === "date") {
-              try {
-                const valueData =
-                  typeof cond.value === "string"
-                    ? JSON.parse(cond.value)
-                    : cond.value;
-                const actualValue = valueData.value
-                  ? valueData.value
-                  : valueData;
-
-                if (actualValue.type === "actual_date") {
-                  const modifierMap = {
-                    plus: t("plus"),
-                    minus: t("minus"),
-                    exact: t("exactly"),
-                  };
-                  const modifier = modifierMap[actualValue.dateModifier] || "";
-                  const days = actualValue.daysOffset || 0;
-
-                  return `${field} ${operator.toLowerCase()} ${t(
-                    "actual_date"
-                  )} ${modifier}${days > 0 ? ` ${days} ${t("days")}` : ""}`;
-                } else {
-                  const dateValue = new Date(actualValue.value);
-                  return `${field} ${operator.toLowerCase()} ${dateValue.toLocaleDateString()}`;
-                }
-              } catch {
-                return `${field} ${operator.toLowerCase()} ${cond.value}`;
-              }
-            }
-
-            if (cond.field?.data_type === "boolean") {
-              return `${field} ${operator.toLowerCase()} ${
-                cond.value === "true" ? t("yes") : t("no")
-              }`;
-            }
-
-            return `${field} ${operator.toLowerCase()} ${valueDisplay}`;
-          })
-        )
-        .join(", ");
-
-      return `${conditionsText} (${conditionGroups.reduce(
-        (acc, g) => acc + g.conditions.length,
-        0
-      )} ${t("conditions")})`;
+      const date = row.original.last_job_execute_at;
+      return h("div", { class: "flex items-center gap-2" }, [
+        h("div", date ? formatDate(date) : "-"),
+        h(
+          Button,
+          {
+            variant: "ghost",
+            size: "icon",
+            class: "h-8 w-8",
+            onClick: (e) => {
+              e.stopPropagation();
+              forceSegmentUpdate(row.original.id);
+            },
+            disabled: isUpdating.value === row.original.id,
+          },
+          [
+            h(RefreshCcw, {
+              class: "h-4 w-4",
+              class: {
+                "animate-spin": isUpdating.value === row.original.id,
+              },
+            }),
+          ]
+        ),
+      ]);
+    },
+  },
+  {
+    accessorKey: "updated_at",
+    header: "Editado pela última vez",
+    cell: ({ row }) => {
+      const date = row.original.updated_at;
+      return h("div", date ? formatDate(date) : "-");
     },
   },
   {
@@ -1097,6 +1339,28 @@ const columns = [
       ]);
     },
   },
+];
+
+const contactsColumns = [
+  columnHelperContacts.accessor("id", {
+    header({ column }) {
+      return createHeaderButton("ID", "id");
+    },
+    cell: ({ row }) => h("div", {}, row.original.id),
+  }),
+  columnHelperContacts.accessor("name", {
+    header({ column }) {
+      return createHeaderButton("Nome", "name");
+    },
+    cell: ({ row }) =>
+      h("div", { class: "capitalize" }, `${row.original.name}`),
+  }),
+  columnHelperContacts.accessor("email", {
+    header({ column }) {
+      return createHeaderButton("E-mail", "email");
+    },
+    cell: ({ row }) => h("div", {}, row.original.email),
+  }),
 ];
 
 const pages = ref({
