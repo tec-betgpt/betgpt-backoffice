@@ -36,7 +36,8 @@ export default {
       const { toast } = useToast()
 
       toast({
-        description: this.description
+        description: this.description,
+        class: 'bg-yellow-500 text-black'
       })
     }
   },
