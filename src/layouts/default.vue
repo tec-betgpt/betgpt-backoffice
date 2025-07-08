@@ -97,6 +97,9 @@
                       <SidebarMenuButton
                         as-child
                         :is-active="route.name === item.url.name"
+                        :tooltip="item.name"
+                        @click="toggleCollapsed('')"
+
                       >
                         <router-link
                           :to="item.url"
@@ -157,6 +160,7 @@
                           <SidebarMenuSubButton
                             as-child
                             :isActive="route.name === child.url.name"
+                            @click="toggleCollapsed('')"
                           >
                             <router-link
                               :to="child.url"
@@ -256,6 +260,7 @@
       >
         <div class="flex items-center gap-2 w-full px-4">
           <SidebarTrigger
+              :logo="true"
               :toggle="toggleSidebar"
               class="-ml-1"
           />
@@ -283,6 +288,8 @@
             </BreadcrumbList>
           </Breadcrumb>
           <SidebarTrigger
+
+              :logo="false"
               :toggle="toggleSidebarIA"
               class="-ml-1"
           />
@@ -298,7 +305,7 @@
         </div>
       </main>
     </SidebarInset>
-    <Sidebar side="right" :collapsed="sidebarIaExpanded" v-model="sidebarIaExpanded" collapsible="offcanvas" >
+    <Sidebar side="right" :collapsed="sidebarIaExpanded" v-model="sidebarIaExpanded" variant="sidebar" collapsible="offcanvas" >
       <SidebarHeader  class="p-4 max-h-64">
         <h1 class="font-bold">
           Elevate IA
@@ -1284,31 +1291,23 @@ export default {
     },
 
     toggleCollapsed(type) {
-      if (this.sidebarExpanded) {
-        this.collapsed = type;
-        this.sidebarExpanded = true;
-      } else {
+      if (type!="") {
         this.collapsed = this.collapsed === type ? "" : type;
+      } else {
+        this.sidebarExpanded = false;
       }
     },
 
     toggleSidebar() {
       this.setResponsive();
-      if (window.innerWidth < 768) {
-        this.sidebarExpanded = true;
-        return;
-      }
       this.sidebarExpanded = !this.sidebarExpanded;
     },
 
     toggleSidebarIA() {
       this.setResponsive();
-      if (window.innerWidth < 768) {
-        this.sidebarIaExpanded = true;
-        return;
-      }
       this.sidebarIaExpanded = !this.sidebarIaExpanded;
     },
+
 
     async loadChats() {
       this.loading = true;

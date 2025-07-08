@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {watch, onMounted, computed} from "vue";
+import {watch, onMounted, computed, ref} from "vue";
 import { useRoute } from "vue-router";
 import type { SidebarProps } from ".";
 import { cn } from "@/lib/utils";
@@ -18,10 +18,22 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 });
 
 const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
-
-const route = useRoute();
-
-
+const col = ref(props.collapsed);
+watch(() => props.collapsed, (collapsed) => {
+  col.value = !col.value;
+    // if (isMobile && collapsed) {
+    //   col.value = true
+    //   //setOpenMobile(false);
+    // } else if (isMobile && !collapsed) {
+    //   col.value = false
+    //   //setOpenMobile(true);
+    // }
+  }, { immediate: true });
+const updateCol = async ()=>{
+  if (isMobile){
+    col.value = !col.value;
+  }
+}
 </script>
 
 <template>
@@ -43,9 +55,9 @@ const route = useRoute();
 
   <Sheet
     v-else-if="isMobile"
-    :open="openMobile"
+    :open="col"
     v-bind="$attrs"
-    @update:open="setOpenMobile"
+    @update:open="updateCol"
   >
     <SheetContent
       data-sidebar="sidebar"

@@ -7,6 +7,7 @@ import { useSidebar } from "./utils";
 import { useColorMode } from "@vueuse/core";
 
 const props = defineProps<{
+  logo?:boolean;
   class?: HTMLAttributes["class"];
   toggle?: () => void;
 }>();
@@ -22,6 +23,7 @@ const { toggleSidebar } = useSidebar();
 <template>
   <div class="flex gap-2">
     <img
+        v-if="logo"
       :src="logoSrc"
       alt="Logo"
       class="h-7 w-7 mr-3 md:hidden"
