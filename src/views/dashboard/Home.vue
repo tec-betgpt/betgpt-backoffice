@@ -309,7 +309,7 @@
             </div>
 
             <div class="variation mt-3">
-              <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200" v-if="players.change > 0">
+              <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200" v-if="activeNow.change > 0">
                 <ArrowUp class="h-4 w-4 mr-1" /> {{ activeNow.change }}
               </div>
               <div class="value flex justify-start items-center bg-red-700 text-red-200" v-else>
