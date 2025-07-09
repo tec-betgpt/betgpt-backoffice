@@ -1229,7 +1229,7 @@ const handleSidebarExpand = (value: boolean) => {
   sidebarExpanded.value = value;
 };
 const handleSidebarIaExpand = (value: boolean) => {
-  sidebarExpanded.value = value;
+  sidebarIaExpanded.value = value;
 };
 const toggleSidebarIA = () => {
   setResponsive();
