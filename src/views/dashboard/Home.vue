@@ -66,7 +66,6 @@
     </div>
 
     <div v-else>
-
       <div class="pb-5 pt-10">
         <div class="text-xl">
           Visão Geral dos Depósitos
@@ -76,12 +75,12 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-4 sm:grid-cols-1">
+      <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-2 2xl:grid-cols-4 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-3 sm:grid-cols-1'">
         <Card v-if="hideMetricsDaily" @click="showAllDepositsTotal7D = !showAllDepositsTotal7D" class="item cursor-pointer hover:bg-gray-700">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1" shape="square">
+                <Avatar class="wrapper-avatar text-white border-gray-900 h-9 w-9 p-2" shape="square">
                   <CalendarCheck2 />
                 </Avatar>
                 <span class="text-xs font-medium ml-3">Total de Entradas 7D</span>
@@ -117,7 +116,7 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1" shape="square">
+                <Avatar class="wrapper-avatar  border-gray-900 h-9 w-9 p-2" shape="square">
                   <Banknote />
                 </Avatar>
                 <span class="text-xs font-medium ml-3">Volume Líquido de Entradas</span>
@@ -144,7 +143,7 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1" shape="square">
+                <Avatar class="wrapper-avatar  border-gray-900 h-9 w-9 p-2" shape="square">
                   <ChartCandlestick />
                 </Avatar>
                 <span class="text-xs font-medium ml-3">Ticket Médio de Entradas</span>
@@ -165,7 +164,7 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <CirclePercent />
                 </Avatar>
                 <span class="text-xs font-medium ml-3">Taxa de Aprovação</span>
@@ -188,10 +187,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <BanknoteArrowDown />
                 </Avatar>
-                <span class="text-xs font-medium">Entradas Geradas</span>
+                <span class="text-xs font-medium ml-3">Entradas Geradas</span>
               </div>
 
               <GlossaryTooltipComponent description="Valor total de transações de entrada iniciadas, independentemente da confirmação." />
@@ -220,17 +219,17 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <DollarSign />
                 </Avatar>
-                <span class="text-xs font-medium">Entradas Confirmadas</span>
+                <span class="text-xs font-medium ml-3">Entradas Confirmadas</span>
               </div>
 
               <GlossaryTooltipComponent description="Valor total de transações de entrada confirmadas com sucesso." />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div class="number" >
+            <div class="number">
               +{{ deposits.paid_deposits }}
             </div>
             <small class="text-xs">Quantidade</small>
@@ -252,10 +251,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <ListCheck />
                 </Avatar>
-                <span class="text-xs font-medium">Primeiras Entradas</span>
+                <span class="text-xs font-medium ml-3">Primeiras Entradas</span>
               </div>
 
               <GlossaryTooltipComponent description="Total de entradas financeiras geradas por usuários que realizaram sua primeira transação" />
@@ -290,15 +289,15 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-4 sm:grid-cols-1'">
         <Card v-if="hideMetricsDaily" @click="showAllRegister = !showAllRegister" class="item cursor-pointer hover:bg-gray-600">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <Users />
                 </Avatar>
-                <span class="text-xs font-medium">Total de Registros</span>
+                <span class="text-xs font-medium ml-3">Total de Registros</span>
               </div>
 
               <GlossaryTooltipComponent description="Total de usuários registrados na base da Elevate" />
@@ -331,10 +330,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <UserRound />
                 </Avatar>
-                <span class="text-xs font-medium">Usuários Ativos</span>
+                <span class="text-xs font-medium ml-3">Usuários Ativos</span>
               </div>
 
               <GlossaryTooltipComponent description="Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias" />
@@ -351,7 +350,7 @@
               </span>
             </div>
             <div class="variation mt-3">
-              <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200" v-if="players.change > 0">
+              <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200" v-if="activeNow.change > 0">
                 <ArrowUp class="h-4 w-4 mr-1" /> {{ activeNow.change }}
               </div>
               <div class="value flex justify-start items-center bg-red-700 text-red-200" v-else>
@@ -366,13 +365,13 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <<UserRoundPlus /> />
                 </Avatar>
-                <span class="text-xs font-medium">Novos Registros</span>
-
-                <GlossaryTooltipComponent description="Total de usuários que completaram o cadastro no sistema no periodo especifico" />
+                <span class="text-xs font-medium ml-3">Novos Registros</span>
               </div>
+
+              <GlossaryTooltipComponent description="Total de usuários que completaram o cadastro no sistema no periodo especifico" />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -386,10 +385,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <CirclePercent />
                 </Avatar>
-                <span class="text-xs font-medium">Taxa de Conversão Geral</span>
+                <span class="text-xs font-medium ml-3">Taxa de Conversão Geral</span>
             </div>
 
             <GlossaryTooltipComponent description="Percentual de usuários cadastrados que realizaram uma primeira transação validada." />
@@ -406,10 +405,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <Wallet />
                 </Avatar>
-                <span class="text-xs font-medium">Primeiros Depositantes</span>
+                <span class="text-xs font-medium ml-3">Primeiros Depositantes</span>
               </div>
 
               <GlossaryTooltipComponent description="Usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro." />
@@ -426,10 +425,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <CirclePercent />
                 </Avatar>
-                <span class="text-xs font-medium">Taxa de Conversão em D0</span>
+                <span class="text-xs font-medium ml-3">Taxa de Conversão em D0</span>
               </div>
 
               <GlossaryTooltipComponent description="Percentual de usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro." />
@@ -452,15 +451,15 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-2 sm:grid-cols-1'">
         <Card class="item cursor-pointer hover:bg-gray-700" @click="showAllWithdrawsTotal7D = !showAllWithdrawsTotal7D" v-if="hideMetricsDaily">
           <CardHeader class="pb-2">
             <CardTitle>
               <div class="flex justify-start items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <CalendarArrowUp />
                 </Avatar>
-                <span class="text-xs font-medium">Saques 7D</span>
+                <span class="text-xs font-medium ml-3">Saques 7D</span>
               </div>
             </CardTitle>
           </CardHeader>
@@ -491,10 +490,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <ChartNoAxesColumn />
                 </Avatar>
-                <span class="text-xs font-medium">Ticket Médio de Saída</span>
+                <span class="text-xs font-medium ml-3">Ticket Médio de Saída</span>
               </div>
 
               <GlossaryTooltipComponent description="Valor médio por transação de saída processada." />
@@ -511,10 +510,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <BadgeCheck />
                 </Avatar>
-                <span class="text-xs font-medium">Taxa de Aprovação</span>
+                <span class="text-xs font-medium ml-3">Taxa de Aprovação</span>
               </div>
 
               <GlossaryTooltipComponent description="Taxa de aprovação de saídas solicitadas e saídas processadas" />
@@ -533,10 +532,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <Check />
                 </Avatar>
-                <span class="text-xs font-medium">Saídas Solicitadas</span>
+                <span class="text-xs font-medium ml-3">Saídas Solicitadas</span>
               </div>
 
               <GlossaryTooltipComponent description="Valor total de solicitações de retirada feitas pelos usuários." />
@@ -565,10 +564,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <BanknoteArrowUp />
                 </Avatar>
-                <span class="text-xs font-medium">Saídas Processadas</span>
+                <span class="text-xs font-medium ml-3">Saídas Processadas</span>
               </div>
 
               <GlossaryTooltipComponent description="Valor total de saídas que foram processadas e pagas com sucesso." />
@@ -608,10 +607,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <Hourglass />
                 </Avatar>
-                <span class="text-xs font-medium">Tempo Médio de Retenção</span>
+                <span class="text-xs font-medium ml-3">Tempo Médio de Retenção</span>
               </div>
 
               <GlossaryTooltipComponent description="Tempo médio entre a primeira transação do usuário e sua última transação." />
@@ -628,10 +627,10 @@
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar text-black h-8 w-8 p-1 mr-3" shape="square">
+                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
                   <ChartNoAxesColumn />
                 </Avatar>
-                <span class="text-xs font-medium">Ticket Médio Pós-Ativação</span>
+                <span class="text-xs font-medium ml-3">Ticket Médio Pós-Ativação</span>
               </div>
 
               <GlossaryTooltipComponent description="Valor médio transacionado por usuários desde a primeira transação." />
@@ -949,7 +948,6 @@ export default {
 
       this.loading = false;
     },
-
   },
 
   watch: {
