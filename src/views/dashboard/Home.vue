@@ -76,7 +76,7 @@
       </div>
 
       <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-2 2xl:grid-cols-4 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-3 sm:grid-cols-1'">
-        <Card v-if="hideMetricsDaily" class="item">
+        <Card v-if="hideMetricsDaily" @click="showAllDepositsTotal7D = !showAllDepositsTotal7D" class="item cursor-pointer hover:bg-gray-700">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
@@ -90,10 +90,16 @@
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div :title="(deposits.total / 100)" class="number">
+            <div v-if="showAllDepositsTotal7D" :title="(deposits.total / 100)" class="number">
               {{ $toCurrency(deposits.total / 100) }}
             </div>
+            <div v-else class="number" :title="(deposits.total / 100)">
+              {{ formatLargeNumber(deposits.total / 100).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(deposits.total / 100).separator }}
+              </span>
 
+            </div>
             <div class="variation mt-3">
               <div v-if="deposits.percentage > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
                 <ArrowUp class="h-4 w-4 mr-1" /> {{ deposits.percentage }}%
@@ -106,7 +112,7 @@
           </CardContent>
         </Card>
 
-        <Card class="item">
+        <Card class="item cursor-pointer hover:bg-gray-700" @click="showAllDepositsNet = !showAllDepositsNet">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
@@ -121,8 +127,14 @@
           </CardHeader>
 
           <CardContent>
-            <div :title="deposits.total_net_deposits" class="number">
-              {{ $toCurrency(deposits.total_net_deposits / 100) }}
+            <div v-if="showAllDepositsNet" :title="deposits.total_net_deposits" class="number">
+              {{ $toCurrency(deposits.total_net_deposits/100) }}
+            </div>
+            <div v-else :title="deposits.total_net_deposits" class="number">
+              {{ formatLargeNumber(deposits.total_net_deposits/100).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(deposits.total_net_deposits).separator }}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -170,8 +182,8 @@
         </Card>
       </div>
 
-      <div class="mt-5 grid gap-4 md:grid-cols-3 sm:grid-cols-1">
-        <Card class="item">
+      <div class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+        <Card class="item cursor-pointer hover:bg-gray-600" @click="showAllDepositsGenerated = !showAllDepositsGenerated">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
@@ -190,14 +202,20 @@
             </div>
             <small class="text-xs">Quantidade</small>
 
-            <div class="number mt-5">
+            <div class="number mt-5" v-if="showAllDepositsGenerated">
               {{ $toCurrency(deposits.total_pending_deposits / 100) }}
+            </div>
+            <div v-else class="number mt-5">
+              {{ formatLargeNumber(deposits.total_pending_deposits / 100).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(deposits.total_pending_deposits / 100).separator }}
+              </span>
             </div>
             <small class="text-xs">Total</small>
           </CardContent>
         </Card>
 
-        <Card class="item">
+        <Card class="item cursor-pointer hover:bg-gray-600" @click="showAllDepositsPaid = !showAllDepositsPaid">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
@@ -216,14 +234,20 @@
             </div>
             <small class="text-xs">Quantidade</small>
 
-            <div class="number mt-5">
+            <div class="number mt-5" v-if="showAllDepositsPaid">
               {{ $toCurrency(deposits.total_paid_deposits / 100) }}
+            </div>
+            <div v-else class="number mt-5">
+              {{ formatLargeNumber(deposits.total_paid_deposits / 100).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(deposits.total_paid_deposits).separator }}
+              </span>
             </div>
             <small class="text-xs">Total</small>
           </CardContent>
         </Card>
 
-        <Card class="item">
+        <Card class="item cursor-pointer hover:bg-gray-600" @click="showAllDepositsFTD = !showAllDepositsFTD">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
@@ -242,8 +266,14 @@
             </div>
             <small class="text-xs">Quantidade</small>
 
-            <div class="number mt-5">
+            <div class="number mt-5" v-if="showAllDepositsFTD">
               {{ $toCurrency(deposits.total_ftd_amount / 100) }}
+            </div>
+            <div v-else class="number mt-5">
+              {{ formatLargeNumber(deposits.total_ftd_amount / 100).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(deposits.total_ftd_amount).separator }}
+              </span>
             </div>
             <small class="text-xs">Total</small>
           </CardContent>
@@ -260,7 +290,7 @@
       </div>
 
       <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-4 sm:grid-cols-1'">
-        <Card v-if="hideMetricsDaily" class="item">
+        <Card v-if="hideMetricsDaily" @click="showAllRegister = !showAllRegister" class="item cursor-pointer hover:bg-gray-600">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
@@ -274,10 +304,16 @@
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div class="number">
+            <div class="number" v-if="showAllRegister">
               {{ players.count }}
             </div>
-
+            <div class="number" v-else>
+              {{ formatLargeNumber(players.count).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(players.count).separator }}
+              </span>
+            </div>
+            <small class="text-xs">Quantidade</small>
             <div class="variation mt-3">
               <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200" v-if="players.change > 0">
                 <ArrowUp class="h-4 w-4 mr-1" /> {{ players.change }}
@@ -290,7 +326,7 @@
           </CardContent>
         </Card>
 
-        <Card v-if="hideMetricsDaily" class="item">
+        <Card v-if="hideMetricsDaily" @click="showAllPlayersActive = !showAllPlayersActive" class="item cursor-pointer hover:bg-gray-600">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
@@ -304,10 +340,15 @@
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div class="number">
+            <div class="number" v-if="showAllPlayersActive">
               {{ activeNow.count }}
             </div>
-
+            <div class="number" v-else>
+              {{ formatLargeNumber(activeNow.count).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(activeNow.count).separator }}
+              </span>
+            </div>
             <div class="variation mt-3">
               <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200" v-if="activeNow.change > 0">
                 <ArrowUp class="h-4 w-4 mr-1" /> {{ activeNow.change }}
@@ -411,7 +452,7 @@
       </div>
 
       <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-2 sm:grid-cols-1'">
-        <Card class="item" v-if="hideMetricsDaily">
+        <Card class="item cursor-pointer hover:bg-gray-700" @click="showAllWithdrawsTotal7D = !showAllWithdrawsTotal7D" v-if="hideMetricsDaily">
           <CardHeader class="pb-2">
             <CardTitle>
               <div class="flex justify-start items-center">
@@ -423,8 +464,14 @@
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div class="number">
+            <div class="number" v-if="showAllWithdrawsTotal7D">
               {{ $toCurrency(withdraws.total / 100) }}
+            </div>
+            <div v-else class="number">
+              {{ formatLargeNumber(withdraws.total / 100).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(withdraws.total / 100).separator }}
+              </span>
             </div>
 
             <div class="variation mt-3">
@@ -481,7 +528,7 @@
       </div>
 
       <div class="grid mt-5 gap-4 md:grid-cols-2 sm:grid-cols-1">
-        <Card class="item">
+        <Card class="item cursor-pointer hover:bg-gray-700" @click="showAllWithdrawsRequested = !showAllWithdrawsRequested">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
@@ -500,14 +547,20 @@
             </div>
             <small class="text-xs">Quantidade</small>
 
-            <div class="number">
+            <div class="number" v-if="showAllWithdrawsRequested">
               {{ $toCurrency(withdraws.total_pending_withdraws / 100) }}
+            </div>
+            <div v-else class="number">
+              {{ formatLargeNumber(withdraws.total_pending_withdraws / 100).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(withdraws.total_pending_withdraws / 100).separator }}
+              </span>
             </div>
             <small class="text-xs">Total</small>
           </CardContent>
         </Card>
 
-        <Card class="item">
+        <Card class="item cursor-pointer hover:bg-gray-700" @click="showAllWithdrawsProcessed = !showAllWithdrawsProcessed">
           <CardHeader class="pb-2">
             <CardTitle class="flex-row flex justify-between items-center">
               <div class="flex justify-between items-center">
@@ -526,8 +579,14 @@
             </div>
             <small class="text-xs">Quantidade</small>
 
-            <div class="number pt-4">
+            <div class="number " v-if="showAllWithdrawsProcessed">
               {{ $toCurrency(withdraws.total_paid_withdraws / 100) }}
+            </div>
+            <div v-else class="number">
+              {{ formatLargeNumber(withdraws.total_paid_withdraws / 100).content }}
+              <span class="kind text-orange-300">
+                {{ formatLargeNumber(withdraws.total_paid_withdraws / 100).separator }}
+              </span>
             </div>
             <small class="text-xs">Total</small>
           </CardContent>
@@ -724,6 +783,7 @@ import { useWorkspaceStore } from '@/stores/workspace'
 import CustomDatePicker from '@/components/custom/CustomDatePicker.vue'
 import VideoBackground from 'vue-responsive-video-background-player'
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
+import {formatLargeNumber} from "@/filters/formatLargeNumber.js";
 
 const { toast } = useToast()
 
@@ -801,6 +861,30 @@ export default {
       time: "",
       ticket_avg: 0,
     },
+    showAllRegister: false,
+    showAllActiveUsers: false,
+    showAllNewRegister: false,
+    showAllConversionGeneral: false,
+    showAllFirstDepositors: false,
+    showAllConversionD0: false,
+    showAllPlayersActive:false,
+    showAllDepositsTotal7D: false,
+    showAllDepositsNet: false,
+    showAllDepositsTicket: false,
+    showAllDepositsApproval: false,
+    showAllDepositsGenerated: false,
+    showAllDepositsPaid: false,
+    showAllDepositsFTD: false,
+
+    showAllWithdrawsTotal7D: false,
+    showAllWithdrawsTicket: false,
+    showAllWithdrawsApproval: false,
+    showAllWithdrawsRequested: false,
+    showAllWithdrawsProcessed: false,
+
+    showAllRetentionTime: false,
+    showAllRetentionTicketAvg: false,
+
   }),
 
   async mounted () {
@@ -808,6 +892,7 @@ export default {
   },
 
   methods: {
+    formatLargeNumber,
     async _user () {
       const { data } = await Auth.user()
       this.user = data
