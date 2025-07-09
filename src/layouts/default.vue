@@ -1,14 +1,14 @@
 <template>
-  <SidebarProvider v-model="sidebarExpanded" >
-    <Sidebar collapsible="icon" v-model="sidebarExpanded" :collapsed="sidebarExpanded">
+  <SidebarProvider>
+    <Sidebar collapsible="icon"  @update:modelValue="handleSidebarExpand" :collapsed="sidebarExpanded">
       <SidebarHeader v-if="activeGroupProject">
         <router-link :to="{ name: 'home' }">
           <img
             :src="logoSrc"
             alt="Logo"
             :class="{
-              'w-1/2 py-4': !sidebarExpanded,
-              'w-6 py-1': sidebarExpanded,
+              'w-1/2 py-4': sidebarExpanded,
+              'w-6 py-1': !sidebarExpanded,
             }"
             class="m-auto transition-transform duration-200 ease-linear hover:scale-105"
           />
@@ -305,7 +305,7 @@
         </div>
       </main>
     </SidebarInset>
-    <Sidebar side="right" :collapsed="sidebarIaExpanded" v-model="sidebarIaExpanded" variant="sidebar" collapsible="offcanvas" >
+    <Sidebar class="ia" side="right" :collapsed="sidebarIaExpanded"  @update:modelValue="handleSidebarIaExpand"  collapsible="offcanvas" >
       <SidebarHeader  class="p-4 max-h-64">
         <h1 class="font-bold">
           Elevate IA
@@ -314,88 +314,86 @@
           <p class="text-[16px] py-4">
             Histórico
           </p>
-          <div class="max-h-20 overflow-scroll">
+          <div class="card max-h-26 overflow-scroll overflow-x-hidden">
             <p v-for="chat in chats" :key="chat.id" @click="selectChat(chat.id)" class="border-b-2 text-[10px] cursor-pointer truncate py-2">{{chat.title}}</p>
 
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent class="p-4 ">
-        <Card class="h-full w-full  p-2" :ref="messageContainerRef">
-          <div class="flex flex-col h-full">
-            <div class="flex-1 overflow-y-auto" ref="messageContainerRef">
-              <div v-for="message in messages" :key="message.id" class="mb-4">
-                <div>
-                  <div  class="space-x-2 pb-2" :class="(message.sender === 'user' ? 'flex justify-end' : 'flex justify-start')">
-                    <Avatar class="h-4 w-4 rounded-lg">
-                      <AvatarImage :src="message.sender === 'user'? this.authStore.user?.icon:iconIa" />
-                      <AvatarFallback class="rounded-lg">
-                        {{ authStore.user?.initials }}
-                      </AvatarFallback>
-                    </Avatar>
-                    <p class="text-[10px]">{{message.sender === 'user'? 'Você':'I.A'}}</p>
-                  </div>
-                  <p class="text-[12px] w-full " :class="(message.sender === 'user' ? 'flex text-end justify-end' : 'flex text-start justify-start')" v-html="message.content"/>
-                  <div v-if="message.file" class="mt-2">
-                    <a :href="message.file" target="_blank" class="text-blue-500 hover:underline">
-                      {{ extractFileName(message.file) }}
-                    </a>
-                  </div>
-                </div>
+
+          <div ref="messageContainerRef" class="card h-full w-full rounded-sm shadow-md flex-col flex p-2 overflow-y-scroll overlay-x-hidden ">
+            <div v-for="message in messages"  :key="message.id" class="mb-4">
+              <div  class="space-x-2 pb-2" :class="(message.sender === 'user' ? 'flex justify-end' : 'flex justify-start')">
+                <Avatar class="h-4 w-4 rounded-lg">
+                  <AvatarImage :src="message.sender === 'user'? authStore.user?.icon:iconIa" />
+                  <AvatarFallback class="rounded-lg">
+                    {{ authStore.user?.initials }}
+                  </AvatarFallback>
+                </Avatar>
+                <p class="text-[10px]">{{message.sender === 'user'? 'Você':'I.A'}}</p>
               </div>
-              <div
-                  v-if="uploadedFilePath"
-                  class="flex justify-end w-full items-center"
-              >
-                <Badge
-                    class="max-w-[80%] lg:max-w-[60%] shadow-md transition-all flex items-start px-3 py-2"
-                >
-                  <div>
-                    <div
-                        v-if="
-                      uploadedFilePath.endsWith('.jpg') ||
-                      uploadedFilePath.endsWith('.jpeg') ||
-                      uploadedFilePath.endsWith('.png') ||
-                      uploadedFilePath.endsWith('.gif')
-                    "
-                    >
-                      <img
-                          :src="uploadedFilePath"
-                          alt="Pré-visualização da Imagem"
-                          class="max-h-32 max-w-full object-cover my-2"
-                      />
-                    </div>
-                    <div v-else-if="uploadedFilePath.endsWith('.pdf')">
-                      <iframe :src="uploadedFilePath" class="w-full" />
-                    </div>
-                    <div v-else-if="uploadedFilePath.endsWith('.txt')">
-                      <p>Arquivo de Texto anexado</p>
-                    </div>
-                    <div v-else>
-                      <p>Arquivo anexado</p>
-                    </div>
-                    <Progress v-if="uploadProgress>0" v-model="uploadProgress"/>
-                  </div>
-                </Badge>
-              </div>
-              <div v-if="loading" class="flex flex-col gap-2">
-                <Skeleton class="w-12 h-3"/>
-                <Skeleton class="w-full h-3"/>
-                <Skeleton class="w-full h-3"/>
+              <p class="text-[12px] w-full flex flex-col  " :class="(message.sender === 'user' ? ' text-end justify-end' : 'flex text-start justify-start')" v-html="message.content"/>
+              <div v-if="message.file" class="mt-2">
+                <a :href="message.file" target="_blank" class="text-blue-500 hover:underline">
+                  {{ extractFileName(message.file) }}
+                </a>
               </div>
             </div>
+
+            <div v-if="loading" class="flex flex-col gap-2">
+              <Skeleton class="w-12 h-3"/>
+              <Skeleton class="w-full h-3"/>
+              <Skeleton class="w-full h-3"/>
+            </div>
+            <div
+                v-if="uploadedFilePath"
+                class="flex justify-end w-full items-center"
+            >
+              <Badge
+                  class="max-w-[80%] lg:max-w-[60%] shadow-md transition-all flex items-start px-3 py-2"
+              >
+                <div>
+                  <div
+                      v-if="
+                        uploadedFilePath.endsWith('.jpg') ||
+                        uploadedFilePath.endsWith('.jpeg') ||
+                        uploadedFilePath.endsWith('.png') ||
+                        uploadedFilePath.endsWith('.gif')
+                      "
+                  >
+                    <img
+                        :src="uploadedFilePath"
+                        alt="Pré-visualização da Imagem"
+                        class="max-h-32 max-w-full object-cover my-2"
+                    />
+                  </div>
+                  <div v-else-if="uploadedFilePath.endsWith('.pdf')">
+                    <iframe :src="uploadedFilePath" class="w-full" />
+                  </div>
+                  <div v-else-if="uploadedFilePath.endsWith('.txt')">
+                    <p>Arquivo de Texto anexado</p>
+                  </div>
+                  <div v-else>
+                    <p>Arquivo anexado</p>
+                  </div>
+                  <Progress v-if="uploadProgress>0" v-model="uploadProgress"/>
+                </div>
+              </Badge>
+            </div>
           </div>
-        </Card>
+
+
       </SidebarContent>
       <SidebarFooter  class="p-4  grid grid-cols-1 gap-2">
         <Textarea placeholder="Digite aqui..." @keyup.enter="sendMessage" v-model="newMessage"  />
         <Button class="bg-yellow-300" @click="sendMessage">
           Enviar
         </Button>
-        <Label for="file" :ref="fileInputRef" class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer" >
+        <Label for="file"  class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer" >
           <Paperclip /> Anexar arquivo
         </Label>
-        <Input id="file" type="file" class="hidden" @change="handleFileUpload"/>
+        <Input id="file" type="file"  class="hidden" @change="handleFileUpload"/>
         <p class="text-[8px]">
           As respostas podem mostrar informações imprecisas qualquer duvida entre em contato conosco.
         </p>
@@ -404,7 +402,7 @@
   </SidebarProvider>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import {Paperclip, X} from 'lucide-vue-next';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -491,7 +489,7 @@ import {Label} from "@/components/ui/label";
 import {Badge} from "@/components/ui/badge";
 import {Progress} from "@/components/ui/progress";
 import {marked} from "marked";
-
+import {computed, nextTick, onMounted, ref, watch} from "vue";
 
 interface BreadcrumbItem {
   name: string;
@@ -504,1010 +502,909 @@ interface Chat {
 }
 interface Message {
   id: number;
-  sender: "user" | "assistant";
+  sender: 'user' | 'assistant';
   content: string;
   iaModel: string;
   file: string | null;
   createdAt: string;
   updatedAt: string;
 }
-export default {
-  name: 'DefaultLayout',
-  components: {
-    Progress,
-    Badge, X,
-    Label,
-    Skeleton,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarTrigger,
-    SidebarHeader,
-    SidebarInset,
-    SidebarMenuSub,
-    SidebarMenuSubItem,
-    SidebarMenuSubButton,
-    useSidebar,
-    SidebarProvider,
-    Sidebar,
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-    TooltipProvider,
-    Paperclip,
-    Avatar,
-    AvatarFallback,
-    AvatarImage,
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-    CustomLoading,
-    Card,
-    Input,
-    Textarea,
-    Separator,
-    ChevronRight,
-    LogOut,
-    Package2,
-    ChevronsUpDown,
-  },
 
-  data() {
-    return {
-      collapsed: "",
-      sidebarExpanded: true,
-      sidebarIaExpanded: true,
-      stateResponsive: false,
-      mode: useColorMode(),
-      workspaceStore: useWorkspaceStore(),
-      authStore: useAuthStore(),
-      configStore: useConfigStore(),
-      route: useRoute(),
-      router: useRouter(),
-      chats: [] as Chat[],
-      selectedChatId: undefined,
-      selectedModel: "openai",
-      messages: [] as Message[],
-      newMessage: "",
-      uploadProgress: 0,
-      file: null,
-      loading: false,
-      showNewChatModal: false,
-      newChatTitle: "",
-      uploadedFilePath: undefined,
-      fileInputRef: undefined,
-      messageContainerRef: undefined,
-    };
-  },
+// Refs e stores
+const collapsed = ref('');
+const sidebarExpanded = ref(false);
+const sidebarIaExpanded = ref(false);
+const stateResponsive = ref(false);
+const mode = ref(useColorMode().value);
+const workspaceStore = useWorkspaceStore();
+const authStore = useAuthStore();
+const configStore = useConfigStore();
+const route = useRoute();
+const router = useRouter();
 
-  computed: {
-    activeGroupProject() {
-      return  this.workspaceStore.activeGroupProject || null;
-    },
+// Chat e mensagens
+const chats = ref<Chat[]>([]);
+const selectedChatId = ref<number | undefined>(undefined);
+const selectedModel = ref('openai');
+const messages = ref<Message[]>([]);
+const newMessage = ref('');
+const uploadProgress = ref(0);
+const uploadedFilePath = ref<string | null>(null);
+const loading = ref(false);
+const showNewChatModal = ref(false);
+const newChatTitle = ref('');
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const messageContainerRef = ref<HTMLElement | null>(null);
 
-    breadcrumbs() {
-      const breadcrumbItems: BreadcrumbItem[] = [
-        {
-          name: "Elevate",
-          title: "Elevate",
-          path: "/home",
-        },
-      ];
+// Computed
+const activeGroupProject = computed(() => workspaceStore.activeGroupProject || null);
 
-      this.$route.matched.forEach((routeRecord, index) => {
-        const name = routeRecord.name as string;
-        const title = routeRecord.meta.title as string;
+const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+  const items: BreadcrumbItem[] = [
+    { name: 'Elevate', title: 'Elevate', path: '/home' }
+  ];
 
-        if (index === this.$route.matched.length - 1) {
-          breadcrumbItems.push({
-            name,
-            title,
-            path: null,
-          });
-        } else {
-          breadcrumbItems.push({
-            name,
-            title,
-            path: routeRecord.path,
-          });
-        }
-      });
+  route.matched.forEach((record, index) => {
+    const name = record.name as string;
+    const title = record.meta.title as string;
+    items.push({
+      name,
+      title,
+      path: index === route.matched.length - 1 ? null : record.path,
+    });
+  });
 
-      return breadcrumbItems;
-    },
+  return items;
+});
+const logoSrc = computed(() => {
+  const isMobile = window.innerWidth < 768;
+  if (mode.value === 'dark') {
+    return !sidebarExpanded.value
+      ? '/logo-elevate-square-white.png'
+      : '/logo-elevate-white.png';
+  } else {
+    return !sidebarExpanded.value
+      ? '/logo-elevate-square-black.png'
+      : '/logo-elevate-black.png';
+  }
+});
 
-    navMenu() {
-     
-      return  [
-        {
-          name: "Home",
-          url: { name: "home" },
-          icon: Home,
-          show:
-              (this.authStore.user?.access_type === "member" &&
-                  this.authStore.user?.roles.some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-dashboard"
-                      )
-                  )) ||
-              this.authStore.user?.roles
-                  .filter(
-                      (role) =>
-                         this.activeGroupProject &&
-                          role.pivot.project_id === this.activeGroupProject.project_id
+const iconIa = computed(() => {
+  return mode.value === 'dark'
+      ? '/logo-elevate-square-white.png'
+      : '/logo-elevate-square-black.png';
+});
+
+const navMenu = computed(()=>{
+  return  [
+    {
+      name: "Home",
+      url: { name: "home" },
+      icon: Home,
+      show:
+          (authStore.user?.access_type === "member" &&
+              authStore.user?.roles.some((role) =>
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-dashboard"
                   )
-                  .some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-dashboard"
-                      )
-                  ),
-        },
-        {
-          name: "Jarbas BOT",
-          icon: Bot,
-          url: {name: "jarbas-bot"},
-          type: "ia",
-          show:
-              (this.authStore.user?.access_type === "member" &&
-                  this.authStore.user?.roles.some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-ai"
-                      )
-                  )) ||
-              this.authStore.user?.roles
-                  .filter(
-                      (role) =>
-                          this.activeGroupProject &&
-                          role.pivot.project_id === this.activeGroupProject.project_id
-                  )
-                  .some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-ai"
-                      )
-                  ),
-          // children: [
-          //   {
-          //     name: "Chat",
-          //     url: { name: "chat" },
-          //     icon: MessageCircle,
-          //     show:
-          //         (this.authStore.user?.access_type === "member" &&
-          //             this.authStore.user?.roles.some((role) =>
-          //                 role.permissions.some(
-          //                     (permission) => permission.name === "access-to-ai"
-          //                 )
-          //             )) ||
-          //         this.authStore.user?.roles
-          //             .filter(
-          //                 (role) =>
-          //                     this.activeGroupProject &&
-          //                     role.pivot.project_id === this.activeGroupProject.project_id
-          //             )
-          //             .some((role) =>
-          //                 role.permissions.some(
-          //                     (permission) => permission.name === "access-to-ai"
-          //                 )
-          //             ),
-          //   },
-          //   {
-          //     name: "Jarbas BOT",
-          //     url: { name: "jarbas-bot" },
-          //     icon: Bot,
-          //     show:
-          //         (this.activeGroupProject &&
-          //             this.activeGroupProject.type === "project" &&
-          //             this.authStore.user?.access_type === "member" &&
-          //             this.authStore.user?.roles.some((role) =>
-          //                 role.permissions.some(
-          //                     (permission) => permission.name === "access-to-ai"
-          //                 )
-          //             )) ||
-          //         this.authStore.user?.roles
-          //             .filter(
-          //                 (role) =>
-          //                     this.activeGroupProject &&
-          //                     role.pivot.project_id === this.activeGroupProject.project_id
-          //             )
-          //             .some((role) =>
-          //                 role.permissions.some(
-          //                     (permission) => permission.name === "access-to-ai"
-          //                 )
-          //             ),
-          //   },
-          // ],
-        },
-        {
-          name: "Audiências",
-          icon: View,
-          type: "audiences",
-          show:
-              (this.authStore.user?.access_type === "member" &&
-                  this.authStore.user?.roles.some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-reports"
-                      )
-                  )) ||
-              this.authStore.user?.roles
-                  .filter(
-                      (role) =>
-                          this.activeGroupProject &&
-                          role.pivot.project_id === this.activeGroupProject.project_id
-                  )
-                  .some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-reports"
-                      )
-                  ),
-          children: [
-            {
-              name: "Clientes",
-              url: { name: "clients" },
-              icon: Users2,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "player-registrations"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "player-registrations"
-                          )
-                      ),
-            },
-            {
-              name: "Segmentos",
-              url: { name: "segments" },
-              icon: ListFilter,
-              show:
-                  (this.activeGroupProject &&
-                      this.activeGroupProject.type === "project" &&
-                      this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "view-segments"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "view-segments"
-                          )
-                      ),
-            },
-            {
-              name: "Atribuições",
-              url: { name: "attributions" },
-              icon: ExternalLink,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) =>
-                                  permission.name === "access-to-parameter-tracking"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) =>
-                                  permission.name === "access-to-parameter-tracking"
-                          )
-                      ),
-            },
-          ],
-        },
-        {
-          name: "Controles",
-          icon: SlidersHorizontal,
-          type: "controls",
-          show:
-              (this.authStore.user?.access_type === "member" &&
-                  this.authStore.user?.roles.some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-reports"
-                      )
-                  )) ||
-              this.authStore.user?.roles
-                  .filter(
-                      (role) =>
-                          this.activeGroupProject &&
-                          role.pivot.project_id === this.activeGroupProject.project_id
-                  )
-                  .some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-reports"
-                      )
-                  ),
-          children: [
-            {
-              name: "Performance",
-              url: { name: "performances" },
-              icon: LineChart,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-reports"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-reports"
-                          )
-                      ),
-            },
-            {
-              name: "Tráfego",
-              url: { name: "traffics" },
-              icon: ChartNoAxesCombined,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-reports"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-reports"
-                          )
-                      ),
-            },
-            {
-              name: "E-mails",
-              url: { name: "emails" },
-              icon: MailCheck,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-reports"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-reports"
-                          )
-                      ),
-            },
-            {
-              name: "SMS Insights",
-              url: { name: "sms-insights" },
-              icon: Send,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-reports"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-reports"
-                          )
-                      ),
-            },
-          ],
-        },
-        {
-          name: "Gerenciamento",
-          icon: SquareStack,
-          type: "manage",
-          show:
-              (this.authStore.user?.access_type === "member" &&
-                  this.authStore.user?.roles.some((role) =>
-                      role.permissions.some(
-                          (permission) =>
-                              permission.name === "access-to-client-management" ||
-                              permission.name === "access-to-member-management"
-                      )
-                  )) ||
-              this.authStore.user?.roles
-                  .filter(
-                      (role) =>
-                          this.activeGroupProject &&
-                          role.pivot.project_id === this.activeGroupProject.project_id
-                  )
-                  .some((role) =>
-                      role.permissions.some(
-                          (permission) =>
-                              permission.name === "access-to-client-management" ||
-                              permission.name === "access-to-member-management"
-                      )
-                  ),
-          children: [
-            {
-              name: "Projetos",
-              url: { name: "projects" },
-              icon: Building2,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-project-groups"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-project-groups"
-                          )
-                      ),
-            },
-            {
-              name: "Usuários",
-              url: { name: "users" },
-              icon: Users2,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-users"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-users"
-                          )
-                      ),
-            },
-            {
-              name: "Perfis",
-              url: { name: "roles" },
-              icon: UserCog,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-permissions"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-permissions"
-                          )
-                      ),
-            },
-            {
-              name: "MyElevate Insights",
-              url: { name: "texts" },
-              icon: Album,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) =>
-                                  permission.name === "access-to-motivational-texts"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) =>
-                                  permission.name === "access-to-motivational-texts"
-                          )
-                      ),
-            },
-            {
-              name: "Integrações",
-              url: { name: "integrations" },
-              icon: Blocks,
-              show:
-                  this.activeGroupProject &&
-                  this.activeGroupProject.type === "project" &&
-                  ((this.authStore.user?.access_type === "member" &&
-                          this.authStore.user?.roles.some((role) =>
-                              role.permissions.some(
-                                  (permission) => permission.name === "access-to-integrations"
-                              )
-                          )) ||
-                      this.authStore.user?.roles
-                          .filter(
-                              (role) =>
-                                  this.activeGroupProject &&
-                                  role.pivot.project_id === this.activeGroupProject.project_id
-                          )
-                          .some((role) =>
-                              role.permissions.some(
-                                  (permission) => permission.name === "access-to-integrations"
-                              )
-                          )),
-            },
-          ],
-        },
-        {
-          name: "Financeiro",
-          icon: CircleDollarSign,
-          type: "financial",
-          show:
-              (this.authStore.user?.access_type === "member" &&
-                  this.authStore.user?.roles.some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-finance"
-                      )
-                  )) ||
-              this.authStore.user?.roles
-                  .filter(
-                      (role) =>
-                          this.activeGroupProject &&
-                          role.pivot.project_id === this.activeGroupProject.project_id
-                  )
-                  .some((role) =>
-                      role.permissions.some(
-                          (permission) => permission.name === "access-to-finance"
-                      )
-                  ),
-          children: [
-            {
-              name: "Gerir Setores",
-              url: { name: "sectors" },
-              icon: Briefcase,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-finance"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-finance"
-                          )
-                      ),
-            },
-            {
-              name: "Gerir Custos",
-              url: { name: "costs" },
-              icon: Rows3,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-finance"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-finance"
-                          )
-                      ),
-            },
-            {
-              name: "Entradas e Saídas",
-              url: { name: "registers" },
-              icon: DollarSignIcon,
-              show:
-                  (this.authStore.user?.access_type === "member" &&
-                      this.authStore.user?.roles.some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-finance"
-                          )
-                      )) ||
-                  this.authStore.user?.roles
-                      .filter(
-                          (role) =>
-                              this.activeGroupProject &&
-                              role.pivot.project_id === this.activeGroupProject.project_id
-                      )
-                      .some((role) =>
-                          role.permissions.some(
-                              (permission) => permission.name === "access-to-finance"
-                          )
-                      ),
-            },
-          ],
-        },
-      ]
-    },
-
-    logoSrc() {
-      return this.mode === "dark"
-        ? this.sidebarExpanded
-          ? "/logo-elevate-square-white.png"
-          : "/logo-elevate-white.png"
-        : this.sidebarExpanded
-          ? "/logo-elevate-square-black.png"
-          : "/logo-elevate-black.png";
-    },
-    iconIa(){
-      return this.mode === "dark"
-        ? "/logo-elevate-square-white.png" : "/logo-elevate-square-black.png"
-
-    }
-  },
-
-  watch: {
-    '$route.matched': {
-      handler(matchedRoutes) {
-        matchedRoutes.forEach((matchedRoute) => {
-          this.navMenu.forEach((group) => {
-            if (group.children) {
-              if (group.type === matchedRoute.path.split("/")[1]) {
-                this.collapsed = group.type;
-              }
-            }
-          });
-        });
-      },
-      immediate: true,
-      deep: true
-    },
-
-    activeGroupProject: {
-
-      async handler() {
-        if (this.activeGroupProject) {
-          const hasAccess =
-            this.authStore.user?.access_type === "member" ||
-            this.authStore.user?.roles
+              )) ||
+          authStore.user?.roles
               .filter(
-                (role) =>
-                  this.activeGroupProject &&
-                  role.pivot.project_id === this.activeGroupProject.project_id
+                  (role) =>
+                      activeGroupProject &&
+                      role.pivot.project_id === activeGroupProject.project_id
               )
               .some((role) =>
-                role.permissions.some((permission) =>
-                  this.$route.meta.permissions
-                    ? this.$route.meta.permissions.includes(permission.name)
-                    : true
-                )
-              );
-          if (!hasAccess) {
-            await this.router.push({ name: "home" });
-          }
-        }
-      },
-      immediate: true
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-dashboard"
+                  )
+              ),
+    },
+    {
+      name: "Jarbas BOT",
+      icon: Bot,
+      url: {name: "jarbas-bot"},
+      type: "ia",
+      show:
+          (authStore.user?.access_type === "member" &&
+              authStore.user?.roles.some((role) =>
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-ai"
+                  )
+              )) ||
+          authStore.user?.roles
+              .filter(
+                  (role) =>
+                      activeGroupProject &&
+                      role.pivot.project_id === activeGroupProject.project_id
+              )
+              .some((role) =>
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-ai"
+                  )
+              ),
+      // children: [
+      //   {
+      //     name: "Chat",
+      //     url: { name: "chat" },
+      //     icon: MessageCircle,
+      //     show:
+      //         (authStore.user?.access_type === "member" &&
+      //             authStore.user?.roles.some((role) =>
+      //                 role.permissions.some(
+      //                     (permission) => permission.name === "access-to-ai"
+      //                 )
+      //             )) ||
+      //         authStore.user?.roles
+      //             .filter(
+      //                 (role) =>
+      //                     activeGroupProject &&
+      //                     role.pivot.project_id === activeGroupProject.project_id
+      //             )
+      //             .some((role) =>
+      //                 role.permissions.some(
+      //                     (permission) => permission.name === "access-to-ai"
+      //                 )
+      //             ),
+      //   },
+      //   {
+      //     name: "Jarbas BOT",
+      //     url: { name: "jarbas-bot" },
+      //     icon: Bot,
+      //     show:
+      //         (activeGroupProject &&
+      //             activeGroupProject.type === "project" &&
+      //             authStore.user?.access_type === "member" &&
+      //             authStore.user?.roles.some((role) =>
+      //                 role.permissions.some(
+      //                     (permission) => permission.name === "access-to-ai"
+      //                 )
+      //             )) ||
+      //         authStore.user?.roles
+      //             .filter(
+      //                 (role) =>
+      //                     activeGroupProject &&
+      //                     role.pivot.project_id === activeGroupProject.project_id
+      //             )
+      //             .some((role) =>
+      //                 role.permissions.some(
+      //                     (permission) => permission.name === "access-to-ai"
+      //                 )
+      //             ),
+      //   },
+      // ],
+    },
+    {
+      name: "Audiências",
+      icon: View,
+      type: "audiences",
+      show:
+          (authStore.user?.access_type === "member" &&
+              authStore.user?.roles.some((role) =>
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-reports"
+                  )
+              )) ||
+          authStore.user?.roles
+              .filter(
+                  (role) =>
+                      activeGroupProject &&
+                      role.pivot.project_id === activeGroupProject.project_id
+              )
+              .some((role) =>
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-reports"
+                  )
+              ),
+      children: [
+        {
+          name: "Clientes",
+          url: { name: "clients" },
+          icon: Users2,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "player-registrations"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "player-registrations"
+                      )
+                  ),
+        },
+        {
+          name: "Segmentos",
+          url: { name: "segments" },
+          icon: ListFilter,
+          show:
+              (activeGroupProject &&
+                  activeGroupProject.type === "project" &&
+                  authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "view-segments"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "view-segments"
+                      )
+                  ),
+        },
+        {
+          name: "Atribuições",
+          url: { name: "attributions" },
+          icon: ExternalLink,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) =>
+                              permission.name === "access-to-parameter-tracking"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) =>
+                              permission.name === "access-to-parameter-tracking"
+                      )
+                  ),
+        },
+      ],
+    },
+    {
+      name: "Controles",
+      icon: SlidersHorizontal,
+      type: "controls",
+      show:
+          (authStore.user?.access_type === "member" &&
+              authStore.user?.roles.some((role) =>
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-reports"
+                  )
+              )) ||
+          authStore.user?.roles
+              .filter(
+                  (role) =>
+                      activeGroupProject &&
+                      role.pivot.project_id === activeGroupProject.project_id
+              )
+              .some((role) =>
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-reports"
+                  )
+              ),
+      children: [
+        {
+          name: "Performance",
+          url: { name: "performances" },
+          icon: LineChart,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-reports"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-reports"
+                      )
+                  ),
+        },
+        {
+          name: "Tráfego",
+          url: { name: "traffics" },
+          icon: ChartNoAxesCombined,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-reports"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-reports"
+                      )
+                  ),
+        },
+        {
+          name: "E-mails",
+          url: { name: "emails" },
+          icon: MailCheck,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-reports"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-reports"
+                      )
+                  ),
+        },
+        {
+          name: "SMS Insights",
+          url: { name: "sms-insights" },
+          icon: Send,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-reports"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-reports"
+                      )
+                  ),
+        },
+      ],
+    },
+    {
+      name: "Gerenciamento",
+      icon: SquareStack,
+      type: "manage",
+      show:
+          (authStore.user?.access_type === "member" &&
+              authStore.user?.roles.some((role) =>
+                  role.permissions.some(
+                      (permission) =>
+                          permission.name === "access-to-client-management" ||
+                          permission.name === "access-to-member-management"
+                  )
+              )) ||
+          authStore.user?.roles
+              .filter(
+                  (role) =>
+                      activeGroupProject &&
+                      role.pivot.project_id === activeGroupProject.project_id
+              )
+              .some((role) =>
+                  role.permissions.some(
+                      (permission) =>
+                          permission.name === "access-to-client-management" ||
+                          permission.name === "access-to-member-management"
+                  )
+              ),
+      children: [
+        {
+          name: "Projetos",
+          url: { name: "projects" },
+          icon: Building2,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-project-groups"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-project-groups"
+                      )
+                  ),
+        },
+        {
+          name: "Usuários",
+          url: { name: "users" },
+          icon: Users2,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-users"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-users"
+                      )
+                  ),
+        },
+        {
+          name: "Perfis",
+          url: { name: "roles" },
+          icon: UserCog,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-permissions"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-permissions"
+                      )
+                  ),
+        },
+        {
+          name: "MyElevate Insights",
+          url: { name: "texts" },
+          icon: Album,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) =>
+                              permission.name === "access-to-motivational-texts"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) =>
+                              permission.name === "access-to-motivational-texts"
+                      )
+                  ),
+        },
+        {
+          name: "Integrações",
+          url: { name: "integrations" },
+          icon: Blocks,
+          show:
+              activeGroupProject &&
+              activeGroupProject.type === "project" &&
+              ((authStore.user?.access_type === "member" &&
+                      authStore.user?.roles.some((role) =>
+                          role.permissions.some(
+                              (permission) => permission.name === "access-to-integrations"
+                          )
+                      )) ||
+                  authStore.user?.roles
+                      .filter(
+                          (role) =>
+                              activeGroupProject &&
+                              role.pivot.project_id === activeGroupProject.project_id
+                      )
+                      .some((role) =>
+                          role.permissions.some(
+                              (permission) => permission.name === "access-to-integrations"
+                          )
+                      )),
+        },
+      ],
+    },
+    {
+      name: "Financeiro",
+      icon: CircleDollarSign,
+      type: "financial",
+      show:
+          (authStore.user?.access_type === "member" &&
+              authStore.user?.roles.some((role) =>
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-finance"
+                  )
+              )) ||
+          authStore.user?.roles
+              .filter(
+                  (role) =>
+                      activeGroupProject &&
+                      role.pivot.project_id === activeGroupProject.project_id
+              )
+              .some((role) =>
+                  role.permissions.some(
+                      (permission) => permission.name === "access-to-finance"
+                  )
+              ),
+      children: [
+        {
+          name: "Gerir Setores",
+          url: { name: "sectors" },
+          icon: Briefcase,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-finance"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-finance"
+                      )
+                  ),
+        },
+        {
+          name: "Gerir Custos",
+          url: { name: "costs" },
+          icon: Rows3,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-finance"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-finance"
+                      )
+                  ),
+        },
+        {
+          name: "Entradas e Saídas",
+          url: { name: "registers" },
+          icon: DollarSignIcon,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-finance"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject &&
+                          role.pivot.project_id === activeGroupProject.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-finance"
+                      )
+                  ),
+        },
+      ],
+    },
+      ]
+})
+
+
+watch(() => route.matched, (matchedRoutes) => {
+  matchedRoutes.forEach((matchedRoute) => {
+    navMenu.value.forEach((group) => {
+      if (group.children && group.type === matchedRoute.path.split('/')[1]) {
+        collapsed.value = group.type;
+      }
+    });
+  });
+}, { immediate: true, deep: true });
+
+watch(activeGroupProject, async () => {
+  if (activeGroupProject.value) {
+    const hasAccess = authStore.user?.access_type === 'member' ||
+        authStore.user?.roles
+            .filter(role => role.pivot.project_id === activeGroupProject.value.project_id)
+            .some(role => route.meta.permissions?.includes?.(role.permissions.map(p => p.name)) ?? true);
+
+    if (!hasAccess) await router.push({ name: 'home' });
+  }
+}, { immediate: true });
+
+
+// Lifecycle
+onMounted(async () => {
+  mode.value = localStorage.getItem('theme') || 'auto';
+  const user = authStore.user;
+  if (user) {
+    await workspaceStore.loadInitialData(user.preferences, user.group_projects);
+  }
+  await loadChats();
+});
+
+// Métodos
+const setResponsive = () => stateResponsive.value = !stateResponsive.value;
+
+function scrollToBottom() {
+  nextTick(() => {
+    const container = messageContainerRef.value;
+    if (container) {
+      messageContainerRef.value.scrollTop = container.scrollHeight;
     }
-  },
+  });
+}
 
-  async mounted() {
-    this.mode = localStorage.getItem("theme") || "auto";
-    const user = this.authStore.user;
-    if (user) {
-      await this.workspaceStore.loadInitialData(
-          user?.preferences,
-          user?.group_projects
-      );
-    }
-    await this.loadChats()
-  },
+const loadChats = async () => {
+  loading.value = true;
+  try {
+    const { data } = await axios.get(`${import.meta.env.VITE_PUBLIC_IA_URL}/chat/list`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    chats.value = data.chats;
+  } catch (err) {
+    console.error('Erro ao carregar chats:', err);
+  } finally {
+    loading.value = false;
+  }
+};
 
-  methods: {
-    setResponsive() {
-      this.stateResponsive = !this.stateResponsive;
-    },
+const setActiveGroupProject = async (project: any) => {
+  sidebarExpanded.value = false;
+  configStore.loading = true;
 
-    async setActiveGroupProject(project) {
-      this.sidebarExpanded = false;
-      this.configStore.loading = true;
-      await this.workspaceStore.setActiveGroupProject(project);
+  await workspaceStore.setActiveGroupProject(project);
 
-      setTimeout(() => {
-        this.configStore.loading = false
-        this.sidebarExpanded = true;
-        document.body.style.overflow = "";
-      }, 2000);
-    },
+  setTimeout(() => {
+    configStore.loading = false;
+    //sidebarExpanded.value = true;
+    document.body.style.overflow = "";
+  }, 2000);
+};
 
-    async logout() {
-      await this.authStore.logout();
-      this.router.push("/login");
-    },
-
-    handleMenuItemClick() {
-      if (window.innerWidth < 768) {
-        this.sidebarExpanded = true;
-      }
-    },
-
-    toggleCollapsed(type) {
-      if (type!="") {
-        this.collapsed = this.collapsed === type ? "" : type;
-      } else {
-        this.sidebarExpanded = false;
-      }
-    },
-
-    toggleSidebar() {
-      this.setResponsive();
-      this.sidebarExpanded = !this.sidebarExpanded;
-    },
-
-    toggleSidebarIA() {
-      this.setResponsive();
-      this.sidebarIaExpanded = !this.sidebarIaExpanded;
-    },
+const logout = async () => {
+  await authStore.logout();
+  router.push("/login");
+};
 
 
-    async loadChats() {
-      this.loading = true;
-      try {
-        const response = await axios.get(
-            `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/list`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-        );
-        this.chats = response.data.chats;
-        // if (this.chats.length > 0 && !this.selectedChatId) {
-        //   this.selectedChatId = this.chats[0].id.toString();
-        //   await this.loadMessages();
-        // }
-      } catch (error) {
-        console.error("Erro ao carregar chats:", error);
-      } finally {
-        this.loading = false;
-      }
-    },
+const toggleCollapsed = (type: string) => {
+  if (type !== "") {
+    collapsed.value = collapsed.value === type ? "" : type;
+  } else {
+    sidebarExpanded.value = false;
+  }
+};
 
-    async createNewChat() {
-    //  if (!this.newChatTitle) return;
+const toggleSidebar = () => {
+  setResponsive();
+  sidebarExpanded.value = !sidebarExpanded.value;
+};
 
-      try {
-        const response = await axios.post(
-            `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/create`,
-            { title: this.newMessage },
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-        );
+const handleSidebarExpand = (value: boolean) => {
+  sidebarExpanded.value = value;
+};
+const handleSidebarIaExpand = (value: boolean) => {
+  sidebarExpanded.value = value;
+};
+const toggleSidebarIA = () => {
+  setResponsive();
+  sidebarIaExpanded.value = !sidebarIaExpanded.value;
+};
+watch(sidebarExpanded,(v)=>{
+  console.log(v)
+})
 
-        this.chats.push(response.data.chat);
-        this.selectedChatId = response.data.chat.id.toString();
-
-        this.newChatTitle = "";
-      } catch (error) {
-        console.error("Erro ao criar chat:", error);
-      } finally {
-        this.showNewChatModal = false;
-      }
-    },
-
-    async deleteChat(chatId: number) {
-      if (!confirm("Tem certeza que deseja excluir este chat?")) return;
-      try {
-        await axios.delete(`${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${chatId}`, {
+const createNewChat = async () => {
+  try {
+    const response = await axios.post(
+        `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/create`,
+        { title: newMessage.value },
+        {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        });
-
-        this.chats = this.chats.filter((c) => c.id !== chatId);
-        if (this.selectedChatId === chatId) {
-          this.selectedChatId =
-              this.chats.length > 0 ? this.chats[0].id.toString() : null;
         }
-      } catch (error) {
-        console.error("Erro ao excluir chat:", error);
-      }
-    },
+    );
 
-    async selectChat(chatId: number) {
-      this.selectedChatId = chatId;
-      await this.loadMessages();
-    },
+    chats.value.push(response.data.chat);
+    selectedChatId.value = response.data.chat.id;
 
-    async loadMessages() {
-      if (!this.selectedChatId) return;
-      this.messages = [];
+    newChatTitle.value = "";
+  } catch (error) {
+    console.error("Erro ao criar chat:", error);
+  } finally {
+    showNewChatModal.value = false;
+  }
+};
 
-      this.loading = true;
-      try {
-        const response = await axios.get(
-            `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${this.selectedChatId}/messages`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-        );
+const deleteChat = async (chatId: number) => {
+  if (!confirm("Tem certeza que deseja excluir este chat?")) return;
 
-        this.messages = response.data.messages.map((message: any) => ({
-          ...message,
-          content: marked.parse(message.content),
-        }));
-        this.scrollToBottom();
-      } catch (error) {
-        console.error("Erro ao carregar mensagens:", error);
-      } finally {
-        this.loading = false;
-      }
-    },
+  try {
+    await axios.delete(`${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${chatId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
 
-    extractFileName(url: string): string {
-      return url.split("/").pop() || "";
-    },
+    chats.value = chats.value.filter((c) => c.id !== chatId);
+    if (selectedChatId.value === chatId) {
+      selectedChatId.value = chats.value.length > 0 ? chats.value[0].id : undefined;
+    }
+  } catch (error) {
+    console.error("Erro ao excluir chat:", error);
+  }
+};
 
-    async sendMessage() {
-      if (!this.newMessage && !this.uploadedFilePath) return;
-      if (!this.selectedChatId !== undefined) {
-        await this.createNewChat();
-        this.loadChats()
-      }
-      else {
-        console.log("Por favor, selecione um chat antes de enviar uma mensagem.");
-        return;
-      }
-      const userMessage: any = {
-        sender: "user",
-        content: this.newMessage,
-        iaModel: 'openai',
-        file: this.uploadedFilePath,
+const selectChat = async (chatId: number) => {
+  selectedChatId.value = chatId;
+  await loadMessages();
+};
+
+const loadMessages = async () => {
+  if (!selectedChatId.value) return;
+
+  messages.value = [];
+  loading.value = true;
+
+  try {
+    const response = await axios.get(
+        `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${selectedChatId.value}/messages`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+    );
+
+    messages.value = response.data.messages.map((message: any) => ({
+      ...message,
+      content: marked.parse(message.content),
+    }));
+
+    scrollToBottom();
+  } catch (error) {
+    console.error("Erro ao carregar mensagens:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const sendMessage = async () => {
+  if (!newMessage.value && !uploadedFilePath.value) return;
+
+  if (selectedChatId.value === undefined) {
+    await createNewChat();
+    await loadChats();
+  } else {
+    const userMessage: Message = {
+      sender: "user",
+      content: newMessage.value,
+      iaModel: selectedModel.value,
+      file: uploadedFilePath.value,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    loading.value = true;
+
+    try {
+      messages.value.push(userMessage);
+      scrollToBottom();
+
+      newMessage.value = "";
+      uploadedFilePath.value = null;
+
+      const response = await axios.post(
+          `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${selectedChatId.value}/message`,
+          userMessage,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+      );
+
+      const assistantMessage: Message = {
+        sender: "assistant",
+        content: marked.parse(response.data.response),
+        iaModel: selectedModel.value,
+        file: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      this.loading = true;
-      try {
-        this.messages.push(userMessage);
-        this.scrollToBottom();
-        this.newMessage = "";
-        this.uploadedFilePath = null;
-        const response = await axios.post(
-            `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${this.selectedChatId}/message`,
-            userMessage,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-        );
 
-        const assistantMessage: any = {
-          sender: "assistant",
-          content: marked.parse(response.data.response),
-          iaModel: this.selectedModel,
-          file: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        this.messages.push(assistantMessage);
-        this.scrollToBottom();
-
-        this.newMessage = "";
-        this.uploadedFilePath = null;
-        if (this.fileInputRef) this.fileInputRef.value = "";
-      } catch (error) {
-        console.error("Erro ao enviar mensagem:", error);
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async handleFileUpload(event: Event) {
-      const input = event.target as HTMLInputElement;
-      const file = input.files ? input.files[0] : null
-      if (!file) return;
-
-
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        const response = await axios.post(
-            `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/upload`,
-            formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-              onUploadProgress: (progressEvent: any) => {
-                this.uploadProgress = Math.round(
-                    (progressEvent.loaded * 100) / progressEvent.total
-                );
-              },
-            }
-        );
-        this.uploadProgress = 0;
-
-        this.uploadedFilePath = response.data.fileUrl;
-      } catch (error) {
-        console.error("Erro no upload do arquivo:", error);
-        alert("Erro ao enviar arquivo");
-      }
-    },
-
-    scrollToBottom() {
-      this.$nextTick(() => {
-        const container = this.messageContainerRef;
-        if (container) {
-          container.scrollTop = container.scrollHeight;
-        }
-      });
-    },
+      messages.value.push(assistantMessage);
+      scrollToBottom();
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+    } finally {
+      loading.value = false;
+    }
   }
 };
+
+const extractFileName = (url: string): string => {
+  return url.split("/").pop() || "";
+};
+
+const handleFileUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+
+  if (!file) return;
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axios.post(
+        `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/upload`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          onUploadProgress: (progressEvent: any) => {
+            uploadProgress.value = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+            );
+          },
+        }
+    );
+
+    uploadProgress.value = 0;
+    uploadedFilePath.value = response.data.fileUrl;
+  } catch (error) {
+    console.error("Erro no upload do arquivo:", error);
+    alert("Erro ao enviar arquivo");
+  }
+};
+
 </script>
