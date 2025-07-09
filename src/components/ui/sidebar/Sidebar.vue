@@ -17,21 +17,21 @@ const props = withDefaults(defineProps<SidebarProps>(), {
   collapsed: false,
 });
 
+
 const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
-const col = ref(props.collapsed);
-watch(() => props.collapsed, (collapsed) => {
-  col.value = !col.value;
-    // if (isMobile && collapsed) {
-    //   col.value = true
-    //   //setOpenMobile(false);
-    // } else if (isMobile && !collapsed) {
-    //   col.value = false
-    //   //setOpenMobile(true);
-    // }
-  }, { immediate: true });
+
+const emit = defineEmits(["update:modelValue"]);
+
+const handleOpen = () => {
+  emit("update:modelValue", true);
+};
+const handleClose = () => {
+  emit("update:modelValue", false);
+};
+
 const updateCol = async ()=>{
-  if (isMobile){
-    col.value = !col.value;
+  if (isMobile) {
+    handleClose()
   }
 }
 </script>
@@ -49,13 +49,14 @@ const updateCol = async ()=>{
       )
     "
     v-bind="$attrs"
+
   >
     <slot />
   </div>
 
   <Sheet
     v-else-if="isMobile"
-    :open="col"
+    :open="collapsed"
     v-bind="$attrs"
     @update:open="updateCol"
   >
@@ -78,7 +79,7 @@ const updateCol = async ()=>{
     v-else
     class="group peer hidden md:block"
     :data-state="state"
-    :data-collapsible="collapsed ? collapsible : ''"
+    :data-collapsible="!collapsed ? collapsible : ''"
     :data-variant="variant"
     :data-side="side"
   >
