@@ -29,6 +29,7 @@ export const useAuthStore = defineStore("auth", {
       this.token = null;
 
       localStorage.removeItem("authToken");
+      localStorage.removeItem("token")
       delete api.defaults.headers.common["Authorization"];
     },
     clearTwoFactorData() {
