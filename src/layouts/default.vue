@@ -91,7 +91,7 @@
           <SidebarMenu>
             <template v-for="item in navMenu" :key="item.name">
               <SidebarMenuItem v-if="!item.children && item.show">
-                <TooltipProvider :disabled="!stateResponsive">
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <SidebarMenuButton
@@ -239,7 +239,7 @@
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  ><router-link :to="{ name: 'configurations.profile' }"
+                  ><router-link @click="sidebarExpanded = false" :to="{ name: 'configurations.profile' }"
                     >Configurações</router-link
                   ></DropdownMenuItem
                 >
@@ -515,7 +515,7 @@ const collapsed = ref('');
 const sidebarExpanded = ref(false);
 const sidebarIaExpanded = ref(false);
 const stateResponsive = ref(false);
-const mode = ref(useColorMode().value);
+const mode = useColorMode();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
 const configStore = useConfigStore();
@@ -557,7 +557,6 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   return items;
 });
 const logoSrc = computed(() => {
-  const isMobile = window.innerWidth < 768;
   if (mode.value === 'dark') {
     return !sidebarExpanded.value
       ? '/logo-elevate-square-white.png'
@@ -1213,11 +1212,22 @@ const logout = async () => {
 
 
 const toggleCollapsed = (type: string) => {
-  if (type !== "") {
-    collapsed.value = collapsed.value === type ? "" : type;
-  } else {
-    sidebarExpanded.value = false;
+  const isMobile = window.innerWidth < 768;
+  if (isMobile) {
+    if (type !== "") {
+      collapsed.value = collapsed.value === type ? "" : type;
+    } else {
+      sidebarExpanded.value = false;
+    }
+    return
   }
+  if (!sidebarExpanded.value){
+    if (type !== "") {
+      sidebarExpanded.value = true
+    }
+  }
+  collapsed.value = collapsed.value === type ? "" : type;
+
 };
 
 const toggleSidebar = () => {
@@ -1235,9 +1245,6 @@ const toggleSidebarIA = () => {
   setResponsive();
   sidebarIaExpanded.value = !sidebarIaExpanded.value;
 };
-watch(sidebarExpanded,(v)=>{
-  console.log(v)
-})
 
 const createNewChat = async () => {
   try {
