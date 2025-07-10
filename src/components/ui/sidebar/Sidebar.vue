@@ -30,10 +30,16 @@ const handleClose = () => {
 };
 
 const updateCol = async ()=>{
-  if (isMobile) {
+  if (isMobile.value) {
     handleClose()
   }
 }
+
+onMounted(()=>{
+  if (!isMobile.value) {
+    handleOpen()
+  }
+})
 </script>
 
 <template>
