@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onMounted } from "vue";
+import {watch, onMounted, computed, ref} from "vue";
 import { useRoute } from "vue-router";
 import type { SidebarProps } from ".";
 import { cn } from "@/lib/utils";
@@ -17,31 +17,29 @@ const props = withDefaults(defineProps<SidebarProps>(), {
   collapsed: false,
 });
 
+
 const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
-const route = useRoute();
+const emit = defineEmits(["update:modelValue"]);
 
-watch(
-  [() => route, () => props.collapsed],
-  ([newRoute, newCollapsed], [oldRoute, oldCollapsed]) => {
-    if (isMobile.value && openMobile.value) {
-      setOpenMobile(false);
-    }
-  },
-  { deep: true }
-);
+const handleOpen = () => {
+  emit("update:modelValue", true);
+};
+const handleClose = () => {
+  emit("update:modelValue", false);
+};
 
-onMounted(() => {
-  watch(
-    route,
-    (newRoute, oldRoute) => {
-      if (isMobile.value && openMobile.value) {
-        setOpenMobile(false);
-      }
-    },
-    { deep: true }
-  );
-});
+const updateCol = async ()=>{
+  if (isMobile.value) {
+    handleClose()
+  }
+}
+
+onMounted(()=>{
+  if (!isMobile.value) {
+    handleOpen()
+  }
+})
 </script>
 
 <template>
@@ -49,20 +47,24 @@ onMounted(() => {
     v-if="collapsible === 'none'"
     :class="
       cn(
-        'flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground',
+        'flex h-full flex-col bg-sidebar text-sidebar-foreground',
+        side === 'left'
+            ? 'w-[--sidebar-width]'
+            : 'w-96',
         props.class
       )
     "
     v-bind="$attrs"
+
   >
     <slot />
   </div>
 
   <Sheet
     v-else-if="isMobile"
-    :open="openMobile"
+    :open="collapsed"
     v-bind="$attrs"
-    @update:open="setOpenMobile"
+    @update:open="updateCol"
   >
     <SheetContent
       data-sidebar="sidebar"
@@ -83,7 +85,7 @@ onMounted(() => {
     v-else
     class="group peer hidden md:block"
     :data-state="state"
-    :data-collapsible="state === 'collapsed' ? collapsible : ''"
+    :data-collapsible="!collapsed ? collapsible : ''"
     :data-variant="variant"
     :data-side="side"
   >
@@ -91,7 +93,10 @@ onMounted(() => {
     <div
       :class="
         cn(
-          'duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear',
+          'duration-200 relative h-svh  bg-transparent transition-[width] ease-linear',
+          side === 'left'
+            ? 'w-[--sidebar-width]'
+            : 'w-96',
           'group-data-[collapsible=offcanvas]:w-0',
           'group-data-[side=right]:rotate-180',
           variant === 'floating' || variant === 'inset'
@@ -103,11 +108,11 @@ onMounted(() => {
     <div
       :class="
         cn(
-          'duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex',
+          'duration-200 fixed inset-y-0 z-10 hidden h-svh  transition-[left,right,width] ease-linear md:flex',
+          side === 'right' ? 'w-96' : 'w-[--sidebar-width]',
           side === 'left'
             ? 'left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]'
-            : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
-          // Adjust the padding for floating and inset variants.
+            : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(24rem*-1)]',          // Adjust the padding for floating and inset variants.
           variant === 'floating' || variant === 'inset'
             ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]'
             : 'group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l',

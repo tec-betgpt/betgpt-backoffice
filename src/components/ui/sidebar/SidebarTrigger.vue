@@ -2,11 +2,12 @@
 import { computed, HTMLAttributes } from "vue";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { PanelLeft } from "lucide-vue-next";
+import { PanelLeft, PanelRight} from "lucide-vue-next";
 import { useSidebar } from "./utils";
 import { useColorMode } from "@vueuse/core";
 
 const props = defineProps<{
+  logo?:boolean;
   class?: HTMLAttributes["class"];
   toggle?: () => void;
 }>();
@@ -22,6 +23,7 @@ const { toggleSidebar } = useSidebar();
 <template>
   <div class="flex gap-2">
     <img
+        v-if="logo"
       :src="logoSrc"
       alt="Logo"
       class="h-7 w-7 mr-3 md:hidden"
@@ -44,7 +46,8 @@ const { toggleSidebar } = useSidebar();
         }
       "
     >
-      <PanelLeft />
+      <PanelLeft  v-if="logo"/>
+      <PanelRight  v-else   />
       <span class="sr-only">Toggle Sidebar</span>
     </Button>
   </div>
