@@ -18,7 +18,6 @@ import ConfigurationLayout from "@/views/configurations/Layout.vue";
 import ConfigurationProfile from "@/views/configurations/Profile.vue";
 import ConfigurationSecurity from "@/views/configurations/Security.vue";
 import ConfigurationNotifications from "@/views/configurations/Notifications.vue";
-import ConfigurationProjects from "@/views/configurations/Projects.vue";
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
 import Texts from "@/views/dashboard/Texts.vue";
 import Financial from "@/views/dashboard/Financial.vue";
@@ -31,6 +30,7 @@ import ChatIA from "@/views/dashboard/ChatIA.vue";
 import JarbasBOT from "@/views/dashboard/JarbasBOT.vue";
 import Integrations from "@/views/dashboard/Integrations.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
+import GroupProjects from "@/views/dashboard/GroupProjects.vue";
 
 const routes = [
   {
@@ -112,18 +112,6 @@ const routes = [
           roles: "member|client",
         },
       },
-      {
-        path: "projects",
-        name: "configurations.projects",
-        component: ConfigurationProjects,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: "Projetos",
-          roles: "member",
-        },
-      },
-
       {
         path: "confirm-email-change/:token",
         name: "configurations.confirm-email-change",
@@ -291,6 +279,18 @@ const routes = [
       permissions: "access-to-management",
     },
     children: [
+      {
+        path: "group-projects",
+        name: "configurations.projects",
+        component: GroupProjects,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Grupo de Projetos",
+          roles: "member",
+          permissions: "access-to-project-groups",
+        },
+      },
       {
         path: "projects",
         name: "projects",
