@@ -68,8 +68,7 @@
     <div >
 
         <div>
-          <h2>Arraste os itens para reordenar</h2>
-          <TransitionGroup name="grid" tag="div" class="grid-container">
+          <TransitionGroup  tag="div" class="grid-container">
             <div
                 v-for="item in cards"
                 :key="item.id"
@@ -82,486 +81,84 @@
                 @dragleave="onDragLeave"
                 @drop="onDrop($event, item)"
             >
-              {{ item.title }}
+              <div class="pb-5 pt-10 flex justify-between items-center">
+                <div>
+                  <div class="text-xl">
+                    {{item.title}}
+                  </div>
+                  <div class="text-sm text-muted-foreground">
+                    {{item.subTitle}}
+                  </div>
+                </div>
+                <PencilRuler @click="editLayout(item.id)" v-if="item.edit"/>
+                <SquarePen @click="editLayout(item.id)" v-else/>
+              </div>
+              <TransitionGroup tag="div" :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-4 sm:grid-cols-1'">
+                <Card
+                    v-for="subItem in item.content"
+                    :key="subItem.id"
+                    :class="{ 'drag-over': subItem.id === dragOverId }"
+                    :draggable="item.edit"
+                    @dragstart="onDragStart($event, subItem)"
+                    @dragover.prevent
+                    @dragenter="onDragEnter(subItem)"
+                    @dragleave="onDragLeave"
+                    @drop="onDrop($event, subItem)"
+                    class="item cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                    @click="subItem.toggle? subItem.showFull = !subItem.showFull : null"
+
+                >
+                  <CardHeader class="pb-2">
+                    <CardTitle class="flex-row flex justify-between items-center">
+                      <div class="flex justify-between items-center">
+                        <Avatar class="wrapper-avatar text-white border-gray-900 h-9 w-9 p-2" shape="square">
+                          <component :is="subItem.icon" />
+                        </Avatar>
+                        <span class="text-xs font-medium ml-3">{{ subItem.title }}</span>
+                      </div>
+                      <GlossaryTooltipComponent :description="subItem.tooltip" />
+                    </CardTitle>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div v-if="subItem.showFull" :title="subItem.value" class="number">
+                      {{ $toCurrency(subItem.value) }}
+                    </div>
+                    <div v-else :title="subItem.value" class="number">
+                      {{ formatLargeNumber(subItem.value).content }}
+                      <span class="kind text-orange-300">
+                        {{ formatLargeNumber(subItem.value).separator }}
+                      </span>
+                    </div>
+
+                    <div v-if="subItem.variation != undefined" class="variation mt-3">
+                      <div
+                          v-if="subItem.variation > 0"
+                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                      >
+                        <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                      </div>
+                      <div
+                          v-else
+                          class="value flex justify-start items-center bg-red-700 text-red-200"
+                      >
+                        <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}%
+                      </div>
+                      desde a semana anterior
+                    </div>
+                  </CardContent>
+                </Card>
+
+              </TransitionGroup>
             </div>
           </TransitionGroup>
         </div>
 
-<!--       User Information-->
-
-
-<!--      Players Information-->
-      <div class="pb-5 pt-10">
-        <div class="text-xl">
-          Visão Geral dos Jogadores
-        </div>
-        <div class="text-sm text-muted-foreground">
-          Confira os últimos indicadores
-        </div>
-      </div>
-
-      <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-4 sm:grid-cols-1'">
-        <Card v-if="hideMetricsDaily" @click="showAllRegister = !showAllRegister" class="item cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <Users />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Total de Registros</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Total de usuários registrados na base da Elevate" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number" v-if="showAllRegister">
-              {{ players.count }}
-            </div>
-            <div class="number" v-else>
-              {{ formatLargeNumber(players.count).content }}
-              <span class="kind text-orange-300">
-                {{ formatLargeNumber(players.count).separator }}
-              </span>
-            </div>
-            <small class="text-xs">Quantidade</small>
-            <div class="variation mt-3">
-              <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200" v-if="players.change > 0">
-                <ArrowUp class="h-4 w-4 mr-1" /> {{ players.change }}
-              </div>
-              <div class="value flex justify-start items-center bg-red-700 text-red-200" v-else>
-                <ArrowDown class="h-4 w-4" /> {{ players.change }}
-              </div>
-              desde o último dia
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card v-if="hideMetricsDaily" @click="showAllPlayersActive = !showAllPlayersActive" class="item cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <UserRound />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Usuários Ativos</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number" v-if="showAllPlayersActive">
-              {{ activeNow.count }}
-            </div>
-            <div class="number" v-else>
-              {{ formatLargeNumber(activeNow.count).content }}
-              <span class="kind text-orange-300">
-                {{ formatLargeNumber(activeNow.count).separator }}
-              </span>
-            </div>
-            <div class="variation mt-3">
-              <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200" v-if="activeNow.change > 0">
-                <ArrowUp class="h-4 w-4 mr-1" /> {{ activeNow.change }}
-              </div>
-              <div class="value flex justify-start items-center bg-red-700 text-red-200" v-else>
-                <ArrowDown class="h-4 w-4" /> {{ activeNow.change }}
-              </div>
-              desde o último dia
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <<UserRoundPlus /> />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Novos Registros</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Total de usuários que completaram o cadastro no sistema no periodo especifico" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              +{{ players.registered_users_day }}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <CirclePercent />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Taxa de Conversão Geral</span>
-            </div>
-
-            <GlossaryTooltipComponent description="Percentual de usuários cadastrados que realizaram uma primeira transação validada." />
-          </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              {{ (players.ftd_general_percent / 100).toFixed(2) }}%
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <Wallet />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Primeiros Depositantes</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              +{{ players.ftd_registered_users_count }}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <CirclePercent />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Taxa de Conversão em D0</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Percentual de usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              {{ (players.ftd_registered_users_percent / 100).toFixed(2) }}%
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-<!--    Withdrawn Information-->
-      <div class="pb-5 pt-10">
-        <div class="text-xl">
-          Visão Geral dos Saques
-        </div>
-        <div class="text-sm text-muted-foreground">
-          Confira os últimos indicadores
-        </div>
-      </div>
-
-      <div :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-2 sm:grid-cols-1'">
-        <Card class="item cursor-pointer hover:bg-gray-700" @click="showAllWithdrawsTotal7D = !showAllWithdrawsTotal7D" v-if="hideMetricsDaily">
-          <CardHeader class="pb-2">
-            <CardTitle>
-              <div class="flex justify-start items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <CalendarArrowUp />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Saques 7D</span>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number" v-if="showAllWithdrawsTotal7D">
-              {{ $toCurrency(withdraws.total / 100) }}
-            </div>
-            <div v-else class="number">
-              {{ formatLargeNumber(withdraws.total / 100).content }}
-              <span class="kind text-orange-300">
-                {{ formatLargeNumber(withdraws.total / 100).separator }}
-              </span>
-            </div>
-
-            <div class="variation mt-3">
-              <div v-if="withdraws.percentage > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
-                <ArrowUp class="h-4 w-4 mr-1" /> {{ withdraws.percentage }}%
-              </div>
-              <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
-                <ArrowDown class="h-4 w-4" /> {{ withdraws.percentage }}%
-              </div>
-              desde a semana anterior
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <ChartNoAxesColumn />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Ticket Médio de Saída</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Valor médio por transação de saída processada." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              {{ $toCurrency(withdraws.average_ticket / 100) }}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card class="item">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <BadgeCheck />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Taxa de Aprovação</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Taxa de aprovação de saídas solicitadas e saídas processadas" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              +{{ withdraws.generated_withdraws }}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div class="grid mt-5 gap-4 md:grid-cols-2 sm:grid-cols-1">
-        <Card class="item cursor-pointer hover:bg-gray-700" @click="showAllWithdrawsRequested = !showAllWithdrawsRequested">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <Check />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Saídas Solicitadas</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Valor total de solicitações de retirada feitas pelos usuários." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              +{{ withdraws.generated_withdraws }}
-            </div>
-            <small class="text-xs">Quantidade</small>
-
-            <div class="number" v-if="showAllWithdrawsRequested">
-              {{ $toCurrency(withdraws.total_pending_withdraws / 100) }}
-            </div>
-            <div v-else class="number">
-              {{ formatLargeNumber(withdraws.total_pending_withdraws / 100).content }}
-              <span class="kind text-orange-300">
-                {{ formatLargeNumber(withdraws.total_pending_withdraws / 100).separator }}
-              </span>
-            </div>
-            <small class="text-xs">Total</small>
-          </CardContent>
-        </Card>
-
-        <Card class="item cursor-pointer hover:bg-gray-700" @click="showAllWithdrawsProcessed = !showAllWithdrawsProcessed">
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <BanknoteArrowUp />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Saídas Processadas</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Valor total de saídas que foram processadas e pagas com sucesso." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="number">
-              +{{ withdraws.paid_withdraws }}
-            </div>
-            <small class="text-xs">Quantidade</small>
-
-            <div class="number " v-if="showAllWithdrawsProcessed">
-              {{ $toCurrency(withdraws.total_paid_withdraws / 100) }}
-            </div>
-            <div v-else class="number">
-              {{ formatLargeNumber(withdraws.total_paid_withdraws / 100).content }}
-              <span class="kind text-orange-300">
-                {{ formatLargeNumber(withdraws.total_paid_withdraws / 100).separator }}
-              </span>
-            </div>
-            <small class="text-xs">Total</small>
-          </CardContent>
-        </Card>
-      </div>
-<!--     Retention-->
-      <div class="pb-5 pt-10">
-        <div class="text-xl">
-          Retenção
-        </div>
-        <div class="text-sm text-muted-foreground">
-          Veja os últimos indicadores e mais recentes
-        </div>
-      </div>
-
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-2 mb-3">
-        <Card>
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <Hourglass />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Tempo Médio de Retenção</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Tempo médio entre a primeira transação do usuário e sua última transação." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl">
-              {{ retention.time }}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader class="pb-2">
-            <CardTitle class="flex-row flex justify-between items-center">
-              <div class="flex justify-between items-center">
-                <Avatar class="wrapper-avatar border-gray-900 h-9 w-9 p-2" shape="square">
-                  <ChartNoAxesColumn />
-                </Avatar>
-                <span class="text-xs font-medium ml-3">Ticket Médio Pós-Ativação</span>
-              </div>
-
-              <GlossaryTooltipComponent description="Valor médio transacionado por usuários desde a primeira transação." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl">
-              {{ $toCurrency(retention.ticket_avg / 100) }}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-<!--     Depositation Information-->
-      <div class="pb-5 pt-10">
-        <div class="text-xl">
-          Histórico e Últimas de Entradas
-        </div>
-        <div class="text-sm text-muted-foreground">
-          Veja o gráfico e informações mais recentes
-        </div>
-      </div>
-
-      <div class="sm:grid gap-4 min-[720px]:grid-cols-1 xl:grid-cols-2 mb-3">
-        <Card class="mb-4">
-          <CardHeader class="pb-2">
-            <CardTitle class="font-medium flex justify-between items-center">
-              <span>Histórico de Entradas</span>
-              <GlossaryTooltipComponent description="Soma geral de todas as entradas financeiras geradas e confirmadas mês a mês." />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <BarChart
-                  :data="deposits.monthly_counts"
-                  :categories="['Total']"
-                  :index="'name'"
-                  :rounded-corners="4"
-                  :y-formatter="
-                (tick) => (typeof tick === 'number' ? $toK(tick) : '')
-              "
-                  :custom-tooltip="CustomChartTooltip"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card class="mb-4">
-          <CardHeader class="pb-2">
-            <CardTitle class="font-medium flex justify-between items-center">
-              <span>Últimas Entradas</span>
-              <GlossaryTooltipComponent description="Lista com as últimas transações de entrada efetuadas pelos usuários." />
-            </CardTitle>
-            <CardDescription class="pb-5">
-              <span>
-                Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
-              </span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div class="space-y-8">
-              <div
-                  v-for="deposit in deposits.lasts"
-                  :key="deposit.id"
-                  class="flex items-center"
-              >
-                <Avatar class="h-9 w-9">
-                  <AvatarFallback>
-                    {{
-                      deposit.player.name
-                          ? deposit.player.name.charAt(0)
-                          : deposit.player.email.charAt(0).toUpperCase()
-                    }}
-                    {{
-                      deposit.player.name
-                          ? deposit.player.name.charAt(1)
-                          : deposit.player.email.charAt(1)
-                    }}
-                  </AvatarFallback>
-                </Avatar>
-                <div class="ml-4 space-y-1 w-1/2">
-                  <p class="text-sm font-medium leading-none truncate">
-                    {{ deposit.player.name }}
-                  </p>
-                  <p class="text-sm text-muted-foreground truncate">
-                    {{ deposit.player.email }}
-                  </p>
-                </div>
-                <div class="ml-auto text-right">
-                <span class="font-medium"
-                >+{{ $toCurrency(deposit.value / 100) }}</span
-                >
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <p class="text-xs text-muted-foreground text-right">
-                          {{ $moment(deposit.created_at).fromNow() }}
-                        </p>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          {{
-                            $moment(deposit.created_at).format(
-                                "DD/MM/YYYY HH:mm:ss"
-                            )
-                          }}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+   </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Home from '@/services/home'
 import Auth from '@/services/auth'
 import CustomChartTooltipRealPrice from '@/components/custom/CustomChartTooltipRealPrice.vue'
@@ -586,7 +183,9 @@ import {
   UserRound,
   UserRoundPlus,
   Users,
-  Wallet
+  Wallet,
+  PencilRuler,
+  SquarePen
 } from 'lucide-vue-next'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { Chart, registerables } from 'chart.js'
@@ -595,7 +194,6 @@ import CustomDatePicker from '@/components/custom/CustomDatePicker.vue'
 import VideoBackground from 'vue-responsive-video-background-player'
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import {formatLargeNumber} from "@/filters/formatLargeNumber.js";
-import draggable from 'vuedraggable'
 
 const { toast } = useToast()
 
@@ -634,7 +232,9 @@ export default {
     Users,
     VideoBackground,
     Wallet,
-    draggable
+    PencilRuler,
+    SquarePen
+
   },
 
   data: () => ({
@@ -697,35 +297,14 @@ export default {
 
     showAllRetentionTime: false,
     showAllRetentionTicketAvg: false,
-    depositCards:[
-      {
-        id: 'total-7d',
-        title: 'Total 7 dias',
-        value: 25310.55,
-        percentage: 4.32
-      },
-      {
-        id: 'net-deposits',
-        title: 'Total Líquido',
-        value: 15200.0
-      },
-      {
-        id: 'avg-ticket',
-        title: 'Ticket Médio',
-        value: 215.75
-      },
-      {
-        id: 'conversion-rate',
-        title: 'Taxa Conversão',
-        value: 12.5,
-        percentage: 2.1
-      }
-    ],
-    cards: [
 
+    cards: Array<{id:string,title:string,subtitle:string,content:any,edit:boolean}>({}),
 
-    ],
-    dragOverId:null
+    dragOverId:null,
+    editDeposits: false,
+    editWithdraws: false,
+    editPlayers: false,
+    editRetention: false,
   }),
 
 
@@ -749,7 +328,7 @@ export default {
       this.dragOverId = null;
       console.log("Drag left item");
     },
-    onDrop(event, item) {
+    onDrop(event, item,) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer.getData('text/plain');
       console.log("Dropped item:", draggedItemId, "on", item.id);
@@ -759,7 +338,24 @@ export default {
         const targetItemIndex = this.cards.findIndex(i => i.id === item.id);
 
         if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
-          // Swap the items
+          const temp = this.cards[draggedItemIndex];
+          this.cards[draggedItemIndex] = this.cards[targetItemIndex];
+          this.cards[targetItemIndex] = temp;
+        }
+      }
+
+      this.dragOverId = null;
+    },
+    onDropSub(event, item,) {
+      event.preventDefault();
+      const draggedItemId = event.dataTransfer.getData('text/plain');
+      console.log("Dropped item:", draggedItemId, "on", item.id);
+
+      if (draggedItemId && draggedItemId !== item.id) {
+        const draggedItemIndex = this.cards.find(value => value.content.group).findIndex(i => i.id === draggedItemId);
+        const targetItemIndex = this.cards.findIndex(i => i.id === item.id);
+
+        if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
           const temp = this.cards[draggedItemIndex];
           this.cards[draggedItemIndex] = this.cards[targetItemIndex];
           this.cards[targetItemIndex] = temp;
@@ -785,6 +381,12 @@ export default {
       return 'Boa noite'
     },
 
+    editLayout(value){
+      this.cards = this.cards.map(card =>
+          card.id === value ? { ...card, edit: !card.edit } : card
+      );
+
+    },
     async applyFilter() {
       this.loading = true;
 
@@ -813,7 +415,42 @@ export default {
         this.deposits = data.deposits;
         this.withdraws = data.withdraws;
         this.retention = data.retention;
-        this.cards = this.buildCards()
+        this.cards = [
+          {
+            id:'depositors',
+            title: 'Visão Geral dos Depósitos',
+            subTitle: 'Confira os últimos indicadores',
+            content: this.buildCardsDeposits(),
+            edit:false
+          },
+          {
+            id: 'players',
+            title: 'Visão Geral dos Jogadores',
+            subTitle: 'Confira os últimos indicadores',
+            content:this.buildCardsPlayers(),
+            edit:false
+          },
+          {
+            id: 'withdraws',
+            title: 'Visão Geral dos Saques',
+            subTitle: 'Confira os últimos indicadores',
+            content:this.buildCardsWithdraws(),
+            edit:false
+          },
+          {
+            id: 'retention',
+            title: 'Retenção',
+            subTitle: ' Veja os últimos indicadores e mais recentes',
+            content: this.buildCardsRetention(),
+            edit:false
+          },
+          // {
+          //   id:'history',
+          //   title: 'Histórico e Últimas de Entradas',
+          //   subTitle: ' Veja o gráfico e informações mais recentes ',
+          //   content:this.buildCards()
+          // }
+        ]
       } catch (_) {
         toast({
           title: "Erro ao carregar dados",
@@ -824,39 +461,196 @@ export default {
 
       this.loading = false;
     },
-    buildCards() {
+
+
+    buildCardsDeposits() {
       return [
         {
-          id: 'total-7d',
-          icon: 'CalendarCheck2',
+          id: 'total-entradas-7d',
           title: 'Total de Entradas 7D',
           tooltip: 'Total de entradas dos últimos 7 dias.',
           value: this.deposits.total / 100,
           variation: this.deposits.percentage,
-          showFull: false,
+          icon: CalendarCheck2,
+          isConditional: true // Representa o v-if="hideMetricsDaily"
         },
         {
-          id: 'net-deposits',
-          icon: 'BanknoteArrowDown',
-          title: 'Total Líquido',
-          tooltip: 'Total de depósitos líquidos.',
+          id: 'volume-liquido-entradas',
+          title: 'Volume Líquido de Entradas',
+          tooltip: 'Valor total líquido de entradas financeiras na plataforma (ex: depósitos, pagamentos ou compras).',
           value: this.deposits.total_net_deposits / 100,
-          showFull: false,
+          icon: Banknote,
+          isConditional: false
         },
         {
-          id: 'avg-ticket',
-          icon: 'ChartNoAxesColumn',
-          title: 'Ticket Médio',
-          tooltip: 'Valor médio por transação de entrada.',
+          id: 'ticket-medio-entradas',
+          title: 'Ticket Médio de Entradas',
+          tooltip: 'Valor médio por transação de entrada confirmadas realizada pelos usuários',
           value: this.deposits.average_ticket / 100,
-          showFull: false,
+          icon: ChartCandlestick,
+          isConditional: false
         },
         {
-          id: 'conversion-rate',
-          icon: 'CirclePercent',
-          title: 'Taxa de Conversão',
-          tooltip: 'Percentual de usuários'}
+          id: 'taxa-aprovacao-depositos',
+          title: 'Taxa de Aprovação',
+          tooltip: 'Taxa de aprovação de entradas geradas e entradas confirmadas',
+          value: this.deposits.conversion_rate,
+          suffix: '%',
+          icon: CirclePercent,
+          isConditional: false
+        },
+        {
+          id: 'entradas-geradas',
+          title: 'Entradas Geradas',
+          tooltip: 'Valor total de transações de entrada iniciadas, independentemente da confirmação.',
+          value_quantity: this.deposits.generated_deposits,
+          value_total: this.deposits.total_pending_deposits / 100,
+          icon: BanknoteArrowDown,
+          isConditional: false
+        },
+        {
+          id: 'entradas-confirmadas',
+          title: 'Entradas Confirmadas',
+          tooltip: 'Valor total de transações de entrada confirmadas com sucesso.',
+          value_quantity: this.deposits.paid_deposits,
+          value_total: this.deposits.total_paid_deposits / 100,
+          icon: DollarSign,
+          isConditional: false
+        },
+        {
+          id: 'primeiras-entradas',
+          title: 'Primeiras Entradas',
+          tooltip: 'Total de entradas financeiras geradas por usuários que realizaram sua primeira transação',
+          value_quantity: this.deposits.total_ftd_count,
+          value_total: this.deposits.total_ftd_amount / 100,
+          icon: ListCheck,
+          isConditional: false
+        },
 
+      ]
+    },
+    buildCardsPlayers(){
+      return [
+        {
+          id: 'total-registros',
+          title: 'Total de Registros',
+          tooltip: 'Total de usuários registrados na base da Elevate',
+          value: this.players.count,
+          variation: this.players.change,
+          icon: Users,
+          isConditional: true
+        },
+        {
+          id: 'usuarios-ativos',
+          title: 'Usuários Ativos',
+          tooltip: 'Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias',
+          value: this.activeNow.count,
+          variation: this.activeNow.change,
+          icon: UserRound,
+          isConditional: true
+        },
+        {
+          id: 'novos-registros',
+          title: 'Novos Registros',
+          tooltip: 'Total de usuários que completaram o cadastro no sistema no periodo especifico',
+          value: this.players.registered_users_day,
+          icon: UserRoundPlus,
+          isConditional: false
+        },
+        {
+          id: 'taxa-conversao-geral',
+          title: 'Taxa de Conversão Geral',
+          tooltip: 'Percentual de usuários cadastrados que realizaram uma primeira transação validada.',
+          value: (this.players.ftd_general_percent / 100).toFixed(2),
+          suffix: '%',
+          icon: CirclePercent,
+          isConditional: false
+        },
+        {
+          id: 'primeiros-depositantes',
+          title: 'Primeiros Depositantes',
+          tooltip: 'Usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro.',
+          value: this.players.ftd_registered_users_count,
+          icon: Wallet,
+          isConditional: false
+        },
+        {
+          id: 'taxa-conversao-d0',
+          title: 'Taxa de Conversão em D0',
+          tooltip: 'Percentual de usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro.',
+          value: (this.players.ftd_registered_users_percent / 100).toFixed(2),
+          suffix: '%',
+          icon: CirclePercent,
+          isConditional: false
+        },
+      ]
+    },
+    buildCardsWithdraws(){
+      return [
+        {
+          id: 'saques-7d',
+          title: 'Saques 7D',
+          tooltip: null,
+          value: this.withdraws.total / 100,
+          variation: this.withdraws.percentage,
+          icon: CalendarArrowUp,
+          isConditional: true
+        },
+        {
+          id: 'ticket-medio-saida',
+          title: 'Ticket Médio de Saída',
+          tooltip: 'Valor médio por transação de saída processada.',
+          value: this.withdraws.average_ticket / 100,
+          icon: ChartNoAxesColumn,
+          isConditional: false
+        },
+        {
+          id: 'taxa-aprovacao-saques',
+          title: 'Taxa de Aprovação',
+          tooltip: 'Taxa de aprovação de saídas solicitadas e saídas processadas',
+          value: this.withdraws.generated_withdraws,
+          icon: BadgeCheck,
+          isConditional: false
+        },
+        {
+          id: 'saidas-solicitadas',
+          title: 'Saídas Solicitadas',
+          tooltip: 'Valor total de solicitações de retirada feitas pelos usuários.',
+          value_quantity: this.withdraws.generated_withdraws,
+          value_total: this.withdraws.total_pending_withdraws / 100,
+          icon: Check,
+          isConditional: false
+        },
+        {
+          id: 'saidas-processadas',
+          title: 'Saídas Processadas',
+          tooltip: 'Valor total de saídas que foram processadas e pagas com sucesso.',
+          value_quantity: this.withdraws.paid_withdraws,
+          value_total: this.withdraws.total_paid_withdraws / 100,
+          icon: BanknoteArrowUp,
+          isConditional: false
+        },
+
+      ]
+    },
+    buildCardsRetention() {
+      return [
+        {
+          id: 'tempo-medio-retencao',
+          title: 'Tempo Médio de Retenção',
+          tooltip: 'Tempo médio entre a primeira transação do usuário e sua última transação.',
+          value: this.retention.time,
+          icon: Hourglass,
+          isConditional: false
+        },
+        {
+          id: 'ticket-medio-pos-ativacao',
+          title: 'Ticket Médio Pós-Ativação',
+          tooltip: 'Valor médio transacionado por usuários desde a primeira transação.',
+          value: this.retention.ticket_avg / 100,
+          icon: ChartNoAxesColumn,
+          isConditional: false
+        }
       ]
     },
   },
@@ -883,27 +677,18 @@ export default {
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 15px;
   padding: 15px;
-  border: 2px dashed #ccc;
-  border-radius: 8px;
+
 }
 
 .grid-item {
-  padding: 30px 20px;
-  background-color: #41b883;
-  color: white;
-  font-size: 1.2em;
-  font-weight: bold;
-  text-align: center;
-  border-radius: 5px;
   cursor: move;
   transition: transform 0.2s ease-in-out, background-color 0.2s ease;
 }
 
 .grid-item.drag-over {
-  background-color: #34495e;
   transform: scale(1.05);
 }
 
