@@ -68,13 +68,13 @@
     <div >
 
         <div>
-          <TransitionGroup  tag="div" class="grid-container">
+          <TransitionGroup  tag="div" class="">
             <div
                 v-for="item in cards"
                 :key="item.id"
-                class="grid-item"
-                :class="{ 'drag-over': item.id === dragOverId }"
-                draggable="true"
+                class=""
+                :class="{  }"
+                :draggable="true"
                 @dragstart="onDragStart($event, item)"
                 @dragover.prevent
                 @dragenter="onDragEnter(item)"
@@ -93,18 +93,18 @@
                 <PencilRuler @click="editLayout(item.id)" v-if="item.edit"/>
                 <SquarePen @click="editLayout(item.id)" v-else/>
               </div>
-              <TransitionGroup tag="div" :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-4 sm:grid-cols-1'">
+              <TransitionGroup name="card-animation" tag="div" :class="hideMetricsDaily ? 'grid gap-4 md:grid-cols-3 sm:grid-cols-1' : 'grid gap-4 md:grid-cols-4 sm:grid-cols-1'">
                 <Card
                     v-for="subItem in item.content"
                     :key="subItem.id"
-                    :class="{ 'drag-over': subItem.id === dragOverId }"
+                    :class="{  'card-animation-move':subItem.id === dragOverId,'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700':subItem.toggle }"
                     :draggable="item.edit"
-                    @dragstart="onDragStart($event, subItem)"
+                    @dragstart.stop="onDragStart($event, subItem)"
                     @dragover.prevent
                     @dragenter="onDragEnter(subItem)"
                     @dragleave="onDragLeave"
-                    @drop="onDrop($event, subItem)"
-                    class="item cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+                    @drop="onDropSub($event, subItem,item.id)"
+                    class="item "
                     @click="subItem.toggle? subItem.showFull = !subItem.showFull : null"
 
                 >
@@ -274,31 +274,27 @@ export default {
       time: "",
       ticket_avg: 0,
     },
-    showAllRegister: false,
-    showAllActiveUsers: false,
-    showAllNewRegister: false,
-    showAllConversionGeneral: false,
-    showAllFirstDepositors: false,
-    showAllConversionD0: false,
-    showAllPlayersActive:false,
-    showAllDepositsTotal7D: false,
-    showAllDepositsNet: false,
-    showAllDepositsTicket: false,
-    showAllDepositsApproval: false,
-    showAllDepositsGenerated: false,
-    showAllDepositsPaid: false,
-    showAllDepositsFTD: false,
-
-    showAllWithdrawsTotal7D: false,
-    showAllWithdrawsTicket: false,
-    showAllWithdrawsApproval: false,
-    showAllWithdrawsRequested: false,
-    showAllWithdrawsProcessed: false,
-
-    showAllRetentionTime: false,
-    showAllRetentionTicketAvg: false,
-
-    cards: Array<{id:string,title:string,subtitle:string,content:any,edit:boolean}>({}),
+    cards: Array<{
+      id: string,
+      title: string,
+      subtitle: string,
+      content: Array<{
+        id: string,
+        title: string,
+        tooltip: string,
+        value: number,
+        variation?: number,
+        icon: any,
+        group: string,
+        isConditional?: boolean,
+        value_quantity?: number,
+        value_total?: number,
+        suffix?: string,
+        showFull?: boolean,
+        toggle?: boolean
+      }>,
+      edit: boolean
+    }>(),
 
     dragOverId:null,
     editDeposits: false,
@@ -307,7 +303,16 @@ export default {
     editRetention: false,
   }),
 
-
+// {
+//   id: 'total-entradas-7d',
+//       title: 'Total de Entradas 7D',
+//     tooltip: 'Total de entradas dos últimos 7 dias.',
+//     value: this.deposits.total / 100,
+//     variation: this.deposits.percentage,
+//     icon: CalendarCheck2,
+//     group:"depositors",
+//     isConditional: true // Representa o v-if="hideMetricsDaily"
+// },
 
   async mounted () {
     await this._user()
@@ -318,15 +323,12 @@ export default {
     onDragStart(event, item) {
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', item.id);
-      console.log("Drag started for item:", item.id);
     },
     onDragEnter(item) {
       this.dragOverId = item.id;
-      console.log("Drag entered for item:", item.id);
     },
     onDragLeave() {
       this.dragOverId = null;
-      console.log("Drag left item");
     },
     onDrop(event, item,) {
       event.preventDefault();
@@ -346,20 +348,24 @@ export default {
 
       this.dragOverId = null;
     },
-    onDropSub(event, item,) {
+    onDropSub(event, item,id) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer.getData('text/plain');
-      console.log("Dropped item:", draggedItemId, "on", item.id);
-
+      console.log("Sub-item drop event:", draggedItemId, "on", item.id);
       if (draggedItemId && draggedItemId !== item.id) {
-        const draggedItemIndex = this.cards.find(value => value.content.group).findIndex(i => i.id === draggedItemId);
-        const targetItemIndex = this.cards.findIndex(i => i.id === item.id);
+        const card = this.cards.find(i => i.id === id)
+        if (card) {
+          const draggedItemIndex = card.content.findIndex(i => i.id === draggedItemId);
+          const targetItemIndex = card.content.findIndex(i => i.id === item.id);
 
-        if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
-          const temp = this.cards[draggedItemIndex];
-          this.cards[draggedItemIndex] = this.cards[targetItemIndex];
-          this.cards[targetItemIndex] = temp;
+          if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
+            const [draggedItem] = card.content.splice(draggedItemIndex, 1);
+            card.content.splice(targetItemIndex, 0, draggedItem);
+            console.log("Dropped item:", draggedItemId, "on", item.id);
+
+          }
         }
+
       }
 
       this.dragOverId = null;
@@ -383,9 +389,18 @@ export default {
 
     editLayout(value){
       this.cards = this.cards.map(card =>
-          card.id === value ? { ...card, edit: !card.edit } : card
+          card.id === value ? { ...card, edit: !card.edit} : card
       );
+      const card = this.cards.find(card => card.id === value);
 
+      if (card) {
+        toast({
+          title: card.edit? "Editando layout" : "Layout editado",
+          description: `Editando layout de ${card.title}`,
+          variant: "default",
+          duration: 1000,
+        });
+      }
     },
     async applyFilter() {
       this.loading = true;
@@ -472,7 +487,9 @@ export default {
           value: this.deposits.total / 100,
           variation: this.deposits.percentage,
           icon: CalendarCheck2,
-          isConditional: true // Representa o v-if="hideMetricsDaily"
+          group:"depositors",
+          showFull: false,
+          toggle: true // Representa o v-if="hideMetricsDaily"
         },
         {
           id: 'volume-liquido-entradas',
@@ -480,7 +497,9 @@ export default {
           tooltip: 'Valor total líquido de entradas financeiras na plataforma (ex: depósitos, pagamentos ou compras).',
           value: this.deposits.total_net_deposits / 100,
           icon: Banknote,
-          isConditional: false
+          isConditional: false,
+          group:"depositors",
+
         },
         {
           id: 'ticket-medio-entradas',
@@ -488,7 +507,9 @@ export default {
           tooltip: 'Valor médio por transação de entrada confirmadas realizada pelos usuários',
           value: this.deposits.average_ticket / 100,
           icon: ChartCandlestick,
-          isConditional: false
+          isConditional: false,
+          group:"depositors",
+
         },
         {
           id: 'taxa-aprovacao-depositos',
@@ -497,7 +518,9 @@ export default {
           value: this.deposits.conversion_rate,
           suffix: '%',
           icon: CirclePercent,
-          isConditional: false
+          isConditional: false,
+          group:"depositors",
+
         },
         {
           id: 'entradas-geradas',
@@ -506,7 +529,9 @@ export default {
           value_quantity: this.deposits.generated_deposits,
           value_total: this.deposits.total_pending_deposits / 100,
           icon: BanknoteArrowDown,
-          isConditional: false
+          isConditional: false,
+          group:"depositors",
+
         },
         {
           id: 'entradas-confirmadas',
@@ -515,7 +540,9 @@ export default {
           value_quantity: this.deposits.paid_deposits,
           value_total: this.deposits.total_paid_deposits / 100,
           icon: DollarSign,
-          isConditional: false
+          isConditional: false,
+          group:"depositors",
+
         },
         {
           id: 'primeiras-entradas',
@@ -524,7 +551,9 @@ export default {
           value_quantity: this.deposits.total_ftd_count,
           value_total: this.deposits.total_ftd_amount / 100,
           icon: ListCheck,
-          isConditional: false
+          isConditional: false,
+          group:"depositors",
+
         },
 
       ]
@@ -669,54 +698,37 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos do container e do item permanecem os mesmos */
-.container {
-  font-family: sans-serif;
-  padding: 20px;
-}
+/* Seus outros estilos permanecem aqui... */
 
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 15px;
-  padding: 15px;
+/* --- ANIMAÇÕES PARA OS CARDS ARRASTÁVEIS --- */
 
-}
-
-.grid-item {
-  cursor: move;
-  transition: transform 0.2s ease-in-out, background-color 0.2s ease;
-}
-
-.grid-item.drag-over {
-  transform: scale(1.05);
-}
-
-/*
-  ANIMAÇÕES DO TRANSITION GROUP
+/* Esta é a classe mais importante.
+  Ela é aplicada aos itens que estão mudando de posição no DOM.
+  A transição na propriedade 'transform' cria a animação de movimento suave.
 */
-
-/* 2. A classe 'move' é aplicada aos itens que estão mudando de posição. */
-/* É aqui que a mágica da animação de inserção acontece! */
-.grid-move {
+.card-animation-move {
   transition: transform 0.5s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
-/* 3. As classes enter/leave animam a adição/remoção de itens (bônus). */
-.grid-enter-active,
-.grid-leave-active {
-  transition: all 0.3s ease;
+/* Classes para animar a entrada e saída de itens (se você adicionar/remover cards dinamicamente).
+  Elas também são importantes para o bom funcionamento da animação de movimento.
+*/
+.card-animation-enter-active,
+.card-animation-leave-active {
+  transition: all 0.4s ease;
 }
 
-.grid-enter-from,
-.grid-leave-to {
+.card-animation-enter-from,
+.card-animation-leave-to {
   opacity: 0;
-  transform: scale(0.7);
+  transform: scale(0.8);
 }
 
-/* 4. Garante que os itens que saem não atrapalhem o layout dos que ficam. */
-/* Essencial para que a animação de 'move' funcione corretamente. */
-.grid-leave-active {
+/* Esta regra é CRUCIAL.
+  Ela tira temporariamente os itens que estão saindo do fluxo do layout,
+  permitindo que os outros itens se movam para suas novas posições sem "saltos".
+*/
+.card-animation-leave-active {
   position: absolute;
 }
 </style>
