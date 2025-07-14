@@ -119,10 +119,21 @@
                       <GlossaryTooltipComponent :description="subItem.tooltip" />
                     </CardTitle>
                   </CardHeader>
+                  <CardContent  v-if="subItem.quantity">
+                    <div class="number">
+                      +{{subItem.quantity}}
+                    </div>
+                    <small class="text-xs">Quantidade</small>
 
-                  <CardContent>
-                    <div v-if="subItem.showFull" :title="subItem.value" class="number">
+                    <div class="number mt-5">
                       {{ $toCurrency(subItem.value) }}
+                    </div>
+                    <small class="text-xs">Total</small>
+                  </CardContent>
+
+                  <CardContent v-else>
+                    <div v-if="subItem.showFull" :title="subItem.value" class="number">
+                      {{ $toCurrency(subItem.value) }}{{subItem.suffix}}tes
                     </div>
                     <div v-else :title="subItem.value" class="number">
                       {{ formatLargeNumber(subItem.value).content }}
@@ -287,8 +298,7 @@ export default {
         icon: any,
         group: string,
         isConditional?: boolean,
-        value_quantity?: number,
-        value_total?: number,
+        quantity?: number,
         suffix?: string,
         showFull?: boolean,
         toggle?: boolean
@@ -489,7 +499,7 @@ export default {
           icon: CalendarCheck2,
           group:"depositors",
           showFull: false,
-          toggle: true // Representa o v-if="hideMetricsDaily"
+          toggle: true
         },
         {
           id: 'volume-liquido-entradas',
@@ -505,7 +515,7 @@ export default {
           id: 'ticket-medio-entradas',
           title: 'Ticket Médio de Entradas',
           tooltip: 'Valor médio por transação de entrada confirmadas realizada pelos usuários',
-          value: this.deposits.average_ticket / 100,
+          value: this.deposits.average_ticket,
           icon: ChartCandlestick,
           isConditional: false,
           group:"depositors",
@@ -526,34 +536,39 @@ export default {
           id: 'entradas-geradas',
           title: 'Entradas Geradas',
           tooltip: 'Valor total de transações de entrada iniciadas, independentemente da confirmação.',
-          value_quantity: this.deposits.generated_deposits,
-          value_total: this.deposits.total_pending_deposits / 100,
+          quantity: this.deposits.generated_deposits,
+          value: this.deposits.total_pending_deposits / 100,
           icon: BanknoteArrowDown,
           isConditional: false,
           group:"depositors",
+          toggle: true,
+          showFull: false
+
 
         },
         {
           id: 'entradas-confirmadas',
           title: 'Entradas Confirmadas',
           tooltip: 'Valor total de transações de entrada confirmadas com sucesso.',
-          value_quantity: this.deposits.paid_deposits,
-          value_total: this.deposits.total_paid_deposits / 100,
+          quantity: this.deposits.paid_deposits,
+          value: this.deposits.total_paid_deposits / 100,
           icon: DollarSign,
           isConditional: false,
           group:"depositors",
-
+          toggle: true,
+          showFull: false
         },
         {
           id: 'primeiras-entradas',
           title: 'Primeiras Entradas',
           tooltip: 'Total de entradas financeiras geradas por usuários que realizaram sua primeira transação',
-          value_quantity: this.deposits.total_ftd_count,
-          value_total: this.deposits.total_ftd_amount / 100,
+          quantity: this.deposits.total_ftd_count,
+          value: this.deposits.total_ftd_amount / 100,
           icon: ListCheck,
           isConditional: false,
           group:"depositors",
-
+          toggle: true,
+          showFull: false
         },
 
       ]
