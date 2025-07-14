@@ -725,7 +725,7 @@ const navMenu = computed(()=>{
           icon: ListFilter,
           show:
               (activeGroupProject &&
-                  activeGroupProject.type === "project" &&
+                  activeGroupProject.value.type === "project" &&
                   authStore.user?.access_type === "member" &&
                   authStore.user?.roles.some((role) =>
                       role.permissions.some(
@@ -1200,7 +1200,7 @@ const setActiveGroupProject = async (project: any) => {
 
   setTimeout(() => {
     configStore.loading = false;
-    //sidebarExpanded.value = true;
+    sidebarExpanded.value = true;
     document.body.style.overflow = "";
   }, 2000);
 };
