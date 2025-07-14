@@ -471,7 +471,13 @@ import {
   DollarSignIcon,
   Blocks,
   UserCog,
+  LayoutList
 } from "lucide-vue-next";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useColorMode } from "@vueuse/core";
 import CustomLoading from "@/components/custom/CustomLoading.vue";
 import { resizeDirective as vResize } from "v-resize-observer";
@@ -915,6 +921,29 @@ const navMenu = computed(()=>{
                   )
               ),
       children: [
+        {
+          name: "Grupo de Projetos",
+          url: { name: "configurations.projects" },
+          icon: LayoutList,
+          show:
+              (authStore.user?.access_type === "member" &&
+                  authStore.user?.roles.some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-project-groups"
+                      )
+                  )) ||
+              authStore.user?.roles
+                  .filter(
+                      (role) =>
+                          activeGroupProject.value &&
+                          role.pivot.project_id === activeGroupProject.value.project_id
+                  )
+                  .some((role) =>
+                      role.permissions.some(
+                          (permission) => permission.name === "access-to-project-groups"
+                      )
+                  ),
+        },
         {
           name: "Projetos",
           url: { name: "projects" },
