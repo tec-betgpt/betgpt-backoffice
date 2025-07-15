@@ -1044,7 +1044,7 @@ const navMenu = computed(()=>{
           icon: Blocks,
           show:
               activeGroupProject &&
-              activeGroupProject.type === "project" &&
+              activeGroupProject.value.type === "project" &&
               ((authStore.user?.access_type === "member" &&
                       authStore.user?.roles.some((role) =>
                           role.permissions.some(
