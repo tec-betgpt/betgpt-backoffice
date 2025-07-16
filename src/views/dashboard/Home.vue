@@ -433,7 +433,15 @@ export default {
           this.cards[targetItemIndex] = temp;
         }
       }
-
+      const save = this.cards.map(group => {
+        return {
+          id: group.id,
+          content: group.content.map(row => {
+            return row.map(card => card.id);
+          })
+        };
+      });
+      Home.layout(save)
       this.dragOverId = null;
     },
     onDropSub(event, targetItem, rowIndexFromProcessed, parentId) {
@@ -564,7 +572,6 @@ export default {
             })
           };
         });
-        console.log("Layout salvo:", save);
         Home.layout(save)
       }
     },
