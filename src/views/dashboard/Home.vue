@@ -95,7 +95,7 @@
                 :key="rowIndex"
                 name="card-animation"
                 tag="div"
-                class="flex gap-4 sm:flex-row flex-col"
+                class="flex gap-4 "
             >
               <Card
                   v-for="subItem in row"
@@ -270,12 +270,7 @@ export default {
       return CustomChartTooltipRealPrice;
     },
     processedCards() {
-      const limits = {
-        mobile: 1,
-        tablet: 2,
-        desktop: 5,
-      };
-
+      const limits = { mobile: 1, tablet: 2, desktop: 5 };
       let limit;
       if (this.windowWidth < 768) {
         limit = limits.mobile;
@@ -288,7 +283,10 @@ export default {
       return this.cards.map(group => {
         const newContent = [];
 
-        group.content.forEach(originalRow => {
+        const visibleContent = group.content.map(row =>
+            row.filter(card => !card.isConditional)
+        ).filter(row => row.length > 0);
+        visibleContent.forEach(originalRow => {
           if (originalRow.length > limit) {
             for (let i = 0; i < originalRow.length; i += limit) {
               newContent.push(originalRow.slice(i, i + limit));
@@ -424,7 +422,6 @@ export default {
     onDrop(event, item,) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer.getData('text/plain');
-      console.log("Dropped item:", draggedItemId, "on", item.id);
 
       if (draggedItemId && draggedItemId !== item.id) {
         const draggedItemIndex = this.cards.findIndex(i => i.id === draggedItemId);
@@ -439,11 +436,11 @@ export default {
 
       this.dragOverId = null;
     },
-    onDropSub(event, targetItem, targetRowIndex, parentId) {
+    onDropSub(event, targetItem, rowIndexFromProcessed, parentId) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer.getData('text/plain');
       this.dragOverId = null;
-      console.log("Sub-item dropped:", draggedItemId, "on", targetItem.id, "in row", targetRowIndex, "of parent", parentId);
+
       if (!draggedItemId || draggedItemId === targetItem.id) {
         return;
       }
@@ -453,28 +450,41 @@ export default {
 
       let sourceRowIndex = -1;
       let sourceItemIndex = -1;
-      let draggedItem = null;
-
       for (let i = 0; i < parentCard.content.length; i++) {
         const itemIndex = parentCard.content[i].findIndex(c => c.id === draggedItemId);
-        console.log("item",itemIndex)
         if (itemIndex !== -1) {
           sourceRowIndex = i;
           sourceItemIndex = itemIndex;
           break;
         }
       }
-
       if (sourceRowIndex === -1) return;
+      let targetRowIndex = -1;
+      let targetItemIndex = -1;
+      for (let i = 0; i < parentCard.content.length; i++) {
+        const itemIndex = parentCard.content[i].findIndex(c => c.id === targetItem.id);
+        if (itemIndex !== -1) {
+          targetRowIndex = i;
+          targetItemIndex = itemIndex;
+          break;
+        }
+      }
+      if (targetRowIndex === -1) return;
 
-      const targetItemIndex = parentCard.content[targetRowIndex].findIndex(c => c.id === targetItem.id);
+      const isTargetLast = targetItemIndex === parentCard.content[targetRowIndex].length - 1;
 
-      [draggedItem] = parentCard.content[sourceRowIndex].splice(sourceItemIndex, 1);
+      const [removedItem] = parentCard.content[sourceRowIndex].splice(sourceItemIndex, 1);
+
+      let finalTargetRowIndex = targetRowIndex;
+      let finalTargetItemIndex = targetItemIndex;
 
       if (sourceRowIndex === targetRowIndex && sourceItemIndex < targetItemIndex) {
-        parentCard.content[targetRowIndex].splice(targetItemIndex - 1, 0, draggedItem);
+        finalTargetItemIndex--;
+      }
+      if (isTargetLast) {
+        parentCard.content[finalTargetRowIndex].splice(finalTargetItemIndex + 1, 0, removedItem);
       } else {
-        parentCard.content[targetRowIndex].splice(targetItemIndex, 0, draggedItem);
+        parentCard.content[finalTargetRowIndex].splice(finalTargetItemIndex, 0, removedItem);
       }
 
       parentCard.content = parentCard.content.filter(row => row.length > 0);
