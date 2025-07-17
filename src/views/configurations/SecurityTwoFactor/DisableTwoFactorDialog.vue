@@ -1,5 +1,5 @@
 <template>
-  <Dialog :open="isDialogOpen">
+  <Dialog :open="isDialogOpen" @update:open=" isDialogOpen = $event">
     <DialogTrigger as-child>
       <Button @click="openDialog">{{ $t('disable') }}</Button>
     </DialogTrigger>
@@ -7,9 +7,7 @@
       <DialogHeader>
         <DialogTitle>{{ $t('deactivate_2fa') }}</DialogTitle>
       </DialogHeader>
-      <DialogClose class="absolute right-4 top-4" @click="closeDialog">
-        <X :size="18" :stroke-width="1.75" absoluteStrokeWidth />
-      </DialogClose>
+
       <div v-if="step">
         <DialogDescription>
           {{ $t('confirm_deactivation_2fa') }}
@@ -39,7 +37,7 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import {ref, watch} from 'vue';
 import {Loader2 as LucideSpinner, X} from "lucide-vue-next";
 import Users from '@/services/users'
 import Auth from '@/services/auth'
@@ -62,6 +60,11 @@ function closeDialog() {
   step.value = true
   isDialogOpen.value = false;
 }
+watch(isDialogOpen, (value) => {
+  if (!value) {
+    closeDialog()
+  }
+})
 const form2fa = ref(new Form({
   two_factor_code:""
 }))
@@ -109,14 +112,18 @@ const nextStep = async () => {
   try {
     step.value = false;
     if (userAuth.user.preferences.auth2fa === "email") {
-      await Auth.getTwoFactor(userAuth.user.id)
+      await Auth.getResendTwoFactor(userAuth.user.id)
     }
 
     step.value = false;
   } catch (error: any) {
-    console.error("Erro ao avançar para o próximo passo do 2FA:", error);
     closeDialog()
-    userAuth.fetchUser();
+    toast({
+      title: i18n.global.t("warning"),
+      description: "Falha ao desativar 2FA: ",
+      duration:3000,
+      variant:'destructive'
+    });
   }
 
   loading.value = false;

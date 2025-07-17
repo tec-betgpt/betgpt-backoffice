@@ -36,7 +36,8 @@
     "vue-resize-observer": "^2.0.15",
     "vue-responsive-video-background-player": "^2.4.1",
     "vue-router": "^4.4.3",
-    "vue-tippy": "^6.4.4"
+    "vue-tippy": "^6.4.4",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",

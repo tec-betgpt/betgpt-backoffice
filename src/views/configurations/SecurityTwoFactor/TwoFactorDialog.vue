@@ -1,5 +1,5 @@
 <template>
-  <Dialog :open="isDialogOpen">
+  <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
     <DialogTrigger as-child>
       <Button @click="openDialog('email')">{{ $t('use_email') }}</Button>
     </DialogTrigger>
@@ -10,12 +10,6 @@
       <DialogHeader class="flex justify-between w-full">
         <DialogTitle>{{ $t('activating_2fa') }}</DialogTitle>
       </DialogHeader>
-      <DialogClose
-          class="absolute right-4 top-4"
-          @click="closeDialog"
-      >
-        <X :size="18" :stroke-width="1.75" absoluteStrokeWidth />
-      </DialogClose>
       <div v-if="finish">
         <div v-if="step.type === 'email'">
           <div v-if="step.step">
@@ -81,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import {ref, watch} from 'vue';
 import { Loader2 as LucideSpinner, X } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import Pin from "@/components/custom/CustomPinInput.vue";
@@ -103,6 +97,11 @@ const form2fa = ref({
   type:""
 })
 
+watch(isDialogOpen, (value) => {
+  if (!value) {
+    closeDialog()
+  }
+})
 function openDialog(type:string) {
   step.value.type = type
   form2fa.value.type = type;
@@ -153,7 +152,7 @@ const validate2fa = async (code:Array<string>) => {
 
   try {
     form2fa.value.two_factor_code = code.join("");
-    const data = Users.validateTwoFactor(form2fa.value)
+    const data = await Users.validateTwoFactor(form2fa.value)
 
     toast({
       title: i18n.global.t("success"),

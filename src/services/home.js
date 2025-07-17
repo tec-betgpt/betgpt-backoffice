@@ -12,5 +12,10 @@ export default {
   async index (params = {}) {
     const {data} = await api.get('/home', { params })
     return data
+  },
+
+  async layout (layout = {}) {
+    const {data} = await api.post('/home/layout', { layout })
+    return data
   }
 }
