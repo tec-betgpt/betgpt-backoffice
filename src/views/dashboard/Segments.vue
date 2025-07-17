@@ -1330,7 +1330,7 @@ const columns = [
           "div",
           {
             class: "text-xs text-muted-foreground mt-1 line-clamp-2",
-            title: row.original.description, // Mostra tooltip com a descrição completa
+            title: row.original.description,
           },
           row.original.description || "Sem descrição"
         ),
