@@ -887,7 +887,13 @@ const fetchSegments = async (current: number = pages.value.current) => {
       sort_order: order.value ? "asc" : "desc",
     };
     const response = await Segments.index(params);
-    segments.value = response.data.data || [];
+    segments.value = response.data.segments || [];
+    pages.value = {
+      current: response.data.pagination.current_page,
+      last: response.data.pagination.last_page,
+      total: response.data.pagination.total,
+    };
+
     savedSegments.value = [...segments.value];
   } catch (error) {
     console.error("Error loading segments:", error);
