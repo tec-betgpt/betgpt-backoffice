@@ -28,6 +28,20 @@
             <PlusIcon class="mr-2 h-4 w-4" />
             Novo Segmento
           </Button>
+
+          <Button variant="outline" asChild>
+            <label for="import-segment" class="cursor-pointer">
+              <UploadIcon class="mr-2 h-4 w-4" />
+              Importar Segmento
+              <input
+                id="import-segment"
+                type="file"
+                accept=".json"
+                @change="importSegment"
+                class="hidden"
+              />
+            </label>
+          </Button>
         </div>
       </CardFooter>
     </Card>
@@ -431,7 +445,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowDown, ArrowUp, RefreshCcw } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, RefreshCcw, UploadIcon } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import {
   Dialog,
@@ -1112,6 +1126,97 @@ const loadMoreContacts = (page: number) => {
   fetchContacts(page);
 };
 
+const exportSegment = async (segmentId: number) => {
+  try {
+    toast({
+      title: "Exportação iniciada",
+      description: "Exportação do Segmento em andamento...",
+      variant: "default",
+    });
+
+    const response = await Segments.export(segmentId);
+
+    const blob = new Blob([JSON.stringify(response.data, null, 2)], {
+      type: "application/json",
+    });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `segment-${segmentId}-export.json`;
+    link.click();
+
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Sucesso",
+      description: "Segmento exportado com sucesso",
+      variant: "default",
+    });
+  } catch (error) {
+    console.error("Error exporting segment:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível exportar o segmento",
+      variant: "destructive",
+    });
+  }
+};
+
+const importSegment = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (!input.files?.length) return;
+
+  const file = input.files[0];
+
+  try {
+    const fileContent = await file.text();
+    const segmentData = JSON.parse(fileContent);
+
+    form.value = {
+      id: null,
+      name: segmentData.name + " (Importado)",
+      description: segmentData.description,
+      globalOperator: segmentData.conditions.global_operator,
+      conditionGroups: segmentData.conditions.groups.map((group: any) => ({
+        name: "Grupo Importado",
+        groupOperator: group.group_operator,
+        fields: [...allFields.value.flatMap((g) => g.fields)],
+        conditions: group.conditions.map((condition: any) => ({
+          conditionOperator: condition.condition_operator,
+          field: condition.field,
+          operator: condition.operator,
+          value: condition.value,
+          modifier: condition.modifier || "exact",
+          dateType: condition.dateType,
+          dateModifier: condition.dateModifier,
+          dateFilter: condition.dateFilter,
+          daysOffset: condition.daysOffset,
+        })),
+      })),
+    };
+
+    showModal.value = true;
+    isEditing.value = false;
+
+    toast({
+      title: "Sucesso",
+      description:
+        "Segmento importado com sucesso. Revise as condições antes de salvar.",
+      variant: "default",
+    });
+  } catch (error) {
+    console.error("Error importing segment:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível importar o segmento. Verifique o arquivo.",
+      variant: "destructive",
+    });
+  } finally {
+    input.value = "";
+  }
+};
+
 const orderContacts = ref();
 const directionContacts = ref(false);
 const columnHelperContacts = createColumnHelper<User>();
@@ -1333,6 +1438,13 @@ const columns = [
               onClick: () => handleEdit(row.original),
             },
             "Editar"
+          ),
+          h(
+            DropdownMenuItem,
+            {
+              onClick: () => exportSegment(row.original.id),
+            },
+            "Exportar"
           ),
           h(
             DropdownMenuItem,

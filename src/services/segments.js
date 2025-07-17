@@ -75,6 +75,12 @@ export default {
     return data;
   },
 
+  /**
+   * GET /v1/segments/{id}/contacts
+   *
+   * @param {number} segmentId
+   * @param {object} params
+   */
   async contacts(segmentId, params = {}) {
     const { data } = await api.get(`/segments/${segmentId}/contacts`, {
       params,
@@ -82,6 +88,12 @@ export default {
     return data;
   },
 
+  /**
+   * GET /v1/segments/{id}/contacts (export)
+   *
+   * @param {number} segmentId
+   * @param {object} params
+   */
   async exportContacts(segmentId, params = {}) {
     return api.get(`/segments/${segmentId}/contacts`, {
       params: { ...params, export: 1 },
@@ -89,10 +101,27 @@ export default {
     });
   },
 
+  /**
+   * POST /v1/segments/{id}/force-update
+   *
+   * @param {number} segmentId
+   * @param {object} params
+   */
   async forceUpdate(segmentId, params = {}) {
     const { data } = await api.post(`/segments/${segmentId}/force-update`, {
       params,
     });
+    return data;
+  },
+
+  /**
+   * GET /v1/segments/{id}/export
+   * Exporta um segmento como JSON
+   *
+   * @param {number} segmentId
+   */
+  async export(segmentId) {
+    const { data } = await api.get(`/segments/${segmentId}/export`);
     return data;
   },
 };
