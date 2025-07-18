@@ -405,6 +405,13 @@
           <DialogTitle>Contatos do Segmento</DialogTitle>
           <DialogDescription>
             Lista de contatos que atendem às condições do segmento
+            <span v-if="contacts.length" class="text-foreground">
+              ({{ contacts.length }} de
+              {{
+                segments.find((s) => s.id === currentSegmentId)
+                  ?.total_contacts || 0
+              }})
+            </span>
           </DialogDescription>
         </DialogHeader>
 
@@ -1109,11 +1116,25 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString("pt-BR", options);
 };
 
-const openContactsDialog = async (segmentId: number) => {
+const openContactsDialog = (segmentId: number) => {
+  const segment = segments.value.find((s) => s.id === segmentId);
+
+  if (!segment || segment.total_contacts <= 0) {
+    toast({
+      title: "Aviso",
+      description: "Este segmento não possui contatos",
+      variant: "default",
+    });
+    return;
+  }
+
   currentSegmentId.value = segmentId;
   showContactsDialog.value = true;
-  resetContactsData();
-  await fetchContacts();
+
+  contacts.value = segment.initial_contacts || [];
+
+  currentContactsPage.value = 2;
+  hasMoreContacts.value = segment.total_contacts > contacts.value.length;
 };
 
 const resetContactsData = () => {
@@ -1122,8 +1143,9 @@ const resetContactsData = () => {
   hasMoreContacts.value = false;
 };
 
-const loadMoreContacts = (page: number) => {
-  fetchContacts(page);
+const loadMoreContacts = async () => {
+  if (!hasMoreContacts.value) return;
+  await fetchContacts(currentContactsPage.value);
 };
 
 const exportSegment = async (segmentId: number) => {
@@ -1217,6 +1239,11 @@ const importSegment = async (event: Event) => {
   }
 };
 
+const getInitialContacts = (segmentId: number) => {
+  const segment = segments.value.find((s) => s.id === segmentId);
+  return segment?.initial_contacts || [];
+};
+
 const orderContacts = ref();
 const directionContacts = ref(false);
 const columnHelperContacts = createColumnHelper<User>();
@@ -1251,13 +1278,23 @@ const setSearch = (values: Record<string, string>) => {
   searchValues.value = values;
 };
 
-const fetchContacts = async (page = 1) => {
+const fetchContacts = async (page: number = 1) => {
   if (!currentSegmentId.value) return;
 
+  if (page === 1 && contacts.value.length > 0) {
+    hasMoreContacts.value =
+      (segments.value.find((s) => s.id === currentSegmentId.value)
+        ?.total_contacts || 0) > contacts.value.length;
+    return;
+  }
+
   isLoadingContacts.value = true;
+
   try {
     const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
-      acc[key] = searchValues.value[key];
+      if (searchValues.value[key]) {
+        acc[key] = searchValues.value[key];
+      }
       return acc;
     }, {} as Record<string, string>);
 
@@ -1265,7 +1302,7 @@ const fetchContacts = async (page = 1) => {
       page,
       perPage: 20,
       ...searchParams,
-      orderBy: orderContacts.value ? orderContacts.value : "id",
+      orderBy: orderContacts.value || "id",
       orderDirection: directionContacts.value ? "asc" : "desc",
     });
 
@@ -1277,6 +1314,17 @@ const fetchContacts = async (page = 1) => {
 
     hasMoreContacts.value = response.data.hasMore;
     currentContactsPage.value = response.data.currentPage;
+
+    if (page === 1) {
+      const segmentIndex = segments.value.findIndex(
+        (s) => s.id === currentSegmentId.value
+      );
+      if (segmentIndex !== -1) {
+        segments.value[segmentIndex].initial_contacts = [
+          ...response.data.players,
+        ];
+      }
+    }
   } catch (error) {
     console.error("Error loading contacts:", error);
     toast({
@@ -1352,9 +1400,11 @@ const columns = [
           onClick: hasContacts
             ? () => openContactsDialog(row.original.id)
             : undefined,
-          style: hasContacts
-            ? "cursor: pointer; text-decoration: underline;"
-            : "",
+          style: {
+            cursor: hasContacts ? "pointer" : "default",
+            textDecoration: hasContacts ? "underline" : "none",
+            opacity: hasContacts ? 1 : 0.5,
+          },
         },
         [
           h("span", total || "0"),
@@ -1368,6 +1418,7 @@ const columns = [
       );
     },
   },
+  ,
   {
     accessorKey: "last_job_execute_at",
     header: "Última Atualização",

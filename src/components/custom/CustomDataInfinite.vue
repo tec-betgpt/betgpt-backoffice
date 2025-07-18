@@ -149,7 +149,7 @@ const props = defineProps({
     type: Array as PropType<
       Array<{ key: string; label?: string; placeholder: string }>
     >,
-    required: true,
+    default: () => [], // Adicione um valor padrão
   },
   currentPage: {
     type: Number,
@@ -171,7 +171,7 @@ const table = useVueTable({
 });
 
 const hasLabel = computed(() => {
-  return props.searchFields.some((field) => field.label);
+  return props.searchFields?.some((field) => field?.label) ?? false;
 });
 
 const checkIfEmpty = () => {
