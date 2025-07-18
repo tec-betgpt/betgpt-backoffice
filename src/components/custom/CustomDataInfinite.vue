@@ -149,7 +149,7 @@ const props = defineProps({
     type: Array as PropType<
       Array<{ key: string; label?: string; placeholder: string }>
     >,
-    default: () => [], // Adicione um valor padrão
+    default: () => [],
   },
   currentPage: {
     type: Number,
