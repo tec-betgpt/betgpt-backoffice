@@ -6,78 +6,101 @@
         Os rastreamentos UTM de todos os segmentos.
       </p>
     </div>
-    <Card>
-      <CardContent class="py-4 flex flex-col gap-4">
-        <CustomDataTable
-          :loading="isLoading"
-          :columns="columns"
-          :data="utmTracks"
-          :update-text="setSearch"
-          :find="fetchUtmTracks"
-          :search-fields="[
-            { key: 'name', label: 'Nome', placeholder: 'Nome do Parâmetro' },
-            {
-              key: 'value',
-              label: 'Valor',
-              placeholder: 'Valor do Parâmetro',
-            },
-          ]"
-        >
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child>
-              <Button variant="outline" class="ml-auto">
-                Tipo de parâmetro <ChevronDownIcon class="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem
-                :checked="typeFilter.includes('deposit')"
-                @update:checked="setType('deposit')"
-                class="capitalize"
-              >
-                Depósito
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                :checked="typeFilter.includes('player')"
-                @update:checked="setType('player')"
-              >
-                Cadastro
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CustomDataTable>
-        <CustomPagination :select-page="fetchUtmTracks" :pages="pages" />
-      </CardContent>
-    </Card>
 
-    <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
-      <Card class="col-span-3">
-        <CardHeader class="pb-3">
-          <Skeleton class="h-6 w-full" v-if="isLoading" />
-          <CardTitle v-else>Cadastro por src e utm_source</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div v-if="isLoading">
+    <div v-if="isLoading">
+      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
+        <Card class="col-span-3">
+          <CardHeader class="pb-3">
+            <Skeleton class="h-6 w-full" />
+          </CardHeader>
+          <CardContent>
             <Skeleton class="pl-5 h-80 w-full" />
-          </div>
-          <div v-else>
-            <canvas id="registersChart"></canvas>
-          </div>
+          </CardContent>
+        </Card>
+        <Card class="col-span-3">
+          <CardHeader class="pb-3">
+            <Skeleton class="h-6 w-full" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton class="pl-5 h-80 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardContent class="py-4 flex flex-col gap-4">
+          <Skeleton class="h-12 w-full" />
+          <Skeleton class="h-96 w-full" />
         </CardContent>
       </Card>
+    </div>
 
-      <Card class="col-span-3">
-        <CardHeader class="pb-3">
-          <Skeleton class="h-6 w-full" v-if="isLoading" />
-          <CardTitle v-else>Depósitos por src e utm_source</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div v-if="isLoading">
-            <Skeleton class="pl-5 h-80 w-full" />
-          </div>
-          <div v-else>
+    <div v-else>
+      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
+        <Card class="col-span-3">
+          <CardHeader class="pb-3">
+            <CardTitle>Cadastro por src e utm_source</CardTitle>
+          </CardHeader>
+          <Separator />
+          <CardContent class="h-[400px] w-full chart-container">
+            <canvas id="registersChart"></canvas>
+          </CardContent>
+        </Card>
+
+        <Card class="col-span-3">
+          <CardHeader class="pb-3">
+            <CardTitle>Depósitos por src e utm_source</CardTitle>
+          </CardHeader>
+          <Separator />
+          <CardContent class="h-[400px] w-full chart-container">
             <canvas id="depositsChart"></canvas>
-          </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardContent class="py-4 flex flex-col gap-4">
+          <CustomDataInfinite
+              :loading="isLoading"
+              :columns="columns"
+              :data="utmTracks"
+              :update-text="setSearch"
+              :find="fetchUtmTracks"
+              :has-more="hasMore"
+              :current-page="pages.current"
+              :search-fields="[
+                { key: 'name', label: 'Nome', placeholder: 'Nome do Parâmetro' },
+                {
+                  key: 'value',
+                  label: 'Valor',
+                  placeholder: 'Valor do Parâmetro',
+                },
+              ]"
+              @load-more="loadMore"
+            >
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <Button variant="outline" class="ml-auto">
+                  Tipo de parâmetro <ChevronDownIcon class="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuCheckboxItem
+                    :checked="typeFilter.includes('deposit')"
+                    @update:checked="setType('deposit')"
+                    class="capitalize"
+                >
+                  Depósito
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                    :checked="typeFilter.includes('player')"
+                    @update:checked="setType('player')"
+                >
+                  Cadastro
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CustomDataInfinite>
         </CardContent>
       </Card>
     </div>
@@ -85,64 +108,70 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h, watch, computed, nextTick } from "vue";
+import { ref, onMounted, h, watch, nextTick } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/components/ui/dropdown-menu"
 import { ChevronDownIcon, ArrowDown, ArrowUp } from "lucide-vue-next";
 import UtmTracks from "@/services/utmTracks";
 import { createColumnHelper } from "@tanstack/vue-table";
-import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import CustomPagination from "@/components/custom/CustomPagination.vue";
+import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import moment from "moment";
 import { Chart, registerables } from "chart.js";
+import {Separator} from "@/components/ui/separator";
+import {Card, CardContent} from "@/components/ui/card";
+
+type Player = {
+  id: number
+  name: string
+  value: string
+  source_id: number
+  source_type: string
+  project_id: number
+  model: object
+}
+
+type UtmTrack = {
+  id: number
+  name: string
+  value: string
+  source_id: number
+  source_type: string
+  project_id: number
+}
+
 Chart.register(...registerables);
 
 const { toast } = useToast();
+const hasMore = ref(true);
+const currentPage = ref(0);
 const utmTracks = ref<UtmTrack[]>([]);
 const chartRegistersUtmSource = ref();
 const chartDepositsUtmSource = ref();
 const isLoading = ref(true);
 const pages = ref({
-  current: 1,
+  current: 0,
   last: 0,
-  total: 0,
-});
+  total: 0
+})
 const typeFilter = ref<Array<String>>(["deposit", "player"]);
-const setType = (type: any) => {
-  const index = typeFilter.value.indexOf(type);
-  if (index === -1) {
-    typeFilter.value.push(type);
-  } else {
-    typeFilter.value.splice(index, 1);
-  }
-};
 
-watch(typeFilter.value, () => {
-  fetchUtmTracks(1);
-});
+watch(typeFilter.value, async () => {
+  pages.value.current = 0;
+
+  await fetchUtmTracks(pages.value.current);
+  await nextTick(() => renderChart());
+})
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
-
 const searchValues = ref<Record<string, string>>({});
 
 const fetchUtmTracks = async (current = pages.value.current) => {
@@ -154,25 +183,20 @@ const fetchUtmTracks = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    const [utmTracksResponse] = await Promise.all([
-      UtmTracks.index({
-        page: current,
-        ...searchParams,
-        type: typeFilter.value,
-        orderBy: order.value ? order.value : "id",
-        orderDirection: direction.value ? "asc" : "desc",
-        filter_id: activeGroupProjectId,
-      }),
-    ]);
-    utmTracks.value = utmTracksResponse.data.utm_tracks;
-    chartRegistersUtmSource.value = utmTracksResponse.data.registers_utm_tracks;
-    chartDepositsUtmSource.value = utmTracksResponse.data.deposits_utm_tracks;
-    pages.value = {
-      current: utmTracksResponse.data.pagination.current_page,
-      last: utmTracksResponse.data.pagination.last_page,
-      total: utmTracksResponse.data.pagination.total,
-    };
-  } catch (error) {
+    const { data } = await UtmTracks.index({
+      page: current,
+      ...searchParams,
+      type: typeFilter.value,
+      perPage: 100,
+      orderBy: order.value ? order.value : "id",
+      orderDirection: direction.value ? "asc" : "desc",
+      filter_id: activeGroupProjectId,
+    })
+
+    utmTracks.value = data.utm_tracks;
+    chartRegistersUtmSource.value = data.registers_utm_tracks;
+    chartDepositsUtmSource.value = data.deposits_utm_tracks;
+  } catch (_) {
     toast({
       title: "Erro",
       description: "Erro ao carregar os dados.",
@@ -183,81 +207,89 @@ const fetchUtmTracks = async (current = pages.value.current) => {
   isLoading.value = false;
 };
 
+const loadMore = async () => {
+  pages.value.current = pages.value.current + 100
+  await fetchUtmTracks(pages.value.current);
+  await nextTick(() => renderChart())
+};
+
+const setType = (type: any) => {
+  const index = typeFilter.value.indexOf(type);
+  if (index === -1) {
+    typeFilter.value.push(type)
+  } else {
+    typeFilter.value.splice(index, 1);
+  }
+}
+
 onMounted(async () => {
   await fetchUtmTracks();
 
-  nextTick(() => {
-    if (!isLoading.value) {
-      const ctx = document.getElementById("registersChart").getContext("2d");
-      const registersChart = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: chartRegistersUtmSource.value.labels,
-          datasets: [
-            {
-              label: "utm_source",
-              data: chartRegistersUtmSource.value.data,
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
-              borderColor: "rgba(255, 255, 255, 1)",
-              borderWidth: 1,
-            },
-          ],
-        },
-        options: {
-          indexAxis: "x",
-          scales: {
-            x: {
-              beginAtZero: true,
-              ticks: {
-                maxRotation: 90,
-                minRotation: 90,
-                autoSkip: false,
-              },
-            },
-          },
-        },
-      });
+  nextTick(() => renderChart())
+})
 
-      const ctx2 = document.getElementById("depositsChart").getContext("2d");
-      const depositsChart = new Chart(ctx2, {
-        type: "bar",
-        data: {
-          labels: chartDepositsUtmSource.value.labels,
-          datasets: [
-            {
-              label: "utm_source",
-              data: chartDepositsUtmSource.value.data,
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
-              borderColor: "rgba(255, 255, 255, 1)",
-              borderWidth: 1,
-            },
-          ],
+const renderChart = () => {
+  const element = document.getElementById("registersChart") as HTMLCanvasElement
+  const options: any = {
+    indexAxis: "x",
+    scales: {
+      x: {
+        beginAtZero: true,
+        ticks: {
+          maxRotation: 90,
+          minRotation: 90,
+          autoSkip: false,
         },
-        options: {
-          indexAxis: "x",
-          scales: {
-            x: {
-              beginAtZero: true,
-              ticks: {
-                maxRotation: 90,
-                minRotation: 90,
-                autoSkip: false,
-              },
-            },
+      },
+    },
+  }
+
+  if (!isLoading.value && element) {
+    const ctx = element.getContext("2d")
+    const registersChart = new Chart(ctx!, {
+      type: "bar",
+      data: {
+        labels: chartRegistersUtmSource.value.labels,
+        datasets: [
+          {
+            label: "utm_source",
+            data: chartRegistersUtmSource.value.data || [],
+            backgroundColor: "rgba(255, 255, 255, 0.2)",
+            borderColor: "rgba(255, 255, 255, 1)",
+            borderWidth: 1,
           },
-        },
-      });
-    }
-  });
-});
+        ],
+      },
+      options
+    })
+
+    const ctx2 = document.getElementById("depositsChart")!.getContext("2d") as HTMLCanvasElement
+    const depositsChart = new Chart(ctx2, {
+      type: "bar",
+      data: {
+        labels: chartDepositsUtmSource.value.labels,
+        datasets: [
+          {
+            label: "utm_source",
+            data: chartDepositsUtmSource.value.data,
+            backgroundColor: "rgba(255, 255, 255, 0.2)",
+            borderColor: "rgba(255, 255, 255, 1)",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options
+    })
+  }
+}
 
 const setSearch = (values: Record<string, string>) => {
-  searchValues.value = values;
+  searchValues.value = values
 };
 
 const order = ref();
 const direction = ref(false);
-const columnHelper = createColumnHelper<User>();
+const columnHelper = createColumnHelper<any>();
 function createHeaderButton(label: string, columnKey: string) {
   return h(
     Button,
@@ -288,7 +320,7 @@ const columns = [
     header({ column }) {
       return createHeaderButton("ID", "id");
     },
-    cell: ({ row }) => h("div", {}, row.getValue("id")),
+    cell: ({ row }) => h("div", {}, row.original.id),
   }),
   columnHelper.accessor("type", {
     header({ header }) {
@@ -305,13 +337,13 @@ const columns = [
     header({ column }) {
       return createHeaderButton("Nome", "name");
     },
-    cell: ({ row }) => h("div", {}, `${row.getValue("name")}`),
+    cell: ({ row }) => h("div", {}, `${row.original.name}`),
   }),
   columnHelper.accessor("value", {
     header({ column }) {
       return createHeaderButton("Valor", "value");
     },
-    cell: ({ row }) => h("div", {}, `${row.getValue("value")}`),
+    cell: ({ row }) => h("div", {}, `${row.original.value}`),
   }),
   columnHelper.accessor("created_at", {
     header({ header }) {
@@ -321,18 +353,8 @@ const columns = [
       h(
         "div",
         {},
-        moment(row.getValue("created_at")).format("DD/MM/YYYY HH:mm:ss")
+        moment(row.original.created_at).format("DD/MM/YYYY HH:mm:ss")
       ),
   }),
-];
-
-type Player = {
-  id: string;
-  name: string;
-  value: string;
-  source_id: int;
-  source_type: string;
-  project_id: int;
-  model: object;
-};
+]
 </script>
