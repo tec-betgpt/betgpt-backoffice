@@ -128,16 +128,6 @@ import { Chart, registerables } from "chart.js";
 import {Separator} from "@/components/ui/separator";
 import {Card, CardContent} from "@/components/ui/card";
 
-type Player = {
-  id: number
-  name: string
-  value: string
-  source_id: number
-  source_type: string
-  project_id: number
-  model: object
-}
-
 type UtmTrack = {
   id: number
   name: string
