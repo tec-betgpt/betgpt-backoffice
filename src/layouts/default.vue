@@ -1,6 +1,7 @@
 <template>
   <SidebarProvider>
     <Sidebar
+        class="h-screen"
       collapsible="icon"
       @update:modelValue="handleSidebarExpand"
       :collapsed="sidebarExpanded"
@@ -190,76 +191,73 @@
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger as-child>
-                <SidebarMenuButton
-                  size="lg"
-                  class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                  <Avatar class="h-8 w-8 rounded-lg">
-                    <AvatarImage :src="authStore.user?.icon" />
-                    <AvatarFallback class="rounded-lg">
-                      {{ authStore.user?.initials }}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div class="grid flex-1 text-left text-sm leading-tight">
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <SidebarMenuButton
+                size="lg"
+                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <Avatar class="h-8 w-8 rounded-lg">
+                <AvatarImage :src="authStore.user?.icon" />
+                <AvatarFallback class="rounded-lg">
+                  {{ authStore.user?.initials }}
+                </AvatarFallback>
+              </Avatar>
+              <div class="grid flex-1 text-left text-sm leading-tight">
                     <span class="truncate font-semibold">{{
-                      authStore.user?.first_name
-                    }}</span>
-                    <span class="truncate text-xs">{{
+                        authStore.user?.first_name
+                      }}</span>
+                <span class="truncate text-xs">{{
+                    authStore.user?.email
+                  }}</span>
+              </div>
+              <ChevronsUpDown class="ml-auto size-4" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+              class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+              side="bottom"
+              align="end"
+              :side-offset="4"
+          >
+            <DropdownMenuLabel class="p-0 font-normal">
+              <div
+                  class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
+              >
+                <Avatar class="h-8 w-8 rounded-lg">
+                  <AvatarFallback class="rounded-lg">
+                    {{ authStore.user?.initials }}
+                  </AvatarFallback>
+                </Avatar>
+                <div class="grid flex-1 text-left text-sm leading-tight">
+                      <span class="truncate font-semibold">{{
+                          authStore.user?.name
+                        }}</span>
+                  <span class="truncate text-xs">{{
                       authStore.user?.email
                     }}</span>
-                  </div>
-                  <ChevronsUpDown class="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                side="bottom"
-                align="end"
-                :side-offset="4"
-              >
-                <DropdownMenuLabel class="p-0 font-normal">
-                  <div
-                    class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
-                  >
-                    <Avatar class="h-8 w-8 rounded-lg">
-                      <AvatarFallback class="rounded-lg">
-                        {{ authStore.user?.initials }}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div class="grid flex-1 text-left text-sm leading-tight">
-                      <span class="truncate font-semibold">{{
-                        authStore.user?.name
-                      }}</span>
-                      <span class="truncate text-xs">{{
-                        authStore.user?.email
-                      }}</span>
-                    </div>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  ><router-link
-                    @click="sidebarExpanded = false"
-                    :to="{ name: 'configurations.profile' }"
-                    >Configurações</router-link
-                  ></DropdownMenuItem
-                >
-                <DropdownMenuSeparator />
-                <DropdownMenuItem @click="logout">
-                  <LogOut />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <router-link
+                class="w-full"
+                :to="{ name: 'configurations.profile' }">
+                Configurações
+              </router-link
+            ></DropdownMenuItem
+            >
+            <DropdownMenuSeparator />
+            <DropdownMenuItem @click="logout">
+              <LogOut />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
-    <SidebarInset>
+    <SidebarInset class="w-full">
       <header
         class="flex w-full h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
       >
@@ -1245,7 +1243,6 @@ watch(
   { immediate: true }
 );
 
-// Lifecycle
 onMounted(async () => {
   mode.value = localStorage.getItem("theme") || "auto";
   const user = authStore.user;
@@ -1255,7 +1252,6 @@ onMounted(async () => {
   await loadChats();
 });
 
-// Métodos
 const setResponsive = () => (stateResponsive.value = !stateResponsive.value);
 
 function scrollToBottom() {

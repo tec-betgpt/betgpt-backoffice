@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="w-full">
     <div class="mb-4">
       <h3 class="text-lg font-medium">Perfil</h3>
       <p class="text-sm text-muted-foreground">
@@ -7,8 +7,9 @@
       </p>
     </div>
     <Separator class="mb-3" />
-    <div class="flex justify-start gap-8 flex-wrap w-full">
-      <div class="flex-1">
+    <div class="flex justify-start items-start  gap-8 flex-wrap w-full">
+
+      <form class="w-full sm:max-w-sm" @submit.prevent="submit" @keydown="form.onKeydown($event)">
         <div class="my-2">
           <Label for="theme">Tema</Label>
           <Select v-model="theme" id="theme">
@@ -22,77 +23,75 @@
             </SelectContent>
           </Select>
         </div>
-        <form @submit.prevent="submit" @keydown="form.onKeydown($event)">
-          <div class="mb-3">
-            <Label for="first_name">Primeiro nome</Label>
-            <Input
+        <div class="mb-3">
+          <Label for="first_name">Primeiro nome</Label>
+          <Input
               type="text"
               id="first_name"
               placeholder="Informe o seu primeiro nome"
               v-model="form.first_name"
               class="mt-1"
-            />
-          </div>
-          <div class="mb-3">
-            <Label for="last_name">Sobrenome</Label>
-            <Input
+          />
+        </div>
+        <div class="mb-3">
+          <Label for="last_name">Sobrenome</Label>
+          <Input
               type="text"
               id="last_name"
               placeholder="Informe o seu sobrenome"
               v-model="form.last_name"
               class="mt-1"
-            />
-          </div>
-          <div class="mb-3">
-            <Label for="email">E-mail</Label>
-            <Input
+          />
+        </div>
+        <div class="mb-3">
+          <Label for="email">E-mail</Label>
+          <Input
               type="text"
               id="email"
               placeholder="Informe o seu e-mail"
               v-model="form.email"
               class="mt-1"
               :disabled="emailChangeRequest"
-            />
+          />
 
-            <div
+          <div
               class="flex align-items-center text-sm font-medium mt-2"
               v-if="emailChangeRequest"
-            >
-              Existe uma solicitação de troca de e-mail, você poderá cancelar a
-              solicitação clicando a seguir:
-              <Button
+          >
+            Existe uma solicitação de troca de e-mail, você poderá cancelar a
+            solicitação clicando a seguir:
+            <Button
                 variant="outline"
                 @click="cancelEmailChange"
                 :disabled="loadingCancelEmailChange"
                 class="mt-2"
-              >
-                <LucideSpinner
+            >
+              <LucideSpinner
                   v-if="loadingCancelEmailChange"
                   class="mr-2 h-4 w-4 animate-spin"
-                />
-                Cancelar Solicitação
-              </Button>
-            </div>
-          </div>
-          <div class="mb-3">
-            <Label for="language_id">Idioma</Label>
-            <Select id="language_id" v-model="form.language_id">
-              <SelectTrigger class="col-span-3">
-                <SelectValue placeholder="Selecione um idioma" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">Português</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div class="flex gap-2 justify-start">
-            <Button :disabled="loading" type="submit">
-              <LucideSpinner v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-              Atualizar perfil
+              />
+              Cancelar Solicitação
             </Button>
           </div>
-        </form>
-      </div>
+        </div>
+        <div class="mb-3">
+          <Label for="language_id">Idioma</Label>
+          <Select id="language_id" v-model="form.language_id">
+            <SelectTrigger class="col-span-3">
+              <SelectValue placeholder="Selecione um idioma" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Português</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div class="flex gap-2 justify-start">
+          <Button :disabled="loading" type="submit">
+            <LucideSpinner v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
+            Atualizar perfil
+          </Button>
+        </div>
+      </form>
       <div class="flex-1">
         <div class="my-2 flex flex-col items-center justify-center gap-2">
           <div class="mb-4 flex items-center justify-center gap-2">

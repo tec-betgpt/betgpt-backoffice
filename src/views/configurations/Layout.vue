@@ -8,7 +8,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 const workspaceStore = useWorkspaceStore();
 const activeGroupProject = workspaceStore.activeGroupProject;
 
-const sidebarNavItems: Item[] = [
+const sidebarNavItems: {title: string, route: string, show: boolean}[] = [
   {
     title: "Perfil",
     route: "configurations.profile",
@@ -36,7 +36,7 @@ const router = useRouter();
 </script>
 
 <template>
-  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+  <div class="h-fit w-full">
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">Configurações</h2>
       <p class="text-muted-foreground">
@@ -45,9 +45,9 @@ const router = useRouter();
     </div>
     <Separator class="my-6" />
     <div
-      class="mx-auto grid w-full max-w-6xl items-start gap-6 md:grid-cols-[180px_1fr] lg:grid-cols-[250px_1fr]"
+      class=" w-full h-fit mb-6 max-w-6xl items-start justify-start align-top gap-6 flex sm:flex-row flex-col"
     >
-      <nav class="grid gap-2 text-sm text-muted-foreground">
+      <nav class="grid gap-2 text-sm text-muted-foreground  w-full sm:max-w-60">
         <Button
           v-for="item in sidebarNavItems.filter((item) => item.show)"
           :key="item.title"
@@ -66,11 +66,7 @@ const router = useRouter();
           >
         </Button>
       </nav>
-      <div class="grid gap-6">
-        <div class="space-y-6">
-          <router-view />
-        </div>
-      </div>
+      <router-view />
     </div>
   </div>
 </template>
