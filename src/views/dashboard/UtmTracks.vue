@@ -157,7 +157,7 @@ watch(typeFilter.value, async () => {
   pages.value.current = 0;
 
   await fetchUtmTracks(pages.value.current);
-  await nextTick(() => renderChart());
+  // await nextTick(() => renderChart());
 })
 
 const workspaceStore = useWorkspaceStore();
@@ -195,6 +195,8 @@ const fetchUtmTracks = async (current = pages.value.current) => {
   }
 
   isLoading.value = false;
+
+  nextTick(() => renderChart())
 };
 
 const loadMore = async () => {
@@ -214,8 +216,6 @@ const setType = (type: any) => {
 
 onMounted(async () => {
   await fetchUtmTracks();
-
-  nextTick(() => renderChart())
 })
 
 const renderChart = () => {
