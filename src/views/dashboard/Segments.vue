@@ -932,8 +932,8 @@ const fetchSegments = async (current: number = pages.value.current) => {
   }
 };
 
-const prepareConditionValue = (condition: any, groupIndex: number) => {
-  const field = getField(condition, groupIndex);
+const prepareConditionValue = (condition: any, groupIndex: number,formIndex:number) => {
+  const field = getField(condition, groupIndex,formIndex);
   if (!field) return condition.value;
 
   if (["empty", "not_empty"].includes(condition.operator)) {
@@ -1000,7 +1000,7 @@ const saveSegment = async () => {
 
           const value = ["empty", "not_empty"].includes(condition.operator)
               ? ""
-              : prepareConditionValue(condition, groupIndex);
+              : prepareConditionValue(condition, groupIndex,index);
 
           return {
             field: condition.field,
@@ -1023,7 +1023,7 @@ const saveSegment = async () => {
     if (isEditing.value && form.value[0].id) {
       await Segments.update(form.value[0].id, payload);
     } else {
-      await Segments.create(payload);
+     await Segments.create(payload);
     }
 
     await fetchSegments();

@@ -29,11 +29,12 @@ export default {
   /**
    * POST /v1/segments
    *
-   * @param {object} payload
-   * @param {string} payload.name
-   * @param {string} payload.description
-   * @param {string|number} payload.filter_id
-   * @param {object} payload.conditions
+   * @param {Array<{
+   *   name: string,
+   *   description: string,
+   *   filter_id: string|number,
+   *   conditions: object
+   * }>} payload
    */
   async create(payload) {
     const { data } = await api.post("/segments", payload);
@@ -54,16 +55,18 @@ export default {
    * PUT /v1/segments/{id}
    *
    * @param {number} id
-   * @param {object} payload
-   * @param {string} payload.name
-   * @param {string} payload.description
-   * @param {string|number} payload.filter_id
-   * @param {object} payload.conditions
+   * @param {Array<{
+   *   name: string,
+   *   description: string,
+   *   filter_id: string|number,
+   *   conditions: object
+   * }>} payload
    */
   async update(id, payload) {
     const { data } = await api.put(`/segments/${id}`, payload);
     return data;
   },
+
 
   /**
    * DELETE /v1/segments/{id}
