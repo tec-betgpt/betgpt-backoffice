@@ -72,69 +72,9 @@
       </div>
 
       <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mt-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>SMS Enviado</CardTitle>
-          </CardHeader>
+        <PeriodComponent :period="sms" title="SMS Enviados" :isLoading="loading" />
+        <PeriodComponent :period="clicks" title="Cliques" :isLoading="loading" />
 
-          <Separator />
-
-          <CardContent>
-            <div class="mb-10">
-              <div class="text-sm text-gray-400 pt-3">Total SMS Enviado</div>
-              <div class="variation-horizontal">
-                <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
-                  <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('Total SMS Enviado', daily.sms).max }}
-                </div>
-                <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
-                  <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('Total SMS Enviado', daily.sms).min }}
-                </div>
-                <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
-                  <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('Total SMS Enviado', daily.sms).avg }}
-                </div>
-              </div>
-            </div>
-
-            <LineChart
-              :data="daily.sms"
-              index="date"
-              :categories="['Total SMS Enviado']"
-              :custom-tooltip="CustomChartTooltip"
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle >Cliques</CardTitle>
-          </CardHeader>
-
-          <Separator />
-
-          <CardContent>
-            <div class="mb-10">
-              <div class="text-sm text-gray-400 pt-3">Total Cliques</div>
-              <div class="variation-horizontal">
-                <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
-                  <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('Total Cliques', daily.clicks).max }}
-                </div>
-                <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
-                  <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('Total Cliques', daily.clicks).min }}
-                </div>
-                <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
-                  <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('Total Cliques', daily.clicks).avg }}
-                </div>
-              </div>
-            </div>
-
-            <LineChart
-              :data="daily.clicks"
-              index="date"
-              :categories="['Total Cliques']"
-              :custom-tooltip="CustomChartTooltip"
-            />
-          </CardContent>
-        </Card>
       </div>
 
       <Card class="w-full mt-4">
@@ -304,11 +244,14 @@ const { toast } = useToast();
 
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 const workspaceStore = useWorkspaceStore();
 
 const loading = ref(true);
 const last = ref([]);
 const daily = ref([]);
+const sms = ref<{ name: string; value: number[] }[]>([]);
+const clicks =ref<{ name: string; value: number[] }[]>([]);
 const recharges = ref([]);
 const campaigns = ref([]);
 
@@ -359,6 +302,9 @@ const applyFilter = async (current = pages.value.current) => {
 
     last.value = data.last;
     daily.value = data.daily;
+    sms.value = [{name:"Total SMS Enviado",value:data.daily.sms}]
+    clicks.value = [{name:"Total Cliques",value:data.daily.clicks}]
+
     recharges.value = data.recharges;
     campaigns.value = data.campaigns.data;
 
