@@ -13,6 +13,8 @@
       </CardHeader>
       <CardContent class="py-4">
         <CustomDataTable
+            :select="true"
+            @update:selected="onSelectedChanged"
           :loading="isLoading"
           :data="segments"
           :columns="columns"
@@ -23,12 +25,14 @@
         <CustomPagination :select-page="fetchSegments" :pages="pages" />
       </CardContent>
       <CardFooter class="flex justify-start">
-        <div class="flex gap-4 my-4 items-center">
+        <div class="flex sm:flex-row flex-col gap-4 my-4 items-center">
           <Button @click="openCreateModal">
             <PlusIcon class="mr-2 h-4 w-4" />
             Novo Segmento
           </Button>
-
+          <Button @click="exportSegment(exportSeg)" :disabled="!exportSeg.length">
+            <Download />  Exportar {{exportSeg.length>1?'Segmentos':'Segmento'}}
+          </Button>
           <Button variant="outline" asChild>
             <label for="import-segment" class="cursor-pointer">
               <UploadIcon class="mr-2 h-4 w-4" />
@@ -36,18 +40,21 @@
               <input
                 id="import-segment"
                 type="file"
+                name="files[]"
                 accept=".json"
                 @change="importSegment"
                 class="hidden"
+                multiple
               />
             </label>
           </Button>
+
         </div>
       </CardFooter>
     </Card>
 
     <Dialog v-model:open="showModal">
-      <DialogContent class="sm:max-w-4xl">
+      <DialogContent  class="sm:max-w-4xl max-h-[90dvh] overflow-y-scroll ">
         <DialogHeader>
           <DialogTitle>
             {{ isEditing ? "Editar Segmento" : "Criar Novo Segmento" }}
@@ -57,7 +64,7 @@
           </DialogDescription>
         </DialogHeader>
 
-        <div class="grid gap-4 py-4">
+        <Card class="grid gap-4 p-4" v-for="(form,formIndex) in form">
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="name" class="text-right">Nome do Segmento</Label>
             <Input
@@ -93,7 +100,7 @@
                 <Button
                   variant="ghost"
                   size="sm"
-                  @click="removeConditionGroup(groupIndex)"
+                  @click="removeConditionGroup(groupIndex,formIndex)"
                   class="text-destructive"
                 >
                   <Trash2Icon class="h-4 w-4" />
@@ -157,7 +164,7 @@
                         <SelectGroup>
                           <SelectLabel>Operadores</SelectLabel>
                           <SelectItem
-                            v-for="op in getOperators(condition, groupIndex)"
+                            v-for="op in getOperators(condition, groupIndex,formIndex)"
                             :key="op"
                             :value="op"
                           >
@@ -169,7 +176,7 @@
 
                     <Input
                       v-if="
-                        showTextInput(condition, groupIndex) &&
+                        showTextInput(condition, groupIndex,formIndex) &&
                         !['empty', 'not_empty'].includes(condition.operator)
                       "
                       v-model="condition.value"
@@ -179,7 +186,7 @@
 
                     <Input
                       v-else-if="
-                        showNumberInput(condition, groupIndex) &&
+                        showNumberInput(condition, groupIndex,formIndex) &&
                         !['empty', 'not_empty'].includes(condition.operator)
                       "
                       v-model.number="condition.value"
@@ -190,7 +197,7 @@
 
                     <div
                       v-else-if="
-                        showDateInput(condition, groupIndex) &&
+                        showDateInput(condition, groupIndex,formIndex) &&
                         !['empty', 'not_empty'].includes(condition.operator)
                       "
                       class="flex items-center gap-2 flex-1"
@@ -272,7 +279,7 @@
                     </div>
 
                     <Select
-                      v-else-if="showBooleanInput(condition, groupIndex)"
+                      v-else-if="showBooleanInput(condition, groupIndex,formIndex)"
                       v-model="condition.value"
                       class="flex-1"
                     >
@@ -289,7 +296,7 @@
                       v-if="group.conditions.length > 1"
                       variant="ghost"
                       size="sm"
-                      @click="removeCondition(groupIndex, conditionIndex)"
+                      @click="removeCondition(groupIndex, conditionIndex,formIndex)"
                       class="text-destructive"
                     >
                       <Trash2Icon class="h-4 w-4" />
@@ -300,7 +307,7 @@
                 <Button
                   variant="outline"
                   size="sm"
-                  @click="addCondition(groupIndex)"
+                  @click="addCondition(groupIndex,formIndex)"
                   class="mt-2"
                 >
                   <PlusIcon class="mr-2 h-4 w-4" />
@@ -328,7 +335,7 @@
               </div>
             </div>
 
-            <Button variant="outline" @click="addConditionGroup">
+            <Button variant="outline" @click="addConditionGroup(formIndex)">
               <PlusIcon class="mr-2 h-4 w-4" />
               Adicionar Grupo de Condições
             </Button>
@@ -341,7 +348,9 @@
             <div class="col-span-3 space-y-2">
               <Select
                 v-model="selectedSavedSegment"
-                @update:model-value="loadSavedSegment"
+                @update:model-value="(value)=>{
+                  loadSavedSegment(value,formIndex)
+                }"
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Carregar segmento salvo" />
@@ -382,7 +391,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         <DialogFooter>
           <Button variant="outline" @click="showModal = false">
@@ -452,7 +461,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowDown, ArrowUp, RefreshCcw, UploadIcon } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, RefreshCcw, UploadIcon, Download } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import {
   Dialog,
@@ -497,7 +506,6 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
 const { t } = useI18n();
@@ -518,7 +526,6 @@ const hasMoreContacts = ref(false);
 const currentContactsPage = ref(1);
 const contacts = ref<any[]>([]);
 const currentSegmentId = ref<number | null>(null);
-
 const operatorMap = {
   string: [
     "equals",
@@ -552,8 +559,8 @@ const operatorMap = {
   ],
   boolean: ["is", "is_not", "empty", "not_empty"],
 };
-
-const form = ref({
+const exportSeg = ref([])
+const form = ref([{
   id: null as number | null,
   name: "",
   description: "",
@@ -579,7 +586,7 @@ const form = ref({
       daysOffset?: number;
     }>;
   }>,
-});
+}]);
 
 const segments = ref<Array<any>>([]);
 const savedSegments = ref<Array<any>>([]);
@@ -594,32 +601,34 @@ interface SegmentData {
   name: string;
   description: string;
 }
-
-const getField = (condition: any, groupIndex: number) => {
-  const group = form.value.conditionGroups[groupIndex];
+const onSelectedChanged = (value)=>{
+ exportSeg.value = value.map(v=>v.id)
+}
+const getField = (condition: any, groupIndex: number,formIndex:number) => {
+  const group = form.value[formIndex].conditionGroups[groupIndex];
   return condition?.field
     ? group.fields.find((f) => f.field_key === condition.field)
     : null;
 };
 
-const getOperators = (condition: any, groupIndex: number) => {
-  const field = getField(condition, groupIndex);
+const getOperators = (condition: any, groupIndex: number,formIndex:number) => {
+  const field = getField(condition, groupIndex,formIndex);
   return field
     ? operatorMap[field.data_type as keyof typeof operatorMap] || []
     : [];
 };
 
-const showTextInput = (condition: any, groupIndex: number) =>
-  getField(condition, groupIndex)?.data_type === "string";
+const showTextInput = (condition: any, groupIndex: number,formIndex:number) =>
+  getField(condition, groupIndex,formIndex)?.data_type === "string";
 
-const showNumberInput = (condition: any, groupIndex: number) =>
-  getField(condition, groupIndex)?.data_type === "number";
+const showNumberInput = (condition: any, groupIndex: number,formIndex:number) =>
+  getField(condition, groupIndex,formIndex)?.data_type === "number";
 
-const showDateInput = (condition: any, groupIndex: number) =>
-  getField(condition, groupIndex)?.data_type === "date";
+const showDateInput = (condition: any, groupIndex: number,formIndex:number) =>
+  getField(condition, groupIndex,formIndex)?.data_type === "date";
 
-const showBooleanInput = (condition: any, groupIndex: number) =>
-  getField(condition, groupIndex)?.data_type === "boolean";
+const showBooleanInput = (condition: any, groupIndex: number,formIndex:number) =>
+  getField(condition, groupIndex,formIndex)?.data_type === "boolean";
 
 const fetchSegmentFields = async () => {
   try {
@@ -653,7 +662,7 @@ const openCreateModal = () => {
 };
 
 const resetForm = () => {
-  form.value = {
+  form.value = [{
     id: null,
     name: "",
     description: "",
@@ -672,18 +681,18 @@ const resetForm = () => {
         },
       ],
     })),
-  };
+  }];
   selectedSavedSegment.value = null;
 };
 
-const updateFormFields = () => {
-  form.value.conditionGroups.forEach((group) => {
+const updateFormFields = (formIndex:number) => {
+  form.value[formIndex].conditionGroups.forEach((group) => {
     group.fields = [...allFields.value.flatMap((g) => g.fields)];
   });
 };
 
-const addConditionGroup = () => {
-  form.value.conditionGroups.push({
+const addConditionGroup = (index:number) => {
+  form.value[index].conditionGroups.push({
     name: allFields.value[0]?.name || "Novo Grupo",
     groupOperator: "AND",
     fields: [...(allFields.value[0]?.fields || [])],
@@ -699,9 +708,9 @@ const addConditionGroup = () => {
   });
 };
 
-const removeConditionGroup = (groupIndex: number) => {
-  if (form.value.conditionGroups.length > 1) {
-    form.value.conditionGroups.splice(groupIndex, 1);
+const removeConditionGroup = (groupIndex: number,formIndex:number)  => {
+  if (form.value[formIndex].conditionGroups.length > 1) {
+    form.value[formIndex].conditionGroups.splice(groupIndex, 1);
   } else {
     toast({
       title: "Aviso",
@@ -711,8 +720,8 @@ const removeConditionGroup = (groupIndex: number) => {
   }
 };
 
-const addCondition = (groupIndex: number) => {
-  form.value.conditionGroups[groupIndex].conditions.push({
+const addCondition = (groupIndex: number, formIndex:number) => {
+  form.value[formIndex].conditionGroups[groupIndex].conditions.push({
     conditionOperator: "AND",
     field: "",
     operator: "",
@@ -721,9 +730,9 @@ const addCondition = (groupIndex: number) => {
   });
 };
 
-const removeCondition = (groupIndex: number, conditionIndex: number) => {
-  if (form.value.conditionGroups[groupIndex].conditions.length > 1) {
-    form.value.conditionGroups[groupIndex].conditions.splice(conditionIndex, 1);
+const removeCondition = (groupIndex: number, conditionIndex: number,formIndex:number) => {
+  if (form.value[formIndex].conditionGroups[groupIndex].conditions.length > 1) {
+    form.value[formIndex].conditionGroups[groupIndex].conditions.splice(conditionIndex, 1);
   } else {
     toast({
       title: "Aviso",
@@ -733,7 +742,7 @@ const removeCondition = (groupIndex: number, conditionIndex: number) => {
   }
 };
 
-const loadSavedSegment = async (segmentId: number) => {
+const loadSavedSegment = async (segmentId: number,formIndex:number) => {
   try {
     isLoading.value = true;
     const segment = savedSegments.value.find((s) => s.id === segmentId);
@@ -816,8 +825,8 @@ const loadSavedSegment = async (segmentId: number) => {
       };
     });
 
-    form.value = {
-      ...form.value,
+    form.value = [{
+      ...form.value[formIndex],
       conditionGroups:
         newConditionGroups.length > 0
           ? newConditionGroups
@@ -837,12 +846,12 @@ const loadSavedSegment = async (segmentId: number) => {
                 ],
               },
             ],
-    };
+    }];
 
-    form.value.conditionGroups.forEach((group, groupIndex) => {
+    form.value[formIndex].conditionGroups.forEach((group, groupIndex) => {
       group.conditions.forEach((condition) => {
         if (condition.field) {
-          const validOperators = getOperators(condition, groupIndex);
+          const validOperators = getOperators(condition, groupIndex,formIndex);
           if (validOperators && !validOperators.includes(condition.operator)) {
             condition.operator = "";
           }
@@ -866,8 +875,8 @@ const clearSelectedSegment = () => {
   resetForm();
 };
 
-const clearAllConditions = () => {
-  form.value.conditionGroups = [
+const clearAllConditions = (formIndex:number) => {
+  form.value[formIndex].conditionGroups = [
     {
       name: "Novo Grupo",
       groupOperator: "AND",
@@ -928,8 +937,8 @@ const fetchSegments = async (current: number = pages.value.current) => {
   }
 };
 
-const prepareConditionValue = (condition: any, groupIndex: number) => {
-  const field = getField(condition, groupIndex);
+const prepareConditionValue = (condition: any, groupIndex: number,formIndex:number) => {
+  const field = getField(condition, groupIndex,formIndex);
   if (!field) return condition.value;
 
   if (["empty", "not_empty"].includes(condition.operator)) {
@@ -961,60 +970,65 @@ const prepareConditionValue = (condition: any, groupIndex: number) => {
 
 const saveSegment = async () => {
   isProcessing.value = true;
+
   try {
-    if (!form.value.name) {
+
+    if (!form.value.filter((f) => f.name)) {
       throw new Error("O nome do segmento é obrigatório");
     }
 
-    const hasValidConditions = form.value.conditionGroups.some((group) =>
-      group.conditions.some(
+    const hasValidConditions = form.value.map(seg=>seg.conditionGroups).some((group) =>
+    group.map(value => value.conditions.some(
         (condition) =>
-          condition.field &&
-          condition.operator &&
-          (["empty", "not_empty"].includes(condition.operator) ||
-            condition.value !== undefined)
-      )
+            condition.field &&
+            condition.operator &&
+            (["empty", "not_empty"].includes(condition.operator) ||
+                condition.value !== undefined)
+    ))
     );
 
     if (!hasValidConditions) {
       throw new Error("Defina pelo menos uma condição válida");
     }
 
-    const payload = {
-      name: form.value.name,
-      description: form.value.description,
-      filter_id: activeGroupProjectId,
-      conditions: {
-        global_operator: form.value.globalOperator,
-        groups: form.value.conditionGroups.map((group, groupIndex) => ({
-          group_operator: group.groupOperator,
-          conditions: group.conditions.map((condition) => {
-            const field = getField(condition, groupIndex);
+    const payload = form.value.map((seg,index)=>
+    ({
+      name: seg.name,
+          description: seg.description,
+        filter_id: activeGroupProjectId,
+        conditions: {
+      global_operator: seg.globalOperator,
+          groups: seg.conditionGroups.map((group, groupIndex) => ({
+        group_operator: group.groupOperator,
+        conditions: group.conditions.map((condition) => {
+          const field = getField(condition, groupIndex,index);
 
-            const value = ["empty", "not_empty"].includes(condition.operator)
+          const value = ["empty", "not_empty"].includes(condition.operator)
               ? ""
-              : prepareConditionValue(condition, groupIndex);
+              : prepareConditionValue(condition, groupIndex,index);
 
-            return {
-              field: condition.field,
-              operator: condition.operator,
-              value: value,
-              condition_operator: condition.conditionOperator,
-              modifier: condition.modifier,
-              dateType: condition.dateType,
-              dateModifier: condition.dateModifier,
-              dateFilter: condition.dateFilter,
-              daysOffset: condition.daysOffset,
-            };
-          }),
-        })),
-      },
-    };
+          return {
+            field: condition.field,
+            operator: condition.operator,
+            value: value,
+            condition_operator: condition.conditionOperator,
+            modifier: condition.modifier,
+            dateType: condition.dateType,
+            dateModifier: condition.dateModifier,
+            dateFilter: condition.dateFilter,
+            daysOffset: condition.daysOffset,
+          };
+        }),
+      })),
+    },
+    })
+    )
 
-    if (isEditing.value && form.value.id) {
-      await Segments.update(form.value.id, payload);
+
+    if (isEditing.value && form.value[0].id) {
+      await Segments.update(form.value[0].id, payload);
     } else {
-      await Segments.create(payload);
+     await Segments.create(payload);
     }
 
     await fetchSegments();
@@ -1064,7 +1078,6 @@ const handleExportContacts = async () => {
     toast({
       title: "Sucesso!",
       description: "O arquivo está sendo preparado para download...",
-      variant: "success",
     });
 
     const params = {
@@ -1095,13 +1108,14 @@ const handleExportContacts = async () => {
 };
 
 const handleEdit = (segment: any) => {
+  resetForm()
   isEditing.value = true;
-  form.value.id = segment.id;
-  form.value.name = segment.name;
-  form.value.description = segment.description;
-  form.value.globalOperator = "AND";
+  form.value[0].id = segment.id;
+  form.value[0].name = segment.name;
+  form.value[0].description = segment.description;
+  form.value[0].globalOperator = "AND";
   selectedSavedSegment.value = segment.id;
-  loadSavedSegment(segment.id);
+  loadSavedSegment(segment.id,0);
   showModal.value = true;
 };
 
@@ -1148,14 +1162,13 @@ const loadMoreContacts = async () => {
   await fetchContacts(currentContactsPage.value);
 };
 
-const exportSegment = async (segmentId: number) => {
+const exportSegment = async (segmentId:Array<number>) => {
   try {
     toast({
       title: "Exportação iniciada",
       description: "Exportação do Segmento em andamento...",
       variant: "default",
     });
-
     const response = await Segments.export(segmentId);
 
     const blob = new Blob([JSON.stringify(response.data, null, 2)], {
@@ -1189,13 +1202,21 @@ const importSegment = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (!input.files?.length) return;
 
-  const file = input.files[0];
 
   try {
-    const fileContent = await file.text();
-    const segmentData = JSON.parse(fileContent);
-
-    form.value = {
+    const files = input.files;
+    var f = []
+    for (const file of files) {
+      const fileContent = await file.text();
+      var json = JSON.parse(fileContent);
+      if (Array.isArray(json)) {
+      json.forEach(v=>f.push(v))
+      }else {
+        f.push(json)
+      }
+      console.log(f)
+    }
+    form.value = f.map(segmentData=> ({
       id: null,
       name: segmentData.name + " (Importado)",
       description: segmentData.description,
@@ -1216,11 +1237,9 @@ const importSegment = async (event: Event) => {
           daysOffset: condition.daysOffset,
         })),
       })),
-    };
-
+    }))
     showModal.value = true;
     isEditing.value = false;
-
     toast({
       title: "Sucesso",
       description:
@@ -1490,13 +1509,13 @@ const columns = [
             },
             "Editar"
           ),
-          h(
-            DropdownMenuItem,
-            {
-              onClick: () => exportSegment(row.original.id),
-            },
-            "Exportar"
-          ),
+          // h(
+          //   DropdownMenuItem,
+          //   {
+          //     onClick: () => exportSegment(row.original.id),
+          //   },
+          //   "Exportar"
+          // ),
           h(
             DropdownMenuItem,
             {
@@ -1558,40 +1577,43 @@ watch(selectedSavedSegment, (newValue) => {
 });
 
 watch(
-  () => form.value.conditionGroups,
-  (groups) => {
-    groups?.forEach((group, groupIndex) => {
-      group?.conditions?.forEach((condition) => {
-        if (condition.field && condition.operator) {
-          const field = getField(condition, groupIndex);
-          if (field) {
-            if (["empty", "not_empty"].includes(condition.operator)) {
-              condition.value = "";
-              condition.dateType = undefined;
-              condition.dateModifier = undefined;
-              condition.daysOffset = undefined;
+    () => form.value.map(f => f.conditionGroups),
+    (allGroups) => {
+      allGroups.forEach((groups, formIndex) => {
+        groups?.forEach((group, groupIndex) => {
+          group?.conditions?.forEach((condition) => {
+            if (condition.field && condition.operator) {
+              const field = getField(condition, groupIndex,formIndex);
+              if (field) {
+                if (["empty", "not_empty"].includes(condition.operator)) {
+                  condition.value = "";
+                  condition.dateType = undefined;
+                  condition.dateModifier = undefined;
+                  condition.daysOffset = undefined;
+                }
+
+                if (
+                    field.data_type === "date" &&
+                    !showDateInput(condition, groupIndex,formIndex)
+                ) {
+                  condition.dateType = undefined;
+                  condition.dateModifier = undefined;
+                  condition.daysOffset = undefined;
+                }
+              }
             }
 
-            if (
-              field.data_type === "date" &&
-              !showDateInput(condition, groupIndex)
-            ) {
-              condition.dateType = undefined;
-              condition.dateModifier = undefined;
-              condition.daysOffset = undefined;
+            if (condition?.field && condition?.operator) {
+              const validOperators = getOperators(condition, groupIndex,formIndex);
+              if (validOperators && !validOperators.includes(condition.operator)) {
+                condition.operator = "";
+              }
             }
-          }
-        }
-
-        if (condition?.field && condition?.operator) {
-          const validOperators = getOperators(condition, groupIndex);
-          if (validOperators && !validOperators.includes(condition.operator)) {
-            condition.operator = "";
-          }
-        }
+          });
+        });
       });
-    });
-  },
-  { deep: true }
+    },
+    { deep: true }
 );
+
 </script>

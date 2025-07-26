@@ -24,11 +24,7 @@ const sidebarNavItems: {title: string, route: string, show: boolean}[] = [
     route: "configurations.notifications",
     show: true,
   },
-  {
-    title: "Projetos",
-    route: "configurations.projects",
-    show: true,
-  },
+
 
 ];
 
