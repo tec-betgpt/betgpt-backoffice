@@ -33,6 +33,10 @@
         v-for="headerGroup in table.getHeaderGroups()"
         :key="headerGroup.id"
       >
+        <TableHead v-if="props.select">
+          <input type="checkbox" disabled />
+        </TableHead>
+
         <TableHead v-for="header in headerGroup.headers" :key="header.id">
           <FlexRender
             :render="header.column.columnDef.header"
@@ -59,6 +63,13 @@
         </TableRow>
       </template>
       <TableRow v-else v-for="row in table.getRowModel().rows" :key="row.id">
+        <TableCell v-if="props.select">
+          <input
+              type="checkbox"
+              :checked="selectedRowIds.has(row.id)"
+              @change="toggleRowSelection(row.id)"
+          />
+        </TableCell>
         <TableCell v-for="cell in row.getVisibleCells()"  :key="cell.id">
           <FlexRender
             :render="cell.column.columnDef.cell"
@@ -128,10 +139,14 @@ const props = defineProps({
   head:{
     type: Object as PropType<Record<string, any>>,
     required:false
+  },
+  select:{
+    type:Boolean,
+    default:false
   }
 
 });
-
+const emit = defineEmits(['update:selected'])
 const dataTable = ref([...props.data]);
 const searchValues = ref<Record<string, string>>({});
 const table = ref(
@@ -141,7 +156,18 @@ const table = ref(
     getCoreRowModel: getCoreRowModel(),
   })
 );
-
+const selectedRowIds = ref(new Set()) // armazenar IDs selecionados
+const selectedRows = computed(() =>
+    table.value.getRowModel().rows.filter(row => selectedRowIds.value.has(row.id))
+)
+function toggleRowSelection(rowId) {
+  if (selectedRowIds.value.has(rowId)) {
+    selectedRowIds.value.delete(rowId)
+  } else {
+    selectedRowIds.value.add(rowId)
+  }
+  emit('update:selected', selectedRows.value.map(r => r.original))
+}
 watch(
   () => props.data,
   (newData) => {

@@ -13,6 +13,8 @@
       </CardHeader>
       <CardContent class="py-4">
         <CustomDataTable
+            :select="true"
+            @update:selected="onSelectedChanged"
           :loading="isLoading"
           :data="segments"
           :columns="columns"
@@ -23,12 +25,14 @@
         <CustomPagination :select-page="fetchSegments" :pages="pages" />
       </CardContent>
       <CardFooter class="flex justify-start">
-        <div class="flex gap-4 my-4 items-center">
+        <div class="flex sm:flex-row flex-col gap-4 my-4 items-center">
           <Button @click="openCreateModal">
             <PlusIcon class="mr-2 h-4 w-4" />
             Novo Segmento
           </Button>
-
+          <Button @click="exportSegment(exportSeg)" :disabled="!exportSeg.length">
+            <Download />  Exportar {{exportSeg.length>1?'Segmentos':'Segmento'}}
+          </Button>
           <Button variant="outline" asChild>
             <label for="import-segment" class="cursor-pointer">
               <UploadIcon class="mr-2 h-4 w-4" />
@@ -44,6 +48,7 @@
               />
             </label>
           </Button>
+
         </div>
       </CardFooter>
     </Card>
@@ -456,7 +461,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowDown, ArrowUp, RefreshCcw, UploadIcon } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, RefreshCcw, UploadIcon, Download } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import {
   Dialog,
@@ -501,7 +506,6 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
 const { t } = useI18n();
@@ -522,7 +526,6 @@ const hasMoreContacts = ref(false);
 const currentContactsPage = ref(1);
 const contacts = ref<any[]>([]);
 const currentSegmentId = ref<number | null>(null);
-
 const operatorMap = {
   string: [
     "equals",
@@ -556,7 +559,7 @@ const operatorMap = {
   ],
   boolean: ["is", "is_not", "empty", "not_empty"],
 };
-
+const exportSeg = ref([])
 const form = ref([{
   id: null as number | null,
   name: "",
@@ -598,7 +601,9 @@ interface SegmentData {
   name: string;
   description: string;
 }
-
+const onSelectedChanged = (value)=>{
+ exportSeg.value = value.map(v=>v.id)
+}
 const getField = (condition: any, groupIndex: number,formIndex:number) => {
   const group = form.value[formIndex].conditionGroups[groupIndex];
   return condition?.field
@@ -820,7 +825,7 @@ const loadSavedSegment = async (segmentId: number,formIndex:number) => {
       };
     });
 
-    form.value = [...form.value,{
+    form.value = [{
       ...form.value[formIndex],
       conditionGroups:
         newConditionGroups.length > 0
@@ -1103,6 +1108,7 @@ const handleExportContacts = async () => {
 };
 
 const handleEdit = (segment: any) => {
+  resetForm()
   isEditing.value = true;
   form.value[0].id = segment.id;
   form.value[0].name = segment.name;
@@ -1156,14 +1162,13 @@ const loadMoreContacts = async () => {
   await fetchContacts(currentContactsPage.value);
 };
 
-const exportSegment = async (segmentId: number) => {
+const exportSegment = async (segmentId:Array<number>) => {
   try {
     toast({
       title: "Exportação iniciada",
       description: "Exportação do Segmento em andamento...",
       variant: "default",
     });
-
     const response = await Segments.export(segmentId);
 
     const blob = new Blob([JSON.stringify(response.data, null, 2)], {
@@ -1199,13 +1204,17 @@ const importSegment = async (event: Event) => {
 
 
   try {
-
     const files = input.files;
     var f = []
-
     for (const file of files) {
       const fileContent = await file.text();
-      f.push(JSON.parse(fileContent));
+      var json = JSON.parse(fileContent);
+      if (Array.isArray(json)) {
+      json.forEach(v=>f.push(v))
+      }else {
+        f.push(json)
+      }
+      console.log(f)
     }
     form.value = f.map(segmentData=> ({
       id: null,
@@ -1500,13 +1509,13 @@ const columns = [
             },
             "Editar"
           ),
-          h(
-            DropdownMenuItem,
-            {
-              onClick: () => exportSegment(row.original.id),
-            },
-            "Exportar"
-          ),
+          // h(
+          //   DropdownMenuItem,
+          //   {
+          //     onClick: () => exportSegment(row.original.id),
+          //   },
+          //   "Exportar"
+          // ),
           h(
             DropdownMenuItem,
             {
