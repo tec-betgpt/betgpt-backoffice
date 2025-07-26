@@ -64,7 +64,7 @@
           </DialogDescription>
         </DialogHeader>
 
-        <div class="grid gap-4 py-4" v-for="(form,formIndex) in form">
+        <Card class="grid gap-4 p-4" v-for="(form,formIndex) in form">
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="name" class="text-right">Nome do Segmento</Label>
             <Input
@@ -391,7 +391,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         <DialogFooter>
           <Button variant="outline" @click="showModal = false">
