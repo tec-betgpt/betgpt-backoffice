@@ -1,7 +1,7 @@
 <template>
   <SidebarProvider>
     <Sidebar
-        class="h-screen"
+      class="h-screen"
       collapsible="icon"
       @update:modelValue="handleSidebarExpand"
       :collapsed="sidebarExpanded"
@@ -194,8 +194,8 @@
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <SidebarMenuButton
-                size="lg"
-                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              size="lg"
+              class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar class="h-8 w-8 rounded-lg">
                 <AvatarImage :src="authStore.user?.icon" />
@@ -204,25 +204,25 @@
                 </AvatarFallback>
               </Avatar>
               <div class="grid flex-1 text-left text-sm leading-tight">
-                    <span class="truncate font-semibold">{{
-                        authStore.user?.first_name
-                      }}</span>
+                <span class="truncate font-semibold">{{
+                  authStore.user?.first_name
+                }}</span>
                 <span class="truncate text-xs">{{
-                    authStore.user?.email
-                  }}</span>
+                  authStore.user?.email
+                }}</span>
               </div>
               <ChevronsUpDown class="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-              class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-              side="bottom"
-              align="end"
-              :side-offset="4"
+            class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            side="bottom"
+            align="end"
+            :side-offset="4"
           >
             <DropdownMenuLabel class="p-0 font-normal">
               <div
-                  class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
+                class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
               >
                 <Avatar class="h-8 w-8 rounded-lg">
                   <AvatarFallback class="rounded-lg">
@@ -230,12 +230,12 @@
                   </AvatarFallback>
                 </Avatar>
                 <div class="grid flex-1 text-left text-sm leading-tight">
-                      <span class="truncate font-semibold">{{
-                          authStore.user?.name
-                        }}</span>
+                  <span class="truncate font-semibold">{{
+                    authStore.user?.name
+                  }}</span>
                   <span class="truncate text-xs">{{
-                      authStore.user?.email
-                    }}</span>
+                    authStore.user?.email
+                  }}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -243,10 +243,10 @@
             <DropdownMenuItem>
               <router-link
                 class="w-full"
-                :to="{ name: 'configurations.profile' }">
+                :to="{ name: 'configurations.profile' }"
+              >
                 Configurações
-              </router-link
-            ></DropdownMenuItem
+              </router-link></DropdownMenuItem
             >
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="logout">
@@ -511,6 +511,7 @@ import {
   Briefcase,
   DollarSignIcon,
   Blocks,
+  Logs,
   UserCog,
   LayoutList,
 } from "lucide-vue-next";
@@ -1103,6 +1104,32 @@ const navMenu = computed(() => {
                 .some((role) =>
                   role.permissions.some(
                     (permission) => permission.name === "access-to-integrations"
+                  )
+                )),
+        },
+        {
+          name: "Postback Logs",
+          url: { name: "postback-logs" },
+          icon: Logs,
+          show:
+            activeGroupProject &&
+            activeGroupProject.value?.type === "project" &&
+            ((authStore.user?.access_type === "member" &&
+              authStore.user?.roles.some((role) =>
+                role.permissions.some(
+                  (permission) => permission.name === "access-to-postback-logs"
+                )
+              )) ||
+              authStore.user?.roles
+                .filter(
+                  (role) =>
+                    activeGroupProject &&
+                    role.pivot.project_id === activeGroupProject.project_id
+                )
+                .some((role) =>
+                  role.permissions.some(
+                    (permission) =>
+                      permission.name === "access-to-postback-logs"
                   )
                 )),
         },

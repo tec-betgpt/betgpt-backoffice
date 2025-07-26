@@ -31,6 +31,7 @@ import JarbasBOT from "@/views/dashboard/JarbasBOT.vue";
 import Integrations from "@/views/dashboard/Integrations.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
 import GroupProjects from "@/views/dashboard/GroupProjects.vue";
+import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
 
 const routes = [
   {
@@ -348,6 +349,18 @@ const routes = [
           requiresAuth: true,
           roles: "member|client",
           permissions: "access-to-integrations",
+          title: "Integrações",
+        },
+      },
+      {
+        path: "postback-logs",
+        name: "postback-logs",
+        component: PostbackLogs,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-postback-logs",
           title: "Integrações",
         },
       },
