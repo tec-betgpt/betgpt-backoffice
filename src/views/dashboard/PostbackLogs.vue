@@ -129,7 +129,7 @@
     </div>
 
     <Dialog v-model:open="isPayloadModalOpen">
-      <DialogContent class="sm:max-w-[800px]">
+      <DialogContent class="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Payload do Postback</DialogTitle>
           <DialogDescription>
@@ -166,9 +166,11 @@
             </div>
           </div>
 
-          <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded-md">
+          <div
+            class="bg-gray-100 dark:bg-gray-800 p-4 rounded-md max-h-[60vh] overflow-y-auto"
+          >
             <pre
-              class="text-sm overflow-auto max-h-[500px] text-gray-900 dark:text-gray-100 font-mono"
+              class="text-sm text-gray-900 dark:text-gray-100 font-mono whitespace-pre-wrap break-all"
               >{{ formattedPayload }}</pre
             >
           </div>
