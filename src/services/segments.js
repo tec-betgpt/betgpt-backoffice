@@ -121,11 +121,16 @@ export default {
    * GET /v1/segments/{id}/export
    * Exporta um segmento como JSON
    *
-   * @param {Array<number>} ids
+   * @param {object} params
+   * @param {number} params.project_id
+   * @param {Array<number>} params.target_project_ids
+   * @param {Array<number>} params.segment_ids
    */
-  async export(ids) {
+  async export(params) {
     const { data } = await api.post(`/segments/export`,{
-      ids:ids
+      project_id : params.project_id,
+      target_project_ids : params.target_project_ids,
+      segment_ids : params.segment_ids
     });
     return data;
   },
