@@ -30,24 +30,10 @@
             <PlusIcon class="mr-2 h-4 w-4" />
             Novo Segmento
           </Button>
-          <Button @click="exportSegment(exportSeg)" :disabled="!exportSeg.length">
+          <Button @click="showExport = true" :disabled="!exportSeg.length">
             <Download />  Exportar {{exportSeg.length>1?'Segmentos':'Segmento'}}
           </Button>
-          <Button variant="outline" asChild>
-            <label for="import-segment" class="cursor-pointer">
-              <UploadIcon class="mr-2 h-4 w-4" />
-              Importar Segmento
-              <input
-                id="import-segment"
-                type="file"
-                name="files[]"
-                accept=".json"
-                @change="importSegment"
-                class="hidden"
-                multiple
-              />
-            </label>
-          </Button>
+
 
         </div>
       </CardFooter>
@@ -447,6 +433,35 @@
         </div>
       </DialogContent>
     </Dialog>
+    <Dialog v-model:open="showExport">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Exportar Segmentos</DialogTitle>
+        </DialogHeader>
+        <DialogDescription>
+          Selecione os projetos que irão receber os segmentos selecionados.
+        </DialogDescription>
+          <div class="flex flex-col gap-2">
+            <div v-for="project in listGroupProject" class="flex items-center gap-2">
+              <Checkbox
+                         :class="{'hidden':activeGroupProjectId === project.id}"
+                         :checked="selectProjects.includes(project.id)"
+                         :id="project.id" @update:checked="(value) => value? selectProjects.push(project.id): selectProjects.splice(selectProjects.indexOf(project.id), 1)"/>
+              <label
+                  :for="project.id"
+                  class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  :class="{'hidden':activeGroupProjectId === project.id}"
+
+              >
+                {{project.name}}
+              </label>
+            </div>
+          </div>
+        <DialogFooter>
+          <Button @click="exportSegment" > Exportar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -515,10 +530,12 @@ const { toast } = useToast();
 const isLoading = ref(false);
 const isProcessing = ref(false);
 const showModal = ref(false);
+const showExport = ref(false)
 const isEditing = ref(false);
 const selectedSavedSegment = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const listGroupProject = workspaceStore.group_projects.filter(value => value.id !== activeGroupProjectId)
 
 const showContactsDialog = ref(false);
 const isLoadingContacts = ref(false);
@@ -560,6 +577,7 @@ const operatorMap = {
   boolean: ["is", "is_not", "empty", "not_empty"],
 };
 const exportSeg = ref([])
+const selectProjects = ref([])
 const form = ref([{
   id: null as number | null,
   name: "",
@@ -1162,27 +1180,17 @@ const loadMoreContacts = async () => {
   await fetchContacts(currentContactsPage.value);
 };
 
-const exportSegment = async (segmentId:Array<number>) => {
+const exportSegment = async () => {
   try {
+
+    await Segments.export({project_id:activeGroupProjectId,segment_ids:exportSeg.value,target_project_ids:selectProjects.value});
     toast({
       title: "Exportação iniciada",
       description: "Exportação do Segmento em andamento...",
       variant: "default",
     });
-    const response = await Segments.export(segmentId);
 
-    const blob = new Blob([JSON.stringify(response.data, null, 2)], {
-      type: "application/json",
-    });
-    const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `segment-${segmentId}-export.json`;
-    link.click();
-
-    window.URL.revokeObjectURL(url);
-
+    showExport.value = false
     toast({
       title: "Sucesso",
       description: "Segmento exportado com sucesso",
@@ -1214,7 +1222,6 @@ const importSegment = async (event: Event) => {
       }else {
         f.push(json)
       }
-      console.log(f)
     }
     form.value = f.map(segmentData=> ({
       id: null,

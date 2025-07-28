@@ -162,7 +162,7 @@
                         class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
                         shape="square"
                       >
-                        <component :is="subItem.icon" />
+                        <Component :is="subItem.icon" :color="iconColor"  />
                       </Avatar>
                       <span
                         class="font-medium"
@@ -362,6 +362,8 @@ import VideoBackground from "vue-responsive-video-background-player";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { formatLargeNumber } from "@/filters/formatLargeNumber.js";
 import { useAuthStore } from "@/stores/auth";
+import {useColorMode} from "@vueuse/core";
+import {color} from "chart.js/helpers";
 
 const { toast } = useToast();
 
@@ -401,6 +403,9 @@ export default {
         return { ...group, content: newContent };
       });
     },
+    iconColor(){
+      return this.color == "dark" ? "white" : "black"
+    },
   },
 
   components: {
@@ -434,6 +439,7 @@ export default {
   },
 
   data: () => ({
+    color:useColorMode(),
     workspaceStore: useWorkspaceStore(),
     userStore: useAuthStore(),
     players: {
@@ -865,7 +871,7 @@ export default {
           tooltip: "Total de entradas dos últimos 7 dias.",
           value: this.deposits.total / 100,
           variation: this.deposits.percentage,
-          icon: "CalendarCheck2", // Usar string para o nome do componente,
+          icon: CalendarCheck2,
           isConditional: !this.hideMetricsDaily,
         },
         {
@@ -948,8 +954,7 @@ export default {
         {
           id: "usuarios-ativos",
           title: "Usuários Ativos",
-          tooltip:
-            "Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias",
+          tooltip: "Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias",
           value: this.activeNow.count,
           variation: this.activeNow.change,
           icon: "UserRound",
