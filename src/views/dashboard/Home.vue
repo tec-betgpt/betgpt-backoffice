@@ -285,6 +285,30 @@
                   </div>
                 </CardContent>
 
+                <CardContent
+                  v-else-if="
+                    subItem.users_active !== undefined &&
+                    subItem.users_active !== null
+                  "
+                >
+                  <div class="number">{{ subItem.users_active }}</div>
+                  <div v-if="subItem.variation" class="variation mt-3 flex">
+                    <div
+                      v-if="subItem.variation > 0"
+                      class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                    >
+                      <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}
+                    </div>
+                    <div
+                      v-else
+                      class="value flex justify-start items-center bg-red-700 text-red-200"
+                    >
+                      <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}
+                    </div>
+                    desde o dia anterior
+                  </div>
+                </CardContent>
+
                 <!-- LAYOUT PADRÃO -->
                 <CardContent v-else>
                   <div :title="subItem.value" class="number">
@@ -710,6 +734,13 @@ export default {
         Home.layout(save);
       }
     },
+    formatLocalDate(date: any) {
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    },
     async applyFilter() {
       this.loading = true;
 
@@ -724,8 +755,9 @@ export default {
 
       try {
         this.hideMetricsDaily =
-          this.selectedRange?.start.toString() ===
-          this.selectedRange?.end.toString();
+          this.selectedRange?.start === this.selectedRange?.end &&
+          this.selectedRange?.start.toString() ==
+            this.formatLocalDate(new Date());
 
         const { data } = await Home.index({
           filter_id: this.workspaceStore.activeGroupProject.id,
@@ -963,7 +995,7 @@ export default {
           title: "Usuários Ativos",
           tooltip:
             "Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias",
-          value: this.activeNow.count,
+          users_active: this.activeNow.count,
           variation: this.activeNow.change,
           icon: "UserRound",
           isConditional: !this.hideMetricsDaily,
