@@ -8,7 +8,12 @@
               {{ greeting() }} {{ user ? user.first_name : "" }},
             </div>
             <div class="xs:text-xs md:text-sm text-white">
-              Confira as principais atualizações
+              Confira as principais atualizações.
+            </div>
+            <div class="xs:text-xs md:text-sm text-white" v-if="executionInfo">
+              Última atualização:
+              {{ formatUpdatedAt(executionInfo.updated_at) }} em
+              {{ formatExecutionTime(executionInfo.seconds) }}
             </div>
           </div>
 
@@ -162,7 +167,7 @@
                         class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
                         shape="square"
                       >
-                        <Component :is="subItem.icon" :color="iconColor"  />
+                        <Component :is="subItem.icon" :color="iconColor" />
                       </Avatar>
                       <span
                         class="font-medium"
@@ -362,8 +367,8 @@ import VideoBackground from "vue-responsive-video-background-player";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { formatLargeNumber } from "@/filters/formatLargeNumber.js";
 import { useAuthStore } from "@/stores/auth";
-import {useColorMode} from "@vueuse/core";
-import {color} from "chart.js/helpers";
+import { useColorMode } from "@vueuse/core";
+import { color } from "chart.js/helpers";
 
 const { toast } = useToast();
 
@@ -403,8 +408,8 @@ export default {
         return { ...group, content: newContent };
       });
     },
-    iconColor(){
-      return this.color == "dark" ? "white" : "black"
+    iconColor() {
+      return this.color == "dark" ? "white" : "black";
     },
   },
 
@@ -439,9 +444,10 @@ export default {
   },
 
   data: () => ({
-    color:useColorMode(),
+    color: useColorMode(),
     workspaceStore: useWorkspaceStore(),
     userStore: useAuthStore(),
+    executionInfo: null,
     players: {
       count: 0,
       percentage: 0,
@@ -732,6 +738,7 @@ export default {
         this.deposits = data.deposits;
         this.withdraws = data.withdraws;
         this.retention = data.retention;
+        this.executionInfo = data.execution_info;
 
         if (this.userStore.user.preferences.user_dashboard_layouts) {
           const savedOrder =
@@ -954,7 +961,8 @@ export default {
         {
           id: "usuarios-ativos",
           title: "Usuários Ativos",
-          tooltip: "Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias",
+          tooltip:
+            "Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias",
           value: this.activeNow.count,
           variation: this.activeNow.change,
           icon: "UserRound",
@@ -1096,6 +1104,28 @@ export default {
         },
       ];
       return [allCards];
+    },
+    formatUpdatedAt(updatedAt) {
+      if (!updatedAt) return "";
+      return this.$moment(updatedAt).format("HH:mm[h]");
+    },
+    formatExecutionTime(seconds) {
+      if (!seconds) return "";
+
+      if (seconds < 1) {
+        return "menos de 1s";
+      } else if (seconds < 60) {
+        return `${seconds}s`;
+      } else {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+
+        if (remainingSeconds === 0) {
+          return `${minutes}min`;
+        } else {
+          return `${minutes}min ${remainingSeconds}s`;
+        }
+      }
     },
   },
 
