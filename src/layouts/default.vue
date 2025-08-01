@@ -1135,7 +1135,7 @@ const navMenu = computed(() => {
         },
         {
           name: "Exportações",
-          url: { name: "export" },
+          url: { name: "exports" },
           icon: Download,
           show:
             activeGroupProject &&

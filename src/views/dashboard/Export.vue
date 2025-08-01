@@ -41,27 +41,40 @@
   <Dialog v-model:open="openDialog">
     <DialogContent class="max-h-[70dvh]">
       <DialogHeader>
-        <DialogTitle> Selecione os valores para exportar </DialogTitle>
+        <DialogTitle> Selecione as opções para exportar </DialogTitle>
       </DialogHeader>
-      <div
-        v-for="value in values"
-        class="flex items-start justify-start align-top gap-2"
-      >
-        <Checkbox
-          :id="values.id"
-          :checked="targetId.includes(value.id)"
-          @update:checked="
-            (check) =>
-              check
-                ? targetId.push(value.id)
-                : targetId.splice(targetId.indexOf(value.id), 1)
-          "
-        />
-        <Label :for="values.id">{{ value.name }}</Label>
+
+      <div v-if="isLoadingSeg" class="flex items-center justify-center py-8">
+        <span>Carregando as opções...</span>
       </div>
-      <CustomPagination :select-page="selectPageSeg" :pages="pagesSeg" />
+
+      <div v-else>
+        <div
+          v-for="value in values"
+          class="flex items-start justify-start align-top gap-2 mb-2"
+        >
+          <Checkbox
+            :id="'opt-' + value.id"
+            :checked="targetId.includes(value.id)"
+            @update:checked="
+              (check) =>
+                check
+                  ? targetId.push(value.id)
+                  : targetId.splice(targetId.indexOf(value.id), 1)
+            "
+          />
+          <Label :for="'opt-' + value.id">{{ value.name }}</Label>
+        </div>
+      </div>
+
       <DialogFooter>
-        <Button @click="exportData">Exportar</Button>
+        <Button
+          @click="exportData"
+          :disabled="isExporting || targetId.length === 0"
+        >
+          <span v-if="!isExporting">Exportar</span>
+          <span v-else>Exportando...</span>
+        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -121,9 +134,6 @@ const handlerOrder = () => {};
 const selectPage = (value) => {
   paginate.value = value;
   exportTest();
-};
-const selectPageSeg = (value) => {
-  fetchSegments(value);
 };
 const segmentColumnHelper = createColumnHelper<SegmentData>();
 const columns = [
@@ -219,36 +229,49 @@ const columns = [
 ];
 const values = ref<Array<any>>([]);
 const isLoadingSeg = ref(true);
+const isExporting = ref(false);
 const historyColumnHelper = createColumnHelper<HistoryData>();
 
 const targetId = ref([]);
 const exportData = async () => {
-  await Export.exportData({
-    filter_id: activeGroupProjectId,
-    type_export: "segment",
-    target_id: targetId.value,
-  });
-  toast({
-    title: "Exportação iniciada",
-  });
-  exportTest();
+  try {
+    isExporting.value = true;
+    await Export.exportData({
+      filter_id: activeGroupProjectId,
+      type_export: "segment",
+      target_id: targetId.value,
+    });
+
+    toast({
+      title: "Sucesso",
+      description: "Exportação iniciada...",
+      variant: "default",
+    });
+
+    openDialog.value = false;
+    exportTest();
+  } catch (error) {
+    toast({
+      title: "Erro",
+      description: "Falha ao iniciar exportação",
+      variant: "destructive",
+    });
+  } finally {
+    isExporting.value = false;
+  }
 };
 const fetchSegments = async (current: number = pages.value.current) => {
   try {
     isLoadingSeg.value = true;
     const params = {
-      page: current,
+      page: 1,
       filter_id: activeGroupProjectId,
       sort_by: orderId.value,
-      sort_order: order.value ? "asc" : "desc",
+      sort_order: "asc",
+      per_page: -1,
     };
     const response = await Segments.index(params);
     values.value = response.data.segments || [];
-    pagesSeg.value = {
-      current: response.data.pagination.current_page,
-      last: response.data.pagination.last_page,
-      total: response.data.pagination.total,
-    };
   } catch (error) {
     console.error("Error loading segments:", error);
     toast({
