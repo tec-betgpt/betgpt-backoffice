@@ -124,13 +124,13 @@ const props = defineProps({
   },
   find: {
     type: Function,
-    required: true,
+    required: false,
   },
   searchFields: {
     type: Array as PropType<
       Array<{ key: string; label: string; placeholder: string }>
     >,
-    required: true,
+    required: false,
   },
   footer: {
     type: Boolean,

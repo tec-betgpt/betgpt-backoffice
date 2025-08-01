@@ -13,18 +13,18 @@
     <div>
       <div class=" ">
 
-        <div class="sm:flex-row flex flex-col gap-2 mt-2 items-center justify-between align-middle">
+        <Badge class="flex-row flex gap-2 mt-2 items-center justify-between align-middle">
 
           <span class="text-lg">
             Segmentos
           </span>
           <div >
-            <Button @click="showDialog">
+            <Button variant="secondary" @click="showDialog">
               <span>Exportar</span>
             </Button>
           </div>
 
-        </div>
+        </Badge>
       </div>
     </div>
     <Card>
