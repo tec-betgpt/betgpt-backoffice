@@ -13,8 +13,8 @@
       </CardHeader>
       <CardContent class="py-4">
         <CustomDataTable
-            :select="true"
-            @update:selected="onSelectedChanged"
+          :select="true"
+          @update:selected="onSelectedChanged"
           :loading="isLoading"
           :data="segments"
           :columns="columns"
@@ -31,16 +31,15 @@
             Novo Segmento
           </Button>
           <Button @click="showExport = true" :disabled="!exportSeg.length">
-            <Download />  Exportar {{exportSeg.length>1?'Segmentos':'Segmento'}}
+            <Download /> Exportar
+            {{ exportSeg.length > 1 ? "Segmentos" : "Segmento" }}
           </Button>
-
-
         </div>
       </CardFooter>
     </Card>
 
     <Dialog v-model:open="showModal">
-      <DialogContent  class="sm:max-w-4xl max-h-[90dvh] overflow-y-scroll ">
+      <DialogContent class="sm:max-w-4xl max-h-[90dvh] overflow-y-scroll">
         <DialogHeader>
           <DialogTitle>
             {{ isEditing ? "Editar Segmento" : "Criar Novo Segmento" }}
@@ -50,7 +49,7 @@
           </DialogDescription>
         </DialogHeader>
 
-        <Card class="grid gap-4 p-4" v-for="(form,formIndex) in form">
+        <Card class="grid gap-4 p-4" v-for="(form, formIndex) in form">
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="name" class="text-right">Nome do Segmento</Label>
             <Input
@@ -86,7 +85,7 @@
                 <Button
                   variant="ghost"
                   size="sm"
-                  @click="removeConditionGroup(groupIndex,formIndex)"
+                  @click="removeConditionGroup(groupIndex, formIndex)"
                   class="text-destructive"
                 >
                   <Trash2Icon class="h-4 w-4" />
@@ -150,7 +149,11 @@
                         <SelectGroup>
                           <SelectLabel>Operadores</SelectLabel>
                           <SelectItem
-                            v-for="op in getOperators(condition, groupIndex,formIndex)"
+                            v-for="op in getOperators(
+                              condition,
+                              groupIndex,
+                              formIndex
+                            )"
                             :key="op"
                             :value="op"
                           >
@@ -162,7 +165,7 @@
 
                     <Input
                       v-if="
-                        showTextInput(condition, groupIndex,formIndex) &&
+                        showTextInput(condition, groupIndex, formIndex) &&
                         !['empty', 'not_empty'].includes(condition.operator)
                       "
                       v-model="condition.value"
@@ -172,7 +175,7 @@
 
                     <Input
                       v-else-if="
-                        showNumberInput(condition, groupIndex,formIndex) &&
+                        showNumberInput(condition, groupIndex, formIndex) &&
                         !['empty', 'not_empty'].includes(condition.operator)
                       "
                       v-model.number="condition.value"
@@ -183,7 +186,7 @@
 
                     <div
                       v-else-if="
-                        showDateInput(condition, groupIndex,formIndex) &&
+                        showDateInput(condition, groupIndex, formIndex) &&
                         !['empty', 'not_empty'].includes(condition.operator)
                       "
                       class="flex items-center gap-2 flex-1"
@@ -265,7 +268,9 @@
                     </div>
 
                     <Select
-                      v-else-if="showBooleanInput(condition, groupIndex,formIndex)"
+                      v-else-if="
+                        showBooleanInput(condition, groupIndex, formIndex)
+                      "
                       v-model="condition.value"
                       class="flex-1"
                     >
@@ -282,7 +287,9 @@
                       v-if="group.conditions.length > 1"
                       variant="ghost"
                       size="sm"
-                      @click="removeCondition(groupIndex, conditionIndex,formIndex)"
+                      @click="
+                        removeCondition(groupIndex, conditionIndex, formIndex)
+                      "
                       class="text-destructive"
                     >
                       <Trash2Icon class="h-4 w-4" />
@@ -293,7 +300,7 @@
                 <Button
                   variant="outline"
                   size="sm"
-                  @click="addCondition(groupIndex,formIndex)"
+                  @click="addCondition(groupIndex, formIndex)"
                   class="mt-2"
                 >
                   <PlusIcon class="mr-2 h-4 w-4" />
@@ -334,9 +341,11 @@
             <div class="col-span-3 space-y-2">
               <Select
                 v-model="selectedSavedSegment"
-                @update:model-value="(value)=>{
-                  loadSavedSegment(value,formIndex)
-                }"
+                @update:model-value="
+                  (value) => {
+                    loadSavedSegment(value, formIndex);
+                  }
+                "
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Carregar segmento salvo" />
@@ -427,7 +436,6 @@
             ]"
             @load-more="loadMoreContacts"
             @reset="resetContactsData"
-
           />
         </div>
       </DialogContent>
@@ -440,24 +448,36 @@
         <DialogDescription>
           Selecione os projetos que irão receber os segmentos selecionados.
         </DialogDescription>
-          <div class="flex flex-col gap-2">
-            <div v-for="project in listGroupProject" class="flex items-center gap-2">
-              <Checkbox
-                         :class="{'hidden':activeGroupProjectId === project.id}"
-                         :checked="selectProjects.includes(project.id)"
-                         :id="project.id" @update:checked="(value) => value? selectProjects.push(project.id): selectProjects.splice(selectProjects.indexOf(project.id), 1)"/>
-              <label
-                  :for="project.id"
-                  class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  :class="{'hidden':activeGroupProjectId === project.id}"
-
-              >
-                {{project.name}}
-              </label>
-            </div>
+        <div class="flex flex-col gap-2">
+          <div
+            v-for="project in listGroupProject"
+            class="flex items-center gap-2"
+          >
+            <Checkbox
+              :class="{ hidden: activeGroupProjectId === project.id }"
+              :checked="selectProjects.includes(project.id)"
+              :id="project.id"
+              @update:checked="
+                (value) =>
+                  value
+                    ? selectProjects.push(project.id)
+                    : selectProjects.splice(
+                        selectProjects.indexOf(project.id),
+                        1
+                      )
+              "
+            />
+            <label
+              :for="project.id"
+              class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              :class="{ hidden: activeGroupProjectId === project.id }"
+            >
+              {{ project.name }}
+            </label>
           </div>
+        </div>
         <DialogFooter>
-          <Button @click="exportSegment" >Exportar</Button>
+          <Button @click="exportSegment">Exportar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -475,7 +495,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowDown, ArrowUp, RefreshCcw, UploadIcon, Download } from "lucide-vue-next";
+import {
+  ArrowDown,
+  ArrowUp,
+  RefreshCcw,
+  UploadIcon,
+  Download,
+} from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import {
   Dialog,
@@ -522,7 +548,7 @@ import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
-import {Checkbox} from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 const { t } = useI18n();
 
 const { toast } = useToast();
@@ -530,12 +556,14 @@ const { toast } = useToast();
 const isLoading = ref(false);
 const isProcessing = ref(false);
 const showModal = ref(false);
-const showExport = ref(false)
+const showExport = ref(false);
 const isEditing = ref(false);
 const selectedSavedSegment = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
-const listGroupProject = workspaceStore.group_projects.filter(value => value.id !== activeGroupProjectId)
+const listGroupProject = workspaceStore.group_projects.filter(
+  (value) => value.id !== activeGroupProjectId
+);
 
 const showContactsDialog = ref(false);
 const isLoadingContacts = ref(false);
@@ -576,35 +604,37 @@ const operatorMap = {
   ],
   boolean: ["is", "is_not", "empty", "not_empty"],
 };
-const exportSeg = ref([])
-const selectProjects = ref([])
-const form = ref([{
-  id: null as number | null,
-  name: "",
-  description: "",
-  globalOperator: "AND" as "AND" | "OR",
-  conditionGroups: [] as Array<{
-    name: string;
-    groupOperator: "AND" | "OR";
-    fields: Array<{
-      field_key: string;
-      label: string;
-      data_type: string;
-      [key: string]: any;
-    }>;
-    conditions: Array<{
-      conditionOperator: "AND" | "OR";
-      field: string;
-      operator: string;
-      value: any;
-      modifier?: string;
-      dateType?: "actual_date" | "custom_date";
-      dateModifier?: string;
-      dateFilter?: string;
-      daysOffset?: number;
-    }>;
-  }>,
-}]);
+const exportSeg = ref([]);
+const selectProjects = ref([]);
+const form = ref([
+  {
+    id: null as number | null,
+    name: "",
+    description: "",
+    globalOperator: "AND" as "AND" | "OR",
+    conditionGroups: [] as Array<{
+      name: string;
+      groupOperator: "AND" | "OR";
+      fields: Array<{
+        field_key: string;
+        label: string;
+        data_type: string;
+        [key: string]: any;
+      }>;
+      conditions: Array<{
+        conditionOperator: "AND" | "OR";
+        field: string;
+        operator: string;
+        value: any;
+        modifier?: string;
+        dateType?: "actual_date" | "custom_date";
+        dateModifier?: string;
+        dateFilter?: string;
+        daysOffset?: number;
+      }>;
+    }>,
+  },
+]);
 
 const segments = ref<Array<any>>([]);
 const savedSegments = ref<Array<any>>([]);
@@ -619,34 +649,44 @@ interface SegmentData {
   name: string;
   description: string;
 }
-const onSelectedChanged = (value)=>{
- exportSeg.value = value.map(v=>v.id)
-}
-const getField = (condition: any, groupIndex: number,formIndex:number) => {
+const onSelectedChanged = (value) => {
+  exportSeg.value = value.map((v) => v.id);
+};
+const getField = (condition: any, groupIndex: number, formIndex: number) => {
   const group = form.value[formIndex].conditionGroups[groupIndex];
   return condition?.field
     ? group.fields.find((f) => f.field_key === condition.field)
     : null;
 };
 
-const getOperators = (condition: any, groupIndex: number,formIndex:number) => {
-  const field = getField(condition, groupIndex,formIndex);
+const getOperators = (
+  condition: any,
+  groupIndex: number,
+  formIndex: number
+) => {
+  const field = getField(condition, groupIndex, formIndex);
   return field
     ? operatorMap[field.data_type as keyof typeof operatorMap] || []
     : [];
 };
 
-const showTextInput = (condition: any, groupIndex: number,formIndex:number) =>
-  getField(condition, groupIndex,formIndex)?.data_type === "string";
+const showTextInput = (condition: any, groupIndex: number, formIndex: number) =>
+  getField(condition, groupIndex, formIndex)?.data_type === "string";
 
-const showNumberInput = (condition: any, groupIndex: number,formIndex:number) =>
-  getField(condition, groupIndex,formIndex)?.data_type === "number";
+const showNumberInput = (
+  condition: any,
+  groupIndex: number,
+  formIndex: number
+) => getField(condition, groupIndex, formIndex)?.data_type === "number";
 
-const showDateInput = (condition: any, groupIndex: number,formIndex:number) =>
-  getField(condition, groupIndex,formIndex)?.data_type === "date";
+const showDateInput = (condition: any, groupIndex: number, formIndex: number) =>
+  getField(condition, groupIndex, formIndex)?.data_type === "date";
 
-const showBooleanInput = (condition: any, groupIndex: number,formIndex:number) =>
-  getField(condition, groupIndex,formIndex)?.data_type === "boolean";
+const showBooleanInput = (
+  condition: any,
+  groupIndex: number,
+  formIndex: number
+) => getField(condition, groupIndex, formIndex)?.data_type === "boolean";
 
 const fetchSegmentFields = async () => {
   try {
@@ -680,36 +720,38 @@ const openCreateModal = () => {
 };
 
 const resetForm = () => {
-  form.value = [{
-    id: null,
-    name: "",
-    description: "",
-    globalOperator: "AND",
-    conditionGroups: allFields.value.map((group) => ({
-      name: group.name,
-      groupOperator: "AND",
-      fields: [...group.fields],
-      conditions: [
-        {
-          conditionOperator: "AND",
-          field: "",
-          operator: "",
-          value: "",
-          modifier: "exact",
-        },
-      ],
-    })),
-  }];
+  form.value = [
+    {
+      id: null,
+      name: "",
+      description: "",
+      globalOperator: "AND",
+      conditionGroups: allFields.value.map((group) => ({
+        name: group.name,
+        groupOperator: "AND",
+        fields: [...group.fields],
+        conditions: [
+          {
+            conditionOperator: "AND",
+            field: "",
+            operator: "",
+            value: "",
+            modifier: "exact",
+          },
+        ],
+      })),
+    },
+  ];
   selectedSavedSegment.value = null;
 };
 
-const updateFormFields = (formIndex:number) => {
+const updateFormFields = (formIndex: number) => {
   form.value[formIndex].conditionGroups.forEach((group) => {
     group.fields = [...allFields.value.flatMap((g) => g.fields)];
   });
 };
 
-const addConditionGroup = (index:number) => {
+const addConditionGroup = (index: number) => {
   form.value[index].conditionGroups.push({
     name: allFields.value[0]?.name || "Novo Grupo",
     groupOperator: "AND",
@@ -726,7 +768,7 @@ const addConditionGroup = (index:number) => {
   });
 };
 
-const removeConditionGroup = (groupIndex: number,formIndex:number)  => {
+const removeConditionGroup = (groupIndex: number, formIndex: number) => {
   if (form.value[formIndex].conditionGroups.length > 1) {
     form.value[formIndex].conditionGroups.splice(groupIndex, 1);
   } else {
@@ -738,7 +780,7 @@ const removeConditionGroup = (groupIndex: number,formIndex:number)  => {
   }
 };
 
-const addCondition = (groupIndex: number, formIndex:number) => {
+const addCondition = (groupIndex: number, formIndex: number) => {
   form.value[formIndex].conditionGroups[groupIndex].conditions.push({
     conditionOperator: "AND",
     field: "",
@@ -748,9 +790,16 @@ const addCondition = (groupIndex: number, formIndex:number) => {
   });
 };
 
-const removeCondition = (groupIndex: number, conditionIndex: number,formIndex:number) => {
+const removeCondition = (
+  groupIndex: number,
+  conditionIndex: number,
+  formIndex: number
+) => {
   if (form.value[formIndex].conditionGroups[groupIndex].conditions.length > 1) {
-    form.value[formIndex].conditionGroups[groupIndex].conditions.splice(conditionIndex, 1);
+    form.value[formIndex].conditionGroups[groupIndex].conditions.splice(
+      conditionIndex,
+      1
+    );
   } else {
     toast({
       title: "Aviso",
@@ -760,7 +809,7 @@ const removeCondition = (groupIndex: number, conditionIndex: number,formIndex:nu
   }
 };
 
-const loadSavedSegment = async (segmentId: number,formIndex:number) => {
+const loadSavedSegment = async (segmentId: number, formIndex: number) => {
   try {
     isLoading.value = true;
     const segment = savedSegments.value.find((s) => s.id === segmentId);
@@ -843,33 +892,35 @@ const loadSavedSegment = async (segmentId: number,formIndex:number) => {
       };
     });
 
-    form.value = [{
-      ...form.value[formIndex],
-      conditionGroups:
-        newConditionGroups.length > 0
-          ? newConditionGroups
-          : [
-              {
-                name: "Novo Grupo",
-                groupOperator: "AND",
-                fields: [...allFields.value.flatMap((g) => g.fields)],
-                conditions: [
-                  {
-                    conditionOperator: "AND",
-                    field: "",
-                    operator: "",
-                    value: "",
-                    modifier: "exact",
-                  },
-                ],
-              },
-            ],
-    }];
+    form.value = [
+      {
+        ...form.value[formIndex],
+        conditionGroups:
+          newConditionGroups.length > 0
+            ? newConditionGroups
+            : [
+                {
+                  name: "Novo Grupo",
+                  groupOperator: "AND",
+                  fields: [...allFields.value.flatMap((g) => g.fields)],
+                  conditions: [
+                    {
+                      conditionOperator: "AND",
+                      field: "",
+                      operator: "",
+                      value: "",
+                      modifier: "exact",
+                    },
+                  ],
+                },
+              ],
+      },
+    ];
 
     form.value[formIndex].conditionGroups.forEach((group, groupIndex) => {
       group.conditions.forEach((condition) => {
         if (condition.field) {
-          const validOperators = getOperators(condition, groupIndex,formIndex);
+          const validOperators = getOperators(condition, groupIndex, formIndex);
           if (validOperators && !validOperators.includes(condition.operator)) {
             condition.operator = "";
           }
@@ -893,7 +944,7 @@ const clearSelectedSegment = () => {
   resetForm();
 };
 
-const clearAllConditions = (formIndex:number) => {
+const clearAllConditions = (formIndex: number) => {
   form.value[formIndex].conditionGroups = [
     {
       name: "Novo Grupo",
@@ -955,8 +1006,12 @@ const fetchSegments = async (current: number = pages.value.current) => {
   }
 };
 
-const prepareConditionValue = (condition: any, groupIndex: number,formIndex:number) => {
-  const field = getField(condition, groupIndex,formIndex);
+const prepareConditionValue = (
+  condition: any,
+  groupIndex: number,
+  formIndex: number
+) => {
+  const field = getField(condition, groupIndex, formIndex);
   if (!field) return condition.value;
 
   if (["empty", "not_empty"].includes(condition.operator)) {
@@ -990,63 +1045,63 @@ const saveSegment = async () => {
   isProcessing.value = true;
 
   try {
-
     if (!form.value.filter((f) => f.name)) {
       throw new Error("O nome do segmento é obrigatório");
     }
 
-    const hasValidConditions = form.value.map(seg=>seg.conditionGroups).some((group) =>
-    group.map(value => value.conditions.some(
-        (condition) =>
-            condition.field &&
-            condition.operator &&
-            (["empty", "not_empty"].includes(condition.operator) ||
+    const hasValidConditions = form.value
+      .map((seg) => seg.conditionGroups)
+      .some((group) =>
+        group.map((value) =>
+          value.conditions.some(
+            (condition) =>
+              condition.field &&
+              condition.operator &&
+              (["empty", "not_empty"].includes(condition.operator) ||
                 condition.value !== undefined)
-    ))
-    );
+          )
+        )
+      );
 
     if (!hasValidConditions) {
       throw new Error("Defina pelo menos uma condição válida");
     }
 
-    const payload = form.value.map((seg,index)=>
-    ({
+    const payload = form.value.map((seg, index) => ({
       name: seg.name,
-          description: seg.description,
-        filter_id: activeGroupProjectId,
-        conditions: {
-      global_operator: seg.globalOperator,
-          groups: seg.conditionGroups.map((group, groupIndex) => ({
-        group_operator: group.groupOperator,
-        conditions: group.conditions.map((condition) => {
-          const field = getField(condition, groupIndex,index);
+      description: seg.description,
+      filter_id: activeGroupProjectId,
+      conditions: {
+        global_operator: seg.globalOperator,
+        groups: seg.conditionGroups.map((group, groupIndex) => ({
+          group_operator: group.groupOperator,
+          conditions: group.conditions.map((condition) => {
+            const field = getField(condition, groupIndex, index);
 
-          const value = ["empty", "not_empty"].includes(condition.operator)
+            const value = ["empty", "not_empty"].includes(condition.operator)
               ? ""
-              : prepareConditionValue(condition, groupIndex,index);
+              : prepareConditionValue(condition, groupIndex, index);
 
-          return {
-            field: condition.field,
-            operator: condition.operator,
-            value: value,
-            condition_operator: condition.conditionOperator,
-            modifier: condition.modifier,
-            dateType: condition.dateType,
-            dateModifier: condition.dateModifier,
-            dateFilter: condition.dateFilter,
-            daysOffset: condition.daysOffset,
-          };
-        }),
-      })),
-    },
-    })
-    )
-
+            return {
+              field: condition.field,
+              operator: condition.operator,
+              value: value,
+              condition_operator: condition.conditionOperator,
+              modifier: condition.modifier,
+              dateType: condition.dateType,
+              dateModifier: condition.dateModifier,
+              dateFilter: condition.dateFilter,
+              daysOffset: condition.daysOffset,
+            };
+          }),
+        })),
+      },
+    }));
 
     if (isEditing.value && form.value[0].id) {
       await Segments.update(form.value[0].id, payload);
     } else {
-     await Segments.create(payload);
+      await Segments.create(payload);
     }
 
     await fetchSegments();
@@ -1126,14 +1181,14 @@ const handleExportContacts = async () => {
 };
 
 const handleEdit = (segment: any) => {
-  resetForm()
+  resetForm();
   isEditing.value = true;
   form.value[0].id = segment.id;
   form.value[0].name = segment.name;
   form.value[0].description = segment.description;
   form.value[0].globalOperator = "AND";
   selectedSavedSegment.value = segment.id;
-  loadSavedSegment(segment.id,0);
+  loadSavedSegment(segment.id, 0);
   showModal.value = true;
 };
 
@@ -1146,6 +1201,13 @@ const formatDate = (dateString: string) => {
     minute: "2-digit",
   };
   return new Date(dateString).toLocaleDateString("pt-BR", options);
+};
+
+const loadMoreContacts = async () => {
+  if (!hasMoreContacts.value || isLoadingContacts.value) return;
+
+  const nextPage = currentContactsPage.value + 1;
+  await fetchContacts(nextPage);
 };
 
 const openContactsDialog = (segmentId: number) => {
@@ -1164,8 +1226,7 @@ const openContactsDialog = (segmentId: number) => {
   showContactsDialog.value = true;
 
   contacts.value = segment.initial_contacts || [];
-
-  currentContactsPage.value = 2;
+  currentContactsPage.value = 1;
   hasMoreContacts.value = segment.total_contacts > contacts.value.length;
 };
 
@@ -1175,22 +1236,20 @@ const resetContactsData = () => {
   hasMoreContacts.value = false;
 };
 
-const loadMoreContacts = async () => {
-  if (!hasMoreContacts.value) return;
-  await fetchContacts(currentContactsPage.value);
-};
-
 const exportSegment = async () => {
   try {
-
-    await Segments.export({project_id:activeGroupProjectId,segment_ids:exportSeg.value,target_project_ids:selectProjects.value});
+    await Segments.export({
+      project_id: activeGroupProjectId,
+      segment_ids: exportSeg.value,
+      target_project_ids: selectProjects.value,
+    });
     toast({
       title: "Exportação iniciada",
       description: "Exportação do Segmento em andamento...",
       variant: "default",
     });
 
-    showExport.value = false
+    showExport.value = false;
     toast({
       title: "Sucesso",
       description: "Segmento exportado com sucesso",
@@ -1210,20 +1269,19 @@ const importSegment = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (!input.files?.length) return;
 
-
   try {
     const files = input.files;
-    var f = []
+    var f = [];
     for (const file of files) {
       const fileContent = await file.text();
       var json = JSON.parse(fileContent);
       if (Array.isArray(json)) {
-      json.forEach(v=>f.push(v))
-      }else {
-        f.push(json)
+        json.forEach((v) => f.push(v));
+      } else {
+        f.push(json);
       }
     }
-    form.value = f.map(segmentData=> ({
+    form.value = f.map((segmentData) => ({
       id: null,
       name: segmentData.name + " (Importado)",
       description: segmentData.description,
@@ -1244,7 +1302,7 @@ const importSegment = async (event: Event) => {
           daysOffset: condition.daysOffset,
         })),
       })),
-    }))
+    }));
     showModal.value = true;
     isEditing.value = false;
     toast({
@@ -1304,15 +1362,8 @@ const setSearch = (values: Record<string, string>) => {
   searchValues.value = values;
 };
 
-const fetchContacts = async (page: number = 1) => {
+const fetchContacts = async (page: number) => {
   if (!currentSegmentId.value) return;
-
-  if (page === 1 && contacts.value.length > 0) {
-    hasMoreContacts.value =
-      (segments.value.find((s) => s.id === currentSegmentId.value)
-        ?.total_contacts || 0) > contacts.value.length;
-    return;
-  }
 
   isLoadingContacts.value = true;
 
@@ -1339,7 +1390,7 @@ const fetchContacts = async (page: number = 1) => {
     }
 
     hasMoreContacts.value = response.data.hasMore;
-    currentContactsPage.value = response.data.currentPage;
+    currentContactsPage.value = page; // Atualiza a página atual
 
     if (page === 1) {
       const segmentIndex = segments.value.findIndex(
@@ -1584,43 +1635,49 @@ watch(selectedSavedSegment, (newValue) => {
 });
 
 watch(
-    () => form.value.map(f => f.conditionGroups),
-    (allGroups) => {
-      allGroups.forEach((groups, formIndex) => {
-        groups?.forEach((group, groupIndex) => {
-          group?.conditions?.forEach((condition) => {
-            if (condition.field && condition.operator) {
-              const field = getField(condition, groupIndex,formIndex);
-              if (field) {
-                if (["empty", "not_empty"].includes(condition.operator)) {
-                  condition.value = "";
-                  condition.dateType = undefined;
-                  condition.dateModifier = undefined;
-                  condition.daysOffset = undefined;
-                }
+  () => form.value.map((f) => f.conditionGroups),
+  (allGroups) => {
+    allGroups.forEach((groups, formIndex) => {
+      groups?.forEach((group, groupIndex) => {
+        group?.conditions?.forEach((condition) => {
+          if (condition.field && condition.operator) {
+            const field = getField(condition, groupIndex, formIndex);
+            if (field) {
+              if (["empty", "not_empty"].includes(condition.operator)) {
+                condition.value = "";
+                condition.dateType = undefined;
+                condition.dateModifier = undefined;
+                condition.daysOffset = undefined;
+              }
 
-                if (
-                    field.data_type === "date" &&
-                    !showDateInput(condition, groupIndex,formIndex)
-                ) {
-                  condition.dateType = undefined;
-                  condition.dateModifier = undefined;
-                  condition.daysOffset = undefined;
-                }
+              if (
+                field.data_type === "date" &&
+                !showDateInput(condition, groupIndex, formIndex)
+              ) {
+                condition.dateType = undefined;
+                condition.dateModifier = undefined;
+                condition.daysOffset = undefined;
               }
             }
+          }
 
-            if (condition?.field && condition?.operator) {
-              const validOperators = getOperators(condition, groupIndex,formIndex);
-              if (validOperators && !validOperators.includes(condition.operator)) {
-                condition.operator = "";
-              }
+          if (condition?.field && condition?.operator) {
+            const validOperators = getOperators(
+              condition,
+              groupIndex,
+              formIndex
+            );
+            if (
+              validOperators &&
+              !validOperators.includes(condition.operator)
+            ) {
+              condition.operator = "";
             }
-          });
+          }
         });
       });
-    },
-    { deep: true }
+    });
+  },
+  { deep: true }
 );
-
 </script>
