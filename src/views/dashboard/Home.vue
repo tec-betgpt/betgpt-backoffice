@@ -8,9 +8,12 @@
               {{ greeting() }} {{ user ? user.first_name : "" }},
             </div>
             <div class="xs:text-xs md:text-sm text-white">
-              Confira as principais atualizações.
+              Confira as principais atualizações
             </div>
-            <div class="xs:text-xs md:text-sm text-white" v-if="executionInfo">
+            <div
+              class="xs:text-xs md:text-sm text-white"
+              v-if="executionInfo && isToday()"
+            >
               Última atualização:
               {{ formatUpdatedAt(executionInfo.updated_at) }} em
               {{ formatExecutionTime(executionInfo.seconds) }}
@@ -1136,6 +1139,11 @@ export default {
         },
       ];
       return [allCards];
+    },
+    isToday() {
+      return (
+        this.selectedRange?.start.toString() == this.formatLocalDate(new Date())
+      );
     },
     formatUpdatedAt(updatedAt) {
       if (!updatedAt) return "";
