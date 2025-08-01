@@ -444,7 +444,7 @@
 </template>
 
 <script setup lang="ts">
-import { Paperclip, X } from "lucide-vue-next";
+import {Download, Paperclip, X} from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Breadcrumb,
@@ -1133,6 +1133,32 @@ const navMenu = computed(() => {
                   )
                 )),
         },
+        {
+          name:"Exportação",
+          url: { name: "export" },
+          icon: Download,
+          show:
+              activeGroupProject &&
+              activeGroupProject.value?.type === "project" &&
+              ((authStore.user?.access_type === "member" &&
+                      authStore.user?.roles.some((role) =>
+                          role.permissions.some(
+                              (permission) => permission.name === "access-to-exportations"
+                          )
+                      )) ||
+                  authStore.user?.roles
+                      .filter(
+                          (role) =>
+                              activeGroupProject &&
+                              role.pivot.project_id === activeGroupProject.project_id
+                      )
+                      .some((role) =>
+                          role.permissions.some(
+                              (permission) =>
+                                  permission.name === "access-to-exportations"
+                          )
+                      )),
+        }
       ],
     },
     {
