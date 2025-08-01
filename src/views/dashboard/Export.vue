@@ -289,9 +289,16 @@ const columnsHistory = [
     cell: ({ row }) => {
       let label = "";
       if (row.original.type === "segment") {
-        label = "Segmetos";
+        label = "Segmentos";
       }
       return h("span", { class: "capitalize" }, label);
+    },
+  }),
+
+  historyColumnHelper.accessor("title", {
+    header: "Titulo",
+    cell: ({ row }) => {
+      return h("span", { class: "capitalize" }, row.original.target_title);
     },
   }),
 
@@ -338,7 +345,7 @@ const columnsHistory = [
   // }),
 
   historyColumnHelper.accessor("created_at", {
-    header: "Criado em",
+    header: "Data Exportação",
     cell: ({ row }) => {
       return h("span", {}, row.original.created_at.replace(/-/g, "/"));
     },
@@ -401,6 +408,7 @@ interface HistoryData {
   filter: Array<string>;
   user_id: number;
   created_at: string;
+  target_title: string;
 }
 </script>
 
