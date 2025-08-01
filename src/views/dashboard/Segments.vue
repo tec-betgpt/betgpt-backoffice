@@ -436,6 +436,8 @@
             ]"
             @load-more="loadMoreContacts"
             @reset="resetContactsData"
+            :exportable="true"
+            @export="handleExportContacts"
           />
         </div>
       </DialogContent>
@@ -549,10 +551,11 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "vue-router";
+
 const { t } = useI18n();
-
 const { toast } = useToast();
-
+const router = useRouter();
 const isLoading = ref(false);
 const isProcessing = ref(false);
 const showModal = ref(false);
@@ -1147,37 +1150,18 @@ const deleteSegment = async (segmentId: number) => {
 };
 
 const handleExportContacts = async () => {
-  try {
-    toast({
-      title: "Sucesso!",
-      description: "O arquivo está sendo preparado para download...",
-    });
-
-    const params = {
-      ...searchValues.value,
-      orderBy: orderContacts.value || "id",
-      orderDirection: directionContacts.value ? "asc" : "desc",
-    };
-
-    const { data } = await Segments.exportContacts(
-      currentSegmentId.value,
-      params
-    );
-    const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
-    const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `segment-${currentSegmentId.value}-contacts.csv`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-  } catch (e) {
-    toast({
-      title: "Erro",
-      description: "Falha ao exportar contatos",
-      variant: "destructive",
-    });
+  if (!currentSegmentId.value) {
+    console.error("currentSegmentId is not defined");
+    return;
   }
+
+  router.push({
+    name: "exports",
+    query: {
+      type: "segments",
+      target_id: currentSegmentId.value,
+    },
+  });
 };
 
 const handleEdit = (segment: any) => {

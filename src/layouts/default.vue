@@ -819,6 +819,31 @@ const navMenu = computed(() => {
                 )
               ),
         },
+        {
+          name: "Exportações",
+          url: { name: "exports" },
+          icon: Download,
+          show:
+            activeGroupProject &&
+            activeGroupProject.value?.type === "project" &&
+            ((authStore.user?.access_type === "member" &&
+              authStore.user?.roles.some((role) =>
+                role.permissions.some(
+                  (permission) => permission.name === "access-to-exportations"
+                )
+              )) ||
+              authStore.user?.roles
+                .filter(
+                  (role) =>
+                    activeGroupProject &&
+                    role.pivot.project_id === activeGroupProject.project_id
+                )
+                .some((role) =>
+                  role.permissions.some(
+                    (permission) => permission.name === "access-to-exportations"
+                  )
+                )),
+        },
       ],
     },
     {
@@ -1130,31 +1155,6 @@ const navMenu = computed(() => {
                   role.permissions.some(
                     (permission) =>
                       permission.name === "access-to-postback-logs"
-                  )
-                )),
-        },
-        {
-          name: "Exportações",
-          url: { name: "exports" },
-          icon: Download,
-          show:
-            activeGroupProject &&
-            activeGroupProject.value?.type === "project" &&
-            ((authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-exportations"
-                )
-              )) ||
-              authStore.user?.roles
-                .filter(
-                  (role) =>
-                    activeGroupProject &&
-                    role.pivot.project_id === activeGroupProject.project_id
-                )
-                .some((role) =>
-                  role.permissions.some(
-                    (permission) => permission.name === "access-to-exportations"
                   )
                 )),
         },

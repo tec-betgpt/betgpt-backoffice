@@ -2,9 +2,9 @@
   <div class="space-y-6 sm:p-10 p-1 max-w-full">
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
       <div class="space-y-0.5">
-        <h2 class="text-2xl font-bold tracking-tight">Exportações de dados</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Exportações de Dados</h2>
         <p class="text-muted-foreground">
-          Aqui você pode exportar dados de um projeto.
+          Aqui você pode exportar diferentes tipos de dados de um projeto.
         </p>
       </div>
     </div>
@@ -62,12 +62,20 @@
                   ? targetId.push(value.id)
                   : targetId.splice(targetId.indexOf(value.id), 1)
             "
+            :disabled="isExporting"
           />
           <Label :for="'opt-' + value.id">{{ value.name }}</Label>
         </div>
       </div>
 
-      <DialogFooter>
+      <DialogFooter class="flex flex-row justify-between items-center">
+        <Button
+          variant="outline"
+          @click="targetId = []"
+          :disabled="targetId.length === 0"
+        >
+          Limpar seleção
+        </Button>
         <Button
           @click="exportData"
           :disabled="isExporting || targetId.length === 0"
@@ -82,7 +90,7 @@
 <script setup lang="ts">
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import { h, onMounted, ref, watch } from "vue";
+import { h, onMounted, ref, watch, nextTick } from "vue";
 import { Separator } from "@/components/ui/separator";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { Button } from "@/components/ui/button";
@@ -90,6 +98,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import Export from "@/services/export";
 import { Accordion } from "@/components/ui/accordion";
 import { RefreshCcw } from "lucide-vue-next";
+import { useRoute } from "vue-router";
 
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { Badge } from "@/components/ui/badge";
@@ -105,17 +114,29 @@ const isLoading = ref(true);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const pages = ref({ current: 1, total: 0, last: 0 });
-const paginate = ref(0);
-const paginateSeg = ref(1);
-const pagesSeg = ref({ current: 1, total: 0, last: 0 });
-onMounted(() => {
-  exportTest();
+const paginate = ref(1);
+const route = useRoute();
+onMounted(async () => {
+  await loadExportsHistory();
+
+  if (route.query.type === "segments" && route.query.target_id) {
+    const targetIds = Array.isArray(route.query.target_id)
+      ? route.query.target_id.map((id) => Number(id))
+      : [Number(route.query.target_id)];
+
+    targetId.value = targetIds.filter((id) => !isNaN(id));
+
+    if (targetId.value.length > 0) {
+      await showDialog(true); // Passamos true para indicar que é auto-abertura
+    }
+  }
 });
-const exportTest = async () => {
+const loadExportsHistory = async () => {
   isLoading.value = true;
   const response = await Export.index({
     filter_id: activeGroupProjectId,
-    paginate: paginate.value - 1,
+    page: paginate.value,
+    per_page: 20,
   });
 
   history.value = response.data.history;
@@ -125,15 +146,14 @@ const exportTest = async () => {
     last: response.data.pagination.last_page,
   };
   isLoading.value = false;
-  console.log(pages.value);
 };
 const orderId = ref("");
 const order = ref(false);
 const history = ref([]);
 const handlerOrder = () => {};
-const selectPage = (value) => {
+const selectPage = async (value) => {
   paginate.value = value;
-  exportTest();
+  await loadExportsHistory();
 };
 const segmentColumnHelper = createColumnHelper<SegmentData>();
 const columns = [
@@ -249,7 +269,7 @@ const exportData = async () => {
     });
 
     openDialog.value = false;
-    exportTest();
+    await loadExportsHistory();
   } catch (error) {
     toast({
       title: "Erro",
@@ -390,16 +410,50 @@ function formatDate(dateString: string): string {
   });
 }
 
-const showDialog = () => {
-  targetId.value = [];
-  fetchSegments();
+const showDialog = async (isAutoOpen = false) => {
+  if (!isAutoOpen) {
+    targetId.value = [];
+  }
+
+  await fetchSegments();
   openDialog.value = true;
+
+  if (isAutoOpen && targetId.value.length > 0) {
+    await nextTick();
+    const firstSelectedId = targetId.value[0];
+    const element = document.getElementById(`opt-${firstSelectedId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
 };
+
+watch(
+  values,
+  (newValues) => {
+    if (newValues.length > 0 && targetId.value.length > 0) {
+      const exists = newValues.some(
+        (segment) => segment.id === targetId.value[0]
+      );
+      if (!exists) {
+        targetId.value = [];
+        toast({
+          title: "Aviso",
+          description: "O segmento selecionado não foi encontrado",
+          variant: "default",
+        });
+      }
+    }
+  },
+  { immediate: true }
+);
+
 interface SegmentData {
   id: number;
   name: string;
   description: string;
 }
+
 interface HistoryData {
   id: string;
   url: string;

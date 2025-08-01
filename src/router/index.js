@@ -270,6 +270,18 @@ const routes = [
           title: "Rastreamentos UTM",
         },
       },
+      {
+        name: "exports",
+        path: "exports",
+        component: Export,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-exportations",
+          title: "Exportações",
+        },
+      },
     ],
   },
   {
@@ -364,18 +376,6 @@ const routes = [
           roles: "member",
           permissions: "access-to-postback-logs",
           title: "Integrações",
-        },
-      },
-      {
-        name: "exports",
-        path: "exports",
-        component: Export,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member",
-          permissions: "access-to-exportations",
-          title: "Exportações",
         },
       },
     ],
