@@ -427,8 +427,7 @@
             ]"
             @load-more="loadMoreContacts"
             @reset="resetContactsData"
-            :exportable="true"
-            @export="handleExportContacts"
+
           />
         </div>
       </DialogContent>
@@ -458,7 +457,7 @@
             </div>
           </div>
         <DialogFooter>
-          <Button @click="exportSegment" > Exportar</Button>
+          <Button @click="exportSegment" >Exportar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -523,6 +522,7 @@ import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
+import {Checkbox} from "@/components/ui/checkbox";
 const { t } = useI18n();
 
 const { toast } = useToast();

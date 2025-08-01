@@ -32,6 +32,8 @@ import Integrations from "@/views/dashboard/Integrations.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
 import GroupProjects from "@/views/dashboard/GroupProjects.vue";
 import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
+import {Download} from "lucide-vue-next";
+import Export from "@/views/dashboard/Export.vue";
 
 const routes = [
   {
@@ -364,6 +366,17 @@ const routes = [
           title: "Integrações",
         },
       },
+      {name: "export",
+        path: "export",
+        component: Export,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-exportations",
+          title: "Exportação"
+        }
+      }
     ],
   },
   {
