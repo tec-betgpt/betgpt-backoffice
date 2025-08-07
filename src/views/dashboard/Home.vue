@@ -290,11 +290,10 @@
 
                 <CardContent
                   v-else-if="
-                    subItem.users_active !== undefined &&
-                    subItem.users_active !== null
+                    subItem.count !== undefined && subItem.count !== null
                   "
                 >
-                  <div class="number">{{ subItem.users_active }}</div>
+                  <div class="number">{{ subItem.count }}</div>
                   <div v-if="subItem.variation" class="variation mt-3 flex">
                     <div
                       v-if="subItem.variation > 0"
@@ -988,7 +987,7 @@ export default {
           id: "total-registros",
           title: "Total de Registros",
           tooltip: "Total de usuários registrados na base da Elevate",
-          value: this.players.count,
+          count: this.players.count,
           variation: this.players.change,
           icon: "Users",
           isConditional: !this.hideMetricsDaily,
@@ -998,7 +997,7 @@ export default {
           title: "Usuários Ativos",
           tooltip:
             "Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias",
-          users_active: this.activeNow.count,
+          count: this.activeNow.count,
           variation: this.activeNow.change,
           icon: "UserRound",
           isConditional: !this.hideMetricsDaily,
