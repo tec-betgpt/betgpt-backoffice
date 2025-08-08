@@ -1197,30 +1197,19 @@ export default {
           filter_id: this.workspaceStore.activeGroupProject.id,
         });
 
-        if (response.success) {
-          toast({
-            title: "Sucesso",
-            description:
-              "As métricas estão sendo atualizadas. Isso pode levar alguns minutos.",
-            variant: "default",
-          });
-
-          setTimeout(() => {
-            this.applyFilter();
-          }, 5000);
-        } else {
-          toast({
-            title: "Aviso",
-            description:
-              response.message ||
-              "Já existe uma atualização em andamento para este projeto.",
-            variant: "default",
-          });
-        }
+        toast({
+          title: "Sucesso",
+          description:
+            "As métricas estão sendo atualizadas. Isso pode levar alguns minutos.",
+          variant: "default",
+        });
       } catch (error) {
+        console.log(error);
         toast({
           title: "Erro",
-          description: "Ocorreu um erro ao solicitar a atualização.",
+          description:
+            error.response.data.message ||
+            "Ocorreu um erro ao solicitar a atualização.",
           variant: "destructive",
         });
       }
