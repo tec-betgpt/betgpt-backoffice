@@ -17,6 +17,10 @@
               Última atualização:
               {{ formatUpdatedAt(executionInfo.updated_at) }} em
               {{ formatExecutionTime(executionInfo.seconds) }}
+              <RefreshCcw
+                class="h-4 w-4 ml-1 inline cursor-pointer hover:text-blue-300"
+                @click="refreshMetrics"
+              />
             </div>
           </div>
 
@@ -384,6 +388,7 @@ import {
   Wallet,
   PencilRuler,
   SquarePen,
+  RefreshCcw,
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Chart, registerables } from "chart.js";
@@ -467,6 +472,7 @@ export default {
     Wallet,
     PencilRuler,
     SquarePen,
+    RefreshCcw,
   },
 
   data: () => ({
@@ -1164,6 +1170,59 @@ export default {
         } else {
           return `${minutes}min ${remainingSeconds}s`;
         }
+      }
+    },
+    async refreshMetrics() {
+      try {
+        if (!this.workspaceStore.activeGroupProject?.id) {
+          toast({
+            title: "Erro",
+            description: "Selecione um projeto antes de atualizar.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!this.isToday()) {
+          toast({
+            title: "Aviso",
+            description:
+              "A atualização manual só está disponível para a data atual.",
+            variant: "default",
+          });
+          return;
+        }
+
+        const { response } = await Home.refresh({
+          filter_id: this.workspaceStore.activeGroupProject.id,
+        });
+
+        if (response.success) {
+          toast({
+            title: "Sucesso",
+            description:
+              "As métricas estão sendo atualizadas. Isso pode levar alguns minutos.",
+            variant: "default",
+          });
+
+          setTimeout(() => {
+            this.applyFilter();
+          }, 5000);
+        } else {
+          toast({
+            title: "Aviso",
+            description:
+              response.message ||
+              "Já existe uma atualização em andamento para este projeto.",
+            variant: "default",
+          });
+        }
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Ocorreu um erro ao solicitar a atualização.",
+          variant: "destructive",
+        });
       }
     },
   },
