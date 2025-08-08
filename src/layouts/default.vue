@@ -334,7 +334,7 @@
             <div
               class="space-x-2 pb-2"
               :class="
-                message.sender === 'user'
+                message.role === 'user'
                   ? 'flex justify-end'
                   : 'flex justify-start'
               "
@@ -342,7 +342,7 @@
               <Avatar class="h-4 w-4 rounded-lg">
                 <AvatarImage
                   :src="
-                    message.sender === 'user' ? authStore.user?.icon : iconIa
+                    message.role === 'user' ? authStore.user?.icon : iconIa
                   "
                 />
                 <AvatarFallback class="rounded-lg">
@@ -350,17 +350,17 @@
                 </AvatarFallback>
               </Avatar>
               <p class="text-[10px]">
-                {{ message.sender === "user" ? "Você" : "I.A" }}
+                {{ message.role === "user" ? "Você" : "I.A" }}
               </p>
             </div>
             <p
               class="text-[12px] w-full flex flex-col"
               :class="
-                message.sender === 'user'
+                message.role === 'user'
                   ? ' text-end justify-end'
                   : 'flex text-start justify-start'
               "
-              v-html="message.content"
+              v-html="message.message"
             />
             <div v-if="message.file" class="mt-2">
               <a
@@ -421,7 +421,7 @@
           @keyup.enter="sendMessage"
           v-model="newMessage"
         />
-        <Button class="bg-yellow-300" @click="sendMessage"> Enviar </Button>
+        <Button class="bg-yellow-300" @click="sendMessage" :disabled="loading"> Enviar </Button>
         <Label
           for="file"
           class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer"
@@ -538,6 +538,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
+import IntelligenceArtificial from "@/services/intelligenceArtificial";
+import {toast} from "@/components/ui/toast";
 
 interface BreadcrumbItem {
   name: string;
@@ -550,12 +552,9 @@ interface Chat {
 }
 interface Message {
   id: number;
-  sender: "user" | "assistant";
-  content: string;
-  iaModel: string;
+  role: "user" | "assistant";
+  message: string;
   file: string | null;
-  createdAt: string;
-  updatedAt: string;
 }
 
 // Refs e stores
@@ -1315,22 +1314,6 @@ function scrollToBottom() {
   });
 }
 
-const loadChats = async () => {
-  loading.value = true;
-  try {
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/list`,
-      {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      }
-    );
-    chats.value = data.chats;
-  } catch (err) {
-    console.error("Erro ao carregar chats:", err);
-  } finally {
-    loading.value = false;
-  }
-};
 
 const setActiveGroupProject = async (project: any) => {
   sidebarExpanded.value = false;
@@ -1384,20 +1367,22 @@ const toggleSidebarIA = () => {
   sidebarIaExpanded.value = !sidebarIaExpanded.value;
 };
 
+
+const loadChats = async () => {
+  loading.value = true;
+  try {
+    const data = await IntelligenceArtificial.getListSessions()
+    chats.value = data.data;
+  } catch (err) {
+    console.error("Erro ao carregar chats:", err);
+  } finally {
+    loading.value = false;
+  }
+};
 const createNewChat = async () => {
   try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/create`,
-      { title: newMessage.value },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
-
-    chats.value.push(response.data.chat);
-    selectedChatId.value = response.data.chat.id;
+    const response = await IntelligenceArtificial.createSession()
+    selectedChatId.value = response.data.id;
 
     newChatTitle.value = "";
   } catch (error) {
@@ -1439,22 +1424,13 @@ const loadMessages = async () => {
   loading.value = true;
 
   try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${
-        selectedChatId.value
-      }/messages`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
-
-    messages.value = response.data.messages.map((message: any) => ({
-      ...message,
-      content: marked.parse(message.content),
-    }));
-
+    const data = await  IntelligenceArtificial.getSession({chat_id: selectedChatId.value});
+    messages.value = data.data.map((message: any) => ({
+      id: message.id,
+      role: message.role,
+      message: marked.parse(message.message[0]),
+      file: null
+    })).reverse();
     scrollToBottom();
   } catch (error) {
     console.error("Erro ao carregar mensagens:", error);
@@ -1462,51 +1438,49 @@ const loadMessages = async () => {
     loading.value = false;
   }
 };
-
+const file = ref<File>();
 const sendMessage = async () => {
-  if (!newMessage.value && !uploadedFilePath.value) return;
+
+  if (!newMessage.value) {
+    toast({
+      title:"Adicione um Texto",
+    })
+    return
+  }
 
   if (selectedChatId.value === undefined) {
     await createNewChat();
-    await loadChats();
-  } else {
-    const userMessage: Message = {
-      sender: "user",
-      content: newMessage.value,
-      iaModel: selectedModel.value,
-      file: uploadedFilePath.value,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    await sendMessage();
+  }
+  else {
+
+    const userMessage = {
+      chat_id: selectedChatId.value,
+      message: newMessage.value,
+      file: file.value
     };
 
     loading.value = true;
 
     try {
-      messages.value.push(userMessage);
+      messages.value.push({
+        message:newMessage.value,
+        file: uploadedFilePath.value,
+        role:"user",
+        id:messages.value.length
+      });
       scrollToBottom();
 
       newMessage.value = "";
       uploadedFilePath.value = null;
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${
-          selectedChatId.value
-        }/message`,
-        userMessage,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
+      const response = await  IntelligenceArtificial.sendMessage(userMessage)
+      file.value = undefined
       const assistantMessage: Message = {
-        sender: "assistant",
-        content: marked.parse(response.data.response),
-        iaModel: selectedModel.value,
+        id:messages.value.length,
+        role: "assistant",
+        message: marked.parse(response.data.message),
         file: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       };
 
       messages.value.push(assistantMessage);
@@ -1525,35 +1499,15 @@ const extractFileName = (url: string): string => {
 
 const handleFileUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
+  const selected = input.files?.[0];
+  if (!selected) return;
 
-  if (!file) return;
+  file.value = selected;
 
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await axios.post(
-      `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/upload`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        onUploadProgress: (progressEvent: any) => {
-          uploadProgress.value = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-        },
-      }
-    );
-
-    uploadProgress.value = 0;
-    uploadedFilePath.value = response.data.fileUrl;
-  } catch (error) {
-    console.error("Erro no upload do arquivo:", error);
-    alert("Erro ao enviar arquivo");
-  }
+  // Cria uma URL temporária para exibir imagem, PDF, etc.
+  uploadedFilePath.value = URL.createObjectURL(selected);
 };
+watch(uploadedFilePath, (newVal, oldVal) => {
+  if (oldVal) URL.revokeObjectURL(oldVal);
+});
 </script>
