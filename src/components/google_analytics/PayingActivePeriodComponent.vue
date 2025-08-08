@@ -49,7 +49,7 @@
       </div>
 
       <LineChart
-          :colors="['white','#947c2c']"
+          :colors="['white','#947c2c','#023e8a']"
 
           :data="payingActivePeriod"
           index="date"

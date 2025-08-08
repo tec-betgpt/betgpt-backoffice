@@ -30,7 +30,7 @@
         </div>
       </div>
       <LineChart
-          :colors="['white','#947c2c']"
+          :colors="['white','#947c2c','#023e8a']"
           v-if="categories.length > 0"
           :data="chartData"
           index="date"
