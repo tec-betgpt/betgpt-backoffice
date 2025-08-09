@@ -28,7 +28,7 @@
                   class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <div
-                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground"
                   >
                     <img
                       v-if="activeGroupProject && activeGroupProject.logo"
@@ -421,7 +421,7 @@
           @keyup.enter="sendMessage"
           v-model="newMessage"
         />
-        <Button class="bg-yellow-300" @click="sendMessage"> Enviar </Button>
+        <Button class="bg-[#947c2c]" @click="sendMessage"> Enviar </Button>
         <Label
           for="file"
           class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer"

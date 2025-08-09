@@ -10,7 +10,7 @@
       <div class="grid sm:grid-cols-1 md:grid-cols-3 gap-2 mb-10">
         <div class="variation">
           <div class="text-sm text-gray-400 pb-3">28D Pagantes Ativos</div>
-          <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+          <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
             <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('28D Pagantes Ativos', payingActivePeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
@@ -23,7 +23,7 @@
 
         <div class="variation">
           <div class="text-sm text-gray-400 pb-3">14D Pagantes Ativos</div>
-          <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+          <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
             <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('14D Pagantes Ativos', payingActivePeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
@@ -36,7 +36,7 @@
 
         <div class="variation">
           <div class="text-sm text-gray-400 pb-3">7D Pagantes Ativos</div>
-          <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+          <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
             <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('7D Pagantes Ativos', payingActivePeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
@@ -49,6 +49,8 @@
       </div>
 
       <LineChart
+          :colors="['white','#947c2c','#023e8a']"
+
           :data="payingActivePeriod"
           index="date"
           :categories="[
