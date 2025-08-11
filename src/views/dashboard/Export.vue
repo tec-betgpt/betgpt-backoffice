@@ -375,7 +375,8 @@ const columnsHistory = [
     cell: ({ row }) => {
       const url = row.original.url;
       const type = row.original.type;
-      return url
+      const valid = row.original.status
+      return valid !== "expired"
         ? h(
             Button,
             {
