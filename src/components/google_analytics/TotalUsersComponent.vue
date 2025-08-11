@@ -10,7 +10,7 @@
       <div class="mb-10">
         <div class="text-sm text-gray-400 pt-3">Total de Usuários</div>
         <div class="variation-horizontal">
-          <div class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+          <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
             <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('Total de Usuários', totalUsersPeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
@@ -23,6 +23,7 @@
       </div>
 
       <LineChart
+          :colors="['white','#947c2c']"
           :data="totalUsersPeriod"
           index="date"
           :categories="['Total de Usuários']"

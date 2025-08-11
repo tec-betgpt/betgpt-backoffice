@@ -17,7 +17,7 @@
           <div  v-for="p in period" :key="p.name">
           <div class="text-sm text-gray-400 my-3   ">{{ p.name }}</div>
             <div :class="{'variation-horizontal': period.length <= 1, 'variation': period.length > 1}">
-              <div class="value flex  align-baseline justify-start items-center bg-green-700 text-green-200">
+              <div class="value flex  align-baseline justify-start items-center bg-[#947c2c] text-green-200">
                 <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats(p.name, p.value).max }}
               </div>
               <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200">
@@ -30,6 +30,7 @@
         </div>
       </div>
       <LineChart
+          :colors="['white','#947c2c','#023e8a']"
           v-if="categories.length > 0"
           :data="chartData"
           index="date"

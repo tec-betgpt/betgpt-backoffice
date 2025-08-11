@@ -28,7 +28,7 @@
                   class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <div
-                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground"
                   >
                     <img
                       v-if="activeGroupProject && activeGroupProject.logo"
@@ -334,7 +334,7 @@
             <div
               class="space-x-2 pb-2"
               :class="
-                message.role === 'user'
+                message.sender === 'user'
                   ? 'flex justify-end'
                   : 'flex justify-start'
               "
@@ -342,7 +342,7 @@
               <Avatar class="h-4 w-4 rounded-lg">
                 <AvatarImage
                   :src="
-                    message.role === 'user' ? authStore.user?.icon : iconIa
+                    message.sender === 'user' ? authStore.user?.icon : iconIa
                   "
                 />
                 <AvatarFallback class="rounded-lg">
@@ -350,17 +350,17 @@
                 </AvatarFallback>
               </Avatar>
               <p class="text-[10px]">
-                {{ message.role === "user" ? "Você" : "I.A" }}
+                {{ message.sender === "user" ? "Você" : "I.A" }}
               </p>
             </div>
             <p
               class="text-[12px] w-full flex flex-col"
               :class="
-                message.role === 'user'
+                message.sender === 'user'
                   ? ' text-end justify-end'
                   : 'flex text-start justify-start'
               "
-              v-html="message.message"
+              v-html="message.content"
             />
             <div v-if="message.file" class="mt-2">
               <a
@@ -421,7 +421,7 @@
           @keyup.enter="sendMessage"
           v-model="newMessage"
         />
-        <Button class="bg-yellow-300" @click="sendMessage" :disabled="loading"> Enviar </Button>
+        <Button class="bg-[#947c2c]" @click="sendMessage"> Enviar </Button>
         <Label
           for="file"
           class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer"
@@ -538,8 +538,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
-import IntelligenceArtificial from "@/services/intelligenceArtificial";
-import {toast} from "@/components/ui/toast";
 
 interface BreadcrumbItem {
   name: string;
@@ -552,9 +550,12 @@ interface Chat {
 }
 interface Message {
   id: number;
-  role: "user" | "assistant";
-  message: string;
+  sender: "user" | "assistant";
+  content: string;
+  iaModel: string;
   file: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Refs e stores
@@ -1314,6 +1315,22 @@ function scrollToBottom() {
   });
 }
 
+const loadChats = async () => {
+  loading.value = true;
+  try {
+    const { data } = await axios.get(
+      `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/list`,
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      }
+    );
+    chats.value = data.chats;
+  } catch (err) {
+    console.error("Erro ao carregar chats:", err);
+  } finally {
+    loading.value = false;
+  }
+};
 
 const setActiveGroupProject = async (project: any) => {
   sidebarExpanded.value = false;
@@ -1367,22 +1384,20 @@ const toggleSidebarIA = () => {
   sidebarIaExpanded.value = !sidebarIaExpanded.value;
 };
 
-
-const loadChats = async () => {
-  loading.value = true;
-  try {
-    const data = await IntelligenceArtificial.getListSessions()
-    chats.value = data.data;
-  } catch (err) {
-    console.error("Erro ao carregar chats:", err);
-  } finally {
-    loading.value = false;
-  }
-};
 const createNewChat = async () => {
   try {
-    const response = await IntelligenceArtificial.createSession()
-    selectedChatId.value = response.data.id;
+    const response = await axios.post(
+      `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/create`,
+      { title: newMessage.value },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    chats.value.push(response.data.chat);
+    selectedChatId.value = response.data.chat.id;
 
     newChatTitle.value = "";
   } catch (error) {
@@ -1424,13 +1439,22 @@ const loadMessages = async () => {
   loading.value = true;
 
   try {
-    const data = await  IntelligenceArtificial.getSession({chat_id: selectedChatId.value});
-    messages.value = data.data.map((message: any) => ({
-      id: message.id,
-      role: message.role,
-      message: marked.parse(message.message[0]),
-      file: null
-    })).reverse();
+    const response = await axios.get(
+      `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${
+        selectedChatId.value
+      }/messages`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    messages.value = response.data.messages.map((message: any) => ({
+      ...message,
+      content: marked.parse(message.content),
+    }));
+
     scrollToBottom();
   } catch (error) {
     console.error("Erro ao carregar mensagens:", error);
@@ -1438,49 +1462,51 @@ const loadMessages = async () => {
     loading.value = false;
   }
 };
-const file = ref<File>();
-const sendMessage = async () => {
 
-  if (!newMessage.value) {
-    toast({
-      title:"Adicione um Texto",
-    })
-    return
-  }
+const sendMessage = async () => {
+  if (!newMessage.value && !uploadedFilePath.value) return;
 
   if (selectedChatId.value === undefined) {
     await createNewChat();
-    await sendMessage();
-  }
-  else {
-
-    const userMessage = {
-      chat_id: selectedChatId.value,
-      message: newMessage.value,
-      file: file.value
+    await loadChats();
+  } else {
+    const userMessage: Message = {
+      sender: "user",
+      content: newMessage.value,
+      iaModel: selectedModel.value,
+      file: uploadedFilePath.value,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     loading.value = true;
 
     try {
-      messages.value.push({
-        message:newMessage.value,
-        file: uploadedFilePath.value,
-        role:"user",
-        id:messages.value.length
-      });
+      messages.value.push(userMessage);
       scrollToBottom();
 
       newMessage.value = "";
       uploadedFilePath.value = null;
 
-      const response = await  IntelligenceArtificial.sendMessage(userMessage)
-      file.value = undefined
+      const response = await axios.post(
+        `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${
+          selectedChatId.value
+        }/message`,
+        userMessage,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
       const assistantMessage: Message = {
-        id:messages.value.length,
-        role: "assistant",
-        message: marked.parse(response.data.message),
+        sender: "assistant",
+        content: marked.parse(response.data.response),
+        iaModel: selectedModel.value,
         file: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       messages.value.push(assistantMessage);
@@ -1499,15 +1525,35 @@ const extractFileName = (url: string): string => {
 
 const handleFileUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement;
-  const selected = input.files?.[0];
-  if (!selected) return;
+  const file = input.files?.[0];
 
-  file.value = selected;
+  if (!file) return;
 
-  // Cria uma URL temporária para exibir imagem, PDF, etc.
-  uploadedFilePath.value = URL.createObjectURL(selected);
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_PUBLIC_IA_URL}/chat/upload`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        onUploadProgress: (progressEvent: any) => {
+          uploadProgress.value = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+        },
+      }
+    );
+
+    uploadProgress.value = 0;
+    uploadedFilePath.value = response.data.fileUrl;
+  } catch (error) {
+    console.error("Erro no upload do arquivo:", error);
+    alert("Erro ao enviar arquivo");
+  }
 };
-watch(uploadedFilePath, (newVal, oldVal) => {
-  if (oldVal) URL.revokeObjectURL(oldVal);
-});
 </script>

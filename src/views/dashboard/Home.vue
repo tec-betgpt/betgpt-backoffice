@@ -17,6 +17,11 @@
               Última atualização:
               {{ formatUpdatedAt(executionInfo.updated_at) }} em
               {{ formatExecutionTime(executionInfo.seconds) }}
+              <RefreshCcw
+                class="h-4 w-4 ml-1 inline cursor-pointer hover:text-blue-300"
+                :class="{ 'animate-spin': isRefreshing }"
+                @click="refreshMetrics"
+              />
             </div>
           </div>
 
@@ -384,6 +389,7 @@ import {
   Wallet,
   PencilRuler,
   SquarePen,
+  RefreshCcw,
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Chart, registerables } from "chart.js";
@@ -467,6 +473,7 @@ export default {
     Wallet,
     PencilRuler,
     SquarePen,
+    RefreshCcw,
   },
 
   data: () => ({
@@ -474,6 +481,7 @@ export default {
     workspaceStore: useWorkspaceStore(),
     userStore: useAuthStore(),
     executionInfo: null,
+    isRefreshing: false,
     players: {
       count: 0,
       percentage: 0,
@@ -1166,6 +1174,60 @@ export default {
         }
       }
     },
+    async refreshMetrics() {
+      if (this.isRefreshing) return;
+
+      this.isRefreshing = true;
+
+      try {
+        if (!this.workspaceStore.activeGroupProject?.id) {
+          toast({
+            title: "Erro",
+            description: "Selecione um projeto antes de atualizar.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!this.isToday()) {
+          toast({
+            title: "Aviso",
+            description:
+              "A atualização manual só está disponível para a data atual.",
+            variant: "default",
+          });
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+
+        const { response } = await Home.refresh({
+          filter_id: this.workspaceStore.activeGroupProject.id,
+        });
+
+        toast({
+          title: "Sucesso",
+          description:
+            "As métricas estão sendo atualizadas. Isso pode levar alguns minutos.",
+          variant: "default",
+        });
+
+        setTimeout(() => {
+          this.applyFilter();
+        }, 5000);
+      } catch (error) {
+        console.log(error);
+        toast({
+          title: "Erro",
+          description:
+            error.response?.data?.message ||
+            "Ocorreu um erro ao solicitar a atualização.",
+          variant: "destructive",
+        });
+      } finally {
+        this.isRefreshing = false;
+      }
+    },
   },
 
   watch: {
@@ -1203,5 +1265,18 @@ export default {
 
 .card-animation-leave-active {
   position: absolute;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
