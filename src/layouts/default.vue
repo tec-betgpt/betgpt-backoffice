@@ -309,11 +309,11 @@
       @update:modelValue="handleSidebarIaExpand"
       collapsible="offcanvas"
     >
-      <SidebarHeader class="p-4 max-h-64">
+      <SidebarHeader class="p-4 flex-4">
         <h1 class="font-bold">Elevate IA</h1>
         <div>
           <p class="text-[16px] py-4">Histórico</p>
-          <div class="card max-h-26 overflow-scroll overflow-x-hidden">
+          <div class="card max-h-16 overflow-y-scroll overflow-x-hidden">
             <p
               v-for="chat in chats"
               :key="chat.id"
@@ -325,7 +325,7 @@
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent class="p-4">
+      <SidebarContent class="p-4 flex-1">
         <div
           ref="messageContainerRef"
           class="card h-full w-full rounded-sm shadow-md flex-col flex p-2 overflow-y-scroll overlay-x-hidden"
@@ -415,7 +415,7 @@
           </div>
         </div>
       </SidebarContent>
-      <SidebarFooter class="p-4 grid grid-cols-1 gap-2">
+      <SidebarFooter class="p-4  flex-5 grid grid-cols-1 gap-2">
         <Textarea
           placeholder="Digite aqui..."
           @keyup.enter="sendMessage"
