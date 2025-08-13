@@ -1299,8 +1299,8 @@ onMounted(async () => {
   const user = authStore.user;
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
+    await loadChats();
   }
-  await loadChats();
 });
 
 const setResponsive = () => (stateResponsive.value = !stateResponsive.value);
