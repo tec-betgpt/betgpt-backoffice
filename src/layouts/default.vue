@@ -374,7 +374,15 @@
           </div>
 
           <div v-if="loading" class="flex flex-col gap-2">
-            <Skeleton class="w-12 h-3" />
+            <Avatar class="h-4 w-4 rounded-lg">
+              <AvatarImage
+                  :src="iconIa"
+              />
+              <AvatarFallback class="rounded-lg">
+                {{ authStore.user?.initials }}
+              </AvatarFallback>
+            </Avatar>
+
             <Skeleton class="w-full h-3" />
             <Skeleton class="w-full h-3" />
           </div>
@@ -386,27 +394,27 @@
               class="max-w-[80%] lg:max-w-[60%] shadow-md transition-all flex items-start px-3 py-2"
             >
               <div>
-                <div
-                  v-if="
-                    uploadedFilePath.endsWith('.jpg') ||
-                    uploadedFilePath.endsWith('.jpeg') ||
-                    uploadedFilePath.endsWith('.png') ||
-                    uploadedFilePath.endsWith('.gif')
-                  "
-                >
-                  <img
-                    :src="uploadedFilePath"
-                    alt="Pré-visualização da Imagem"
-                    class="max-h-32 max-w-full object-cover my-2"
-                  />
-                </div>
-                <div v-else-if="uploadedFilePath.endsWith('.pdf')">
-                  <iframe :src="uploadedFilePath" class="w-full" />
-                </div>
-                <div v-else-if="uploadedFilePath.endsWith('.txt')">
-                  <p>Arquivo de Texto anexado</p>
-                </div>
-                <div v-else>
+<!--                <div-->
+<!--                  v-if="-->
+<!--                    uploadedFilePath.endsWith('.jpg') ||-->
+<!--                    uploadedFilePath.endsWith('.jpeg') ||-->
+<!--                    uploadedFilePath.endsWith('.png') ||-->
+<!--                    uploadedFilePath.endsWith('.gif')-->
+<!--                  "-->
+<!--                >-->
+<!--                  <img-->
+<!--                    :src="uploadedFilePath"-->
+<!--                    alt="Pré-visualização da Imagem"-->
+<!--                    class="max-h-32 max-w-full object-cover my-2"-->
+<!--                  />-->
+<!--                </div>-->
+<!--                <div v-else-if="uploadedFilePath.endsWith('.pdf')">-->
+<!--                  <iframe :src="uploadedFilePath" class="w-full" />-->
+<!--                </div>-->
+<!--                <div v-else-if="uploadedFilePath.endsWith('.txt')">-->
+<!--                  <p>Arquivo de Texto anexado</p>-->
+<!--                </div>-->
+                <div v-if="uploadedFilePath">
                   <p>Arquivo anexado</p>
                 </div>
                 <Progress v-if="uploadProgress > 0" v-model="uploadProgress" />
