@@ -310,7 +310,16 @@
       collapsible="offcanvas"
     >
       <SidebarHeader class="p-4 flex-4">
-        <h1 class="font-bold">Elevate IA</h1>
+        <div class="flex justify-between align-middle">
+          <h1 class="font-bold">Elevate IA</h1>
+          <Button variant="ghost" @click=" async ()=>{
+            await createNewChat()
+            await loadMessages()
+          }">
+            <SquarePen /> Novo Chat
+          </Button>
+        </div>
+
         <div>
           <p class="text-[16px] py-4">Histórico</p>
           <div class="card max-h-16 overflow-y-scroll overflow-x-hidden">
@@ -382,9 +391,11 @@
                 {{ authStore.user?.initials }}
               </AvatarFallback>
             </Avatar>
-
-            <Skeleton class="w-full h-3" />
-            <Skeleton class="w-full h-3" />
+            <div class="loading-dots">
+              <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
+            </div>
+<!--            <Skeleton class="w-full h-3" />-->
+<!--            <Skeleton class="w-full h-3" />-->
           </div>
           <div
             v-if="uploadedFilePath"
@@ -434,7 +445,7 @@
           for="file"
           class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer"
         >
-          <Paperclip /> Anexar arquivo
+          <Paperclip :size="16"/> Anexar arquivo
         </Label>
         <Input
           id="file"
@@ -452,7 +463,7 @@
 </template>
 
 <script setup lang="ts">
-import { Download, Paperclip, X } from "lucide-vue-next";
+import { Download, Paperclip, X, SquarePen } from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Breadcrumb,
@@ -1519,3 +1530,29 @@ watch(uploadedFilePath, (newVal, oldVal) => {
   if (oldVal) URL.revokeObjectURL(oldVal);
 });
 </script>
+<style>
+.loading-dots {
+  display: flex;
+  justify-content: start;
+  align-items: flex-end;
+  font-size: 2rem;
+  height: 2.5rem; /* altura do container */
+}
+
+.loading-dots span {
+  display: inline-block;
+  margin: 0 0.1rem;
+  animation: bounce 0.8s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+</style>
