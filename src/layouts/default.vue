@@ -1013,9 +1013,4 @@ const handleFileUpload = async (event: Event) => {
   file.value = selected;
   uploadedFilePath.value = URL.createObjectURL(selected);
 };
-
-function handleImageError(event: Event): void {
-  const imgElement = event.target as HTMLImageElement;
-  imgElement.src = "/default-project.jpg";
-}
 </script>
