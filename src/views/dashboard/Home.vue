@@ -124,7 +124,7 @@
           v-for="item in processedCards"
           :key="item.id"
           class=""
-          :draggable="true"
+          :draggable="false"
           @dragstart="onDragStart($event, item)"
           @dragover.prevent
           @dragenter="onDragEnter(item)"

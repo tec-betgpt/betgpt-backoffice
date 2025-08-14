@@ -309,11 +309,20 @@
       @update:modelValue="handleSidebarIaExpand"
       collapsible="offcanvas"
     >
-      <SidebarHeader class="p-4 max-h-64">
-        <h1 class="font-bold">Elevate IA</h1>
+      <SidebarHeader class="p-4 flex-4">
+        <div class="flex justify-between align-middle">
+          <h1 class="font-bold">Elevate IA</h1>
+          <Button variant="ghost" @click=" async ()=>{
+            await createNewChat()
+            await loadMessages()
+          }">
+            <SquarePen /> Novo Chat
+          </Button>
+        </div>
+
         <div>
           <p class="text-[16px] py-4">Histórico</p>
-          <div class="card max-h-26 overflow-scroll overflow-x-hidden">
+          <div class="card max-h-16 overflow-y-scroll overflow-x-hidden">
             <p
               v-for="chat in chats"
               :key="chat.id"
@@ -325,7 +334,7 @@
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent class="p-4">
+      <SidebarContent class="p-4 flex-1">
         <div
           ref="messageContainerRef"
           class="card h-full w-full rounded-sm shadow-md flex-col flex p-2 overflow-y-scroll overlay-x-hidden"
@@ -374,9 +383,19 @@
           </div>
 
           <div v-if="loading" class="flex flex-col gap-2">
-            <Skeleton class="w-12 h-3" />
-            <Skeleton class="w-full h-3" />
-            <Skeleton class="w-full h-3" />
+            <Avatar class="h-4 w-4 rounded-lg">
+              <AvatarImage
+                  :src="iconIa"
+              />
+              <AvatarFallback class="rounded-lg">
+                {{ authStore.user?.initials }}
+              </AvatarFallback>
+            </Avatar>
+            <div class="loading-dots">
+              <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
+            </div>
+<!--            <Skeleton class="w-full h-3" />-->
+<!--            <Skeleton class="w-full h-3" />-->
           </div>
           <div
             v-if="uploadedFilePath"
@@ -386,27 +405,27 @@
               class="max-w-[80%] lg:max-w-[60%] shadow-md transition-all flex items-start px-3 py-2"
             >
               <div>
-                <div
-                  v-if="
-                    uploadedFilePath.endsWith('.jpg') ||
-                    uploadedFilePath.endsWith('.jpeg') ||
-                    uploadedFilePath.endsWith('.png') ||
-                    uploadedFilePath.endsWith('.gif')
-                  "
-                >
-                  <img
-                    :src="uploadedFilePath"
-                    alt="Pré-visualização da Imagem"
-                    class="max-h-32 max-w-full object-cover my-2"
-                  />
-                </div>
-                <div v-else-if="uploadedFilePath.endsWith('.pdf')">
-                  <iframe :src="uploadedFilePath" class="w-full" />
-                </div>
-                <div v-else-if="uploadedFilePath.endsWith('.txt')">
-                  <p>Arquivo de Texto anexado</p>
-                </div>
-                <div v-else>
+<!--                <div-->
+<!--                  v-if="-->
+<!--                    uploadedFilePath.endsWith('.jpg') ||-->
+<!--                    uploadedFilePath.endsWith('.jpeg') ||-->
+<!--                    uploadedFilePath.endsWith('.png') ||-->
+<!--                    uploadedFilePath.endsWith('.gif')-->
+<!--                  "-->
+<!--                >-->
+<!--                  <img-->
+<!--                    :src="uploadedFilePath"-->
+<!--                    alt="Pré-visualização da Imagem"-->
+<!--                    class="max-h-32 max-w-full object-cover my-2"-->
+<!--                  />-->
+<!--                </div>-->
+<!--                <div v-else-if="uploadedFilePath.endsWith('.pdf')">-->
+<!--                  <iframe :src="uploadedFilePath" class="w-full" />-->
+<!--                </div>-->
+<!--                <div v-else-if="uploadedFilePath.endsWith('.txt')">-->
+<!--                  <p>Arquivo de Texto anexado</p>-->
+<!--                </div>-->
+                <div v-if="uploadedFilePath">
                   <p>Arquivo anexado</p>
                 </div>
                 <Progress v-if="uploadProgress > 0" v-model="uploadProgress" />
@@ -415,7 +434,7 @@
           </div>
         </div>
       </SidebarContent>
-      <SidebarFooter class="p-4 grid grid-cols-1 gap-2">
+      <SidebarFooter class="p-4  flex-5 grid grid-cols-1 gap-2">
         <Textarea
           placeholder="Digite aqui..."
           @keyup.enter="sendMessage"
@@ -426,7 +445,7 @@
           for="file"
           class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer"
         >
-          <Paperclip /> Anexar arquivo
+          <Paperclip :size="16"/> Anexar arquivo
         </Label>
         <Input
           id="file"
@@ -444,7 +463,7 @@
 </template>
 
 <script setup lang="ts">
-import { Download, Paperclip, X } from "lucide-vue-next";
+import { Download, Paperclip, X, SquarePen } from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Breadcrumb,
@@ -1511,3 +1530,29 @@ watch(uploadedFilePath, (newVal, oldVal) => {
   if (oldVal) URL.revokeObjectURL(oldVal);
 });
 </script>
+<style>
+.loading-dots {
+  display: flex;
+  justify-content: start;
+  align-items: flex-end;
+  font-size: 2rem;
+  height: 2.5rem; /* altura do container */
+}
+
+.loading-dots span {
+  display: inline-block;
+  margin: 0 0.1rem;
+  animation: bounce 0.8s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+</style>
