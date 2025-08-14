@@ -23,32 +23,23 @@
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
-                <SidebarMenuButton
-                  size="lg"
-                  class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                  <div
-                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground"
-                  >
-                    <img
-                      v-if="activeGroupProject && activeGroupProject.logo"
-                      :src="activeGroupProject.logo"
-                      alt="Imagem do projeto"
-                      class="size-4"
-                    />
-
-                    <Package2
-                      class="h-4 w-4 transition-all group-hover:scale-110"
-                      v-else
-                    />
+                <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground">
+                    <Avatar shape="square" class="size-7">
+                      <AvatarImage v-if="activeGroupProject && activeGroupProject.logo" :src="activeGroupProject.logo"  />
+                      <AvatarImage v-else src="/default-company.jpg"  />
+                      <AvatarFallback class="uppercase  text-white">
+                        {{ activeGroupProject.name.slice(0, 2) }}
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
                   <div class="grid flex-1 text-left text-sm leading-tight">
-                    <span class="truncate font-semibold">{{
-                      activeGroupProject.name
-                    }}</span>
-                    <span class="truncate text-xs">{{
-                      $t(activeGroupProject.type)
-                    }}</span>
+                    <span class="truncate font-semibold">
+                      {{ activeGroupProject.name }}
+                    </span>
+                    <span class="truncate text-xs">
+                      {{ $t(activeGroupProject.type) }}
+                    </span>
                   </div>
                   <ChevronsUpDown class="ml-auto" />
                 </SidebarMenuButton>
@@ -68,19 +59,14 @@
                   class="gap-2 p-2"
                   @click="setActiveGroupProject(project)"
                 >
-                  <div
-                    class="flex size-6 items-center justify-center rounded-sm border"
-                  >
-                    <img
-                      v-if="project && project.logo"
-                      class="size-4 shrink-0"
-                      :src="project.logo"
-                      alt="Imagem do projeto"
-                    />
-                    <Package2
-                      class="h-4 w-4 transition-all group-hover:scale-110"
-                      v-else
-                    />
+                  <div class="flex size-6 items-center justify-center rounded-sm border">
+                    <Avatar shape="square" class="size-7">
+                      <AvatarImage v-if="project.logo" :src="project.logo"  />
+                      <AvatarImage v-else src="/default-company.jpg"  />
+                      <AvatarFallback class="uppercase  text-white">
+                        {{ project.name.slice(0, 2) }}
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
                   {{ project.name }}
                 </DropdownMenuItem>
@@ -193,23 +179,20 @@
       <SidebarFooter>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <SidebarMenuButton
-              size="lg"
-              class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
+            <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <Avatar class="h-8 w-8 rounded-lg">
-                <AvatarImage :src="authStore.user?.icon" />
-                <AvatarFallback class="rounded-lg">
+                <AvatarImage v-if="authStore.user" :src="authStore.user?.icon" />
+                <AvatarFallback class="rounded-lg text-white">
                   {{ authStore.user?.initials }}
                 </AvatarFallback>
               </Avatar>
               <div class="grid flex-1 text-left text-sm leading-tight">
-                <span class="truncate font-semibold">{{
-                  authStore.user?.first_name
-                }}</span>
-                <span class="truncate text-xs">{{
-                  authStore.user?.email
-                }}</span>
+                <span class="truncate font-semibold">
+                  {{ authStore.user?.first_name }}
+                </span>
+                <span class="truncate text-xs">
+                  {{ authStore.user?.email }}
+                </span>
               </div>
               <ChevronsUpDown class="ml-auto size-4" />
             </SidebarMenuButton>
@@ -220,35 +203,14 @@
             align="end"
             :side-offset="4"
           >
-            <DropdownMenuLabel class="p-0 font-normal">
-              <div
-                class="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
-              >
-                <Avatar class="h-8 w-8 rounded-lg">
-                  <AvatarFallback class="rounded-lg">
-                    {{ authStore.user?.initials }}
-                  </AvatarFallback>
-                </Avatar>
-                <div class="grid flex-1 text-left text-sm leading-tight">
-                  <span class="truncate font-semibold">{{
-                    authStore.user?.name
-                  }}</span>
-                  <span class="truncate text-xs">{{
-                    authStore.user?.email
-                  }}</span>
-                </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <router-link
-                class="w-full"
-                :to="{ name: 'configurations.profile' }"
-              >
+              <router-link class="w-full" :to="{ name: 'configurations.profile' }">
                 Configurações
-              </router-link></DropdownMenuItem
-            >
+              </router-link>
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
+
             <DropdownMenuItem @click="logout">
               <LogOut />
               Logout
@@ -495,7 +457,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-  useSidebar,
   SidebarProvider,
   Sidebar,
 } from "@/components/ui/sidebar";
@@ -521,7 +482,6 @@ import {
   Album,
   SlidersHorizontal,
   View,
-  MessageCircle,
   Rows3,
   ChevronRight,
   SquareStack,
@@ -541,10 +501,8 @@ import {
 } from "@/components/ui/collapsible";
 import { useColorMode } from "@vueuse/core";
 import CustomLoading from "@/components/custom/CustomLoading.vue";
-import { resizeDirective as vResize } from "v-resize-observer";
 import { useConfigStore } from "@/stores/config";
 import { Separator } from "@/components/ui/separator";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -576,12 +534,22 @@ interface Message {
   file: string | null;
 }
 
+const DARK_LOGOS = {
+  square: "/logo-elevate-square-white.png",
+  full: "/logo-elevate-white.png",
+};
+
+const LIGHT_LOGOS = {
+  square: "/logo-elevate-square-black.png",
+  full: "/logo-elevate-black.png",
+};
+
 // Refs e stores
 const collapsed = ref("");
 const sidebarExpanded = ref(false);
 const sidebarIaExpanded = ref(false);
 const stateResponsive = ref(false);
-const mode = useColorMode();
+const mode: any = useColorMode();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
 const configStore = useConfigStore();
@@ -603,10 +571,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 const messageContainerRef = ref<HTMLElement | null>(null);
 
 // Computed
-const activeGroupProject = computed(
-  () => workspaceStore.activeGroupProject || null
-);
-
+const activeGroupProject = computed(() => workspaceStore.activeGroupProject || null);
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [
     { name: "Elevate", title: "Elevate", path: "/home" },
@@ -624,22 +589,9 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 
   return items;
 });
-const logoSrc = computed(() => {
-  if (mode.value === "dark") {
-    return !sidebarExpanded.value
-      ? "/logo-elevate-square-white.png"
-      : "/logo-elevate-white.png";
-  } else {
-    return !sidebarExpanded.value
-      ? "/logo-elevate-square-black.png"
-      : "/logo-elevate-black.png";
-  }
-});
-
+const logoSrc = computed(() => getLogoSrc(mode.value === "dark", sidebarExpanded.value));
 const iconIa = computed(() => {
-  return mode.value === "dark"
-    ? "/logo-elevate-square-white.png"
-    : "/logo-elevate-square-black.png";
+  return mode.value === "dark" ? "/logo-elevate-square-white.png" : "/logo-elevate-square-black.png";
 });
 
 const navMenu = computed(() => {
@@ -648,219 +600,44 @@ const navMenu = computed(() => {
       name: "Home",
       url: { name: "home" },
       icon: Home,
-      show:
-        (authStore.user?.access_type === "member" &&
-          authStore.user?.roles.some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-dashboard"
-            )
-          )) ||
-        authStore.user?.roles
-          .filter(
-            (role) =>
-              activeGroupProject &&
-              role.pivot.project_id === activeGroupProject.project_id
-          )
-          .some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-dashboard"
-            )
-          ),
+      show: canAccess("access-to-dashboard")
     },
     {
       name: "Jarbas BOT",
       icon: Bot,
       url: { name: "jarbas-bot" },
       type: "ia",
-      show:
-        (authStore.user?.access_type === "member" &&
-          authStore.user?.roles.some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-ai"
-            )
-          )) ||
-        authStore.user?.roles
-          .filter(
-            (role) =>
-              activeGroupProject &&
-              role.pivot.project_id === activeGroupProject.project_id
-          )
-          .some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-ai"
-            )
-          ),
-      // children: [
-      //   {
-      //     name: "Chat",
-      //     url: { name: "chat" },
-      //     icon: MessageCircle,
-      //     show:
-      //         (authStore.user?.access_type === "member" &&
-      //             authStore.user?.roles.some((role) =>
-      //                 role.permissions.some(
-      //                     (permission) => permission.name === "access-to-ai"
-      //                 )
-      //             )) ||
-      //         authStore.user?.roles
-      //             .filter(
-      //                 (role) =>
-      //                     activeGroupProject &&
-      //                     role.pivot.project_id === activeGroupProject.project_id
-      //             )
-      //             .some((role) =>
-      //                 role.permissions.some(
-      //                     (permission) => permission.name === "access-to-ai"
-      //                 )
-      //             ),
-      //   },
-      //   {
-      //     name: "Jarbas BOT",
-      //     url: { name: "jarbas-bot" },
-      //     icon: Bot,
-      //     show:
-      //         (activeGroupProject &&
-      //             activeGroupProject.type === "project" &&
-      //             authStore.user?.access_type === "member" &&
-      //             authStore.user?.roles.some((role) =>
-      //                 role.permissions.some(
-      //                     (permission) => permission.name === "access-to-ai"
-      //                 )
-      //             )) ||
-      //         authStore.user?.roles
-      //             .filter(
-      //                 (role) =>
-      //                     activeGroupProject &&
-      //                     role.pivot.project_id === activeGroupProject.project_id
-      //             )
-      //             .some((role) =>
-      //                 role.permissions.some(
-      //                     (permission) => permission.name === "access-to-ai"
-      //                 )
-      //             ),
-      //   },
-      // ],
+      show: canAccess("access-to-ai")
     },
     {
       name: "Audiências",
       icon: View,
       type: "audiences",
-      show:
-        (authStore.user?.access_type === "member" &&
-          authStore.user?.roles.some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-reports"
-            )
-          )) ||
-        authStore.user?.roles
-          .filter(
-            (role) =>
-              activeGroupProject &&
-              role.pivot.project_id === activeGroupProject.project_id
-          )
-          .some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-reports"
-            )
-          ),
+      show: canAccess("access-to-reports"),
       children: [
         {
           name: "Clientes",
           url: { name: "clients" },
           icon: Users2,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "player-registrations"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "player-registrations"
-                )
-              ),
+          show: canAccess("player-registrations"),
         },
         {
           name: "Segmentos",
           url: { name: "segments" },
           icon: ListFilter,
-          show:
-            (activeGroupProject &&
-              activeGroupProject.value?.type === "project" &&
-              authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "view-segments"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "view-segments"
-                )
-              ),
+          show: canAccess("view-segments")
         },
         {
           name: "Atribuições",
           url: { name: "attributions" },
           icon: ExternalLink,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) =>
-                    permission.name === "access-to-parameter-tracking"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) =>
-                    permission.name === "access-to-parameter-tracking"
-                )
-              ),
+          show: canAccess("access-to-parameter-tracking")
         },
         {
           name: "Exportações",
           url: { name: "exports" },
           icon: Download,
-          show:
-            activeGroupProject &&
-            activeGroupProject.value?.type === "project" &&
-            ((authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-exportations"
-                )
-              )) ||
-              authStore.user?.roles
-                .filter(
-                  (role) =>
-                    activeGroupProject &&
-                    role.pivot.project_id === activeGroupProject.project_id
-                )
-                .some((role) =>
-                  role.permissions.some(
-                    (permission) => permission.name === "access-to-exportations"
-                  )
-                )),
+          show: canAccess("access-to-exportations"),
         },
       ],
     },
@@ -868,116 +645,31 @@ const navMenu = computed(() => {
       name: "Controles",
       icon: SlidersHorizontal,
       type: "controls",
-      show:
-        (authStore.user?.access_type === "member" &&
-          authStore.user?.roles.some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-reports"
-            )
-          )) ||
-        authStore.user?.roles
-          .filter(
-            (role) =>
-              activeGroupProject &&
-              role.pivot.project_id === activeGroupProject.project_id
-          )
-          .some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-reports"
-            )
-          ),
+      show: canAccess("access-to-reports"),
       children: [
         {
           name: "Performance",
           url: { name: "performances" },
           icon: LineChart,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-reports"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-reports"
-                )
-              ),
+          show: canAccess("access-to-reports")
         },
         {
           name: "Tráfego",
           url: { name: "traffics" },
           icon: ChartNoAxesCombined,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-reports"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-reports"
-                )
-              ),
+          show: canAccess("access-to-reports")
         },
         {
           name: "E-mails",
           url: { name: "emails" },
           icon: MailCheck,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-reports"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-reports"
-                )
-              ),
+          show: canAccess("access-to-reports")
         },
         {
           name: "SMS Insights",
           url: { name: "sms-insights" },
           icon: Send,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-reports"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-reports"
-                )
-              ),
+          show: canAccess("access-to-reports")
         },
       ],
     },
@@ -985,196 +677,49 @@ const navMenu = computed(() => {
       name: "Gerenciamento",
       icon: SquareStack,
       type: "manage",
-      show:
-        (authStore.user?.access_type === "member" &&
-          authStore.user?.roles.some((role) =>
-            role.permissions.some(
-              (permission) =>
-                permission.name === "access-to-client-management" ||
-                permission.name === "access-to-member-management"
-            )
-          )) ||
-        authStore.user?.roles
-          .filter(
-            (role) =>
-              activeGroupProject &&
-              role.pivot.project_id === activeGroupProject.project_id
-          )
-          .some((role) =>
-            role.permissions.some(
-              (permission) =>
-                permission.name === "access-to-client-management" ||
-                permission.name === "access-to-member-management"
-            )
-          ),
+      show: canAccess("access-to-client-management") || canAccess("access-to-member-management"),
       children: [
         {
           name: "Grupo de Projetos",
           url: { name: "configurations.projects" },
           icon: LayoutList,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-project-groups"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject.value &&
-                  role.pivot.project_id === activeGroupProject.value.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-project-groups"
-                )
-              ),
+          show: canAccess("access-to-project-groups")
         },
         {
           name: "Projetos",
           url: { name: "projects" },
           icon: Building2,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-project-groups"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-project-groups"
-                )
-              ),
+          show: canAccess("access-to-project-groups")
         },
         {
           name: "Usuários",
           url: { name: "users" },
           icon: Users2,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-users"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-users"
-                )
-              ),
+          show: canAccess("access-to-users")
         },
         {
           name: "Perfis",
           url: { name: "roles" },
           icon: UserCog,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-permissions"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-permissions"
-                )
-              ),
+          show: canAccess("access-to-permissions")
         },
         {
           name: "MyElevate Insights",
           url: { name: "texts" },
           icon: Album,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) =>
-                    permission.name === "access-to-motivational-texts"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) =>
-                    permission.name === "access-to-motivational-texts"
-                )
-              ),
+          show: canAccess("access-to-motivational-texts")
         },
         {
           name: "Integrações",
           url: { name: "integrations" },
           icon: Blocks,
-          show:
-            activeGroupProject &&
-            activeGroupProject.value?.type === "project" &&
-            ((authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-integrations"
-                )
-              )) ||
-              authStore.user?.roles
-                .filter(
-                  (role) =>
-                    activeGroupProject &&
-                    role.pivot.project_id === activeGroupProject.project_id
-                )
-                .some((role) =>
-                  role.permissions.some(
-                    (permission) => permission.name === "access-to-integrations"
-                  )
-                )),
+          show: canAccess("access-to-integrations")
         },
         {
           name: "Postback Logs",
           url: { name: "postback-logs" },
           icon: Logs,
-          show:
-            activeGroupProject &&
-            activeGroupProject.value?.type === "project" &&
-            ((authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-postback-logs"
-                )
-              )) ||
-              authStore.user?.roles
-                .filter(
-                  (role) =>
-                    activeGroupProject &&
-                    role.pivot.project_id === activeGroupProject.project_id
-                )
-                .some((role) =>
-                  role.permissions.some(
-                    (permission) =>
-                      permission.name === "access-to-postback-logs"
-                  )
-                )),
+          show: canAccess("access-to-postback-logs")
         },
       ],
     },
@@ -1182,93 +727,25 @@ const navMenu = computed(() => {
       name: "Financeiro",
       icon: CircleDollarSign,
       type: "financial",
-      show:
-        (authStore.user?.access_type === "member" &&
-          authStore.user?.roles.some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-finance"
-            )
-          )) ||
-        authStore.user?.roles
-          .filter(
-            (role) =>
-              activeGroupProject &&
-              role.pivot.project_id === activeGroupProject.project_id
-          )
-          .some((role) =>
-            role.permissions.some(
-              (permission) => permission.name === "access-to-finance"
-            )
-          ),
+      show: canAccess("access-to-finance"),
       children: [
         {
           name: "Gerir Setores",
           url: { name: "sectors" },
           icon: Briefcase,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-finance"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-finance"
-                )
-              ),
+          show: canAccess("access-to-finance")
         },
         {
           name: "Gerir Custos",
           url: { name: "costs" },
           icon: Rows3,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-finance"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-finance"
-                )
-              ),
+          show: canAccess("access-to-finance")
         },
         {
           name: "Entradas e Saídas",
           url: { name: "registers" },
           icon: DollarSignIcon,
-          show:
-            (authStore.user?.access_type === "member" &&
-              authStore.user?.roles.some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-finance"
-                )
-              )) ||
-            authStore.user?.roles
-              .filter(
-                (role) =>
-                  activeGroupProject &&
-                  role.pivot.project_id === activeGroupProject.project_id
-              )
-              .some((role) =>
-                role.permissions.some(
-                  (permission) => permission.name === "access-to-finance"
-                )
-              ),
+          show: canAccess("access-to-finance")
         },
       ],
     },
@@ -1289,23 +766,13 @@ watch(
   { immediate: true, deep: true }
 );
 
-watch(
-  activeGroupProject,
-  async () => {
+watch(activeGroupProject, async () => {
     if (activeGroupProject.value) {
-      const hasAccess =
-        authStore.user?.access_type === "member" ||
-        authStore.user?.roles
-          .filter(
-            (role) =>
-              role.pivot.project_id === activeGroupProject.value.project_id
-          )
-          .some(
-            (role) =>
-              route.meta.permissions?.includes?.(
-                role.permissions.map((p) => p.name)
-              ) ?? true
-          );
+      const is = authStore.user?.roles
+        .filter((role: any) => role.pivot.project_id === activeGroupProject.value?.project_id)
+        .some((role: any) => route.meta.permissions?.includes?.(role.permissions.map((p: any) => p.name)) ?? true);
+
+      const hasAccess = authStore.user?.access_type === "member" || is;
 
       if (!hasAccess) await router.push({ name: "home" });
     }
@@ -1313,8 +780,12 @@ watch(
   { immediate: true }
 );
 
+watch(uploadedFilePath, (newVal, oldVal) => {
+  if (oldVal) URL.revokeObjectURL(oldVal);
+});
+
 onMounted(async () => {
-  mode.value = localStorage.getItem("theme") || "auto";
+  mode.value =  localStorage.getItem("theme") || "auto"
   const user = authStore.user;
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
@@ -1328,11 +799,48 @@ function scrollToBottom() {
   nextTick(() => {
     const container = messageContainerRef.value;
     if (container) {
-      messageContainerRef.value.scrollTop = container.scrollHeight;
+      messageContainerRef.value!.scrollTop = container.scrollHeight;
     }
   });
 }
 
+function getLogoSrc(isDarkMode: boolean, isSidebarExpanded: boolean): string {
+  const logos = isDarkMode ? DARK_LOGOS : LIGHT_LOGOS;
+  return isSidebarExpanded ? logos.full : logos.square;
+}
+
+/**
+ * @description Verificar permissões do usuário
+ * @param permissionName
+ * @author Tavares <gerson.tavares@myelevate.com.br>
+ */
+function hasPermission(permissionName: string): boolean {
+  return !!authStore.user?.roles.some((role: any) =>
+    role.permissions.some((permission: any) => permission.name === permissionName)
+  );
+}
+
+/**
+ * @description Verificar permissões em projetos ativos
+ * @param permissionName
+ * @author Tavares <gerson.tavares@myelevate.com.br>
+ */
+function hasPermissionInActiveProject(permissionName: string): boolean {
+  return !!authStore.user?.roles
+    .filter((role: any) => activeGroupProject && role.pivot.project_id === activeGroupProject.project_id!)
+    .some((role: any) => role.permissions.some((permission: any) => permission.name === permissionName));
+}
+
+/**
+ * @param permissionName
+ * @author Tavares <gerson.tavares@myelevate.com.br>
+ */
+function canAccess(permissionName: string): boolean {
+  return (
+    (authStore.user?.access_type === "member" && hasPermission(permissionName)) ||
+    hasPermissionInActiveProject(permissionName)
+  );
+}
 
 const setActiveGroupProject = async (project: any) => {
   sidebarExpanded.value = false;
@@ -1386,18 +894,19 @@ const toggleSidebarIA = () => {
   sidebarIaExpanded.value = !sidebarIaExpanded.value;
 };
 
-
 const loadChats = async () => {
   loading.value = true;
+
   try {
     const data = await IntelligenceArtificial.getListSessions()
     chats.value = data.data;
   } catch (err) {
     console.error("Erro ao carregar chats:", err);
-  } finally {
-    loading.value = false;
   }
+
+  loading.value = false;
 };
+
 const createNewChat = async () => {
   try {
     const response = await IntelligenceArtificial.createSession()
@@ -1459,7 +968,6 @@ const loadMessages = async () => {
 };
 const file = ref<File>();
 const sendMessage = async () => {
-
   if (!newMessage.value) {
     toast({
       title:"Adicione um Texto",
@@ -1522,13 +1030,8 @@ const handleFileUpload = async (event: Event) => {
   if (!selected) return;
 
   file.value = selected;
-
-  // Cria uma URL temporária para exibir imagem, PDF, etc.
   uploadedFilePath.value = URL.createObjectURL(selected);
 };
-watch(uploadedFilePath, (newVal, oldVal) => {
-  if (oldVal) URL.revokeObjectURL(oldVal);
-});
 </script>
 <style>
 .loading-dots {
