@@ -887,7 +887,6 @@ export default {
       const orderedCards = [];
       // Itera sobre a ordem dos GRUPOS salvos
       savedOrder.forEach((savedGroup) => {
-        console.log("Saved Group:", savedGroup);
         const groupData = allGroupsDefault.find((g) => g.id === savedGroup.id);
         if (groupData) {
           const newContent = [];
@@ -1216,7 +1215,6 @@ export default {
           this.applyFilter();
         }, 5000);
       } catch (error) {
-        console.log(error);
         toast({
           title: "Erro",
           description:
