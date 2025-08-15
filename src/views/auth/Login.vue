@@ -140,20 +140,6 @@ const handleLoginResponse = async ({data}) => {
   if (tokenAuth && userAuth) {
     authStore.setUserData(userAuth, tokenAuth);
     router.push("/");
-
-    if (import.meta.env.VITE_PUBLIC_IA_URL) {
-      axios
-          .post(`${import.meta.env.VITE_PUBLIC_IA_URL}/auth/login`, {
-            email: userAuth.email,
-            password: form.value.password,
-          })
-          .then((response) => {
-            if (response.data.token) {
-              localStorage.setItem("token", response.data.token);
-            }
-          });
-    }
-
     await workspaceStore.loadInitialData(
         userAuth?.preferences,
         userAuth?.group_projects
