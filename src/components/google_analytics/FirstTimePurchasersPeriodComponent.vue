@@ -11,13 +11,19 @@
         <div class="text-sm text-gray-400 pt-3">Primeiros Compradores</div>
         <div class="variation-horizontal">
           <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
-            <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('Primeiros Compradores', firstTimePurchasersPeriod).max }}
+            <ArrowUp class="h-4 w-4 mr-1" />
+            Máx:  <br>
+            {{ calculateStats('Primeiros Compradores', firstTimePurchasersPeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
-            <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('Primeiros Compradores', firstTimePurchasersPeriod).min }}
+            <ArrowDown class="h-4 w-4 mr-1" />
+            Mín:  <br>
+            {{ calculateStats('Primeiros Compradores', firstTimePurchasersPeriod).min }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
-            <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('Primeiros Compradores', firstTimePurchasersPeriod).avg }}
+            <ChartLine class="h-4 w-4 mr-1" />
+            Média: <br>
+            {{ calculateStats('Primeiros Compradores', firstTimePurchasersPeriod).avg }}
           </div>
         </div>
       </div>

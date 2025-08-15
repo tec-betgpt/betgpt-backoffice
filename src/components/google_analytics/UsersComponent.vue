@@ -11,26 +11,37 @@
         <div class="variation">
           <div class="text-sm text-gray-400 pb-3">Usuários Novos</div>
           <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
-            <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('Usuários Novos', usersPeriod).max }}
+            <ArrowUp class="h-4 w-4 mr-1" />
+            Máx: <br>
+            {{ calculateStats('Usuários Novos', usersPeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
-            <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('Usuários Novos', usersPeriod).min }}
+            <ArrowDown class="h-4 w-4 mr-1" />
+            Mín: <br>{{ calculateStats('Usuários Novos', usersPeriod).min }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
-            <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('Usuários Novos', usersPeriod).avg }}
+            <ChartLine class="h-4 w-4 mr-1" />
+            Média: <br>
+            {{ calculateStats('Usuários Novos', usersPeriod).avg }}
           </div>
         </div>
 
         <div class="variation">
           <div class="text-sm text-gray-400 pb-3">Usuários Ativos</div>
           <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
-            <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('Usuários Ativos', usersPeriod).max }}
+            <ArrowUp class="h-4 w-4 mr-1" />
+            Máx: <br>
+            {{ calculateStats('Usuários Ativos', usersPeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
-            <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('Usuários Ativos', usersPeriod).min }}
+            <ArrowDown class="h-4 w-4 mr-1" />
+            Mín: <br>
+            {{ calculateStats('Usuários Ativos', usersPeriod).min }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
-            <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('Usuários Ativos', usersPeriod).avg }}
+            <ChartLine class="h-4 w-4 mr-1" />
+            Média: <br>
+            {{ calculateStats('Usuários Ativos', usersPeriod).avg }}
           </div>
         </div>
       </div>
