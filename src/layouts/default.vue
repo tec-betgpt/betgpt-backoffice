@@ -850,7 +850,12 @@ const setActiveGroupProject = async (project: any) => {
 
   setTimeout(() => {
     configStore.loading = false;
-    sidebarExpanded.value = true;
+    const isMobile = window.innerWidth < 768;
+    if(isMobile){
+      sidebarExpanded.value = false;
+    }else{
+      sidebarExpanded.value = true;
+    }
     document.body.style.overflow = "";
   }, 2000);
 };
