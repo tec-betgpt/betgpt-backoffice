@@ -70,7 +70,8 @@ onMounted(()=>{
       data-sidebar="sidebar"
       data-mobile="true"
       :side="side"
-      class="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+      :class="cn(side === 'right'?'w-80 min-[720px]:w-96':'w-64')"
+      class=" bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
       :style="{
         '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
       }"
