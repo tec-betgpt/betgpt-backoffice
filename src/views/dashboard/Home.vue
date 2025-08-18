@@ -411,7 +411,7 @@ import {
   Wallet,
   PencilRuler,
   SquarePen,
-  RefreshCcw,
+  RefreshCcw, Eye, EyeClosed,
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Chart, registerables } from "chart.js";
@@ -423,6 +423,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useColorMode } from "@vueuse/core";
 import {ref} from "vue";
 import {Skeleton} from "@/components/ui/skeleton";
+import {formatLargeNumber} from "@/filters/formatLargeNumber";
 
 const { toast } = useToast();
 
@@ -450,10 +451,6 @@ export default {
         const newContent = [];
 
         const visibleContent = group.content
-          .map((row) => row.filter((card) => !card.isConditional))
-          .filter((row) => row.length > 0);
-
-        visibleContent.forEach((originalRow) => {
           .map(row => row.filter(card => !card.isConditional))
           .filter(row => row.length > 0);
         visibleContent.forEach(originalRow => {
