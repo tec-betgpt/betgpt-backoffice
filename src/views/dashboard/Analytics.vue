@@ -14,18 +14,17 @@
       </div>
     </div>
     <div class="grid xl:grid-cols-2 grid-cols-1 gap-4" >
-      <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" />
-      <PeriodComponent :period="depositsPeriod" title="Deposito por periodo"  :isLoading="isLoading" />
-      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" type="percent" class="xl:col-span-2"  :isLoading="isLoading"  />
-      <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período"  :isLoading="isLoading" />
-      <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" :isLoading="isLoading"  />
-      <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia" type="percent"  :isLoading="isLoading" />
-      <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Depósitos Líquidos por período"  :isLoading="isLoading" />
-      <PeriodComponent :period="valueDepositsPeriod" title="Valor de Depósitos por período"  :isLoading="isLoading" />
-      <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saques por período" :isLoading="isLoading"  />
-      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Depósito por período" type="percent" :isLoading="isLoading"  />
-      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Depósito por período" type="percent"  :isLoading="isLoading" />
-    </div>
+      <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" glossary="Dados de Usuários registrados e ativos"/>
+      <PeriodComponent :period="depositsPeriod" title="Deposito por periodo" :isLoading="isLoading" glossary="Dados de depósito por período, com diferença de 7D, 14D e 28D"/>
+      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" type="percent" class="xl:col-span-2" :isLoading="isLoading" glossary="Percentual de depósitos líquidos em relação ao total por período"/>
+      <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período" :isLoading="isLoading" glossary="Valor líquido dos depósitos realizados em cada período"/>
+      <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" :isLoading="isLoading" glossary="Quantidade de usuários ativos em cada período"/>
+      <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia" type="percent" :isLoading="isLoading" glossary="Percentual de First Time Deposits (FTD) por dia"/>
+      <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Depósitos Líquidos por período" :isLoading="isLoading" glossary="Valor total dos depósitos líquidos por período"/>
+      <PeriodComponent :period="valueDepositsPeriod" title="Valor de Depósitos por período" :isLoading="isLoading" glossary="Valor total dos depósitos realizados por período"/>
+      <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saques por período" :isLoading="isLoading" glossary="Valor total dos saques realizados por período"/>
+      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Depósito por período" type="percent" :isLoading="isLoading" glossary="Percentual de usuários registrados que realizaram depósito por período"/>
+      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Depósito por período" type="percent" :isLoading="isLoading" glossary="Percentual de conversão de depósitos pagos por período"/>    </div>
   </div>
 </template>
 

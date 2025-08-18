@@ -12,37 +12,16 @@
       </div>
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
-      <Card v-for="n in 8" :key="n">
-        <CardHeader>
-          <Skeleton class="h-6 w-full" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton class="pl-5 h-80 w-full" />
-        </CardContent>
-      </Card>
-    </div>
 
-    <div v-else class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
-      <UsersComponent :users-period="usersPeriod" />
-
-      <PayingActivePeriodComponent :payingActivePeriod="payingActivePeriod" />
-
-      <TotalUsersComponent :total-users-period="totalUsersPeriod" />
-
-      <ReturningUsersPeriodComponent :returning-users-period="returningUsersPeriod" />
-
-      <FirstTimePurchasersPeriodComponent :firstTimePurchasersPeriod="firstTimePurchasersPeriod" />
-
-      <EngagementRatePeriodComponent :engagementRatePeriod="engagementRatePeriod" />
-
-      <TotalRevenuePeriodComponent :totalRevenuePeriod="totalRevenuePeriod" />
-
-      <EngagementDurationSessionPeriodComponent :engagementDurationSessionPeriod="engagementDurationSessionPeriod" />
-
-      <ArpuPeriodComponent :arpuPeriod="arpuPeriod" />
-
-      <ArppuPeriodComponent :arppuPeriod="arppuPeriod" />
+    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <PeriodComponent :is-loading="loading" :period="usersPeriod" title="Usuários" glossary="Dados de Usuários novos e ativo"/>
+      <PeriodComponent :is-loading="loading" :period="payingActivePeriod" title="Usuários Ativos Pagantes por período" glossary="Dados de Pagantes Ativos por período, com diferença de 7D, 14D e 28D"/>
+      <PeriodComponent :is-loading="loading" :period="totalUsersPeriod" title="Total de Usuários" glossary="Dados de total de usuários"/>
+      <PeriodComponent :is-loading="loading" :period="returningUsersPeriod" title="Usuários Recorrentes" glossary="Dados de Usuários Recorrentes por período"/>
+      <PeriodComponent :is-loading="loading" :period="firstTimePurchasersPeriod" title="Total de Primeiros Compradores" glossary="Dados de Primeiros Compradores por período"/>
+      <PeriodComponent :is-loading="loading" :period="engagementRatePeriod" title="Taxa de Engajamento por período" type="percent" glossary="Percentual de usuários engajados por período"/>
+      <PeriodComponent :is-loading="loading" :period="arpuPeriod" title="ARPU" type="currency" glossary="Receita média por usuário ativo por período"/>
+      <PeriodComponent :is-loading="loading" :period="arppuPeriod" title="ARPPU" type="currency" glossary="Receita média por usuário pagante por período"/>
     </div>
 
     <Card>
@@ -163,6 +142,8 @@ import ArpuPeriodComponent from "@/components/google_analytics/ArpuPeriodCompone
 import PayingActivePeriodComponent from "@/components/google_analytics/PayingActivePeriodComponent.vue";
 import EngagementRatePeriodComponent from "@/components/google_analytics/EngagementRatePeriodComponent.vue";
 import FirstTimePurchasersPeriodComponent from "@/components/google_analytics/FirstTimePurchasersPeriodComponent.vue";
+import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 
 const workspaceStore = useWorkspaceStore();
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
@@ -171,16 +152,16 @@ const selectedRange = ref({ start: startDate, end: currentDate });
 const { toast } = useToast();
 
 const loading = ref(true);
-const usersPeriod = ref([]);
-const totalUsersPeriod = ref([]);
-const returningUsersPeriod = ref([]);
-const firstTimePurchasersPeriod = ref([]);
-const payingActivePeriod = ref([]);
-const engagementRatePeriod = ref([]);
-const totalRevenuePeriod = ref([]);
-const engagementDurationSessionPeriod = ref([]);
-const arppuPeriod = ref([]);
-const arpuPeriod = ref([]);
+const usersPeriod =  ref<{ name: string; value: number[] }[]>([]);
+const totalUsersPeriod =  ref<{ name: string; value: number[] }[]>([]);
+const returningUsersPeriod =  ref<{ name: string; value: number[] }[]>([]);
+const firstTimePurchasersPeriod =  ref<{ name: string; value: number[] }[]>([]);
+const payingActivePeriod =  ref<{ name: string; value: number[] }[]>([]);
+const engagementRatePeriod =  ref<{ name: string; value: number[] }[]>([]);
+const totalRevenuePeriod =  ref<{ name: string; value: number[] }[]>([]);
+const engagementDurationSessionPeriod =  ref<{ name: string; value: number[] }[]>([]);
+const arppuPeriod =  ref<{ name: string; value: number[] }[]>([]);
+const arpuPeriod =  ref<{ name: string; value: number[] }[]>([]);
 const groupSessions = ref([]);
 const groupSessionsStats = computed(() => {
   const sessionsArray = Object.values(groupSessions.value);
@@ -270,16 +251,39 @@ const applyFilter = async () => {
       filter_id: workspaceStore.activeGroupProject.id,
     })
 
-    usersPeriod.value = data.data.users_period;
-    totalUsersPeriod.value = data.data.total_users_period;
-    returningUsersPeriod.value = data.data.returning_users_period;
-    firstTimePurchasersPeriod.value = data.data.first_time_purchasers_period;
-    payingActivePeriod.value = data.data.paying_active_period;
-    engagementRatePeriod.value = data.data.engagement_rate_period;
-    totalRevenuePeriod.value = data.data.total_revenue;
-    engagementDurationSessionPeriod.value = data.data.engagement_duration_per_sessions;
-    arppuPeriod.value = data.data.arppu;
-    arpuPeriod.value = data.data.arpu;
+usersPeriod.value = [
+  { name: "Usuários Novos", value: data.data.users_period },
+  { name: "Usuários Ativos", value: data.data.users_period }
+];
+totalUsersPeriod.value = [
+  { name: "Total de Usuários", value: data.data.total_users_period }
+];
+returningUsersPeriod.value = [
+  { name: "Usuários Recorrentes", value: data.data.returning_users_period }
+];
+firstTimePurchasersPeriod.value = [
+  { name: "Primeiros Compradores", value: data.data.first_time_purchasers_period }
+];
+payingActivePeriod.value = [
+  { name: "7D Pagantes Ativos", value: data.data.paying_active_period },
+  { name: "14D Pagantes Ativos", value: data.data.paying_active_period },
+  { name: "28D Pagantes Ativos", value: data.data.paying_active_period }
+];
+engagementRatePeriod.value = [
+  { name: "% Taxa de Engajamento", value: data.data.engagement_rate_period }
+];
+totalRevenuePeriod.value = [
+  { name: "Receita", value: data.data.total_revenue }
+];
+engagementDurationSessionPeriod.value = [
+  { name: "Tempo médio", value: data.data.engagement_duration_per_sessions }
+];
+arppuPeriod.value = [
+  { name: "ARPPU", value: data.data.arppu }
+];
+arpuPeriod.value = [
+  { name: "ARPU", value: data.data.arpu }
+];
     groupSessions.value = data.data.group_sessions;
   } catch (error) {
     toast({

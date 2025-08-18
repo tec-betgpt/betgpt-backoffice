@@ -42,8 +42,13 @@
       <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">SMS Contratado</CardTitle>
-            <Mail class="h-4 w-4 text-muted-foreground" />
+            <div class="flex justify-between items-center">
+              <Avatar class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2" shape="square">
+                <Mail class="text-muted-foreground" />
+              </Avatar>
+              <CardTitle class="text-sm font-medium">SMS Contratado</CardTitle>
+            </div>
+            <GlossaryTooltipComponent description="Quantidade total de SMS contratados no período selecionado." />
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">+{{ last.sms.contracted }}</div>
@@ -52,9 +57,13 @@
 
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">SMS Enviado</CardTitle>
-            <MailCheck class="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
+            <div class="flex justify-between items-center">
+              <Avatar class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2" shape="square">
+                <MailCheck class="text-muted-foreground" />
+              </Avatar>
+              <CardTitle class="text-sm font-medium">SMS Enviado</CardTitle>
+            </div>
+            <GlossaryTooltipComponent description="Quantidade total de SMS enviados no período selecionado." />          </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">+{{ last.sms.sent }}</div>
           </CardContent>
@@ -62,9 +71,13 @@
 
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">SMS Disponível</CardTitle>
-            <MailPlus class="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
+            <div class="flex justify-between items-center">
+              <Avatar class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2" shape="square">
+                <MailPlus class="text-muted-foreground" />
+              </Avatar>
+              <CardTitle class="text-sm font-medium">SMS Disponivel</CardTitle>
+            </div>
+          <GlossaryTooltipComponent description="Quantidade total de SMS disponíveis para envio no período selecionado." />          </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">+{{ last.sms.available }}</div>
           </CardContent>
@@ -72,8 +85,8 @@
       </div>
 
       <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mt-4">
-        <PeriodComponent :period="sms" title="SMS Enviados" :isLoading="loading" />
-        <PeriodComponent :period="clicks" title="Cliques" :isLoading="loading" />
+        <PeriodComponent :period="sms" title="SMS Enviados" :isLoading="loading" glossary="Quantidade total de SMS enviados no período selecionado."/>
+        <PeriodComponent :period="clicks" title="Cliques" :isLoading="loading" glossary="Total de cliques recebidos nas campanhas de SMS no período selecionado."/>
 
       </div>
 
@@ -245,6 +258,7 @@ const { toast } = useToast();
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 const workspaceStore = useWorkspaceStore();
 
 const loading = ref(true);
