@@ -193,10 +193,11 @@
                     v-if="subItem.layout === 'list'"
                     class="pb-5"
                   >
-                    <span>
-                      Tiveram {{ isShowValues ? deposits.count30days : '--' }} depósitos nos últimos
+                    <span v-if="isShowValues">
+                      Tiveram {{ deposits.count30days }} depósitos nos últimos
                       30 dias.
                     </span>
+                    <skeleton v-else />
                   </CardDescription>
                 </CardHeader>
 
@@ -244,10 +245,10 @@
                           {{ deposit.player.email }}
                         </p>
                       </div>
-                      <div class="ml-auto text-right">
-                        <span class="font-medium"
-                          >+{{ isShowValues ? $toCurrency(deposit.value / 100) : '--' }}</span
-                        >
+                      <div class="ml-auto text-right" v-if="isShowValues">
+                        <span class="font-medium">
+                          +{{ $toCurrency(deposit.value / 100) }}
+                        </span>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -269,80 +270,94 @@
                           </Tooltip>
                         </TooltipProvider>
                       </div>
+                      <div class="ml-auto text-right" v-else>
+                        <Skeleton class="h-6 w-6" />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
 
                 <!-- LAYOUT TIPO QUANTIDADE -->
                 <CardContent v-else-if="subItem.quantity">
-                  <div class="number">+{{ isShowValues ? subItem.quantity : '--' }}</div>
+                  <div class="number" v-if="isShowValues">
+                    +{{ subItem.quantity }}
+                  </div>
+                  <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
                   <small class="text-xs">Quantidade</small>
+
                   <div class="number mt-5" v-if="isShowValues">
                     {{ $toCurrency(subItem.value) }}
                   </div>
-                  <div class="number mt-5" v-else>
-                    --
-                  </div>
+                  <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
                   <small class="text-xs">Total</small>
-                  <div v-if="subItem.variation" class="variation mt-3 flex">
-                    <div
-                      v-if="subItem.variation > 0"
-                      class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
-                    >
-                      <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}%
+
+                  <div v-if="isShowValues">
+                    <div v-if="subItem.variation" class="variation mt-3 flex">
+                      <div
+                        v-if="subItem.variation > 0"
+                        class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                      >
+                        <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                      </div>
+                      <div
+                        v-else
+                        class="value flex justify-start items-center bg-red-700 text-red-200"
+                      >
+                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}%
+                      </div>
+                      desde a semana anterior
                     </div>
-                    <div
-                      v-else
-                      class="value flex justify-start items-center bg-red-700 text-red-200"
-                    >
-                      <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}%
-                    </div>
-                    desde a semana anterior
                   </div>
                 </CardContent>
 
-                <CardContent
-                  v-else-if="
-                    subItem.count !== undefined && subItem.count !== null
-                  "
-                >
-                  <div class="number">{{ isShowValues ? subItem.count : '--' }}</div>
-                  <div v-if="subItem.variation" class="variation mt-3 flex">
-                    <div
-                      v-if="subItem.variation > 0"
-                      class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
-                    >
-                      <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}
+                <CardContent v-else-if=" subItem.count !== undefined && subItem.count !== null">
+                  <div class="number" v-if="isShowValues">
+                    {{ subItem.count }}
+                  </div>
+                  <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
+
+                  <div v-if="isShowValues">
+                    <div v-if="subItem.variation" class="variation mt-3 flex">
+                      <div
+                        v-if="subItem.variation > 0"
+                        class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                      >
+                        <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}
+                      </div>
+                      <div
+                        v-else
+                        class="value flex justify-start items-center bg-red-700 text-red-200"
+                      >
+                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}
+                      </div>
+                      desde o dia anterior
                     </div>
-                    <div
-                      v-else
-                      class="value flex justify-start items-center bg-red-700 text-red-200"
-                    >
-                      <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}
-                    </div>
-                    desde o dia anterior
                   </div>
                 </CardContent>
 
                 <!-- LAYOUT PADRÃO -->
                 <CardContent v-else>
-                  <div :title="subItem.value" class="number">
+                  <div v-if="isShowValues" :title="subItem.value" class="number">
                     {{ isShowValues ? $toCurrency(subItem.value) : '--' }}{{ subItem.suffix }}
                   </div>
-                  <div v-if="subItem.variation" class="variation mt-3 flex">
-                    <div
-                      v-if="subItem.variation > 0"
-                      class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
-                    >
-                      <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}%
+                  <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
+
+                  <div v-if="isShowValues">
+                    <div v-if="subItem.variation" class="variation mt-3 flex">
+                      <div
+                        v-if="subItem.variation > 0"
+                        class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                      >
+                        <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}%
+                      </div>
+                      <div
+                        v-else
+                        class="value flex justify-start items-center bg-red-700 text-red-200"
+                      >
+                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}%
+                      </div>
+                      desde a semana anterior
                     </div>
-                    <div
-                      v-else
-                      class="value flex justify-start items-center bg-red-700 text-red-200"
-                    >
-                      <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}%
-                    </div>
-                    desde a semana anterior
                   </div>
                 </CardContent>
               </Card>
@@ -410,6 +425,7 @@ import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipCompone
 import { useAuthStore } from "@/stores/auth";
 import { useColorMode } from "@vueuse/core";
 import {ref} from "vue";
+import {Skeleton} from "@/components/ui/skeleton";
 
 const { toast } = useToast();
 
@@ -462,6 +478,7 @@ export default {
   },
 
   components: {
+    Skeleton,
     ArrowDown,
     ArrowUp,
     BadgeCheck,

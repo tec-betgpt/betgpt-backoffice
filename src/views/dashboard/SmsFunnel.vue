@@ -192,17 +192,6 @@
             </TableBody>
           </Table>
         </CardContent>
-
-        <CardFooter class="py-4 w-full">
-          <CustomPagination
-            :pages="{
-              current: pages.current,
-              last: pages.last,
-              total: pages.total,
-            }"
-            :select-page="applyFilter"
-          />
-        </CardFooter>
       </Card>
     </div>
   </div>
@@ -328,14 +317,16 @@ const applyFilter = async (current = pages.value.current) => {
       total: data.recharges.reduce((sum, item) => sum + item.total, 0),
       created_at: null
     };
-    recharges.value = [totalRecharges, ...data.recharges];
+    recharges.value = data.recharges;
+    recharges.value.push(totalRecharges);
 
     const totalCampaigns = {
       name: 'Total',
       sms: data.campaigns.data.reduce((sum, campaign) => sum + campaign.sms, 0),
       clicks: data.campaigns.data.reduce((sum, campaign) => sum + campaign.clicks, 0)
     };
-    campaigns.value = [totalCampaigns, ...data.campaigns.data];
+    campaigns.value = data.campaigns.data;
+    campaigns.value.push(totalCampaigns);
 
     pages.value = {
       current: data.campaigns.pagination.current_page,
