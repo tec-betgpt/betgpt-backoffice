@@ -11,39 +11,57 @@
         <div class="variation">
           <div class="text-sm text-gray-400 pb-3">28D Pagantes Ativos</div>
           <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
-            <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('28D Pagantes Ativos', payingActivePeriod).max }}
+            <ArrowUp class="h-4 w-4 mr-1" />
+            Máx: <br>
+            {{ calculateStats('28D Pagantes Ativos', payingActivePeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
-            <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('28D Pagantes Ativos', payingActivePeriod).min }}
+            <ArrowDown class="h-4 w-4 mr-1" />
+            Mín: <br>
+            {{ calculateStats('28D Pagantes Ativos', payingActivePeriod).min }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
-            <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('28D Pagantes Ativos', payingActivePeriod).avg }}
+            <ChartLine class="h-4 w-4 mr-1" />
+            Média: <br>
+            {{ calculateStats('28D Pagantes Ativos', payingActivePeriod).avg }}
           </div>
         </div>
 
         <div class="variation">
           <div class="text-sm text-gray-400 pb-3">14D Pagantes Ativos</div>
           <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
-            <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('14D Pagantes Ativos', payingActivePeriod).max }}
+            <ArrowUp class="h-4 w-4 mr-1" />
+            Máx: <br>
+            {{ calculateStats('14D Pagantes Ativos', payingActivePeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
-            <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('14D Pagantes Ativos', payingActivePeriod).min }}
+            <ArrowDown class="h-4 w-4 mr-1" />
+            Mín: <br>
+            {{ calculateStats('14D Pagantes Ativos', payingActivePeriod).min }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
-            <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('14D Pagantes Ativos', payingActivePeriod).avg }}
+            <ChartLine class="h-4 w-4 mr-1" />
+            Média: <br>
+            {{ calculateStats('14D Pagantes Ativos', payingActivePeriod).avg }}
           </div>
         </div>
 
         <div class="variation">
           <div class="text-sm text-gray-400 pb-3">7D Pagantes Ativos</div>
           <div class="value flex align-baseline justify-start items-center bg-[#947c2c] text-green-200">
-            <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats('7D Pagantes Ativos', payingActivePeriod).max }}
+            <ArrowUp class="h-4 w-4 mr-1" />
+            Máx: <br>
+            {{ calculateStats('7D Pagantes Ativos', payingActivePeriod).max }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200 text-green-200">
-            <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats('7D Pagantes Ativos', payingActivePeriod).min }}
+            <ArrowDown class="h-4 w-4 mr-1" />
+            Mín: <br>
+            {{ calculateStats('7D Pagantes Ativos', payingActivePeriod).min }}
           </div>
           <div class="value flex align-baseline justify-start items-center bg-gray-700 text-white">
-            <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats('7D Pagantes Ativos', payingActivePeriod).avg }}
+            <ChartLine class="h-4 w-4 mr-1" />
+            Média: <br>
+            {{ calculateStats('7D Pagantes Ativos', payingActivePeriod).avg }}
           </div>
         </div>
       </div>

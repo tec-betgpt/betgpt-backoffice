@@ -18,13 +18,19 @@
           <div class="text-sm text-gray-400 my-3   ">{{ p.name }}</div>
             <div :class="{'variation-horizontal': period.length <= 1, 'variation': period.length > 1}">
               <div class="value flex  align-baseline justify-start items-center bg-[#947c2c] text-green-200">
-                <ArrowUp class="h-4 w-4 mr-1" /> Máx: {{ calculateStats(p.name, p.value).max }}
+                <ArrowUp class="h-4 w-4 mr-1" />
+                Máx: <br>
+                {{ calculateStats(p.name, p.value).max }}
               </div>
               <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200">
-                <ArrowDown class="h-4 w-4 mr-1" /> Mín: {{ calculateStats(p.name, p.value).min }}
+                <ArrowDown class="h-4 w-4 mr-1" />
+                Mín: <br>
+                {{ calculateStats(p.name, p.value).min }}
               </div>
               <div class="value flex align-baseline justify-start items-center w-full bg-gray-700 text-white">
-                <ChartLine class="h-4 w-4 mr-1" /> Média: {{ calculateStats(p.name, p.value).avg }}
+                <ChartLine class="h-4 w-4 mr-1" />
+                Média: <br>
+                {{ calculateStats(p.name, p.value).avg }}
               </div>
             </div>
         </div>
