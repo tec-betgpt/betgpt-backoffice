@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { Axis, GroupedBar, StackedBar } from '@unovis/ts'
 import { VisAxis, VisGroupedBar, VisStackedBar, VisXYContainer } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
-import { type Component, computed, ref } from 'vue'
+import {type Component, computed, ref, watch} from 'vue'
 
 const props = withDefaults(defineProps<BaseChartProps<T> & {
   /**
@@ -49,7 +49,14 @@ const legendItems = ref<BulletLegendItemInterface[]>(props.categories.map((categ
   inactive: false,
 })))
 
+const isShowTooltip = ref(true)
+const keyUpdate = ref(1)
 const isMounted = useMounted()
+
+watch(() => props.showTooltip, (value) => {
+  isShowTooltip.value = value
+  keyUpdate.value++
+})
 
 function handleLegendItemClick(d: BulletLegendItemInterface, i: number) {
   emits('legendItemClick', d, i)
@@ -60,7 +67,7 @@ const selectorsBar = computed(() => props.type === 'grouped' ? GroupedBar.select
 </script>
 
 <template>
-  <div :class="cn('w-full h-[400px] flex flex-col items-end', $attrs.class ?? '')">
+  <div :key="keyUpdate"  :class="cn('w-full h-[400px] flex flex-col items-end', $attrs.class ?? '')">
     <ChartLegend v-if="showLegend" v-model:items="legendItems" @legend-item-click="handleLegendItemClick" />
 
     <VisXYContainer
@@ -68,7 +75,9 @@ const selectorsBar = computed(() => props.type === 'grouped' ? GroupedBar.select
       :style="{ height: isMounted ? '100%' : 'auto' }"
       :margin="margin"
     >
-      <ChartCrosshair v-if="showTooltip" :colors="colors" :items="legendItems" :custom-tooltip="customTooltip" :index="index" />
+      <template v-if="isShowTooltip">
+        <ChartCrosshair :colors="colors" :items="legendItems" :custom-tooltip="customTooltip" :index="index" />
+      </template>
 
       <VisBarComponent
         :x="(d: Data, i: number) => i"

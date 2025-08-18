@@ -7,7 +7,7 @@
             <div class="text-xl font-semibold text-white">
               {{ greeting() }} {{ user ? user.first_name : "" }},
             </div>
-            <div class="xs:text-xs md:text-sm text-white">
+            <div class="text-xs text-white">
               Confira as principais atualizações
             </div>
             <div
@@ -25,10 +25,14 @@
             </div>
           </div>
 
-          <div class="flex justify-end items-center w-full">
+          <div class="flex justify-end items-center w-full flex-nowrap">
             <div class="rounded bg-card w-full md:w-auto">
               <CustomDatePicker v-model="selectedRange" />
             </div>
+              <button @click="toggleValues()" class="p-2 ml-2 rounded bg-yellow-400 text-black">
+                <Eye v-if="isShowValues" class="w-5 h-5" />
+                <EyeClosed v-else class="w-5 h-5" />
+              </button>
           </div>
         </div>
       </div>
@@ -119,7 +123,7 @@
     </div>
 
     <div v-else>
-      <TransitionGroup tag="div" class="">
+      <TransitionGroup tag="div">
         <div
           v-for="item in processedCards"
           :key="item.id"
@@ -190,7 +194,7 @@
                     class="pb-5"
                   >
                     <span>
-                      Tiveram {{ deposits.count30days }} depósitos nos últimos
+                      Tiveram {{ isShowValues ? deposits.count30days : '--' }} depósitos nos últimos
                       30 dias.
                     </span>
                   </CardDescription>
@@ -203,6 +207,7 @@
                     :categories="['Total']"
                     :index="'name'"
                     :rounded-corners="4"
+                    :show-tooltip="isShowValues"
                     :y-formatter="
                       (tick) => (typeof tick === 'number' ? $toK(tick) : '')
                     "
@@ -241,7 +246,7 @@
                       </div>
                       <div class="ml-auto text-right">
                         <span class="font-medium"
-                          >+{{ $toCurrency(deposit.value / 100) }}</span
+                          >+{{ isShowValues ? $toCurrency(deposit.value / 100) : '--' }}</span
                         >
                         <TooltipProvider>
                           <Tooltip>
@@ -270,10 +275,13 @@
 
                 <!-- LAYOUT TIPO QUANTIDADE -->
                 <CardContent v-else-if="subItem.quantity">
-                  <div class="number">+{{ subItem.quantity }}</div>
+                  <div class="number">+{{ isShowValues ? subItem.quantity : '--' }}</div>
                   <small class="text-xs">Quantidade</small>
-                  <div class="number mt-5">
+                  <div class="number mt-5" v-if="isShowValues">
                     {{ $toCurrency(subItem.value) }}
+                  </div>
+                  <div class="number mt-5" v-else>
+                    --
                   </div>
                   <small class="text-xs">Total</small>
                   <div v-if="subItem.variation" class="variation mt-3 flex">
@@ -281,13 +289,13 @@
                       v-if="subItem.variation > 0"
                       class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
                     >
-                      <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                      <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}%
                     </div>
                     <div
                       v-else
                       class="value flex justify-start items-center bg-red-700 text-red-200"
                     >
-                      <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}%
+                      <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}%
                     </div>
                     desde a semana anterior
                   </div>
@@ -298,19 +306,19 @@
                     subItem.count !== undefined && subItem.count !== null
                   "
                 >
-                  <div class="number">{{ subItem.count }}</div>
+                  <div class="number">{{ isShowValues ? subItem.count : '--' }}</div>
                   <div v-if="subItem.variation" class="variation mt-3 flex">
                     <div
                       v-if="subItem.variation > 0"
                       class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
                     >
-                      <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}
+                      <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}
                     </div>
                     <div
                       v-else
                       class="value flex justify-start items-center bg-red-700 text-red-200"
                     >
-                      <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}
+                      <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}
                     </div>
                     desde o dia anterior
                   </div>
@@ -319,20 +327,20 @@
                 <!-- LAYOUT PADRÃO -->
                 <CardContent v-else>
                   <div :title="subItem.value" class="number">
-                    {{ $toCurrency(subItem.value) }}{{ subItem.suffix }}
+                    {{ isShowValues ? $toCurrency(subItem.value) : '--' }}{{ subItem.suffix }}
                   </div>
                   <div v-if="subItem.variation" class="variation mt-3 flex">
                     <div
                       v-if="subItem.variation > 0"
                       class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
                     >
-                      <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                      <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}%
                     </div>
                     <div
                       v-else
                       class="value flex justify-start items-center bg-red-700 text-red-200"
                     >
-                      <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}%
+                      <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}%
                     </div>
                     desde a semana anterior
                   </div>
@@ -381,6 +389,8 @@ import {
   ChevronDownIcon,
   CirclePercent,
   DollarSign,
+  Eye,
+  EyeClosed,
   Hourglass,
   ListCheck,
   UserRound,
@@ -397,20 +407,24 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import VideoBackground from "vue-responsive-video-background-player";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
-import { formatLargeNumber } from "@/filters/formatLargeNumber.js";
 import { useAuthStore } from "@/stores/auth";
 import { useColorMode } from "@vueuse/core";
-import { color } from "chart.js/helpers";
+import {ref} from "vue";
 
 const { toast } = useToast();
 
 Chart.register(...registerables);
 
 export default {
+  beforeUnmount() {
+    window.removeEventListener("resize", this.handleResize);
+  },
+
   computed: {
     CustomChartTooltip() {
       return CustomChartTooltipRealPrice;
     },
+
     processedCards() {
       const limits = { mobile: 1, tablet: 2, desktop: 5 };
       let limit;
@@ -428,6 +442,7 @@ export default {
         const visibleContent = group.content
           .map((row) => row.filter((card) => !card.isConditional))
           .filter((row) => row.length > 0);
+
         visibleContent.forEach((originalRow) => {
           if (originalRow.length > limit) {
             for (let i = 0; i < originalRow.length; i += limit) {
@@ -440,6 +455,7 @@ export default {
         return { ...group, content: newContent };
       });
     },
+
     iconColor() {
       return this.color == "dark" ? "white" : "black";
     },
@@ -463,6 +479,8 @@ export default {
     CustomDatePicker,
     DateRangePicker,
     DollarSign,
+    Eye,
+    EyeClosed,
     GlossaryTooltipComponent,
     Hourglass,
     ListCheck,
@@ -482,6 +500,7 @@ export default {
     userStore: useAuthStore(),
     executionInfo: null,
     isRefreshing: false,
+    isShowValues: ref(true),
     players: {
       count: 0,
       percentage: 0,
@@ -547,28 +566,30 @@ export default {
 
   async mounted() {
     window.addEventListener("resize", this.handleResize);
-
     await this._user();
   },
 
   methods: {
-    formatLargeNumber,
     handleResize() {
       this.windowWidth = window.innerWidth;
     },
-    onDragStart(event, item) {
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", item.id);
+
+    onDragStart(event: DragEvent, item: any) {
+      event.dataTransfer!.effectAllowed = "move";
+      event.dataTransfer!.setData("text/plain", item.id);
     },
-    onDragEnter(item) {
+
+    onDragEnter(item: any) {
       this.dragOverId = item.id;
     },
+
     onDragLeave() {
       this.dragOverId = null;
     },
-    onDrop(event, item) {
+
+    onDrop(event: DragEvent, item: any) {
       event.preventDefault();
-      const draggedItemId = event.dataTransfer.getData("text/plain");
+      const draggedItemId = event.dataTransfer!.getData("text/plain");
 
       if (draggedItemId && draggedItemId !== item.id) {
         const draggedItemIndex = this.cards.findIndex(
@@ -582,6 +603,7 @@ export default {
           this.cards[targetItemIndex] = temp;
         }
       }
+
       const save = this.cards.map((group) => {
         return {
           id: group.id,
@@ -590,10 +612,12 @@ export default {
           }),
         };
       });
+
       Home.layout(save);
       this.dragOverId = null;
     },
-    onDropSub(event, targetItem, rowIndexFromProcessed, parentId) {
+
+    onDropSub(event: DragEvent, targetItem: any, rowIndexFromProcessed: number, parentId: string) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer.getData("text/plain");
       this.dragOverId = null;
@@ -665,7 +689,8 @@ export default {
 
       parentCard.content = parentCard.content.filter((row) => row.length > 0);
     },
-    onDropNewRow(event, parentId) {
+
+    onDropNewRow(event: DragEvent, parentId: string) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer.getData("text/plain");
       this.dragOverNewRow = null;
@@ -694,13 +719,14 @@ export default {
       parentCard.content = parentCard.content.filter((row) => row.length > 0);
     },
 
-    onDragEnterNewRow(parentId) {
+    onDragEnterNewRow(parentId: string) {
       this.dragOverNewRow = parentId;
     },
 
     onDragLeaveNewRow() {
       this.dragOverNewRow = null;
     },
+
     async _user() {
       const { data } = await Auth.user();
       this.user = data;
@@ -718,7 +744,7 @@ export default {
       return "Boa noite";
     },
 
-    editLayout(value) {
+    editLayout(value: string) {
       this.cards = this.cards.map((card) =>
         card.id === value ? { ...card, edit: !card.edit } : card
       );
@@ -744,6 +770,7 @@ export default {
         Home.layout(save);
       }
     },
+
     formatLocalDate(date: any) {
       const d = new Date(date);
       const year = d.getFullYear();
@@ -751,6 +778,7 @@ export default {
       const day = String(d.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
     },
+
     async applyFilter() {
       this.loading = true;
 
@@ -836,6 +864,7 @@ export default {
 
       this.loading = false;
     },
+
     applySavedOrder(savedOrder) {
       // Primeiro, gera todos os cartões possíveis para termos os objetos completos.
       const allGroupsDefault = [
@@ -911,6 +940,7 @@ export default {
 
       this.cards = orderedCards;
     },
+
     buildCardsDeposits() {
       const allCards = [
         {
@@ -988,6 +1018,7 @@ export default {
         allCards.slice(4, 7), // Segunda linha com 3 cartões
       ];
     },
+
     buildCardsPlayers() {
       const allCards = [
         {
@@ -1050,6 +1081,7 @@ export default {
         allCards.slice(3, 6), // Segunda linha
       ];
     },
+
     buildCardsWithdraws() {
       const allCards = [
         {
@@ -1101,6 +1133,7 @@ export default {
         allCards.slice(3, 5), // Segunda linha
       ];
     },
+
     buildCardsRetention() {
       const allCards = [
         {
@@ -1125,6 +1158,7 @@ export default {
         allCards, // Apenas uma linha com todos os cartões
       ];
     },
+
     buildCardsHistory() {
       const allCards = [
         {
@@ -1146,15 +1180,18 @@ export default {
       ];
       return [allCards];
     },
+
     isToday() {
       return (
         this.selectedRange?.start.toString() == this.formatLocalDate(new Date())
       );
     },
+
     formatUpdatedAt(updatedAt) {
       if (!updatedAt) return "";
       return this.$moment(updatedAt).format("HH:mm[h]");
     },
+
     formatExecutionTime(seconds) {
       if (!seconds) return "";
 
@@ -1173,6 +1210,7 @@ export default {
         }
       }
     },
+
     async refreshMetrics() {
       if (this.isRefreshing) return;
 
@@ -1226,6 +1264,10 @@ export default {
         this.isRefreshing = false;
       }
     },
+
+    toggleValues() {
+      this.isShowValues = !this.isShowValues;
+    }
   },
 
   watch: {
@@ -1237,11 +1279,7 @@ export default {
         this.applyFilter();
       },
     },
-  },
-
-  beforeUnmount() {
-    window.removeEventListener("resize", this.handleResize);
-  },
+  }
 };
 </script>
 

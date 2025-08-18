@@ -95,7 +95,7 @@ ffmpeg -i login.mp4 -vf "scale=1280:720" -c:v libvpx-vp9 -b:v 1M -c:a libopus lo
 ffmpeg -i login.mp4 -vf "scale=854:480" -c:v libvpx-vp9 -b:v 1M -c:a libopus login-480p.webm &&
 ffmpeg -i login.mp4 -vf "scale=640:360" -c:v libvpx-vp9 -b:v 1M -c:a libopus login-360p.webm &&
 ffmpeg -i login.mp4 -vf "scale=426:240" -c:v libvpx-vp9 -b:v 1M -c:a libopus login-240p.webm &&
-ffmpeg -i input.mp4 -ss 00:00:03 -vframes 1 poster.jpg
+ffmpeg -i login.mp4 -ss 00:00:03 -vframes 1 poster.jpg
 ```
 
 Esse comando acima faz o seguinte:
