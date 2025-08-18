@@ -160,18 +160,19 @@
               </template>
               <template v-else>
                 <TableRow v-for="(recharge, index) in recharges" :key="index">
-                  <TableCell>{{
-                    $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss")
-                  }}</TableCell>
+                  <TableCell>
+                    {{ recharge.created_at ? $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss") : '' }}
+                  </TableCell>
                   <TableCell>{{ recharge.description }}</TableCell>
                   <TableCell>{{ recharge.service }}</TableCell>
                   <TableCell>{{ recharge.credits }}</TableCell>
                   <TableCell>{{ $toCurrency(recharge.price) }}</TableCell>
                   <TableCell>{{ $toCurrency(recharge.total) }}</TableCell>
                   <TableCell>
+                    <span v-if="recharge.situation === null"></span>
                     <span
                       class="text-green-600"
-                      v-if="recharge.situation == 'APPROVED'"
+                      v-else-if="recharge.situation == 'APPROVED'"
                       >Confirmado</span
                     >
                     <span class="text-red-600" v-else>Pendente</span>
@@ -191,6 +192,17 @@
             </TableBody>
           </Table>
         </CardContent>
+
+        <CardFooter class="py-4 w-full">
+          <CustomPagination
+            :pages="{
+              current: pages.current,
+              last: pages.last,
+              total: pages.total,
+            }"
+            :select-page="applyFilter"
+          />
+        </CardFooter>
       </Card>
     </div>
   </div>
@@ -305,8 +317,25 @@ const applyFilter = async (current = pages.value.current) => {
     sms.value = [{name:"Total SMS Enviado",value:data.daily.sms}]
     clicks.value = [{name:"Total Cliques",value:data.daily.clicks}]
 
-    recharges.value = data.recharges;
-    campaigns.value = data.campaigns.data;
+
+    const totalRecharges = {
+      name: 'Total',
+      description: null,
+      situation: null,
+      service: null,
+      credits: data.recharges.reduce((sum, item) => sum + item.credits, 0),
+      price: data.recharges.reduce((sum, item) => sum + item.price, 0),
+      total: data.recharges.reduce((sum, item) => sum + item.total, 0),
+      created_at: null
+    };
+    recharges.value = [totalRecharges, ...data.recharges];
+
+    const totalCampaigns = {
+      name: 'Total',
+      sms: data.campaigns.data.reduce((sum, campaign) => sum + campaign.sms, 0),
+      clicks: data.campaigns.data.reduce((sum, campaign) => sum + campaign.clicks, 0)
+    };
+    campaigns.value = [totalCampaigns, ...data.campaigns.data];
 
     pages.value = {
       current: data.campaigns.pagination.current_page,
@@ -314,6 +343,7 @@ const applyFilter = async (current = pages.value.current) => {
       last: data.campaigns.pagination.last_page,
     };
   } catch (error) {
+    console.error(error)
     toast({
       title: "Erro ao carregar dados",
       description: "Não foi possível aplicar o filtro selecionado.",
@@ -336,13 +366,13 @@ const columns = [
     header({ column }) {
       return createHeaderButton("Envios SMS", "sms");
     },
-    cell: ({ row }) => h("div", { class: "" }, row.getValue("sms")),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("sms")),
   }),
   columnHelper.accessor("clicks", {
     header({ column }) {
       return createHeaderButton("Total de Cliques", "clicks");
     },
-    cell: ({ row }) => h("div", { class: "" }, row.getValue("clicks")),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("clicks")),
   }),
 ];
 
