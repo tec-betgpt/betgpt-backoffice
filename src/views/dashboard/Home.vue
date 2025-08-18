@@ -500,7 +500,7 @@ export default {
     userStore: useAuthStore(),
     executionInfo: null,
     isRefreshing: false,
-    isShowValues: ref(true),
+    isShowValues: ref(false),
     players: {
       count: 0,
       percentage: 0,
