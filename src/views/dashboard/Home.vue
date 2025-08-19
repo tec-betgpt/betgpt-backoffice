@@ -579,9 +579,7 @@ export default {
     debounceTimers: {}
   }),
 
-  async mounted() {
-    await this._user();
-  },
+
 
   beforeUnmount() {
     Object.values(this.resizeObservers).forEach(obs => obs.disconnect());

@@ -111,8 +111,4 @@ watch(selectedRange,()=>{
   applyFilter()
 })
 
-
-onMounted(async () => {
-  await applyFilter();
-});
 </script>

@@ -418,9 +418,7 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-onMounted(async () => {
-  await applyFilter();
-});
+
 watch(selectedRange, () => {
   applyFilter();
 })
