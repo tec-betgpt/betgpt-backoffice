@@ -156,59 +156,60 @@
               tag="div"
               class="flex gap-4"
             >
-              <Card
-                v-for="subItem in row"
-                :key="subItem.id"
-                :class="{
+              <div     class="flex gap-4 w-full "   :ref="el => setRowRef(el, rowIndex)" >
+                <Card
+                    v-for="subItem in row"
+                    :key="subItem.id"
+                    :class="{
                   'card-animation-move': subItem.id === dragOverId,
                   hidden: subItem.isConditional,
                 }"
-                :draggable="item.edit"
-                class="flex-1 item"
-                @dragstart.stop="onDragStart($event, subItem)"
-                @dragover.prevent
-                @dragenter="onDragEnter(subItem)"
-                @dragleave="onDragLeave"
-                @drop="onDropSub($event, subItem, rowIndex, item.id)"
-              >
-                <CardHeader class="pb-2">
-                  <CardTitle class="flex-row flex justify-between items-center">
-                    <div class="flex justify-between items-center">
-                      <Avatar
-                        v-if="subItem.icon"
-                        class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
-                        shape="square"
-                      >
-                        <Component :is="subItem.icon" :color="iconColor" />
-                      </Avatar>
-                      <span
-                        class="font-medium"
-                        :class="{ 'text-xs': !subItem.layout }"
+                    :draggable="item.edit"
+                    class="flex-1 item"
+                    @dragstart.stop="onDragStart($event, subItem)"
+                    @dragover.prevent
+                    @dragenter="onDragEnter(subItem)"
+                    @dragleave="onDragLeave"
+                    @drop="onDropSub($event, subItem,  item.id)"
+                >
+                  <CardHeader class="pb-2">
+                    <CardTitle class="flex-row flex justify-between items-center">
+                      <div class="flex justify-between items-center">
+                        <Avatar
+                            v-if="subItem.icon"
+                            class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
+                            shape="square"
+                        >
+                          <Component :is="subItem.icon" :color="iconColor" />
+                        </Avatar>
+                        <span
+                            class="font-medium"
+                            :class="{ 'text-xs': !subItem.layout }"
                         >{{ subItem.title }}</span
-                      >
-                    </div>
-                    <GlossaryTooltipComponent :description="subItem.tooltip" />
-                  </CardTitle>
-                  <CardDescription
-                    v-if="subItem.layout === 'list'"
-                    class="pb-5"
-                  >
+                        >
+                      </div>
+                      <GlossaryTooltipComponent :description="subItem.tooltip" />
+                    </CardTitle>
+                    <CardDescription
+                        v-if="subItem.layout === 'list'"
+                        class="pb-5"
+                    >
                     <span v-if="isShowValues">
                       Tiveram {{ deposits.count30days }} depósitos nos últimos
                       30 dias.
                     </span>
                     <skeleton v-else />
                   </CardDescription>
-                </CardHeader>
+                  </CardHeader>
 
-                <!-- LAYOUT TIPO GRÁFICO -->
-                <CardContent v-if="subItem.layout === 'card'">
-                  <BarChart
-                    :data="deposits.monthly_counts"
-                    :categories="['Total']"
-                    :index="'name'"
-                    :rounded-corners="4"
-                    :show-tooltip="isShowValues"
+                  <!-- LAYOUT TIPO GRÁFICO -->
+                  <CardContent v-if="subItem.layout === 'card'">
+                    <BarChart
+                        :data="deposits.monthly_counts"
+                        :categories="['Total']"
+                        :index="'name'"
+                        :rounded-corners="4"
+                        :show-tooltip="isShowValues"
                     :y-formatter="
                       (tick) => (typeof tick === 'number' ? $toK(tick) : '')
                     "
@@ -216,99 +217,97 @@
                   />
                 </CardContent>
 
-                <!-- LAYOUT TIPO LISTA -->
-                <CardContent v-else-if="subItem.layout === 'list'">
-                  <div class="space-y-8">
-                    <div
-                      v-for="deposit in deposits.lasts"
-                      :key="deposit.id"
-                      class="flex items-center"
-                    >
-                      <Avatar class="h-9 w-9">
-                        <AvatarFallback>
-                          {{
-                            deposit.player.name
-                              ? deposit.player.name.charAt(0)
-                              : deposit.player.email.charAt(0).toUpperCase()
-                          }}{{
-                            deposit.player.name
-                              ? deposit.player.name.charAt(1)
-                              : deposit.player.email.charAt(1)
-                          }}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div class="ml-4 space-y-1 w-1/2">
-                        <p class="text-sm font-medium leading-none truncate">
-                          {{ deposit.player.name }}
-                        </p>
-                        <p class="text-sm text-muted-foreground truncate">
-                          {{ deposit.player.email }}
-                        </p>
-                      </div>
-                      <div class="ml-auto text-right" v-if="isShowValues">
+                  <!-- LAYOUT TIPO LISTA -->
+                  <CardContent v-else-if="subItem.layout === 'list'">
+                    <div class="space-y-8">
+                      <div
+                          v-for="deposit in deposits.lasts"
+                          :key="deposit.id"
+                          class="flex items-center"
+                      >
+                        <Avatar class="h-9 w-9">
+                          <AvatarFallback>
+                            {{
+                              deposit.player.name
+                                  ? deposit.player.name.charAt(0)
+                                  : deposit.player.email.charAt(0).toUpperCase()
+                            }}{{
+                              deposit.player.name
+                                  ? deposit.player.name.charAt(1)
+                                  : deposit.player.email.charAt(1)
+                            }}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div class="ml-4 space-y-1 w-1/2">
+                          <p class="text-sm font-medium leading-none truncate">
+                            {{ deposit.player.name }}
+                          </p>
+                          <p class="text-sm text-muted-foreground truncate">
+                            {{ deposit.player.email }}
+                          </p>
+                        </div>
+                        <div class="ml-auto text-right"v-if="isShowValues">
                         <span class="font-medium">
-                          +{{ $toCurrency(deposit.value / 100) }}
+                        +{{ $toCurrency(deposit.value / 100) }}
                         </span>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <p
-                                class="text-xs text-muted-foreground text-right"
-                              >
-                                {{ $moment(deposit.created_at).fromNow() }}
-                              </p>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>
-                                {{
-                                  $moment(deposit.created_at).format(
-                                    "DD/MM/YYYY HH:mm:ss"
-                                  )
-                                }}
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <p
+                                    class="text-xs text-muted-foreground text-right"
+                                >
+                                  {{ $moment(deposit.created_at).fromNow() }}
+                                </p>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  {{
+                                    $moment(deposit.created_at).format(
+                                        "DD/MM/YYYY HH:mm:ss"
+                                    )
+                                  }}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider></div>
                       <div class="ml-auto text-right" v-else>
                         <Skeleton class="h-6 w-6" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
+                  </CardContent>
 
-                <!-- LAYOUT TIPO QUANTIDADE -->
-                <CardContent v-else-if="subItem.quantity">
-                  <div class="number" v-if="isShowValues">
-                    +{{ subItem.quantity }}
-                  </div>
-                  <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
+                  <!-- LAYOUT TIPO QUANTIDADE -->
+                  <CardContent v-else-if="subItem.quantity">
+                    <div class="number"v-if="isShowValues">
+                      +{{ subItem.quantity }}
+                    </div>
+                    <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
                   <small class="text-xs">Quantidade</small>
 
-                  <div class="number mt-5" v-if="isShowValues">
-                    {{ $toCurrency(subItem.value) }}
-                  </div>
+                    <div class="number mt-5"v-if="isShowValues">
+                      {{ $toCurrency(subItem.value) }}
+                    </div>
                   <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
                   <small class="text-xs">Total</small>
 
                   <div v-if="isShowValues">
                     <div v-if="subItem.variation" class="variation mt-3 flex">
                       <div
-                        v-if="subItem.variation > 0"
-                        class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                          v-if="subItem.variation > 0"
+                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
                       >
                         <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
                       </div>
                       <div
-                        v-else
-                        class="value flex justify-start items-center bg-red-700 text-red-200"
+                          v-else
+                          class="value flex justify-start items-center bg-red-700 text-red-200"
                       >
-                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}%
+                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--'}}%
                       </div>
-                      desde a semana anterior
+                      desde a semana anterior</div>
                     </div>
-                  </div>
-                </CardContent>
+                  </CardContent>
 
                 <CardContent v-else-if=" subItem.count !== undefined && subItem.count !== null">
                   <div class="number" v-if="isShowValues">
@@ -335,32 +334,32 @@
                   </div>
                 </CardContent>
 
-                <!-- LAYOUT PADRÃO -->
-                <CardContent v-else>
-                  <div v-if="isShowValues" :title="subItem.value" class="number">
-                    {{ isShowValues ? $toCurrency(subItem.value) : '--' }}{{ subItem.suffix }}
-                  </div>
-                  <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
+                  <!-- LAYOUT PADRÃO -->
+                  <CardContent v-else>
+                    <div v-if="isShowValues":title="subItem.value" class="number">
+                      {{ isShowValues ? $toCurrency(subItem.value) : '--'}}{{ subItem.suffix }}
+                    </div>
+                    <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
 
                   <div v-if="isShowValues">
                     <div v-if="subItem.variation" class="variation mt-3 flex">
                       <div
-                        v-if="subItem.variation > 0"
-                        class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                          v-if="subItem.variation > 0"
+                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
                       >
-                        <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}%
+                        <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--'}}%
                       </div>
                       <div
-                        v-else
-                        class="value flex justify-start items-center bg-red-700 text-red-200"
+                          v-else
+                          class="value flex justify-start items-center bg-red-700 text-red-200"
                       >
-                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}%
+                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--'}}%
                       </div>
-                      desde a semana anterior
+                      desde a semana anterior</div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
             </TransitionGroup>
 
             <div
@@ -404,8 +403,6 @@ import {
   ChevronDownIcon,
   CirclePercent,
   DollarSign,
-  Eye,
-  EyeClosed,
   Hourglass,
   ListCheck,
   UserRound,
@@ -414,7 +411,7 @@ import {
   Wallet,
   PencilRuler,
   SquarePen,
-  RefreshCcw,
+  RefreshCcw, Eye, EyeClosed,
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Chart, registerables } from "chart.js";
@@ -426,16 +423,13 @@ import { useAuthStore } from "@/stores/auth";
 import { useColorMode } from "@vueuse/core";
 import {ref} from "vue";
 import {Skeleton} from "@/components/ui/skeleton";
+import {formatLargeNumber} from "@/filters/formatLargeNumber";
 
 const { toast } = useToast();
 
 Chart.register(...registerables);
 
 export default {
-  beforeUnmount() {
-    window.removeEventListener("resize", this.handleResize);
-  },
-
   computed: {
     CustomChartTooltip() {
       return CustomChartTooltipRealPrice;
@@ -443,23 +437,23 @@ export default {
 
     processedCards() {
       const limits = { mobile: 1, tablet: 2, desktop: 5 };
+      return this.cards.map((group, groupIndex) => {
+      const rowWidth = this.rowWidths[groupIndex] || window.innerWidth;
       let limit;
-      if (this.windowWidth < 768) {
+      if (rowWidth < 500) {
         limit = limits.mobile;
-      } else if (this.windowWidth < 1280) {
+      } else if (rowWidth < 900) {
         limit = limits.tablet;
       } else {
         limit = limits.desktop;
       }
 
-      return this.cards.map((group) => {
         const newContent = [];
 
         const visibleContent = group.content
-          .map((row) => row.filter((card) => !card.isConditional))
-          .filter((row) => row.length > 0);
-
-        visibleContent.forEach((originalRow) => {
+          .map(row => row.filter(card => !card.isConditional))
+          .filter(row => row.length > 0);
+        visibleContent.forEach(originalRow => {
           if (originalRow.length > limit) {
             for (let i = 0; i < originalRow.length; i += limit) {
               newContent.push(originalRow.slice(i, i + limit));
@@ -579,14 +573,51 @@ export default {
     }>(),
     dragOverId: null,
     windowWidth: window.innerWidth,
+    rowRefs: [],
+    rowWidths: {},
+    resizeObservers: [],
+    debounceTimers: {}
   }),
 
   async mounted() {
-    window.addEventListener("resize", this.handleResize);
     await this._user();
   },
 
+  beforeUnmount() {
+    Object.values(this.resizeObservers).forEach(obs => obs.disconnect());
+    Object.values(this.debounceTimers).forEach(timerId => clearTimeout(timerId));
+  },
   methods: {
+    debounce(func, delay, key) {
+      if (this.debounceTimers[key]) {
+        clearTimeout(this.debounceTimers[key]);
+      }
+      this.debounceTimers[key] = setTimeout(func, delay);
+    },
+
+    setRowRef(el, index) {
+      if (!el) {
+        if (this.resizeObservers[index]) {
+          this.resizeObservers[index].disconnect();
+          delete this.resizeObservers[index];
+        }
+        return;
+      }
+
+      if (this.resizeObservers[index]) return;
+
+      const observer = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          this.debounce(() => {
+            this.rowWidths[index] = entry.contentRect.width;
+          }, 150, `resize_${index}`);
+        }
+      });
+
+      observer.observe(el);
+      this.resizeObservers[index] = observer;
+    },
+    formatLargeNumber,
     handleResize() {
       this.windowWidth = window.innerWidth;
     },
@@ -607,104 +638,54 @@ export default {
     onDrop(event: DragEvent, item: any) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer!.getData("text/plain");
+      this.dragOverId = null;
 
-      if (draggedItemId && draggedItemId !== item.id) {
-        const draggedItemIndex = this.cards.findIndex(
-          (i) => i.id === draggedItemId
-        );
-        const targetItemIndex = this.cards.findIndex((i) => i.id === item.id);
+      if (draggedItemId && draggedItemId !== targetItem.id) {
+        const draggedItemIndex = this.cards.findIndex(i => i.id === draggedItemId);
+        const targetItemIndex = this.cards.findIndex(i => i.id === targetItem.id);
 
         if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
-          const temp = this.cards[draggedItemIndex];
-          this.cards[draggedItemIndex] = this.cards[targetItemIndex];
-          this.cards[targetItemIndex] = temp;
+          // Troca os elementos de forma mais eficiente
+          [this.cards[draggedItemIndex], this.cards[targetItemIndex]] =
+              [this.cards[targetItemIndex], this.cards[draggedItemIndex]];
+          this.saveLayout();
         }
       }
-
-      const save = this.cards.map((group) => {
-        return {
-          id: group.id,
-          content: group.content.map((row) => {
-            return row.map((card) => card.id);
-          }),
-        };
-      });
-
-      Home.layout(save);
-      this.dragOverId = null;
     },
 
-    onDropSub(event: DragEvent, targetItem: any, rowIndexFromProcessed: number, parentId: string) {
+    onDropSub(event: DragEvent, targetItem: any,  parentId: string) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer.getData("text/plain");
       this.dragOverId = null;
 
-      if (!draggedItemId || draggedItemId === targetItem.id) {
-        return;
-      }
+      if (!draggedItemId || draggedItemId === targetItem.id) return;
 
-      const parentCard = this.cards.find((c) => c.id === parentId);
+      const parentCard = this.cards.find(c => c.id === parentId);
       if (!parentCard) return;
 
-      let sourceRowIndex = -1;
-      let sourceItemIndex = -1;
+      let sourceLocation = null;
+      let targetLocation = null;
+
       for (let i = 0; i < parentCard.content.length; i++) {
-        const itemIndex = parentCard.content[i].findIndex(
-          (c) => c.id === draggedItemId
-        );
-        if (itemIndex !== -1) {
-          sourceRowIndex = i;
-          sourceItemIndex = itemIndex;
-          break;
+        const sourceIndex = parentCard.content[i].findIndex(c => c.id === draggedItemId);
+        if (sourceIndex !== -1) {
+          sourceLocation = { rowIndex: i, itemIndex: sourceIndex };
         }
-      }
-      if (sourceRowIndex === -1) return;
-      let targetRowIndex = -1;
-      let targetItemIndex = -1;
-      for (let i = 0; i < parentCard.content.length; i++) {
-        const itemIndex = parentCard.content[i].findIndex(
-          (c) => c.id === targetItem.id
-        );
-        if (itemIndex !== -1) {
-          targetRowIndex = i;
-          targetItemIndex = itemIndex;
-          break;
+        const targetIndex = parentCard.content[i].findIndex(c => c.id === targetItem.id);
+        if (targetIndex !== -1) {
+          targetLocation = { rowIndex: i, itemIndex: targetIndex };
         }
-      }
-      if (targetRowIndex === -1) return;
-
-      const isTargetLast =
-        targetItemIndex === parentCard.content[targetRowIndex].length - 1;
-
-      const [removedItem] = parentCard.content[sourceRowIndex].splice(
-        sourceItemIndex,
-        1
-      );
-
-      let finalTargetRowIndex = targetRowIndex;
-      let finalTargetItemIndex = targetItemIndex;
-
-      if (
-        sourceRowIndex === targetRowIndex &&
-        sourceItemIndex < targetItemIndex
-      ) {
-        finalTargetItemIndex--;
-      }
-      if (isTargetLast) {
-        parentCard.content[finalTargetRowIndex].splice(
-          finalTargetItemIndex + 1,
-          0,
-          removedItem
-        );
-      } else {
-        parentCard.content[finalTargetRowIndex].splice(
-          finalTargetItemIndex,
-          0,
-          removedItem
-        );
+        if (sourceLocation && targetLocation) break;
       }
 
-      parentCard.content = parentCard.content.filter((row) => row.length > 0);
+      if (!sourceLocation || !targetLocation) return;
+
+      const [removedItem] = parentCard.content[sourceLocation.rowIndex].splice(sourceLocation.itemIndex, 1);
+
+      parentCard.content[targetLocation.rowIndex].splice(targetLocation.itemIndex, 0, removedItem);
+
+      parentCard.content = parentCard.content.filter(row => row.length > 0);
+      this.saveLayout();
     },
 
     onDropNewRow(event: DragEvent, parentId: string) {
@@ -735,8 +716,14 @@ export default {
 
       parentCard.content = parentCard.content.filter((row) => row.length > 0);
     },
-
-    onDragEnterNewRow(parentId: string) {
+    saveLayout() {
+      const layoutToSave = this.cards.map(group => ({
+        id: group.id,
+        content: group.content.map(row => row.map(card => card.id)),
+      }));
+      Home.layout(layoutToSave);
+    },
+    onDragEnterNewRow(parentId) {
       this.dragOverNewRow = parentId;
     },
 
@@ -883,7 +870,6 @@ export default {
     },
 
     applySavedOrder(savedOrder) {
-      // Primeiro, gera todos os cartões possíveis para termos os objetos completos.
       const allGroupsDefault = [
         {
           id: "depositors",
@@ -922,40 +908,25 @@ export default {
         },
       ];
 
-      // Para performance, cria um mapa de todos os sub-itens por ID.
       const allSubItemsMap = new Map();
-      allGroupsDefault.forEach((group) => {
-        group.content.flat().forEach((subItem) => {
-          allSubItemsMap.set(subItem.id, subItem);
+      allGroupsDefault.forEach(group => {
+        group.content.forEach(row => {
+          row.forEach(subItem => {
+            allSubItemsMap.set(subItem.id, subItem);
+          });
         });
       });
+      const defaultGroupsMap = new Map(allGroupsDefault.map(g => [g.id, g]));
 
-      const orderedCards = [];
-      // Itera sobre a ordem dos GRUPOS salvos
-      savedOrder.forEach((savedGroup) => {
-        const groupData = allGroupsDefault.find((g) => g.id === savedGroup.id);
-        if (groupData) {
-          const newContent = [];
-          // Itera sobre a ordem das LINHAS salvas
-          savedGroup.content.forEach((savedRow) => {
-            const newRow = [];
-            // Itera sobre a ordem dos IDs dos CARDS salvos na linha
-            savedRow.forEach((cardId) => {
-              const subItemData = allSubItemsMap.get(cardId);
-              if (subItemData) {
-                newRow.push(subItemData);
-              }
-            });
-            if (newRow.length > 0) {
-              newContent.push(newRow);
-            }
-          });
-          groupData.content = newContent;
-          orderedCards.push(groupData);
-        }
-      });
+      this.cards = savedOrder.map(savedGroup => {
+        const groupData = defaultGroupsMap.get(savedGroup.id);
+        if (!groupData) return null;
 
-      this.cards = orderedCards;
+        const newContent = savedGroup.content.map(savedRow =>
+            savedRow.map(cardId => allSubItemsMap.get(cardId)).filter(Boolean)
+        ).filter(row => row.length > 0);
+        return {...groupData, content: newContent};
+      }).filter(Boolean);
     },
 
     buildCardsDeposits() {
@@ -1029,13 +1000,11 @@ export default {
         },
       ];
 
-      // Divide o array plano em linhas
       return [
-        allCards.slice(0, 4), // Primeira linha com 4 cartões
-        allCards.slice(4, 7), // Segunda linha com 3 cartões
+        allCards.slice(0, 4),
+        allCards.slice(4, 7),
       ];
     },
-
     buildCardsPlayers() {
       const allCards = [
         {
@@ -1172,7 +1141,7 @@ export default {
       ];
 
       return [
-        allCards, // Apenas uma linha com todos os cartões
+        allCards,
       ];
     },
 
@@ -1296,7 +1265,8 @@ export default {
         this.applyFilter();
       },
     },
-  }
+  },
+
 };
 </script>
 

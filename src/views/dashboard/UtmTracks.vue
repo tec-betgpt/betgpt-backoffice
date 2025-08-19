@@ -36,8 +36,8 @@
     </div>
 
     <div v-else>
-      <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
-        <Card class="col-span-3">
+      <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 mb-3">
+        <Card class="">
           <CardHeader class="pb-3">
             <CardTitle>Cadastro por src e utm_source</CardTitle>
           </CardHeader>
@@ -47,7 +47,7 @@
           </CardContent>
         </Card>
 
-        <Card class="col-span-3">
+        <Card class="">
           <CardHeader class="pb-3">
             <CardTitle>Depósitos por src e utm_source</CardTitle>
           </CardHeader>

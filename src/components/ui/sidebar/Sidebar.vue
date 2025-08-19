@@ -50,7 +50,7 @@ onMounted(()=>{
         'flex h-full flex-col bg-sidebar text-sidebar-foreground',
         side === 'left'
             ? 'w-[--sidebar-width]'
-            : 'w-96',
+            : 'w-[600px]',
         props.class
       )
     "
@@ -70,7 +70,8 @@ onMounted(()=>{
       data-sidebar="sidebar"
       data-mobile="true"
       :side="side"
-      class="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+      :class="cn(side === 'right'?'w-80 min-[720px]:w-96':'w-64')"
+      class=" bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
       :style="{
         '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
       }"
@@ -96,7 +97,7 @@ onMounted(()=>{
           'duration-200 relative h-svh  bg-transparent transition-[width] ease-linear',
           side === 'left'
             ? 'w-[--sidebar-width]'
-            : 'w-96',
+            : 'w-[600px]',
           'group-data-[collapsible=offcanvas]:w-0',
           'group-data-[side=right]:rotate-180',
           variant === 'floating' || variant === 'inset'
@@ -109,10 +110,10 @@ onMounted(()=>{
       :class="
         cn(
           'duration-200 fixed inset-y-0 z-10 hidden h-svh  transition-[left,right,width] ease-linear md:flex',
-          side === 'right' ? 'w-96' : 'w-[--sidebar-width]',
+          side === 'right' ? 'w-[600px]' : 'w-[--sidebar-width]',
           side === 'left'
             ? 'left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]'
-            : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(24rem*-1)]',          // Adjust the padding for floating and inset variants.
+            : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(38rem*-1)]',          // Adjust the padding for floating and inset variants.
           variant === 'floating' || variant === 'inset'
             ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]'
             : 'group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l',
