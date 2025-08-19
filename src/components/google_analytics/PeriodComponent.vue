@@ -7,46 +7,47 @@
       <Skeleton class="pl-5 h-80 w-full" />
     </CardContent>
   </Card>
+
   <Card v-else>
     <CardHeader class="py-4">
       <div class="flex justify-between items-center align-middle">
-        <CardTitle>{{ title }}</CardTitle>
+        <CardTitle>
+          {{ title }}
+        </CardTitle>
         <GlossaryTooltipComponent v-if="glossary" :description="glossary"/>
       </div>
-
     </CardHeader>
+
     <Separator />
+
     <CardContent>
-      <div class="grid sm:grid-cols-1 md:grid-cols-3 gap-2 mb-10 ">
-          <div  v-for="p in period" :key="p.name">
-          <div class="text-sm text-gray-400 my-3   ">{{ p.name }}</div>
-            <div :class="{'variation-horizontal': period.length <= 1, 'variation': period.length > 1}">
-              <div class="value flex  align-baseline justify-start items-center bg-[#947c2c] text-green-200">
-                <ArrowUp class="h-4 w-4 mr-1" />
-                Máx: <br>
-                {{ calculateStats(p.name, p.value).max }}
-              </div>
-              <div class="value flex align-baseline justify-start items-center bg-red-700 text-red-200">
-                <ArrowDown class="h-4 w-4 mr-1" />
-                Mín: <br>
-                {{ calculateStats(p.name, p.value).min }}
-              </div>
-              <div class="value flex align-baseline justify-start items-center w-full bg-gray-700 text-white">
-                <ChartLine class="h-4 w-4 mr-1" />
-                Média: <br>
-                {{ calculateStats(p.name, p.value).avg }}
-              </div>
-            </div>
+      <div class="gap-2 mb-10">
+        <div v-for="p in period" :key="p.name">
+          <div class="text-sm text-gray-400 mb-3 mt-5">
+            {{ p.name }}
+          </div>
+          <div class="flex justify-start gap-5 flex-wrap variation-horizontal">
+            <Badge class="bg-[#947c2c] text-green-200 rounded-full py-1 pr-5">
+              <ArrowUp class="h-4 w-4 mr-2" /> {{ calculateStats(p.name, p.value).max }}
+            </Badge>
+            <Badge class="bg-red-700 text-red-200 rounded-full py-1 pr-5">
+              <ArrowDown class="h-4 w-4 mr-2" /> {{ calculateStats(p.name, p.value).min }}
+            </Badge>
+            <Badge class="bg-gray-700 text-white rounded-full py-1 pr-5">
+              <ChartLine class="h-4 w-4 mr-2" /> {{ calculateStats(p.name, p.value).avg }}
+            </Badge>
+          </div>
         </div>
       </div>
+
       <LineChart
-          :colors="['#947c2c','#f4a261','#023e8a']"
-          v-if="categories.length > 0"
-          :data="chartData"
-          index="date"
-          :categories="categories"
-          :y-formatter="yFormatter"
-          :custom-tooltip="tooltip"
+        :colors="['#947c2c','#f4a261','#023e8a']"
+        v-if="categories.length > 0"
+        :data="chartData"
+        index="date"
+        :categories="categories"
+        :y-formatter="yFormatter"
+        :custom-tooltip="tooltip"
       />
     </CardContent>
   </Card>
