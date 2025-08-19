@@ -8,8 +8,12 @@
     </CardContent>
   </Card>
   <Card v-else>
-    <CardHeader>
-      <CardTitle>{{ title }}</CardTitle>
+    <CardHeader class="py-4">
+      <div class="flex justify-between items-center align-middle">
+        <CardTitle>{{ title }}</CardTitle>
+        <GlossaryTooltipComponent v-if="glossary" :description="glossary"/>
+      </div>
+
     </CardHeader>
     <Separator />
     <CardContent>
@@ -36,7 +40,7 @@
         </div>
       </div>
       <LineChart
-          :colors="['white','#947c2c','#023e8a']"
+          :colors="['#947c2c','#f4a261','#023e8a']"
           v-if="categories.length > 0"
           :data="chartData"
           index="date"
@@ -53,10 +57,12 @@ import { defineComponent } from 'vue'
 import { ArrowDown, ArrowUp, ChartLine } from "lucide-vue-next";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 
 export default defineComponent({
   name: "PeriodComponent",
   components: {
+    GlossaryTooltipComponent,
     ArrowUp,
     ChartLine,
     ArrowDown,
@@ -76,8 +82,12 @@ export default defineComponent({
       required: true
     },
     type: {
-      type: String as () => 'numeric' | 'percent',
+      type: String as () => 'numeric' | 'percent' | 'currency',
       default: 'numeric'
+    },
+    glossary:{
+      type: String,
+      required:false
     }
   },
   computed: {
@@ -103,6 +113,17 @@ export default defineComponent({
             ? `${(tick / 100).toFixed(2)}%`
             : ''
       }
+    }
+    if (this.type ==='currency'){
+      return (tick:number) =>
+          typeof tick === 'number'
+              ? `R$ ${new Intl.NumberFormat('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+                  .format(tick / 100)
+                  .toString()}`
+              : ''
     }
     return (tick: number) => {
       return typeof tick === 'number'
