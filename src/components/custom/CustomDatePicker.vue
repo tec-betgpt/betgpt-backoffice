@@ -66,13 +66,9 @@ const handleCalendar = () => {
 function updateSize() {
   width.value = window.innerWidth;
 }
-onMounted(() => {
-  window.addEventListener("resize", updateSize);
-});
 
-onUnmounted(() => {
-  window.removeEventListener("resize", updateSize);
-});
+
+
 const applyPreset = (preset: string) => {
   const todayDate = today(getLocalTimeZone());
   let end = today(getLocalTimeZone());

@@ -304,9 +304,7 @@ const formatDuration = (averageEngagementDuration) => {
   return `${duration.minutes()}min ${duration.seconds()}s`;
 };
 
-onMounted(async () => {
-  await applyFilter();
-});
+
 watch(selectedRange,()=>{
   applyFilter()
 })

@@ -29,7 +29,12 @@
               },
             ]"
           />
-          <CustomPagination :select-page="fetchFinancials" :pages="pages" />
+          <CustomPagination :select-page="fetchFinancials"
+                            :pages="pages"
+                            :per_pages="perPage"
+                            @update:perPages="(valueUpdater) => perPage = valueUpdater"
+
+          />
         </CardContent>
         <CardFooter class="flex justify-start">
           <Button @click="openSheet('financeiro')">Novo Registro</Button>
@@ -168,6 +173,7 @@ import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CostCenter from "@/services/costCenters";
+import {valueUpdater} from "@/lib/utils";
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
@@ -326,6 +332,10 @@ const form = ref({ type: "" });
 const financialForm = ref({});
 const orderId = ref("name");
 const order = ref(false);
+const perPage = ref("10");
+watch(perPage,()=>{
+  fetchFinancials(1);
+})
 const openSheet = (type) => {
   form.value.type = type;
   isEditing.value = false;
@@ -443,6 +453,7 @@ const fetchFinancials = async (current = pages.value.current) => {
       name: nameFinancial.value,
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
+      per_page:perPage.value,
     })
 
     financial.value = data.data.map((financial) => ({

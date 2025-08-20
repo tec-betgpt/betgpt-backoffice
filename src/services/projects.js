@@ -10,6 +10,7 @@ export default {
    * @param {number} params.page
    * @param {string} params.orderBy
    * @param {string} params.orderDirection
+   * @param {number} params.per_page
    */
   async index (params = {}) {
     const { data } = await api.get('/projects', { params })

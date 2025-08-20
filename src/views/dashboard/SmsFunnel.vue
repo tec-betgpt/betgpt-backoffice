@@ -117,6 +117,8 @@
               total: pages.total,
             }"
             :select-page="applyFilter"
+            :per_pages="perPage"
+            @update:perPages="args => perPage = args"
           />
         </CardFooter>
       </Card>
@@ -277,7 +279,7 @@ const pages = ref({
   total: 0,
   last: 0,
 });
-
+const perPage = ref(10);
 const redirectToInvoiceUrl = (url: any) => {
   window.open(url, "_blank");
 };
@@ -313,6 +315,7 @@ const applyFilter = async (current = pages.value.current) => {
       filter_id: workspaceStore.activeGroupProject.id,
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
+      per_page: perPage.value
     })
 
     last.value = data.last;
@@ -338,18 +341,13 @@ const applyFilter = async (current = pages.value.current) => {
       recharges.value.push(totalRecharges);
     }
 
+    const totalCampaigns = {
+      name: 'Total',
+      sms: data.campaigns.data.reduce((sum, campaign) => sum + campaign.sms, 0),
+      clicks: data.campaigns.data.reduce((sum, campaign) => sum + campaign.clicks, 0)
+    };
     campaigns.value = data.campaigns.data;
-
-    if (data.campaigns.data && data.campaigns.data.length > 1) {
-      const removeFirstItem = data.campaigns.data.slice(1);
-      const totalCampaigns = {
-        name: 'Total nesta página',
-        sms: removeFirstItem.reduce((sum, campaign) => sum + campaign.sms, 0),
-        clicks: removeFirstItem.reduce((sum, campaign) => sum + campaign.clicks, 0)
-      };
-
-      campaigns.value.push(totalCampaigns);
-    }
+    campaigns.value.push(totalCampaigns);
 
     pages.value = {
       current: data.campaigns.pagination.current_page,
@@ -416,7 +414,7 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-onMounted(async () => await applyFilter());
+onMounted(async () => await applyFilter(1));
 
 watch(selectedRange, () => applyFilter());
 

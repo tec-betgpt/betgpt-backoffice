@@ -22,7 +22,11 @@
           :update-text="handleName"
           :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
         />
-        <CustomPagination :select-page="fetchSegments" :pages="pages" />
+        <CustomPagination :select-page="fetchSegments"
+                          :pages="pages"
+                          :per_pages="perPage"
+                          @update:perPages="args => perPage = args"
+        />
       </CardContent>
       <CardFooter class="flex justify-start">
         <div class="flex sm:flex-row flex-col gap-4 my-4 items-center">
@@ -646,7 +650,7 @@ const nameSegment = ref();
 const orderId = ref("");
 const order = ref(false);
 const segmentColumnHelper = createColumnHelper<SegmentData>();
-
+const perPage = ref(10);
 interface SegmentData {
   id: number;
   name: string;
@@ -987,6 +991,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
       find_name: nameSegment.value,
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
+      per_page: perPage.value,
     };
     const response = await Segments.index(params);
     segments.value = response.data.segments || [];
@@ -1008,7 +1013,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
     isLoading.value = false;
   }
 };
-
+watch(perPage,()=>fetchSegments(1));
 const prepareConditionValue = (
   condition: any,
   groupIndex: number,

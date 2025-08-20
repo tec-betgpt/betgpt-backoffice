@@ -104,6 +104,8 @@ export default {
    * @param {string} params.filter_id
    * @param {Array<string>} params.status
    * @param {Array<string>} params.access
+   * @param {number} params.page
+   * @param {number} params.per_page
    */
   async index (params = {}) {
     const { data } = await api.get('/users', { params })
