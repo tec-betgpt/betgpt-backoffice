@@ -156,66 +156,53 @@
               tag="div"
               class="flex gap-4"
             >
-              <div     class="flex gap-4 w-full "   :ref="el => setRowRef(el, rowIndex)" >
+              <div class="flex gap-4 w-full" :ref="el => setRowRef(el, rowIndex)">
                 <Card
-                    v-for="subItem in row"
-                    :key="subItem.id"
-                    :class="{
-                  'card-animation-move': subItem.id === dragOverId,
-                  hidden: subItem.isConditional,
-                }"
-                    :draggable="item.edit"
-                    class="flex-1 item"
-                    @dragstart.stop="onDragStart($event, subItem)"
-                    @dragover.prevent
-                    @dragenter="onDragEnter(subItem)"
-                    @dragleave="onDragLeave"
-                    @drop="onDropSub($event, subItem,  item.id)"
+                  v-for="subItem in row"
+                  :key="subItem.id"
+                  :class="{ 'card-animation-move': subItem.id === dragOverId, hidden: subItem.isConditional,}"
+                  :draggable="item.edit"
+                  class="flex-1 item"
+                  @dragstart.stop="onDragStart($event, subItem)"
+                  @dragover.prevent
+                  @dragenter="onDragEnter(subItem)"
+                  @dragleave="onDragLeave"
+                  @drop="onDropSub($event, subItem,  item.id)"
                 >
                   <CardHeader class="pb-2">
                     <CardTitle class="flex-row flex justify-between items-center">
                       <div class="flex justify-between items-center">
-                        <Avatar
-                            v-if="subItem.icon"
-                            class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
-                            shape="square"
-                        >
+                        <Avatar v-if="subItem.icon" class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2" shape="square">
                           <Component :is="subItem.icon" :color="iconColor" />
                         </Avatar>
-                        <span
-                            class="font-medium"
-                            :class="{ 'text-xs': !subItem.layout }"
-                        >{{ subItem.title }}</span
-                        >
+                        <span class="font-medium" :class="{ 'text-xs': !subItem.layout }">
+                          {{ subItem.title }}
+                        </span>
                       </div>
+
                       <GlossaryTooltipComponent :description="subItem.tooltip" />
                     </CardTitle>
-                    <CardDescription
-                        v-if="subItem.layout === 'list'"
-                        class="pb-5"
-                    >
-                    <span v-if="isShowValues">
-                      Tiveram {{ deposits.count30days }} depósitos nos últimos
-                      30 dias.
-                    </span>
-                    <skeleton v-else />
+                    <CardDescription v-if="subItem.layout === 'list'" class="pb-5">
+                      <span v-if="isShowValues">
+                        Tiveram {{ deposits.count30days }} depósitos nos últimos
+                        30 dias.
+                      </span>
+                      <skeleton-custom v-else />
                   </CardDescription>
                   </CardHeader>
 
                   <!-- LAYOUT TIPO GRÁFICO -->
                   <CardContent v-if="subItem.layout === 'card'">
                     <BarChart
-                        :data="deposits.monthly_counts"
-                        :categories="['Total']"
-                        :index="'name'"
-                        :rounded-corners="4"
-                        :show-tooltip="isShowValues"
-                    :y-formatter="
-                      (tick) => (typeof tick === 'number' ? $toK(tick) : '')
-                    "
-                    :custom-tooltip="CustomChartTooltip"
-                  />
-                </CardContent>
+                      :data="deposits.monthly_counts"
+                      :categories="['Total']"
+                      :index="'name'"
+                      :rounded-corners="4"
+                      :show-tooltip="isShowValues"
+                      :y-formatter="(tick) => (typeof tick === 'number' ? $toK(tick) : '')"
+                      :custom-tooltip="CustomChartTooltip"
+                    />
+                  </CardContent>
 
                   <!-- LAYOUT TIPO LISTA -->
                   <CardContent v-else-if="subItem.layout === 'list'">
@@ -247,9 +234,9 @@
                           </p>
                         </div>
                         <div class="ml-auto text-right"v-if="isShowValues">
-                        <span class="font-medium">
-                        +{{ $toCurrency(deposit.value / 100) }}
-                        </span>
+                          <span class="font-medium">
+                          +{{ $toCurrency(deposit.value / 100) }}
+                          </span>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -261,17 +248,14 @@
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>
-                                  {{
-                                    $moment(deposit.created_at).format(
-                                        "DD/MM/YYYY HH:mm:ss"
-                                    )
-                                  }}
+                                  {{ $moment(deposit.created_at).format("DD/MM/YYYY HH:mm:ss") }}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
-                          </TooltipProvider></div>
-                      <div class="ml-auto text-right" v-else>
-                        <Skeleton class="h-6 w-6" />
+                          </TooltipProvider>
+                        </div>
+                        <div class="ml-auto text-right" v-else>
+                          <SkeletonCustom class="h-6 w-6" />
                         </div>
                       </div>
                     </div>
@@ -282,52 +266,46 @@
                     <div class="number"v-if="isShowValues">
                       +{{ subItem.quantity }}
                     </div>
-                    <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
-                  <small class="text-xs">Quantidade</small>
+                    <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
+                    <small class="text-xs">Quantidade</small>
 
                     <div class="number mt-5"v-if="isShowValues">
                       {{ $toCurrency(subItem.value) }}
                     </div>
-                  <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
-                  <small class="text-xs">Total</small>
+                    <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
+                    <small class="text-xs">Total</small>
 
-                  <div v-if="isShowValues">
-                    <div v-if="subItem.variation" class="variation mt-3 flex">
-                      <div
-                          v-if="subItem.variation > 0"
-                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
-                      >
-                        <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                    <div v-if="isShowValues">
+                      <div v-if="subItem.variation" class="variation mt-3 flex">
+                        <div
+                            v-if="subItem.variation > 0"
+                            class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                        >
+                          <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                        </div>
+                        <div
+                            v-else
+                            class="value flex justify-start items-center bg-red-700 text-red-200"
+                        >
+                          <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}%
+                        </div>
+                        desde a semana anterior</div>
                       </div>
-                      <div
-                          v-else
-                          class="value flex justify-start items-center bg-red-700 text-red-200"
-                      >
-                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--'}}%
-                      </div>
-                      desde a semana anterior</div>
-                    </div>
                   </CardContent>
 
                 <CardContent v-else-if=" subItem.count !== undefined && subItem.count !== null">
                   <div class="number" v-if="isShowValues">
                     {{ subItem.count }}
                   </div>
-                  <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
+                  <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
 
                   <div v-if="isShowValues">
                     <div v-if="subItem.variation" class="variation mt-3 flex">
-                      <div
-                        v-if="subItem.variation > 0"
-                        class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
-                      >
-                        <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--' }}
+                      <div v-if="subItem.variation > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+                        <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}
                       </div>
-                      <div
-                        v-else
-                        class="value flex justify-start items-center bg-red-700 text-red-200"
-                      >
-                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--' }}
+                      <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
+                        <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}
                       </div>
                       desde o dia anterior
                     </div>
@@ -337,25 +315,20 @@
                   <!-- LAYOUT PADRÃO -->
                   <CardContent v-else>
                     <div v-if="isShowValues":title="subItem.value" class="number">
-                      {{ isShowValues ? $toCurrency(subItem.value) : '--'}}{{ subItem.suffix }}
+                      {{ $toCurrency(subItem.value) }}{{ subItem.suffix }}
                     </div>
-                    <Skeleton v-else mt-5 class="h-6 w-40 mt-5" />
+                    <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
 
-                  <div v-if="isShowValues">
-                    <div v-if="subItem.variation" class="variation mt-3 flex">
-                      <div
-                          v-if="subItem.variation > 0"
-                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
-                      >
-                        <ArrowUp class="h-4 w-4 mr-1" /> {{ isShowValues ? subItem.variation : '--'}}%
+                    <div v-if="isShowValues">
+                      <div v-if="subItem.variation" class="variation mt-3 flex">
+                        <div v-if="subItem.variation > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+                          <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                        </div>
+                        <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
+                          <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}%
+                        </div>
+                        desde a semana anterior
                       </div>
-                      <div
-                          v-else
-                          class="value flex justify-start items-center bg-red-700 text-red-200"
-                      >
-                        <ArrowDown class="h-4 w-4" /> {{ isShowValues ? subItem.variation : '--'}}%
-                      </div>
-                      desde a semana anterior</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -424,6 +397,7 @@ import { useColorMode } from "@vueuse/core";
 import {ref} from "vue";
 import {Skeleton} from "@/components/ui/skeleton";
 import {formatLargeNumber} from "@/filters/formatLargeNumber";
+import SkeletonCustom from "@/components/custom/SkeletonCustom.vue";
 
 const { toast } = useToast();
 
@@ -472,6 +446,7 @@ export default {
   },
 
   components: {
+    SkeletonCustom,
     Skeleton,
     ArrowDown,
     ArrowUp,
