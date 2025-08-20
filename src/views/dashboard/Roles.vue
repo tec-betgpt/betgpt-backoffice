@@ -27,6 +27,8 @@
         <CustomPagination
           :select-page="fetchRolesAndPermissions"
           :pages="pages"
+          :per_pages="perPage"
+          @update:perPages="args => perPage = args"
         />
       </CardContent>
     </Card>
@@ -174,6 +176,7 @@ const pages = ref({
   last: 0,
   total: 0,
 });
+const perPage = ref(10);
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
@@ -197,7 +200,7 @@ const fetchRolesAndPermissions = async (current = pages.value.current) => {
 
   try {
     const [rolesResponse, permissionsResponse] = await Promise.all([
-      Roles.index({ page: current, filter_id: form.value.filter_id }),
+      Roles.index({ page: current, filter_id: form.value.filter_id, per_page: perPage.value }),
       Permissions.index(),
     ]);
 
@@ -296,7 +299,7 @@ const updateRole = async () => {
 };
 
 onMounted(fetchRolesAndPermissions);
-
+watch(perPage,()=>fetchRolesAndPermissions(1));
 const order = ref();
 const direction = ref(false);
 

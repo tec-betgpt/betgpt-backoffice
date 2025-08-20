@@ -22,7 +22,12 @@
           :update-text="handleName"
           :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
         />
-        <CustomPagination :select-page="fetchSectors" :pages="pages" />
+        <CustomPagination :select-page="fetchSectors"
+                          :pages="pages"
+                          :per_pages="perPage"
+                          @update:perPages="args => perPage = args"
+
+        />
       </CardContent>
       <CardFooter class="flex justify-start">
         <div class="flex gap-4 my-4 items-center">
@@ -129,6 +134,7 @@ const sectorForm = ref({
   project_id: activeGroupProjectId,
   user_id: null,
 });
+const perPage = ref(10);
 const loadingSub = ref(false);
 
 const handleEdit = (item: SectorData) => {
@@ -287,6 +293,7 @@ const fetchSectors = async (current: number = pages.value.current) => {
       find_name: nameSector.value,
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
+      per_page:perPage.value
     })
 
     sectors.value = data.data.map((sector: any) => ({
@@ -316,6 +323,7 @@ onMounted(async () => {
   await fetchSectors();
 });
 
+watch(perPage,()=>fetchSectors(1));
 const openSheet = () => {
   form.value.type = "setor";
   isEditing.value = false;

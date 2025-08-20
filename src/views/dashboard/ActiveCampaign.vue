@@ -47,6 +47,8 @@
               total: pages.total,
             }"
             :select-page="applyFilter"
+            @update:perPages="(value) => (perPages = value)"
+            :per_pages="perPages"
           />
         </CardFooter>
       </Card>
@@ -90,7 +92,7 @@ const pages = ref({
   total: 0,
   last: 0,
 });
-
+const perPages = ref(10);
 const campaignsStats = computed(() => {
   const totalStats = {
     message: "Total",
@@ -152,6 +154,11 @@ const setSearch = (values: Record<string, string>) => {
   searchValues.value = values;
 };
 
+watch(perPages, (newPages) => {
+  if (newPages) {
+    applyFilter(1);
+  }
+})
 const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
 
@@ -178,6 +185,7 @@ const applyFilter = async (current = pages.value.current) => {
       filter_id: workspaceStore.activeGroupProject.id,
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
+      per_pages: perPages.value
     })
 
     campaigns.value = data.campaigns.data;
@@ -327,9 +335,7 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-onMounted(async () => {
-  await applyFilter();
-});
+
 watch(selectedRange,()=>{
   applyFilter()
 })

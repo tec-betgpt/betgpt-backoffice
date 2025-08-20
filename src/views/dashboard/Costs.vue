@@ -21,7 +21,10 @@
           :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
         />
       </CardContent>
-      <CustomPagination :select-page="fetchCosts" :pages="pages" />
+      <CustomPagination :select-page="fetchCosts"
+                        :pages="pages"
+                        :per-pages="perPages"
+                        @update:perPages="(value)=>{perPages = value}" />
       <CardFooter>
         <Button @click="openSheet()">Criar Custo</Button>
       </CardFooter>
@@ -100,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, onMounted } from "vue";
+import {h, ref, onMounted, watch} from "vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
@@ -141,6 +144,7 @@ const form = ref({ type: "" });
 const isEditing = ref(false);
 const costForm = ref({});
 const loadingSub = ref(false);
+const perPages = ref('10');
 const showSuccessToast = (title: string, description: string) => {
   toast({ title, description, variant: "default" });
 };
@@ -155,7 +159,11 @@ function handlerOrder(column: string, direction: boolean) {
   }
   fetchCosts();
 }
-
+watch(perPages, (newPerPage) => {
+  if (newPerPage) {
+    fetchCosts(1);
+  }
+});
 const fetchCosts = async (current: number = pages.value.current) => {
   loadingCosts.value = true;
 
@@ -173,6 +181,7 @@ const fetchCosts = async (current: number = pages.value.current) => {
       find_name: nameCost.value,
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
+      per_page: perPages.value,
       page,
     })
 

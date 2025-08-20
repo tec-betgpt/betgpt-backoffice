@@ -10,6 +10,8 @@ export default {
    * @param {string} params.type_order
    * @param {string} params.start_date
    * @param {string} params.end_date
+   * @param {number} params.per_pages
+   * @param {number} params.page
    * @param {Array<string>} params.search
    */
   async index(params = {}) {

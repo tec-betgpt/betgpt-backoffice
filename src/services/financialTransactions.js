@@ -9,7 +9,7 @@ export default {
    * @param {string} params.sort_column
    * @param {string} params.sort_order
    * @param {string} params.name
-   * @param {number} params.per_page
+   * @param {string} params.per_page
    */
   async index (params = {}) {
     const { data } = await api.get('/financial-transactions', { params })

@@ -33,7 +33,11 @@
             :data="history"
             :columns="columnsHistory"
           />
-          <CustomPagination :select-page="selectPage" :pages="pages" />
+          <CustomPagination :select-page="selectPage"
+                            :pages="pages"
+                            :per-pages="perPage"
+                            @update:perPages="(value)=>{ perPage = value }"
+          />
         </CardContent>
       </Card>
     </div>
@@ -115,7 +119,11 @@ const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const pages = ref({ current: 1, total: 0, last: 0 });
 const paginate = ref(1);
+const perPage = ref(10)
 const route = useRoute();
+watch(perPage, () => {
+  loadExportsHistory()
+})
 onMounted(async () => {
   await loadExportsHistory();
 
@@ -136,7 +144,7 @@ const loadExportsHistory = async () => {
   const response = await Export.index({
     filter_id: activeGroupProjectId,
     page: paginate.value,
-    per_page: 20,
+    per_page: perPage.value,
   });
 
   history.value = response.data.history;

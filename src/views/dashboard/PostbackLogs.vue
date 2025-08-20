@@ -100,6 +100,8 @@
               total: pages.total,
             }"
             :select-page="applyFilter"
+            :per_pages="perPage"
+            @update:perPages="args => perPage = args"
           />
         </CardFooter>
 
@@ -181,7 +183,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h } from "vue";
+import {ref, computed, h, watch} from "vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import moment from "moment";
 import "moment/dist/locale/pt-br";
@@ -249,7 +251,7 @@ const pages = ref({
   total: 0,
   last: 0,
 });
-
+const perPage = ref(10)
 const isPayloadModalOpen = ref(false);
 const selectedPayload = ref<any>(null);
 const formattedPayload = computed(() => {
@@ -263,6 +265,7 @@ const handleSearch = () => {
   applyFilter();
 };
 
+watch(perPage,()=>applyFilter(1))
 const applyFilter = async (page = pages.value.current) => {
   if (!selectedType.value) {
     toast({
@@ -294,6 +297,7 @@ const applyFilter = async (page = pages.value.current) => {
       status: selectedStatus.value,
       orderBy: order.value,
       orderDirection: direction.value ? "asc" : "desc",
+      per_page: perPage.value
     });
 
     logs.value = data.logs.data;
