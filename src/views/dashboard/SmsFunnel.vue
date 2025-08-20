@@ -117,6 +117,8 @@
               total: pages.total,
             }"
             :select-page="applyFilter"
+            :per_pages="perPage"
+            @update:perPages="args => perPage = args"
           />
         </CardFooter>
       </Card>
@@ -277,7 +279,7 @@ const pages = ref({
   total: 0,
   last: 0,
 });
-
+const perPage = ref(10);
 const redirectToInvoiceUrl = (url: any) => {
   window.open(url, "_blank");
 };
@@ -313,6 +315,7 @@ const applyFilter = async (current = pages.value.current) => {
       filter_id: workspaceStore.activeGroupProject.id,
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
+      per_page: perPage.value
     })
 
     last.value = data.last;
@@ -418,7 +421,7 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-
+watch(perPage,()=>applyFilter(1));
 watch(selectedRange, () => {
   applyFilter();
 })

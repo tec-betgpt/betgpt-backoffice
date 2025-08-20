@@ -20,6 +20,7 @@ export default {
    * @param {string} params.sort_by
    * @param {string} params.sort_order
    * @param {number} params.page
+   * @param {number} params.per_page
    */
   async index(params = {}) {
     const { data } = await api.get("/segments", { params });

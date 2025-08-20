@@ -8,6 +8,8 @@ export default {
    * @param {Array<string>} params.search
    * @param {string} params.orderBy
    * @param {string} params.orderDirection
+   * @param {number} params.page
+   * @param {number} params.per_page
    */
   async index (params = {}) {
     const { data } = await api.get('/insights', { params })

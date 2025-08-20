@@ -50,7 +50,11 @@
             </DropdownMenuContent>
           </DropdownMenu>
         </CustomDataTable>
-        <CustomPagination :select-page="fetchProjects" :pages="pages" />
+        <CustomPagination :select-page="fetchProjects"
+                          :pages="pages"
+                          :per_pages="perPage"
+                          @update:perPages="args => perPage = args"
+        />
       </CardContent>
     </Card>
 
@@ -171,6 +175,7 @@ const pages = ref({
   total: 0,
   last: 0,
 });
+const perPage = ref(10);
 const form = ref({
   id: null,
   name: "",
@@ -179,7 +184,6 @@ const form = ref({
 const order = ref();
 const direction = ref(false);
 const searchValues = ref<Record<string, string>>({});
-
 const handleFileChange = (event) => {
   const file = event.target.files[0];
 
@@ -247,6 +251,7 @@ const fetchProjects = async (current = pages.value.current) => {
       status: statusFilter.value,
       orderBy: order.value,
       orderDirection: direction.value ? "asc" : "desc",
+      per_page:perPage.value
     })
 
     projects.value = data.data;
@@ -265,6 +270,7 @@ const fetchProjects = async (current = pages.value.current) => {
     isLoading.value = false;
   }
 };
+watch(perPage,()=>fetchProjects(1));
 
 const toggleStatus = async (project) => {
   isProcessing.value = true;

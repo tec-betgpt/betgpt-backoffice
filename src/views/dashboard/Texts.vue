@@ -19,7 +19,12 @@
           ]"
         />
 
-        <CustomPagination :select-page="fetchMessages" :pages="pages" />
+        <CustomPagination :select-page="fetchMessages"
+                          :pages="pages"
+                          :per-pages="perPage"
+                          @update:perPages="(value) => perPage = value"
+
+        />
       </CardContent>
       <CardFooter>
         <Button @click="openModal()">
@@ -78,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, onMounted, ref } from "vue";
+import {h, onMounted, ref, watch} from "vue";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -122,6 +127,7 @@ const pages = ref({
   total: 0,
   last: 0,
 });
+const perPage = ref(10);
 const showModal = ref(false);
 const isLoading = ref(true);
 const loading = ref(false);
@@ -145,6 +151,7 @@ async function fetchMessages(pageId: number = pages.value.current) {
       ...searchParams,
       orderBy: order.value,
       orderDirection: direction.value ? "asc" : "desc",
+      per_page: perPage.value,
     })
 
     pages.value.current = data.data.current_page;
@@ -158,6 +165,7 @@ async function fetchMessages(pageId: number = pages.value.current) {
   isLoading.value = false;
 }
 
+watch(perPage,()=>fetchMessages(1))
 async function submit() {
   loading.value = true;
 

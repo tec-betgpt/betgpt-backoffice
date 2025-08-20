@@ -72,7 +72,11 @@
             </DropdownMenuContent>
           </DropdownMenu>
         </CustomDataTable>
-        <CustomPagination :select-page="fetchUsersAndProjects" :pages="pages" />
+        <CustomPagination :select-page="fetchUsersAndProjects"
+                          :pages="pages"
+                          :per-pages="perPage"
+                          @update:perPages="(value) => perPage = value"
+        />
       </CardContent>
     </Card>
 
@@ -296,6 +300,7 @@ const pages = ref({
   last: 0,
   total: 0,
 });
+const perPage = ref(10);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
@@ -430,6 +435,7 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
         orderBy: order.value,
         orderDirection: direction.value ? "asc" : "desc",
         access: accessFilter.value,
+        per_page: perPage.value,
       }),
       Projects.index({}),
     ]);
@@ -452,7 +458,7 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
 
   isLoading.value = false;
 };
-
+watch(perPage,()=>fetchUsersAndProjects(1));
 const openEditModal = (user: any) => {
   const projectsWithRoles = projects.value
     .filter((project) => user.project_ids.includes(project.id))

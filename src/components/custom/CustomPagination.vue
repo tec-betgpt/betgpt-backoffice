@@ -10,7 +10,8 @@ import {
   PaginationPrev,
 } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
-import { reactive, toRefs, watch } from "vue";
+import {defineEmits, reactive, toRefs, watch,ref} from "vue";
+import {Select, SelectItem} from "@/components/ui/select";
 
 // Definição das props
 const props = defineProps({
@@ -31,13 +32,15 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(["update:perPages"]);
+
+const perPages = ref<string>()
 // Estado reativo local para "p", sincronizado com as props
 const p = reactive({
   current: props.pages.current,
   total: props.pages.total,
   last: props.pages.last,
 });
-
 // Atualiza "p" sempre que as props mudarem
 watch(
   () => props.pages,
@@ -48,6 +51,9 @@ watch(
   },
   { deep: true }
 );
+watch(perPages, (newPages) => {
+  emit("update:perPages", newPages);
+})
 
 // Função para aplicar a lógica de filtro e alterar a página
 const applyFilter = (page: number) => {
@@ -91,6 +97,19 @@ const applyFilter = (page: number) => {
       <PaginationLast as-child @click="applyFilter(p.last)" />
     </PaginationList>
   </Pagination>
+  <Select :model-value="perPages"
+          @update:modelValue="(value)=>perPages = value"
+          v-if="p.last > 1">
+    <SelectTrigger class="w-fit">
+      <span>{{ per_pages ? per_pages : 10 }} por página</span>
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="10">10 por página</SelectItem>
+      <SelectItem value="20">20 por página</SelectItem>
+      <SelectItem value="50">50 por página</SelectItem>
+      <SelectItem value="100">100 por página</SelectItem>
+    </SelectContent>
+  </Select>
 </template>
 
 <style scoped></style>

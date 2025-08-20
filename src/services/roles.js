@@ -9,6 +9,8 @@ export default {
    * @param {string} params.order
    * @param {string} params.orderDirection
    * @param {string} params.filter_id
+   * @param {number} params.page
+   * @param {number} params.per_page
    */
   async index (params = {}) {
     const { data } = await api.get('/roles', { params })

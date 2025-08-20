@@ -11,6 +11,7 @@ export default {
    * @param {string} params.start_date - Data inicial (opcional)
    * @param {string} params.end_date - Data final (opcional)
    * @param {number} params.page - Página atual (opcional)
+   * @param {number} params.per_page - Itens por página (opcional)
    */
   async index(params = {}) {
     if (!params.filter_id || !params.type) {
