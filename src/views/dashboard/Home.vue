@@ -1223,6 +1223,10 @@ export default {
     },
   },
 
+  mounted() {
+    this._user()
+  },
+
   props: {
     isShowValues: {
       type: Boolean,
