@@ -178,8 +178,8 @@
                   <TableCell>
                     {{ recharge.created_at ? $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss") : '' }}
                   </TableCell>
-                  <TableCell>{{ recharge.description }}</TableCell>
-                  <TableCell>{{ recharge.service }}</TableCell>
+                  <TableCell>{{ recharge.description ?? '' }}</TableCell>
+                  <TableCell>{{ recharge.service ?? '' }}</TableCell>
                   <TableCell>{{ recharge.credits }}</TableCell>
                   <TableCell>{{ $toCurrency(recharge.price) }}</TableCell>
                   <TableCell>{{ $toCurrency(recharge.total) }}</TableCell>
@@ -323,19 +323,23 @@ const applyFilter = async (current = pages.value.current) => {
     sms.value = [{name:"Total SMS Enviado",value:data.daily.sms}]
     clicks.value = [{name:"Total Cliques",value:data.daily.clicks}]
 
-
-    const totalRecharges = {
-      name: 'Total',
-      description: null,
-      situation: null,
-      service: null,
-      credits: data.recharges.reduce((sum, item) => sum + item.credits, 0),
-      price: data.recharges.reduce((sum, item) => sum + item.price, 0),
-      total: data.recharges.reduce((sum, item) => sum + item.total, 0),
-      created_at: null
-    };
     recharges.value = data.recharges;
-    recharges.value.push(totalRecharges);
+
+    if (data.recharges && data.recharges.length > 1) {
+      const removeFirstItem = data.recharges.slice(1);
+      const totalRecharges = {
+        name: null,
+        description: 'Total nesta página',
+        situation: null,
+        service: null,
+        credits: removeFirstItem.reduce((sum, item) => sum + item.credits, 0),
+        price: removeFirstItem.reduce((sum, item) => sum + item.price, 0),
+        total: removeFirstItem.reduce((sum, item) => sum + item.total, 0),
+        created_at: null
+      };
+
+      recharges.value.push(totalRecharges);
+    }
 
     const totalCampaigns = {
       name: 'Total',
@@ -374,26 +378,15 @@ const columns = [
     header({ column }) {
       return createHeaderButton("Envios SMS", "sms");
     },
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("sms")),
+    cell: ({ row }) => h("div", { class: "" }, row.getValue("sms")),
   }),
   columnHelper.accessor("clicks", {
     header({ column }) {
       return createHeaderButton("Total de Cliques", "clicks");
     },
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("clicks")),
+    cell: ({ row }) => h("div", { class: "" }, row.getValue("clicks")),
   }),
 ];
-
-function calculateStats (key: string, data: Array<any>) {
-  if (!data.length) return {}
-
-  const values = data.map((item: any) => item[key])
-  const max = Math.max(...values)
-  const min = Math.min(...values)
-  const avg = values.reduce((acc: any, val: any) => acc + val, 0) / values.length
-
-  return { max, min, avg: parseFloat(avg).toFixed(2) }
-}
 
 function createHeaderButton(label: string, columnKey: string) {
   return h(
@@ -421,10 +414,10 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-watch(perPage,()=>applyFilter(1));
-watch(selectedRange, () => {
-  applyFilter();
-})
+onMounted(async () => await applyFilter(1));
+
+watch(selectedRange, () => applyFilter());
+
 type CampaignMetrics = {
   name: string;
   sms: number;
