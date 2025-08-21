@@ -86,11 +86,11 @@ const applyFilter = async () => {
       filter_id: workspaceStore.activeGroupProject.id,
     })
 
-    depositsPeriod.value = [{name:"7D Depósitos",value:data.deposits_period},{name:"14D Depósitos",value:data.deposits_period}, {name:"28D Depósitos",value:data.deposits_period}];
+    depositsPeriod.value = [{name:"7 Dias",value:data.deposits_period},{name:"14 Dias",value:data.deposits_period}, {name:"28 Dias",value:data.deposits_period}];
     usersPeriod.value = [{name:"Usuários Registrados",value:data.users_period}, {name:"Usuários Ativos",value:data.users_period}];
-    percentNetDepositsPeriod.value = [{name:"7D % Net Depósitos",value:data.percent_net_deposits_period},{name:"14D % Net Depósitos",value:data.percent_net_deposits_period}, {name:"28D % Net Depósitos",value:data.percent_net_deposits_period}];
-    netDepositsPeriod.value = [{name:"7D Net Depósitos",value:data.net_deposits_period},{name:"14D Net Depósitos",value:data.net_deposits_period}, {name:"28D Net Depósitos",value:data.net_deposits_period}];
-    activeUsersPeriod.value = [{name:"7D Usuários Ativos",value:data.active_users_period},{name:"14D Usuários Ativos",value:data.active_users_period}, {name:"28D Usuários Ativos",value:data.active_users_period}];
+    percentNetDepositsPeriod.value = [{name:"7 Dias %",value:data.percent_net_deposits_period},{name:"14 Dias %",value:data.percent_net_deposits_period}, {name:"28 Dias %",value:data.percent_net_deposits_period}];
+    netDepositsPeriod.value = [{name:"7 Dias",value:data.net_deposits_period},{name:"14 Dias",value:data.net_deposits_period}, {name:"28 Dias",value:data.net_deposits_period}];
+    activeUsersPeriod.value = [{name:"7 Dias",value:data.active_users_period},{name:"14 Dias",value:data.active_users_period}, {name:"28 Dias",value:data.active_users_period}];
     percentFtdDayPeriod.value = [{name:"% de FTD/Dia",value:data.percent_ftd_day_period}];
     valueNetDepositsPeriod.value = [{name:"Net Depósitos",value:data.value_net_deposits_period}];
     valueDepositsPeriod.value = [{name:"Depósitos",value:data.value_deposits_period}];

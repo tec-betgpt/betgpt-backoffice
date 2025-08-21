@@ -27,13 +27,15 @@
             {{ p.name }}
           </div>
           <div class="flex justify-start gap-5 flex-wrap variation-horizontal">
-            <Badge class="bg-[#947c2c] text-green-200 rounded-full py-1 pr-5">
-              <ArrowUp class="h-4 w-4 mr-2" /> {{ calculateStats(p.name, p.value).max }}
+            <Badge class="bg-transparent hover:bg-transparent text-primary/70">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#947c2c"><path d="m280-400 200-200 200 200H280Z"/></svg>
+              {{ calculateStats(p.name, p.value).max }}
             </Badge>
-            <Badge class="bg-red-700 text-red-200 rounded-full py-1 pr-5">
-              <ArrowDown class="h-4 w-4 mr-2" /> {{ calculateStats(p.name, p.value).min }}
+            <Badge class="bg-transparent hover:bg-transparent text-primary/70">
+              <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="#B91C1C"><path d="M480-360 280-560h400L480-360Z"/></svg>
+              {{ calculateStats(p.name, p.value).min }}
             </Badge>
-            <Badge class="bg-gray-700 text-white rounded-full py-1 pr-5">
+            <Badge class="bg-transparent hover:bg-transparent text-primary/70">
               <ChartLine class="h-4 w-4 mr-2" /> {{ calculateStats(p.name, p.value).avg }}
             </Badge>
           </div>

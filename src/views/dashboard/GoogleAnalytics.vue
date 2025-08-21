@@ -265,9 +265,9 @@ firstTimePurchasersPeriod.value = [
   { name: "Primeiros Compradores", value: data.data.first_time_purchasers_period }
 ];
 payingActivePeriod.value = [
-  { name: "7D Pagantes Ativos", value: data.data.paying_active_period },
-  { name: "14D Pagantes Ativos", value: data.data.paying_active_period },
-  { name: "28D Pagantes Ativos", value: data.data.paying_active_period }
+  { name: "7 Dias", value: data.data.paying_active_period },
+  { name: "14 Dias", value: data.data.paying_active_period },
+  { name: "28 Dias", value: data.data.paying_active_period }
 ];
 engagementRatePeriod.value = [
   { name: "% Taxa de Engajamento", value: data.data.engagement_rate_period }
