@@ -10,5 +10,5 @@ const props = defineProps<SkeletonProps>()
 </script>
 
 <template>
-  <div :class="cn('rounded-md bg-primary/30', props.class)" />
+  <div :class="cn('rounded-md bg-primary/5', props.class)" />
 </template>
