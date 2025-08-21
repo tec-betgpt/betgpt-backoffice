@@ -29,10 +29,6 @@
             <div class="rounded bg-card w-full md:w-auto">
               <CustomDatePicker v-model="selectedRange" />
             </div>
-              <button @click="toggleValues()" class="p-2 ml-2 rounded bg-yellow-400 text-black">
-                <Eye v-if="isShowValues" class="w-5 h-5" />
-                <EyeClosed v-else class="w-5 h-5" />
-              </button>
           </div>
         </div>
       </div>
@@ -554,12 +550,11 @@ export default {
     debounceTimers: {}
   }),
 
-
-
   beforeUnmount() {
     Object.values(this.resizeObservers).forEach(obs => obs.disconnect());
     Object.values(this.debounceTimers).forEach(timerId => clearTimeout(timerId));
   },
+
   methods: {
     debounce(func, delay, key) {
       if (this.debounceTimers[key]) {
@@ -590,7 +585,7 @@ export default {
       observer.observe(el);
       this.resizeObservers[index] = observer;
     },
-    formatLargeNumber,
+
     handleResize() {
       this.windowWidth = window.innerWidth;
     },
@@ -689,6 +684,7 @@ export default {
 
       parentCard.content = parentCard.content.filter((row) => row.length > 0);
     },
+
     saveLayout() {
       const layoutToSave = this.cards.map(group => ({
         id: group.id,
@@ -696,6 +692,7 @@ export default {
       }));
       Home.layout(layoutToSave);
     },
+
     onDragEnterNewRow(parentId) {
       this.dragOverNewRow = parentId;
     },
@@ -978,6 +975,7 @@ export default {
         allCards.slice(4, 7),
       ];
     },
+
     buildCardsPlayers() {
       const allCards = [
         {
@@ -1223,10 +1221,13 @@ export default {
         this.isRefreshing = false;
       }
     },
+  },
 
-    toggleValues() {
-      this.isShowValues = !this.isShowValues;
-    }
+  props: {
+    isShowValues: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   watch: {

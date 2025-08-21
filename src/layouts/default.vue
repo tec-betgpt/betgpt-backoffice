@@ -247,6 +247,12 @@
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+
+          <button @click="toggleValues()" class="mr-3">
+            <Eye v-if="isShowValues" class="w-5 h-5 text-gray-200" />
+            <EyeClosed v-else class="w-5 h-5 text-gray-200" />
+          </button>
+
           <SidebarTrigger
             :logo="false"
             :toggle="toggleSidebarIA"
@@ -260,10 +266,11 @@
         class="grid flex-1 items-start gap-4 p-4 pt-0 sm:px-6 sm:py-0"
       >
         <div class="mx-auto w-full min-w-0">
-          <router-view></router-view>
+          <router-view :isShowValues="isShowValues"></router-view>
         </div>
       </main>
     </SidebarInset>
+
     <Sidebar
       class="ia"
       side="right"
@@ -425,7 +432,7 @@
 </template>
 
 <script setup lang="ts">
-import { Download, Paperclip, X, SquarePen } from "lucide-vue-next";
+import {Download, Paperclip, X, SquarePen, EyeClosed, Eye} from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Breadcrumb,
@@ -569,6 +576,7 @@ const showNewChatModal = ref(false);
 const newChatTitle = ref("");
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const messageContainerRef = ref<HTMLElement | null>(null);
+const isShowValues = ref(false);
 
 // Computed
 const activeGroupProject = computed(() => workspaceStore.activeGroupProject || null);
@@ -802,6 +810,10 @@ function scrollToBottom() {
       messageContainerRef.value!.scrollTop = container.scrollHeight;
     }
   });
+}
+
+function toggleValues() {
+  isShowValues.value = !isShowValues.value;
 }
 
 function getLogoSrc(isDarkMode: boolean, isSidebarExpanded: boolean): string {
