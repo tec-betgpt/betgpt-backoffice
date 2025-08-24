@@ -26,14 +26,45 @@
             </p>
           </div>
         </div>
+        <div v-if="data.slug === 'google-analytics' && propetyList.length > 0" class="mt-4">
+          <Label for="property">Propriedade</Label>
+          <Select id="property" v-model="data.config.property_id" class="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o analytic"/>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="property in propetyList" :key="property.id" :value="property.id">
+                {{ property.name }}
+              </SelectItem>
+            </SelectContent>
+
+          </Select>
+
+        </div>
+
         <div class="mt-4 space-y-4">
           <div v-for="field in data.fields" :key="field.key" class="space-y-2">
-            <Label :for="`${data.slug}-${data.key}`">{{ field.title }}</Label>
+            <Label   :for="`${data.slug}-${data.key}`">{{ field.title }}</Label>
             <Input
+                v-if="field.type === 'string'"
               :id="`${data.slug}-${field.key}`"
               v-model="data.config[field.key]"
               :placeholder="field.description"
             />
+            <Button
+                :id="`${data.slug}-${field.key}`"
+                v-if="field.type === 'url'"
+                @click="data?.config.email?logoutOAuth2():initOAuth2(field.description)"
+            >
+              <div v-if="data?.config.email" class="flex items-center justify-between">
+                <LogOut class="mr-2 h-4 w-4" />
+                Desconectar
+              </div>
+              <div v-else class="flex items-center justify-between">
+                <ExternalLink class="mr-2 h-4 w-4" />
+                Conectar
+              </div>
+            </Button>
           </div>
         </div>
       </Card>
@@ -49,12 +80,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import {ref, onMounted, watch} from 'vue';
 import { useWorkspaceStore } from '@/stores/workspace';
 import { useToast } from '@/components/ui/toast/use-toast';
-import { Loader2 as LucideSpinner, ExternalLink } from 'lucide-vue-next';
+import { Loader2 as LucideSpinner, ExternalLink , LogOut} from 'lucide-vue-next';
 import Projects from '@/services/projects';
 import {Card} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import api from "@/services/base";
+import Integrations from "@/views/dashboard/Integrations.vue";
+import {Select, SelectContent, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
@@ -62,7 +97,9 @@ const loading = ref(false);
 const saving = ref(false);
 const integrations = ref<Array<any>>([]);
 const activeGroupProject = workspaceStore.activeGroupProject;
-
+const popUp = ref<Window| null>(null);
+const propetyList = ref<Array<{id: string; name: string}>>([])
+const property = ref()
 async function fetchIntegrations() {
   loading.value = true;
 
@@ -79,6 +116,9 @@ async function fetchIntegrations() {
       ...integration,
       config: integration.integration ? integration.integration.config : {},
     }));
+    if (!integrations.value.find(value => value.slug === 'google-analytics').config.property_id) {
+      await getProperty()
+    }
   } catch (error) {
     toast({
       title: "Erro",
@@ -90,6 +130,42 @@ async function fetchIntegrations() {
   loading.value = false;
 }
 
+
+async function initOAuth2(url:string) {
+  //window.open(url, "_blank", "width=500,height=600");
+  const response = await api.get(url,
+      {params:{project_id:activeGroupProject.project_id,integration_id:
+          integrations.value.find(value => value.slug === 'google-analytics').id}
+      });
+   popUp.value = window.open(response.data.data.url,
+      "_blank",
+      "width=500,height=600,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes");
+  const timer = setInterval(async () => {
+    if (popUp.value.closed) {
+      clearInterval(timer);
+      await fetchIntegrations();
+      await getProperty()
+      return
+    }
+  }, 500);
+}
+
+async function getProperty(){
+    propetyList.value = await Projects.property({
+      project_id:activeGroupProject.project_id,
+      integration_id:
+          integrations.value.find(value => value.slug === 'google-analytics').id
+    })
+
+}
+async function logoutOAuth2(){
+  await Projects.logoutOAuth({
+    project_id:activeGroupProject.project_id,
+    integration_id:
+        integrations.value.find(value => value.slug === 'google-analytics').id
+  })
+  await fetchIntegrations()
+}
 function getApplicationDetail (name: string) {
   switch (name) {
     case 'ActiveCampaign':
@@ -117,6 +193,10 @@ function getApplicationDetail (name: string) {
       }
   }
 }
+
+watch(property, ()=>{
+  console.log(property.value)
+})
 
 async function saveAllIntegrations() {
   saving.value = true;
