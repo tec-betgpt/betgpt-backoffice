@@ -87,16 +87,16 @@ const applyFilter = async () => {
     })
 
     depositsPeriod.value = [{name:"7 Dias",value:data.deposits_period},{name:"14 Dias",value:data.deposits_period}, {name:"28 Dias",value:data.deposits_period}];
-    usersPeriod.value = [{name:"Usuários Registrados",value:data.users_period}, {name:"Usuários Ativos",value:data.users_period}];
+    usersPeriod.value = [{name:"Registrados",value:data.users_period}, {name:"Ativos",value:data.users_period}];
     percentNetDepositsPeriod.value = [{name:"7 Dias %",value:data.percent_net_deposits_period},{name:"14 Dias %",value:data.percent_net_deposits_period}, {name:"28 Dias %",value:data.percent_net_deposits_period}];
     netDepositsPeriod.value = [{name:"7 Dias",value:data.net_deposits_period},{name:"14 Dias",value:data.net_deposits_period}, {name:"28 Dias",value:data.net_deposits_period}];
     activeUsersPeriod.value = [{name:"7 Dias",value:data.active_users_period},{name:"14 Dias",value:data.active_users_period}, {name:"28 Dias",value:data.active_users_period}];
-    percentFtdDayPeriod.value = [{name:"% de FTD/Dia",value:data.percent_ftd_day_period}];
-    valueNetDepositsPeriod.value = [{name:"Net Depósitos",value:data.value_net_deposits_period}];
+    percentFtdDayPeriod.value = [{name:"FTD/Dia",value:data.percent_ftd_day_period}];
+    valueNetDepositsPeriod.value = [{name:"Depósitos",value:data.value_net_deposits_period}];
     valueDepositsPeriod.value = [{name:"Depósitos",value:data.value_deposits_period}];
     valueWithdrawsPeriod.value = [{name:"Saques",value:data.value_withdraws_period}];
-    registrationDepositRatePeriod.value = [{name:"% Cadastro Depósito",value:data.registration_deposit_rate_period}];
-    depositConversionRatePeriod.value = [{name:"% Conversão Depósitos Pagos",value:data.deposit_conversion_rate_period}];
+    registrationDepositRatePeriod.value = [{name:"% Depósito",value:data.registration_deposit_rate_period}];
+    depositConversionRatePeriod.value = [{name:"% Pagos",value:data.deposit_conversion_rate_period}];
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
