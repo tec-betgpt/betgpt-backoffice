@@ -54,9 +54,10 @@
             <Button
                 :id="`${data.slug}-${field.key}`"
                 v-if="field.type === 'url'"
-                @click="data?.config.email?logoutOAuth2():initOAuth2(field.description)"
+                :disabled="disableBt"
+                @click="data.config?.email? logoutOAuth2():initOAuth2(field.description)"
             >
-              <div v-if="data?.config.email" class="flex items-center justify-between">
+              <div v-if="data.config?.email" class="flex items-center justify-between">
                 <LogOut class="mr-2 h-4 w-4" />
                 Desconectar
               </div>
@@ -100,6 +101,7 @@ const activeGroupProject = workspaceStore.activeGroupProject;
 const popUp = ref<Window| null>(null);
 const propetyList = ref<Array<{id: string; name: string}>>([])
 const property = ref()
+const disableBt = ref(false)
 async function fetchIntegrations() {
   loading.value = true;
 
@@ -114,10 +116,13 @@ async function fetchIntegrations() {
 
     integrations.value = data.map((integration: any) => ({
       ...integration,
-      config: integration.integration ? integration.integration.config : {},
+      config: integration.integration ? integration.integration.config : null,
     }));
-    if (!integrations.value.find(value => value.slug === 'google-analytics').config.property_id) {
-      await getProperty()
+    const google = integrations.value.find(value => value.slug === 'google-analytics')
+    if (google.config !== null) {
+      if (!google.config.property_id) {
+        await getProperty()
+      }
     }
   } catch (error) {
     toast({
@@ -133,18 +138,19 @@ async function fetchIntegrations() {
 
 async function initOAuth2(url:string) {
   //window.open(url, "_blank", "width=500,height=600");
+  disableBt.value = true
   const response = await api.get(url,
       {params:{project_id:activeGroupProject.project_id,integration_id:
           integrations.value.find(value => value.slug === 'google-analytics').id}
       });
    popUp.value = window.open(response.data.data.url,
       "_blank",
-      "width=500,height=600,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes");
+      "width=500,height=600,scrollbars=yes");
   const timer = setInterval(async () => {
     if (popUp.value.closed) {
       clearInterval(timer);
       await fetchIntegrations();
-      await getProperty()
+      disableBt.value = false
       return
     }
   }, 500);
@@ -159,12 +165,14 @@ async function getProperty(){
 
 }
 async function logoutOAuth2(){
+  disableBt.value = true
   await Projects.logoutOAuth({
     project_id:activeGroupProject.project_id,
     integration_id:
         integrations.value.find(value => value.slug === 'google-analytics').id
   })
   await fetchIntegrations()
+  disableBt.value = false
 }
 function getApplicationDetail (name: string) {
   switch (name) {
@@ -208,6 +216,7 @@ async function saveAllIntegrations() {
       title: "Sucesso",
       description: "Integrações salvas com sucesso.",
     });
+    propetyList.value = []
   } catch (error) {
     toast({
       title: "Erro",
