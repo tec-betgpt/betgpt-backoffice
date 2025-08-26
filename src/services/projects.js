@@ -77,5 +77,26 @@ export default {
   async toggle (id) {
     const { data } = await api.patch(`/projects/${id}/toggle`)
     return data
+  },
+    /**
+     * GET /v1/projects/propertier
+     * @param {object} params
+     * @param {string} params.integration_id
+     * @param {string} params.project_id
+     */
+  async property(params= {}) {
+    const { data } = await api.get(`/projects/integrations/oauth/property`, { params: params })
+    return data.data
+  },
+    /**
+     * GET /v1/projects/logoutOAuth
+     *
+     * @param {object} params
+     * @param {string} params.integration_id
+     * @param {string} params.project_id
+     */
+  async logoutOAuth(params= {}) {
+    const { data } = await api.get(`/projects/integrations/oauth/logout`, { params: params })
+    return data
   }
 }
