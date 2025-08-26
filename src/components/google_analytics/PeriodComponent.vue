@@ -21,32 +21,35 @@
     <Separator />
 
     <CardContent>
-      <div class="gap-2 mb-10">
-        <div v-for="p in period" :key="p.name">
-          <div class="text-sm text-gray-400 mb-3 mt-5">
-            {{ p.name }}
-          </div>
-          <div class="flex justify-start gap-5 flex-wrap variation-horizontal">
-            <Badge class="bg-transparent hover:bg-transparent text-primary/70">
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#947c2c"><path d="m280-400 200-200 200 200H280Z"/></svg>
+      <div :class="`gap-2 md:grid-cols-1 sm:grid-cols-1 grid mb-10 w-2/3 mx-auto`">
+        <div v-for="(p, index) in period" :key="p.name" class="mx-auto mt-5 md:text-left sm:text-center">
+          <div class="gap-2 grid md:grid-cols-4 sm:grid-cols-1 variation-horizontal">
+            <div class="text-sm text-gray-400 flex items-center justify-center">
+              <div :style="`background: ${colors[index]}`" class="rounded-full w-3 h-3 inline-block mr-1"></div>
+              {{ p.name }}
+            </div>
+            <Badge class="bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center">
+              <img src="/svg/up.svg" class="w-4 h-4 mr-1" alt="up" />
               {{ calculateStats(p.name, p.value).max }}
             </Badge>
-            <Badge class="bg-transparent hover:bg-transparent text-primary/70">
-              <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="#B91C1C"><path d="M480-360 280-560h400L480-360Z"/></svg>
-              {{ calculateStats(p.name, p.value).min }}
+            <Badge class="bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center">
+              <img src="/svg/middle.svg" class="w-4 h-4 mr-1" alt="middle" />
+              {{ calculateStats(p.name, p.value).avg }}
             </Badge>
-            <Badge class="bg-transparent hover:bg-transparent text-primary/70">
-              <ChartLine class="h-4 w-4 mr-2" /> {{ calculateStats(p.name, p.value).avg }}
+            <Badge class="bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center">
+              <img src="/svg/down.svg" class="w-4 h-4 mr-1" alt="down" />
+              {{ calculateStats(p.name, p.value).min }}
             </Badge>
           </div>
         </div>
       </div>
 
       <LineChart
-        :colors="['#947c2c','#f4a261','#023e8a']"
+        :colors="colors"
         v-if="categories.length > 0"
         :data="chartData"
         index="date"
+        :show-legend="false"
         :categories="categories"
         :y-formatter="yFormatter"
         :custom-tooltip="tooltip"
@@ -57,42 +60,16 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { ArrowDown, ArrowUp, ChartLine } from "lucide-vue-next";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 
 export default defineComponent({
-  name: "PeriodComponent",
   components: {
     GlossaryTooltipComponent,
-    ArrowUp,
-    ChartLine,
-    ArrowDown,
     CustomChartTooltip
   },
-  props: {
-    period: {
-      type: Array as () => Array<{ name: string; value: number[] }>,
-      required: true
-    },
-    title: {
-      type: String,
-      required: false
-    },
-    isLoading:{
-      type: Boolean,
-      required: true
-    },
-    type: {
-      type: String as () => 'numeric' | 'percent' | 'currency',
-      default: 'numeric'
-    },
-    glossary:{
-      type: String,
-      required:false
-    }
-  },
+
   computed: {
     CustomChartTooltipPercent() {
       return CustomChartTooltipPercent
@@ -136,6 +113,11 @@ export default defineComponent({
   },
 
   },
+
+  data: () => ({
+    colors: ['#947c2c','#f4a261','#c3c3c3']
+  }),
+
   methods:{
     calculateStats(key, data) {
       if (!data.length) return {}
@@ -149,6 +131,29 @@ export default defineComponent({
         return {max: (max / 100).toFixed(2), min: (min / 100).toFixed(2), avg: (avg / 100).toFixed(2)}
       }
       return { max, min, avg: parseFloat(avg).toFixed(2) }
+    }
+  },
+
+  props: {
+    period: {
+      type: Array as () => Array<{ name: string; value: number[] }>,
+      required: true
+    },
+    title: {
+      type: String,
+      required: false
+    },
+    isLoading:{
+      type: Boolean,
+      required: true
+    },
+    type: {
+      type: String as () => 'numeric' | 'percent' | 'currency',
+      default: 'numeric'
+    },
+    glossary:{
+      type: String,
+      required:false
     }
   }
 })
