@@ -16,7 +16,7 @@
     <div v-else class="grid md:grid-cols-1 lg:grid-cols-3 gap-4">
       <Card v-for="data in integrations" :key="data.id" class="p-5">
         <div class="mb-5">
-          <img :src="getApplicationDetail(data.name).logo" class="h-14 w-14 rounded" />
+          <img :src="getApplicationDetail(data.name).logo" class="h-14 w-14 rounded"  alt="Logo integration"/>
         </div>
         <div class="flex items-center justify-between">
           <div>
@@ -27,8 +27,10 @@
           </div>
         </div>
         <div v-if="data.slug === 'google-analytics' && propetyList.length > 0" class="mt-4">
-          <Label for="property">Propriedade</Label>
-          <Select id="property" v-model="data.config.property_id" class="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+          <Label for="property" class="mb-1">Propriedade do Projeto</Label>
+          <Select id="property"
+                  v-model="data.config.property_id"
+                  class="my-1 ">
             <SelectTrigger>
               <SelectValue placeholder="Selecione o analytic"/>
             </SelectTrigger>
@@ -39,9 +41,12 @@
             </SelectContent>
 
           </Select>
-
         </div>
-
+        <div class="mt-4 text-sm" v-if=" data.slug === 'google-analytics' && data.config?.property_name">
+          <span>
+            Propriedade vinculada: {{ data.config?.property_name ? data.config.property_name : 'Não conectado' }}
+          </span>
+        </div>
         <div class="mt-4 space-y-4">
           <div v-for="field in data.fields" :key="field.key" class="space-y-2">
             <Label   :for="`${data.slug}-${data.key}`">{{ field.title }}</Label>
@@ -120,7 +125,7 @@ async function fetchIntegrations() {
     }));
     const google = integrations.value.find(value => value.slug === 'google-analytics')
     if (google.config !== null) {
-      if (!google.config.property_id) {
+      if (google.config.property_id == '') {
         await getProperty()
       }
     }
@@ -208,6 +213,14 @@ watch(property, ()=>{
 
 async function saveAllIntegrations() {
   saving.value = true;
+
+  integrations.value.forEach(integration => {
+
+    if (propetyList.value.length > 0 && integration.slug === 'google-analytics') {
+      const selectedProperty = propetyList.value.find(property => property.id === integration.config.property_id);
+      integration.config.property_name = selectedProperty ? selectedProperty.name : '';
+    }
+  });
 
   try {
     await Projects.bulkUpdate(activeGroupProject.project_id, integrations.value)
