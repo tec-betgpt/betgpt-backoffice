@@ -219,10 +219,8 @@
         </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
-    <SidebarInset class="w-full">
-      <header
-        class="flex w-full h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
-      >
+    <SidebarInset>
+      <header class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4">
         <div class="flex items-center gap-2 w-full px-4">
           <SidebarTrigger :logo="true" :toggle="toggleSidebar" class="-ml-1" />
 
@@ -249,8 +247,8 @@
           </Breadcrumb>
 
           <button @click="toggleValues()" class="mr-3">
-            <Eye v-if="isShowValues" class="w-5 h-5 text-gray-200" />
-            <EyeClosed v-else class="w-5 h-5 text-gray-200" />
+            <Eye v-if="isShowValues" class="w-5 h-5 text-primary" />
+            <EyeClosed v-else class="w-5 h-5 text-primary" />
           </button>
 
           <SidebarTrigger
