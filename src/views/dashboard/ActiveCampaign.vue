@@ -337,7 +337,7 @@ function createHeaderButton(label: string, columnKey: string) {
 
 
 watch(selectedRange,()=>{
-  applyFilter()
+  applyFilter(1)
 })
 type CampaignMetrics = {
   ldate: string;

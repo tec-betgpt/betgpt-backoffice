@@ -153,7 +153,6 @@ import moment from "moment";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import Projects from '@/services/projects'
-import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import {Dialog} from "@/components/ui/dialog";
 const imagePreview = ref();
 const errorMessage = ref("");

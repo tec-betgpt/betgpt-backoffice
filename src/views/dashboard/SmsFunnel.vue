@@ -414,9 +414,7 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-onMounted(async () => await applyFilter(1));
-
-watch(selectedRange, () => applyFilter());
+watch(selectedRange, () => applyFilter(1));
 
 type CampaignMetrics = {
   name: string;

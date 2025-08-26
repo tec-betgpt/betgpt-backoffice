@@ -271,7 +271,6 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
-import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
 const { toast } = useToast();
 const processingAction = ref(null);

@@ -261,8 +261,7 @@ const formattedPayload = computed(() => {
 });
 
 const handleSearch = () => {
-  pages.value.current = 1;
-  applyFilter();
+  applyFilter(1);
 };
 
 watch(perPage,()=>applyFilter(1))
