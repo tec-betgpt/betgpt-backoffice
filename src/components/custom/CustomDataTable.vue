@@ -44,8 +44,12 @@
           />
         </TableHead>
       </TableRow>
-      <TableRow v-if="props.head" v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-        <TableHead v-for="header in headerGroup.headers" :key="header.id">
+      <TableRow v-if="props.head" class="bg-gray-50/10" v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+        <TableHead
+          v-for="(header, index) in headerGroup.headers"
+          :key="header.id"
+          :class="(index === 0) ? 'text-left' : 'text-right'"
+        >
           {{props.head?.[header.column.id] }}
         </TableHead>
       </TableRow>
@@ -81,7 +85,7 @@
 
     <TableFooter v-if="footer">
       <TableRow>
-        <TableCell v-for="column in columns" :key="column.accessorKey">
+        <TableCell v-for="column in columns" :key="column.accessorKey" class="text-right">
           {{ footerData[column.accessorKey] }}
         </TableCell>
       </TableRow>

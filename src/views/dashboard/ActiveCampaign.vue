@@ -20,7 +20,7 @@
 
         <Separator />
 
-        <CardContent>
+        <CardContent class="mt-5">
           <CustomDataTable
             :data="campaigns"
             :columns="columns"
@@ -209,103 +209,88 @@ const applyFilter = async (current = pages.value.current) => {
 const columnHelper = createColumnHelper<CampaignMetrics>();
 const columns = [
   columnHelper.accessor("name", {
-    header({ column }) {
-      return "Nome da Campanha";
+    header() {
+      return h(
+        "div",
+        { class: "text-pretty text-left py-3 pr-20" },
+        "Nome da Campanha"
+      )
     },
     cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
   }),
+
   columnHelper.accessor("ldate", {
-    header({ column }) {
-      return createHeaderButton("Última Data de Envio", "ldate");
-    },
-    cell: ({ row }) =>
-      h(
-        "div",
-        { class: "capitalize" },
-        moment(row.getValue("ldate")).format("DD/MM/YYYY")
-      ),
+    header: () => createHeaderButton("Última Data de Envio", "ldate"),
+    cell: ({ row }) => h(
+      "div",
+      { class: "capitalize text-right" },
+      moment(row.getValue("ldate")).format("DD/MM/YYYY")
+    ),
   }),
+
   columnHelper.accessor("send_amt", {
-    header({ column }) {
-      return createHeaderButton("Número de Envios", "send_amt");
-    },
+    header: () => createHeaderButton("Envios", "send_amt"),
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "" }, row.getValue("send_amt")),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("send_amt")),
   }),
+
   columnHelper.accessor("uniqueopens", {
-    header({ column }) {
-      return createHeaderButton("Número de Aberturas", "uniqueopens");
-    },
+    header: ({ column }) => createHeaderButton("Aberturas", "uniqueopens"),
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "" }, row.getValue("uniqueopens")),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("uniqueopens")),
   }),
+
   columnHelper.accessor("subscriberclicks", {
     header({ column }) {
-      return createHeaderButton("Número de Cliques", "subscriberclicks");
+      return createHeaderButton("Cliques", "subscriberclicks");
     },
     footer: "sum",
-    cell: ({ row }) =>
-      h("div", { class: "" }, row.getValue("subscriberclicks")),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("subscriberclicks")),
   }),
+
   columnHelper.accessor("unsubscribes", {
-    header({ column }) {
-      return createHeaderButton("Número de Cancelamentos", "unsubscribes");
-    },
+    header: () => createHeaderButton("Cancelamentos", "unsubscribes"),
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "" }, row.getValue("unsubscribes")),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("unsubscribes")),
   }),
+
   columnHelper.accessor("softbounces", {
-    header({ column }) {
-      return createHeaderButton("Número de Bounces", "softbounces");
-    },
+    header: () => createHeaderButton("Bounces", "softbounces"),
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "" }, row.getValue("softbounces")),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("softbounces")),
   }),
+
   columnHelper.accessor("rate_opens", {
-    header({ column }) {
-      return createHeaderButton("Taxa de Abertura (%)", "rate_opens");
-    },
+    header: () => createHeaderButton("Taxa de Abertura", "rate_opens"),
     footer: "avg",
-    cell: ({ row }) =>
-      h("div", { class: "" }, row.getValue("rate_opens") + "%"),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_opens")),
   }),
+
   columnHelper.accessor("rate_opens_click", {
-    header({ column }) {
-      return createHeaderButton(
-        "Taxa de Abertura para Clique (%)",
-        "rate_opens_click"
-      );
-    },
+    header: () => createHeaderButton("Taxa de Abertura para Clique","rate_opens_click"),
     footer: "avg",
-    cell: ({ row }) =>
-      h("div", { class: "" }, row.getValue("rate_opens_click") + "%"),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_opens_click")),
   }),
+
   columnHelper.accessor("rate_clicks", {
-    header({ column }) {
-      return createHeaderButton("Taxa de Cliques (%)", "rate_clicks");
-    },
+    header: () => createHeaderButton("Taxa de Cliques", "rate_clicks"),
     footer: "avg",
-    cell: ({ row }) =>
-      h("div", { class: "" }, row.getValue("rate_clicks") + "%"),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_clicks")),
   }),
+
   columnHelper.accessor("rate_unsubscriptions", {
-    header({ column }) {
-      return createHeaderButton(
-        "Taxa de Cancelamento de Inscrições (%)",
-        "rate_unsubscriptions"
-      );
-    },
+    header: () => createHeaderButton(
+      "Taxa de Cancelamento de Inscrições",
+      "rate_unsubscriptions"
+    ),
     footer: "avg",
-    cell: ({ row }) =>
-      h("div", { class: "" }, row.getValue("rate_unsubscriptions") + "%"),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_unsubscriptions")),
   }),
+
   columnHelper.accessor("rate_rejections", {
-    header({ column }) {
-      return createHeaderButton("Taxa de Rejeição (%)", "rate_rejections");
-    },
+    header: () => createHeaderButton("Taxa de Rejeição", "rate_rejections"),
     footer: "avg",
-    cell: ({ row }) =>
-      h("div", { class: "" }, row.getValue("rate_rejections") + "%"),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_rejections")),
   }),
 ];
 
@@ -319,7 +304,7 @@ function createHeaderButton(label: string, columnKey: string) {
         order.value = !order.value;
         applyFilter();
       },
-      class: "h-fit text-pretty my-1",
+      class: "p-0 text-pretty text-left text-nowrap",
     },
     () => [
       label,
@@ -335,10 +320,10 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-
 watch(selectedRange,()=>{
   applyFilter(1)
 })
+
 type CampaignMetrics = {
   ldate: string;
   name: string;
