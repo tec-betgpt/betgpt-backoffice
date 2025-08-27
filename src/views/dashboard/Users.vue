@@ -8,7 +8,7 @@
         </p>
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-        <Button class="bg-yellow-300" @click="openCreateModal">
+        <Button class="bg-yellow-400" @click="openCreateModal">
           <Plus />
           Novo Usuário
         </Button>
@@ -72,10 +72,12 @@
             </DropdownMenuContent>
           </DropdownMenu>
         </CustomDataTable>
-        <CustomPagination :select-page="fetchUsersAndProjects"
-                          :pages="pages"
-                          :per-pages="perPage"
-                          @update:perPages="(value) => perPage = value"
+
+        <CustomPagination
+          :select-page="fetchUsersAndProjects"
+          :pages="pages"
+          :per-pages="perPage"
+          @update:perPages="(value) => perPage = value"
         />
       </CardContent>
     </Card>
@@ -271,6 +273,8 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import {Avatar, AvatarImage, AvatarFallback} from "@/components/ui/avatar";
+import moment from "moment";
 
 const { toast } = useToast();
 const processingAction = ref(null);
@@ -620,7 +624,7 @@ function createHeaderButton(label: string, columnKey: string) {
         direction.value = !direction.value;
         fetchUsersAndProjects();
       },
-      class: "h-fit text-pretty my-1",
+      class: "text-pretty p-0 text-left hover:bg-transparent",
     },
     () => [
       label,
@@ -636,12 +640,34 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 const columns = [
-  columnHelper.accessor("id", {
-    header({ column }) {
-      return createHeaderButton("ID", "id");
-    },
-    cell: ({ row }) => h("div", {}, row.getValue("id")),
-  }),
+  columnHelper.accessor(
+    "id",
+    {
+      header({ column }) {
+        return createHeaderButton("ID", "id");
+      },
+      cell: ({ row }) => h(
+        "div",
+        { class: 'text-left' },
+        row.getValue("id")),
+    }
+  ),
+  columnHelper.accessor(
+    "photo",
+    {
+      header: () => "Perfil",
+      cell: ({ row }) => h(
+        h(
+          Avatar,
+          { class: "h-10 w-10 rounded-lg" },
+          [
+            h(AvatarImage, { src: row.getValue("photo") || undefined }),
+            h(AvatarFallback, { class: "p-10 rounded-lg" }, row.original.first_name.charAt(0) + row.original.last_name.charAt(0))
+          ]
+        )
+      )
+    }
+  ),
   columnHelper.accessor("first_name", {
     header({ column }) {
       return createHeaderButton("Nome", "first_name");
@@ -676,12 +702,28 @@ const columns = [
                   row.getValue("statuses")?.[0]?.name === "active"
                     ? "default"
                     : "destructive",
+                class: "shadow-none"
               },
               row.getValue("statuses")?.[0]?.name === "active"
                 ? "Ativo"
                 : "Inativo"
             )
       ),
+  }),
+  columnHelper.accessor("auth2fa", {
+    header({ column }) {
+      return "2FA";
+    },
+    cell: ({ row }) => {
+      const is = row.getValue("auth2fa")
+      return h(
+        "div",
+        {class: "capitalize"},
+        is && is !== 'pending'
+          ? h(Badge, {variant: "default", class: "bg-green-500 shadow-none"}, "Habilitado")
+          : h(Badge, {variant: "destructive", class: "shadow-none"}, "Desabilitado")
+      )
+    }
   }),
   columnHelper.accessor("access_type", {
     header({ column }) {
@@ -692,6 +734,19 @@ const columns = [
         "div",
         { class: "capitalize" },
         row.getValue("access_type") == "member" ? "Membro" : "Cliente"
+      ),
+  }),
+  columnHelper.accessor("last_login_at", {
+    header({ column }) {
+      return "Último Login";
+    },
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "capitalize" },
+        row.getValue("last_login_at")
+          ? moment(row.getValue("last_login_at")).format("DD/MM/YYYY HH:mm").concat("h")
+          : "-"
       ),
   }),
 
@@ -786,10 +841,13 @@ interface Status {
 
 type User = {
   id: string;
+  photo: string | null;
   first_name: string;
   last_name: string;
   email: string;
   access_type: string;
+  auth2fa: string | null;
+  last_login_at: string | null;
   project_ids: number[];
   statuses: Status[];
 };
