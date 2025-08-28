@@ -16,30 +16,30 @@ export function formatLargeNumber(value) {
   }
 
   // bilhões
-  if (number >= 1_000_000_000) {
-    const formatted = formatter.format(number)
+  if (number >= 1000000000) {
+    const formatted = formatter.format( Math.floor(number / 1000))
     return {
       content: formatted,
-      separator: 'bi.'
+      separator: 'kkk'
     }
   }
 
   // milhões
-  if (number >= 1_000_000) {
+  if (number >= 1000000) {
     const numberInMillions = Math.floor(number / 1000)
 
     const formatted = formatter.format(numberInMillions)
     return {
       content: formatted,
-      separator: 'mi.'
+      separator: 'kk'
     }
   }
 
   // mil
-  if (number >= 100000) {
+  if (number >= 1000) {
     return {
-      content: formatter.format(number),
-      separator: 'mil'
+      content: formatter.format(Math.floor(number / 1000)),
+      separator: 'k'
     }
   }
 

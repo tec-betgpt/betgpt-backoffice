@@ -72,6 +72,7 @@ import { defineComponent } from 'vue'
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
+import {formatLargeNumber} from "@/filters/formatLargeNumber";
 
 export default defineComponent({
   components: {
@@ -86,7 +87,7 @@ export default defineComponent({
     CustomChartTooltip() {
       return CustomChartTooltip
     },
-   categories(): string[] {
+    categories(): string[] {
       return this.period.map(p => p.name)
    },
     chartData(): number[] {
@@ -124,13 +125,13 @@ export default defineComponent({
   },
 
   data: () => ({
+    windowWidth: window.innerWidth,
     colors: ['#947c2c','#f4a261','#c3c3c3']
   }),
 
   methods:{
     calculateStats(key, data) {
       if (!data.length) return {}
-
       const values = data.map(item => item[key])
       const max = Math.max(...values)
       const min = Math.min(...values)
@@ -138,6 +139,11 @@ export default defineComponent({
       if(this.type == "percent")
       {
         return {max: (max / 100).toFixed(2), min: (min / 100).toFixed(2), avg: (avg / 100).toFixed(2)}
+      }
+      if (this.windowWidth < 640) {
+        return { max: formatLargeNumber(max).content + formatLargeNumber(max).separator  ,
+          min: formatLargeNumber(min).content + formatLargeNumber(min).separator,
+          avg: formatLargeNumber(parseFloat(avg).toFixed(2)).content + formatLargeNumber(parseFloat(avg).toFixed(2)).separator }
       }
       return { max, min, avg: parseFloat(avg).toFixed(2) }
     }

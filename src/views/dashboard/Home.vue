@@ -289,29 +289,29 @@
                       </div>
                   </CardContent>
 
-                <CardContent v-else-if=" subItem.count !== undefined && subItem.count !== null">
-                  <div class="number" v-if="isShowValues">
-                    {{ subItem.count }}
-                  </div>
-                  <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
-
-                  <div v-if="isShowValues">
-                    <div v-if="subItem.variation" class="variation mt-3 flex">
-                      <div v-if="subItem.variation > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
-                        <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}
-                      </div>
-                      <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
-                        <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}
-                      </div>
-                      desde o dia anterior
+                  <CardContent v-else-if=" subItem.count !== undefined && subItem.count !== null">
+                    <div class="number" v-if="isShowValues">
+                      {{ subItem.count }}
                     </div>
-                  </div>
-                </CardContent>
+                    <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
+
+                    <div v-if="isShowValues">
+                      <div v-if="subItem.variation" class="variation mt-3 flex">
+                        <div v-if="subItem.variation > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
+                          <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}
+                        </div>
+                        <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
+                          <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}
+                        </div>
+                        desde o dia anterior
+                      </div>
+                    </div>
+                  </CardContent>
 
                   <!-- LAYOUT PADRÃO -->
                   <CardContent v-else>
-                    <div v-if="isShowValues":title="subItem.value" class="number">
-                      {{ $toCurrency(subItem.value) }}{{ subItem.suffix }}
+                    <div v-if="isShowValues" :title="subItem.value" class="number">
+                      {{ subItem.suffix? subItem.value:$toCurrency(subItem.value)  }}{{ subItem.suffix }}
                     </div>
                     <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
 
