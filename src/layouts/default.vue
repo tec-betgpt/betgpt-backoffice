@@ -254,6 +254,7 @@
           <SidebarTrigger
             :logo="false"
             :toggle="toggleSidebarIA"
+            :logoCustom="logoCustomAi"
             class="-ml-1"
           />
         </div>
@@ -598,6 +599,9 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 const logoSrc = computed(() => getLogoSrc(mode.value === "dark", sidebarExpanded.value));
 const iconIa = computed(() => {
   return mode.value === "dark" ? "/logo-elevate-square-white.png" : "/logo-elevate-square-black.png";
+});
+const logoCustomAi = computed(() => {
+  return mode.value === "dark" ? "/svg/elevate-ai-white.svg" : "/svg/elevate-ai-black.svg";
 });
 
 const navMenu = computed(() => {

@@ -641,18 +641,6 @@ function createHeaderButton(label: string, columnKey: string) {
 }
 const columns = [
   columnHelper.accessor(
-    "id",
-    {
-      header({ column }) {
-        return createHeaderButton("ID", "id");
-      },
-      cell: ({ row }) => h(
-        "div",
-        { class: 'text-left' },
-        row.getValue("id")),
-    }
-  ),
-  columnHelper.accessor(
     "photo",
     {
       header: () => "Perfil",
