@@ -188,5 +188,18 @@ export default {
   async validateTwoFactor(body) {
     const { data } = await api.post('/users/validate-two-factor', body)
     return data
+  },
+
+  /**
+   * POST /v1/users/list
+   *
+   * @param {object} params
+   * @param {number} body.limit
+   * @param {number} body.offset
+   * @param {string} body.search
+   */
+  async list(params = {}) {
+    const { data } = await api.get('/users/list', { params })
+    return data
   }
 }

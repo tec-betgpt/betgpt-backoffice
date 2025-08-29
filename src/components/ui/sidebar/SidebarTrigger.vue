@@ -10,6 +10,7 @@ const props = defineProps<{
   logo?:boolean;
   class?: HTMLAttributes["class"];
   toggle?: () => void;
+  logoCustom?: string;
 }>();
 const mode = useColorMode();
 const logoSrc = computed(() => {
@@ -26,7 +27,7 @@ const { toggleSidebar } = useSidebar();
         v-if="logo"
       :src="logoSrc"
       alt="Logo"
-      class="h-7 w-7 mr-3 md:hidden"
+      class="h-9 w-9 mr-2 md:hidden"
       @click="
         () => {
           toggle?.();
@@ -38,7 +39,7 @@ const { toggleSidebar } = useSidebar();
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      :class="cn('h-7 w-7', props.class)"
+      :class="cn('h-9 w-9', props.class)"
       @click="
         () => {
           toggle?.();
@@ -46,9 +47,14 @@ const { toggleSidebar } = useSidebar();
         }
       "
     >
-      <PanelLeft  v-if="logo"/>
-      <PanelRight  v-else   />
-      <span class="sr-only">Toggle Sidebar</span>
+      <template v-if="logoCustom">
+        <img :src="logoCustom" alt="Logo" class="h-9 w-9" />
+      </template>
+      <template v-else>
+        <PanelLeft  v-if="logo"/>
+        <PanelRight  v-else   />
+        <span class="sr-only">Toggle Sidebar</span>
+      </template>
     </Button>
   </div>
 </template>

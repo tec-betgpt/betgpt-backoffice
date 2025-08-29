@@ -123,27 +123,15 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, computed, watch} from "vue";
+import {ref, computed, watch} from "vue";
 import GoogleAnalytics from '@/services/googleAnalytics'
 import { getLocalTimeZone, today } from "@internationalized/date";
 import moment from "moment";
 import "moment/dist/locale/pt-br";
 import { useToast } from "@/components/ui/toast/use-toast";
-import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
-import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
-import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
-import UsersComponent from "@/components/google_analytics/UsersComponent.vue";
-import TotalUsersComponent from "@/components/google_analytics/TotalUsersComponent.vue";
-import ReturningUsersPeriodComponent from "@/components/google_analytics/ReturningUsersPeriodComponent.vue";
-import ArppuPeriodComponent from "@/components/google_analytics/ArppuPeriodComponent.vue";
-import ArpuPeriodComponent from "@/components/google_analytics/ArpuPeriodComponent.vue";
-import PayingActivePeriodComponent from "@/components/google_analytics/PayingActivePeriodComponent.vue";
-import EngagementRatePeriodComponent from "@/components/google_analytics/EngagementRatePeriodComponent.vue";
-import FirstTimePurchasersPeriodComponent from "@/components/google_analytics/FirstTimePurchasersPeriodComponent.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
-import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 
 const workspaceStore = useWorkspaceStore();
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });

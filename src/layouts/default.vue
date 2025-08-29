@@ -254,6 +254,7 @@
           <SidebarTrigger
             :logo="false"
             :toggle="toggleSidebarIA"
+            :logoCustom="logoCustomAi"
             class="-ml-1"
           />
         </div>
@@ -496,6 +497,7 @@ import {
   DollarSignIcon,
   Blocks,
   Logs,
+  History,
   UserCog,
   LayoutList,
 } from "lucide-vue-next";
@@ -598,6 +600,9 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 const logoSrc = computed(() => getLogoSrc(mode.value === "dark", sidebarExpanded.value));
 const iconIa = computed(() => {
   return mode.value === "dark" ? "/logo-elevate-square-white.png" : "/logo-elevate-square-black.png";
+});
+const logoCustomAi = computed(() => {
+  return mode.value === "dark" ? "/svg/elevate-ai-white.svg" : "/svg/elevate-ai-black.svg";
 });
 
 const navMenu = computed(() => {
@@ -726,6 +731,12 @@ const navMenu = computed(() => {
           url: { name: "postback-logs" },
           icon: Logs,
           show: canAccess("access-to-postback-logs")
+        },
+        {
+          name: "Logins",
+          url: { name: "user-logins" },
+          icon: History,
+          show: canAccess("access-to-users")
         },
       ],
     },

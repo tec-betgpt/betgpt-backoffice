@@ -34,6 +34,7 @@ import GroupProjects from "@/views/dashboard/GroupProjects.vue";
 import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
 import { Download } from "lucide-vue-next";
 import Export from "@/views/dashboard/Export.vue";
+import UserLogins from "@/views/dashboard/UserLogins.vue";
 
 const routes = [
   {
@@ -376,6 +377,18 @@ const routes = [
           roles: "member",
           permissions: "access-to-postback-logs",
           title: "Integrações",
+        },
+      },
+      {
+        path: "user-logins",
+        name: "user-logins",
+        component: UserLogins,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-users",
+          title: "Histórico de Login",
         },
       },
     ],
