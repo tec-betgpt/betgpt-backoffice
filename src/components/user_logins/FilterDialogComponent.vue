@@ -34,7 +34,7 @@
                   <SelectValue placeholder="Limite" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem v-for="page in [6, 15, 25, 50, 100, 500, 1000, 3000]" :key="page" :value="page">
+                  <SelectItem v-for="page in [15, 25, 50, 100, 500, 1000, 3000]" :key="page" :value="page">
                     {{ page }} Por página
                   </SelectItem>
                 </SelectContent>

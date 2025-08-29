@@ -100,7 +100,7 @@ import UserLogins from '@/services/userLogins';
 const isLoading = ref(true);
 const isAllRecords = ref(false);
 const offset = ref(0);
-const limit = ref(6);
+const limit = ref(15);
 const userLogins: any = ref([]);
 const filters = ref({});
 
