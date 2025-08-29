@@ -497,6 +497,7 @@ import {
   DollarSignIcon,
   Blocks,
   Logs,
+  History,
   UserCog,
   LayoutList,
 } from "lucide-vue-next";
@@ -730,6 +731,12 @@ const navMenu = computed(() => {
           url: { name: "postback-logs" },
           icon: Logs,
           show: canAccess("access-to-postback-logs")
+        },
+        {
+          name: "Logins",
+          url: { name: "user-logins" },
+          icon: History,
+          show: canAccess("access-to-users")
         },
       ],
     },

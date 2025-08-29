@@ -681,7 +681,7 @@ const columns = [
       h(
         "div",
         { class: "capitalize" },
-        processingStatusId.value === row.getValue("id")
+        processingStatusId.value === row.id
           ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
           : h(
               Badge,
@@ -742,21 +742,21 @@ const columns = [
     header({ column }) {
       return "Ações";
     },
-    cell: ({ row, table }) =>
-      h(DropdownMenu, {}, [
+    cell: ({ row, table }) => {
+      return h(DropdownMenu, {}, [
         h(
           DropdownMenuTrigger,
-          { asChild: true },
+          {asChild: true},
           h(
             Button,
-            { size: "icon", variant: "ghost", disabled: isProcessing.value },
+            {size: "icon", variant: "ghost", disabled: isProcessing.value},
             [
-              h(MoreHorizontal, { class: "h-4 w-4" }),
-              h("span", { class: "sr-only" }, "Ações"),
+              h(MoreHorizontal, {class: "h-4 w-4"}),
+              h("span", {class: "sr-only"}, "Ações"),
             ]
           )
         ),
-        h(DropdownMenuContent, { align: "end" }, [
+        h(DropdownMenuContent, {align: "end"}, [
           h(DropdownMenuLabel, {}, "Ações"),
           h(DropdownMenuSeparator, {}),
           h(
@@ -777,18 +777,18 @@ const columns = [
                 resetPassword(user);
               },
               disabled:
-                processingAction.value === `reset-${row.getValue("id")}`,
+                processingAction.value === `reset-${row.id}`,
             },
             h(
               "div",
-              { class: "flex items-center" },
-              processingAction.value === `reset-${row.getValue("id")}`
+              {class: "flex items-center"},
+              processingAction.value === `reset-${row.id}`
                 ? [
-                    h(LucideSpinner, {
-                      class: "mr-2 h-4 w-4 animate-spin",
-                    }),
-                    "Resetando senha...",
-                  ]
+                  h(LucideSpinner, {
+                    class: "mr-2 h-4 w-4 animate-spin",
+                  }),
+                  "Resetando senha...",
+                ]
                 : "Resetar Senha"
             )
           ),
@@ -800,20 +800,21 @@ const columns = [
                 toggleStatus(project);
               },
               disabled:
-                processingAction.value === `status-${row.getValue("id")}`,
+                processingAction.value === `status-${row.id}`,
             },
-            processingAction.value === `status-${row.getValue("id")}`
-              ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
+            processingAction.value === `status-${row.id}`
+              ? h(LucideSpinner, {class: "mr-2 h-4 w-4 animate-spin"})
               : h(
-                  "div",
-                  {},
-                  row.getValue("statuses")?.[0]?.name === "active"
-                    ? "Inativar"
-                    : "Ativar"
-                )
+                "div",
+                {},
+                row.getValue("statuses")?.[0]?.name === "active"
+                  ? "Inativar"
+                  : "Ativar"
+              )
           ),
         ]),
-      ]),
+      ])
+    }
   }),
 ];
 
