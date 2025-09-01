@@ -50,26 +50,28 @@
                 side="bottom"
                 :side-offset="4"
               >
-                <DropdownMenuLabel class="text-xs text-muted-foreground">
-                  Projetos
-                </DropdownMenuLabel>
-                <DropdownMenuItem
-                  v-for="project in workspaceStore.group_projects"
-                  :key="project.name"
-                  class="gap-2 p-2"
-                  @click="setActiveGroupProject(project)"
-                >
-                  <div class="flex size-6 items-center justify-center rounded-sm border">
-                    <Avatar shape="square" class="size-7">
-                      <AvatarImage v-if="project.logo" :src="project.logo"  />
-                      <AvatarImage v-else src="/default-company.jpg"  />
-                      <AvatarFallback class="uppercase  text-white">
-                        {{ project.name.slice(0, 2) }}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                  {{ project.name }}
-                </DropdownMenuItem>
+                <ScrollArea class="max-h-[50vh] w-auto overflow-auto">
+                  <DropdownMenuLabel class="text-xs text-muted-foreground">
+                    Projetos
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    v-for="project in workspaceStore.group_projects"
+                    :key="project.name"
+                    class="gap-2 p-2"
+                    @click="setActiveGroupProject(project)"
+                  >
+                    <div class="flex size-6 items-center justify-center rounded-sm border">
+                      <Avatar shape="square" class="size-7">
+                        <AvatarImage v-if="project.logo" :src="project.logo"  />
+                        <AvatarImage v-else src="/default-company.jpg"  />
+                        <AvatarFallback class="uppercase  text-white">
+                          {{ project.name.slice(0, 2) }}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    {{ project.name }}
+                  </DropdownMenuItem>
+                </ScrollArea>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
@@ -78,7 +80,7 @@
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Projeto</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarMenu>
             <template v-for="item in navMenu" :key="item.name">
               <SidebarMenuItem v-if="!item.children && item.show">
@@ -433,6 +435,7 @@
 <script setup lang="ts">
 import {Download, Paperclip, X, SquarePen, EyeClosed, Eye} from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Breadcrumb,
   BreadcrumbItem,
