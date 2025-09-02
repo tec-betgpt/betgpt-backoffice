@@ -2,7 +2,7 @@
   <div class="space-y-6 sm:p-10 p-1 max-w-full">
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
       <div class="space-y-0.5">
-        <h2 class="text-2xl font-bold tracking-tight">Logs de Postback</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Elevate API</h2>
         <p class="text-muted-foreground">
           Registros de postbacks recebidos e seu status de processamento.
         </p>
@@ -33,6 +33,7 @@
           <SelectItem :value="PostbackLogService.types.STATUS_CHANGE"
             >Alteração de Status</SelectItem
           >
+          <SelectItem value="all">Todos</SelectItem>
         </SelectContent>
       </Select>
 
@@ -44,6 +45,7 @@
           <SelectItem value="processed">Processado</SelectItem>
           <SelectItem value="pending">Pendente</SelectItem>
           <SelectItem value="failed">Falhou</SelectItem>
+          <SelectItem value="all">Todos</SelectItem>
         </SelectContent>
       </Select>
 
@@ -84,28 +86,18 @@
         <Separator />
 
         <CardContent>
-          <CustomDataTable
+          <CustomDataInfinite
             :data="logs"
             :columns="columns"
             :loading="loading"
-            :footer="false"
+            :has-more="hasMore"
+            :current-page="currentPage"
+            @load-more="loadMore"
+            :loadingInitial="false"
           />
         </CardContent>
 
-        <CardFooter class="py-4 w-full">
-          <CustomPagination
-            :pages="{
-              current: pages.current,
-              last: pages.last,
-              total: pages.total,
-            }"
-            :select-page="applyFilter"
-            :per_pages="perPage"
-            @update:perPages="args => perPage = args"
-          />
-        </CardFooter>
-
-        <CardFooter class="border-t" v-if="pages.total > 0">
+        <!--<CardFooter class="border-t" v-if="pages.total > 0">
           <div class="grid grid-cols-3 gap-4 w-full px-4">
             <div class="text-center p-3">
               <p class="text-sm text-gray-600">Processados</p>
@@ -126,7 +118,7 @@
               </p>
             </div>
           </div>
-        </CardFooter>
+        </CardFooter>-->
       </Card>
     </div>
 
@@ -183,14 +175,14 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, h, watch} from "vue";
+import { ref, computed, h, watch } from "vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import moment from "moment";
 import "moment/dist/locale/pt-br";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import PostbackLogService from "@/services/postbackLog";
@@ -246,12 +238,7 @@ const totalLogs = ref({
 });
 const order = ref();
 const direction = ref(false);
-const pages = ref({
-  current: 1,
-  total: 0,
-  last: 0,
-});
-const perPage = ref(10)
+const perPage = ref(10);
 const isPayloadModalOpen = ref(false);
 const selectedPayload = ref<any>(null);
 const formattedPayload = computed(() => {
@@ -261,11 +248,13 @@ const formattedPayload = computed(() => {
 });
 
 const handleSearch = () => {
-  applyFilter(1);
+  fetchPostbackLogs(1);
 };
 
-watch(perPage,()=>applyFilter(1))
-const applyFilter = async (page = pages.value.current) => {
+watch(perPage, () => fetchPostbackLogs(1));
+const fetchPostbackLogs = async (page = 1) => {
+  const isInitialLoad = page === 1;
+
   if (!selectedType.value) {
     toast({
       title: "Atenção",
@@ -294,22 +283,19 @@ const applyFilter = async (page = pages.value.current) => {
       filter_id: workspaceStore.activeGroupProject.id,
       type: selectedType.value,
       status: selectedStatus.value,
-      orderBy: order.value,
+      orderBy: order.value ? order.value : "id",
       orderDirection: direction.value ? "asc" : "desc",
-      per_page: perPage.value
+      per_page: perPage.value,
     });
 
-    logs.value = data.logs.data;
-    totalLogs.value = {
-      processed: data.logs.total?.processed || 0,
-      pending: data.logs.total?.pending || 0,
-      failed: data.logs.total?.failed || 0,
-    };
-    pages.value = {
-      current: data.logs.pagination.current_page,
-      total: data.logs.pagination.total,
-      last: data.logs.pagination.last_page,
-    };
+    if (isInitialLoad) {
+      logs.value = data.logs.data;
+    } else {
+      logs.value = [...logs.value, ...data.logs.data];
+    }
+
+    hasMore.value = data.logs.hasMore;
+    currentPage.value = data.logs.currentPage;
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
@@ -335,51 +321,56 @@ const showPayload = async (logId: number) => {
   }
 };
 
+const loadMore = (page: number) => {
+  fetchPostbackLogs(page);
+};
+
+const hasMore = ref(false);
+const currentPage = ref(1);
+
 const columnHelper = createColumnHelper<PostbackLog>();
 
 function createHeaderButton(label: string, columnKey: string) {
-  return {
-    header: ({ column }) => {
-      return h(
-        Button,
-        {
-          variant: order.value === columnKey ? "default" : "ghost",
-          onClick: () => {
-            order.value = columnKey;
-            direction.value = !direction.value;
-            applyFilter();
-          },
-          class: "h-fit text-pretty my-1",
-        },
-        () => [
-          label,
-          h(
-            order.value === columnKey
-              ? direction.value
-                ? ArrowDown
-                : ArrowUp
-              : CaretSortIcon,
-            { class: "" }
-          ),
-        ]
-      );
+  return h(
+    Button,
+    {
+      variant: order.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        order.value = columnKey;
+        direction.value = !direction.value;
+        fetchPostbackLogs();
+      },
+      class: "h-fit text-pretty my-1",
     },
-  };
+    () => [
+      label,
+      h(
+        order.value === columnKey
+          ? direction.value
+            ? ArrowDown
+            : ArrowUp
+          : CaretSortIcon,
+        { class: "" }
+      ),
+    ]
+  );
 }
 
 const columns = [
   columnHelper.accessor("id", {
-    ...createHeaderButton("ID", "id"),
-    cell: ({ row }) => h("div", row.getValue("id")),
+    header({ column }) {
+      return createHeaderButton("ID", "id");
+    },
+    cell: ({ row }) => h("div", {}, row.original.id),
   }),
   columnHelper.accessor("type", {
     header: "Tipo",
-    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("type")),
+    cell: ({ row }) => h("div", { class: "capitalize" }, row.original.type),
   }),
   columnHelper.accessor("status", {
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status");
+      const status = row.original.status;
       const color = {
         pending: "text-yellow-600",
         processed: "text-green-600",
@@ -392,15 +383,12 @@ const columns = [
   columnHelper.accessor("created_at", {
     header: "Recebido em",
     cell: ({ row }) =>
-      h(
-        "div",
-        moment(row.getValue("created_at")).format("DD/MM/YYYY HH:mm:ss")
-      ),
+      h("div", moment(row.original.created_at).format("DD/MM/YYYY HH:mm:ss")),
   }),
   columnHelper.accessor("processed_at", {
     header: "Processado em",
     cell: ({ row }) => {
-      const processedAt = row.getValue("processed_at");
+      const processedAt = row.original.processed_at;
       return h(
         "div",
         processedAt ? moment(processedAt).format("DD/MM/YYYY HH:mm:ss") : "-"

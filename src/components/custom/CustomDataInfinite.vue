@@ -134,6 +134,11 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  loadingInitial: {
+    type: Boolean,
+    required: false,
+    default: true,
+  },
   hasMore: {
     type: Boolean,
     required: true,
@@ -161,7 +166,7 @@ const props = defineProps({
 const emit = defineEmits(["load-more", "reset", "export"]);
 
 const isLoadingMore = ref(false);
-const isInitialLoading = ref(true);
+const isInitialLoading = ref(props.loadingInitial);
 const searchValues = ref<Record<string, string>>({});
 
 const table = useVueTable({

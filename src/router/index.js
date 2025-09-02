@@ -223,6 +223,18 @@ const routes = [
           permissions: "access-to-reports",
         },
       },
+      {
+        path: "elevate-api",
+        name: "elevate-api",
+        component: PostbackLogs,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-postback-logs",
+          title: "Integrações",
+        },
+      },
     ],
   },
   {
@@ -364,18 +376,6 @@ const routes = [
           requiresAuth: true,
           roles: "member|client",
           permissions: "access-to-integrations",
-          title: "Integrações",
-        },
-      },
-      {
-        path: "postback-logs",
-        name: "postback-logs",
-        component: PostbackLogs,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member",
-          permissions: "access-to-postback-logs",
           title: "Integrações",
         },
       },

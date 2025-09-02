@@ -23,12 +23,20 @@
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
-                <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                  <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground">
+                <SidebarMenuButton
+                  size="lg"
+                  class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <div
+                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground"
+                  >
                     <Avatar shape="square" class="size-7">
-                      <AvatarImage v-if="activeGroupProject && activeGroupProject.logo" :src="activeGroupProject.logo"  />
-                      <AvatarImage v-else src="/default-company.jpg"  />
-                      <AvatarFallback class="uppercase  text-white">
+                      <AvatarImage
+                        v-if="activeGroupProject && activeGroupProject.logo"
+                        :src="activeGroupProject.logo"
+                      />
+                      <AvatarImage v-else src="/default-company.jpg" />
+                      <AvatarFallback class="uppercase text-white">
                         {{ activeGroupProject.name.slice(0, 2) }}
                       </AvatarFallback>
                     </Avatar>
@@ -60,11 +68,13 @@
                     class="gap-2 p-2"
                     @click="setActiveGroupProject(project)"
                   >
-                    <div class="flex size-6 items-center justify-center rounded-sm border">
+                    <div
+                      class="flex size-6 items-center justify-center rounded-sm border"
+                    >
                       <Avatar shape="square" class="size-7">
-                        <AvatarImage v-if="project.logo" :src="project.logo"  />
-                        <AvatarImage v-else src="/default-company.jpg"  />
-                        <AvatarFallback class="uppercase  text-white">
+                        <AvatarImage v-if="project.logo" :src="project.logo" />
+                        <AvatarImage v-else src="/default-company.jpg" />
+                        <AvatarFallback class="uppercase text-white">
                           {{ project.name.slice(0, 2) }}
                         </AvatarFallback>
                       </Avatar>
@@ -181,9 +191,15 @@
       <SidebarFooter>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+            <SidebarMenuButton
+              size="lg"
+              class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
               <Avatar class="h-8 w-8 rounded-lg">
-                <AvatarImage v-if="authStore.user" :src="authStore.user?.icon" />
+                <AvatarImage
+                  v-if="authStore.user"
+                  :src="authStore.user?.icon"
+                />
                 <AvatarFallback class="rounded-lg text-white">
                   {{ authStore.user?.initials }}
                 </AvatarFallback>
@@ -206,7 +222,10 @@
             :side-offset="4"
           >
             <DropdownMenuItem>
-              <router-link class="w-full" :to="{ name: 'configurations.profile' }">
+              <router-link
+                class="w-full"
+                :to="{ name: 'configurations.profile' }"
+              >
                 Configurações
               </router-link>
             </DropdownMenuItem>
@@ -222,7 +241,9 @@
       </SidebarFooter>
     </Sidebar>
     <SidebarInset>
-      <header class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4">
+      <header
+        class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4"
+      >
         <div class="flex items-center gap-2 w-full px-4">
           <SidebarTrigger :logo="true" :toggle="toggleSidebar" class="-ml-1" />
 
@@ -282,10 +303,15 @@
       <SidebarHeader class="p-4 flex-4">
         <div class="flex justify-between align-middle">
           <h1 class="font-bold">Elevate IA</h1>
-          <Button variant="ghost" @click=" async ()=>{
-            await createNewChat()
-            await loadMessages()
-          }">
+          <Button
+            variant="ghost"
+            @click="
+              async () => {
+                await createNewChat();
+                await loadMessages();
+              }
+            "
+          >
             <SquarePen /> Novo Chat
           </Button>
         </div>
@@ -320,9 +346,7 @@
             >
               <Avatar class="h-4 w-4 rounded-lg">
                 <AvatarImage
-                  :src="
-                    message.role === 'user' ? authStore.user?.icon : iconIa
-                  "
+                  :src="message.role === 'user' ? authStore.user?.icon : iconIa"
                 />
                 <AvatarFallback class="rounded-lg">
                   {{ authStore.user?.initials }}
@@ -354,18 +378,21 @@
 
           <div v-if="loading" class="flex flex-col gap-2">
             <Avatar class="h-4 w-4 rounded-lg">
-              <AvatarImage
-                  :src="iconIa"
-              />
+              <AvatarImage :src="iconIa" />
               <AvatarFallback class="rounded-lg">
                 {{ authStore.user?.initials }}
               </AvatarFallback>
             </Avatar>
             <div class="loading-dots">
-              <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
+              <span
+                v-for="n in 3"
+                :key="n"
+                :style="{ animationDelay: `${n * 0.2}s` }"
+                >.</span
+              >
             </div>
-<!--            <Skeleton class="w-full h-3" />-->
-<!--            <Skeleton class="w-full h-3" />-->
+            <!--            <Skeleton class="w-full h-3" />-->
+            <!--            <Skeleton class="w-full h-3" />-->
           </div>
           <div
             v-if="uploadedFilePath"
@@ -375,26 +402,26 @@
               class="max-w-[80%] lg:max-w-[60%] shadow-md transition-all flex items-start px-3 py-2"
             >
               <div>
-<!--                <div-->
-<!--                  v-if="-->
-<!--                    uploadedFilePath.endsWith('.jpg') ||-->
-<!--                    uploadedFilePath.endsWith('.jpeg') ||-->
-<!--                    uploadedFilePath.endsWith('.png') ||-->
-<!--                    uploadedFilePath.endsWith('.gif')-->
-<!--                  "-->
-<!--                >-->
-<!--                  <img-->
-<!--                    :src="uploadedFilePath"-->
-<!--                    alt="Pré-visualização da Imagem"-->
-<!--                    class="max-h-32 max-w-full object-cover my-2"-->
-<!--                  />-->
-<!--                </div>-->
-<!--                <div v-else-if="uploadedFilePath.endsWith('.pdf')">-->
-<!--                  <iframe :src="uploadedFilePath" class="w-full" />-->
-<!--                </div>-->
-<!--                <div v-else-if="uploadedFilePath.endsWith('.txt')">-->
-<!--                  <p>Arquivo de Texto anexado</p>-->
-<!--                </div>-->
+                <!--                <div-->
+                <!--                  v-if="-->
+                <!--                    uploadedFilePath.endsWith('.jpg') ||-->
+                <!--                    uploadedFilePath.endsWith('.jpeg') ||-->
+                <!--                    uploadedFilePath.endsWith('.png') ||-->
+                <!--                    uploadedFilePath.endsWith('.gif')-->
+                <!--                  "-->
+                <!--                >-->
+                <!--                  <img-->
+                <!--                    :src="uploadedFilePath"-->
+                <!--                    alt="Pré-visualização da Imagem"-->
+                <!--                    class="max-h-32 max-w-full object-cover my-2"-->
+                <!--                  />-->
+                <!--                </div>-->
+                <!--                <div v-else-if="uploadedFilePath.endsWith('.pdf')">-->
+                <!--                  <iframe :src="uploadedFilePath" class="w-full" />-->
+                <!--                </div>-->
+                <!--                <div v-else-if="uploadedFilePath.endsWith('.txt')">-->
+                <!--                  <p>Arquivo de Texto anexado</p>-->
+                <!--                </div>-->
                 <div v-if="uploadedFilePath">
                   <p>Arquivo anexado</p>
                 </div>
@@ -404,18 +431,20 @@
           </div>
         </div>
       </SidebarContent>
-      <SidebarFooter class="p-4  flex-5 grid grid-cols-1 gap-2">
+      <SidebarFooter class="p-4 flex-5 grid grid-cols-1 gap-2">
         <Textarea
           placeholder="Digite aqui..."
           @keyup.enter="sendMessage"
           v-model="newMessage"
         />
-        <Button class="bg-[#947c2c]" @click="sendMessage" :disabled="loading"> Enviar </Button>
+        <Button class="bg-[#947c2c]" @click="sendMessage" :disabled="loading">
+          Enviar
+        </Button>
         <Label
           for="file"
           class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer"
         >
-          <Paperclip :size="16"/> Anexar arquivo
+          <Paperclip :size="16" /> Anexar arquivo
         </Label>
         <Input
           id="file"
@@ -433,7 +462,14 @@
 </template>
 
 <script setup lang="ts">
-import {Download, Paperclip, X, SquarePen, EyeClosed, Eye} from "lucide-vue-next";
+import {
+  Download,
+  Paperclip,
+  X,
+  SquarePen,
+  EyeClosed,
+  Eye,
+} from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -526,7 +562,7 @@ import { Progress } from "@/components/ui/progress";
 import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
-import {toast} from "@/components/ui/toast";
+import { toast } from "@/components/ui/toast";
 
 interface BreadcrumbItem {
   name: string;
@@ -582,7 +618,9 @@ const messageContainerRef = ref<HTMLElement | null>(null);
 const isShowValues = ref(false);
 
 // Computed
-const activeGroupProject = computed(() => workspaceStore.activeGroupProject || null);
+const activeGroupProject = computed(
+  () => workspaceStore.activeGroupProject || null
+);
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [
     { name: "Elevate", title: "Elevate", path: "/home" },
@@ -600,12 +638,18 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 
   return items;
 });
-const logoSrc = computed(() => getLogoSrc(mode.value === "dark", sidebarExpanded.value));
+const logoSrc = computed(() =>
+  getLogoSrc(mode.value === "dark", sidebarExpanded.value)
+);
 const iconIa = computed(() => {
-  return mode.value === "dark" ? "/logo-elevate-square-white.png" : "/logo-elevate-square-black.png";
+  return mode.value === "dark"
+    ? "/logo-elevate-square-white.png"
+    : "/logo-elevate-square-black.png";
 });
 const logoCustomAi = computed(() => {
-  return mode.value === "dark" ? "/svg/elevate-ai-white.svg" : "/svg/elevate-ai-black.svg";
+  return mode.value === "dark"
+    ? "/svg/elevate-ai-white.svg"
+    : "/svg/elevate-ai-black.svg";
 });
 
 const navMenu = computed(() => {
@@ -614,14 +658,14 @@ const navMenu = computed(() => {
       name: "Home",
       url: { name: "home" },
       icon: Home,
-      show: canAccess("access-to-dashboard")
+      show: canAccess("access-to-dashboard"),
     },
     {
       name: "Jarbas BOT",
       icon: Bot,
       url: { name: "jarbas-bot" },
       type: "ia",
-      show: canAccess("access-to-ai")
+      show: canAccess("access-to-ai"),
     },
     {
       name: "Audiências",
@@ -639,13 +683,13 @@ const navMenu = computed(() => {
           name: "Segmentos",
           url: { name: "segments" },
           icon: ListFilter,
-          show: canAccess("view-segments")
+          show: canAccess("view-segments"),
         },
         {
           name: "Atribuições",
           url: { name: "attributions" },
           icon: ExternalLink,
-          show: canAccess("access-to-parameter-tracking")
+          show: canAccess("access-to-parameter-tracking"),
         },
         {
           name: "Exportações",
@@ -665,25 +709,31 @@ const navMenu = computed(() => {
           name: "Performance",
           url: { name: "performances" },
           icon: LineChart,
-          show: canAccess("access-to-reports")
+          show: canAccess("access-to-reports"),
         },
         {
           name: "Tráfego",
           url: { name: "traffics" },
           icon: ChartNoAxesCombined,
-          show: canAccess("access-to-reports")
+          show: canAccess("access-to-reports"),
         },
         {
           name: "E-mails",
           url: { name: "emails" },
           icon: MailCheck,
-          show: canAccess("access-to-reports")
+          show: canAccess("access-to-reports"),
         },
         {
           name: "SMS Insights",
           url: { name: "sms-insights" },
           icon: Send,
-          show: canAccess("access-to-reports")
+          show: canAccess("access-to-reports"),
+        },
+        {
+          name: "Elevate API",
+          url: { name: "elevate-api" },
+          icon: Logs,
+          show: canAccess("access-to-postback-logs"),
         },
       ],
     },
@@ -691,55 +741,51 @@ const navMenu = computed(() => {
       name: "Gerenciamento",
       icon: SquareStack,
       type: "manage",
-      show: canAccess("access-to-client-management") || canAccess("access-to-member-management"),
+      show:
+        canAccess("access-to-client-management") ||
+        canAccess("access-to-member-management"),
       children: [
         {
           name: "Grupo de Projetos",
           url: { name: "configurations.projects" },
           icon: LayoutList,
-          show: canAccess("access-to-project-groups")
+          show: canAccess("access-to-project-groups"),
         },
         {
           name: "Projetos",
           url: { name: "projects" },
           icon: Building2,
-          show: canAccess("access-to-project-groups")
+          show: canAccess("access-to-project-groups"),
         },
         {
           name: "Usuários",
           url: { name: "users" },
           icon: Users2,
-          show: canAccess("access-to-users")
+          show: canAccess("access-to-users"),
         },
         {
           name: "Perfis",
           url: { name: "roles" },
           icon: UserCog,
-          show: canAccess("access-to-permissions")
+          show: canAccess("access-to-permissions"),
         },
         {
           name: "MyElevate Insights",
           url: { name: "texts" },
           icon: Album,
-          show: canAccess("access-to-motivational-texts")
+          show: canAccess("access-to-motivational-texts"),
         },
         {
           name: "Integrações",
           url: { name: "integrations" },
           icon: Blocks,
-          show: canAccess("access-to-integrations")
-        },
-        {
-          name: "Postback Logs",
-          url: { name: "postback-logs" },
-          icon: Logs,
-          show: canAccess("access-to-postback-logs")
+          show: canAccess("access-to-integrations"),
         },
         {
           name: "Logins",
           url: { name: "user-logins" },
           icon: History,
-          show: canAccess("access-to-users")
+          show: canAccess("access-to-users"),
         },
       ],
     },
@@ -753,19 +799,19 @@ const navMenu = computed(() => {
           name: "Gerir Setores",
           url: { name: "sectors" },
           icon: Briefcase,
-          show: canAccess("access-to-finance")
+          show: canAccess("access-to-finance"),
         },
         {
           name: "Gerir Custos",
           url: { name: "costs" },
           icon: Rows3,
-          show: canAccess("access-to-finance")
+          show: canAccess("access-to-finance"),
         },
         {
           name: "Entradas e Saídas",
           url: { name: "registers" },
           icon: DollarSignIcon,
-          show: canAccess("access-to-finance")
+          show: canAccess("access-to-finance"),
         },
       ],
     },
@@ -786,11 +832,21 @@ watch(
   { immediate: true, deep: true }
 );
 
-watch(activeGroupProject, async () => {
+watch(
+  activeGroupProject,
+  async () => {
     if (activeGroupProject.value) {
       const is = authStore.user?.roles
-        .filter((role: any) => role.pivot.project_id === activeGroupProject.value?.project_id)
-        .some((role: any) => route.meta.permissions?.includes?.(role.permissions.map((p: any) => p.name)) ?? true);
+        .filter(
+          (role: any) =>
+            role.pivot.project_id === activeGroupProject.value?.project_id
+        )
+        .some(
+          (role: any) =>
+            route.meta.permissions?.includes?.(
+              role.permissions.map((p: any) => p.name)
+            ) ?? true
+        );
 
       const hasAccess = authStore.user?.access_type === "member" || is;
 
@@ -805,7 +861,7 @@ watch(uploadedFilePath, (newVal, oldVal) => {
 });
 
 onMounted(async () => {
-  mode.value =  localStorage.getItem("theme") || "auto"
+  mode.value = localStorage.getItem("theme") || "auto";
   const user = authStore.user;
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
@@ -840,7 +896,9 @@ function getLogoSrc(isDarkMode: boolean, isSidebarExpanded: boolean): string {
  */
 function hasPermission(permissionName: string): boolean {
   return !!authStore.user?.roles.some((role: any) =>
-    role.permissions.some((permission: any) => permission.name === permissionName)
+    role.permissions.some(
+      (permission: any) => permission.name === permissionName
+    )
   );
 }
 
@@ -851,8 +909,16 @@ function hasPermission(permissionName: string): boolean {
  */
 function hasPermissionInActiveProject(permissionName: string): boolean {
   return !!authStore.user?.roles
-    .filter((role: any) => activeGroupProject && role.pivot.project_id === activeGroupProject.project_id!)
-    .some((role: any) => role.permissions.some((permission: any) => permission.name === permissionName));
+    .filter(
+      (role: any) =>
+        activeGroupProject &&
+        role.pivot.project_id === activeGroupProject.project_id!
+    )
+    .some((role: any) =>
+      role.permissions.some(
+        (permission: any) => permission.name === permissionName
+      )
+    );
 }
 
 /**
@@ -861,7 +927,8 @@ function hasPermissionInActiveProject(permissionName: string): boolean {
  */
 function canAccess(permissionName: string): boolean {
   return (
-    (authStore.user?.access_type === "member" && hasPermission(permissionName)) ||
+    (authStore.user?.access_type === "member" &&
+      hasPermission(permissionName)) ||
     hasPermissionInActiveProject(permissionName)
   );
 }
@@ -875,9 +942,9 @@ const setActiveGroupProject = async (project: any) => {
   setTimeout(() => {
     configStore.loading = false;
     const isMobile = window.innerWidth < 768;
-    if(isMobile){
+    if (isMobile) {
       sidebarExpanded.value = false;
-    }else{
+    } else {
       sidebarExpanded.value = true;
     }
     document.body.style.overflow = "";
@@ -927,7 +994,7 @@ const loadChats = async () => {
   loading.value = true;
 
   try {
-    const data = await IntelligenceArtificial.getListSessions()
+    const data = await IntelligenceArtificial.getListSessions();
     chats.value = data.data;
   } catch (err) {
     console.error("Erro ao carregar chats:", err);
@@ -938,7 +1005,7 @@ const loadChats = async () => {
 
 const createNewChat = async () => {
   try {
-    const response = await IntelligenceArtificial.createSession()
+    const response = await IntelligenceArtificial.createSession();
     selectedChatId.value = response.data.id;
 
     newChatTitle.value = "";
@@ -962,7 +1029,7 @@ const deleteChat = async (chatId: number) => {
     chats.value = chats.value.filter((c) => c.id !== chatId);
     if (selectedChatId.value === chatId) {
       selectedChatId.value =
-          chats.value.length > 0 ? chats.value[0].id : undefined;
+        chats.value.length > 0 ? chats.value[0].id : undefined;
     }
   } catch (error) {
     console.error("Erro ao excluir chat:", error);
@@ -981,13 +1048,17 @@ const loadMessages = async () => {
   loading.value = true;
 
   try {
-    const data = await  IntelligenceArtificial.getSession({chat_id: selectedChatId.value});
-    messages.value = data.data.map((message: any) => ({
-      id: message.id,
-      role: message.role,
-      message: marked.parse(message.message[0]),
-      file: null
-    })).reverse();
+    const data = await IntelligenceArtificial.getSession({
+      chat_id: selectedChatId.value,
+    });
+    messages.value = data.data
+      .map((message: any) => ({
+        id: message.id,
+        role: message.role,
+        message: marked.parse(message.message[0]),
+        file: null,
+      }))
+      .reverse();
     scrollToBottom();
   } catch (error) {
     console.error("Erro ao carregar mensagens:", error);
@@ -999,41 +1070,39 @@ const file = ref<File>();
 const sendMessage = async () => {
   if (!newMessage.value) {
     toast({
-      title:"Adicione um Texto",
-    })
-    return
+      title: "Adicione um Texto",
+    });
+    return;
   }
 
   if (selectedChatId.value === undefined) {
     await createNewChat();
     await sendMessage();
-  }
-  else {
-
+  } else {
     const userMessage = {
       chat_id: selectedChatId.value,
       message: newMessage.value,
-      file: file.value
+      file: file.value,
     };
 
     loading.value = true;
 
     try {
       messages.value.push({
-        message:newMessage.value,
+        message: newMessage.value,
         file: uploadedFilePath.value,
-        role:"user",
-        id:messages.value.length
+        role: "user",
+        id: messages.value.length,
       });
       scrollToBottom();
 
       newMessage.value = "";
       uploadedFilePath.value = null;
 
-      const response = await  IntelligenceArtificial.sendMessage(userMessage)
-      file.value = undefined
+      const response = await IntelligenceArtificial.sendMessage(userMessage);
+      file.value = undefined;
       const assistantMessage: Message = {
-        id:messages.value.length,
+        id: messages.value.length,
         role: "assistant",
         message: marked.parse(response.data.message),
         file: null,
@@ -1078,7 +1147,9 @@ const handleFileUpload = async (event: Event) => {
 }
 
 @keyframes bounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: translateY(0);
     opacity: 0.3;
   }
