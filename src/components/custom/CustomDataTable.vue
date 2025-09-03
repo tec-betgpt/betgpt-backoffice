@@ -44,13 +44,18 @@
           />
         </TableHead>
       </TableRow>
-      <TableRow v-if="props.head" class="bg-gray-50/10" v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+      <TableRow
+        v-if="props.head"
+        class="bg-gray-50/10"
+        v-for="headerGroup in table.getHeaderGroups()"
+        :key="headerGroup.id"
+      >
         <TableHead
           v-for="(header, index) in headerGroup.headers"
           :key="header.id"
-          :class="(index === 0) ? 'text-left' : 'text-right'"
+          :class="index === 0 ? 'text-left' : 'text-right'"
         >
-          {{props.head?.[header.column.id] }}
+          {{ props.head?.[header.column.id] }}
         </TableHead>
       </TableRow>
     </TableHeader>
@@ -69,12 +74,12 @@
       <TableRow v-else v-for="row in table.getRowModel().rows" :key="row.id">
         <TableCell v-if="props.select">
           <input
-              type="checkbox"
-              :checked="selectedRowIds.has(row.id)"
-              @change="toggleRowSelection(row.id)"
+            type="checkbox"
+            :checked="selectedRowIds.has(row.id)"
+            @change="toggleRowSelection(row.id)"
           />
         </TableCell>
-        <TableCell v-for="cell in row.getVisibleCells()"  :key="cell.id">
+        <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
           <FlexRender
             :render="cell.column.columnDef.cell"
             :props="cell.getContext()"
@@ -85,8 +90,16 @@
 
     <TableFooter v-if="footer">
       <TableRow>
-        <TableCell v-for="column in columns" :key="column.accessorKey" class="text-right">
-          {{ footerData[column.accessorKey] }}
+        <TableCell
+          v-for="column in columns"
+          :key="column.accessorKey"
+          class="text-right"
+        >
+          {{
+            props.result && props.result[column.accessorKey] !== undefined
+              ? props.result[column.accessorKey]
+              : footerData[column.accessorKey]
+          }}
         </TableCell>
       </TableRow>
     </TableFooter>
@@ -140,17 +153,20 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  head:{
+  head: {
     type: Object as PropType<Record<string, any>>,
-    required:false
+    required: false,
   },
-  select:{
-    type:Boolean,
-    default:false
-  }
-
+  select: {
+    type: Boolean,
+    default: false,
+  },
+  result: {
+    type: Object as PropType<Record<string, any>>,
+    required: false,
+  },
 });
-const emit = defineEmits(['update:selected'])
+const emit = defineEmits(["update:selected"]);
 const dataTable = ref([...props.data]);
 const searchValues = ref<Record<string, string>>({});
 const table = ref(
@@ -160,17 +176,22 @@ const table = ref(
     getCoreRowModel: getCoreRowModel(),
   })
 );
-const selectedRowIds = ref(new Set()) // armazenar IDs selecionados
+const selectedRowIds = ref(new Set()); // armazenar IDs selecionados
 const selectedRows = computed(() =>
-    table.value.getRowModel().rows.filter(row => selectedRowIds.value.has(row.id))
-)
+  table.value
+    .getRowModel()
+    .rows.filter((row) => selectedRowIds.value.has(row.id))
+);
 function toggleRowSelection(rowId) {
   if (selectedRowIds.value.has(rowId)) {
-    selectedRowIds.value.delete(rowId)
+    selectedRowIds.value.delete(rowId);
   } else {
-    selectedRowIds.value.add(rowId)
+    selectedRowIds.value.add(rowId);
   }
-  emit('update:selected', selectedRows.value.map(r => r.original))
+  emit(
+    "update:selected",
+    selectedRows.value.map((r) => r.original)
+  );
 }
 watch(
   () => props.data,
