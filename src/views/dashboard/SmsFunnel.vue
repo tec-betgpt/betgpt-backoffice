@@ -213,7 +213,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, h, watch} from "vue";
+import {ref, h, watch} from "vue";
 import SmsFunnel from "@/services/smsFunnel";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import {
@@ -225,7 +225,6 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { LineChart } from "@/components/ui/chart-line";
 import {
   Table,
   TableBody,
@@ -235,8 +234,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast/use-toast";
-import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
-import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { createColumnHelper } from "@tanstack/vue-table";
 import {
   Mail,
@@ -244,15 +241,11 @@ import {
   MailPlus,
   Download,
   ArrowDown,
-  ArrowUp, ChartLine,
+  ArrowUp,
 } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-
-const responsiveClass =
-  "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-3 mb-3";
-
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
@@ -271,7 +264,6 @@ const sms = ref<{ name: string; value: number[] }[]>([]);
 const clicks =ref<{ name: string; value: number[] }[]>([]);
 const recharges = ref([]);
 const campaigns = ref([]);
-
 const orderId = ref();
 const order = ref(false);
 const pages = ref({
@@ -342,7 +334,7 @@ const applyFilter = async (current = pages.value.current) => {
     }
 
     const totalCampaigns = {
-      name: 'Total',
+      name: 'Total na página',
       sms: data.campaigns.data.reduce((sum, campaign) => sum + campaign.sms, 0),
       clicks: data.campaigns.data.reduce((sum, campaign) => sum + campaign.clicks, 0)
     };
