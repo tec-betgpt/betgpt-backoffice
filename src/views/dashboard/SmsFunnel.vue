@@ -101,6 +101,9 @@
             :loading="loading"
             :update-text="setSearch"
             :find="applyFilter"
+            :result="campaignsStats"
+            :footer="true"
+            :head="totalCampaigns"
             :search-fields="[
               {
                 key: 'name',
@@ -213,7 +216,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, h, watch} from "vue";
+import {ref, h, watch, computed} from "vue";
 import SmsFunnel from "@/services/smsFunnel";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import {
@@ -225,7 +228,6 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { LineChart } from "@/components/ui/chart-line";
 import {
   Table,
   TableBody,
@@ -235,8 +237,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast/use-toast";
-import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
-import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { createColumnHelper } from "@tanstack/vue-table";
 import {
   Mail,
@@ -244,15 +244,11 @@ import {
   MailPlus,
   Download,
   ArrowDown,
-  ArrowUp, ChartLine,
+  ArrowUp,
 } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-
-const responsiveClass =
-  "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-3 mb-3";
-
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
@@ -271,7 +267,6 @@ const sms = ref<{ name: string; value: number[] }[]>([]);
 const clicks =ref<{ name: string; value: number[] }[]>([]);
 const recharges = ref([]);
 const campaigns = ref([]);
-
 const orderId = ref();
 const order = ref(false);
 const pages = ref({
@@ -288,6 +283,16 @@ const searchValues = ref<Record<string, string>>({});
 const setSearch = (values: Record<string, string>) => {
   searchValues.value = values;
 };
+const totalCampaigns = ref()
+const campaignsStats = computed(() => {
+  const removeFirstCampaign = campaigns.value
+  const totalCampaigns = {
+    name: 'Total nesta página',
+    sms: removeFirstCampaign.reduce((sum, campaign) => sum + campaign.sms, 0),
+    clicks: removeFirstCampaign.reduce((sum, campaign) => sum + campaign.clicks, 0)
+  };
+  return totalCampaigns;
+})
 
 const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
@@ -329,7 +334,7 @@ const applyFilter = async (current = pages.value.current) => {
       const removeFirstItem = data.recharges.slice(1);
       const totalRecharges = {
         name: null,
-        description: 'Total nesta página',
+        description: '',
         situation: null,
         service: null,
         credits: removeFirstItem.reduce((sum, item) => sum + item.credits, 0),
@@ -341,13 +346,14 @@ const applyFilter = async (current = pages.value.current) => {
       recharges.value.push(totalRecharges);
     }
 
-    const totalCampaigns = {
-      name: 'Total',
-      sms: data.campaigns.data.reduce((sum, campaign) => sum + campaign.sms, 0),
-      clicks: data.campaigns.data.reduce((sum, campaign) => sum + campaign.clicks, 0)
-    };
-    campaigns.value = data.campaigns.data;
-    campaigns.value.push(totalCampaigns);
+    if (data.campaigns.data && data.campaigns.data.length) {
+      totalCampaigns.value = data.campaigns.data.slice(0, 1)[0];
+    }
+    campaigns.value = data.campaigns.data.slice(1);
+
+    console.group('totalCampaigns')
+    console.log(totalCampaigns.value)
+    console.groupEnd()
 
     pages.value = {
       current: data.campaigns.pagination.current_page,
@@ -369,22 +375,34 @@ const applyFilter = async (current = pages.value.current) => {
 const columnHelper = createColumnHelper<CampaignMetrics>();
 const columns = [
   columnHelper.accessor("name", {
-    header({ column }) {
-      return "Nome da Campanha";
+    header () {
+      return h(
+        "div",
+        { class: "text-left" },
+        "Nome da Campanha",
+      )
     },
     cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
   }),
   columnHelper.accessor("sms", {
-    header({ column }) {
-      return createHeaderButton("Envios SMS", "sms");
+    header () {
+      return h(
+        "div",
+        { class: "text-right" },
+        createHeaderButton("Envios SMS", "sms")
+      )
     },
-    cell: ({ row }) => h("div", { class: "" }, row.getValue("sms")),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("sms")),
   }),
   columnHelper.accessor("clicks", {
-    header({ column }) {
-      return createHeaderButton("Total de Cliques", "clicks");
+    header () {
+      return h (
+        "div",
+        { class: "text-right" },
+        createHeaderButton("Total de Cliques", "clicks"),
+      )
     },
-    cell: ({ row }) => h("div", { class: "" }, row.getValue("clicks")),
+    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("clicks")),
   }),
 ];
 
@@ -392,13 +410,13 @@ function createHeaderButton(label: string, columnKey: string) {
   return h(
     Button,
     {
-      variant: orderId.value === columnKey ? "default" : "ghost",
+      variant: "ghost",
       onClick: () => {
         orderId.value = columnKey;
         order.value = !order.value;
         applyFilter();
       },
-      class: "h-fit text-pretty my-1",
+      class: "p-0 text-pretty text-right text-nowrap",
     },
     () => [
       label,

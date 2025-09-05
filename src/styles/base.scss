@@ -165,7 +165,36 @@
 @layer base {
   * {
     @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f9fafb;
   }
+
+  .dark * {
+    scrollbar-color: #4b5563 #1f2937;
+  }
+
+  *::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 8px;
+  }
+
+  .dark *::-webkit-scrollbar-thumb {
+      background: #4b5563;
+  }
+
+  *::-webkit-scrollbar-track {
+      background: #f9fafb;
+  }
+
+  .dark *::-webkit-scrollbar-track {
+      background: #1f2937;
+  }
+
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;
