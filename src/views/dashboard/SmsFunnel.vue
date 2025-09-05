@@ -285,13 +285,11 @@ const setSearch = (values: Record<string, string>) => {
 };
 const totalCampaigns = ref()
 const campaignsStats = computed(() => {
-  const removeFirstCampaign = campaigns.value
-  const totalCampaigns = {
+  return {
     name: 'Total nesta página',
-    sms: removeFirstCampaign.reduce((sum, campaign) => sum + campaign.sms, 0),
-    clicks: removeFirstCampaign.reduce((sum, campaign) => sum + campaign.clicks, 0)
+    sms: campaigns.value.reduce((sum, campaign) => sum + campaign.sms, 0),
+    clicks: campaigns.value.reduce((sum, campaign) => sum + campaign.clicks, 0),
   };
-  return totalCampaigns;
 })
 
 const applyFilter = async (current = pages.value.current) => {
@@ -346,14 +344,8 @@ const applyFilter = async (current = pages.value.current) => {
       recharges.value.push(totalRecharges);
     }
 
-    if (data.campaigns.data && data.campaigns.data.length) {
-      totalCampaigns.value = data.campaigns.data.slice(0, 1)[0];
-    }
-    campaigns.value = data.campaigns.data.slice(1);
-
-    console.group('totalCampaigns')
-    console.log(totalCampaigns.value)
-    console.groupEnd()
+    totalCampaigns.value = data.campaigns.total;
+    campaigns.value = data.campaigns.data;
 
     pages.value = {
       current: data.campaigns.pagination.current_page,
