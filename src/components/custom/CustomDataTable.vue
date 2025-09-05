@@ -91,9 +91,9 @@
     <TableFooter v-if="footer">
       <TableRow>
         <TableCell
-          v-for="column in columns"
+          v-for="(column, index) in columns"
           :key="column.accessorKey"
-          class="text-right"
+          :class="'text-right' + (index === 0 ? 'text-left' : '')"
         >
           {{
             props.result && props.result[column.accessorKey] !== undefined
