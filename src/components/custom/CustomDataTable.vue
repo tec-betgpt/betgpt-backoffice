@@ -8,13 +8,34 @@
       <Label v-if="field.label" :for="'input-' + field.key">{{
         field.label
       }}</Label>
+
       <Input
+        v-if="!field.type || field.type === 'text'"
         :id="'input-' + field.key"
         class="sm:max-w-sm w-full"
         :placeholder="field.placeholder"
         v-model="searchValues[`search[${index}][${field.key}]`]"
         @input="checkIfEmpty"
       />
+
+      <Select
+        v-else-if="field.type === 'date-range'"
+        v-model="searchValues[`search[${index}][${field.key}]`]"
+        @update:modelValue="checkIfEmpty"
+      >
+        <SelectTrigger class="sm:max-w-sm w-full">
+          <SelectValue :placeholder="field.placeholder" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="today">Hoje</SelectItem>
+          <SelectItem value="yesterday">Ontem</SelectItem>
+          <SelectItem value="last_7_days">Últimos 7 Dias</SelectItem>
+          <SelectItem value="last_14_days">Últimos 14 Dias</SelectItem>
+          <SelectItem value="last_30_days">Últimos 30 Dias</SelectItem>
+          <SelectItem value="custom">Personalizado</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
     <Button
       :class="hasLabel ? 'mt-0 lg:mt-6' : ''"
@@ -122,6 +143,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const props = defineProps({
   columns: {
@@ -145,7 +173,13 @@ const props = defineProps({
   },
   searchFields: {
     type: Array as PropType<
-      Array<{ key: string; label: string; placeholder: string }>
+      Array<{
+        key: string;
+        label?: string;
+        placeholder: string;
+        type?: string; // 'text' | 'date-range' | etc.
+        options?: Array<{ value: string; label: string }>;
+      }>
     >,
     required: false,
   },

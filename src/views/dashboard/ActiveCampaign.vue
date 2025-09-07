@@ -34,6 +34,13 @@
               {
                 key: 'campaign_name',
                 placeholder: 'Buscar por nome da campanha...',
+                label: 'Nome da campanha',
+              },
+              {
+                key: 'last_send_date',
+                type: 'date-range',
+                label: 'Data do último envio',
+                placeholder: 'Filtrar por última data de envio',
               },
             ]"
           />
@@ -149,16 +156,19 @@ const campaignsStats = computed(() => {
   return totalStats;
 });
 
-const searchValues = ref<Record<string, string>>({});
+const searchValues = ref<Record<string, string>>({
+  "search[1][last_send_date]": "all",
+});
+
 const setSearch = (values: Record<string, string>) => {
-  searchValues.value = values;
+  searchValues.value = { ...searchValues.value, ...values };
 };
 
 watch(perPages, (newPages) => {
   if (newPages) {
     applyFilter(1);
   }
-})
+});
 const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
 
@@ -177,6 +187,9 @@ const applyFilter = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
+    // Adicione o filtro de última data de envio se existir
+    const lastSendDateFilter = searchValues.value["search[1][last_send_date]"];
+
     const { data } = await ActiveCampaign.index({
       page: current,
       ...searchParams,
@@ -185,8 +198,9 @@ const applyFilter = async (current = pages.value.current) => {
       filter_id: workspaceStore.activeGroupProject.id,
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
-      per_pages: perPages.value
-    })
+      per_pages: perPages.value,
+      last_send_date: lastSendDateFilter || null, // Novo parâmetro
+    });
 
     campaigns.value = data.campaigns.data;
     totalCampaigns.value = data.campaigns.total;
@@ -214,30 +228,33 @@ const columns = [
         "div",
         { class: "text-pretty text-left py-3 pr-20" },
         "Nome da Campanha"
-      )
+      );
     },
     cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
   }),
 
   columnHelper.accessor("ldate", {
     header: () => createHeaderButton("Última Data de Envio", "ldate"),
-    cell: ({ row }) => h(
-      "div",
-      { class: "capitalize text-right" },
-      moment(row.getValue("ldate")).format("DD/MM/YYYY")
-    ),
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "capitalize text-right" },
+        moment(row.getValue("ldate")).format("DD/MM/YYYY")
+      ),
   }),
 
   columnHelper.accessor("send_amt", {
     header: () => createHeaderButton("Envios", "send_amt"),
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("send_amt")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("send_amt")),
   }),
 
   columnHelper.accessor("uniqueopens", {
     header: ({ column }) => createHeaderButton("Aberturas", "uniqueopens"),
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("uniqueopens")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("uniqueopens")),
   }),
 
   columnHelper.accessor("subscriberclicks", {
@@ -245,52 +262,62 @@ const columns = [
       return createHeaderButton("Cliques", "subscriberclicks");
     },
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("subscriberclicks")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("subscriberclicks")),
   }),
 
   columnHelper.accessor("unsubscribes", {
     header: () => createHeaderButton("Cancelamentos", "unsubscribes"),
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("unsubscribes")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("unsubscribes")),
   }),
 
   columnHelper.accessor("softbounces", {
     header: () => createHeaderButton("Bounces", "softbounces"),
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("softbounces")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("softbounces")),
   }),
 
   columnHelper.accessor("rate_opens", {
     header: () => createHeaderButton("Taxa de Abertura", "rate_opens"),
     footer: "avg",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_opens")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("rate_opens")),
   }),
 
   columnHelper.accessor("rate_opens_click", {
-    header: () => createHeaderButton("Taxa de Abertura para Clique","rate_opens_click"),
+    header: () =>
+      createHeaderButton("Taxa de Abertura para Clique", "rate_opens_click"),
     footer: "avg",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_opens_click")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("rate_opens_click")),
   }),
 
   columnHelper.accessor("rate_clicks", {
     header: () => createHeaderButton("Taxa de Cliques", "rate_clicks"),
     footer: "avg",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_clicks")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("rate_clicks")),
   }),
 
   columnHelper.accessor("rate_unsubscriptions", {
-    header: () => createHeaderButton(
-      "Taxa de Cancelamento de Inscrições",
-      "rate_unsubscriptions"
-    ),
+    header: () =>
+      createHeaderButton(
+        "Taxa de Cancelamento de Inscrições",
+        "rate_unsubscriptions"
+      ),
     footer: "avg",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_unsubscriptions")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("rate_unsubscriptions")),
   }),
 
   columnHelper.accessor("rate_rejections", {
     header: () => createHeaderButton("Taxa de Rejeição", "rate_rejections"),
     footer: "avg",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("rate_rejections")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("rate_rejections")),
   }),
 ];
 
@@ -320,9 +347,9 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-watch(selectedRange,()=>{
-  applyFilter(1)
-})
+watch(selectedRange, () => {
+  applyFilter(1);
+});
 
 type CampaignMetrics = {
   ldate: string;
