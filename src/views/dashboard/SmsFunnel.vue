@@ -13,7 +13,7 @@
     </div>
 
     <div v-if="loading">
-      <div  class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
         <Card v-for="n in 3" :key="n">
           <div class="p-4 rounded shadow">
             <div class="flex justify-between items-center mb-2">
@@ -25,7 +25,7 @@
         </Card>
       </div>
 
-      <div  class="mt-4 grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <div class="mt-4 grid gap-4 md:grid-cols-2 sm:grid-cols-1">
         <Card v-for="n in 6" :key="n">
           <div class="p-4 rounded shadow">
             <div class="flex justify-between items-center mb-2">
@@ -41,14 +41,21 @@
     <div v-else>
       <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
             <div class="flex justify-between items-center">
-              <Avatar class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2" shape="square">
+              <Avatar
+                class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
+                shape="square"
+              >
                 <Mail class="text-muted-foreground" />
               </Avatar>
               <CardTitle class="text-sm font-medium">SMS Contratado</CardTitle>
             </div>
-            <GlossaryTooltipComponent description="Quantidade total de SMS contratados no período selecionado." />
+            <GlossaryTooltipComponent
+              description="Quantidade total de SMS contratados no período selecionado."
+            />
           </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">+{{ last.sms.contracted }}</div>
@@ -56,28 +63,44 @@
         </Card>
 
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
             <div class="flex justify-between items-center">
-              <Avatar class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2" shape="square">
+              <Avatar
+                class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
+                shape="square"
+              >
                 <MailCheck class="text-muted-foreground" />
               </Avatar>
               <CardTitle class="text-sm font-medium">SMS Enviado</CardTitle>
             </div>
-            <GlossaryTooltipComponent description="Quantidade total de SMS enviados no período selecionado." />          </CardHeader>
+            <GlossaryTooltipComponent
+              description="Quantidade total de SMS enviados no período selecionado."
+            />
+          </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">+{{ last.sms.sent }}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
             <div class="flex justify-between items-center">
-              <Avatar class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2" shape="square">
+              <Avatar
+                class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
+                shape="square"
+              >
                 <MailPlus class="text-muted-foreground" />
               </Avatar>
               <CardTitle class="text-sm font-medium">SMS Disponivel</CardTitle>
             </div>
-          <GlossaryTooltipComponent description="Quantidade total de SMS disponíveis para envio no período selecionado." />          </CardHeader>
+            <GlossaryTooltipComponent
+              description="Quantidade total de SMS disponíveis para envio no período selecionado."
+            />
+          </CardHeader>
           <CardContent>
             <div class="text-2xl font-bold">+{{ last.sms.available }}</div>
           </CardContent>
@@ -85,9 +108,16 @@
       </div>
 
       <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mt-4">
-        <PeriodComponent :period="sms" title="SMS Enviados" :isLoading="loading" glossary="Quantidade total de SMS enviados no período selecionado."/>
-        <PeriodComponent :period="clicks" title="Cliques" :isLoading="loading" glossary="Total de cliques recebidos nas campanhas de SMS no período selecionado."/>
-
+        <PeriodComponent
+          :period="sms"
+          title="SMS Enviados"
+          :isLoading="loading"
+        />
+        <PeriodComponent
+          :period="clicks"
+          title="Cliques"
+          :isLoading="loading"
+        />
       </div>
 
       <Card class="w-full mt-4">
@@ -121,7 +151,7 @@
             }"
             :select-page="applyFilter"
             :per_pages="perPage"
-            @update:perPages="args => perPage = args"
+            @update:perPages="(args) => (perPage = args)"
           />
         </CardFooter>
       </Card>
@@ -178,19 +208,18 @@
               </template>
               <template v-else>
                 <TableRow v-for="(recharge, index) in recharges" :key="index">
-                  <TableCell>
-                    {{ recharge.created_at ? $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss") : '' }}
-                  </TableCell>
-                  <TableCell>{{ recharge.description ?? '' }}</TableCell>
-                  <TableCell>{{ recharge.service ?? '' }}</TableCell>
+                  <TableCell>{{
+                    $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss")
+                  }}</TableCell>
+                  <TableCell>{{ recharge.description }}</TableCell>
+                  <TableCell>{{ recharge.service }}</TableCell>
                   <TableCell>{{ recharge.credits }}</TableCell>
                   <TableCell>{{ $toCurrency(recharge.price) }}</TableCell>
                   <TableCell>{{ $toCurrency(recharge.total) }}</TableCell>
                   <TableCell>
-                    <span v-if="recharge.situation === null"></span>
                     <span
                       class="text-green-600"
-                      v-else-if="recharge.situation == 'APPROVED'"
+                      v-if="recharge.situation == 'APPROVED'"
                       >Confirmado</span
                     >
                     <span class="text-red-600" v-else>Pendente</span>
@@ -216,7 +245,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, h, watch, computed} from "vue";
+import { ref, h, watch, computed } from "vue";
 import SmsFunnel from "@/services/smsFunnel";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import {
@@ -228,6 +257,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { LineChart } from "@/components/ui/chart-line";
 import {
   Table,
   TableBody,
@@ -237,6 +267,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast/use-toast";
+import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
+import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { createColumnHelper } from "@tanstack/vue-table";
 import {
   Mail,
@@ -245,10 +277,15 @@ import {
   Download,
   ArrowDown,
   ArrowUp,
+  ChartLine,
 } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+
+const responsiveClass =
+  "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-3 mb-3";
+
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
@@ -264,9 +301,10 @@ const loading = ref(true);
 const last = ref([]);
 const daily = ref([]);
 const sms = ref<{ name: string; value: number[] }[]>([]);
-const clicks =ref<{ name: string; value: number[] }[]>([]);
+const clicks = ref<{ name: string; value: number[] }[]>([]);
 const recharges = ref([]);
 const campaigns = ref([]);
+
 const orderId = ref();
 const order = ref(false);
 const pages = ref({
@@ -274,7 +312,26 @@ const pages = ref({
   total: 0,
   last: 0,
 });
+
 const perPage = ref(10);
+
+const totalCampaigns = ref();
+const campaignsStats = computed(() => {
+  const totalStats = {
+    message: "Total",
+    blank: "",
+    sms: 0,
+    clicks: 0,
+  };
+
+  campaigns.value.forEach((campaign) => {
+    totalStats.sms += campaign.sms;
+    totalStats.clicks += campaign.clicks;
+  });
+
+  return totalStats;
+});
+
 const redirectToInvoiceUrl = (url: any) => {
   window.open(url, "_blank");
 };
@@ -283,18 +340,9 @@ const searchValues = ref<Record<string, string>>({});
 const setSearch = (values: Record<string, string>) => {
   searchValues.value = values;
 };
-const totalCampaigns = ref()
-const campaignsStats = computed(() => {
-  return {
-    name: 'Total nesta página',
-    sms: campaigns.value.reduce((sum, campaign) => sum + campaign.sms, 0),
-    clicks: campaigns.value.reduce((sum, campaign) => sum + campaign.clicks, 0),
-  };
-})
 
 const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
-
   if (!workspaceStore.activeGroupProject?.id) {
     toast({
       title: "Erro",
@@ -318,97 +366,79 @@ const applyFilter = async (current = pages.value.current) => {
       filter_id: workspaceStore.activeGroupProject.id,
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
-      per_page: perPage.value
-    })
+      per_page: perPage.value,
+    });
 
     last.value = data.last;
     daily.value = data.daily;
-    sms.value = [{name:"Total SMS Enviado",value:data.daily.sms}]
-    clicks.value = [{name:"Total Cliques",value:data.daily.clicks}]
-
+    sms.value = [{ name: "Total SMS Enviado", value: data.daily.sms }];
+    clicks.value = [{ name: "Total Cliques", value: data.daily.clicks }];
     recharges.value = data.recharges;
-
-    if (data.recharges && data.recharges.length > 1) {
-      const removeFirstItem = data.recharges.slice(1);
-      const totalRecharges = {
-        name: null,
-        description: '',
-        situation: null,
-        service: null,
-        credits: removeFirstItem.reduce((sum, item) => sum + item.credits, 0),
-        price: removeFirstItem.reduce((sum, item) => sum + item.price, 0),
-        total: removeFirstItem.reduce((sum, item) => sum + item.total, 0),
-        created_at: null
-      };
-
-      recharges.value.push(totalRecharges);
-    }
-
-    totalCampaigns.value = data.campaigns.total;
     campaigns.value = data.campaigns.data;
-
+    totalCampaigns.value = data.campaigns.total;
     pages.value = {
       current: data.campaigns.pagination.current_page,
       total: data.campaigns.pagination.total,
       last: data.campaigns.pagination.last_page,
     };
   } catch (error) {
-    console.error(error)
     toast({
       title: "Erro ao carregar dados",
       description: "Não foi possível aplicar o filtro selecionado.",
       variant: "destructive",
     });
   }
-
   loading.value = false;
 };
 
 const columnHelper = createColumnHelper<CampaignMetrics>();
 const columns = [
   columnHelper.accessor("name", {
-    header () {
-      return h(
-        "div",
-        { class: "text-left" },
-        "Nome da Campanha",
-      )
+    header({ column }) {
+      return "Nome da Campanha";
     },
     cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
   }),
   columnHelper.accessor("sms", {
-    header () {
-      return h(
-        "div",
-        { class: "text-right" },
-        createHeaderButton("Envios SMS", "sms")
-      )
+    header({ column }) {
+      return createHeaderButton("Envios SMS", "sms");
     },
+    footer: "sum",
     cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("sms")),
   }),
   columnHelper.accessor("clicks", {
-    header () {
-      return h (
-        "div",
-        { class: "text-right" },
-        createHeaderButton("Total de Cliques", "clicks"),
-      )
+    header({ column }) {
+      return createHeaderButton("Total de Cliques", "clicks");
     },
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("clicks")),
+    footer: "sum",
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, row.getValue("clicks")),
   }),
 ];
+
+function calculateStats(key: string, data: Array<any>) {
+  if (!data.length) return {};
+
+  const values = data.map((item: any) => item[key]);
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const avg =
+    values.reduce((acc: any, val: any) => acc + val, 0) / values.length;
+
+  return { max, min, avg: parseFloat(avg).toFixed(2) };
+}
 
 function createHeaderButton(label: string, columnKey: string) {
   return h(
     Button,
     {
-      variant: "ghost",
+      variant: orderId.value === columnKey ? "default" : "ghost",
       onClick: () => {
         orderId.value = columnKey;
         order.value = !order.value;
         applyFilter();
       },
-      class: "p-0 text-pretty text-right text-nowrap",
+      class: "h-fit text-pretty my-1",
     },
     () => [
       label,
@@ -424,8 +454,11 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
-watch(selectedRange, () => applyFilter(1));
+watch(perPage, () => applyFilter(1));
 
+watch(selectedRange, () => {
+  applyFilter();
+});
 type CampaignMetrics = {
   name: string;
   sms: number;
