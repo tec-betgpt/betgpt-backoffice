@@ -1082,6 +1082,7 @@ const sendMessage = async () => {
       chat_id: selectedChatId.value,
       message: newMessage.value,
       file: file.value,
+      project_id: activeGroupProject.value?.project_id
     };
 
     loading.value = true;

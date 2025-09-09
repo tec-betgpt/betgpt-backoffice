@@ -34,6 +34,7 @@ export default {
      *
      * @param {Object} params - Parâmetros da requisição
      * @param {number} params.chat_id - ID do chat
+     * @param {number} params.project_id
      * @param {string} params.message - Texto da mensagem
      * @param {File} [params.file] - Arquivo opcional a ser enviado (imagem, PDF, etc)
      * @returns {Promise<message:string>} - Resposta da API
@@ -42,6 +43,7 @@ export default {
         const formData = new FormData();
         formData.append('chat_id', params.chat_id);
         formData.append('message', params.message);
+        formData.append('project_id',params.project_id)
 
         if (params.file) {
             formData.append('file', params.file);
