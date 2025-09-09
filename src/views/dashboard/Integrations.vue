@@ -36,7 +36,7 @@
             </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="property in propetyList" :key="property.id" :value="property.id">
-                {{ property.name }}
+                {{ property.name }}/{{property.id}}
               </SelectItem>
             </SelectContent>
 
