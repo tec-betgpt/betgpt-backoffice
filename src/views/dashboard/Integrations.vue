@@ -36,7 +36,7 @@
             </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="property in propetyList" :key="property.id" :value="property.id">
-                {{ property.name }}
+                {{ property.name }}/{{property.id}}
               </SelectItem>
             </SelectContent>
 
@@ -121,7 +121,7 @@ async function fetchIntegrations() {
 
     integrations.value = data.map((integration: any) => ({
       ...integration,
-      config: integration.integration ? integration.integration.config : null,
+      config: integration.integration ? integration.integration.config : [],
     }));
     const google = integrations.value.find(value => value.slug === 'google-analytics')
     if (google.config !== null) {

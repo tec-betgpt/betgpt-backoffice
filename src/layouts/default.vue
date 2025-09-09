@@ -1057,8 +1057,7 @@ const loadMessages = async () => {
         role: message.role,
         message: marked.parse(message.message[0]),
         file: null,
-      }))
-      .reverse();
+      }));
     scrollToBottom();
   } catch (error) {
     console.error("Erro ao carregar mensagens:", error);
