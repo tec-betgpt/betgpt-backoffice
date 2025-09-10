@@ -296,8 +296,7 @@
     <Sidebar
       class="ia"
       side="right"
-      :collapsed="sidebarIaExpanded"
-      @update:modelValue="handleSidebarIaExpand"
+      :collapsed="sidebarAi"
       collapsible="offcanvas"
     >
       <SidebarHeader class="p-4 flex-4">
@@ -593,7 +592,7 @@ const LIGHT_LOGOS = {
 // Refs e stores
 const collapsed = ref("");
 const sidebarExpanded = ref(false);
-const sidebarIaExpanded = ref(false);
+const sidebarAi = ref(false);
 const stateResponsive = ref(false);
 const mode: any = useColorMode();
 const workspaceStore = useWorkspaceStore();
@@ -867,9 +866,21 @@ onMounted(async () => {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
     await loadChats();
   }
+  settingSidebarIA()
 });
 
+watch(sidebarAi, () => localStorage.setItem("sidebarAi", sidebarAi.value ? "1" : "0"));
+
 const setResponsive = () => (stateResponsive.value = !stateResponsive.value);
+const settingSidebarIA = () => {
+  if (localStorage.getItem("sidebarAi") === null) {
+    localStorage.setItem("sidebarAi", "1");
+    sidebarAi.value = true
+    return
+  }
+
+  sidebarAi.value = Boolean(Number(localStorage.getItem("sidebarAi")))
+}
 
 function scrollToBottom() {
   nextTick(() => {
@@ -966,6 +977,7 @@ const toggleCollapsed = (type: string) => {
     }
     return;
   }
+
   if (!sidebarExpanded.value) {
     if (type !== "") {
       sidebarExpanded.value = true;
@@ -982,12 +994,10 @@ const toggleSidebar = () => {
 const handleSidebarExpand = (value: boolean) => {
   sidebarExpanded.value = value;
 };
-const handleSidebarIaExpand = (value: boolean) => {
-  sidebarIaExpanded.value = value;
-};
+
 const toggleSidebarIA = () => {
   setResponsive();
-  sidebarIaExpanded.value = !sidebarIaExpanded.value;
+  sidebarAi.value = !sidebarAi.value;
 };
 
 const loadChats = async () => {
