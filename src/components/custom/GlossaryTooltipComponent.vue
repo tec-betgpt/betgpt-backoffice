@@ -37,7 +37,7 @@ export default {
 
       toast({
         description: this.description,
-        class: 'bg-yellow-500 text-black'
+        class: 'bg-yellow-300/10 backdrop-blur-md text-primary'
       })
     }
   },
