@@ -309,6 +309,7 @@
               async () => {
                 selectedChatId = undefined;
                 messages = []
+                file = undefined;
                 // await createNewChat();
                 // await loadMessages();
               }
@@ -387,25 +388,6 @@
             </div>
           </div>
 
-          <div v-if="uploadedFilePath && uploadProgress < 100" class="flex justify-end w-full items-center">
-            <div class="relative flex items-center justify-center bg-white/80 dark:bg-black/80 p-2 rounded-full shadow-md">
-              <svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 120 120">
-                <circle
-                    cx="60"
-                    cy="60"
-                    r="54"
-                    fill="none"
-                    stroke="#947c2c"
-                    stroke-width="12"
-                    :stroke-dasharray="339.29"
-                    :stroke-dashoffset="339.29 * (1 - uploadProgress / 100)"
-                    stroke-linecap="round"
-                    class="transition-all duration-300 ease-linear"
-                />
-              </svg>
-              <span class="absolute text-lg font-bold text-[#947c2c]">{{ Math.round(uploadProgress) }}%</span>
-            </div>
-          </div>
           <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2">
             <Badge>
               {{file.name}}
@@ -562,6 +544,7 @@ import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
+import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 
 interface BreadcrumbItem {
   name: string;
