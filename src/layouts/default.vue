@@ -298,6 +298,7 @@
       side="right"
       :collapsed="sidebarAi"
       collapsible="offcanvas"
+      @update:modelValue="handleSidebarAiUpdate"
     >
       <SidebarHeader class="p-4 flex-4">
         <div class="flex justify-between align-middle">
@@ -866,21 +867,28 @@ onMounted(async () => {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
     await loadChats();
   }
-  settingSidebarIA()
+  settingSidebarIA();
 });
 
-watch(sidebarAi, () => localStorage.setItem("sidebarAi", sidebarAi.value ? "1" : "0"));
+watch(sidebarAi, () =>
+  localStorage.setItem("sidebarAi", sidebarAi.value ? "1" : "0")
+);
 
 const setResponsive = () => (stateResponsive.value = !stateResponsive.value);
 const settingSidebarIA = () => {
   if (localStorage.getItem("sidebarAi") === null) {
     localStorage.setItem("sidebarAi", "1");
-    sidebarAi.value = true
-    return
+    sidebarAi.value = true;
+    return;
   }
 
-  sidebarAi.value = Boolean(Number(localStorage.getItem("sidebarAi")))
-}
+  sidebarAi.value = Boolean(Number(localStorage.getItem("sidebarAi")));
+};
+
+const handleSidebarAiUpdate = (value: boolean) => {
+  sidebarAi.value = value;
+  localStorage.setItem("sidebarAi", value ? "1" : "0");
+};
 
 function scrollToBottom() {
   nextTick(() => {
@@ -1061,13 +1069,12 @@ const loadMessages = async () => {
     const data = await IntelligenceArtificial.getSession({
       chat_id: selectedChatId.value,
     });
-    messages.value = data.data
-      .map((message: any) => ({
-        id: message.id,
-        role: message.role,
-        message: marked.parse(message.message[0]),
-        file: null,
-      }));
+    messages.value = data.data.map((message: any) => ({
+      id: message.id,
+      role: message.role,
+      message: marked.parse(message.message[0]),
+      file: null,
+    }));
     scrollToBottom();
   } catch (error) {
     console.error("Erro ao carregar mensagens:", error);
@@ -1092,7 +1099,7 @@ const sendMessage = async () => {
       chat_id: selectedChatId.value,
       message: newMessage.value,
       file: file.value,
-      project_id: activeGroupProject.value?.project_id
+      project_id: activeGroupProject.value?.project_id,
     };
 
     loading.value = true;
