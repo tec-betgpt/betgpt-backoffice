@@ -307,8 +307,10 @@
             variant="ghost"
             @click="
               async () => {
-                await createNewChat();
-                await loadMessages();
+                selectedChatId = undefined;
+                messages = []
+                // await createNewChat();
+                // await loadMessages();
               }
             "
           >
@@ -332,21 +334,21 @@
       </SidebarHeader>
       <SidebarContent class="p-4 flex-1">
         <div
-          ref="messageContainerRef"
-          class="card h-full w-full rounded-sm shadow-md flex-col flex p-2 overflow-y-scroll overlay-x-hidden"
+            ref="messageContainerRef"
+            class="card h-full w-full rounded-sm shadow-md flex-col flex p-2 overflow-y-scroll overlay-x-hidden"
         >
-          <div v-for="message in messages" :key="message.id" class="mb-4">
+          <div v-for="(message, index) in messages" :key="message.id" class="mb-4">
             <div
-              class="space-x-2 pb-2"
-              :class="
+                class="space-x-2 pb-2"
+                :class="
                 message.role === 'user'
-                  ? 'flex justify-end'
-                  : 'flex justify-start'
-              "
+                ? 'flex justify-end'
+                : 'flex justify-start'
+                "
             >
               <Avatar class="h-4 w-4 rounded-lg">
                 <AvatarImage
-                  :src="message.role === 'user' ? authStore.user?.icon : iconIa"
+                    :src="message.role === 'user' ? authStore.user?.icon : iconIa"
                 />
                 <AvatarFallback class="rounded-lg">
                   {{ authStore.user?.initials }}
@@ -356,108 +358,104 @@
                 {{ message.role === "user" ? "Você" : "I.A" }}
               </p>
             </div>
-            <p
-              class="text-[12px] w-full flex flex-col"
-              :class="
+            <CustomTextChart
+                :class="
                 message.role === 'user'
                   ? ' text-end justify-end'
-                  : 'flex text-start justify-start'
+                  : 'flex-col text-start justify-start'
               "
-              v-html="message.message"
-            />
-            <div v-if="message.file" class="mt-2">
-              <a
-                :href="message.file"
-                target="_blank"
-                class="text-blue-500 hover:underline"
-              >
-                {{ extractFileName(message.file) }}
-              </a>
-            </div>
+                :html="message.message"
+                :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
+                :speed="8"
+                @tick="scrollToBottom"
+                @done="()=>{
+                  isAnimating = false
+                  isInputDisabled = false
+                }" />
           </div>
 
           <div v-if="loading" class="flex flex-col gap-2">
+
             <Avatar class="h-4 w-4 rounded-lg">
               <AvatarImage :src="iconIa" />
               <AvatarFallback class="rounded-lg">
-                {{ authStore.user?.initials }}
+              {{ authStore.user?.initials }}
               </AvatarFallback>
             </Avatar>
             <div class="loading-dots">
-              <span
-                v-for="n in 3"
-                :key="n"
-                :style="{ animationDelay: `${n * 0.2}s` }"
-                >.</span
-              >
+              <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
             </div>
-            <!--            <Skeleton class="w-full h-3" />-->
-            <!--            <Skeleton class="w-full h-3" />-->
           </div>
-          <div
-            v-if="uploadedFilePath"
-            class="flex justify-end w-full items-center"
-          >
-            <Badge
-              class="max-w-[80%] lg:max-w-[60%] shadow-md transition-all flex items-start px-3 py-2"
-            >
-              <div>
-                <!--                <div-->
-                <!--                  v-if="-->
-                <!--                    uploadedFilePath.endsWith('.jpg') ||-->
-                <!--                    uploadedFilePath.endsWith('.jpeg') ||-->
-                <!--                    uploadedFilePath.endsWith('.png') ||-->
-                <!--                    uploadedFilePath.endsWith('.gif')-->
-                <!--                  "-->
-                <!--                >-->
-                <!--                  <img-->
-                <!--                    :src="uploadedFilePath"-->
-                <!--                    alt="Pré-visualização da Imagem"-->
-                <!--                    class="max-h-32 max-w-full object-cover my-2"-->
-                <!--                  />-->
-                <!--                </div>-->
-                <!--                <div v-else-if="uploadedFilePath.endsWith('.pdf')">-->
-                <!--                  <iframe :src="uploadedFilePath" class="w-full" />-->
-                <!--                </div>-->
-                <!--                <div v-else-if="uploadedFilePath.endsWith('.txt')">-->
-                <!--                  <p>Arquivo de Texto anexado</p>-->
-                <!--                </div>-->
-                <div v-if="uploadedFilePath">
-                  <p>Arquivo anexado</p>
-                </div>
-                <Progress v-if="uploadProgress > 0" v-model="uploadProgress" />
-              </div>
+
+          <div v-if="uploadedFilePath && uploadProgress < 100" class="flex justify-end w-full items-center">
+            <div class="relative flex items-center justify-center bg-white/80 dark:bg-black/80 p-2 rounded-full shadow-md">
+              <svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 120 120">
+                <circle
+                    cx="60"
+                    cy="60"
+                    r="54"
+                    fill="none"
+                    stroke="#947c2c"
+                    stroke-width="12"
+                    :stroke-dasharray="339.29"
+                    :stroke-dashoffset="339.29 * (1 - uploadProgress / 100)"
+                    stroke-linecap="round"
+                    class="transition-all duration-300 ease-linear"
+                />
+              </svg>
+              <span class="absolute text-lg font-bold text-[#947c2c]">{{ Math.round(uploadProgress) }}%</span>
+            </div>
+          </div>
+          <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2">
+            <Badge>
+              {{file.name}}
             </Badge>
+            <Button v-if="!loading" variant="ghost" @click="()=>{
+              file = undefined
+              uploadedFilePath = null
+            }">
+              <Trash/>
+
+            </Button>
           </div>
         </div>
       </SidebarContent>
       <SidebarFooter class="p-4 flex-5 grid grid-cols-1 gap-2">
         <Textarea
-          placeholder="Digite aqui..."
-          @keyup.enter="sendMessage"
-          v-model="newMessage"
-        />
-        <Button class="bg-[#947c2c]" @click="sendMessage" :disabled="loading">
+            placeholder="Digite aqui..."
+            @keyup.enter="!isInputDisabled && sendMessage()"
+            v-model="newMessage"
+             />
+        <Button
+            class="bg-[#947c2c] transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="sendMessage"
+            :disabled="isInputDisabled"
+        >
           Enviar
         </Button>
+
         <Label
-          for="file"
-          class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer"
+            for="file"
+            class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer transition-colors"
+            :class="{
+        'hover:bg-gray-100 dark:hover:bg-gray-800': !isInputDisabled,
+        'opacity-50 cursor-not-allowed': isInputDisabled
+      }"
         >
           <Paperclip :size="16" /> Anexar arquivo
         </Label>
+
         <Input
-          id="file"
-          type="file"
-          class="hidden"
-          @change="handleFileUpload"
-        />
+            id="file"
+            type="file"
+            class="hidden"
+            @change="handleFileUpload"
+            :disabled="isInputDisabled" />
+
         <p class="text-[8px]">
-          As respostas podem mostrar informações imprecisas qualquer duvida
-          entre em contato conosco.
+          As respostas podem mostrar informações imprecisas qualquer duvida entre em contato conosco.
         </p>
-      </SidebarFooter>
-    </Sidebar>
+      </SidebarFooter>    </Sidebar>
   </SidebarProvider>
 </template>
 
@@ -469,6 +467,7 @@ import {
   SquarePen,
   EyeClosed,
   Eye,
+  Trash
 } from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -563,6 +562,7 @@ import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
+import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 
 interface BreadcrumbItem {
   name: string;
@@ -601,11 +601,9 @@ const authStore = useAuthStore();
 const configStore = useConfigStore();
 const route = useRoute();
 const router = useRouter();
-
 // Chat e mensagens
 const chats = ref<Chat[]>([]);
-const selectedChatId = ref<number | undefined>(undefined);
-const selectedModel = ref("openai");
+const selectedChatId = ref<number | undefined>();
 const messages = ref<Message[]>([]);
 const newMessage = ref("");
 const uploadProgress = ref(0);
@@ -616,6 +614,8 @@ const newChatTitle = ref("");
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const messageContainerRef = ref<HTMLElement | null>(null);
 const isShowValues = ref(false);
+const isAnimating = ref(false);
+const isInputDisabled = computed(() => loading.value || isAnimating.value);
 
 // Computed
 const activeGroupProject = computed(
@@ -866,6 +866,7 @@ onMounted(async () => {
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
     await loadChats();
+    await selectChat(Number(localStorage.getItem('chatId')))
   }
 });
 
@@ -1038,6 +1039,7 @@ const deleteChat = async (chatId: number) => {
 
 const selectChat = async (chatId: number) => {
   selectedChatId.value = chatId;
+  localStorage.setItem('chatId',`${chatId}`)
   await loadMessages();
 };
 
@@ -1055,7 +1057,8 @@ const loadMessages = async () => {
       .map((message: any) => ({
         id: message.id,
         role: message.role,
-        message: marked.parse(message.message[0]),
+        message: marked.parse(message.message[0],{
+        }),
         file: null,
       }));
     scrollToBottom();
@@ -1104,16 +1107,18 @@ const sendMessage = async () => {
       const assistantMessage: Message = {
         id: messages.value.length,
         role: "assistant",
-        message: marked.parse(response.data.message),
+        message: await marked.parse(response.data.message),
         file: null,
       };
 
       messages.value.push(assistantMessage);
       scrollToBottom();
+      loading.value = false;
+      isAnimating.value = true;
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);
-    } finally {
       loading.value = false;
+      isAnimating.value = false;
     }
   }
 };
@@ -1122,14 +1127,15 @@ const extractFileName = (url: string): string => {
   return url.split("/").pop() || "";
 };
 
-const handleFileUpload = async (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  const selected = input.files?.[0];
-  if (!selected) return;
+async function handleFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (!target.files?.length) return;
 
-  file.value = selected;
-  uploadedFilePath.value = URL.createObjectURL(selected);
-};
+   file.value = target.files[0];
+  uploadedFilePath.value = file.value.name;
+  uploadProgress.value = 0;
+}
+
 </script>
 <style>
 .loading-dots {
