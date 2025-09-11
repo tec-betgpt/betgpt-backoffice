@@ -876,13 +876,15 @@ watch(sidebarAi, () =>
 
 const setResponsive = () => (stateResponsive.value = !stateResponsive.value);
 const settingSidebarIA = () => {
-  if (localStorage.getItem("sidebarAi") === null) {
-    localStorage.setItem("sidebarAi", "1");
-    sidebarAi.value = true;
-    return;
-  }
+  const isMobile = window.innerWidth < 768;
+  const savedPreference = localStorage.getItem("sidebarAi");
 
-  sidebarAi.value = Boolean(Number(localStorage.getItem("sidebarAi")));
+  if (savedPreference === null) {
+    sidebarAi.value = !isMobile;
+    localStorage.setItem("sidebarAi", !isMobile ? "1" : "0");
+  } else {
+    sidebarAi.value = Boolean(Number(savedPreference));
+  }
 };
 
 const handleSidebarAiUpdate = (value: boolean) => {
