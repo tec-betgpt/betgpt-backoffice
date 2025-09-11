@@ -296,9 +296,9 @@
     <Sidebar
       class="ia"
       side="right"
-      :collapsed="sidebarIaExpanded"
-      @update:modelValue="handleSidebarIaExpand"
+      :collapsed="sidebarAi"
       collapsible="offcanvas"
+      @update:modelValue="handleSidebarAiUpdate"
     >
       <SidebarHeader class="p-4 flex-4">
         <div class="flex justify-between align-middle">
@@ -562,7 +562,6 @@ import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
-import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 
 interface BreadcrumbItem {
   name: string;
@@ -593,7 +592,7 @@ const LIGHT_LOGOS = {
 // Refs e stores
 const collapsed = ref("");
 const sidebarExpanded = ref(false);
-const sidebarIaExpanded = ref(false);
+const sidebarAi = ref(false);
 const stateResponsive = ref(false);
 const mode: any = useColorMode();
 const workspaceStore = useWorkspaceStore();
@@ -601,6 +600,7 @@ const authStore = useAuthStore();
 const configStore = useConfigStore();
 const route = useRoute();
 const router = useRouter();
+
 // Chat e mensagens
 const chats = ref<Chat[]>([]);
 const selectedChatId = ref<number | undefined>();
@@ -868,9 +868,30 @@ onMounted(async () => {
     await loadChats();
     await selectChat(Number(localStorage.getItem('chatId')))
   }
+  settingSidebarIA();
 });
 
+watch(sidebarAi, () =>
+  localStorage.setItem("sidebarAi", sidebarAi.value ? "1" : "0")
+);
+
 const setResponsive = () => (stateResponsive.value = !stateResponsive.value);
+const settingSidebarIA = () => {
+  const isMobile = window.innerWidth < 768;
+  const savedPreference = localStorage.getItem("sidebarAi");
+
+  if (savedPreference === null) {
+    sidebarAi.value = !isMobile;
+    localStorage.setItem("sidebarAi", !isMobile ? "1" : "0");
+  } else {
+    sidebarAi.value = Boolean(Number(savedPreference));
+  }
+};
+
+const handleSidebarAiUpdate = (value: boolean) => {
+  sidebarAi.value = value;
+  localStorage.setItem("sidebarAi", value ? "1" : "0");
+};
 
 function scrollToBottom() {
   nextTick(() => {
@@ -967,6 +988,7 @@ const toggleCollapsed = (type: string) => {
     }
     return;
   }
+
   if (!sidebarExpanded.value) {
     if (type !== "") {
       sidebarExpanded.value = true;
@@ -983,12 +1005,10 @@ const toggleSidebar = () => {
 const handleSidebarExpand = (value: boolean) => {
   sidebarExpanded.value = value;
 };
-const handleSidebarIaExpand = (value: boolean) => {
-  sidebarIaExpanded.value = value;
-};
+
 const toggleSidebarIA = () => {
   setResponsive();
-  sidebarIaExpanded.value = !sidebarIaExpanded.value;
+  sidebarAi.value = !sidebarAi.value;
 };
 
 const loadChats = async () => {
@@ -1039,7 +1059,6 @@ const deleteChat = async (chatId: number) => {
 
 const selectChat = async (chatId: number) => {
   selectedChatId.value = chatId;
-  localStorage.setItem('chatId',`${chatId}`)
   await loadMessages();
 };
 
@@ -1053,14 +1072,12 @@ const loadMessages = async () => {
     const data = await IntelligenceArtificial.getSession({
       chat_id: selectedChatId.value,
     });
-    messages.value = data.data
-      .map((message: any) => ({
-        id: message.id,
-        role: message.role,
-        message: marked.parse(message.message[0],{
-        }),
-        file: null,
-      }));
+    messages.value = data.data.map((message: any) => ({
+      id: message.id,
+      role: message.role,
+      message: marked.parse(message.message[0]),
+      file: null,
+    }));
     scrollToBottom();
   } catch (error) {
     console.error("Erro ao carregar mensagens:", error);
@@ -1085,7 +1102,7 @@ const sendMessage = async () => {
       chat_id: selectedChatId.value,
       message: newMessage.value,
       file: file.value,
-      project_id: activeGroupProject.value?.project_id
+      project_id: activeGroupProject.value?.project_id,
     };
 
     loading.value = true;
