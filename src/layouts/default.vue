@@ -776,8 +776,8 @@ const navMenu = computed(() => {
           show: canAccess("access-to-motivational-texts"),
         },
         {
-          name: "Integrações",
-          url: { name: "integrations" },
+          name: "Fontes de Dados",
+          url: { name: "data-sources" },
           icon: Blocks,
           show: canAccess("access-to-integrations"),
         },
