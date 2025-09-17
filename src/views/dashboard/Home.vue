@@ -482,7 +482,6 @@ export default {
     userStore: useAuthStore(),
     executionInfo: null,
     isRefreshing: false,
-    isShowValues: ref(false),
     players: {
       count: 0,
       percentage: 0,
