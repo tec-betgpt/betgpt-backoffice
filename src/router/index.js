@@ -232,7 +232,7 @@ const routes = [
           requiresAuth: true,
           roles: "member",
           permissions: "access-to-postback-logs",
-          title: "Integrações",
+          title: "Elevate API",
         },
       },
     ],
@@ -368,15 +368,15 @@ const routes = [
         },
       },
       {
-        path: "integrations",
-        name: "integrations",
+        path: "data-sources",
+        name: "data-sources",
         component: Integrations,
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
           roles: "member|client",
           permissions: "access-to-integrations",
-          title: "Integrações",
+          title: "Fontes de Dados",
         },
       },
       {

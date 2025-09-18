@@ -152,39 +152,59 @@
               tag="div"
               class="flex gap-4"
             >
-              <div class="flex gap-4 w-full" :ref="el => setRowRef(el, rowIndex)">
+              <div
+                class="flex gap-4 w-full"
+                :ref="(el) => setRowRef(el, rowIndex)"
+              >
                 <Card
                   v-for="subItem in row"
                   :key="subItem.id"
-                  :class="{ 'card-animation-move': subItem.id === dragOverId, hidden: subItem.isConditional,}"
+                  :class="{
+                    'card-animation-move': subItem.id === dragOverId,
+                    hidden: subItem.isConditional,
+                  }"
                   :draggable="item.edit"
                   class="flex-1 item"
                   @dragstart.stop="onDragStart($event, subItem)"
                   @dragover.prevent
                   @dragenter="onDragEnter(subItem)"
                   @dragleave="onDragLeave"
-                  @drop="onDropSub($event, subItem,  item.id)"
+                  @drop="onDropSub($event, subItem, item.id)"
                 >
                   <CardHeader class="pb-2">
-                    <CardTitle class="flex-row flex justify-between items-center">
+                    <CardTitle
+                      class="flex-row flex justify-between items-center"
+                    >
                       <div class="flex justify-between items-center">
-                        <Avatar v-if="subItem.icon" class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2" shape="square">
+                        <Avatar
+                          v-if="subItem.icon"
+                          class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
+                          shape="square"
+                        >
                           <Component :is="subItem.icon" :color="iconColor" />
                         </Avatar>
-                        <span class="font-medium" :class="{ 'text-xs': !subItem.layout }">
+                        <span
+                          class="font-medium"
+                          :class="{ 'text-xs': !subItem.layout }"
+                        >
                           {{ subItem.title }}
                         </span>
                       </div>
 
-                      <GlossaryTooltipComponent :description="subItem.tooltip" />
+                      <GlossaryTooltipComponent
+                        :description="subItem.tooltip"
+                      />
                     </CardTitle>
-                    <CardDescription v-if="subItem.layout === 'list'" class="pb-5">
+                    <CardDescription
+                      v-if="subItem.layout === 'list'"
+                      class="pb-5"
+                    >
                       <span v-if="isShowValues">
                         Tiveram {{ deposits.count30days }} depósitos nos últimos
                         30 dias.
                       </span>
                       <skeleton-custom v-else />
-                  </CardDescription>
+                    </CardDescription>
                   </CardHeader>
 
                   <!-- LAYOUT TIPO GRÁFICO -->
@@ -195,7 +215,9 @@
                       :index="'name'"
                       :rounded-corners="4"
                       :show-tooltip="isShowValues"
-                      :y-formatter="(tick) => (typeof tick === 'number' ? $toK(tick) : '')"
+                      :y-formatter="
+                        (tick) => (typeof tick === 'number' ? $toK(tick) : '')
+                      "
                       :custom-tooltip="CustomChartTooltip"
                     />
                   </CardContent>
@@ -204,20 +226,20 @@
                   <CardContent v-else-if="subItem.layout === 'list'">
                     <div class="space-y-8">
                       <div
-                          v-for="deposit in deposits.lasts"
-                          :key="deposit.id"
-                          class="flex items-center"
+                        v-for="deposit in deposits.lasts"
+                        :key="deposit.id"
+                        class="flex items-center"
                       >
                         <Avatar class="h-9 w-9">
                           <AvatarFallback>
                             {{
                               deposit.player.name
-                                  ? deposit.player.name.charAt(0)
-                                  : deposit.player.email.charAt(0).toUpperCase()
+                                ? deposit.player.name.charAt(0)
+                                : deposit.player.email.charAt(0).toUpperCase()
                             }}{{
                               deposit.player.name
-                                  ? deposit.player.name.charAt(1)
-                                  : deposit.player.email.charAt(1)
+                                ? deposit.player.name.charAt(1)
+                                : deposit.player.email.charAt(1)
                             }}
                           </AvatarFallback>
                         </Avatar>
@@ -229,22 +251,26 @@
                             {{ deposit.player.email }}
                           </p>
                         </div>
-                        <div class="ml-auto text-right"v-if="isShowValues">
+                        <div class="ml-auto text-right" v-if="isShowValues">
                           <span class="font-medium">
-                          +{{ $toCurrency(deposit.value / 100) }}
+                            +{{ $toCurrency(deposit.value / 100) }}
                           </span>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <p
-                                    class="text-xs text-muted-foreground text-right"
+                                  class="text-xs text-muted-foreground text-right"
                                 >
                                   {{ $moment(deposit.created_at).fromNow() }}
                                 </p>
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>
-                                  {{ $moment(deposit.created_at).format("DD/MM/YYYY HH:mm:ss") }}
+                                  {{
+                                    $moment(deposit.created_at).format(
+                                      "DD/MM/YYYY HH:mm:ss"
+                                    )
+                                  }}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
@@ -259,13 +285,13 @@
 
                   <!-- LAYOUT TIPO QUANTIDADE -->
                   <CardContent v-else-if="subItem.quantity">
-                    <div class="number"v-if="isShowValues">
+                    <div class="number" v-if="isShowValues">
                       +{{ subItem.quantity }}
                     </div>
                     <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
                     <small class="text-xs">Quantidade</small>
 
-                    <div class="number mt-5"v-if="isShowValues">
+                    <div class="number mt-5" v-if="isShowValues">
                       {{ $toCurrency(subItem.value) }}
                     </div>
                     <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
@@ -274,22 +300,28 @@
                     <div v-if="isShowValues">
                       <div v-if="subItem.variation" class="variation mt-3 flex">
                         <div
-                            v-if="subItem.variation > 0"
-                            class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                          v-if="subItem.variation > 0"
+                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
                         >
-                          <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                          <ArrowUp class="h-4 w-4 mr-1" />
+                          {{ subItem.variation }}%
                         </div>
                         <div
-                            v-else
-                            class="value flex justify-start items-center bg-red-700 text-red-200"
+                          v-else
+                          class="value flex justify-start items-center bg-red-700 text-red-200"
                         >
                           <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}%
                         </div>
-                        desde a semana anterior</div>
+                        desde a semana anterior
                       </div>
+                    </div>
                   </CardContent>
 
-                  <CardContent v-else-if=" subItem.count !== undefined && subItem.count !== null">
+                  <CardContent
+                    v-else-if="
+                      subItem.count !== undefined && subItem.count !== null
+                    "
+                  >
                     <div class="number" v-if="isShowValues">
                       {{ subItem.count }}
                     </div>
@@ -297,10 +329,17 @@
 
                     <div v-if="isShowValues">
                       <div v-if="subItem.variation" class="variation mt-3 flex">
-                        <div v-if="subItem.variation > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
-                          <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}
+                        <div
+                          v-if="subItem.variation > 0"
+                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                        >
+                          <ArrowUp class="h-4 w-4 mr-1" />
+                          {{ subItem.variation }}
                         </div>
-                        <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
+                        <div
+                          v-else
+                          class="value flex justify-start items-center bg-red-700 text-red-200"
+                        >
                           <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}
                         </div>
                         desde o dia anterior
@@ -310,17 +349,32 @@
 
                   <!-- LAYOUT PADRÃO -->
                   <CardContent v-else>
-                    <div v-if="isShowValues" :title="subItem.value" class="number">
-                      {{ subItem.suffix? subItem.value:$toCurrency(subItem.value)  }}{{ subItem.suffix }}
+                    <div
+                      v-if="isShowValues"
+                      :title="subItem.value"
+                      class="number"
+                    >
+                      {{
+                        subItem.suffix
+                          ? subItem.value
+                          : $toCurrency(subItem.value)
+                      }}{{ subItem.suffix }}
                     </div>
                     <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
 
                     <div v-if="isShowValues">
                       <div v-if="subItem.variation" class="variation mt-3 flex">
-                        <div v-if="subItem.variation > 0" class="value flex align-baseline justify-start items-center bg-green-700 text-green-200">
-                          <ArrowUp class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                        <div
+                          v-if="subItem.variation > 0"
+                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                        >
+                          <ArrowUp class="h-4 w-4 mr-1" />
+                          {{ subItem.variation }}%
                         </div>
-                        <div v-else class="value flex justify-start items-center bg-red-700 text-red-200">
+                        <div
+                          v-else
+                          class="value flex justify-start items-center bg-red-700 text-red-200"
+                        >
                           <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}%
                         </div>
                         desde a semana anterior
@@ -373,6 +427,7 @@ import {
   CirclePercent,
   DollarSign,
   Hourglass,
+  SquareActivity,
   ListCheck,
   UserRound,
   UserRoundPlus,
@@ -380,7 +435,9 @@ import {
   Wallet,
   PencilRuler,
   SquarePen,
-  RefreshCcw, Eye, EyeClosed,
+  RefreshCcw,
+  Eye,
+  EyeClosed,
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Chart, registerables } from "chart.js";
@@ -390,9 +447,9 @@ import VideoBackground from "vue-responsive-video-background-player";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useColorMode } from "@vueuse/core";
-import {ref} from "vue";
-import {Skeleton} from "@/components/ui/skeleton";
-import {formatLargeNumber} from "@/filters/formatLargeNumber";
+import { ref } from "vue";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatLargeNumber } from "@/filters/formatLargeNumber";
 import SkeletonCustom from "@/components/custom/SkeletonCustom.vue";
 
 const { toast } = useToast();
@@ -408,22 +465,22 @@ export default {
     processedCards() {
       const limits = { mobile: 1, tablet: 2, desktop: 5 };
       return this.cards.map((group, groupIndex) => {
-      const rowWidth = this.rowWidths[groupIndex] || window.innerWidth;
-      let limit;
-      if (rowWidth < 500) {
-        limit = limits.mobile;
-      } else if (rowWidth < 900) {
-        limit = limits.tablet;
-      } else {
-        limit = limits.desktop;
-      }
+        const rowWidth = this.rowWidths[groupIndex] || window.innerWidth;
+        let limit;
+        if (rowWidth < 500) {
+          limit = limits.mobile;
+        } else if (rowWidth < 900) {
+          limit = limits.tablet;
+        } else {
+          limit = limits.desktop;
+        }
 
         const newContent = [];
 
         const visibleContent = group.content
-          .map(row => row.filter(card => !card.isConditional))
-          .filter(row => row.length > 0);
-        visibleContent.forEach(originalRow => {
+          .map((row) => row.filter((card) => !card.isConditional))
+          .filter((row) => row.length > 0);
+        visibleContent.forEach((originalRow) => {
           if (originalRow.length > limit) {
             for (let i = 0; i < originalRow.length; i += limit) {
               newContent.push(originalRow.slice(i, i + limit));
@@ -465,6 +522,7 @@ export default {
     EyeClosed,
     GlossaryTooltipComponent,
     Hourglass,
+    SquareActivity,
     ListCheck,
     UserRound,
     UserRoundPlus,
@@ -482,7 +540,6 @@ export default {
     userStore: useAuthStore(),
     executionInfo: null,
     isRefreshing: false,
-    isShowValues: ref(false),
     players: {
       count: 0,
       percentage: 0,
@@ -547,12 +604,14 @@ export default {
     rowRefs: [],
     rowWidths: {},
     resizeObservers: [],
-    debounceTimers: {}
+    debounceTimers: {},
   }),
 
   beforeUnmount() {
-    Object.values(this.resizeObservers).forEach(obs => obs.disconnect());
-    Object.values(this.debounceTimers).forEach(timerId => clearTimeout(timerId));
+    Object.values(this.resizeObservers).forEach((obs) => obs.disconnect());
+    Object.values(this.debounceTimers).forEach((timerId) =>
+      clearTimeout(timerId)
+    );
   },
 
   methods: {
@@ -574,11 +633,15 @@ export default {
 
       if (this.resizeObservers[index]) return;
 
-      const observer = new ResizeObserver(entries => {
+      const observer = new ResizeObserver((entries) => {
         for (const entry of entries) {
-          this.debounce(() => {
-            this.rowWidths[index] = entry.contentRect.width;
-          }, 150, `resize_${index}`);
+          this.debounce(
+            () => {
+              this.rowWidths[index] = entry.contentRect.width;
+            },
+            150,
+            `resize_${index}`
+          );
         }
       });
 
@@ -609,37 +672,47 @@ export default {
       this.dragOverId = null;
 
       if (draggedItemId && draggedItemId !== targetItem.id) {
-        const draggedItemIndex = this.cards.findIndex(i => i.id === draggedItemId);
-        const targetItemIndex = this.cards.findIndex(i => i.id === targetItem.id);
+        const draggedItemIndex = this.cards.findIndex(
+          (i) => i.id === draggedItemId
+        );
+        const targetItemIndex = this.cards.findIndex(
+          (i) => i.id === targetItem.id
+        );
 
         if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
           // Troca os elementos de forma mais eficiente
-          [this.cards[draggedItemIndex], this.cards[targetItemIndex]] =
-              [this.cards[targetItemIndex], this.cards[draggedItemIndex]];
+          [this.cards[draggedItemIndex], this.cards[targetItemIndex]] = [
+            this.cards[targetItemIndex],
+            this.cards[draggedItemIndex],
+          ];
           this.saveLayout();
         }
       }
     },
 
-    onDropSub(event: DragEvent, targetItem: any,  parentId: string) {
+    onDropSub(event: DragEvent, targetItem: any, parentId: string) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer.getData("text/plain");
       this.dragOverId = null;
 
       if (!draggedItemId || draggedItemId === targetItem.id) return;
 
-      const parentCard = this.cards.find(c => c.id === parentId);
+      const parentCard = this.cards.find((c) => c.id === parentId);
       if (!parentCard) return;
 
       let sourceLocation = null;
       let targetLocation = null;
 
       for (let i = 0; i < parentCard.content.length; i++) {
-        const sourceIndex = parentCard.content[i].findIndex(c => c.id === draggedItemId);
+        const sourceIndex = parentCard.content[i].findIndex(
+          (c) => c.id === draggedItemId
+        );
         if (sourceIndex !== -1) {
           sourceLocation = { rowIndex: i, itemIndex: sourceIndex };
         }
-        const targetIndex = parentCard.content[i].findIndex(c => c.id === targetItem.id);
+        const targetIndex = parentCard.content[i].findIndex(
+          (c) => c.id === targetItem.id
+        );
         if (targetIndex !== -1) {
           targetLocation = { rowIndex: i, itemIndex: targetIndex };
         }
@@ -648,11 +721,18 @@ export default {
 
       if (!sourceLocation || !targetLocation) return;
 
-      const [removedItem] = parentCard.content[sourceLocation.rowIndex].splice(sourceLocation.itemIndex, 1);
+      const [removedItem] = parentCard.content[sourceLocation.rowIndex].splice(
+        sourceLocation.itemIndex,
+        1
+      );
 
-      parentCard.content[targetLocation.rowIndex].splice(targetLocation.itemIndex, 0, removedItem);
+      parentCard.content[targetLocation.rowIndex].splice(
+        targetLocation.itemIndex,
+        0,
+        removedItem
+      );
 
-      parentCard.content = parentCard.content.filter(row => row.length > 0);
+      parentCard.content = parentCard.content.filter((row) => row.length > 0);
       this.saveLayout();
     },
 
@@ -686,9 +766,9 @@ export default {
     },
 
     saveLayout() {
-      const layoutToSave = this.cards.map(group => ({
+      const layoutToSave = this.cards.map((group) => ({
         id: group.id,
-        content: group.content.map(row => row.map(card => card.id)),
+        content: group.content.map((row) => row.map((card) => card.id)),
       }));
       Home.layout(layoutToSave);
     },
@@ -879,24 +959,30 @@ export default {
       ];
 
       const allSubItemsMap = new Map();
-      allGroupsDefault.forEach(group => {
-        group.content.forEach(row => {
-          row.forEach(subItem => {
+      allGroupsDefault.forEach((group) => {
+        group.content.forEach((row) => {
+          row.forEach((subItem) => {
             allSubItemsMap.set(subItem.id, subItem);
           });
         });
       });
-      const defaultGroupsMap = new Map(allGroupsDefault.map(g => [g.id, g]));
+      const defaultGroupsMap = new Map(allGroupsDefault.map((g) => [g.id, g]));
 
-      this.cards = savedOrder.map(savedGroup => {
-        const groupData = defaultGroupsMap.get(savedGroup.id);
-        if (!groupData) return null;
+      this.cards = savedOrder
+        .map((savedGroup) => {
+          const groupData = defaultGroupsMap.get(savedGroup.id);
+          if (!groupData) return null;
 
-        const newContent = savedGroup.content.map(savedRow =>
-            savedRow.map(cardId => allSubItemsMap.get(cardId)).filter(Boolean)
-        ).filter(row => row.length > 0);
-        return {...groupData, content: newContent};
-      }).filter(Boolean);
+          const newContent = savedGroup.content
+            .map((savedRow) =>
+              savedRow
+                .map((cardId) => allSubItemsMap.get(cardId))
+                .filter(Boolean)
+            )
+            .filter((row) => row.length > 0);
+          return { ...groupData, content: newContent };
+        })
+        .filter(Boolean);
     },
 
     buildCardsDeposits() {
@@ -970,10 +1056,7 @@ export default {
         },
       ];
 
-      return [
-        allCards.slice(0, 4),
-        allCards.slice(4, 7),
-      ];
+      return [allCards.slice(0, 4), allCards.slice(4, 7)];
     },
 
     buildCardsPlayers() {
@@ -1102,6 +1185,13 @@ export default {
           icon: "Hourglass",
         },
         {
+          id: "frequencia-media-deposito",
+          title: "Frequência Média de Depósito",
+          tooltip: "Frequência média de depósito do usuário.",
+          count: 0,
+          icon: "SquareActivity",
+        },
+        {
           id: "ticket-medio-pos-ativacao",
           title: "Ticket Médio Pós-Ativação",
           tooltip:
@@ -1111,9 +1201,7 @@ export default {
         },
       ];
 
-      return [
-        allCards,
-      ];
+      return [allCards];
     },
 
     buildCardsHistory() {
@@ -1224,7 +1312,7 @@ export default {
   },
 
   mounted() {
-    this._user()
+    this._user();
   },
 
   props: {
@@ -1244,7 +1332,6 @@ export default {
       },
     },
   },
-
 };
 </script>
 

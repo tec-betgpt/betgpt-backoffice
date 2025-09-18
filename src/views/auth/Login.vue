@@ -1,9 +1,6 @@
 <template>
   <div class="grid xl:grid-cols-2 grid-cols-1 w-screen">
-    <div
-      class="h-screen w-full flex-col flex p-6 items-center align-middle relative"
-    >
-      <!--Logo-->
+    <div class="h-screen w-full flex-col flex p-6 items-center align-middle relative">
       <div class="w-full h-16 absolute z-10">
         <img
           :src="
@@ -15,7 +12,7 @@
           alt="Logo Elevate"
         />
       </div>
-      <!--Form-->
+
       <div
         class="h-full sm:p-0 w-full flex flex-col justify-center align-middle items-center"
       >
@@ -92,81 +89,62 @@
       </div>
     </div>
 
-    <div
-      class="xl:flex xsl:flex-col hidden h-screen w-full items-end bg-black relative"
-    >
-      <video-background
-        src="/movies/mpeg/login.mp4"
-        poster="/movies/poster/login.jpg"
-        style="width: 100%; position: absolute; top: 0; left: 0; height: 100%"
-        :playsinline="true"
-        :sources="[
-          {
-            src: '/movies/mpeg/login_720p.mp4',
-            res: 1200,
-            autoplay: true,
-            type: 'video/mp4',
-          },
-          {
-            src: '/movies/mpeg/login_480p.mp4',
-            res: 800,
-            autoplay: true,
-            type: 'video/mp4',
-          },
-          {
-            src: '/movies/mpeg/login_360p.mp4',
-            res: 600,
-            autoplay: true,
-            type: 'video/mp4',
-          },
-          {
-            src: '/movies/mpeg/login_240p.mp4',
-            res: 400,
-            autoplay: true,
-            type: 'video/mp4',
-          },
-          {
-            src: '/movies/webm/login_720p.webm',
-            res: 1200,
-            autoplay: true,
-            type: 'video/webm',
-          },
-          {
-            src: '/movies/webm/login_480p.webm',
-            res: 800,
-            autoplay: true,
-            type: 'video/webm',
-          },
-          {
-            src: '/movies/webm/login_360p.webm',
-            res: 600,
-            autoplay: true,
-            type: 'video/webm',
-          },
-          {
-            src: '/movies/webm/login_240p.webm',
-            res: 400,
-            autoplay: true,
-            type: 'video/webm',
-          },
-        ]"
-      />
+    <div class="xl:flex xsl:flex-col px-20 hidden h-screen w-full items-center bg-transparent/10 relative">
 
-      <div class="h-full w-full bg-black opacity-80 absolute z-10"></div>
+      <div class="relative w-full max-w-3xl mx-auto overflow-hidden">
+        <div
+          class="flex transition-transform duration-500 mb-10"
+          :style="{ transform: `translateX(-${currentIndex * 100}%)` }"
+        >
+          <div
+            v-for="(slide, index) in slides"
+            :key="index"
+            class="min-w-full flex flex-col items-center justify-center mb-20"
+          >
+            <img
+              :src="slide.src"
+              :alt="slide.alt"
+              class="w-full h-auto"
+            />
 
-      <div class="p-8 mb-10 pr-24 space-y-4 absolute z-20">
-        <p
-          class="text-white font-normal font-sans text-wrap animate-fade-in"
-          style="animation-delay: 0.2s"
-        >
-          {{ message.message }}
-        </p>
-        <p
-          class="text-gray-500 font-normal animate-fade-in"
-          style="animation-delay: 0.5s"
-        >
-          {{ message.signature }}
-        </p>
+            <h2 class="text-lg font-bold leading-tight">
+              {{ slide.title }}
+            </h2>
+            <h3 class="text-md leading-tight text-center">
+              {{ slide.description }}
+            </h3>
+          </div>
+        </div>
+
+        <div class="absolute bottom-10 w-full flex items-center justify-center">
+          <Button
+            @click="prev"
+            variant="outline"
+            size="icon"
+            class="absolute top-1/2 left-4 -translate-y-1/2"
+          >
+            <ChevronLeft class="w-4 h-4" />
+          </Button>
+
+          <Button
+            @click="next"
+            variant="outline"
+            size="icon"
+            class="absolute top-1/2 right-4 -translate-y-1/2"
+          >
+            <ChevronRight class="w-4 h-4" />
+          </Button>
+
+          <div class="bottom-4 translate-x-1/4 flex gap-3">
+            <button
+              v-for="(_, index) in slides"
+              :key="index"
+              @click="goTo(index)"
+              class="w-3 h-3 rounded-full"
+              :class="currentIndex === index ? 'bg-transparent/40' : 'bg-gray-300'"
+            />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -186,17 +164,51 @@
   animation: fade-in 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 </style>
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import Auth from "@/services/auth";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import axios from "axios";
+import {
+  ChevronRight,
+  ChevronLeft,
+  Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useColorMode } from "@vueuse/core";
 import { useConfigStore } from "@/stores/config";
 import { useWorkspaceStore } from "@/stores/workspace";
-import VideoBackground from "vue-responsive-video-background-player";
+
+const slides = [
+  {
+    src: "/mockups/device-0.png",
+    title: "Retenção que Gera Lealdade",
+    description: "Descubra quem fica, por que fica e como manter seus usuários sempre engajados."
+  },
+  {
+    src: "/mockups/device-1.png",
+    title: "Aquisição que Impulsiona Crescimento",
+    description: "Acompanhe a jornada de novos clientes, saiba de onde eles vêm e transforme visitantes em resultados."
+  },
+  {
+    src: "/mockups/device-2.png",
+    title: "Performance sem Gargalos",
+    description: "Identifique falhas, otimize processos e mantenha seu negócio operando no máximo desempenho."
+  }
+]
+const currentIndex = ref(0)
+
+function next() {
+  currentIndex.value = (currentIndex.value + 1) % slides.length
+}
+
+function prev() {
+  currentIndex.value =
+    (currentIndex.value - 1 + slides.length) % slides.length
+}
+
+function goTo(index: number) {
+  currentIndex.value = index
+}
+
 
 const workspaceStore = useWorkspaceStore();
 const mode = useColorMode();
