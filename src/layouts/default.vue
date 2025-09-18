@@ -300,144 +300,158 @@
       collapsible="offcanvas"
       @update:modelValue="handleSidebarAiUpdate"
     >
-      <SidebarHeader class="p-4 flex-4">
-        <div class="flex justify-between align-middle">
-          <h1 class="font-bold">Elevate IA</h1>
-          <Button
+
+
+      <div class="flex  px-4 py-2 justify-between items-center align-middle ">
+        <h1 class="font-bold">Elevate IA</h1>
+        <Button
             variant="ghost"
             @click="
-              async () => {
-                selectedChatId = undefined;
-                messages = []
-                file = undefined;
-                // await createNewChat();
-                // await loadMessages();
-              }
-            "
-          >
-            <SquarePen /> Novo Chat
-          </Button>
-        </div>
-
-        <div>
-          <p class="text-[16px] py-4">Histórico</p>
+                async () => {
+                  selectedChatId = undefined;
+                  messages = []
+                  file = undefined;
+                  // await createNewChat();
+                  // await loadMessages();
+                }
+              "
+        >
+          <SquarePen /> Novo Chat
+        </Button>
+      </div>
+      <div class="flex flex-nowrap px-4 gap-2 h-full">
+        <div class="h-full pr-2 border-r w-2/5">
+          <p class="text-[16px] pb-4">Histórico</p>
           <div class="card max-h-16 overflow-y-scroll overflow-x-hidden">
             <p
-              v-for="chat in chats"
-              :key="chat.id"
-              @click="selectChat(chat.id)"
-              class="border-b-2 text-[10px] cursor-pointer truncate py-2"
+                v-for="chat in chats"
+                :key="chat.id"
+                @click="selectChat(chat.id)"
+                class="border-b-2 text-[12px] cursor-pointer truncate py-2 font-semibold"
             >
               {{ chat.title }}
             </p>
           </div>
         </div>
-      </SidebarHeader>
-      <SidebarContent class="p-4 flex-1">
-        <div
-            ref="messageContainerRef"
-            class="card h-full w-full rounded-sm shadow-md flex-col flex p-2 overflow-y-scroll overlay-x-hidden"
-        >
-          <div v-for="(message, index) in messages" :key="message.id" class="mb-4">
-            <div
-                class="space-x-2 pb-2"
-                :class="
+        <div class="flex flex-col w-4/5 h-full">
+          <div ref="messageContainerRef" class="overflow-scroll overflow-x-hidden h-3/5  p-2">
+            <div v-for="(message, index) in messages" :key="message.id" class="mb-4">
+              <div
+                  class="space-x-2 pb-2"
+                  :class="
                 message.role === 'user'
                 ? 'flex justify-end'
                 : 'flex justify-start'
                 "
-            >
-              <Avatar class="h-4 w-4 rounded-lg">
-                <AvatarImage
-                    :src="message.role === 'user' ? authStore.user?.icon : iconIa"
-                />
-                <AvatarFallback class="rounded-lg">
-                  {{ authStore.user?.initials }}
-                </AvatarFallback>
-              </Avatar>
-              <p class="text-[10px]">
-                {{ message.role === "user" ? "Você" : "I.A" }}
-              </p>
-            </div>
-            <CustomTextChart
-                :class="
+              >
+                <Avatar class="h-4 w-4 rounded-lg">
+                  <AvatarImage
+                      :src="message.role === 'user' ? authStore.user?.icon : iconIa"
+                  />
+                  <AvatarFallback class="rounded-lg">
+                    {{ authStore.user?.initials }}
+                  </AvatarFallback>
+                </Avatar>
+                <p class="text-[10px]">
+                  {{ message.role === "user" ? "Você" : "I.A" }}
+                </p>
+              </div>
+              <CustomTextChart
+                  :class="
                 message.role === 'user'
                   ? ' text-end justify-end'
                   : 'flex-col text-start justify-start'
               "
-                :html="message.message"
-                :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
-                :speed="8"
-                @tick="scrollToBottom"
-                @done="()=>{
+                  :html="message.message"
+                  :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
+                  :speed="8"
+                  @tick="scrollToBottom"
+                  @done="()=>{
                   isAnimating = false
                   isInputDisabled = false
                 }" />
-          </div>
-
-          <div v-if="loading" class="flex flex-col gap-2">
-
-            <Avatar class="h-4 w-4 rounded-lg">
-              <AvatarImage :src="iconIa" />
-              <AvatarFallback class="rounded-lg">
-              {{ authStore.user?.initials }}
-              </AvatarFallback>
-            </Avatar>
-            <div class="loading-dots">
-              <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
             </div>
-          </div>
-
-          <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2">
-            <Badge>
-              {{file.name}}
-            </Badge>
-            <Button v-if="!loading" variant="ghost" @click="()=>{
+            <div v-if="loading" class="flex flex-col gap-2">
+              <Avatar class="h-4 w-4 rounded-lg">
+                <AvatarImage :src="iconIa" />
+                <AvatarFallback class="rounded-lg">
+                  {{ authStore.user?.initials }}
+                </AvatarFallback>
+              </Avatar>
+              <div class="loading-dots">
+                <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
+              </div>
+            </div>
+            <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2">
+              <Badge>
+                {{file.name}}
+              </Badge>
+              <Button v-if="!loading" variant="ghost" @click="()=>{
               file = undefined
               uploadedFilePath = null
             }">
-              <Trash/>
-
+                <Trash/>
+              </Button>
+            </div>
+          </div>
+          <div class="p-4  flex  flex-col  h-2/5 gap-2">
+            <div class="relative">
+              <Textarea
+                placeholder="Digite aqui..."
+                @keyup.enter="!isInputDisabled && sendMessage()"
+                v-model="newMessage"
+                class="h-36 resize-none pb-20"
+              />
+              <div class="absolute z-10 bottom-2 left-2">
+                <Select v-model="selectedProjectId" >
+                  <SelectTrigger class="">
+                    {{ selectedProjectId
+                      ? workspaceStore.group_projects.find(p => p.project_id === selectedProjectId)?.name
+                      : 'Selecione um projeto' }}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="project in workspaceStore.group_projects"
+                      :key="project.project_id"
+                      :value="project.project_id"
+                    >
+                      {{ project.name }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Button
+                class="bg-[#947c2c] transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="sendMessage"
+                :disabled="isInputDisabled"
+            >
+              Enviar
             </Button>
+            <Label
+                for="file"
+                class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer transition-colors"
+                :class="{
+                    'hover:bg-gray-100 dark:hover:bg-gray-800': !isInputDisabled,
+                    'opacity-50 cursor-not-allowed': isInputDisabled
+                  }"
+            >
+              <Paperclip :size="16" /> Anexar arquivo
+            </Label>
+            <Input
+                id="file"
+                type="file"
+                class="hidden"
+                @change="handleFileUpload"
+                :disabled="isInputDisabled" />
+
+            <p class="text-[8px]">
+              As respostas podem mostrar informações imprecisas qualquer duvida entre em contato conosco.
+            </p>
           </div>
         </div>
-      </SidebarContent>
-      <SidebarFooter class="p-4 flex-5 grid grid-cols-1 gap-2">
-        <Textarea
-            placeholder="Digite aqui..."
-            @keyup.enter="!isInputDisabled && sendMessage()"
-            v-model="newMessage"
-             />
-        <Button
-            class="bg-[#947c2c] transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-            @click="sendMessage"
-            :disabled="isInputDisabled"
-        >
-          Enviar
-        </Button>
-
-        <Label
-            for="file"
-            class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer transition-colors"
-            :class="{
-        'hover:bg-gray-100 dark:hover:bg-gray-800': !isInputDisabled,
-        'opacity-50 cursor-not-allowed': isInputDisabled
-      }"
-        >
-          <Paperclip :size="16" /> Anexar arquivo
-        </Label>
-
-        <Input
-            id="file"
-            type="file"
-            class="hidden"
-            @change="handleFileUpload"
-            :disabled="isInputDisabled" />
-
-        <p class="text-[8px]">
-          As respostas podem mostrar informações imprecisas qualquer duvida entre em contato conosco.
-        </p>
-      </SidebarFooter>    </Sidebar>
+      </div>
+    </Sidebar>
   </SidebarProvider>
 </template>
 
@@ -545,6 +559,7 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
 import CustomTextChart from "@/components/custom/CustomTextChart.vue";
+import {Select, SelectContent, SelectItem, SelectTrigger} from "@/components/ui/select";
 
 interface BreadcrumbItem {
   name: string;
@@ -594,16 +609,18 @@ const uploadedFilePath = ref<string | null>(null);
 const loading = ref(false);
 const showNewChatModal = ref(false);
 const newChatTitle = ref("");
-const fileInputRef = ref<HTMLInputElement | null>(null);
+const file = ref<File>();
 const messageContainerRef = ref<HTMLElement | null>(null);
 const isShowValues = ref(false);
 const isAnimating = ref(false);
 const isInputDisabled = computed(() => loading.value || isAnimating.value);
-
 // Computed
 const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
 );
+console.log(activeGroupProject)
+const selectedProjectId = ref<number | undefined>(activeGroupProject.value?.project_id);
+
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [
     { name: "Elevate", title: "Elevate", path: "/home" },
@@ -1068,7 +1085,7 @@ const loadMessages = async () => {
     loading.value = false;
   }
 };
-const file = ref<File>();
+
 const sendMessage = async () => {
   if (!newMessage.value) {
     toast({
@@ -1085,7 +1102,7 @@ const sendMessage = async () => {
       chat_id: selectedChatId.value,
       message: newMessage.value,
       file: file.value,
-      project_id: activeGroupProject.value?.project_id,
+      project_id: selectedProjectId.value,
     };
 
     loading.value = true;
