@@ -27,15 +27,13 @@
                   size="lg"
                   class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                  <div
-                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground"
-                  >
+                  <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground">
                     <Avatar shape="square" class="size-7">
                       <AvatarImage
                         v-if="activeGroupProject && activeGroupProject.logo"
                         :src="activeGroupProject.logo"
                       />
-                      <AvatarImage v-else src="/default-company.jpg" />
+                      <AvatarImage v-else src="/default-project.jpg" />
                       <AvatarFallback class="uppercase text-white">
                         {{ activeGroupProject.name.slice(0, 2) }}
                       </AvatarFallback>
@@ -73,7 +71,7 @@
                     >
                       <Avatar shape="square" class="size-7">
                         <AvatarImage v-if="project.logo" :src="project.logo" />
-                        <AvatarImage v-else src="/default-company.jpg" />
+                        <AvatarImage v-else src="/default-project.jpg" />
                         <AvatarFallback class="uppercase text-white">
                           {{ project.name.slice(0, 2) }}
                         </AvatarFallback>
@@ -241,19 +239,35 @@
       </SidebarFooter>
     </Sidebar>
     <SidebarInset>
-      <header
-        class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4"
-      >
+      <header class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4">
         <div class="flex items-center gap-2 w-full px-4">
           <SidebarTrigger :logo="true" :toggle="toggleSidebar" class="-ml-1" />
 
           <Separator orientation="vertical" class="mr-2 h-4" />
-          <Breadcrumb class="flex-1">
-            <BreadcrumbList>
-              <BreadcrumbItem
-                v-for="(crumb, index) in breadcrumbs"
-                :key="index"
-              >
+          <Breadcrumb class="flex-1 text-ellipsis overflow-x-auto">
+            <BreadcrumbList class="flex flex-nowrap">
+              <BreadcrumbItem>
+                  <BreadcrumbLink as-child>
+                    <router-link :to="{ path: '/home' }">
+                      <Avatar v-if="activeGroupProject" shape="square" class="size-6">
+                        <AvatarImage
+                          v-if="activeGroupProject && activeGroupProject.logo"
+                          :src="activeGroupProject.logo"
+                        />
+                        <AvatarImage v-else src="/default-project.jpg" />
+                        <AvatarFallback class="uppercase text-dark">
+                          {{ activeGroupProject.name.slice(0, 2) }}
+                        </AvatarFallback>
+                      </Avatar>
+                      <Avatar v-else shape="square" class="size-6">
+                        <AvatarImage src="/default-project.jpg" />
+                      </Avatar>
+                    </router-link>
+                  </BreadcrumbLink>
+                <BreadcrumbSeparator />
+              </BreadcrumbItem>
+
+              <BreadcrumbItem v-for="(crumb, index) in breadcrumbs" :key="index">
                 <template v-if="crumb.path">
                   <BreadcrumbLink as-child>
                     <router-link :to="{ path: crumb.path }">
@@ -622,9 +636,7 @@ const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
 );
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
-  const items: BreadcrumbItem[] = [
-    { name: "Elevate", title: "Elevate", path: "/home" },
-  ];
+  const items: BreadcrumbItem[] = [];
 
   route.matched.forEach((record, index) => {
     const name = record.name as string;
