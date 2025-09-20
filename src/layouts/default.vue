@@ -310,7 +310,7 @@
                   selectedChatId = undefined;
                   messages = []
                   file = undefined;
-                  uploadedFilePath = null;
+                  newMessage = { id: 0, role: 'user', message: '', file: null };
                   // await createNewChat();
                   // await loadMessages();
                 }
@@ -320,8 +320,8 @@
             <PopoverTrigger as-child>
               <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
             </PopoverTrigger>
-            <PopoverContent align="end" class="w-80">
-              <ScrollArea  type="scroll" class=" overflow-x-hidden max-h-44">
+            <PopoverContent align="end" class="w-80 p-2">
+              <div   class=" overflow-x-hidden max-h-44">
                 <p
                     v-for="chat in chats"
                     :key="chat.id"
@@ -330,43 +330,25 @@
                 >
                   {{ chat.title }}
                 </p>
-              </ScrollArea>
+              </div>
             </PopoverContent>
           </Popover>
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <div v-if="messages.length == 0 || file" class="p-4 text-center  flex flex-col justify-center align-middle items-center text-sm h-full font-semibold">
-          <img :src="logoInChat" class="size-12"/>
+        <div v-if="messages.length == 0" class="p-4 text-center  flex flex-col justify-center align-middle items-center text-sm h-full font-semibold">
+          <img :src="logoInChat" class="size-12" alt="logoInChat"/>
           <span>Como posso ajudar?</span>
         </div>
-        <ScrollArea  v-else ref="messageContainerRef" type="hover" class=" overflow-x-hidden  h-full  px-6">
-          <div v-for="(message, index) in messages" :key="message.id" class="mb-4">
-            <div
-                class="space-x-2 pb-2"
-                :class="
-              message.role === 'user'
-              ? 'flex justify-end'
-              : 'flex justify-start'
-              "
-            >
-              <Avatar class="h-4 w-4 rounded-lg">
-                <AvatarImage
-                    :src="message.role === 'user' ? authStore.user?.icon : iconIa"
-                />
-                <AvatarFallback class="rounded-lg">
-                  {{ authStore.user?.initials }}
-                </AvatarFallback>
-              </Avatar>
-              <p class="text-[10px]">
-                {{ message.role === "user" ? "Você" : "I.A" }}
-              </p>
-            </div>
+        <div v-else ref="messageContainerRef" type="hover" class=" overflow-x-hidden  h-full  px-6">
+
             <CustomTextChart
+                v-for="(message, index) in messages" :key="message.id"
+                class="mb-6 last:mb-20"
                 :class="
-              message.role === 'user'
-                ? ' text-end justify-end'
-                : 'flex-col text-start justify-start'
+                message.role === 'user'
+                  ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-sm ml-auto '
+                  : 'flex-col text-start justify-start'
             "
                 :html="message.message"
                 :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
@@ -376,7 +358,7 @@
                 isAnimating = false
                 isInputDisabled = false
               }" />
-          </div>
+
           <div v-if="loading" class="flex flex-col gap-2">
             <Avatar class="h-4 w-4 rounded-lg">
               <AvatarImage :src="iconIa" />
@@ -388,14 +370,13 @@
               <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
             </div>
           </div>
-        </ScrollArea>
-        <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2">
+        </div>
+        <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2 px-6">
           <Badge class="p-4">
             {{file.name}}
           </Badge>
           <Button v-if="!loading" variant="ghost" @click="()=>{
             file = undefined
-            uploadedFilePath = null
           }">
             <Trash/>
           </Button>
@@ -403,20 +384,21 @@
       </SidebarContent>
       <SidebarFooter >
         <div class="relative w-full items-center">
-           <Button  variant="ghost"
+           <Button  variant="link"
                     @click="sendMessage"
                   :disabled="isInputDisabled"
                   class="absolute end-0 flex items-center justify-center h-full">
-                <SendHorizontal  stroke-width="2.5"  absoluteStrokeWidth class="cursor-pointer"/>
+                <SendHorizontal  :stroke-width="2.5"  absoluteStrokeWidth />
             </Button>
           <span class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2">
             <Popover >
               <PopoverTrigger as-child>
                 <Ellipsis :stroke-width="2.5"  absoluteStrokeWidth class="cursor-pointer"  />
               </PopoverTrigger>
-              <PopoverContent align="start"  :alignOffset="-8" :sideOffset="16" :arrowPadding="0" class="w-56 ">
+              <PopoverContent align="start"  :alignOffset="-8" :sideOffset="16" :arrowPadding="0" class="w-56 p-2">
                 <div class="flex flex-col gap-2 text-sm">
-                  <Label for="file" class="cursor-pointer truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center
+                  <Label for="file" class="cursor-pointer text-sm truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center
+
                    font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
                   > <Paperclip class="size-4" />Anexar</Label>
                <Input
@@ -431,7 +413,7 @@
           </span>
           <Input id="search"
                  @keyup.enter="!isInputDisabled && sendMessage()"
-                 v-model="newMessage"
+                 v-model="newMessage.message"
                  type="text"
                  placeholder="Pergunte alguma coisa"
                  class="px-10 h-12" />
@@ -566,7 +548,7 @@ interface Message {
   id: number;
   role: "user" | "assistant";
   message: string;
-  file: string | null;
+  file: File | null;
 }
 
 const DARK_LOGOS = {
@@ -595,12 +577,8 @@ const router = useRouter();
 const chats = ref<Chat[]>([]);
 const selectedChatId = ref<number | undefined>();
 const messages = ref<Message[]>([]);
-const newMessage = ref("");
-const uploadProgress = ref(0);
-const uploadedFilePath = ref<string | null>(null);
+const newMessage = ref<Message>({ id: 0, role: "user", message: "", file: null });
 const loading = ref(false);
-const showNewChatModal = ref(false);
-const newChatTitle = ref("");
 const file = ref<File>();
 const messageContainerRef = ref<HTMLElement | null>(null);
 const isShowValues = ref(false);
@@ -850,9 +828,7 @@ watch(
   { immediate: true }
 );
 
-watch(uploadedFilePath, (newVal, oldVal) => {
-  if (oldVal) URL.revokeObjectURL(oldVal);
-});
+
 
 onMounted(async () => {
   mode.value = localStorage.getItem("theme") || "auto";
@@ -1023,11 +999,8 @@ const createNewChat = async () => {
     const response = await IntelligenceArtificial.createSession();
     selectedChatId.value = response.data.id;
 
-    newChatTitle.value = "";
   } catch (error) {
     console.error("Erro ao criar chat:", error);
-  } finally {
-    showNewChatModal.value = false;
   }
 };
 
@@ -1085,7 +1058,7 @@ const loadMessages = async () => {
 };
 
 const sendMessage = async () => {
-  if (!newMessage.value) {
+  if (!newMessage.value.message) {
     toast({
       title: "Adicione um Texto",
     });
@@ -1098,24 +1071,18 @@ const sendMessage = async () => {
   } else {
     const userMessage = {
       chat_id: selectedChatId.value,
-      message: newMessage.value,
-      file: file.value,
-      project_id: selectedProjectId.value,
+      message: newMessage.value.message,
+      file:  newMessage.value.file,
+      project_id: activeGroupProject.value?.project_id,
     };
 
     loading.value = true;
-
+    newMessage.value.id = messages.value.length;
     try {
-      messages.value.push({
-        message: newMessage.value,
-        file: uploadedFilePath.value,
-        role: "user",
-        id: messages.value.length,
-      });
+      messages.value.push(newMessage.value);
       scrollToBottom();
 
-      newMessage.value = "";
-      uploadedFilePath.value = null;
+      newMessage.value = { id: 0, role: "user", message: "", file: null };
 
       const response = await IntelligenceArtificial.sendMessage(userMessage);
       file.value = undefined;
@@ -1138,16 +1105,11 @@ const sendMessage = async () => {
   }
 };
 
-const extractFileName = (url: string): string => {
-  return url.split("/").pop() || "";
-};
-
 async function handleFileUpload(event: Event) {
   const target = event.target as HTMLInputElement;
   if (!target.files?.length) return;
-
-   file.value = target.files[0];
-  uploadedFilePath.value = file.value.name;
+    file.value = target.files[0];
+    newMessage.value.file = file.value;
 }
 
 </script>

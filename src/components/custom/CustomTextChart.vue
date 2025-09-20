@@ -132,16 +132,17 @@ onBeforeUnmount(() => stopTyping());
 
 <style>
 .typing-container {
+
+
+}
+
+.typing-content {
   line-height: 1.25;
   white-space: wrap;
   word-wrap: break-word;
   overflow-wrap: anywhere;
   color: inherit;
   font-size: .8rem;
-
-}
-
-.typing-content {
 }
 
 .typing-container h1 { font-size: 1.1rem; font-weight: bold; margin:  .6rem 0; }
