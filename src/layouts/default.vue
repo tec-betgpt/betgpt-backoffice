@@ -300,157 +300,145 @@
       collapsible="offcanvas"
       @update:modelValue="handleSidebarAiUpdate"
     >
-
-
-      <div class="flex  px-4 py-2 justify-between items-center align-middle ">
-        <h1 class="font-bold">Elevate IA</h1>
-        <Button
-            variant="ghost"
-            @click="
+      <SidebarHeader>
+        <div class="flex justify-end items-center align-middle p-4 gap-6">
+          <Plus :stroke-width="2"
+                class="cursor-pointer"
+                absoluteStrokeWidth
+                @click="
                 async () => {
                   selectedChatId = undefined;
                   messages = []
                   file = undefined;
+                  uploadedFilePath = null;
                   // await createNewChat();
                   // await loadMessages();
                 }
               "
-        >
-          <SquarePen /> Novo Chat
-        </Button>
-      </div>
-      <div class="flex flex-nowrap px-4 gap-2 h-full">
-        <div class="h-full pr-2 border-r w-2/5">
-          <p class="text-[16px] pb-4">Histórico</p>
-          <div class="card max-h-16 overflow-y-scroll overflow-x-hidden">
-            <p
-                v-for="chat in chats"
-                :key="chat.id"
-                @click="selectChat(chat.id)"
-                class="border-b-2 text-[12px] cursor-pointer truncate py-2 font-semibold"
-            >
-              {{ chat.title }}
-            </p>
-          </div>
-        </div>
-        <div class="flex flex-col w-4/5 h-full">
-          <div ref="messageContainerRef" class="overflow-scroll overflow-x-hidden h-3/5  p-2">
-            <div v-for="(message, index) in messages" :key="message.id" class="mb-4">
-              <div
-                  class="space-x-2 pb-2"
-                  :class="
-                message.role === 'user'
-                ? 'flex justify-end'
-                : 'flex justify-start'
-                "
-              >
-                <Avatar class="h-4 w-4 rounded-lg">
-                  <AvatarImage
-                      :src="message.role === 'user' ? authStore.user?.icon : iconIa"
-                  />
-                  <AvatarFallback class="rounded-lg">
-                    {{ authStore.user?.initials }}
-                  </AvatarFallback>
-                </Avatar>
-                <p class="text-[10px]">
-                  {{ message.role === "user" ? "Você" : "I.A" }}
+          />
+          <Popover>
+            <PopoverTrigger as-child>
+              <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
+            </PopoverTrigger>
+            <PopoverContent align="end" class="w-80">
+              <ScrollArea  type="scroll" class=" overflow-x-hidden max-h-44">
+                <p
+                    v-for="chat in chats"
+                    :key="chat.id"
+                    @click="selectChat(chat.id)"
+                    class=" text-[12px] cursor-pointer truncate p-2 font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  {{ chat.title }}
                 </p>
-              </div>
-              <CustomTextChart
-                  :class="
-                message.role === 'user'
-                  ? ' text-end justify-end'
-                  : 'flex-col text-start justify-start'
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <div v-if="messages.length == 0 || file" class="p-4 text-center  flex flex-col justify-center align-middle items-center text-sm h-full font-semibold">
+          <img :src="logoInChat" class="size-12"/>
+          <span>Como posso ajudar?</span>
+        </div>
+        <ScrollArea  v-else ref="messageContainerRef" type="hover" class=" overflow-x-hidden  h-full  px-6">
+          <div v-for="(message, index) in messages" :key="message.id" class="mb-4">
+            <div
+                class="space-x-2 pb-2"
+                :class="
+              message.role === 'user'
+              ? 'flex justify-end'
+              : 'flex justify-start'
               "
-                  :html="message.message"
-                  :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
-                  :speed="8"
-                  @tick="scrollToBottom"
-                  @done="()=>{
-                  isAnimating = false
-                  isInputDisabled = false
-                }" />
-            </div>
-            <div v-if="loading" class="flex flex-col gap-2">
+            >
               <Avatar class="h-4 w-4 rounded-lg">
-                <AvatarImage :src="iconIa" />
+                <AvatarImage
+                    :src="message.role === 'user' ? authStore.user?.icon : iconIa"
+                />
                 <AvatarFallback class="rounded-lg">
                   {{ authStore.user?.initials }}
                 </AvatarFallback>
               </Avatar>
-              <div class="loading-dots">
-                <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
-              </div>
+              <p class="text-[10px]">
+                {{ message.role === "user" ? "Você" : "I.A" }}
+              </p>
             </div>
-            <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2">
-              <Badge>
-                {{file.name}}
-              </Badge>
-              <Button v-if="!loading" variant="ghost" @click="()=>{
-              file = undefined
-              uploadedFilePath = null
-            }">
-                <Trash/>
-              </Button>
+            <CustomTextChart
+                :class="
+              message.role === 'user'
+                ? ' text-end justify-end'
+                : 'flex-col text-start justify-start'
+            "
+                :html="message.message"
+                :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
+                :speed="8"
+                @tick="scrollToBottom"
+                @done="()=>{
+                isAnimating = false
+                isInputDisabled = false
+              }" />
+          </div>
+          <div v-if="loading" class="flex flex-col gap-2">
+            <Avatar class="h-4 w-4 rounded-lg">
+              <AvatarImage :src="iconIa" />
+              <AvatarFallback class="rounded-lg">
+                {{ authStore.user?.initials }}
+              </AvatarFallback>
+            </Avatar>
+            <div class="loading-dots">
+              <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
             </div>
           </div>
-          <div class="p-4  flex  flex-col  h-2/5 gap-2">
-            <div class="relative">
-              <Textarea
-                placeholder="Digite aqui..."
-                @keyup.enter="!isInputDisabled && sendMessage()"
-                v-model="newMessage"
-                class="h-36 resize-none pb-20"
-              />
-              <div class="absolute z-10 bottom-2 left-2">
-                <Select v-model="selectedProjectId" >
-                  <SelectTrigger class="">
-                    {{ selectedProjectId
-                      ? workspaceStore.group_projects.find(p => p.project_id === selectedProjectId)?.name
-                      : 'Selecione um projeto' }}
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="project in workspaceStore.group_projects"
-                      :key="project.project_id"
-                      :value="project.project_id"
-                    >
-                      {{ project.name }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <Button
-                class="bg-[#947c2c] transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                @click="sendMessage"
-                :disabled="isInputDisabled"
-            >
-              Enviar
-            </Button>
-            <Label
-                for="file"
-                class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer transition-colors"
-                :class="{
-                    'hover:bg-gray-100 dark:hover:bg-gray-800': !isInputDisabled,
-                    'opacity-50 cursor-not-allowed': isInputDisabled
-                  }"
-            >
-              <Paperclip :size="16" /> Anexar arquivo
-            </Label>
-            <Input
-                id="file"
-                type="file"
-                class="hidden"
-                @change="handleFileUpload"
-                :disabled="isInputDisabled" />
-
-            <p class="text-[8px]">
-              As respostas podem mostrar informações imprecisas qualquer duvida entre em contato conosco.
-            </p>
-          </div>
+        </ScrollArea>
+        <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2">
+          <Badge class="p-4">
+            {{file.name}}
+          </Badge>
+          <Button v-if="!loading" variant="ghost" @click="()=>{
+            file = undefined
+            uploadedFilePath = null
+          }">
+            <Trash/>
+          </Button>
         </div>
-      </div>
+      </SidebarContent>
+      <SidebarFooter >
+        <div class="relative w-full items-center">
+           <Button  variant="ghost"
+                    @click="sendMessage"
+                  :disabled="isInputDisabled"
+                  class="absolute end-0 flex items-center justify-center h-full">
+                <SendHorizontal  stroke-width="2.5"  absoluteStrokeWidth class="cursor-pointer"/>
+            </Button>
+          <span class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2">
+            <Popover >
+              <PopoverTrigger as-child>
+                <Ellipsis :stroke-width="2.5"  absoluteStrokeWidth class="cursor-pointer"  />
+              </PopoverTrigger>
+              <PopoverContent align="start"  :alignOffset="-8" :sideOffset="16" :arrowPadding="0" class="w-56 ">
+                <div class="flex flex-col gap-2 text-sm">
+                  <Label for="file" class="cursor-pointer truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center
+                   font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+                  > <Paperclip class="size-4" />Anexar</Label>
+               <Input
+                   id="file"
+                   type="file"
+                   class="hidden"
+                   @change="handleFileUpload"
+                   :disabled="isInputDisabled" />
+                </div>
+              </PopoverContent>
+            </Popover>
+          </span>
+          <Input id="search"
+                 @keyup.enter="!isInputDisabled && sendMessage()"
+                 v-model="newMessage"
+                 type="text"
+                 placeholder="Pergunte alguma coisa"
+                 class="px-10 h-12" />
+
+        </div>
+
+      </SidebarFooter>
     </Sidebar>
   </SidebarProvider>
 </template>
@@ -463,10 +451,18 @@ import {
   SquarePen,
   EyeClosed,
   Eye,
-  Trash
+  Trash,
+    History,
+    Ellipsis,
+  SendHorizontal
 } from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -531,9 +527,9 @@ import {
   DollarSignIcon,
   Blocks,
   Logs,
-  History,
   UserCog,
   LayoutList,
+    Plus
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -545,21 +541,17 @@ import CustomLoading from "@/components/custom/CustomLoading.vue";
 import { useConfigStore } from "@/stores/config";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
+import { Button } from "@/components/ui/button";
 import CustomTextChart from "@/components/custom/CustomTextChart.vue";
-import {Select, SelectContent, SelectItem, SelectTrigger} from "@/components/ui/select";
+import {Badge} from "@/components/ui/badge";
 
 interface BreadcrumbItem {
   name: string;
@@ -618,7 +610,6 @@ const isInputDisabled = computed(() => loading.value || isAnimating.value);
 const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
 );
-console.log(activeGroupProject)
 const selectedProjectId = ref<number | undefined>(activeGroupProject.value?.project_id);
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
@@ -641,6 +632,9 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 const logoSrc = computed(() =>
   getLogoSrc(mode.value === "dark", sidebarExpanded.value)
 );
+const logoInChat = computed(() =>
+    getLogoSrc(mode.value === "dark", false)
+);
 const iconIa = computed(() => {
   return mode.value === "dark"
     ? "/logo-elevate-square-white.png"
@@ -648,8 +642,8 @@ const iconIa = computed(() => {
 });
 const logoCustomAi = computed(() => {
   return mode.value === "dark"
-    ? "/svg/elevate-ai-white.svg"
-    : "/svg/elevate-ai-black.svg";
+    ? "/svg/logo-ia-v1-white.svg"
+    : "/svg/logo-ia-v1-black.svg";
 });
 
 const navMenu = computed(() => {
@@ -1059,6 +1053,8 @@ const deleteChat = async (chatId: number) => {
 
 const selectChat = async (chatId: number) => {
   selectedChatId.value = chatId;
+  localStorage.setItem('chatId', `${chatId}`)
+
   await loadMessages();
 };
 
@@ -1072,12 +1068,14 @@ const loadMessages = async () => {
     const data = await IntelligenceArtificial.getSession({
       chat_id: selectedChatId.value,
     });
+
     messages.value = data.data.map((message: any) => ({
       id: message.id,
       role: message.role,
       message: marked.parse(message.message[0]),
       file: null,
     }));
+    console.log(messages.value)
     scrollToBottom();
   } catch (error) {
     console.error("Erro ao carregar mensagens:", error);
@@ -1150,7 +1148,6 @@ async function handleFileUpload(event: Event) {
 
    file.value = target.files[0];
   uploadedFilePath.value = file.value.name;
-  uploadProgress.value = 0;
 }
 
 </script>

@@ -132,23 +132,22 @@ onBeforeUnmount(() => stopTyping());
 
 <style>
 .typing-container {
-  font-size: 12px;
   line-height: 1.25;
   white-space: wrap;
   word-wrap: break-word;
   overflow-wrap: anywhere;
   color: inherit;
-
+  font-size: .8rem;
 
 }
 
 .typing-content {
 }
 
-.typing-container h1 { font-size: 1.2rem; font-weight: bold; margin:  .6rem 0; }
-.typing-container h2 { font-size: 1.1rem; font-weight: bold; margin:  .6rem 0; }
-.typing-container h3 { font-size: 1rem; font-weight: 600; margin: .6rem 0; }
-.typing-container p { margin: 0.15rem 0; }
+.typing-container h1 { font-size: 1.1rem; font-weight: bold; margin:  .6rem 0; }
+.typing-container h2 { font-size: 1rem; font-weight: bold; margin:  .6rem 0; }
+.typing-container h3 { font-size: .9rem; font-weight: 600; margin: .6rem 0; }
+.typing-container p {  font-size: .8rem; margin: 0.15rem 0; }
 .typing-container pre,
 .typing-container code {
   font-family: monospace;
