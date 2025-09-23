@@ -302,24 +302,58 @@
     >
       <SidebarHeader>
         <div class="flex justify-end items-center align-middle p-4 gap-6">
-          <Plus :stroke-width="2"
-                class="cursor-pointer"
-                absoluteStrokeWidth
-                @click="
-                async () => {
-                  selectedChatId = undefined;
-                  messages = []
-                  file = undefined;
-                  newMessage = { id: 0, role: 'user', message: '', file: null };
-                  // await createNewChat();
-                  // await loadMessages();
-                }
-              "
-          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Plus :stroke-width="2"
+                      class="cursor-pointer"
+                      absoluteStrokeWidth
+                      @click="resetChat"
+                />
+              </TooltipTrigger>
+              <TooltipContent
+                  side="bottom"
+                  align="end"
+                  :align-offset="4"
+                  :arrow-padding="8"
+                  avoid-collisions
+                  :collision-padding="10"
+                  hide-when-detached
+                  position-strategy="absolute"
+                  sticky="always"
+                  update-position-strategy="optimized"
+                  :collision-boundary="null"
+              >
+                Nova sessão
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <Popover>
-            <PopoverTrigger as-child>
-              <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
-            </PopoverTrigger>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <PopoverTrigger as-child>
+                    <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent
+                    side="bottom"
+                    align="end"
+                    :align-offset="4"
+                    :arrow-padding="8"
+                    avoid-collisions
+                    :collision-padding="10"
+                    hide-when-detached
+                    position-strategy="absolute"
+                    sticky="always"
+                    update-position-strategy="optimized"
+                    :collision-boundary="null"
+                >
+                  Histórico
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <PopoverContent align="end" class="w-80 p-2">
               <div   class=" overflow-x-hidden max-h-44">
                 <p
@@ -336,9 +370,21 @@
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <div v-if="messages.length == 0" class="p-4 text-center  flex flex-col justify-center align-middle items-center text-sm h-full font-semibold">
-          <img :src="logoInChat" class="size-12" alt="logoInChat"/>
-          <span>Como posso ajudar?</span>
+        <div v-if="messages.length == 0 && !file" class="p-4 text-center  flex flex-col justify-center align-middle items-center text-sm h-full font-semibold">
+          <div class="h-full flex flex-col justify-end items-center">
+            <img :src="logoInChat" class="size-12" alt="logoInChat"/>
+            <span>Como posso ajudar?</span>
+          </div>
+
+          <div  class="  h-full flex flex-col justify-end  items-center pb-2 gap-2 w-full">
+            <div v-if="suggestionList.length>0" v-for="suggestion in suggestionList" @click="()=>{
+              newMessage.message = suggestion
+              sendMessage()
+            }" class="p-2 rounded-xl bg-accent/60 text-accent-foreground/80 w-full flex gap-2 items-center cursor-pointer hover:bg-accent ">
+              <Search :size="18" />  <span class="text-[12px] text-muted-foreground">{{suggestion}}</span>
+            </div>
+            <Skeleton v-else v-for="n in 4" class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full "/>
+          </div>
         </div>
         <div v-else ref="messageContainerRef" type="hover" class=" overflow-x-hidden  h-full  px-6">
 
@@ -347,7 +393,7 @@
                 class="mb-6 last:mb-20"
                 :class="
                 message.role === 'user'
-                  ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-sm ml-auto '
+                  ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
                   : 'flex-col text-start justify-start'
             "
                 :html="message.message"
@@ -383,7 +429,7 @@
         </div>
       </SidebarContent>
       <SidebarFooter >
-        <div class="relative w-full items-center">
+        <div class="relative w-full items-center mb-2">
            <Button  variant="link"
                     @click="sendMessage"
                   :disabled="isInputDisabled"
@@ -392,9 +438,30 @@
             </Button>
           <span class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2">
             <Popover >
-              <PopoverTrigger as-child>
-                <Ellipsis :stroke-width="2.5"  absoluteStrokeWidth class="cursor-pointer"  />
-              </PopoverTrigger>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <PopoverTrigger as-child>
+                        <Ellipsis :stroke-width="2.5"  absoluteStrokeWidth class="cursor-pointer"  />
+                      </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent
+                        side="top"
+                        align="start"
+                        :align-offset="-4"
+                        :arrow-padding="8"
+                        avoid-collisions
+                        :collision-padding="10"
+                        hide-when-detached
+                        position-strategy="absolute"
+                        sticky="always"
+                        update-position-strategy="optimized"
+                        :collision-boundary="null"
+                    >
+                      Opcões
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               <PopoverContent align="start"  :alignOffset="-8" :sideOffset="16" :arrowPadding="0" class="w-56 p-2">
                 <div class="flex flex-col gap-2 text-sm">
                   <Label for="file" class="cursor-pointer text-sm truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center
@@ -436,7 +503,8 @@ import {
   Trash,
     History,
     Ellipsis,
-  SendHorizontal
+  SendHorizontal,
+    Search
 } from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -534,6 +602,7 @@ import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 import {Badge} from "@/components/ui/badge";
+import {Skeleton} from "@/components/ui/skeleton";
 
 interface BreadcrumbItem {
   name: string;
@@ -545,7 +614,7 @@ interface Chat {
   title: string;
 }
 interface Message {
-  id: number;
+  id: number | undefined;
   role: "user" | "assistant";
   message: string;
   file: File | null;
@@ -575,7 +644,7 @@ const router = useRouter();
 
 // Chat e mensagens
 const chats = ref<Chat[]>([]);
-const selectedChatId = ref<number | undefined>();
+const selectedChatId = ref<number | undefined>(undefined);
 const messages = ref<Message[]>([]);
 const newMessage = ref<Message>({ id: 0, role: "user", message: "", file: null });
 const loading = ref(false);
@@ -584,6 +653,7 @@ const messageContainerRef = ref<HTMLElement | null>(null);
 const isShowValues = ref(false);
 const isAnimating = ref(false);
 const isInputDisabled = computed(() => loading.value || isAnimating.value);
+const suggestionList = ref([])
 // Computed
 const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
@@ -837,6 +907,7 @@ onMounted(async () => {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
     await loadChats();
     await selectChat(Number(localStorage.getItem('chatId')))
+    await getSuggestions()
   }
   settingSidebarIA();
 });
@@ -985,6 +1056,7 @@ const loadChats = async () => {
   loading.value = true;
 
   try {
+
     const data = await IntelligenceArtificial.getListSessions();
     chats.value = data.data;
   } catch (err) {
@@ -993,7 +1065,10 @@ const loadChats = async () => {
 
   loading.value = false;
 };
-
+const getSuggestions = async () => {
+  const suggestions = await IntelligenceArtificial.getSuggestions();
+  suggestionList.value  = suggestions.data
+}
 const createNewChat = async () => {
   try {
     const response = await IntelligenceArtificial.createSession();
@@ -1025,9 +1100,9 @@ const deleteChat = async (chatId: number) => {
 };
 
 const selectChat = async (chatId: number) => {
+  if (chatId == 0 ) return
   selectedChatId.value = chatId;
   localStorage.setItem('chatId', `${chatId}`)
-
   await loadMessages();
 };
 
@@ -1065,7 +1140,7 @@ const sendMessage = async () => {
     return;
   }
 
-  if (selectedChatId.value === undefined) {
+  if (selectedChatId.value == undefined) {
     await createNewChat();
     await sendMessage();
   } else {
@@ -1111,7 +1186,15 @@ async function handleFileUpload(event: Event) {
     file.value = target.files[0];
     newMessage.value.file = file.value;
 }
+async function resetChat(){
+  selectedChatId.value = undefined;
+  localStorage.removeItem('chatId')
+  messages.value = []
+  file.value = undefined;
+  newMessage.value = { id: undefined, role: 'user', message: '', file: null };
+  loadChats()
 
+}
 </script>
 <style>
 .loading-dots {
