@@ -1,6 +1,7 @@
 import axios from "axios";
 import i18n from "@/i18n";
 import Swal from "sweetalert2";
+import { useToast } from "@/components/ui/toast/use-toast";
 
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_PUBLIC_API_URL}/v1`,
@@ -15,6 +16,7 @@ function showDialog(options) {
     icon: options.type === "critical" ? "error" : "info",
     confirmButtonText: options.assistiveButton,
     width: options.size === "large" ? "600px" : "400px",
+    customClass: 'z-50'
   });
 }
 
@@ -32,6 +34,7 @@ api.interceptors.response.use(
     }
 
     if (error.response && error.response.status === 422) {
+      const { toast } = useToast()
       const fields = []
 
       Object.entries(error.response.data.errors).forEach(([key, value]) => {
@@ -40,12 +43,10 @@ api.interceptors.response.use(
           : fields.push(value)
       });
 
-      Swal.fire({
+      toast({
         title: i18n.global.t("attention"),
-        html: fields.join('<br>'),
-        icon: "warning",
-        confirmButtonText: i18n.global.t("close"),
-        width: "350px"
+        description: fields.join('<br>'),
+        variant: 'destructive',
       });
     }
 

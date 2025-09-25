@@ -1,185 +1,167 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">
-        Gerenciamento Financeiro
-      </h2>
-      <p class="text-muted-foreground">
-        Adicione e gerencie custos, receitas e métricas financeiras para
-        melhorar o controle do seu orçamento.
-      </p>
+    <div class="grid min-[900px]:grid-cols-2 gap-4 pb-10">
+      <div>
+        <h2 class="text-2xl font-bold tracking-tight">Gerenciamento Financeiro</h2>
+        <p class="text-muted-foreground">
+          Adicione e gerencie custos, receitas e métricas financeiras para
+          melhorar o controle do seu orçamento.
+        </p>
+      </div>
+      <div class="flex items-center justify-start w-full">
+        <div class="flex flex-col items-center justify-end sm:flex-row gap-2 w-full">
+          <CreateDialogComponent :costs="costs" :reload="fetchFinancials" />
+        </div>
+      </div>
     </div>
+
     <div class="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle>Financeiro</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CustomDataTable
-            :loading="loadingFinancials"
-            :data="financial"
-            :columns="columns"
-            :find="fetchFinancials"
-            :update-text="handleFinancialName"
-            :search-fields="[
-              {
-                key: 'description',
-                label: '',
-                placeholder: 'Buscar por descrição...',
-              },
-            ]"
-          />
-          <CustomPagination :select-page="fetchFinancials"
-                            :pages="pages"
-                            :per_pages="perPage"
-                            @update:perPages="(valueUpdater) => perPage = valueUpdater"
+        <CardContent class="pt-6">
+          <div class="flex justify-end">
+            <div class="flex w-full max-w-sm items-center gap-1.5">
+              <Input v-model="search" type="search" placeholder="Buscar por descrição" />
+              <Button type="submit" @click="fetchFinancials()">
+                Buscar
+              </Button>
+            </div>
+          </div>
 
-          />
+          <Table class="w-full mt-4">
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  Centro de Custo
+                </TableHead>
+                <TableHead>
+                  Categoria
+                </TableHead>
+                <TableHead>
+                  <OrderButton
+                    align="right"
+                    label="Valor"
+                    column="amount"
+                    :orderId="orderId"
+                    :order="order"
+                    :onOrder="handlerOrder"
+                  />
+                </TableHead>
+
+                <TableHead>
+                  <OrderButton
+                    align="right"
+                    label="Data"
+                    column="date"
+                    :orderId="orderId"
+                    :order="order"
+                    :onOrder="handlerOrder"
+                  />
+                </TableHead>
+                <TableHead class="text-right">
+                  Descrição
+                </TableHead>
+                <TableHead>
+                  <OrderButton
+                    align="right"
+                    label="Porcentagem"
+                    column="percentage"
+                    :orderId="orderId"
+                    :order="order"
+                    :onOrder="handlerOrder"
+                  />
+                </TableHead>
+                <TableHead class="text-right">
+                  Tipo
+                </TableHead>
+                <TableHead class="text-right">
+                  Ações
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              <TableRow v-if="loading" v-for="row in 7" :key="row">
+                <TableCell v-for="col in 8" :key="col">
+                  <Skeleton class="h-4 w-full bg-gray-300 my-4" />
+                </TableCell>
+              </TableRow>
+
+              <transition-group
+                v-else
+                appear
+                enter-active-class="enter-active"
+                enter-from-class="enter"
+                enter-to-class="enter-to"
+              >
+                <TableRow v-for="(row, index) in financial" :key="row.id" :style="`--delay: ${getMs(index)}`">
+                  <TableCell>
+                    {{ row.costCenter }}
+                  </TableCell>
+                  <TableCell>
+                    {{ row.category_type === "fixed" ? "Fixa" : "Variavel" }}
+                  </TableCell>
+                  <TableCell class="text-right">
+                    {{ toCurrency(Number.parseInt(row.amount)) }}
+                  </TableCell>
+                  <TableCell class="text-right">
+                    {{ $moment(row.date).format("DD/MM/YYYY") }}
+                  </TableCell>
+                  <TableCell class="text-right">
+                    {{ row.description }}
+                  </TableCell>
+                  <TableCell class="text-right">
+                    {{ row.percentage ?? 0 }}%
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <Badge v-if="row.type === 'revenue'" class="bg-green-500 text-white">Receita</Badge>
+                    <Badge v-else variant="outline" class="bg-red-500 text-white">Custo</Badge>
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <div class="flex gap-2 flex-nowrap">
+                      <EditDialogComponent :reload="fetchFinancials" :row="row" :costs="costs" />
+                      <DestroyDialogComponent :reload="fetchFinancials" :row="row" :destroy="deleteFinancial" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </transition-group>
+            </TableBody>
+          </Table>
         </CardContent>
-        <CardFooter class="flex justify-start">
-          <Button @click="openSheet('financeiro')">Novo Registro</Button>
-        </CardFooter>
       </Card>
+
+      <CustomPagination
+        :select-page="fetchFinancials"
+        :pages="pages"
+        :per_pages="perPage"
+        @update:perPages="(valueUpdater) => perPage = valueUpdater"
+      />
     </div>
   </div>
 
-  <Sheet v-model:open="showModal">
-    <SheetContent position="right" size="lg">
-      <SheetHeader>
-        <SheetTitle>
-          {{ isEditing ? `Editar ${form.type}` : `Novo ${form.type}` }}
-        </SheetTitle>
-        <SheetDescription>
-          {{
-            isEditing
-              ? `Edite as informações do ${form.type}.`
-              : `Crie um novo ${form.type}.`
-          }}
-        </SheetDescription>
-      </SheetHeader>
 
-      <form @submit.prevent="submitFinancial()">
-        <div class="grid gap-4 py-4">
-          <template v-if="form.type === 'financeiro'">
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="cost_center_id">Centro de Custo</Label>
-              <Select v-model="financialForm.cost_center_id">
-                <SelectTrigger class="col-span-3">
-                  <SelectValue placeholder="Selecione um centro de custo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="cost in costs"
-                    :key="cost.id"
-                    :value="cost.id"
-                  >
-                    {{ cost.name }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="type">Tipo</Label>
-              <Select v-model="financialForm.type">
-                <SelectTrigger class="col-span-3">
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cost">Custo</SelectItem>
-                  <SelectItem value="revenue">Receita</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="category_type">Categoria</Label>
-              <Select v-model="financialForm.category_type">
-                <SelectTrigger class="col-span-3">
-                  <SelectValue placeholder="Selecione a categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixed">Fixo</SelectItem>
-                  <SelectItem value="variable">Variável</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="percentage">Porcentagem (%)</Label>
-              <Input
-                id="percentage"
-                v-model="financialForm.percentage"
-                type="number"
-                placeholder="Opcional"
-                class="col-span-3"
-                min="0"
-              />
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="amount">Valor</Label>
-              <Input
-                id="amount"
-                v-model="financialForm.amount"
-                type="number"
-                placeholder="Digite o valor"
-                class="col-span-3"
-                required
-              />
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="description">Descrição</Label>
-              <Input
-                id="description"
-                v-model="financialForm.description"
-                placeholder="Digite uma descrição"
-                class="col-span-3"
-              />
-            </div>
-          </template>
-        </div>
-
-        <SheetFooter>
-          <Button type="submit" :disabled="loadingSub">
-            <LucideSpinner
-              v-if="loadingSub"
-              class="mr-2 h-4 w-4 animate-spin"
-            />
-            {{ loadingSub ? "Salvando..." : isEditing ? "Salvar" : "Criar" }}
-          </Button>
-        </SheetFooter>
-      </form>
-    </SheetContent>
-  </Sheet>
 </template>
 
 <script setup lang="ts">
-import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import { Button } from "@/components/ui/button";
-import { createColumnHelper } from "@tanstack/vue-table";
-import { h, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import FinancialTransaction from "@/services/financialTransactions";
-import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { toast } from "@/components/ui/toast";
-import { MoreHorizontal, ArrowDown, ArrowUp } from "lucide-vue-next";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import moment from "moment/moment";
 import toCurrency from "@/filters/currencyFilter";
-import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CostCenter from "@/services/costCenters";
-import {valueUpdater} from "@/lib/utils";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Skeleton} from "@/components/ui/skeleton";
+import {Card, CardContent} from "@/components/ui/card";
+import OrderButton from "@/components/custom/OrderButton.vue";
+import CreateDialogComponent from "@/components/financial/CreateDialogComponent.vue";
+import EditDialogComponent from "@/components/financial/EditDialogComponent.vue";
+import {Badge} from "@/components/ui/badge";
+import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 
-const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 interface FinancialData {
   id: number;
   costCenter: string;
+  cost_center_id: number;
   category_type: string;
   amount: string;
   date: string;
@@ -187,270 +169,47 @@ interface FinancialData {
   percentage: string;
   type: string;
 }
-const loadingRemove = ref(false);
-function handlerOrder(column: string, direction: boolean) {
-  if (column) {
-    orderId.value = column;
-    order.value = direction;
-  }
-  fetchFinancials();
-}
-const columnHelper = createColumnHelper<FinancialData>();
-const columns = [
-  columnHelper.accessor("id", {
-    header({ column }) {
-      return createHeaderButton(
-        "ID",
-        "id",
-        orderId.value,
-        order.value,
-        handlerOrder
-      );
-    },
-    cell: ({ row }) => h("div", {}, row.getValue("id")),
-  }),
-  columnHelper.accessor("costCenter", {
-    header: "Centro de Custo",
-    cell: ({ row }) =>
-      h("div", { class: "capitalize" }, row.getValue("costCenter")),
-  }),
-  columnHelper.accessor("category_type", {
-    header: "Categoria",
-    cell: ({ row }) =>
-      h(
-        "div",
-        { class: "capitalize" },
-        row.getValue("category_type") == "fixed" ? "Fixa" : "Variavel"
-      ),
-  }),
-  columnHelper.accessor("amount", {
-    header({ column }) {
-      return createHeaderButton(
-        "Valor",
-        "value",
-        orderId.value,
-        order.value,
-        handlerOrder
-      );
-    },
-    cell: ({ row }) =>
-      h("div", {}, toCurrency(Number.parseInt(row.getValue("amount")))),
-  }),
-  columnHelper.accessor("date", {
-    header({ column }) {
-      return createHeaderButton(
-        "Data",
-        "date",
-        orderId.value,
-        order.value,
-        handlerOrder
-      );
-    },
-    cell: ({ row }) =>
-      h("div", {}, moment(row.getValue("date")).format("DD/MM/YYYY")),
-  }),
-  columnHelper.accessor("description", {
-    header: "Descrição",
-    cell: ({ row }) => h("div", {}, row.getValue("description")),
-  }),
-  columnHelper.accessor("percentage", {
-    header({ column }) {
-      return createHeaderButton(
-        "Porcentagem",
-        "percentage",
-        orderId.value,
-        order.value,
-        handlerOrder
-      );
-    },
 
-    cell: ({ row }) =>
-      h(
-        "div",
-        {},
-        `${row.getValue("percentage") ? row.getValue("percentage") : "0"}%`
-      ),
-  }),
-  columnHelper.accessor("type", {
-    header: "Tipo",
-    cell: ({ row }) =>
-      h("div", {}, row.getValue("type") == "revenue" ? "Receita" : "Custo"),
-  }),
-  columnHelper.display({
-    id: "actions",
-    header({ column }) {
-      return "Ações";
-    },
-    cell: ({ row }) =>
-      h(DropdownMenu, {}, [
-        h(
-          DropdownMenuTrigger,
-          { asChild: true },
-          h(
-            Button,
-            {
-              "aria-haspopup": "true",
-              size: "icon",
-              variant: "ghost",
-              disabled: loadingRemove.value || loading.value,
-            },
-            [
-              h(MoreHorizontal, { class: "h-4 w-4" }),
-              h("span", { class: "sr-only" }, "Ações"),
-            ]
-          )
-        ),
-        h(DropdownMenuContent, { align: "end" }, [
-          h(DropdownMenuLabel, {}, "Ações"),
-          h(DropdownMenuSeparator, {}),
-          h(
-            DropdownMenuItem,
-            {
-              onClick: () => {
-                const item = row.original;
-                handleEdit(item, "financeiro"); // Função para abrir o modal de edição
-              },
-            },
-            "Editar"
-          ),
-          h(
-            DropdownMenuItem,
-            {
-              onClick: () => {
-                const itemId = row.original.id;
-                deleteFinancial(itemId); // Função para remover o item pelo ID
-              },
-            },
-            h("div", { class: "flex items-center" }, "Remover")
-          ),
-        ]),
-      ]),
-  }),
-];
-
-const form = ref({ type: "" });
-const financialForm = ref({});
+// data
+const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
+const search = ref(null);
 const orderId = ref("name");
 const order = ref(false);
 const perPage = ref("10");
-watch(perPage,()=>{
-  fetchFinancials(1);
-})
-const openSheet = (type) => {
-  form.value.type = type;
-  isEditing.value = false;
-  financialForm.value = {
-    id: null,
-    cost_center_id: null,
-    type: "",
-    category_type: "",
-    percentage: null,
-    amount: null,
-    date: "",
-    description: "",
-    user_id: null,
-  };
-  showModal.value = true;
-};
-
-const handleEdit = (item, type) => {
-  form.value.type = type;
-  isEditing.value = true;
-  financialForm.value = {
-    id: item.id,
-    cost_center_id: item.cost_center_id || null,
-    type: item.type || "",
-    category_type: item.category_type || "",
-    percentage: item.percentage || 0,
-    amount: item.amount || null,
-    date: item.date || "",
-    description: item.description || "",
-    user_id: item.user_id || null,
-  };
-
-  showModal.value = true;
-};
-
-const deleteFinancial = async (id: number) => {
-  loading.value = true;
-
-  try {
-    await FinancialTransaction.destroy(id)
-    toast({
-      title: "Transação financeira deletada com sucesso!",
-      description: `A transação financeira com ID ${id} foi removida.`,
-      variant: "success",
-    });
-    await fetchFinancials();
-  } catch (error) {
-    console.error("Erro ao deletar transação financeira:", error);
-    toast({
-      title: "Erro ao deletar transação financeira",
-      description:
-        "Não foi possível remover a transação financeira. Tente novamente.",
-      variant: "destructive",
-    });
-  }
-
-  loading.value = false;
-};
-
-const submitFinancial = async () => {
-  loadingSub.value = true;
-
-  try {
-    if (isEditing.value) {
-      await FinancialTransaction.update(financialForm.value.id, financialForm.value)
-    } else {
-      await FinancialTransaction.store(financialForm.value)
-    }
-    showModal.value = false;
-  } catch (error) {
-    console.error("Erro ao salvar transação financeira:", error);
-  }
-
-  await fetchFinancials();
-  loadingSub.value = false;
-};
-
-const loadingSub = ref(false);
-const showModal = ref(false);
-const isEditing = ref(false);
 const costs = ref([]);
-const financial = ref([]);
-const loadingCosts = ref(true);
-const loadingFinancials = ref(true);
+const financial = ref<FinancialData[]>([]);
 const loading = ref(true);
-const fetchCosts = async () => {
-  loadingCosts.value = true;
-
-  try {
-    const { data } = await CostCenter.index({ filter_id: activeGroupProjectId })
-
-    costs.value = data.data.map((cost) => ({
-      id: cost.id,
-      name: cost.name,
-      sector: cost.sector.name,
-    }));
-  } catch (error) {
-    console.error("Erro ao buscar centros de custo:", error);
-  }
-
-  loadingCosts.value = false;
-};
 const pages = ref({
   current: 1,
   total: 0,
   last: 0,
 });
-const fetchFinancials = async (current = pages.value.current) => {
-  loadingFinancials.value = true;
 
+// methods
+const deleteFinancial = async (id: number) => {
+  try {
+    await FinancialTransaction.destroy(id)
+    await fetchFinancials();
+
+    toast({
+      title: "Removido com sucesso!",
+      description: `Transação financeira foi excluída.`,
+    });
+  } catch (error) {
+    toast({
+      title: "Erro ao remover item",
+      description: "Tente novamente mais tarde.",
+      variant: "destructive",
+    });
+  }
+}
+
+const fetchFinancials = async (current = pages.value.current) => {
   try {
     const { data } = await FinancialTransaction.index({
       page: current,
       filter_id: activeGroupProjectId,
-      name: nameFinancial.value,
+      name: search.value,
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
       per_page:perPage.value,
@@ -459,6 +218,7 @@ const fetchFinancials = async (current = pages.value.current) => {
     financial.value = data.data.map((financial) => ({
       id: financial.id,
       costCenter: financial.cost_center.name,
+      cost_center_id: financial.cost_center_id,
       category_type: financial.category_type,
       amount: financial.amount,
       date: financial.date,
@@ -466,6 +226,7 @@ const fetchFinancials = async (current = pages.value.current) => {
       percentage: financial.percentage,
       type: financial.type,
     }));
+
     pages.value = {
       current: data.current_page,
       total: data.total,
@@ -474,16 +235,46 @@ const fetchFinancials = async (current = pages.value.current) => {
   } catch (error) {
     console.error("Erro ao buscar transações financeiras:", error);
   }
+}
 
-  loadingFinancials.value = false;
-};
+const getCosts = async () => {
+  try {
+    const { data } = await CostCenter.index({ filter_id: activeGroupProjectId })
+
+    costs.value = data.data.map((cost: any) => ({
+      id: cost.id,
+      name: cost.name,
+      sector: cost.sector.name,
+    }));
+  } catch (error) {
+    console.error("Erro ao buscar centros de custo:", error);
+  }
+}
+
+const getMs = (num: number): string => {
+  return (num / 10).toFixed(1) + "s";
+}
+
+const handlerOrder = (column: string, direction: boolean) => {
+  if (column) {
+    orderId.value = column;
+    order.value = direction;
+  }
+
+  fetchFinancials();
+}
+
+// hooks
 onMounted(async () => {
-  await fetchCosts();
+  loading.value = true;
+
+  await getCosts();
   await fetchFinancials();
+
+  loading.value = false;
 });
 
-const nameFinancial = ref();
-const handleFinancialName = (text: string) => {
-  nameFinancial.value = text;
-};
+watch(perPage,() => {
+  fetchFinancials(1);
+})
 </script>
