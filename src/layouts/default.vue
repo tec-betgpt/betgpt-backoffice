@@ -1,8 +1,9 @@
 <template>
-  <SidebarProvider>
+  <SidebarProvider :defaultOpen="false">
     <Sidebar
       class="h-screen"
       collapsible="icon"
+      :openMobile="false"
       @update:modelValue="handleSidebarExpand"
       :collapsed="sidebarExpanded"
     >
@@ -311,8 +312,10 @@
       class="ia"
       side="right"
       :collapsed="sidebarAi"
+      :setOpen="setOpenAi"
       collapsible="offcanvas"
-      @update:modelValue="handleSidebarAiUpdate"
+      :openMobile="false"
+      @update:modelValue="handleSidebarAiExpand"
     >
       <SidebarHeader class="p-4 flex-4">
         <div class="flex justify-between align-middle">
@@ -479,7 +482,6 @@
 import {
   Download,
   Paperclip,
-  X,
   SquarePen,
   EyeClosed,
   Eye,
@@ -533,7 +535,6 @@ import {
   Users2,
   Bot,
   LogOut,
-  Package2,
   ChevronsUpDown,
   Send,
   ChartNoAxesCombined,
@@ -569,7 +570,6 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -608,7 +608,6 @@ const LIGHT_LOGOS = {
 const collapsed = ref("");
 const sidebarExpanded = ref(false);
 const sidebarAi = ref(false);
-const stateResponsive = ref(false);
 const mode: any = useColorMode();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
@@ -619,6 +618,7 @@ const router = useRouter();
 // Chat e mensagens
 const chats = ref<Chat[]>([]);
 const selectedChatId = ref<number | undefined>(undefined);
+const file = ref<File>();
 const selectedModel = ref("openai");
 const messages = ref<Message[]>([]);
 const newMessage = ref("");
@@ -635,6 +635,7 @@ const isShowValues = ref(false);
 const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
 );
+
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [];
 
@@ -650,14 +651,17 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 
   return items;
 });
+
 const logoSrc = computed(() =>
   getLogoSrc(mode.value === "dark", sidebarExpanded.value)
 );
+
 const iconIa = computed(() => {
   return mode.value === "dark"
     ? "/logo-elevate-square-white.png"
     : "/logo-elevate-square-black.png";
 });
+
 const logoCustomAi = computed(() => {
   return mode.value === "dark"
     ? "/svg/elevate-ai-white.svg"
@@ -830,78 +834,9 @@ const navMenu = computed(() => {
   ];
 });
 
-watch(
-  () => route.matched,
-  (matchedRoutes) => {
-    matchedRoutes.forEach((matchedRoute) => {
-      navMenu.value.forEach((group) => {
-        if (group.children && group.type === matchedRoute.path.split("/")[1]) {
-          collapsed.value = group.type;
-        }
-      });
-    });
-  },
-  { immediate: true, deep: true }
-);
-
-watch(
-  activeGroupProject,
-  async () => {
-    if (activeGroupProject.value) {
-      const is = authStore.user?.roles
-        .filter(
-          (role: any) =>
-            role.pivot.project_id === activeGroupProject.value?.project_id
-        )
-        .some(
-          (role: any) =>
-            route.meta.permissions?.includes?.(
-              role.permissions.map((p: any) => p.name)
-            ) ?? true
-        );
-
-      const hasAccess = authStore.user?.access_type === "member" || is;
-
-      if (!hasAccess) await router.push({ name: "home" });
-    }
-  },
-  { immediate: true }
-);
-
-watch(uploadedFilePath, (newVal, oldVal) => {
-  if (oldVal) URL.revokeObjectURL(oldVal);
-});
-
-onMounted(async () => {
-  mode.value = localStorage.getItem("theme") || "auto";
-  const user = authStore.user;
-  if (user) {
-    await workspaceStore.loadInitialData(user.preferences, user.group_projects);
-    await loadChats();
-  }
-  settingSidebarIA();
-});
-
-watch(sidebarAi, () =>
-  localStorage.setItem("sidebarAi", sidebarAi.value ? "1" : "0")
-);
-
-const setResponsive = () => (stateResponsive.value = !stateResponsive.value);
-const settingSidebarIA = () => {
-  const isMobile = window.innerWidth < 768;
-  const savedPreference = localStorage.getItem("sidebarAi");
-
-  if (savedPreference === null) {
-    sidebarAi.value = !isMobile;
-    localStorage.setItem("sidebarAi", !isMobile ? "1" : "0");
-  } else {
-    sidebarAi.value = Boolean(Number(savedPreference));
-  }
-};
-
-const handleSidebarAiUpdate = (value: boolean) => {
-  sidebarAi.value = value;
-  localStorage.setItem("sidebarAi", value ? "1" : "0");
+// Methods
+const handleSidebarAiExpand = () => {
+  sidebarAi.value = false;
 };
 
 function scrollToBottom() {
@@ -1005,11 +940,11 @@ const toggleCollapsed = (type: string) => {
       sidebarExpanded.value = true;
     }
   }
+
   collapsed.value = collapsed.value === type ? "" : type;
 };
 
 const toggleSidebar = () => {
-  setResponsive();
   sidebarExpanded.value = !sidebarExpanded.value;
 };
 
@@ -1018,7 +953,7 @@ const handleSidebarExpand = (value: boolean) => {
 };
 
 const toggleSidebarIA = () => {
-  setResponsive();
+  localStorage.setItem("sidebarAi", sidebarAi.value ? "0" : "1");
   sidebarAi.value = !sidebarAi.value;
 };
 
@@ -1096,7 +1031,7 @@ const loadMessages = async () => {
     loading.value = false;
   }
 };
-const file = ref<File>();
+
 const sendMessage = async () => {
   if (!newMessage.value) {
     toast({
@@ -1161,6 +1096,68 @@ const handleFileUpload = async (event: Event) => {
   file.value = selected;
   uploadedFilePath.value = URL.createObjectURL(selected);
 };
+
+const setOpenAi = () => {
+  const isMobile = window.innerWidth < 768;
+  if (!isMobile) {
+    return sidebarAi.value = localStorage.getItem("sidebarAi") === "1";
+  }
+}
+
+// Hooks
+watch(
+  () => route.matched,
+  (matchedRoutes) => {
+    matchedRoutes.forEach((matchedRoute) => {
+      navMenu.value.forEach((group) => {
+        if (group.children && group.type === matchedRoute.path.split("/")[1]) {
+          collapsed.value = group.type;
+        }
+      });
+    });
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  activeGroupProject,
+  async () => {
+    if (activeGroupProject.value) {
+      const is = authStore.user?.roles
+        .filter(
+          (role: any) =>
+            role.pivot.project_id === activeGroupProject.value?.project_id
+        )
+        .some(
+          (role: any) =>
+            route.meta.permissions?.includes?.(
+              role.permissions.map((p: any) => p.name)
+            ) ?? true
+        );
+
+      const hasAccess = authStore.user?.access_type === "member" || is;
+
+      if (!hasAccess) await router.push({ name: "home" });
+    }
+  },
+  { immediate: true }
+);
+
+watch(uploadedFilePath, (newVal, oldVal) => {
+  if (oldVal) URL.revokeObjectURL(oldVal);
+});
+
+onMounted(async () => {
+  mode.value = localStorage.getItem("theme") || "auto";
+  const user = authStore.user;
+
+  if (user) {
+    await workspaceStore.loadInitialData(user.preferences, user.group_projects);
+    await loadChats();
+  }
+
+  setTimeout(() => setOpenAi(), 100)
+});
 </script>
 <style>
 .loading-dots {
