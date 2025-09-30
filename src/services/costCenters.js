@@ -4,12 +4,12 @@ export default {
   /**
    * GET /v1/cost-centers
    *
-   * @param {object} params
-   * @param {string} params.filter_id
-   * @param {string} params.sort_by
-   * @param {string} params.sort_order
-   * @param {string} params.find_name
-   * @param {string} params.per_page
+   * @param {Partial<object>} params
+   * @param {string|number|null} params.filter_id
+   * @param {string|null} params.sort_by
+   * @param {string|null} params.sort_order
+   * @param {string|null} params.find_name
+   * @param {number|null} params.per_page
    */
   async index (params = {}) {
     const { data } = await api.get('/cost-centers', { params })

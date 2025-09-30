@@ -20,12 +20,13 @@ export default {
    * POST /v1/financial-transactions
    *
    * @param {object} body
-   * @param {number} body.cost_center_id
+   * @param {number|null} body.cost_center_id
    * @param {string} body.type
    * @param {string} body.category_type
-   * @param {number} body.percentage
-   * @param {number} body.amount
+   * @param {number|null} body.percentage
+   * @param {number|null} body.amount
    * @param {string} body.description
+   * @param {string|null} body.project_id
    */
   async store (body) {
     const { data } = await api.post('/financial-transactions', body)
