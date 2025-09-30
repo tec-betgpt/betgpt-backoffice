@@ -1191,9 +1191,6 @@ watch(
   { immediate: true }
 );
 
-watch(uploadedFilePath, (newVal, oldVal) => {
-  if (oldVal) URL.revokeObjectURL(oldVal);
-});
 
 onMounted(async () => {
   mode.value = localStorage.getItem("theme") || "auto";
