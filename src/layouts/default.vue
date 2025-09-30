@@ -1,8 +1,9 @@
 <template>
-  <SidebarProvider>
+  <SidebarProvider :defaultOpen="false">
     <Sidebar
       class="h-screen"
       collapsible="icon"
+      :openMobile="false"
       @update:modelValue="handleSidebarExpand"
       :collapsed="sidebarExpanded"
     >
@@ -27,15 +28,13 @@
                   size="lg"
                   class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                  <div
-                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground"
-                  >
+                  <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground">
                     <Avatar shape="square" class="size-7">
                       <AvatarImage
                         v-if="activeGroupProject && activeGroupProject.logo"
                         :src="activeGroupProject.logo"
                       />
-                      <AvatarImage v-else src="/default-company.jpg" />
+                      <AvatarImage v-else src="/default-project.jpg" />
                       <AvatarFallback class="uppercase text-white">
                         {{ activeGroupProject.name.slice(0, 2) }}
                       </AvatarFallback>
@@ -73,7 +72,7 @@
                     >
                       <Avatar shape="square" class="size-7">
                         <AvatarImage v-if="project.logo" :src="project.logo" />
-                        <AvatarImage v-else src="/default-company.jpg" />
+                        <AvatarImage v-else src="/default-project.jpg" />
                         <AvatarFallback class="uppercase text-white">
                           {{ project.name.slice(0, 2) }}
                         </AvatarFallback>
@@ -241,19 +240,35 @@
       </SidebarFooter>
     </Sidebar>
     <SidebarInset>
-      <header
-        class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4"
-      >
+      <header class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4">
         <div class="flex items-center gap-2 w-full px-4">
           <SidebarTrigger :logo="true" :toggle="toggleSidebar" class="-ml-1" />
 
           <Separator orientation="vertical" class="mr-2 h-4" />
-          <Breadcrumb class="flex-1">
-            <BreadcrumbList>
-              <BreadcrumbItem
-                v-for="(crumb, index) in breadcrumbs"
-                :key="index"
-              >
+          <Breadcrumb class="flex-1 text-ellipsis overflow-x-auto">
+            <BreadcrumbList class="flex flex-nowrap">
+              <BreadcrumbItem>
+                  <BreadcrumbLink as-child>
+                    <router-link :to="{ path: '/home' }">
+                      <Avatar v-if="activeGroupProject" shape="square" class="size-6">
+                        <AvatarImage
+                          v-if="activeGroupProject && activeGroupProject.logo"
+                          :src="activeGroupProject.logo"
+                        />
+                        <AvatarImage v-else src="/default-project.jpg" />
+                        <AvatarFallback class="uppercase text-dark">
+                          {{ activeGroupProject.name.slice(0, 2) }}
+                        </AvatarFallback>
+                      </Avatar>
+                      <Avatar v-else shape="square" class="size-6">
+                        <AvatarImage src="/default-project.jpg" />
+                      </Avatar>
+                    </router-link>
+                  </BreadcrumbLink>
+                <BreadcrumbSeparator />
+              </BreadcrumbItem>
+
+              <BreadcrumbItem v-for="(crumb, index) in breadcrumbs" :key="index">
                 <template v-if="crumb.path">
                   <BreadcrumbLink as-child>
                     <router-link :to="{ path: crumb.path }">
@@ -297,8 +312,10 @@
       class="ia"
       side="right"
       :collapsed="sidebarAi"
+      :setOpen="setOpenAi"
       collapsible="offcanvas"
-      @update:modelValue="handleSidebarAiUpdate"
+      :openMobile="false"
+      @update:modelValue="handleSidebarAiExpand"
     >
       <SidebarHeader>
         <div class="flex justify-end items-center align-middle p-4 gap-6">
@@ -496,7 +513,6 @@
 import {
   Download,
   Paperclip,
-  X,
   SquarePen,
   EyeClosed,
   Eye,
@@ -560,7 +576,6 @@ import {
   Users2,
   Bot,
   LogOut,
-  Package2,
   ChevronsUpDown,
   Send,
   ChartNoAxesCombined,
@@ -595,6 +610,8 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
@@ -634,7 +651,6 @@ const LIGHT_LOGOS = {
 const collapsed = ref("");
 const sidebarExpanded = ref(false);
 const sidebarAi = ref(false);
-const stateResponsive = ref(false);
 const mode: any = useColorMode();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
@@ -645,6 +661,7 @@ const router = useRouter();
 // Chat e mensagens
 const chats = ref<Chat[]>([]);
 const selectedChatId = ref<number | undefined>(undefined);
+const selectedModel = ref("openai");
 const messages = ref<Message[]>([]);
 const newMessage = ref<Message>({ id: 0, role: "user", message: "", file: null });
 const loading = ref(false);
@@ -658,12 +675,11 @@ const suggestionList = ref([])
 const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
 );
+
 const selectedProjectId = ref<number | undefined>(activeGroupProject.value?.project_id);
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
-  const items: BreadcrumbItem[] = [
-    { name: "Elevate", title: "Elevate", path: "/home" },
-  ];
+  const items: BreadcrumbItem[] = [];
 
   route.matched.forEach((record, index) => {
     const name = record.name as string;
@@ -677,6 +693,7 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 
   return items;
 });
+
 const logoSrc = computed(() =>
   getLogoSrc(mode.value === "dark", sidebarExpanded.value)
 );
@@ -688,6 +705,7 @@ const iconIa = computed(() => {
     ? "/logo-elevate-square-white.png"
     : "/logo-elevate-square-black.png";
 });
+
 const logoCustomAi = computed(() => {
   return mode.value === "dark"
     ? "/svg/logo-ia-v1-white.svg"
@@ -860,78 +878,9 @@ const navMenu = computed(() => {
   ];
 });
 
-watch(
-  () => route.matched,
-  (matchedRoutes) => {
-    matchedRoutes.forEach((matchedRoute) => {
-      navMenu.value.forEach((group) => {
-        if (group.children && group.type === matchedRoute.path.split("/")[1]) {
-          collapsed.value = group.type;
-        }
-      });
-    });
-  },
-  { immediate: true, deep: true }
-);
-
-watch(
-  activeGroupProject,
-  async () => {
-    if (activeGroupProject.value) {
-      const is = authStore.user?.roles
-        .filter(
-          (role: any) =>
-            role.pivot.project_id === activeGroupProject.value?.project_id
-        )
-        .some(
-          (role: any) =>
-            route.meta.permissions?.includes?.(
-              role.permissions.map((p: any) => p.name)
-            ) ?? true
-        );
-
-      const hasAccess = authStore.user?.access_type === "member" || is;
-
-      if (!hasAccess) await router.push({ name: "home" });
-    }
-  },
-  { immediate: true }
-);
-
-
-
-onMounted(async () => {
-  mode.value = localStorage.getItem("theme") || "auto";
-  const user = authStore.user;
-  if (user) {
-    await workspaceStore.loadInitialData(user.preferences, user.group_projects);
-    await loadChats();
-    await selectChat(Number(localStorage.getItem('chatId')))
-    await getSuggestions()
-  }
-  settingSidebarIA();
-});
-
-watch(sidebarAi, () =>
-  localStorage.setItem("sidebarAi", sidebarAi.value ? "1" : "0")
-);
-
-const setResponsive = () => (stateResponsive.value = !stateResponsive.value);
-const settingSidebarIA = () => {
-  const isMobile = window.innerWidth < 768;
-  const savedPreference = localStorage.getItem("sidebarAi");
-
-  if (savedPreference === null) {
-    sidebarAi.value = !isMobile;
-    localStorage.setItem("sidebarAi", !isMobile ? "1" : "0");
-  } else {
-    sidebarAi.value = Boolean(Number(savedPreference));
-  }
-};
-
-const handleSidebarAiUpdate = (value: boolean) => {
-  sidebarAi.value = value;
-  localStorage.setItem("sidebarAi", value ? "1" : "0");
+// Methods
+const handleSidebarAiExpand = () => {
+  sidebarAi.value = false;
 };
 
 function scrollToBottom() {
@@ -1035,11 +984,11 @@ const toggleCollapsed = (type: string) => {
       sidebarExpanded.value = true;
     }
   }
+
   collapsed.value = collapsed.value === type ? "" : type;
 };
 
 const toggleSidebar = () => {
-  setResponsive();
   sidebarExpanded.value = !sidebarExpanded.value;
 };
 
@@ -1048,7 +997,7 @@ const handleSidebarExpand = (value: boolean) => {
 };
 
 const toggleSidebarIA = () => {
-  setResponsive();
+  localStorage.setItem("sidebarAi", sidebarAi.value ? "0" : "1");
   sidebarAi.value = !sidebarAi.value;
 };
 
@@ -1123,7 +1072,6 @@ const loadMessages = async () => {
       message: marked.parse(message.message[0]),
       file: null,
     }));
-    console.log(messages.value)
     scrollToBottom();
   } catch (error) {
     console.error("Erro ao carregar mensagens:", error);
@@ -1140,7 +1088,7 @@ const sendMessage = async () => {
     return;
   }
 
-  if (selectedChatId.value == undefined) {
+  if (selectedChatId.value === undefined) {
     await createNewChat();
     await sendMessage();
   } else {
@@ -1195,6 +1143,69 @@ async function resetChat(){
   loadChats()
 
 }
+
+
+const setOpenAi = () => {
+  const isMobile = window.innerWidth < 768;
+  if (!isMobile) {
+    return sidebarAi.value = localStorage.getItem("sidebarAi") === "1";
+  }
+}
+
+// Hooks
+watch(
+  () => route.matched,
+  (matchedRoutes) => {
+    matchedRoutes.forEach((matchedRoute) => {
+      navMenu.value.forEach((group) => {
+        if (group.children && group.type === matchedRoute.path.split("/")[1]) {
+          collapsed.value = group.type;
+        }
+      });
+    });
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  activeGroupProject,
+  async () => {
+    if (activeGroupProject.value) {
+      const is = authStore.user?.roles
+        .filter(
+          (role: any) =>
+            role.pivot.project_id === activeGroupProject.value?.project_id
+        )
+        .some(
+          (role: any) =>
+            route.meta.permissions?.includes?.(
+              role.permissions.map((p: any) => p.name)
+            ) ?? true
+        );
+
+      const hasAccess = authStore.user?.access_type === "member" || is;
+
+      if (!hasAccess) await router.push({ name: "home" });
+    }
+  },
+  { immediate: true }
+);
+
+watch(uploadedFilePath, (newVal, oldVal) => {
+  if (oldVal) URL.revokeObjectURL(oldVal);
+});
+
+onMounted(async () => {
+  mode.value = localStorage.getItem("theme") || "auto";
+  const user = authStore.user;
+
+  if (user) {
+    await workspaceStore.loadInitialData(user.preferences, user.group_projects);
+    await loadChats();
+  }
+
+  setTimeout(() => setOpenAi(), 100)
+});
 </script>
 <style>
 .loading-dots {
