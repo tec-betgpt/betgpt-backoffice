@@ -1198,6 +1198,7 @@ onMounted(async () => {
 
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
+    getSuggestions();
     await loadChats();
   }
 
