@@ -83,4 +83,15 @@ export default {
         const { data } = await api.delete(`ia/session`, { data: { chat_id: params.chat_id } });
         return data;
     },
+
+    /**
+     *
+     * GET /ia/suggestions
+     *
+     * Obetem sugestoes para o usuario
+     */
+    async getSuggestions() {
+            const { data } = await api.get(`ia/suggestions`);
+            return data;
+        }
 }

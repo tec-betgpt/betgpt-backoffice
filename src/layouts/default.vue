@@ -317,81 +317,110 @@
       :openMobile="false"
       @update:modelValue="handleSidebarAiExpand"
     >
-      <SidebarHeader class="p-4 flex-4">
-        <div class="flex justify-between align-middle">
-          <h1 class="font-bold">Elevate IA</h1>
-          <Button
-            variant="ghost"
-            @click="
-              async () => {
-                await createNewChat();
-                await loadMessages();
-              }
-            "
-          >
-            <SquarePen /> Novo Chat
-          </Button>
-        </div>
+      <SidebarHeader>
+        <div class="flex justify-end items-center align-middle p-4 gap-6">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Plus :stroke-width="2"
+                      class="cursor-pointer"
+                      absoluteStrokeWidth
+                      @click="resetChat"
+                />
+              </TooltipTrigger>
+              <TooltipContent
+                  side="bottom"
+                  align="end"
+                  :align-offset="4"
+                  :arrow-padding="8"
+                  avoid-collisions
+                  :collision-padding="10"
+                  hide-when-detached
+                  position-strategy="absolute"
+                  sticky="always"
+                  update-position-strategy="optimized"
+                  :collision-boundary="null"
+              >
+                Nova sessão
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-        <div>
-          <p class="text-[16px] py-4">Histórico</p>
-          <div class="card max-h-16 overflow-y-scroll overflow-x-hidden">
-            <p
-              v-for="chat in chats"
-              :key="chat.id"
-              @click="selectChat(chat.id)"
-              class="border-b-2 text-[10px] cursor-pointer truncate py-2"
-            >
-              {{ chat.title }}
-            </p>
-          </div>
+          <Popover>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <PopoverTrigger as-child>
+                    <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent
+                    side="bottom"
+                    align="end"
+                    :align-offset="4"
+                    :arrow-padding="8"
+                    avoid-collisions
+                    :collision-padding="10"
+                    hide-when-detached
+                    position-strategy="absolute"
+                    sticky="always"
+                    update-position-strategy="optimized"
+                    :collision-boundary="null"
+                >
+                  Histórico
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <PopoverContent align="end" class="w-80 p-2">
+              <div   class=" overflow-x-hidden max-h-44">
+                <p
+                    v-for="chat in chats"
+                    :key="chat.id"
+                    @click="selectChat(chat.id)"
+                    class=" text-[12px] cursor-pointer truncate p-2 font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  {{ chat.title }}
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </SidebarHeader>
-      <SidebarContent class="p-4 flex-1">
-        <div
-          ref="messageContainerRef"
-          class="card h-full w-full rounded-sm shadow-md flex-col flex p-2 overflow-y-scroll overlay-x-hidden"
-        >
-          <div v-for="message in messages" :key="message.id" class="mb-4">
-            <div
-              class="space-x-2 pb-2"
-              :class="
-                message.role === 'user'
-                  ? 'flex justify-end'
-                  : 'flex justify-start'
-              "
-            >
-              <Avatar class="h-4 w-4 rounded-lg">
-                <AvatarImage
-                  :src="message.role === 'user' ? authStore.user?.icon : iconIa"
-                />
-                <AvatarFallback class="rounded-lg">
-                  {{ authStore.user?.initials }}
-                </AvatarFallback>
-              </Avatar>
-              <p class="text-[10px]">
-                {{ message.role === "user" ? "Você" : "I.A" }}
-              </p>
-            </div>
-            <p
-              class="text-[12px] w-full flex flex-col"
-              :class="
-                message.role === 'user'
-                  ? ' text-end justify-end'
-                  : 'flex text-start justify-start'
-              "
-              v-html="message.message"
-            />
-            <div v-if="message.file" class="mt-2">
-              <a
-                :href="message.file"
-                target="_blank"
-                class="text-blue-500 hover:underline"
-              >
-                {{ extractFileName(message.file) }}
-              </a>
-            </div>
+      <SidebarContent>
+        <div v-if="messages.length == 0 && !file" class="p-4 text-center  flex flex-col justify-center align-middle items-center text-sm h-full font-semibold">
+          <div class="h-full flex flex-col justify-end items-center">
+            <img :src="logoInChat" class="size-12" alt="logoInChat"/>
+            <span>Como posso ajudar?</span>
           </div>
+
+          <div  class="  h-full flex flex-col justify-end  items-center pb-2 gap-2 w-full">
+            <div v-if="suggestionList.length>0" v-for="suggestion in suggestionList" @click="()=>{
+              newMessage.message = suggestion
+              sendMessage()
+            }" class="p-2 rounded-xl bg-accent/60 text-accent-foreground/80 w-full flex gap-2 items-center cursor-pointer hover:bg-accent ">
+              <Search :size="18" />  <span class="text-[12px] text-muted-foreground">{{suggestion}}</span>
+            </div>
+            <Skeleton v-else v-for="n in 4" class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full "/>
+          </div>
+        </div>
+        <div v-else ref="messageContainerRef" type="hover" class=" overflow-x-hidden  h-full  px-6">
+
+            <CustomTextChart
+                v-for="(message, index) in messages" :key="message.id"
+                class="mb-6 last:mb-20"
+                :class="
+                message.role === 'user'
+                  ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
+                  : 'flex-col text-start justify-start'
+            "
+                :html="message.message"
+                :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
+                :speed="8"
+                @tick="scrollToBottom"
+                @done="()=>{
+                isAnimating = false
+                isInputDisabled = false
+              }" />
 
           <div v-if="loading" class="flex flex-col gap-2">
             <Avatar class="h-4 w-4 rounded-lg">
@@ -401,78 +430,80 @@
               </AvatarFallback>
             </Avatar>
             <div class="loading-dots">
-              <span
-                v-for="n in 3"
-                :key="n"
-                :style="{ animationDelay: `${n * 0.2}s` }"
-                >.</span
-              >
+              <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
             </div>
-            <!--            <Skeleton class="w-full h-3" />-->
-            <!--            <Skeleton class="w-full h-3" />-->
-          </div>
-          <div
-            v-if="uploadedFilePath"
-            class="flex justify-end w-full items-center"
-          >
-            <Badge
-              class="max-w-[80%] lg:max-w-[60%] shadow-md transition-all flex items-start px-3 py-2"
-            >
-              <div>
-                <!--                <div-->
-                <!--                  v-if="-->
-                <!--                    uploadedFilePath.endsWith('.jpg') ||-->
-                <!--                    uploadedFilePath.endsWith('.jpeg') ||-->
-                <!--                    uploadedFilePath.endsWith('.png') ||-->
-                <!--                    uploadedFilePath.endsWith('.gif')-->
-                <!--                  "-->
-                <!--                >-->
-                <!--                  <img-->
-                <!--                    :src="uploadedFilePath"-->
-                <!--                    alt="Pré-visualização da Imagem"-->
-                <!--                    class="max-h-32 max-w-full object-cover my-2"-->
-                <!--                  />-->
-                <!--                </div>-->
-                <!--                <div v-else-if="uploadedFilePath.endsWith('.pdf')">-->
-                <!--                  <iframe :src="uploadedFilePath" class="w-full" />-->
-                <!--                </div>-->
-                <!--                <div v-else-if="uploadedFilePath.endsWith('.txt')">-->
-                <!--                  <p>Arquivo de Texto anexado</p>-->
-                <!--                </div>-->
-                <div v-if="uploadedFilePath">
-                  <p>Arquivo anexado</p>
-                </div>
-                <Progress v-if="uploadProgress > 0" v-model="uploadProgress" />
-              </div>
-            </Badge>
           </div>
         </div>
+        <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2 px-6">
+          <Badge class="p-4">
+            {{file.name}}
+          </Badge>
+          <Button v-if="!loading" variant="ghost" @click="()=>{
+            file = undefined
+          }">
+            <Trash/>
+          </Button>
+        </div>
       </SidebarContent>
-      <SidebarFooter class="p-4 flex-5 grid grid-cols-1 gap-2">
-        <Textarea
-          placeholder="Digite aqui..."
-          @keyup.enter="sendMessage"
-          v-model="newMessage"
-        />
-        <Button class="bg-[#947c2c]" @click="sendMessage" :disabled="loading">
-          Enviar
-        </Button>
-        <Label
-          for="file"
-          class="flex w-full justify-center border p-2 rounded-sm items-center gap-2 cursor-pointer"
-        >
-          <Paperclip :size="16" /> Anexar arquivo
-        </Label>
-        <Input
-          id="file"
-          type="file"
-          class="hidden"
-          @change="handleFileUpload"
-        />
-        <p class="text-[8px]">
-          As respostas podem mostrar informações imprecisas qualquer duvida
-          entre em contato conosco.
-        </p>
+      <SidebarFooter >
+        <div class="relative w-full items-center mb-2">
+           <Button  variant="link"
+                    @click="sendMessage"
+                  :disabled="isInputDisabled"
+                  class="absolute end-0 flex items-center justify-center h-full">
+                <SendHorizontal  :stroke-width="2.5"  absoluteStrokeWidth />
+            </Button>
+          <span class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2">
+            <Popover >
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <PopoverTrigger as-child>
+                        <Ellipsis :stroke-width="2.5"  absoluteStrokeWidth class="cursor-pointer"  />
+                      </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent
+                        side="top"
+                        align="start"
+                        :align-offset="-4"
+                        :arrow-padding="8"
+                        avoid-collisions
+                        :collision-padding="10"
+                        hide-when-detached
+                        position-strategy="absolute"
+                        sticky="always"
+                        update-position-strategy="optimized"
+                        :collision-boundary="null"
+                    >
+                      Opcões
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              <PopoverContent align="start"  :alignOffset="-8" :sideOffset="16" :arrowPadding="0" class="w-56 p-2">
+                <div class="flex flex-col gap-2 text-sm">
+                  <Label for="file" class="cursor-pointer text-sm truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center
+
+                   font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+                  > <Paperclip class="size-4" />Anexar</Label>
+               <Input
+                   id="file"
+                   type="file"
+                   class="hidden"
+                   @change="handleFileUpload"
+                   :disabled="isInputDisabled" />
+                </div>
+              </PopoverContent>
+            </Popover>
+          </span>
+          <Input id="search"
+                 @keyup.enter="!isInputDisabled && sendMessage()"
+                 v-model="newMessage.message"
+                 type="text"
+                 placeholder="Pergunte alguma coisa"
+                 class="px-10 h-12" />
+
+        </div>
+
       </SidebarFooter>
     </Sidebar>
   </SidebarProvider>
@@ -485,9 +516,19 @@ import {
   SquarePen,
   EyeClosed,
   Eye,
+  Trash,
+    History,
+    Ellipsis,
+  SendHorizontal,
+    Search
 } from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -551,9 +592,9 @@ import {
   DollarSignIcon,
   Blocks,
   Logs,
-  History,
   UserCog,
   LayoutList,
+    Plus
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -565,18 +606,20 @@ import CustomLoading from "@/components/custom/CustomLoading.vue";
 import { useConfigStore } from "@/stores/config";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
+import { Button } from "@/components/ui/button";
+import CustomTextChart from "@/components/custom/CustomTextChart.vue";
+import {Badge} from "@/components/ui/badge";
+import {Skeleton} from "@/components/ui/skeleton";
 
 interface BreadcrumbItem {
   name: string;
@@ -588,10 +631,10 @@ interface Chat {
   title: string;
 }
 interface Message {
-  id: number;
+  id: number | undefined;
   role: "user" | "assistant";
   message: string;
-  file: string | null;
+  file: File | null;
 }
 
 const DARK_LOGOS = {
@@ -618,23 +661,22 @@ const router = useRouter();
 // Chat e mensagens
 const chats = ref<Chat[]>([]);
 const selectedChatId = ref<number | undefined>(undefined);
-const file = ref<File>();
 const selectedModel = ref("openai");
 const messages = ref<Message[]>([]);
-const newMessage = ref("");
-const uploadProgress = ref(0);
-const uploadedFilePath = ref<string | null>(null);
+const newMessage = ref<Message>({ id: 0, role: "user", message: "", file: null });
 const loading = ref(false);
-const showNewChatModal = ref(false);
-const newChatTitle = ref("");
-const fileInputRef = ref<HTMLInputElement | null>(null);
+const file = ref<File>();
 const messageContainerRef = ref<HTMLElement | null>(null);
 const isShowValues = ref(false);
-
+const isAnimating = ref(false);
+const isInputDisabled = computed(() => loading.value || isAnimating.value);
+const suggestionList = ref([])
 // Computed
 const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
 );
+
+const selectedProjectId = ref<number | undefined>(activeGroupProject.value?.project_id);
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [];
@@ -655,7 +697,9 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 const logoSrc = computed(() =>
   getLogoSrc(mode.value === "dark", sidebarExpanded.value)
 );
-
+const logoInChat = computed(() =>
+    getLogoSrc(mode.value === "dark", false)
+);
 const iconIa = computed(() => {
   return mode.value === "dark"
     ? "/logo-elevate-square-white.png"
@@ -664,8 +708,8 @@ const iconIa = computed(() => {
 
 const logoCustomAi = computed(() => {
   return mode.value === "dark"
-    ? "/svg/elevate-ai-white.svg"
-    : "/svg/elevate-ai-black.svg";
+    ? "/svg/logo-ia-v1-white.svg"
+    : "/svg/logo-ia-v1-black.svg";
 });
 
 const navMenu = computed(() => {
@@ -961,6 +1005,7 @@ const loadChats = async () => {
   loading.value = true;
 
   try {
+
     const data = await IntelligenceArtificial.getListSessions();
     chats.value = data.data;
   } catch (err) {
@@ -969,17 +1014,17 @@ const loadChats = async () => {
 
   loading.value = false;
 };
-
+const getSuggestions = async () => {
+  const suggestions = await IntelligenceArtificial.getSuggestions();
+  suggestionList.value  = suggestions.data
+}
 const createNewChat = async () => {
   try {
     const response = await IntelligenceArtificial.createSession();
     selectedChatId.value = response.data.id;
 
-    newChatTitle.value = "";
   } catch (error) {
     console.error("Erro ao criar chat:", error);
-  } finally {
-    showNewChatModal.value = false;
   }
 };
 
@@ -1004,7 +1049,9 @@ const deleteChat = async (chatId: number) => {
 };
 
 const selectChat = async (chatId: number) => {
+  if (chatId == 0 ) return
   selectedChatId.value = chatId;
+  localStorage.setItem('chatId', `${chatId}`)
   await loadMessages();
 };
 
@@ -1018,6 +1065,7 @@ const loadMessages = async () => {
     const data = await IntelligenceArtificial.getSession({
       chat_id: selectedChatId.value,
     });
+
     messages.value = data.data.map((message: any) => ({
       id: message.id,
       role: message.role,
@@ -1033,7 +1081,7 @@ const loadMessages = async () => {
 };
 
 const sendMessage = async () => {
-  if (!newMessage.value) {
+  if (!newMessage.value.message) {
     toast({
       title: "Adicione um Texto",
     });
@@ -1046,56 +1094,56 @@ const sendMessage = async () => {
   } else {
     const userMessage = {
       chat_id: selectedChatId.value,
-      message: newMessage.value,
-      file: file.value,
+      message: newMessage.value.message,
+      file:  newMessage.value.file,
       project_id: activeGroupProject.value?.project_id,
     };
 
     loading.value = true;
-
+    newMessage.value.id = messages.value.length;
     try {
-      messages.value.push({
-        message: newMessage.value,
-        file: uploadedFilePath.value,
-        role: "user",
-        id: messages.value.length,
-      });
+      messages.value.push(newMessage.value);
       scrollToBottom();
 
-      newMessage.value = "";
-      uploadedFilePath.value = null;
+      newMessage.value = { id: 0, role: "user", message: "", file: null };
 
       const response = await IntelligenceArtificial.sendMessage(userMessage);
       file.value = undefined;
       const assistantMessage: Message = {
         id: messages.value.length,
         role: "assistant",
-        message: marked.parse(response.data.message),
+        message: await marked.parse(response.data.message),
         file: null,
       };
 
       messages.value.push(assistantMessage);
       scrollToBottom();
+      loading.value = false;
+      isAnimating.value = true;
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);
-    } finally {
       loading.value = false;
+      isAnimating.value = false;
     }
   }
 };
 
-const extractFileName = (url: string): string => {
-  return url.split("/").pop() || "";
-};
+async function handleFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (!target.files?.length) return;
+    file.value = target.files[0];
+    newMessage.value.file = file.value;
+}
+async function resetChat(){
+  selectedChatId.value = undefined;
+  localStorage.removeItem('chatId')
+  messages.value = []
+  file.value = undefined;
+  newMessage.value = { id: undefined, role: 'user', message: '', file: null };
+  loadChats()
 
-const handleFileUpload = async (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  const selected = input.files?.[0];
-  if (!selected) return;
+}
 
-  file.value = selected;
-  uploadedFilePath.value = URL.createObjectURL(selected);
-};
 
 const setOpenAi = () => {
   const isMobile = window.innerWidth < 768;
@@ -1143,9 +1191,6 @@ watch(
   { immediate: true }
 );
 
-watch(uploadedFilePath, (newVal, oldVal) => {
-  if (oldVal) URL.revokeObjectURL(oldVal);
-});
 
 onMounted(async () => {
   mode.value = localStorage.getItem("theme") || "auto";
