@@ -318,41 +318,22 @@
       @update:modelValue="handleSidebarAiExpand"
     >
       <SidebarHeader>
-        <div class="flex justify-end items-center align-middle p-4 gap-6">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Plus :stroke-width="2"
-                      class="cursor-pointer"
-                      absoluteStrokeWidth
-                      @click="resetChat"
-                />
-              </TooltipTrigger>
-              <TooltipContent
-                  side="bottom"
-                  align="end"
-                  :align-offset="4"
-                  :arrow-padding="8"
-                  avoid-collisions
-                  :collision-padding="10"
-                  hide-when-detached
-                  position-strategy="absolute"
-                  sticky="always"
-                  update-position-strategy="optimized"
-                  :collision-boundary="null"
-              >
-                Nova sessão
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div class="flex justify-between items-center align-middle pl-2">
+          <img
+            :src="iconIa"
+            alt="Logo"
+            class="w-10 py-4"
+          />
 
-          <Popover>
+          <div class="flex justify-end items-center align-middle p-4 gap-6">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger as-child>
-                  <PopoverTrigger as-child>
-                    <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
-                  </PopoverTrigger>
+                <TooltipTrigger>
+                  <Plus :stroke-width="2"
+                        class="cursor-pointer"
+                        absoluteStrokeWidth
+                        @click="resetChat"
+                  />
                 </TooltipTrigger>
                 <TooltipContent
                     side="bottom"
@@ -367,23 +348,50 @@
                     update-position-strategy="optimized"
                     :collision-boundary="null"
                 >
-                  Histórico
+                  Nova sessão
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <PopoverContent align="end" class="w-80 p-2">
-              <div   class=" overflow-x-hidden max-h-44">
-                <p
-                    v-for="chat in chats"
-                    :key="chat.id"
-                    @click="selectChat(chat.id)"
-                    class=" text-[12px] cursor-pointer truncate p-2 font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
-                >
-                  {{ chat.title }}
-                </p>
-              </div>
-            </PopoverContent>
-          </Popover>
+
+            <Popover>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <PopoverTrigger as-child>
+                      <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
+                    </PopoverTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent
+                      side="bottom"
+                      align="end"
+                      :align-offset="4"
+                      :arrow-padding="8"
+                      avoid-collisions
+                      :collision-padding="10"
+                      hide-when-detached
+                      position-strategy="absolute"
+                      sticky="always"
+                      update-position-strategy="optimized"
+                      :collision-boundary="null"
+                  >
+                    Histórico
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <PopoverContent align="end" class="w-80 p-2">
+                <div   class=" overflow-x-hidden max-h-44">
+                  <p
+                      v-for="chat in chats"
+                      :key="chat.id"
+                      @click="selectChat(chat.id)"
+                      class=" text-[12px] cursor-pointer truncate p-2 font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {{ chat.title }}
+                  </p>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -513,14 +521,13 @@
 import {
   Download,
   Paperclip,
-  SquarePen,
   EyeClosed,
   Eye,
   Trash,
-    History,
-    Ellipsis,
+  History,
+  Ellipsis,
   SendHorizontal,
-    Search
+  Search
 } from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -609,9 +616,7 @@ import { Input } from "@/components/ui/input";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
-import axios from "axios";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { marked } from "marked";
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
@@ -661,7 +666,6 @@ const router = useRouter();
 // Chat e mensagens
 const chats = ref<Chat[]>([]);
 const selectedChatId = ref<number | undefined>(undefined);
-const selectedModel = ref("openai");
 const messages = ref<Message[]>([]);
 const newMessage = ref<Message>({ id: 0, role: "user", message: "", file: null });
 const loading = ref(false);
@@ -671,13 +675,13 @@ const isShowValues = ref(false);
 const isAnimating = ref(false);
 const isInputDisabled = computed(() => loading.value || isAnimating.value);
 const suggestionList = ref([])
+
 // Computed
 const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
 );
 
-const selectedProjectId = ref<number | undefined>(activeGroupProject.value?.project_id);
-
+ref<number | undefined>(activeGroupProject.value?.project_id);
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [];
 
@@ -697,9 +701,11 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
 const logoSrc = computed(() =>
   getLogoSrc(mode.value === "dark", sidebarExpanded.value)
 );
+
 const logoInChat = computed(() =>
     getLogoSrc(mode.value === "dark", false)
 );
+
 const iconIa = computed(() => {
   return mode.value === "dark"
     ? "/logo-elevate-square-white.png"
@@ -1131,7 +1137,7 @@ const touch = {
   endX: 0,
   endY: 0,
 };
-// Evite redeclarar nessas funções no onMounted
+
 const onTouchStart = (e: TouchEvent) => {
   const touchEvent = e.changedTouches[0];
   touch.startX = touchEvent.clientX;
@@ -1151,7 +1157,7 @@ const onTouchEnd = () => {
   if (deltaY > 60) return;
 
   if (deltaX > minSwipeDistance && touch.startX < edgeArea) {
-    sidebarExpanded.value = true; // abrir sidebar principal
+    sidebarExpanded.value = true;
     sidebarAi.value = false;
   }
 
@@ -1189,7 +1195,6 @@ const swipeSidebars = () => {
   window.addEventListener("touchend", onTouchEnd, { passive: true });
 };
 
-// E **aqui**! O cleanup é direto no setup/contexto principal:
 onUnmounted(() => {
   window.removeEventListener("touchstart", onTouchStart);
   window.removeEventListener("touchmove", onTouchMove);
