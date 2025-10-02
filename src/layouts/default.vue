@@ -8,17 +8,16 @@
       :collapsed="sidebarExpanded"
     >
       <SidebarHeader v-if="activeGroupProject">
-        <router-link :to="{ name: 'home' }">
-          <img
-            :src="logoSrc"
-            alt="Logo"
-            :class="{
-              'w-1/2 py-4': sidebarExpanded,
-              'w-6 py-1': !sidebarExpanded,
-            }"
-            class="m-auto transition-transform duration-200 ease-linear hover:scale-105"
-          />
-        </router-link>
+        <img
+          @click="toggleSidebarOnMobile"
+          :src="logoSrc"
+          alt="Logo"
+          :class="{
+            'w-1/2 py-4': sidebarExpanded,
+            'w-6 py-1': !sidebarExpanded,
+          }"
+          class="m-auto transition-transform duration-200 ease-linear hover:scale-105 cursor-pointer"
+        />
 
         <SidebarMenu>
           <SidebarMenuItem>
@@ -1128,6 +1127,15 @@ const setOpenAi = () => {
   }
 };
 
+const toggleSidebarOnMobile = () => {
+  const isMobile = window.innerWidth < 768;
+  if (isMobile) {
+    toggleSidebar()
+  } else {
+    router.push({ name: "home" })
+  }
+}
+
 const minSwipeDistance = 60;
 const edgeArea = 48;
 const touch = {
@@ -1246,7 +1254,7 @@ onMounted(async () => {
 
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
-    // await getSuggestions();
+    await getSuggestions();
     await loadChats();
   }
 
