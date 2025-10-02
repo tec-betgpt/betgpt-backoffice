@@ -245,25 +245,24 @@
           <SidebarTrigger :logo="true" :toggle="toggleSidebar" class="-ml-1" />
 
           <Separator orientation="vertical" class="mr-2 h-4" />
+
           <Breadcrumb class="flex-1 text-ellipsis overflow-x-auto">
             <BreadcrumbList class="flex flex-nowrap">
               <BreadcrumbItem>
                   <BreadcrumbLink as-child>
-                    <router-link :to="{ path: '/home' }">
-                      <Avatar v-if="activeGroupProject" shape="square" class="size-6">
-                        <AvatarImage
-                          v-if="activeGroupProject && activeGroupProject.logo"
-                          :src="activeGroupProject.logo"
-                        />
-                        <AvatarImage v-else src="/default-project.jpg" />
-                        <AvatarFallback class="uppercase text-dark">
-                          {{ activeGroupProject.name.slice(0, 2) }}
-                        </AvatarFallback>
-                      </Avatar>
-                      <Avatar v-else shape="square" class="size-6">
-                        <AvatarImage src="/default-project.jpg" />
-                      </Avatar>
-                    </router-link>
+                    <Avatar @click="toggleSidebar" v-if="activeGroupProject" shape="square" class="size-6">
+                      <AvatarImage
+                        v-if="activeGroupProject && activeGroupProject.logo"
+                        :src="activeGroupProject.logo"
+                      />
+                      <AvatarImage v-else src="/default-project.jpg" />
+                      <AvatarFallback class="uppercase text-dark">
+                        {{ activeGroupProject.name.slice(0, 2) }}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Avatar @click="toggleSidebar" v-else shape="square" class="size-6">
+                      <AvatarImage src="/default-project.jpg" />
+                    </Avatar>
                   </BreadcrumbLink>
                 <BreadcrumbSeparator />
               </BreadcrumbItem>
