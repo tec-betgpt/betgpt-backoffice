@@ -10,14 +10,14 @@ const api = axios.create({
 });
 
 function showDialog(options) {
-  Swal.fire({
-    title: options.title,
-    text: options.subtitle,
-    icon: options.type === "critical" ? "error" : "info",
-    confirmButtonText: options.assistiveButton,
-    width: options.size === "large" ? "600px" : "400px",
-    customClass: 'z-50'
-  });
+  // Swal.fire({
+  //   title: options.title,
+  //   text: options.subtitle,
+  //   icon: options.type === "critical" ? "error" : "info",
+  //   confirmButtonText: options.assistiveButton,
+  //   width: options.size === "large" ? "600px" : "400px",
+  //   customClass: 'z-50'
+  // });
 }
 
 api.interceptors.response.use(

@@ -613,7 +613,7 @@ import axios from "axios";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { marked } from "marked";
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -883,43 +883,33 @@ const handleSidebarAiExpand = () => {
   sidebarAi.value = false;
 };
 
-function scrollToBottom() {
+const scrollToBottom = () => {
   nextTick(() => {
     const container = messageContainerRef.value;
     if (container) {
       messageContainerRef.value!.scrollTop = container.scrollHeight;
     }
   });
-}
+};
 
-function toggleValues() {
+const toggleValues = () => {
   isShowValues.value = !isShowValues.value;
-}
+};
 
-function getLogoSrc(isDarkMode: boolean, isSidebarExpanded: boolean): string {
+const getLogoSrc = (isDarkMode: boolean, isSidebarExpanded: boolean) => {
   const logos = isDarkMode ? DARK_LOGOS : LIGHT_LOGOS;
   return isSidebarExpanded ? logos.full : logos.square;
-}
+};
 
-/**
- * @description Verificar permissões do usuário
- * @param permissionName
- * @author Tavares <gerson.tavares@myelevate.com.br>
- */
-function hasPermission(permissionName: string): boolean {
+const hasPermission = (permissionName: string) => {
   return !!authStore.user?.roles.some((role: any) =>
     role.permissions.some(
       (permission: any) => permission.name === permissionName
     )
   );
-}
+};
 
-/**
- * @description Verificar permissões em projetos ativos
- * @param permissionName
- * @author Tavares <gerson.tavares@myelevate.com.br>
- */
-function hasPermissionInActiveProject(permissionName: string): boolean {
+const hasPermissionInActiveProject = (permissionName: string) => {
   return !!authStore.user?.roles
     .filter(
       (role: any) =>
@@ -933,17 +923,13 @@ function hasPermissionInActiveProject(permissionName: string): boolean {
     );
 }
 
-/**
- * @param permissionName
- * @author Tavares <gerson.tavares@myelevate.com.br>
- */
-function canAccess(permissionName: string): boolean {
+const canAccess = (permissionName: string) => {
   return (
     (authStore.user?.access_type === "member" &&
       hasPermission(permissionName)) ||
     hasPermissionInActiveProject(permissionName)
   );
-}
+};
 
 const setActiveGroupProject = async (project: any) => {
   sidebarExpanded.value = false;
@@ -1014,10 +1000,16 @@ const loadChats = async () => {
 
   loading.value = false;
 };
+
 const getSuggestions = async () => {
-  const suggestions = await IntelligenceArtificial.getSuggestions();
-  suggestionList.value  = suggestions.data
-}
+  try {
+    const suggestions = await IntelligenceArtificial.getSuggestions();
+    suggestionList.value  = suggestions.data
+  } catch (e) {
+    console.log(e)
+  }
+};
+
 const createNewChat = async () => {
   try {
     const response = await IntelligenceArtificial.createSession();
@@ -1025,26 +1017,6 @@ const createNewChat = async () => {
 
   } catch (error) {
     console.error("Erro ao criar chat:", error);
-  }
-};
-
-const deleteChat = async (chatId: number) => {
-  if (!confirm("Tem certeza que deseja excluir este chat?")) return;
-
-  try {
-    await axios.delete(`${import.meta.env.VITE_PUBLIC_IA_URL}/chat/${chatId}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-
-    chats.value = chats.value.filter((c) => c.id !== chatId);
-    if (selectedChatId.value === chatId) {
-      selectedChatId.value =
-        chats.value.length > 0 ? chats.value[0].id : undefined;
-    }
-  } catch (error) {
-    console.error("Erro ao excluir chat:", error);
   }
 };
 
@@ -1128,29 +1100,101 @@ const sendMessage = async () => {
   }
 };
 
-async function handleFileUpload(event: Event) {
+const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (!target.files?.length) return;
     file.value = target.files[0];
     newMessage.value.file = file.value;
-}
-async function resetChat(){
+};
+
+const resetChat = async () => {
   selectedChatId.value = undefined;
   localStorage.removeItem('chatId')
   messages.value = []
   file.value = undefined;
   newMessage.value = { id: undefined, role: 'user', message: '', file: null };
-  loadChats()
-
-}
-
+  await loadChats()
+};
 
 const setOpenAi = () => {
   const isMobile = window.innerWidth < 768;
   if (!isMobile) {
     return sidebarAi.value = localStorage.getItem("sidebarAi") === "1";
   }
-}
+};
+
+const minSwipeDistance = 60;
+const edgeArea = 48;
+const touch = {
+  startX: 0,
+  startY: 0,
+  endX: 0,
+  endY: 0,
+};
+// Evite redeclarar nessas funções no onMounted
+const onTouchStart = (e: TouchEvent) => {
+  const touchEvent = e.changedTouches[0];
+  touch.startX = touchEvent.clientX;
+  touch.startY = touchEvent.clientY;
+  touch.endX = touch.startX;
+  touch.endY = touch.startY;
+};
+const onTouchMove = (e: TouchEvent) => {
+  const touchEvent = e.changedTouches[0];
+  touch.endX = touchEvent.clientX;
+  touch.endY = touchEvent.clientY;
+};
+const onTouchEnd = () => {
+  const deltaX = touch.endX - touch.startX;
+  const deltaY = Math.abs(touch.endY - touch.startY);
+
+  if (deltaY > 60) return;
+
+  if (deltaX > minSwipeDistance && touch.startX < edgeArea) {
+    sidebarExpanded.value = true; // abrir sidebar principal
+    sidebarAi.value = false;
+  }
+
+  if (
+    deltaX < -minSwipeDistance &&
+    touch.startX > window.innerWidth - edgeArea
+  ) {
+    sidebarAi.value = true;
+    sidebarExpanded.value = false;
+  }
+
+  if (
+    deltaX < -minSwipeDistance &&
+    sidebarExpanded.value &&
+    touch.startX < 240
+  ) {
+    sidebarExpanded.value = false;
+  }
+
+  if (
+    deltaX > minSwipeDistance &&
+    sidebarAi.value &&
+    touch.startX > window.innerWidth - 240
+  ) {
+    sidebarAi.value = false;
+  }
+};
+
+const swipeSidebars = () => {
+  const isMobile = window.innerWidth < 1024;
+  if (!isMobile) return;
+
+  window.addEventListener("touchstart", onTouchStart, { passive: true });
+  window.addEventListener("touchmove", onTouchMove, { passive: true });
+  window.addEventListener("touchend", onTouchEnd, { passive: true });
+};
+
+// E **aqui**! O cleanup é direto no setup/contexto principal:
+onUnmounted(() => {
+  window.removeEventListener("touchstart", onTouchStart);
+  window.removeEventListener("touchmove", onTouchMove);
+  window.removeEventListener("touchend", onTouchEnd);
+});
 
 // Hooks
 watch(
@@ -1198,11 +1242,12 @@ onMounted(async () => {
 
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
-    getSuggestions();
+    // await getSuggestions();
     await loadChats();
   }
 
-  setTimeout(() => setOpenAi(), 100)
+  setTimeout(() => setOpenAi(), 100);
+  swipeSidebars();
 });
 </script>
 <style>
