@@ -1,7 +1,7 @@
 import axios from "axios";
 import i18n from "@/i18n";
-import Swal from "sweetalert2";
 import { useToast } from "@/components/ui/toast/use-toast";
+const { toast } = useToast()
 
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_PUBLIC_API_URL}/v1`,
@@ -9,32 +9,18 @@ const api = axios.create({
   withCredentials: true,
 });
 
-function showDialog(options) {
-  // Swal.fire({
-  //   title: options.title,
-  //   text: options.subtitle,
-  //   icon: options.type === "critical" ? "error" : "info",
-  //   confirmButtonText: options.assistiveButton,
-  //   width: options.size === "large" ? "600px" : "400px",
-  //   customClass: 'z-50'
-  // });
-}
-
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-
     if (error.response && error.response.status === 500) {
-      showDialog({
-        type: "critical",
+      toast({
         title: i18n.global.t("internal_error"),
-        subtitle: i18n.global.t("try_again_later"),
-        assistiveButton: i18n.global.t("close"),
+        description: i18n.global.t("try_again_later"),
+        variant: 'destructive',
       });
     }
 
     if (error.response && error.response.status === 422) {
-      const { toast } = useToast()
       const fields = []
 
       Object.entries(error.response.data.errors).forEach(([key, value]) => {
@@ -51,12 +37,10 @@ api.interceptors.response.use(
     }
 
     if (error.code === "ERR_NETWORK") {
-      showDialog({
-        type: "critical",
+      toast({
         title: i18n.global.t("connection_error"),
-        subtitle: i18n.global.t("please_verify_connection"),
-        assistiveButton: i18n.global.t("close"),
-        size: "large",
+        description: i18n.global.t("please_verify_connection"),
+        variant: 'destructive',
       });
     }
 
@@ -66,11 +50,10 @@ api.interceptors.response.use(
       !error.response.data.errors &&
       error.response.data.message
     ) {
-      showDialog({
-        type: "critical",
+      toast({
         title: i18n.global.t("error_ocurried"),
-        subtitle: i18n.global.t(error.response.data.message),
-        assistiveButton: i18n.global.t("close"),
+        description: i18n.global.t(error.response.data.message),
+        variant: 'destructive',
       });
     }
 
