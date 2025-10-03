@@ -154,6 +154,7 @@
             >
               <div
                 class="flex gap-4 w-full"
+                :key="rowIndex + 1"
                 :ref="(el) => setRowRef(el, rowIndex)"
               >
                 <Card
@@ -666,7 +667,7 @@ export default {
       this.dragOverId = null;
     },
 
-    onDrop(event: DragEvent, item: any) {
+    onDrop(event: DragEvent, targetItem: any) {
       event.preventDefault();
       const draggedItemId = event.dataTransfer!.getData("text/plain");
       this.dragOverId = null;

@@ -89,7 +89,7 @@
       </div>
     </div>
 
-    <div class="xl:flex xsl:flex-col px-20 hidden h-screen w-full items-center bg-transparent/10 relative">
+    <div class="xl:flex xsl:flex-col px-20 hidden h-screen w-full items-center bg-transparent/10 dark:bg-transparent/90 relative">
 
       <div class="relative w-full max-w-3xl mx-auto overflow-hidden">
         <div
