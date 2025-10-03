@@ -327,16 +327,134 @@
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <Plus :stroke-width="2"
-                        class="cursor-pointer"
-                        absoluteStrokeWidth
-                        @click="resetChat"
+                  <Plus
+                    :stroke-width="2"
+                    class="cursor-pointer"
+                    absoluteStrokeWidth
+                    @click="resetChat"
                   />
                 </TooltipTrigger>
                 <TooltipContent
-                    side="bottom"
-                    align="end"
-                    :align-offset="4"
+                  side="bottom"
+                  align="end"
+                  :align-offset="4"
+                  :arrow-padding="8"
+                  avoid-collisions
+                  :collision-padding="10"
+                  hide-when-detached
+                  position-strategy="absolute"
+                  sticky="always"
+                  update-position-strategy="optimized"
+                  :collision-boundary="null"
+                >
+                  Nova sessão
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem v-for="chat in chats" :key="chat.id" @click="selectChat(chat.id)">
+                  {{ chat.title }}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <div v-if="isLoadingChat" class="h-full flex items-center justify-center w-full">
+          <LoadingFakeComponent />
+        </div>
+
+        <div class="h-full" v-else>
+          <div v-if="messages.length == 0 && !file" class="p-4 text-center flex flex-col justify-center align-middle items-center text-sm h-full font-semibold">
+            <div class="h-full flex flex-col justify-end items-center">
+              <img :src="logoInChat" class="size-12" alt="logoInChat"/>
+              <span>Como posso ajudar?</span>
+            </div>
+
+            <div  class="h-full flex flex-col justify-end items-center pb-2 gap-2 w-full">
+              <div v-if="suggestionList.length>0" v-for="suggestion in suggestionList" @click="()=>{
+                newMessage.message = suggestion
+                sendMessage()
+              }" class="p-2 rounded-xl bg-accent/60 text-accent-foreground/80 w-full flex gap-2 items-center cursor-pointer hover:bg-accent ">
+                <Search :size="18" />  <span class="text-[12px] text-muted-foreground">{{suggestion}}</span>
+              </div>
+              <Skeleton v-else v-for="n in 4" class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full "/>
+            </div>
+          </div>
+
+          <div v-else ref="messageContainerRef" type="hover" class=" overflow-x-hidden h-full px-6">
+            <CustomTextChart
+              v-for="(message, index) in messages" :key="message.id"
+              class="mb-6 last:mb-20"
+              :class="
+              message.role === 'user'
+                ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
+                : 'flex-col text-start justify-start'
+              "
+                :html="message.message"
+                :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
+                :speed="8"
+                @tick="scrollToBottom"
+                @done="() => {
+                  isAnimating = false
+                  isInputDisabled = false
+                }"
+            />
+
+            <div v-if="loading" class="flex flex-col gap-2">
+              <Avatar class="h-4 w-4 rounded-lg">
+                <AvatarImage :src="iconIa" />
+                <AvatarFallback class="rounded-lg">
+                  {{ authStore.user?.initials }}
+                </AvatarFallback>
+              </Avatar>
+              <div class="loading-dots">
+                <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2 px-6">
+            <Badge class="p-4">
+              {{file.name}}
+            </Badge>
+            <Button v-if="!loading" variant="ghost" @click="()=>{
+              file = undefined
+            }">
+              <Trash/>
+            </Button>
+          </div>
+        </div>
+      </SidebarContent>
+      <SidebarFooter >
+        <div class="relative w-full items-center mb-2">
+          <Button
+            variant="link"
+            @click="sendMessage"
+            :disabled="isInputDisabled"
+            class="absolute end-0 flex items-center justify-center h-full"
+          >
+            <SendHorizontal  :stroke-width="2.5"  absoluteStrokeWidth />
+          </Button>
+          <span class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2">
+            <Popover>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <PopoverTrigger as-child>
+                      <Ellipsis :stroke-width="2.5" absoluteStrokeWidth class="cursor-pointer"  />
+                    </PopoverTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="start"
+                    :align-offset="-4"
                     :arrow-padding="8"
                     avoid-collisions
                     :collision-padding="10"
@@ -345,171 +463,40 @@
                     sticky="always"
                     update-position-strategy="optimized"
                     :collision-boundary="null"
-                >
-                  Nova sessão
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <Popover>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <PopoverTrigger as-child>
-                      <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
-                    </PopoverTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent
-                      side="bottom"
-                      align="end"
-                      :align-offset="4"
-                      :arrow-padding="8"
-                      avoid-collisions
-                      :collision-padding="10"
-                      hide-when-detached
-                      position-strategy="absolute"
-                      sticky="always"
-                      update-position-strategy="optimized"
-                      :collision-boundary="null"
                   >
-                    Histórico
+                    Opcões
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <PopoverContent align="end" class="w-80 p-2">
-                <div   class=" overflow-x-hidden max-h-44">
-                  <p
-                      v-for="chat in chats"
-                      :key="chat.id"
-                      @click="selectChat(chat.id)"
-                      class=" text-[12px] cursor-pointer truncate p-2 font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
-                  >
-                    {{ chat.title }}
-                  </p>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <div v-if="messages.length == 0 && !file" class="p-4 text-center  flex flex-col justify-center align-middle items-center text-sm h-full font-semibold">
-          <div class="h-full flex flex-col justify-end items-center">
-            <img :src="logoInChat" class="size-12" alt="logoInChat"/>
-            <span>Como posso ajudar?</span>
-          </div>
-
-          <div  class="  h-full flex flex-col justify-end  items-center pb-2 gap-2 w-full">
-            <div v-if="suggestionList.length>0" v-for="suggestion in suggestionList" @click="()=>{
-              newMessage.message = suggestion
-              sendMessage()
-            }" class="p-2 rounded-xl bg-accent/60 text-accent-foreground/80 w-full flex gap-2 items-center cursor-pointer hover:bg-accent ">
-              <Search :size="18" />  <span class="text-[12px] text-muted-foreground">{{suggestion}}</span>
-            </div>
-            <Skeleton v-else v-for="n in 4" class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full "/>
-          </div>
-        </div>
-        <div v-else ref="messageContainerRef" type="hover" class=" overflow-x-hidden  h-full  px-6">
-
-            <CustomTextChart
-                v-for="(message, index) in messages" :key="message.id"
-                class="mb-6 last:mb-20"
-                :class="
-                message.role === 'user'
-                  ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
-                  : 'flex-col text-start justify-start'
-            "
-                :html="message.message"
-                :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
-                :speed="8"
-                @tick="scrollToBottom"
-                @done="()=>{
-                isAnimating = false
-                isInputDisabled = false
-              }" />
-
-          <div v-if="loading" class="flex flex-col gap-2">
-            <Avatar class="h-4 w-4 rounded-lg">
-              <AvatarImage :src="iconIa" />
-              <AvatarFallback class="rounded-lg">
-                {{ authStore.user?.initials }}
-              </AvatarFallback>
-            </Avatar>
-            <div class="loading-dots">
-              <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
-            </div>
-          </div>
-        </div>
-        <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2 px-6">
-          <Badge class="p-4">
-            {{file.name}}
-          </Badge>
-          <Button v-if="!loading" variant="ghost" @click="()=>{
-            file = undefined
-          }">
-            <Trash/>
-          </Button>
-        </div>
-      </SidebarContent>
-      <SidebarFooter >
-        <div class="relative w-full items-center mb-2">
-           <Button  variant="link"
-                    @click="sendMessage"
-                  :disabled="isInputDisabled"
-                  class="absolute end-0 flex items-center justify-center h-full">
-                <SendHorizontal  :stroke-width="2.5"  absoluteStrokeWidth />
-            </Button>
-          <span class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2">
-            <Popover >
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <PopoverTrigger as-child>
-                        <Ellipsis :stroke-width="2.5"  absoluteStrokeWidth class="cursor-pointer"  />
-                      </PopoverTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent
-                        side="top"
-                        align="start"
-                        :align-offset="-4"
-                        :arrow-padding="8"
-                        avoid-collisions
-                        :collision-padding="10"
-                        hide-when-detached
-                        position-strategy="absolute"
-                        sticky="always"
-                        update-position-strategy="optimized"
-                        :collision-boundary="null"
-                    >
-                      Opcões
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              <PopoverContent align="start"  :alignOffset="-8" :sideOffset="16" :arrowPadding="0" class="w-56 p-2">
+              <PopoverContent align="start" :alignOffset="-8" :sideOffset="16" :arrowPadding="0" class="w-56 p-2">
                 <div class="flex flex-col gap-2 text-sm">
-                  <Label for="file" class="cursor-pointer text-sm truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center
-
-                   font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
-                  > <Paperclip class="size-4" />Anexar</Label>
-               <Input
-                   id="file"
-                   type="file"
-                   class="hidden"
-                   @change="handleFileUpload"
-                   :disabled="isInputDisabled" />
+                  <Label
+                    for="file"
+                    class="cursor-pointer text-sm truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Paperclip class="size-4" />
+                    Anexar
+                  </Label>
+                <Input
+                  id="file"
+                  type="file"
+                  class="hidden"
+                  @change="handleFileUpload"
+                  :disabled="isInputDisabled"
+                />
                 </div>
               </PopoverContent>
             </Popover>
           </span>
-          <Input id="search"
-                 @keyup.enter="!isInputDisabled && sendMessage()"
-                 v-model="newMessage.message"
-                 type="text"
-                 placeholder="Pergunte alguma coisa"
-                 class="px-10 h-12" />
-
+          <Input
+            id="search"
+            @keyup.enter="!isInputDisabled && sendMessage()"
+            v-model="newMessage.message"
+            type="text"
+            placeholder="Pergunte alguma coisa"
+            class="px-10 h-12"
+          />
         </div>
-
       </SidebarFooter>
     </Sidebar>
   </SidebarProvider>
@@ -599,7 +586,7 @@ import {
   Logs,
   UserCog,
   LayoutList,
-    Plus
+  Plus
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -623,6 +610,7 @@ import { Button } from "@/components/ui/button";
 import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 import {Badge} from "@/components/ui/badge";
 import {Skeleton} from "@/components/ui/skeleton";
+import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
 
 interface BreadcrumbItem {
   name: string;
@@ -663,6 +651,7 @@ const router = useRouter();
 
 // Chat e mensagens
 const chats = ref<Chat[]>([]);
+const isLoadingChat = ref(false);
 const selectedChatId = ref<number | undefined>(undefined);
 const messages = ref<Message[]>([]);
 const newMessage = ref<Message>({ id: 0, role: "user", message: "", file: null });
@@ -679,7 +668,6 @@ const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
 );
 
-ref<number | undefined>(activeGroupProject.value?.project_id);
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   const items: BreadcrumbItem[] = [];
 
@@ -944,11 +932,7 @@ const setActiveGroupProject = async (project: any) => {
   setTimeout(() => {
     configStore.loading = false;
     const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      sidebarExpanded.value = false;
-    } else {
-      sidebarExpanded.value = true;
-    }
+    sidebarExpanded.value = !isMobile;
     document.body.style.overflow = "";
   }, 2000);
 };
@@ -1026,9 +1010,12 @@ const createNewChat = async () => {
 
 const selectChat = async (chatId: number) => {
   if (chatId == 0 ) return
+
+  isLoadingChat.value = true
   selectedChatId.value = chatId;
   localStorage.setItem('chatId', `${chatId}`)
   await loadMessages();
+  isLoadingChat.value = false
 };
 
 const loadMessages = async () => {
