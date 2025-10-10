@@ -512,7 +512,8 @@ import {
   History,
   Ellipsis,
   SendHorizontal,
-  Search
+  Search,
+    SquarePen
 } from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -735,6 +736,12 @@ const navMenu = computed(() => {
           name: "Segmentos",
           url: { name: "segments" },
           icon: ListFilter,
+          show: canAccess("view-segments"),
+        },
+        {
+          name: "Eventos",
+          url: { name: "events" },
+          icon: SquarePen,
           show: canAccess("view-segments"),
         },
         {
@@ -1059,7 +1066,7 @@ const sendMessage = async () => {
       chat_id: selectedChatId.value,
       message: newMessage.value.message,
       file:  newMessage.value.file,
-      project_id: activeGroupProject.value?.project_id,
+      project_id: activeGroupProject.value?.id,
     };
 
     loading.value = true;
