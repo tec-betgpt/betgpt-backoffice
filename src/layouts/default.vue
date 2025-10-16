@@ -916,11 +916,7 @@ const hasPermissionInActiveProject = (permissionName: string) => {
 }
 
 const canAccess = (permissionName: string) => {
-  return (
-    (authStore.user?.access_type === "member" &&
-      hasPermission(permissionName)) ||
-    hasPermissionInActiveProject(permissionName)
-  );
+  return (hasPermission(permissionName)) || hasPermissionInActiveProject(permissionName);
 };
 
 const setActiveGroupProject = async (project: any) => {
