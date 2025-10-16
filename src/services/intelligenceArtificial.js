@@ -34,7 +34,7 @@ export default {
      *
      * @param {Object} params - Parâmetros da requisição
      * @param {number} params.chat_id - ID do chat
-     * @param {number} params.project_id
+     * @param {string} params.project_id
      * @param {string} params.message - Texto da mensagem
      * @param {File} [params.file] - Arquivo opcional a ser enviado (imagem, PDF, etc)
      * @returns {Promise<message:string>} - Resposta da API
