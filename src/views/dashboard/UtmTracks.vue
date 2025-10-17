@@ -155,9 +155,7 @@ const typeFilter = ref<Array<String>>(["deposit", "player"]);
 
 watch(typeFilter.value, async () => {
   pages.value.current = 0;
-
   await fetchUtmTracks(pages.value.current);
-  // await nextTick(() => renderChart());
 })
 
 const workspaceStore = useWorkspaceStore();
