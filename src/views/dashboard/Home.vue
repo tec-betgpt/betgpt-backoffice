@@ -441,21 +441,16 @@ import {
   EyeClosed,
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { Chart, registerables } from "chart.js";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import VideoBackground from "vue-responsive-video-background-player";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useColorMode } from "@vueuse/core";
-import { ref } from "vue";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatLargeNumber } from "@/filters/formatLargeNumber";
 import SkeletonCustom from "@/components/custom/SkeletonCustom.vue";
 
 const { toast } = useToast();
-
-Chart.register(...registerables);
 
 export default {
   computed: {
