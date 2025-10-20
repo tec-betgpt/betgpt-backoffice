@@ -13,7 +13,7 @@ import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
 import Segments from "@/views/dashboard/Segments.vue";
-import Events from "@/views/dashboard/Events.vue";
+import ConversionDefinitions from "@/views/dashboard/ConversionDefinitions.vue";
 
 import ConfigurationLayout from "@/views/configurations/Layout.vue";
 import ConfigurationProfile from "@/views/configurations/Profile.vue";
@@ -261,15 +261,15 @@ const routes = [
         },
       },
       {
-        path: "events",
-        name: "events",
-        component: Events,
+        path: "conversion-definitions",
+        name: "conversion-definitions",
+        component: ConversionDefinitions,
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
           roles: "member",
           permissions: "view-segments",
-          title: "Eventos",
+          title: "Definições de Conversão",
         },
       },
       {
