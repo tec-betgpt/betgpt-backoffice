@@ -97,6 +97,7 @@
                       placeholder="Nova Senha"
                       type="password"
                       v-model="formStep3.password"
+                      required
                       :disabled="loading"
                   />
                 </div>
@@ -109,6 +110,7 @@
                       placeholder="Confirmação de senha"
                       type="password"
                       v-model="formStep3.password_confirmation"
+                      required
                       :disabled="loading"
                   />
                 </div>
@@ -158,6 +160,7 @@ import { cn } from "@/lib/utils";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { Progress } from '@/components/ui/progress'
 import {useColorMode} from "@vueuse/core";
+import {useToast} from "@/components/ui/toast";
 
 const router = useRouter();
 const step = ref(1);
@@ -246,6 +249,10 @@ const recover = async () => {
     });
     setStep(2);
   } catch (error) {
+    useToast().toast({
+      title:"Falha na solicitação",
+      description: error.message,
+    })
     console.log(error);
   } finally {
     loading.value = false;
@@ -280,9 +287,13 @@ const goBack = () => {
 const confirmNewPassword = async () => {
   loading.value = true;
   try {
-    await Recover.finish(formStep3);
+    await Recover.finish(formStep3.value);
     setStep(4);
   } catch (error) {
+    useToast().toast({
+      title:"Falha na solicitação",
+      description: error.message,
+    })
     console.log(error);
   } finally {
     loading.value = false;
