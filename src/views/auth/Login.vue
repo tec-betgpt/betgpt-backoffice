@@ -141,7 +141,7 @@
               :key="index"
               @click="goTo(index)"
               class="w-3 h-3 rounded-full"
-              :class="currentIndex === index ? 'bg-transparent/40' : 'bg-gray-300'"
+              :class="currentIndex === index ? 'bg-[#d4af37]' : 'bg-gray-300'"
             />
           </div>
         </div>
