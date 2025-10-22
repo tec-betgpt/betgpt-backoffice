@@ -287,6 +287,8 @@ const goBack = () => {
 const confirmNewPassword = async () => {
   loading.value = true;
   try {
+    formStep3.value.email = formStep1.value.key
+    formStep3.value.token = token.value;
     await Recover.finish(formStep3.value);
     setStep(4);
   } catch (error) {
