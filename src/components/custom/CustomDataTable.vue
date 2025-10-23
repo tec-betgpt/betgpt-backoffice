@@ -15,13 +15,11 @@
         class="sm:max-w-sm w-full"
         :placeholder="field.placeholder"
         v-model="searchValues[`search[${index}][${field.key}]`]"
-        @input="checkIfEmpty"
       />
 
       <Select
         v-else-if="field.type === 'date-range'"
         v-model="searchValues[`search[${index}][${field.key}]`]"
-        @update:modelValue="checkIfEmpty"
       >
         <SelectTrigger class="sm:max-w-sm w-full">
           <SelectValue :placeholder="field.placeholder" />

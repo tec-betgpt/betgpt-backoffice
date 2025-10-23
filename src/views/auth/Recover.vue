@@ -294,7 +294,7 @@ const confirmNewPassword = async () => {
   } catch (error) {
     useToast().toast({
       title:"Falha na solicitação",
-      description: error.message,
+      description: error.response.data.message,
     })
     console.log(error);
   } finally {

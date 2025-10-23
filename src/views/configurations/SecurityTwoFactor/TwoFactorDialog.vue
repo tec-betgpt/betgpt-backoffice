@@ -63,7 +63,7 @@
         <div class="flex w-full justify-center">
           <LucideSpinner v-if="loading" class="mr-2 h-6 w-6 animate-spin" />
         </div>
-        <DialogFooter v-if="step.step" class="flex gap-2 w-full justify-end">
+        <DialogFooter v-if="step.step" class="flex mt-2 gap-2 w-full justify-end">
           <Button @click="active2fa()">{{ $t("continue") }}</Button>
           <Button @click="closeDialog" variant="outline">{{
             $t("back")
