@@ -365,19 +365,35 @@ const columns = [
   }),
   columnHelper.accessor("type", {
     header: "Tipo",
-    cell: ({ row }) => h("div", { class: "capitalize" }, row.original.type),
+    cell: ({ row }) => {
+      const type = row.original.type
+      const t = {
+        deposit: "Depósito",
+        withdraw: "Saque",
+        player: "Cliente",
+        status_change: "Alteração de Status",
+        logins: "Login"
+      }[type] || "";
+      return h("div", {class: "capitalize"}, t)
+    },
   }),
   columnHelper.accessor("status", {
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.status;
+
       const color = {
         pending: "text-yellow-600",
         processed: "text-green-600",
         failed: "text-red-600",
       }[status as string];
+      const s = {
+        pending: "Pendente",
+        processed: "Processado",
+        failed: "Falha",
+      }[status];
 
-      return h("div", { class: `capitalize ${color}` }, status);
+      return h("div", { class: `capitalize ${color}` }, s);
     },
   }),
   columnHelper.accessor("created_at", {

@@ -1146,7 +1146,8 @@ export default {
           title: "Taxa de Aprovação",
           tooltip:
             "Taxa de aprovação de saídas solicitadas e saídas processadas",
-          value: this.withdraws.generated_withdraws, // Assumindo que este é o valor correto
+          value: this.withdraws.conversion_rate,
+          suffix: "%",
           icon: "BadgeCheck",
         },
         {
@@ -1185,13 +1186,13 @@ export default {
           value: this.retention.time,
           icon: "Hourglass",
         },
-        {
-          id: "frequencia-media-deposito",
-          title: "Frequência Média de Depósito",
-          tooltip: "Frequência média de depósito do usuário.",
-          count: 0,
-          icon: "SquareActivity",
-        },
+        // {
+        //   id: "frequencia-media-deposito",
+        //   title: "Frequência Média de Depósito",
+        //   tooltip: "Frequência média de depósito do usuário.",
+        //   count: 0,
+        //   icon: "SquareActivity",
+        // },
         {
           id: "ticket-medio-pos-ativacao",
           title: "Ticket Médio Pós-Ativação",
