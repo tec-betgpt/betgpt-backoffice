@@ -372,8 +372,7 @@ const columns = [
         withdraw: "Saque",
         player: "Cliente",
         status_change: "Alteração de Status",
-        logins: "Login"
-      }[type] || "";
+      }[type] || type;
       return h("div", {class: "capitalize"}, t)
     },
   }),
