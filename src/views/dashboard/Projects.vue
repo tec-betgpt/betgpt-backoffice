@@ -50,10 +50,11 @@
             </DropdownMenuContent>
           </DropdownMenu>
         </CustomDataTable>
-        <CustomPagination :select-page="fetchProjects"
-                          :pages="pages"
-                          :per_pages="perPage"
-                          @update:perPages="args => perPage = args"
+        <CustomPagination
+          :select-page="fetchProjects"
+          :pages="pages"
+          :per_pages="perPage"
+          @update:perPages="args => perPage = args"
         />
       </CardContent>
     </Card>
@@ -73,11 +74,11 @@
             <div class="grid grid-cols-4 items-center gap-4">
               <Label for="name">Nome do Projeto</Label>
               <Input
-                  id="name"
-                  v-model="form.name"
-                  placeholder="Digite o nome do projeto"
-                  class="col-span-3"
-                  required
+                id="name"
+                v-model="form.name"
+                placeholder="Digite o nome do projeto"
+                class="col-span-3"
+                required
               />
             </div>
             <div class="flex items-center gap-4">
@@ -87,18 +88,15 @@
             <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
             <Label v-if="form.image">Logo Atual</Label>
             <img
-                v-if="form.image"
-                :src="imagePreview"
-                class="w-full"
-                alt="Pré-visualização da imagem"
+              v-if="form.image"
+              :src="imagePreview"
+              class="w-full"
+              alt="Pré-visualização da imagem"
             />
           </div>
 
           <DialogFooter class="p-6 pt-0">
-            <Button
-              variant="link"
-              @click="showModal = false"
-            >
+            <Button variant="link" @click="cancel">
               Cancelar
             </Button>
             <Button
@@ -234,6 +232,16 @@ const setStatus = (status) => {
 const getStatus = (project) => {
   return project.statuses?.[0]?.name || "inactive";
 };
+
+
+const cancel = (e: Event) => {
+  e.preventDefault();
+  showModal.value = false;
+  isEditing.value = false;
+  form.value = { id: null, name: "", image: "" };
+  imagePreview.value = "";
+  errorMessage.value = "";
+}
 
 const fetchProjects = async (current = pages.value.current) => {
   try {

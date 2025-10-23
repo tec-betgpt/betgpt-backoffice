@@ -87,20 +87,21 @@
             </TableCell>
           </TableRow>
 
-          <TableRow v-if="isLoadingMore">
-            <TableCell :colspan="columns.length" class="text-center">
-              Carregando mais dados...
-            </TableCell>
-          </TableRow>
-
-          <TableRow v-if="hasMore && !isLoadingMore && data.length > 0">
-            <TableCell :colspan="columns.length" class="text-center">
-              <Button variant="ghost" @click="loadMore">Carregar mais</Button>
-            </TableCell>
-          </TableRow>
         </template>
       </TableBody>
     </Table>
+
+    <div v-if="isLoadingMore">
+      <div class="text-center w-full pt-4">
+        Carregando mais dados...
+      </div>
+    </div>
+
+    <div v-if="hasMore && !isLoadingMore && data.length > 0">
+      <div class="text-center w-full pt-4">
+        <Button variant="ghost" @click="loadMore">Carregar mais</Button>
+      </div>
+    </div>
   </div>
 </template>
 

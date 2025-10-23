@@ -88,10 +88,7 @@
               </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="link"
-                @click="showModal = false"
-              >
+              <Button variant="link" @click="cancel">
                 Cancelar
               </Button>
               <Button
@@ -329,6 +326,11 @@ function createHeaderButton(label: string, columnKey: string) {
       ),
     ]
   );
+}
+
+const cancel = (e: Event) => {
+  e.preventDefault();
+  showModal.value = false;
 }
 
 const columns = [

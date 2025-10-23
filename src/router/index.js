@@ -19,10 +19,10 @@ import ConfigurationProfile from "@/views/configurations/Profile.vue";
 import ConfigurationSecurity from "@/views/configurations/Security.vue";
 import ConfigurationNotifications from "@/views/configurations/Notifications.vue";
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
-import Texts from "@/views/dashboard/Texts.vue";
+import Insights from "@/views/dashboard/Insights.vue";
 import Financial from "@/views/dashboard/Financial.vue";
 import Sectors from "@/views/dashboard/Sectors.vue";
-import Costs from "@/views/dashboard/Costs.vue";
+import CostCenters from "@/views/dashboard/CostCenters.vue";
 import Roles from "@/views/dashboard/Roles.vue";
 import Players from "@/views/dashboard/Players.vue";
 import UtmTracks from "@/views/dashboard/UtmTracks.vue";
@@ -334,7 +334,7 @@ const routes = [
       {
         path: "texts",
         name: "texts",
-        component: Texts,
+        component: Insights,
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
@@ -418,7 +418,7 @@ const routes = [
       {
         path: "costs",
         name: "costs",
-        component: Costs,
+        component: CostCenters,
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
