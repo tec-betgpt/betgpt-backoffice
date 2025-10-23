@@ -41,9 +41,9 @@ const router = useRouter();
     </div>
     <Separator class="my-6" />
     <div
-      class=" w-full h-fit mb-6 max-w-6xl items-start justify-start align-top gap-6 flex sm:flex-row flex-col"
+      class="flex gap-4 sm:flex-row flex-col"
     >
-      <nav class="grid gap-2 text-sm text-muted-foreground  w-full sm:max-w-60">
+      <nav class=" flex sm:flex-col flex-row gap-2 text-sm text-muted-foreground  w-full sm:max-w-60">
         <Button
           v-for="item in sidebarNavItems.filter((item) => item.show)"
           :key="item.title"
