@@ -217,10 +217,7 @@
               </div>
             </div>
             <DialogFooter class="pt-2">
-              <Button
-                variant="ghost"
-                @click="showModal = false"
-              >
+              <Button variant="ghost" @click="cancel">
                 Cancelar
               </Button>
               <Button class="bg-yellow-300" type="submit" :disabled="isProcessing">
@@ -610,6 +607,11 @@ const searchValues = ref<Record<string, string>>({});
 const setSearch = (values: Record<string, string>) => {
   searchValues.value = values;
 };
+
+const cancel = (e: Event) => {
+  e.preventDefault();
+  showModal.value = false;
+}
 
 const order = ref();
 const direction = ref(false);

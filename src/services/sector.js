@@ -4,7 +4,7 @@ export default {
   /**
    * GET /v1/sectors
    *
-   * @param {object} params
+   * @param {object|null} params
    * @param {string} params.filter_id
    * @param {string} params.find_name
    * @param {string} params.sort_by

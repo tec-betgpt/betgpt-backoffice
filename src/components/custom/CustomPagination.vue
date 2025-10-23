@@ -64,29 +64,29 @@ const applyFilter = (page: number) => {
 </script>
 
 <template>
-  <div class="flex items-center justify-between gap-4 w-full">
+  <div class="flex items-center justify-between gap-4 w-full max-sm:flex-col max-sm:items-start">
     <Pagination
-        class="w-full"
-        v-if="p.last > 1"
-        :total="p.total"
-        :items-per-page="per_pages ? per_pages : 10"
-        :sibling-count="1"
-        show-edges
-        :default-page="1"
+      class="w-full"
+      v-if="p.last > 1"
+      :total="p.total"
+      :items-per-page="per_pages ? per_pages : 10"
+      :sibling-count="0"
+      show-edges
+      :default-page="1"
     >
       <PaginationList v-slot="{ items }" class="flex items-center gap-2">
         <PaginationFirst as-child @click="applyFilter(1)" />
         <PaginationPrev as-child @click="applyFilter(p.current - 1)" />
         <template v-for="(item, index) in items" :key="index">
           <PaginationListItem
-              v-if="item.type === 'page'"
-              :value="item.value"
-              as-child
+            v-if="item.type === 'page'"
+            :value="item.value"
+            as-child
           >
             <Button
-                class="min-w-9 min-h-9 p-2"
-                :variant="item.value === p.current ? 'default' : 'outline'"
-                @click="applyFilter(item.value)"
+              class="min-w-9 min-h-9 p-2"
+              :variant="item.value === p.current ? 'default' : 'outline'"
+              @click="applyFilter(item.value)"
             >
               {{ item.value }}
             </Button>
@@ -98,9 +98,12 @@ const applyFilter = (page: number) => {
         <PaginationLast as-child @click="applyFilter(p.last)" />
       </PaginationList>
     </Pagination>
-    <Select :model-value="perPages"
-            @update:modelValue="(value)=>perPages = value"
-            v-if="p.last > 1">
+
+    <Select
+      :model-value="perPages"
+      @update:modelValue="(value)=>perPages = value"
+      v-if="p.last > 1"
+    >
       <SelectTrigger class="w-fit">
         <span>{{ per_pages ? per_pages : 10 }} por página</span>
       </SelectTrigger>
@@ -112,7 +115,4 @@ const applyFilter = (page: number) => {
       </SelectContent>
     </Select>
   </div>
-
 </template>
-
-<style scoped></style>

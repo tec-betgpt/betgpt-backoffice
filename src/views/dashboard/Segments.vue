@@ -1,10 +1,23 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Gerenciar Segmentos</h2>
-      <p class="text-muted-foreground">
-        Crie e gerencie segmentos dinâmicos com regras personalizadas.
-      </p>
+    <div class="w-full flex justify-between items-center max-sm:flex-col">
+      <div class="space-y-0.">
+        <h2 class="text-2xl font-bold tracking-tight">Gerenciar Segmentos</h2>
+        <p class="text-muted-foreground">
+          Crie e gerencie segmentos dinâmicos com regras personalizadas.
+        </p>
+      </div>
+
+      <div class="w-full flex max-sm:justify-center justify-end max-sm:flex-col gap-2 max-sm:mt-3 items-center">
+        <Button @click="openCreateModal" class="max-sm:w-full">
+          <PlusIcon class="mr-2 h-4 w-4" />
+          Novo Segmento
+        </Button>
+        <Button @click="showExport = true" :disabled="!exportSeg.length" class="max-sm:w-full">
+          <Download /> Exportar
+          {{ exportSeg.length > 1 ? "Segmentos" : "Segmento" }}
+        </Button>
+      </div>
     </div>
 
     <Card>
@@ -22,24 +35,15 @@
           :update-text="handleName"
           :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
         />
-        <CustomPagination :select-page="fetchSegments"
-                          :pages="pages"
-                          :per_pages="perPage"
-                          @update:perPages="args => perPage = args"
+
+        <CustomPagination
+          class="mt-4"
+          :select-page="fetchSegments"
+          :pages="pages"
+          :per_pages="perPage"
+          @update:perPages="args => perPage = args"
         />
       </CardContent>
-      <CardFooter class="flex justify-start">
-        <div class="flex sm:flex-row flex-col gap-4 my-4 items-center">
-          <Button @click="openCreateModal">
-            <PlusIcon class="mr-2 h-4 w-4" />
-            Novo Segmento
-          </Button>
-          <Button @click="showExport = true" :disabled="!exportSeg.length">
-            <Download /> Exportar
-            {{ exportSeg.length > 1 ? "Segmentos" : "Segmento" }}
-          </Button>
-        </div>
-      </CardFooter>
     </Card>
 
     <Dialog v-model:open="showModal">
@@ -446,6 +450,7 @@
         </div>
       </DialogContent>
     </Dialog>
+
     <Dialog v-model:open="showExport">
       <DialogContent>
         <DialogHeader>

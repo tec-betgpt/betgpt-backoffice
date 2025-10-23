@@ -81,7 +81,7 @@
           :disabled="isAllRecords"
           @click="loadMore()"
           variant="ghost"
-          class="text-yellow-400"
+          class=":text-yellow-400"
         >
           {{ isAllRecords ? 'Limite de registros atingido' : 'Carregar mais' }}
         </Button>
