@@ -243,9 +243,9 @@
         <div class="flex items-center gap-2 w-full px-4">
           <SidebarTrigger :logo="true" :toggle="toggleSidebar" class="-ml-1" />
 
-          <Separator orientation="vertical" class="mr-2 h-4" />
+          <Separator orientation="vertical" class="mr-2 h-4 hidden md:block" />
 
-          <Breadcrumb class="flex-1 text-ellipsis overflow-x-auto">
+          <Breadcrumb class="flex-1">
             <BreadcrumbList class="flex flex-nowrap">
               <BreadcrumbItem>
                   <BreadcrumbLink as-child>
@@ -266,19 +266,32 @@
                 <BreadcrumbSeparator />
               </BreadcrumbItem>
 
-              <BreadcrumbItem v-for="(crumb, index) in breadcrumbs" :key="index">
-                <template v-if="crumb.path">
-                  <BreadcrumbLink as-child>
-                    <router-link :to="{ path: crumb.path }">
+              <div
+                v-for="(crumb, index) in breadcrumbs"
+                :key="index"
+                class="flex flex-nowrap items-center"
+              >
+                <BreadcrumbItem
+                  :class="{
+                    'hidden md:block': index !== breadcrumbs.length - 1,
+                    'flex': index === breadcrumbs.length - 1
+                  }"
+                >
+                  <BreadcrumbLink v-if="crumb.path" as-child>
+                    <router-link class="truncate whitespace-nowrap overflow-hidden max-w-[100px] md:max-w-xs" :to="{ path: crumb.path }">
                       {{ crumb.title }}
                     </router-link>
                   </BreadcrumbLink>
-                </template>
-                <template v-else>
-                  <BreadcrumbPage>{{ crumb.title }}</BreadcrumbPage>
-                </template>
-                <BreadcrumbSeparator v-if="index < breadcrumbs.length - 1" />
-              </BreadcrumbItem>
+
+                  <BreadcrumbPage v-else class="truncate whitespace-nowrap overflow-hidden max-w-[100px] md:max-w-xs">
+                    {{ crumb.title }}
+                  </BreadcrumbPage>
+
+                </BreadcrumbItem>
+
+                <BreadcrumbSeparator class="hidden md:block ml-2" v-if="index < breadcrumbs.length - 1" />
+              </div>
+
             </BreadcrumbList>
           </Breadcrumb>
 
@@ -923,11 +936,7 @@ const hasPermissionInActiveProject = (permissionName: string) => {
 }
 
 const canAccess = (permissionName: string) => {
-  return (
-    (authStore.user?.access_type === "member" &&
-      hasPermission(permissionName)) ||
-    hasPermissionInActiveProject(permissionName)
-  );
+  return (hasPermission(permissionName)) || hasPermissionInActiveProject(permissionName);
 };
 
 const setActiveGroupProject = async (project: any) => {

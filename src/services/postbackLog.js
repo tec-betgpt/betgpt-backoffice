@@ -12,6 +12,8 @@ export default {
    * @param {string} params.end_date - Data final (opcional)
    * @param {number} params.page - Página atual (opcional)
    * @param {number} params.per_page - Itens por página (opcional)
+   * @param {string} params.orderBy - Tipo de ordem da tabela (opcional)
+   * @param {string} params.orderDirection
    */
   async index(params = {}) {
     if (!params.filter_id || !params.type) {

@@ -441,21 +441,16 @@ import {
   EyeClosed,
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { Chart, registerables } from "chart.js";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import VideoBackground from "vue-responsive-video-background-player";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useColorMode } from "@vueuse/core";
-import { ref } from "vue";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatLargeNumber } from "@/filters/formatLargeNumber";
 import SkeletonCustom from "@/components/custom/SkeletonCustom.vue";
 
 const { toast } = useToast();
-
-Chart.register(...registerables);
 
 export default {
   computed: {
@@ -1146,7 +1141,8 @@ export default {
           title: "Taxa de Aprovação",
           tooltip:
             "Taxa de aprovação de saídas solicitadas e saídas processadas",
-          value: this.withdraws.generated_withdraws, // Assumindo que este é o valor correto
+          value: this.withdraws.conversion_rate,
+          suffix: "%",
           icon: "BadgeCheck",
         },
         {
@@ -1185,13 +1181,13 @@ export default {
           value: this.retention.time,
           icon: "Hourglass",
         },
-        {
-          id: "frequencia-media-deposito",
-          title: "Frequência Média de Depósito",
-          tooltip: "Frequência média de depósito do usuário.",
-          count: 0,
-          icon: "SquareActivity",
-        },
+        // {
+        //   id: "frequencia-media-deposito",
+        //   title: "Frequência Média de Depósito",
+        //   tooltip: "Frequência média de depósito do usuário.",
+        //   count: 0,
+        //   icon: "SquareActivity",
+        // },
         {
           id: "ticket-medio-pos-ativacao",
           title: "Ticket Médio Pós-Ativação",

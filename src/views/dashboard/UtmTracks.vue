@@ -37,25 +37,17 @@
 
     <div v-else>
       <div class="grid gap-4 grid-cols-1 lg:grid-cols-2 mb-3">
-        <Card class="">
-          <CardHeader class="pb-3">
-            <CardTitle>Cadastro por src e utm_source</CardTitle>
-          </CardHeader>
-          <Separator />
-          <CardContent class="h-[400px] w-full chart-container">
-            <canvas id="registersChart"></canvas>
-          </CardContent>
-        </Card>
+        <ChartBarComponent
+          title="Cadastro por src e utm_source"
+          :labels="chartRegistersUtmSource.labels"
+          :series="chartRegistersUtmSource.series"
+        />
 
-        <Card class="">
-          <CardHeader class="pb-3">
-            <CardTitle>Depósitos por src e utm_source</CardTitle>
-          </CardHeader>
-          <Separator />
-          <CardContent class="h-[400px] w-full chart-container">
-            <canvas id="depositsChart"></canvas>
-          </CardContent>
-        </Card>
+        <ChartBarComponent
+          title="Depósitos por src e utm_source"
+          :labels="chartDepositsUtmSource.labels"
+          :series="chartDepositsUtmSource.series"
+        />
       </div>
 
       <Card>
@@ -108,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h, watch, nextTick } from "vue";
+import { ref, onMounted, h, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -124,9 +116,8 @@ import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import moment from "moment";
-import { Chart, registerables } from "chart.js";
-import {Separator} from "@/components/ui/separator";
 import {Card, CardContent} from "@/components/ui/card";
+import ChartBarComponent from "@/components/utm_tracks/ChartBarComponent.vue";
 
 type UtmTrack = {
   id: number
@@ -137,14 +128,17 @@ type UtmTrack = {
   project_id: number
 }
 
-Chart.register(...registerables);
-
 const { toast } = useToast();
 const hasMore = ref(true);
-const currentPage = ref(0);
 const utmTracks = ref<UtmTrack[]>([]);
-const chartRegistersUtmSource = ref();
-const chartDepositsUtmSource = ref();
+const chartRegistersUtmSource = ref<any>({
+  labels: [],
+  series: []
+});
+const chartDepositsUtmSource = ref<any>({
+  labels: [],
+  series: []
+});
 const isLoading = ref(true);
 const pages = ref({
   current: 0,
@@ -155,9 +149,7 @@ const typeFilter = ref<Array<String>>(["deposit", "player"]);
 
 watch(typeFilter.value, async () => {
   pages.value.current = 0;
-
   await fetchUtmTracks(pages.value.current);
-  // await nextTick(() => renderChart());
 })
 
 const workspaceStore = useWorkspaceStore();
@@ -184,8 +176,18 @@ const fetchUtmTracks = async (current = pages.value.current) => {
     })
 
     utmTracks.value = data.utm_tracks;
-    chartRegistersUtmSource.value = data.registers_utm_tracks;
-    chartDepositsUtmSource.value = data.deposits_utm_tracks;
+
+    chartRegistersUtmSource.value.labels = data.registers_utm_tracks.labels
+    chartRegistersUtmSource.value.series = [{
+      name: 'utm_source',
+      data: data.registers_utm_tracks.data || []
+    }]
+
+    chartDepositsUtmSource.value.labels = data.deposits_utm_tracks.labels;
+    chartDepositsUtmSource.value.series = [{
+      name: 'utm_source',
+      data: data.deposits_utm_tracks.data || []
+    }]
   } catch (_) {
     toast({
       title: "Erro",
@@ -195,14 +197,11 @@ const fetchUtmTracks = async (current = pages.value.current) => {
   }
 
   isLoading.value = false;
-
-  nextTick(() => renderChart())
 };
 
 const loadMore = async () => {
   pages.value.current = pages.value.current + 100
   await fetchUtmTracks(pages.value.current);
-  await nextTick(() => renderChart())
 };
 
 const setType = (type: any) => {
@@ -217,61 +216,6 @@ const setType = (type: any) => {
 onMounted(async () => {
   await fetchUtmTracks();
 })
-
-const renderChart = () => {
-  const element = document.getElementById("registersChart") as HTMLCanvasElement
-  const options: any = {
-    indexAxis: "x",
-    scales: {
-      x: {
-        beginAtZero: true,
-        ticks: {
-          maxRotation: 90,
-          minRotation: 90,
-          autoSkip: false,
-        },
-      },
-    },
-  }
-
-  if (!isLoading.value && element) {
-    const ctx = element.getContext("2d")
-    const registersChart = new Chart(ctx!, {
-      type: "bar",
-      data: {
-        labels: chartRegistersUtmSource.value.labels,
-        datasets: [
-          {
-            label: "utm_source",
-            data: chartRegistersUtmSource.value.data || [],
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            borderColor: "rgba(255, 255, 255, 1)",
-            borderWidth: 1,
-          },
-        ],
-      },
-      options
-    })
-
-    const ctx2 = document.getElementById("depositsChart")!.getContext("2d") as HTMLCanvasElement
-    const depositsChart = new Chart(ctx2, {
-      type: "bar",
-      data: {
-        labels: chartDepositsUtmSource.value.labels,
-        datasets: [
-          {
-            label: "utm_source",
-            data: chartDepositsUtmSource.value.data,
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            borderColor: "rgba(255, 255, 255, 1)",
-            borderWidth: 1,
-          },
-        ],
-      },
-      options
-    })
-  }
-}
 
 const setSearch = (values: Record<string, string>) => {
   searchValues.value = values
@@ -305,17 +249,10 @@ function createHeaderButton(label: string, columnKey: string) {
     ]
   );
 }
+
 const columns = [
-  columnHelper.accessor("id", {
-    header({ column }) {
-      return createHeaderButton("ID", "id");
-    },
-    cell: ({ row }) => h("div", {}, row.original.id),
-  }),
   columnHelper.accessor("type", {
-    header({ header }) {
-      return "Tipo";
-    },
+    header: () => "Tipo",
     cell: ({ row }) =>
       h(
         "div",
@@ -324,21 +261,15 @@ const columns = [
       ),
   }),
   columnHelper.accessor("name", {
-    header({ column }) {
-      return createHeaderButton("Nome", "name");
-    },
+    header: () => createHeaderButton("Nome", "name"),
     cell: ({ row }) => h("div", {}, `${row.original.name}`),
   }),
   columnHelper.accessor("value", {
-    header({ column }) {
-      return createHeaderButton("Valor", "value");
-    },
+    header: () => createHeaderButton("Valor", "value"),
     cell: ({ row }) => h("div", {}, `${row.original.value}`),
   }),
   columnHelper.accessor("created_at", {
-    header({ header }) {
-      return createHeaderButton("Data", "created_at");
-    },
+    header: () => createHeaderButton("Data", "created_at"),
     cell: ({ row }) =>
       h(
         "div",

@@ -9,23 +9,17 @@
       </div>
     </div>
     <div class="grid grid-cols-1 gap-4 mb-6">
-      <div>
-        <div class=" ">
-          <Badge
-            class="flex-row flex gap-2 mt-2 items-center justify-between align-middle"
-          >
-            <span class="text-lg"> Segmentos </span>
-            <div>
-              <Button variant="secondary" @click="showDialog">
-                <span>Exportar</span>
-              </Button>
-            </div>
-          </Badge>
-        </div>
+      <div class="flex-row flex gap-2 mt-2 items-center justify-between align-middle">
+        <div class="text-lg font-bold">Segmentos</div>
+        <Button @click="showDialog">
+          <Spinner v-if="isLoadingExport" class="mr-2 h-4 w-4 animate-spin" />
+          <span>Exportar</span>
+        </Button>
       </div>
+
       <Card>
         <CardHeader class="flex flex-row w-full justify-between items-center">
-          <CardTitle> Histórico </CardTitle>
+          <CardTitle>Histórico</CardTitle>
         </CardHeader>
         <CardContent>
           <CustomDataTable
@@ -33,10 +27,11 @@
             :data="history"
             :columns="columnsHistory"
           />
-          <CustomPagination :select-page="selectPage"
-                            :pages="pages"
-                            :per-pages="perPage"
-                            @update:perPages="(value)=>{ perPage = value }"
+          <CustomPagination
+            :select-page="selectPage"
+            :pages="pages"
+            :per-pages="perPage"
+            @update:perPages="(value)=>{ perPage = value }"
           />
         </CardContent>
       </Card>
@@ -112,6 +107,7 @@ import Segments from "@/services/segments";
 import { Sheet } from "@/components/ui/sheet";
 import { Dialog, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import {Spinner} from "@/components/ui/spinner";
 
 const openDialog = ref(false);
 const isLoading = ref(true);
@@ -120,6 +116,7 @@ const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const pages = ref({ current: 1, total: 0, last: 0 });
 const paginate = ref(1);
 const perPage = ref(10)
+const isLoadingExport = ref(false);
 const route = useRoute();
 watch(perPage, () => {
   loadExportsHistory()
@@ -424,6 +421,8 @@ const showDialog = async (isAutoOpen = false) => {
     targetId.value = [];
   }
 
+  isLoadingExport.value = true;
+
   await fetchSegments();
   openDialog.value = true;
 
@@ -435,6 +434,8 @@ const showDialog = async (isAutoOpen = false) => {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
+
+  isLoadingExport.value = false;
 };
 
 watch(

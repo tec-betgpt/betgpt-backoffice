@@ -73,6 +73,15 @@ const form = ref({
 const submit = async () => {
   loading.value = true;
   try {
+    if (form.value.new_password !== form.value.new_password_confirmation) {
+      toast({
+        title: "Erro",
+        description: "Confirme a nova senha.",
+        variant: "destructive"
+      });
+      loading.value = false;
+      return
+    }
     await Users.changePassword(form.value)
 
     toast({

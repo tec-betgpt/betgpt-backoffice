@@ -13,6 +13,7 @@ export default {
    * @param {number} params.per_pages
    * @param {number} params.page
    * @param {Array<string>} params.search
+   * @param {string} params.last_send_date
    */
   async index(params = {}) {
     const {data} = await api.get('/active-campaign', {params})
