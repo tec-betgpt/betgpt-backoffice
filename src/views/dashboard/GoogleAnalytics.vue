@@ -368,8 +368,8 @@ const applyFilter = async () => {
     ];
     arppuPeriod.value = [{ name: "ARPPU", value: data.data.arppu }];
     arpuPeriod.value = [{ name: "ARPU", value: data.data.arpu }];
-    groupSessions.value = data.data.group_sessions;
-    variationTotal.value = data.data.variation_total ?? 0;
+    groupSessions.value = data.data.group_sessions.channels;
+    variationTotal.value = data.data.group_sessions.variation_total ?? 0;
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
