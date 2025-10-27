@@ -755,7 +755,7 @@ const navMenu = computed(() => {
           name: "Eventos",
           url: { name: "events" },
           icon: SquarePen,
-          show: canAccess("view-segments"),
+          show: canAccess("view-events"),
         },
         {
           name: "Atribuições",

@@ -261,14 +261,14 @@ const routes = [
         },
       },
       {
-        path: "conversion-definitions",
-        name: "conversion-definitions",
+        path: "events",
+        name: "events",
         component: ConversionDefinitions,
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
           roles: "member",
-          permissions: "view-segments",
+          permissions: "view-events",
           title: "Definições de Conversão",
         },
       },
