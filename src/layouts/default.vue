@@ -227,6 +227,14 @@
                 Configurações
               </router-link>
             </DropdownMenuItem>
+            <DropdownMenuItem>
+              <router-link
+                class="w-full"
+                :to="{ name: 'services' }"
+              >
+                Serviços
+              </router-link>
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 

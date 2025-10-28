@@ -32,9 +32,9 @@ import Integrations from "@/views/dashboard/Integrations.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
 import GroupProjects from "@/views/dashboard/GroupProjects.vue";
 import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
-import { Download } from "lucide-vue-next";
 import Export from "@/views/dashboard/Export.vue";
 import UserLogins from "@/views/dashboard/UserLogins.vue";
+import ServicesPage from "@/views/configurations/ServicesPage.vue";
 
 const routes = [
   {
@@ -441,6 +441,17 @@ const routes = [
       },
     ],
   },
+  {
+    path: "/services",
+    name: "services",
+    component: ServicesPage,
+    meta: {
+      layout: DefaultLayout,
+      requiresAuth: true,
+      title: "Serviços",
+      roles: "member|client",
+    },
+  }
 ];
 
 const router = createRouter({
