@@ -63,12 +63,16 @@
           </div>
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="conversion_value_field" class="text-right">Campo de Valor</Label>
-            <Input
-                id="conversion_value_field"
-                v-model="form.conversion_value_field"
-                placeholder="Ex: deposit_value"
-                class="col-span-3"
-            />
+            <Select v-model="form.conversion_value_field" class="w-full">
+              <SelectTrigger >
+                <SelectValue placeholder="Selecione um valor"/>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="value in values"  :value="value" :text-value="value">
+                  {{ value }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="is_primary" class="text-right">Primário</Label>
@@ -79,59 +83,71 @@
 
           <div class="space-y-4">
             <Label>Condições</Label>
-            <div
-                v-for="(condition, index) in form.conditions"
-                :key="index"
-                class="flex items-center gap-2"
-            >
-              <Combobox v-model="condition.conditionable_id" class="w-full">
-                <ComboboxAnchor>
-                  <div class="relative w-full max-w-sm items-center">
-                    <ComboboxInput
-                        class="pl-9"
-                        v-on:update:model-value="s => fetchSegments(s)"
-                        placeholder="Procure pelo Segmento..."
-                    />
-                    <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3">
+
+            <Accordion type="single" class="w-full" collapsible >
+              <AccordionItem  value="segment">
+                <AccordionTrigger>
+                  Segmento
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div
+                      v-for="(condition, index) in form.conditions"
+                      :key="index"
+                      class="flex items-center gap-2"
+                  >
+
+                    <Combobox v-model="condition.conditionable_id" class="w-full">
+                      <ComboboxAnchor>
+                        <div class="relative w-full max-w-sm items-center">
+                          <ComboboxInput
+                              class="pl-9"
+                              v-on:update:model-value="s => fetchSegments(s)"
+                              placeholder="Procure pelo Segmento..."
+                              :display-value="(t)=>{return segments.find(s => s.id === t)?.name || ''}"
+                          />
+                          <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3">
                               <Search class="size-4 text-muted-foreground"/>
                             </span>
+                        </div>
+                      </ComboboxAnchor>
+                      <ComboboxList>
+                        <ComboboxEmpty>
+                          Nenhum Segmento encontrado.
+                        </ComboboxEmpty>
+                        <ComboboxGroup>
+                          <ComboboxItem
+                              v-for="segment in segments"
+                              :key="segment.id"
+                              :value="segment.id">
+                            {{ segment.name }}
+                            <ComboboxItemIndicator>
+                              <Check :class="cn('ml-auto h-4 w-4')"/>
+                            </ComboboxItemIndicator>
+                          </ComboboxItem>
+                        </ComboboxGroup>
+                      </ComboboxList>
+                    </Combobox>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        @click="removeCondition(index)"
+                        class="text-destructive"
+                    >
+                      <Trash2Icon class="h-4 w-4"/>
+                    </Button>
                   </div>
-                </ComboboxAnchor>
-                <ComboboxList>
-                  <ComboboxEmpty>
-                    Nenhum Segmento encontrado.
-                  </ComboboxEmpty>
-                  <ComboboxGroup>
-                    <ComboboxItem
-                        v-for="segment in segments"
-                        :key="segment.id"
-                        :value="segment.id">
-                      {{ segment.name }}
-                      <ComboboxItemIndicator>
-                        <Check :class="cn('ml-auto h-4 w-4')"/>
-                      </ComboboxItemIndicator>
-                    </ComboboxItem>
-                  </ComboboxGroup>
-                </ComboboxList>
-              </Combobox>
-              <Button
-                  variant="ghost"
-                  size="sm"
-                  @click="removeCondition(index)"
-                  class="text-destructive"
-              >
-                <Trash2Icon class="h-4 w-4"/>
-              </Button>
-            </div>
-            <Button
-                variant="outline"
-                size="sm"
-                @click="addCondition"
-                class="mt-2"
-            >
-              <PlusIcon class="mr-2 h-4 w-4"/>
-              Adicionar Condição
-            </Button>
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      @click="addCondition('segment')"
+                      class="mt-2"
+                  >
+                    <PlusIcon class="mr-2 h-4 w-4"/>
+                    Adicionar mais uma Condição
+                  </Button>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
 
@@ -160,6 +176,7 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Separator} from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import {
   Dialog,
   DialogContent,
@@ -192,6 +209,7 @@ import {
 } from "@/components/ui/combobox"
 import {cn} from "@/lib/utils";
 import {Switch} from "@/components/ui/switch";
+import {Select, SelectContent, SelectTrigger, SelectItem} from "@/components/ui/select";
 
 const {toast} = useToast();
 const isLoading = ref(false);
@@ -214,7 +232,7 @@ const form = ref({
 
 const conversionDefinitions = ref<any[]>([]);
 const segments = ref<any[]>([]);
-
+const values = ref([])
 const columnHelper = createColumnHelper<any>();
 
 const fetchConversionDefinitions = async () => {
@@ -233,11 +251,19 @@ const fetchConversionDefinitions = async () => {
     isLoading.value = false;
   }
 };
+const fetchValues = async () => {
+  try {
+    const response = await ConversionDefinitions.getValues();
+    values.value = response.data;
+  }catch (error) {
+    console.error("Error loading conversion definitions:", error);
+  }
+}
 
 const fetchSegments = async (name: string) => {
   try {
-    const response = await Segments.index({find_name: name, filter_id: activeGroupProject?.value.id});
-    segments.value = response.data;
+    const response = await ConversionDefinitions.getSegment({find_name: name, filter_id: activeGroupProject?.value.id});
+    segments.value = response.data.data;
   } catch (error) {
     console.error("Error loading segments:", error);
   }
@@ -260,11 +286,18 @@ const resetForm = () => {
   };
 };
 
-const addCondition = () => {
-  form.value.conditions.push({
-    conditionable_type: "segment",
-    conditionable_id: null,
-  });
+const addCondition = (type:string) => {
+  switch (type) {
+    case "segment":
+      form.value.conditions.push({
+        conditionable_type: "segment",
+        conditionable_id: null,
+      });
+      break;
+    default:
+      return;
+  }
+
 };
 
 const removeCondition = (index: number) => {
@@ -428,7 +461,7 @@ onMounted(async () => {
   isLoading.value = true;
   try {
     await fetchConversionDefinitions();
-    await fetchSegments('');
+    await fetchValues();
     resetForm();
   } catch (error) {
     console.error("Error loading data:", error);

@@ -65,5 +65,25 @@ export default {
   async destroy (id) {
     const { data } = await api.delete(`/conversion-definitions/${id}`)
     return data
-  }
+  },
+    /**
+     *
+     * @param {object} params
+     * @param {string} params.filter_id
+     * @param {string} params.find_name
+     *
+     */
+  async getSegment(params){
+      const { data } = await api.get(`/conversion-definitions/segments`, {params})
+        return data
+  },
+
+    /**
+     *
+     * @returns {Promise<any>}
+     */
+    async getValues (){
+      const {data} = await api.get(`/conversion-definitions/values`)
+        return data
+    }
 }
