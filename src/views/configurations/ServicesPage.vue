@@ -22,6 +22,7 @@
               <TableHead>Status</TableHead>
               <TableHead class="text-right">Contratado por</TableHead>
               <TableHead class="text-right">Criado em</TableHead>
+              <TableHead class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -40,13 +41,21 @@
                   {{ row.name }}
                 </TableCell>
                 <TableCell>
-                  {{ row.is_active ? 'Ativo' : 'Inativo' }}
+                  <Badge variant="secondary" v-if="row.is_active" class="bg-green-200 text-green-800">Ativo</Badge>
+                  <Badge variant="secondary" v-else class="bg-red-200 text-red-800">Inativo</Badge>
                 </TableCell>
                 <TableCell class="text-right">
                   -
                 </TableCell>
                 <TableCell class="text-right text-nowrap">
                   {{ $moment(row.created_at).format('DD/MM/YYYY') }}
+                </TableCell>
+                <TableCell class="text-right">
+                  <div class="gap-1 flex flex-nowrap justify-end">
+                    <ToggleActivatedComponent :row="row" :reload="fetchServices" class="mr-1" />
+                    <EditDialogComponent :row="row" :reload="fetchServices" />
+                    <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchServices" />
+                  </div>
                 </TableCell>
               </TableRow>
             </transition-group>
@@ -87,6 +96,9 @@ import { getMs } from "@/filters/formatNumbers";
 import Services from "@/services/services";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/services/CreateDialogComponent.vue";
+import EditDialogComponent from "@/components/services/EditDialogComponent.vue";
+import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
+import ToggleActivatedComponent from "@/components/services/ToggleActivatedComponent.vue";
 
 const { toast } = useToast();
 
@@ -102,8 +114,6 @@ const pages = ref({
 })
 
 const fetchServices = async (page = 1) => {
-  isLoading.value = true;
-
   try {
     const response = await Services.index({
       page,
@@ -119,16 +129,29 @@ const fetchServices = async (page = 1) => {
       total: response.total,
     };
   } catch (error) {
-    console.error(error);
     toast({
       title: "Erro",
       description: "Erro ao carregar os dados.",
       variant: "destructive",
     });
   }
-
-  isLoading.value = false;
 }
 
-onMounted(() => fetchServices());
+const destroy = async (id: number) => {
+  try {
+    await Services.destroy(id);
+  } catch (error) {
+    toast({
+      title: "Erro",
+      description: "Erro ao remover os dados.",
+      variant: "destructive",
+    });
+  }
+}
+
+onMounted(async () => {
+  isLoading.value = true;
+  await fetchServices()
+  isLoading.value = false;
+});
 </script>

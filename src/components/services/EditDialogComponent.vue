@@ -1,16 +1,15 @@
 <template>
-  <Button @click="openDialog" class="bg-yellow-300 text-black dark:text-white hover:text-white dark:hover:text-black">
-    <Plus />
-    Novo Serviço
+  <Button @click="openDialog()" size="icon" variant="ghost" :disabled="isLoading.show">
+    <Spinner v-if="isLoading.show" class="h-4 w-4 animate-spin" />
+    <PencilLine v-else />
   </Button>
 
   <Dialog v-model:open="isDialog">
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Novo Serviço</DialogTitle>
+        <DialogTitle>Editar Serviço</DialogTitle>
         <DialogDescription>
-          Adicione um novo serviço/plano ao portfólio, abaixo você irá definir
-          os preços unitários por cada recurso da plataforma.
+          Editar esse serviço/plano irá atualizar os valores das novas faturas.
         </DialogDescription>
       </DialogHeader>
       <form @submit.prevent="onSubmit">
@@ -162,8 +161,8 @@
           </NumberField>
         </div>
         <DialogFooter>
-          <Button type="submit" :disabled="isLoading">
-            {{ isLoading ? "Salvando..." : "Salvar" }}
+          <Button type="submit" :disabled="isLoading.onSubmit">
+            {{ isLoading.onSubmit ? "Atualizando..." : "Atualizar" }}
           </Button>
         </DialogFooter>
       </form>
@@ -173,7 +172,7 @@
 
 <script setup lang="ts">
 import {ref, watch} from "vue";
-import { Plus } from "lucide-vue-next";
+import { PencilLine } from "lucide-vue-next";
 import { useToast} from "@/components/ui/toast";
 import Services from "@/services/services";
 import {
@@ -183,11 +182,18 @@ import {
   NumberFieldIncrement, NumberFieldInput
 } from "@/components/ui/number-field";
 import {Dialog} from "@/components/ui/dialog";
+import {Spinner} from "@/components/ui/spinner";
 
-const props = defineProps<{ reload: () => Promise<void> }>();
+const props = defineProps<{
+  row: any,
+  reload: () => Promise<void>
+}>();
 const { toast } = useToast();
 
-const isLoading = ref(false);
+const isLoading = ref({
+  onSubmit: false,
+  show: false
+});
 const isDialog = ref(false);
 const form = ref({
   name: '',
@@ -202,17 +208,17 @@ const form = ref({
 });
 
 const onSubmit = async () => {
-  isLoading.value = true
+  isLoading.value.onSubmit = true
 
   try {
-    await Services.store(form.value)
+    await Services.update(props.row.id, form.value)
     await props.reload();
     isDialog.value = false;
     toast({
       title: "Sucesso",
-      description: "Serviço salvo com sucesso.",
+      description: "Serviço atualizado com sucesso.",
     });
-  } catch (error) {
+  } catch (error: any) {
     toast({
       title: "Ops!",
       description: error.response.data.message,
@@ -221,21 +227,23 @@ const onSubmit = async () => {
     });
   }
 
-  isLoading.value = false;
+  isLoading.value.onSubmit = false;
+}
+
+const show = async () => {
+  isLoading.value.show = true
+
+  try {
+    form.value = await Services.show(props.row.id)
+  } catch (e) {
+    console.error(e)
+  }
+
+  isLoading.value.show = false
 }
 
 const openDialog = async () => {
-  form.value = {
-    name: '',
-    is_active: 1,
-    price_user_project: 0,
-    price_project: 0,
-    price_ai_token: 0,
-    price_email: 0,
-    price_sync_google_analytics: 0,
-    price_sms_funnel: 0,
-    price_percent_by_deposit: 0
-  }
+  await show()
   isDialog.value = true;
 }
 </script>
