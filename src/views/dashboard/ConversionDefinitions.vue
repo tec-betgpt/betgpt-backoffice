@@ -95,7 +95,6 @@
                       :key="index"
                       class="flex items-center gap-2"
                   >
-
                     <Combobox v-model="condition.conditionable_id" class="w-full">
                       <ComboboxAnchor>
                         <div class="relative w-full max-w-sm items-center">
@@ -161,6 +160,22 @@
             {{ isEditing ? "Salvar Alterações" : "Criar Definição" }}
           </Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="showPlayersDialog">
+      <DialogContent class="sm:max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>Players da Conversão</DialogTitle>
+          <DialogDescription>
+            Lista de players que geraram eventos.
+          </DialogDescription>
+        </DialogHeader>
+        <CustomDataTable
+            :loading="isLoadingPlayers"
+            :data="players"
+            :columns="playersColumns"
+        />
       </DialogContent>
     </Dialog>
   </div>
@@ -235,11 +250,29 @@ const segments = ref<any[]>([]);
 const values = ref([])
 const columnHelper = createColumnHelper<any>();
 
+const showPlayersDialog = ref(false);
+const isLoadingPlayers = ref(false);
+const players = ref<any[]>([]);
+const currentConversionDefinitionId = ref<number | null>(null);
+const columnHelperPlayers = createColumnHelper<any>();
+
+const playersColumns = [
+  columnHelperPlayers.accessor("player_name", {
+    header: "Nome do Player",
+    cell: ({ row }) => h("div", {}, row.original.player_name),
+  }),
+  columnHelperPlayers.accessor("conversion_value", {
+    header: "Valor da Conversão",
+    cell: ({ row }) => h("div", {}, row.original.conversion_value),
+  }),
+];
+
 const fetchConversionDefinitions = async () => {
   try {
     isLoading.value = true;
     const response = await ConversionDefinitions.index({filter_id: activeGroupProject.value.id});
     conversionDefinitions.value = response.data;
+    console.log(conversionDefinitions.value);
   } catch (error) {
     console.error("Error loading conversion definitions:", error);
     toast({
@@ -384,6 +417,23 @@ const handleEdit = (definition: any) => {
   showModal.value = true;
 };
 
+const openPlayersDialog = (definition: any) => {
+  const definitionData = conversionDefinitions.value.find(d => d.id === definition.id);
+
+  if (!definitionData || definitionData.events.length <= 0) {
+    toast({
+      title: "Aviso",
+      description: "Esta definição de conversão não possui eventos",
+      variant: "default",
+    });
+    return;
+  }
+
+  currentConversionDefinitionId.value = definition.id;
+  players.value = definitionData.events;
+  showPlayersDialog.value = true;
+};
+
 const formatDate = (dateString: string) => {
   const options: Intl.DateTimeFormatOptions = {
     day: "2-digit",
@@ -410,6 +460,29 @@ const columns = [
     cell: ({row}) => {
       const date = row.original.updated_at;
       return h("div", date ? formatDate(date) : "-");
+    },
+  },
+  {
+    accessorKey: "events",
+    header: "Quantidade de Eventos",
+    cell: ({row}) => {
+      const eventsCount = row.original.events.length;
+      const hasEvents = eventsCount > 0;
+
+      return h(
+        Button,
+        {
+          variant: 'link',
+          disabled: !hasEvents,
+          onClick: () => openPlayersDialog(row.original),
+          style: {
+            cursor: hasEvents ? "pointer" : "default",
+            textDecoration: hasEvents ? "underline" : "none",
+            opacity: hasEvents ? 1 : 0.5,
+          },
+        },
+        String(eventsCount)
+      );
     },
   },
   {
@@ -460,8 +533,8 @@ const columns = [
 onMounted(async () => {
   isLoading.value = true;
   try {
-    await fetchConversionDefinitions();
-    await fetchValues();
+    await Promise.all([fetchConversionDefinitions(),fetchValues(),fetchSegments('')])
+
     resetForm();
   } catch (error) {
     console.error("Error loading data:", error);
