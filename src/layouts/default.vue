@@ -227,14 +227,6 @@
                 Configurações
               </router-link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <router-link
-                class="w-full"
-                :to="{ name: 'services' }"
-              >
-                Serviços
-              </router-link>
-            </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
@@ -841,6 +833,12 @@ const navMenu = computed(() => {
           url: { name: "roles" },
           icon: UserCog,
           show: canAccess("access-to-permissions"),
+        },
+        {
+          name: "Serviços",
+          url: { name: "services" },
+          icon: Briefcase,
+          show: canAccess("access-to-member-management"),
         },
         {
           name: "MyElevate Insights",
