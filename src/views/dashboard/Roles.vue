@@ -8,7 +8,7 @@
         </p>
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-        <Button class="bg-yellow-300" @click="openCreateModal">
+        <Button class="bg-yellow-400 dark:bg-black hover:text-white" @click="openCreateModal">
           <Plus />
           Novo Perfil
         </Button>
@@ -202,7 +202,7 @@ const fetchRolesAndPermissions = async (current = pages.value.current) => {
     ]);
 
     roles.value = rolesResponse.data.roles;
-    permissions.value = permissionsResponse.data;
+    permissions.value = permissionsResponse;
     pages.value = {
       current: rolesResponse.data.pagination.current_page,
       last: rolesResponse.data.pagination.last_page,

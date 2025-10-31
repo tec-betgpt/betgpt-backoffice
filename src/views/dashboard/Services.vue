@@ -81,7 +81,7 @@
         <CustomPagination
           :select-page="fetchServices"
           :pages="pages"
-          :per-pages="perPage"
+          :per_pages="perPage"
           @update:perPages="(value) => perPage = value"
         />
       </CardContent>

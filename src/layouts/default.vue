@@ -516,17 +516,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Download,
-  Paperclip,
-  EyeClosed,
-  Eye,
-  Trash,
-  History,
-  Ellipsis,
-  SendHorizontal,
-  Search
-} from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -599,7 +588,17 @@ import {
   Logs,
   UserCog,
   LayoutList,
-  Plus
+  Plus,
+  Download,
+  Paperclip,
+  EyeClosed,
+  Eye,
+  Trash,
+  History,
+  Ellipsis,
+  SendHorizontal,
+  Search,
+  LucideShieldUser
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -832,6 +831,12 @@ const navMenu = computed(() => {
           name: "Perfis",
           url: { name: "roles" },
           icon: UserCog,
+          show: canAccess("access-to-permissions"),
+        },
+        {
+          name: "Permissões",
+          url: { name: "permissions" },
+          icon: LucideShieldUser,
           show: canAccess("access-to-permissions"),
         },
         {

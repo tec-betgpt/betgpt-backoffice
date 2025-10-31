@@ -13,7 +13,6 @@ import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
 import Segments from "@/views/dashboard/Segments.vue";
-
 import ConfigurationLayout from "@/views/configurations/Layout.vue";
 import ConfigurationProfile from "@/views/configurations/Profile.vue";
 import ConfigurationSecurity from "@/views/configurations/Security.vue";
@@ -34,7 +33,8 @@ import GroupProjects from "@/views/dashboard/GroupProjects.vue";
 import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
 import Export from "@/views/dashboard/Export.vue";
 import UserLogins from "@/views/dashboard/UserLogins.vue";
-import ServicesPage from "@/views/configurations/ServicesPage.vue";
+import Services from "@/views/dashboard/Services.vue";
+import Permissions from "@/views/dashboard/Permissions.vue";
 
 const routes = [
   {
@@ -368,6 +368,30 @@ const routes = [
         },
       },
       {
+        path: "services",
+        name: "services",
+        component: Services,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Serviços",
+          roles: "member",
+          permissions: "access-to-permissions",
+        },
+      },
+      {
+        path: "permissions",
+        name: "permissions",
+        component: Permissions,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Permissões",
+          roles: "member",
+          permissions: "access-to-permissions",
+        },
+      },
+      {
         path: "data-sources",
         name: "data-sources",
         component: Integrations,
@@ -440,17 +464,6 @@ const routes = [
         },
       },
     ],
-  },
-  {
-    path: "/services",
-    name: "services",
-    component: ServicesPage,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      title: "Serviços",
-      roles: "member|client",
-    },
   }
 ];
 
