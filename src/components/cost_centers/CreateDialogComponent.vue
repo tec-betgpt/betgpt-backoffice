@@ -1,5 +1,5 @@
 <template>
-  <Button @click="openDialog" class="bg-yellow-300" :disabled="isLoadingSectors">
+  <Button @click="openDialog" class="bg-yellow-300 text-black dark:text-white" :disabled="isLoadingSectors">
     <Spinner v-if="isLoadingSectors" class="mr-2 h-4 w-4 animate-spin" />
     <Plus v-else />
     Novo Custo

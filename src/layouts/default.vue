@@ -600,7 +600,17 @@ import {
   Logs,
   UserCog,
   LayoutList,
-  Plus
+  Plus,
+  Download,
+  Paperclip,
+  EyeClosed,
+  Eye,
+  Trash,
+  History,
+  Ellipsis,
+  SendHorizontal,
+  Search,
+  LucideShieldUser
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -859,6 +869,18 @@ const navMenu = computed(() => {
           url: { name: "roles" },
           icon: UserCog,
           show: canAccess("access-to-permissions"),
+        },
+        {
+          name: "Permissões",
+          url: { name: "permissions" },
+          icon: LucideShieldUser,
+          show: canAccess("access-to-permissions"),
+        },
+        {
+          name: "Serviços",
+          url: { name: "services" },
+          icon: Briefcase,
+          show: canAccess("access-to-member-management"),
         },
         {
           name: "MyElevate Insights",

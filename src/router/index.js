@@ -33,9 +33,10 @@ import Integrations from "@/views/dashboard/Integrations.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
 import GroupProjects from "@/views/dashboard/GroupProjects.vue";
 import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
-import { Download } from "lucide-vue-next";
 import Export from "@/views/dashboard/Export.vue";
 import UserLogins from "@/views/dashboard/UserLogins.vue";
+import Services from "@/views/dashboard/Services.vue";
+import Permissions from "@/views/dashboard/Permissions.vue";
 
 const routes = [
   {
@@ -344,8 +345,68 @@ const routes = [
           title: "Projetos",
         },
       },
-    {
-     path: "data-sources",
+      {
+        path: "texts",
+        name: "texts",
+        component: Insights,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-motivational-texts",
+          title: "Textos",
+        },
+      },
+      {
+        path: "users",
+        name: "users",
+        component: Users,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-users",
+          title: "Usuários",
+        },
+      },
+      {
+        path: "roles",
+        name: "roles",
+        component: Roles,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-permissions",
+          title: "Perfis",
+        },
+      },
+      {
+        path: "services",
+        name: "services",
+        component: Services,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Serviços",
+          roles: "member",
+          permissions: "access-to-permissions",
+        },
+      },
+      {
+        path: "permissions",
+        name: "permissions",
+        component: Permissions,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Permissões",
+          roles: "member",
+          permissions: "access-to-permissions",
+        },
+      },
+      {
+        path: "data-sources",
         name: "data-sources",
         component: Integrations,
         meta: {
@@ -465,7 +526,7 @@ const routes = [
         },
       },
     ],
-  },
+  }
 ];
 
 const router = createRouter({

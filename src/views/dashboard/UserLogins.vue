@@ -60,7 +60,7 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in limit" :key="i">
-                <TableCell v-for="i in 4" :key="i">
+                <TableCell v-for="j in 4" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
