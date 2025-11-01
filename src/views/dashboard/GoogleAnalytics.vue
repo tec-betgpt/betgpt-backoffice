@@ -14,60 +14,6 @@
       </div>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
-      <PeriodComponent
-        :is-loading="loading"
-        :period="usersPeriod"
-        title="Usuários"
-        glossary="Dados de Usuários novos e ativo"
-      />
-      <PeriodComponent
-        :is-loading="loading"
-        :period="payingActivePeriod"
-        title="Usuários Ativos Pagantes por período"
-        glossary="Dados de Pagantes Ativos por período, com diferença de 7D, 14D e 28D"
-      />
-      <PeriodComponent
-        :is-loading="loading"
-        :period="totalUsersPeriod"
-        title="Total de Usuários"
-        glossary="Dados de total de usuários"
-      />
-      <PeriodComponent
-        :is-loading="loading"
-        :period="returningUsersPeriod"
-        title="Usuários Recorrentes"
-        glossary="Dados de Usuários Recorrentes por período"
-      />
-      <PeriodComponent
-        :is-loading="loading"
-        :period="firstTimePurchasersPeriod"
-        title="Total de Primeiros Compradores"
-        glossary="Dados de Primeiros Compradores por período"
-      />
-      <PeriodComponent
-        :is-loading="loading"
-        :period="engagementRatePeriod"
-        title="Taxa de Engajamento por período"
-        type="percent"
-        glossary="Percentual de usuários engajados por período"
-      />
-      <PeriodComponent
-        :is-loading="loading"
-        :period="arpuPeriod"
-        title="ARPU"
-        type="currency"
-        glossary="Receita média por usuário ativo por período"
-      />
-      <PeriodComponent
-        :is-loading="loading"
-        :period="arppuPeriod"
-        title="ARPPU"
-        type="currency"
-        glossary="Receita média por usuário pagante por período"
-      />
-    </div>
-
     <Card>
       <CardHeader>
         <CardTitle>Aquisição de Tráfego</CardTitle>
@@ -207,6 +153,60 @@
         </Table>
       </CardContent>
     </Card>
+
+    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <PeriodComponent
+        :is-loading="loading"
+        :period="usersPeriod"
+        title="Usuários"
+        glossary="Dados de Usuários novos e ativo"
+      />
+      <PeriodComponent
+        :is-loading="loading"
+        :period="payingActivePeriod"
+        title="Usuários Ativos Pagantes por período"
+        glossary="Dados de Pagantes Ativos por período, com diferença de 7D, 14D e 28D"
+      />
+      <PeriodComponent
+        :is-loading="loading"
+        :period="totalUsersPeriod"
+        title="Total de Usuários"
+        glossary="Dados de total de usuários"
+      />
+      <PeriodComponent
+        :is-loading="loading"
+        :period="returningUsersPeriod"
+        title="Usuários Recorrentes"
+        glossary="Dados de Usuários Recorrentes por período"
+      />
+      <PeriodComponent
+        :is-loading="loading"
+        :period="firstTimePurchasersPeriod"
+        title="Total de Primeiros Compradores"
+        glossary="Dados de Primeiros Compradores por período"
+      />
+      <PeriodComponent
+        :is-loading="loading"
+        :period="engagementRatePeriod"
+        title="Taxa de Engajamento por período"
+        type="percent"
+        glossary="Percentual de usuários engajados por período"
+      />
+      <PeriodComponent
+        :is-loading="loading"
+        :period="arpuPeriod"
+        title="ARPU"
+        type="currency"
+        glossary="Receita média por usuário ativo por período"
+      />
+      <PeriodComponent
+        :is-loading="loading"
+        :period="arppuPeriod"
+        title="ARPPU"
+        type="currency"
+        glossary="Receita média por usuário pagante por período"
+      />
+    </div>
   </div>
 </template>
 

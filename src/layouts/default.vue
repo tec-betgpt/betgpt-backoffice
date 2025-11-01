@@ -27,7 +27,9 @@
                   size="lg"
                   class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                  <div class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground">
+                  <div
+                    class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground"
+                  >
                     <Avatar shape="square" class="size-7">
                       <AvatarImage
                         v-if="activeGroupProject && activeGroupProject.logo"
@@ -239,7 +241,9 @@
       </SidebarFooter>
     </Sidebar>
     <SidebarInset>
-      <header class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4">
+      <header
+        class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4"
+      >
         <div class="flex items-center gap-2 w-full px-4">
           <SidebarTrigger :logo="true" :toggle="toggleSidebar" class="-ml-1" />
 
@@ -248,21 +252,31 @@
           <Breadcrumb class="flex-1">
             <BreadcrumbList class="flex flex-nowrap">
               <BreadcrumbItem>
-                  <BreadcrumbLink as-child>
-                    <Avatar @click="toggleSidebar" v-if="activeGroupProject" shape="square" class="size-6">
-                      <AvatarImage
-                        v-if="activeGroupProject && activeGroupProject.logo"
-                        :src="activeGroupProject.logo"
-                      />
-                      <AvatarImage v-else src="/default-project.jpg" />
-                      <AvatarFallback class="uppercase text-dark">
-                        {{ activeGroupProject.name.slice(0, 2) }}
-                      </AvatarFallback>
-                    </Avatar>
-                    <Avatar @click="toggleSidebar" v-else shape="square" class="size-6">
-                      <AvatarImage src="/default-project.jpg" />
-                    </Avatar>
-                  </BreadcrumbLink>
+                <BreadcrumbLink as-child>
+                  <Avatar
+                    @click="toggleSidebar"
+                    v-if="activeGroupProject"
+                    shape="square"
+                    class="size-6"
+                  >
+                    <AvatarImage
+                      v-if="activeGroupProject && activeGroupProject.logo"
+                      :src="activeGroupProject.logo"
+                    />
+                    <AvatarImage v-else src="/default-project.jpg" />
+                    <AvatarFallback class="uppercase text-dark">
+                      {{ activeGroupProject.name.slice(0, 2) }}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Avatar
+                    @click="toggleSidebar"
+                    v-else
+                    shape="square"
+                    class="size-6"
+                  >
+                    <AvatarImage src="/default-project.jpg" />
+                  </Avatar>
+                </BreadcrumbLink>
                 <BreadcrumbSeparator />
               </BreadcrumbItem>
 
@@ -274,24 +288,31 @@
                 <BreadcrumbItem
                   :class="{
                     'hidden md:block': index !== breadcrumbs.length - 1,
-                    'flex': index === breadcrumbs.length - 1
+                    flex: index === breadcrumbs.length - 1,
                   }"
                 >
                   <BreadcrumbLink v-if="crumb.path" as-child>
-                    <router-link class="truncate whitespace-nowrap overflow-hidden max-w-[100px] md:max-w-xs" :to="{ path: crumb.path }">
+                    <router-link
+                      class="truncate whitespace-nowrap overflow-hidden max-w-[100px] md:max-w-xs"
+                      :to="{ path: crumb.path }"
+                    >
                       {{ crumb.title }}
                     </router-link>
                   </BreadcrumbLink>
 
-                  <BreadcrumbPage v-else class="truncate whitespace-nowrap overflow-hidden max-w-[100px] md:max-w-xs">
+                  <BreadcrumbPage
+                    v-else
+                    class="truncate whitespace-nowrap overflow-hidden max-w-[100px] md:max-w-xs"
+                  >
                     {{ crumb.title }}
                   </BreadcrumbPage>
-
                 </BreadcrumbItem>
 
-                <BreadcrumbSeparator class="hidden md:block ml-2" v-if="index < breadcrumbs.length - 1" />
+                <BreadcrumbSeparator
+                  class="hidden md:block ml-2"
+                  v-if="index < breadcrumbs.length - 1"
+                />
               </div>
-
             </BreadcrumbList>
           </Breadcrumb>
 
@@ -330,11 +351,7 @@
     >
       <SidebarHeader>
         <div class="flex justify-between items-center align-middle pl-2">
-          <img
-            :src="iconIa"
-            alt="Logo"
-            class="w-10 py-4"
-          />
+          <img :src="iconIa" alt="Logo" class="w-10 py-4" />
 
           <div class="flex justify-end items-center align-middle p-4 gap-6">
             <TooltipProvider>
@@ -367,10 +384,18 @@
 
             <DropdownMenu>
               <DropdownMenuTrigger>
-                <History :stroke-width="2" absoluteStrokeWidth class="cursor-pointer" />
+                <History
+                  :stroke-width="2"
+                  absoluteStrokeWidth
+                  class="cursor-pointer"
+                />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem v-for="chat in chats" :key="chat.id" @click="selectChat(chat.id)">
+                <DropdownMenuItem
+                  v-for="chat in chats"
+                  :key="chat.id"
+                  @click="selectChat(chat.id)"
+                >
                   {{ chat.title }}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -379,45 +404,79 @@
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <div v-if="isLoadingChat" class="h-full flex items-center justify-center w-full">
+        <div
+          v-if="isLoadingChat"
+          class="h-full flex items-center justify-center w-full"
+        >
           <LoadingFakeComponent />
         </div>
 
         <div class="h-full" v-else>
-          <div v-if="messages.length == 0 && !file" class="p-4 text-center flex flex-col justify-center align-middle items-center text-sm h-full font-semibold">
+          <div
+            v-if="messages.length == 0 && !file"
+            class="p-4 text-center flex flex-col justify-center align-middle items-center text-sm h-full font-semibold"
+          >
             <div class="h-full flex flex-col justify-end items-center">
-              <img :src="logoInChat" class="size-12" alt="logoInChat"/>
+              <img :src="logoInChat" class="size-12" alt="logoInChat" />
               <span>Como posso ajudar?</span>
             </div>
 
-            <div  class="h-full flex flex-col justify-end items-center pb-2 gap-2 w-full">
-              <div v-if="suggestionList.length>0" v-for="suggestion in suggestionList" @click="()=>{
-                newMessage.message = suggestion
-                sendMessage()
-              }" class="p-2 rounded-xl bg-accent/60 text-accent-foreground/80 w-full flex gap-2 items-center cursor-pointer hover:bg-accent ">
-                <Search :size="18" />  <span class="text-[12px] text-muted-foreground">{{suggestion}}</span>
+            <div
+              class="h-full flex flex-col justify-end items-center pb-2 gap-2 w-full"
+            >
+              <div
+                v-if="suggestionList.length > 0"
+                v-for="suggestion in suggestionList"
+                @click="
+                  () => {
+                    newMessage.message = suggestion;
+                    sendMessage();
+                  }
+                "
+                class="p-2 rounded-xl bg-accent/60 text-accent-foreground/80 w-full flex gap-2 items-center cursor-pointer hover:bg-accent"
+              >
+                <Search :size="18" />
+                <span class="text-[12px] text-muted-foreground">{{
+                  suggestion
+                }}</span>
               </div>
-              <Skeleton v-else v-for="n in 4" class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full "/>
+              <Skeleton
+                v-else
+                v-for="n in 4"
+                class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full"
+              />
             </div>
           </div>
 
-          <div v-else ref="messageContainerRef" type="hover" class=" overflow-x-hidden h-full px-6">
+          <div
+            v-else
+            ref="messageContainerRef"
+            type="hover"
+            class="overflow-x-hidden h-full px-6"
+          >
             <CustomTextChart
-              v-for="(message, index) in messages" :key="message.id"
+              v-for="(message, index) in messages"
+              :key="message.id"
               class="mb-6 last:mb-20"
               :class="
-              message.role === 'user'
-                ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
-                : 'flex-col text-start justify-start'
+                message.role === 'user'
+                  ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
+                  : 'flex-col text-start justify-start'
               "
-                :html="message.message"
-                :start=" message.role !== 'user' && (index+1) === messages.length && isAnimating"
-                :speed="8"
-                @tick="scrollToBottom"
-                @done="() => {
-                  isAnimating = false
-                  isInputDisabled = false
-                }"
+              :html="message.message"
+              :start="
+                message.role !== 'user' &&
+                index + 1 === messages.length &&
+                isAnimating
+              "
+              :speed="8"
+              @tick="scrollToBottom"
+              @done="
+                () => {
+                  isAnimating = false;
+                  isInputDisabled = false;
+                }
+              "
             />
 
             <div v-if="loading" class="flex flex-col gap-2">
@@ -428,24 +487,38 @@
                 </AvatarFallback>
               </Avatar>
               <div class="loading-dots">
-                <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
+                <span
+                  v-for="n in 3"
+                  :key="n"
+                  :style="{ animationDelay: `${n * 0.2}s` }"
+                  >.</span
+                >
               </div>
             </div>
           </div>
 
-          <div v-if="file" class="flex justify-end w-full items-center cursor-default gap-2 px-6">
+          <div
+            v-if="file"
+            class="flex justify-end w-full items-center cursor-default gap-2 px-6"
+          >
             <Badge class="p-4">
-              {{file.name}}
+              {{ file.name }}
             </Badge>
-            <Button v-if="!loading" variant="ghost" @click="()=>{
-              file = undefined
-            }">
-              <Trash/>
+            <Button
+              v-if="!loading"
+              variant="ghost"
+              @click="
+                () => {
+                  file = undefined;
+                }
+              "
+            >
+              <Trash />
             </Button>
           </div>
         </div>
       </SidebarContent>
-      <SidebarFooter >
+      <SidebarFooter>
         <div class="relative w-full items-center mb-2">
           <Button
             variant="link"
@@ -453,15 +526,21 @@
             :disabled="isInputDisabled"
             class="absolute end-0 flex items-center justify-center h-full"
           >
-            <SendHorizontal  :stroke-width="2.5"  absoluteStrokeWidth />
+            <SendHorizontal :stroke-width="2.5" absoluteStrokeWidth />
           </Button>
-          <span class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2">
+          <span
+            class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2"
+          >
             <Popover>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger as-child>
                     <PopoverTrigger as-child>
-                      <Ellipsis :stroke-width="2.5" absoluteStrokeWidth class="cursor-pointer"  />
+                      <Ellipsis
+                        :stroke-width="2.5"
+                        absoluteStrokeWidth
+                        class="cursor-pointer"
+                      />
                     </PopoverTrigger>
                   </TooltipTrigger>
                   <TooltipContent
@@ -481,7 +560,13 @@
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <PopoverContent align="start" :alignOffset="-8" :sideOffset="16" :arrowPadding="0" class="w-56 p-2">
+              <PopoverContent
+                align="start"
+                :alignOffset="-8"
+                :sideOffset="16"
+                :arrowPadding="0"
+                class="w-56 p-2"
+              >
                 <div class="flex flex-col gap-2 text-sm">
                   <Label
                     for="file"
@@ -490,13 +575,13 @@
                     <Paperclip class="size-4" />
                     Anexar
                   </Label>
-                <Input
-                  id="file"
-                  type="file"
-                  class="hidden"
-                  @change="handleFileUpload"
-                  :disabled="isInputDisabled"
-                />
+                  <Input
+                    id="file"
+                    type="file"
+                    class="hidden"
+                    @change="handleFileUpload"
+                    :disabled="isInputDisabled"
+                  />
                 </div>
               </PopoverContent>
             </Popover>
@@ -516,25 +601,13 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Download,
-  Paperclip,
-  EyeClosed,
-  Eye,
-  Trash,
-  History,
-  Ellipsis,
-  SendHorizontal,
-  Search,
-  SquarePen
-} from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -610,7 +683,9 @@ import {
   Ellipsis,
   SendHorizontal,
   Search,
-  LucideShieldUser
+  LucideShieldUser,
+  SquarePen,
+  Square,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -627,13 +702,13 @@ import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { marked } from "marked";
-import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import CustomTextChart from "@/components/custom/CustomTextChart.vue";
-import {Badge} from "@/components/ui/badge";
-import {Skeleton} from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
 
 interface BreadcrumbItem {
@@ -678,14 +753,19 @@ const chats = ref<Chat[]>([]);
 const isLoadingChat = ref(false);
 const selectedChatId = ref<number | undefined>(undefined);
 const messages = ref<Message[]>([]);
-const newMessage = ref<Message>({ id: 0, role: "user", message: "", file: null });
+const newMessage = ref<Message>({
+  id: 0,
+  role: "user",
+  message: "",
+  file: null,
+});
 const loading = ref(false);
 const file = ref<File>();
 const messageContainerRef = ref<HTMLElement | null>(null);
 const isShowValues = ref(false);
 const isAnimating = ref(false);
 const isInputDisabled = computed(() => loading.value || isAnimating.value);
-const suggestionList = ref([])
+const suggestionList = ref([]);
 
 // Computed
 const activeGroupProject = computed(
@@ -712,9 +792,7 @@ const logoSrc = computed(() =>
   getLogoSrc(mode.value === "dark", sidebarExpanded.value)
 );
 
-const logoInChat = computed(() =>
-    getLogoSrc(mode.value === "dark", false)
-);
+const logoInChat = computed(() => getLogoSrc(mode.value === "dark", false));
 
 const iconIa = computed(() => {
   return mode.value === "dark"
@@ -846,7 +924,6 @@ const navMenu = computed(() => {
           icon: Blocks,
           show: canAccess("access-to-integrations"),
         },
-
       ],
     },
     {
@@ -854,9 +931,8 @@ const navMenu = computed(() => {
       icon: Square,
       type: "governance",
       show:
-          canAccess("access-to-client-governance") ||
-          canAccess("access-to-member-governance")
-      ,
+        canAccess("access-to-client-governance") ||
+        canAccess("access-to-member-governance"),
       children: [
         {
           name: "Usuários",
@@ -894,7 +970,7 @@ const navMenu = computed(() => {
           icon: History,
           show: canAccess("access-to-users"),
         },
-      ]
+      ],
     },
     {
       name: "Financeiro",
@@ -968,10 +1044,13 @@ const hasPermissionInActiveProject = (permissionName: string) => {
         (permission: any) => permission.name === permissionName
       )
     );
-}
+};
 
 const canAccess = (permissionName: string) => {
-  return (hasPermission(permissionName)) || hasPermissionInActiveProject(permissionName);
+  return (
+    hasPermission(permissionName) ||
+    hasPermissionInActiveProject(permissionName)
+  );
 };
 
 const setActiveGroupProject = async (project: any) => {
@@ -1030,7 +1109,6 @@ const loadChats = async () => {
   loading.value = true;
 
   try {
-
     const data = await IntelligenceArtificial.getListSessions();
     chats.value = data.data;
   } catch (err) {
@@ -1043,9 +1121,9 @@ const loadChats = async () => {
 const getSuggestions = async () => {
   try {
     const suggestions = await IntelligenceArtificial.getSuggestions();
-    suggestionList.value  = suggestions.data
+    suggestionList.value = suggestions.data;
   } catch (e) {
-    console.log(e)
+    console.log(e);
   }
 };
 
@@ -1053,20 +1131,19 @@ const createNewChat = async () => {
   try {
     const response = await IntelligenceArtificial.createSession();
     selectedChatId.value = response.data.id;
-
   } catch (error) {
     console.error("Erro ao criar chat:", error);
   }
 };
 
 const selectChat = async (chatId: number) => {
-  if (chatId == 0 ) return
+  if (chatId == 0) return;
 
-  isLoadingChat.value = true
+  isLoadingChat.value = true;
   selectedChatId.value = chatId;
-  localStorage.setItem('chatId', `${chatId}`)
+  localStorage.setItem("chatId", `${chatId}`);
   await loadMessages();
-  isLoadingChat.value = false
+  isLoadingChat.value = false;
 };
 
 const loadMessages = async () => {
@@ -1109,7 +1186,7 @@ const sendMessage = async () => {
     const userMessage = {
       chat_id: selectedChatId.value,
       message: newMessage.value.message,
-      file:  newMessage.value.file,
+      file: newMessage.value.file,
       project_id: activeGroupProject.value?.id,
     };
 
@@ -1145,34 +1222,34 @@ const sendMessage = async () => {
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (!target.files?.length) return;
-    file.value = target.files[0];
-    newMessage.value.file = file.value;
+  file.value = target.files[0];
+  newMessage.value.file = file.value;
 };
 
 const resetChat = async () => {
   selectedChatId.value = undefined;
-  localStorage.removeItem('chatId')
-  messages.value = []
+  localStorage.removeItem("chatId");
+  messages.value = [];
   file.value = undefined;
-  newMessage.value = { id: undefined, role: 'user', message: '', file: null };
-  await loadChats()
+  newMessage.value = { id: undefined, role: "user", message: "", file: null };
+  await loadChats();
 };
 
 const setOpenAi = () => {
   const isMobile = window.innerWidth < 768;
   if (!isMobile) {
-    return sidebarAi.value = localStorage.getItem("sidebarAi") === "1";
+    return (sidebarAi.value = localStorage.getItem("sidebarAi") === "1");
   }
 };
 
 const toggleSidebarOnMobile = () => {
   const isMobile = window.innerWidth < 768;
   if (isMobile) {
-    toggleSidebar()
+    toggleSidebar();
   } else {
-    router.push({ name: "home" })
+    router.push({ name: "home" });
   }
-}
+};
 
 const minSwipeDistance = 60;
 const edgeArea = 48;
@@ -1284,7 +1361,6 @@ watch(
   },
   { immediate: true }
 );
-
 
 onMounted(async () => {
   mode.value = localStorage.getItem("theme") || "auto";
