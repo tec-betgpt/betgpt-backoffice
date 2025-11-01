@@ -13,6 +13,8 @@ import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Users from "@/views/dashboard/Users.vue";
 import Segments from "@/views/dashboard/Segments.vue";
+import ConversionDefinitions from "@/views/dashboard/ConversionDefinitions.vue";
+
 import ConfigurationLayout from "@/views/configurations/Layout.vue";
 import ConfigurationProfile from "@/views/configurations/Profile.vue";
 import ConfigurationSecurity from "@/views/configurations/Security.vue";
@@ -260,6 +262,18 @@ const routes = [
         },
       },
       {
+        path: "events",
+        name: "events",
+        component: ConversionDefinitions,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "view-events",
+          title: "Definições de Conversão",
+        },
+      },
+      {
         path: "clients",
         name: "clients",
         component: Players,
@@ -396,27 +410,75 @@ const routes = [
         name: "data-sources",
         component: Integrations,
         meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member|client",
-          permissions: "access-to-integrations",
-          title: "Fontes de Dados",
+        layout: DefaultLayout,
+        requiresAuth: true,
+        roles: "member|client",
+        permissions: "access-to-integrations",
+        title: "Fontes de Dados",
         },
-      },
-      {
-        path: "user-logins",
-        name: "user-logins",
-        component: UserLogins,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member",
-          permissions: "access-to-users",
-          title: "Histórico de Login",
-        },
-      },
+    },
     ],
   },
+    {
+    path: "/governance",
+    name: "governance",
+        meta: {
+        requiresAuth: true,
+            title: "Governança",
+            roles: "member",
+            permissions: "access-to-member-governance",
+        },
+        children: [
+            {
+                path: "texts",
+                name: "texts",
+                component: Insights,
+                meta: {
+                    layout: DefaultLayout,
+                    requiresAuth: true,
+                    roles: "member",
+                    permissions: "access-to-motivational-texts",
+                    title: "Textos",
+                },
+            },
+            {
+                path: "users",
+                name: "users",
+                component: Users,
+                meta: {
+                    layout: DefaultLayout,
+                    requiresAuth: true,
+                    roles: "member",
+                    permissions: "access-to-users",
+                    title: "Usuários",
+                },
+            },
+            {
+                path: "roles",
+                name: "roles",
+                component: Roles,
+                meta: {
+                    layout: DefaultLayout,
+                    requiresAuth: true,
+                    roles: "member",
+                    permissions: "access-to-permissions",
+                    title: "Perfis",
+                },
+            },
+            {
+                path: "user-logins",
+                name: "user-logins",
+                component: UserLogins,
+                meta: {
+                    layout: DefaultLayout,
+                    requiresAuth: true,
+                    roles: "member",
+                    permissions: "access-to-users",
+                    title: "Histórico de Login",
+                },
+            }
+        ]
+    },
   {
     path: "/financial",
     name: "financial",

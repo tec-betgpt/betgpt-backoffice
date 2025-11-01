@@ -516,6 +516,18 @@
 </template>
 
 <script setup lang="ts">
+import {
+  Download,
+  Paperclip,
+  EyeClosed,
+  Eye,
+  Trash,
+  History,
+  Ellipsis,
+  SendHorizontal,
+  Search,
+  SquarePen
+} from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -750,6 +762,12 @@ const navMenu = computed(() => {
           show: canAccess("view-segments"),
         },
         {
+          name: "Eventos",
+          url: { name: "events" },
+          icon: SquarePen,
+          show: canAccess("view-events"),
+        },
+        {
           name: "Atribuições",
           url: { name: "attributions" },
           icon: ExternalLink,
@@ -815,12 +833,31 @@ const navMenu = computed(() => {
           icon: LayoutList,
           show: canAccess("access-to-project-groups"),
         },
+
         {
           name: "Projetos",
           url: { name: "projects" },
           icon: Building2,
           show: canAccess("access-to-project-groups"),
         },
+        {
+          name: "Fontes de Dados",
+          url: { name: "data-sources" },
+          icon: Blocks,
+          show: canAccess("access-to-integrations"),
+        },
+
+      ],
+    },
+    {
+      name: "Governança",
+      icon: Square,
+      type: "governance",
+      show:
+          canAccess("access-to-client-governance") ||
+          canAccess("access-to-member-governance")
+      ,
+      children: [
         {
           name: "Usuários",
           url: { name: "users" },
@@ -852,18 +889,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-motivational-texts"),
         },
         {
-          name: "Fontes de Dados",
-          url: { name: "data-sources" },
-          icon: Blocks,
-          show: canAccess("access-to-integrations"),
-        },
-        {
           name: "Logins",
           url: { name: "user-logins" },
           icon: History,
           show: canAccess("access-to-users"),
         },
-      ],
+      ]
     },
     {
       name: "Financeiro",

@@ -169,7 +169,7 @@ const columns = [
         "name",
         orderId.value,
         order.value,
-        handlerOrder
+        handlerOrder()
       );
     },
     cell: ({ row }) => {
@@ -385,6 +385,7 @@ const columnsHistory = [
         ? h(
             Button,
             {
+              disabled: valid == "processing",
               onClick: () => onDownload(url, type),
               target: "_blank",
             },
