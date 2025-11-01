@@ -525,7 +525,8 @@ import {
   History,
   Ellipsis,
   SendHorizontal,
-  Search, Square
+  Search,
+  SquarePen
 } from "lucide-vue-next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -749,6 +750,12 @@ const navMenu = computed(() => {
           url: { name: "segments" },
           icon: ListFilter,
           show: canAccess("view-segments"),
+        },
+        {
+          name: "Eventos",
+          url: { name: "events" },
+          icon: SquarePen,
+          show: canAccess("view-events"),
         },
         {
           name: "Atribuições",
