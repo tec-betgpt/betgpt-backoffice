@@ -81,20 +81,20 @@ const applyPreset = (preset: string) => {
       start = end = todayDate.subtract({ days: 1 });
       break;
     case "7days":
-      start = end.subtract({ days: 7 });
-      end = todayDate;
+      start = end.subtract({ days: 8 });
+      end = todayDate.subtract({days: 1});
       break;
     case "14days":
-      start = end.subtract({ days: 14 });
-      end = todayDate;
+      start = end.subtract({ days: 15 });
+      end = todayDate.subtract({days: 1});
       break;
     case "28days":
-      start = end.subtract({ days: 28 });
-      end = todayDate;
+      start = end.subtract({ days: 29 });
+      end = todayDate.subtract({days: 1});
       break;
     case "month":
       start = todayDate.set({ day: 1 });
-      end = todayDate;
+      end = todayDate.subtract({days: 1});
       break;
   }
   value.value = { start, end };
