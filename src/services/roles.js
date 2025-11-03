@@ -5,12 +5,6 @@ export default {
    * GET /v1/roles
    *
    * @param {object} params
-   * @param {string} params.searchName
-   * @param {string} params.order
-   * @param {string} params.orderDirection
-   * @param {string} params.filter_id
-   * @param {number} params.page
-   * @param {number} params.per_page
    */
   async index (params = {}) {
     const { data } = await api.get('/roles', { params })
@@ -22,7 +16,7 @@ export default {
    *
    * @param {object} body
    * @param {string} body.title
-   * @param {string} body.filter_Id
+   * @param {string|number} body.filter_id
    * @param {Array<number>} body.permissions
    */
   async store (body) {
@@ -45,8 +39,6 @@ export default {
    *
    * @param {number} id
    * @param {object} body
-   * @param {string} body.title
-   * @param {string} body.filter_id
    * @param {Array<number>} body.permissions
    */
   async update (id, body) {
