@@ -86,13 +86,11 @@
                 <TableCell>{{ groupSessionsStats.totalKeyEvents }}</TableCell>
                 <TableCell
                   >{{
-                    (
-                      groupSessionsStats.averageSessionKeyEventRate / 100
-                    ).toFixed(2)
+                    groupSessionsStats.averageSessionKeyEventRate.toFixed(2)
                   }}%</TableCell
                 >
                 <TableCell>{{
-                  $toCurrency(groupSessionsStats.totalRevenue / 100)
+                  $toCurrency(groupSessionsStats.totalRevenue)
                 }}</TableCell>
               </TableRow>
               <TableRow
@@ -141,11 +139,11 @@
                 <TableCell>{{ group_session.keyEvents }}</TableCell>
                 <TableCell
                   >{{
-                    (group_session.sessionKeyEventRate / 100).toFixed(2)
+                    group_session.sessionKeyEventRate.toFixed(2)
                   }}%</TableCell
                 >
                 <TableCell>{{
-                  $toCurrency(group_session.totalRevenue / 100)
+                  $toCurrency(group_session.totalRevenue)
                 }}</TableCell>
               </TableRow>
             </template>
