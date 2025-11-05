@@ -686,6 +686,7 @@ import {
   LucideShieldUser,
   SquarePen,
   Square,
+  LucideUserCheck
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -944,7 +945,7 @@ const navMenu = computed(() => {
           name: "Perfis",
           url: { name: "roles" },
           icon: UserCog,
-          show: canAccess("access-to-permissions"),
+          show: canAccess("access-to-roles"),
         },
         {
           name: "Permissões",
@@ -953,10 +954,16 @@ const navMenu = computed(() => {
           show: canAccess("access-to-permissions"),
         },
         {
+          name: "Assinantes",
+          url: { name: "subscribers" },
+          icon: LucideUserCheck,
+          show: canAccess("access-to-subscribers"),
+        },
+        {
           name: "Serviços",
           url: { name: "services" },
           icon: Briefcase,
-          show: canAccess("access-to-member-management"),
+          show: canAccess("access-to-services"),
         },
         {
           name: "MyElevate Insights",
