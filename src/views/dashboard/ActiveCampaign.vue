@@ -37,6 +37,11 @@
                 label: 'Titulo da campanha',
               },
               {
+                key: 'campaign_rawtext',
+                placeholder: 'Buscar por conteúdo do e-mail...',
+                label: 'Conteúdo do e-mail',
+              },
+              {
                 key: 'last_send_date',
                 type: 'date-range',
                 label: 'Data do último envio',
@@ -62,7 +67,7 @@
     </div>
 
     <!-- Modal de Preview do E-mail -->
-    <Dialog :open="showEmailModal">
+    <Dialog v-model:open="showEmailModal">
       <DialogContent
         class="sm:max-w-[800px] max-h-[90vh] grid-rows-[auto_minmax(0,1fr)_auto] p-0"
       >
@@ -70,10 +75,13 @@
           <DialogTitle>Preview do E-mail</DialogTitle>
           <DialogDescription>
             Visualização do conteúdo do e-mail: {{ selectedCampaign?.name }}
+            <span class="text-sm text-muted-foreground ml-2">
+              ({{ currentEmailIndex + 1 }} de {{ filteredCampaigns.length }})
+            </span>
           </DialogDescription>
         </DialogHeader>
 
-        <div class="flex-1 overflow-hidden p-6 pt-0">
+        <div class="flex-1 overflow-hidden p-6 pb-0 pt-0">
           <div
             v-if="loadingEmail"
             class="flex items-center justify-center h-64"
@@ -103,8 +111,37 @@
           </div>
         </div>
 
-        <DialogFooter class="p-6 pt-0">
-          <Button variant="outline" @click="closeEmailModal"> Fechar </Button>
+        <DialogFooter class="p-6 pt-0 flex justify-between">
+          <div class="flex gap-2">
+            <Button
+              variant="outline"
+              @click="navigateEmail('prev')"
+              :disabled="currentEmailIndex === 0 || loadingEmail"
+            >
+              <ArrowLeft class="h-4 w-4 mr-2" />
+              Anterior
+            </Button>
+
+            <Button
+              variant="outline"
+              @click="navigateEmail('next')"
+              :disabled="
+                currentEmailIndex === filteredCampaigns.length - 1 ||
+                loadingEmail
+              "
+            >
+              Próximo
+              <ArrowRight class="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+
+          <Button
+            v-if="emailHtml"
+            variant="secondary"
+            @click="editTemplateModal(selectedCampaign)"
+          >
+            Editar Template
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -127,6 +164,8 @@ import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import {
   ArrowDown,
   ArrowUp,
+  ArrowLeft,
+  ArrowRight,
   MoreHorizontal,
   ChevronDownIcon,
   ExternalLink,
@@ -185,10 +224,65 @@ const loadingEmail = ref(false);
 const emailHtml = ref("");
 const selectedCampaign = ref<CampaignMetrics | null>(null);
 const emailIframe = ref<HTMLIFrameElement | null>(null);
+const currentEmailIndex = ref(0);
 
 const hasMemberAccess = computed(() => {
   return authStore.user?.access_type === "member";
 });
+
+const filteredCampaigns = computed(() => {
+  return campaigns.value;
+});
+
+const navigateEmail = async (direction: "prev" | "next") => {
+  if (loadingEmail.value) return;
+
+  let newIndex = currentEmailIndex.value;
+
+  if (direction === "prev" && currentEmailIndex.value > 0) {
+    newIndex--;
+  } else if (
+    direction === "next" &&
+    currentEmailIndex.value < filteredCampaigns.value.length - 1
+  ) {
+    newIndex++;
+  } else {
+    return; // Não há mais itens para navegar
+  }
+
+  loadingEmail.value = true;
+  emailHtml.value = "";
+
+  try {
+    const campaign = filteredCampaigns.value[newIndex];
+    selectedCampaign.value = campaign;
+    currentEmailIndex.value = newIndex;
+
+    const response = await ActiveCampaign.getCampaign(
+      campaign.project_id,
+      campaign.id
+    );
+
+    if (response.data && response.data.body) {
+      emailHtml.value = response.data.body;
+    } else {
+      toast({
+        title: "Aviso",
+        description: "Nenhum conteúdo disponível para este e-mail.",
+        variant: "default",
+      });
+    }
+  } catch (error) {
+    console.error("Erro ao carregar preview do e-mail:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar o preview do e-mail.",
+      variant: "destructive",
+    });
+  } finally {
+    loadingEmail.value = false;
+  }
+};
 
 const campaignsStats = computed(() => {
   const totalStats = {
@@ -254,6 +348,13 @@ const setSearch = (values: Record<string, string>) => {
   searchValues.value = { ...searchValues.value, ...values };
 };
 
+const getAccountName = (campaign: CampaignMetrics) => {
+  const projectId = campaign.project_id;
+  const integration = integrations.value[projectId];
+
+  return integration.account_name;
+};
+
 const getAutomationLink = (campaign: CampaignMetrics) => {
   if (!campaign.automation_id) return null;
 
@@ -267,6 +368,10 @@ const getAutomationLink = (campaign: CampaignMetrics) => {
 
 const openEmailPreview = async (campaign: CampaignMetrics) => {
   selectedCampaign.value = campaign;
+
+  const index = filteredCampaigns.value.findIndex((c) => c.id === campaign.id);
+  currentEmailIndex.value = index >= 0 ? index : 0;
+
   showEmailModal.value = true;
   loadingEmail.value = true;
   emailHtml.value = "";
@@ -298,10 +403,13 @@ const openEmailPreview = async (campaign: CampaignMetrics) => {
   }
 };
 
-const closeEmailModal = () => {
-  showEmailModal.value = false;
-  selectedCampaign.value = null;
-  emailHtml.value = "";
+const editTemplateModal = (selectedCampaign: any) => {
+  window.open(
+    `https://${getAccountName(
+      selectedCampaign
+    )}.activehosted.com/campaign/editor/?cid=${selectedCampaign?.id}`,
+    "_blank"
+  );
 };
 
 watch(perPages, (newPages) => {
