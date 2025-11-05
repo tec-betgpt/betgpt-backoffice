@@ -15,7 +15,7 @@
 
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
-        <Table class="w-full overflow-hidden">
+        <Table class="w-full">
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
