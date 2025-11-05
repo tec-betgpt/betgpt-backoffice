@@ -392,7 +392,7 @@ const actionColumn = columnHelper.accessor("id", {
                 openEmailPreview(campaign);
               },
             },
-            [h("div", {}), "Preview do E-mail"]
+            [h("div", {}), "Ver Template"]
           ),
 
           automationLink
@@ -403,7 +403,7 @@ const actionColumn = columnHelper.accessor("id", {
                     window.open(automationLink, "_blank");
                   },
                 },
-                [h("div", {}), "Ver automação"]
+                [h("div", {}), "Ver Automação"]
               )
             : null,
         ].filter(Boolean)
