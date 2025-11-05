@@ -33,8 +33,8 @@
             :search-fields="[
               {
                 key: 'campaign_name',
-                placeholder: 'Buscar por nome da campanha...',
-                label: 'Nome da campanha',
+                placeholder: 'Buscar por titulo da campanha...',
+                label: 'Titulo da campanha',
               },
               {
                 key: 'last_send_date',
@@ -60,11 +60,59 @@
         </CardFooter>
       </Card>
     </div>
+
+    <!-- Modal de Preview do E-mail -->
+    <Dialog :open="showEmailModal">
+      <DialogContent
+        class="sm:max-w-[800px] max-h-[90vh] grid-rows-[auto_minmax(0,1fr)_auto] p-0"
+      >
+        <DialogHeader class="p-6 pb-2">
+          <DialogTitle>Preview do E-mail</DialogTitle>
+          <DialogDescription>
+            Visualização do conteúdo do e-mail: {{ selectedCampaign?.name }}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="flex-1 overflow-hidden p-6 pt-0">
+          <div
+            v-if="loadingEmail"
+            class="flex items-center justify-center h-64"
+          >
+            <div class="flex flex-col items-center gap-2">
+              <LucideSpinner class="h-8 w-8 animate-spin" />
+              <p class="text-muted-foreground">Carregando preview...</p>
+            </div>
+          </div>
+
+          <div
+            v-else-if="emailHtml"
+            class="h-full border rounded-lg overflow-hidden"
+          >
+            <iframe
+              ref="emailIframe"
+              class="w-full h-[600px] border-0 bg-white"
+              :srcdoc="emailHtml"
+              title="Preview do E-mail"
+            />
+          </div>
+
+          <div v-else class="flex items-center justify-center h-64">
+            <p class="text-muted-foreground">
+              Nenhum conteúdo disponível para visualização.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter class="p-6 pt-0">
+          <Button variant="outline" @click="closeEmailModal"> Fechar </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, h, watch } from "vue";
+import { ref, onMounted, computed, h, watch, nextTick } from "vue";
 import ActiveCampaign from "@/services/activeCampaign";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { Button } from "@/components/ui/button";
@@ -76,9 +124,27 @@ import { CaretSortIcon } from "@radix-icons/vue";
 import { createColumnHelper } from "@tanstack/vue-table";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 
-import { ArrowDown, ArrowUp } from "lucide-vue-next";
+import {
+  ArrowDown,
+  ArrowUp,
+  MoreHorizontal,
+  ChevronDownIcon,
+  ExternalLink,
+  Eye,
+  Loader2 as LucideSpinner,
+} from "lucide-vue-next";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+
+// Importações do modal
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
 const startDate = currentDate.subtract({ days: 28 });
@@ -86,13 +152,26 @@ const selectedRange = ref({ start: startDate, end: currentDate });
 const { toast } = useToast();
 
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useAuthStore } from "@/stores/auth";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 const workspaceStore = useWorkspaceStore();
+const authStore = useAuthStore();
 
 const orderId = ref();
 const order = ref(false);
 const loading = ref(true);
 const campaigns = ref<CampaignMetrics[]>([]);
+const integrations = ref<Record<number, Integration>>({});
 const totalCampaigns = ref();
 const pages = ref({
   current: 1,
@@ -100,6 +179,17 @@ const pages = ref({
   last: 0,
 });
 const perPages = ref(10);
+
+const showEmailModal = ref(false);
+const loadingEmail = ref(false);
+const emailHtml = ref("");
+const selectedCampaign = ref<CampaignMetrics | null>(null);
+const emailIframe = ref<HTMLIFrameElement | null>(null);
+
+const hasMemberAccess = computed(() => {
+  return authStore.user?.access_type === "member";
+});
+
 const campaignsStats = computed(() => {
   const totalStats = {
     message: "Total",
@@ -164,11 +254,62 @@ const setSearch = (values: Record<string, string>) => {
   searchValues.value = { ...searchValues.value, ...values };
 };
 
+const getAutomationLink = (campaign: CampaignMetrics) => {
+  if (!campaign.automation_id) return null;
+
+  const projectId = campaign.project_id;
+  const integration = integrations.value[projectId];
+
+  if (!integration || !integration.account_name) return null;
+
+  return `https://${integration.account_name}.activehosted.com/series/${campaign.automation_id}`;
+};
+
+const openEmailPreview = async (campaign: CampaignMetrics) => {
+  selectedCampaign.value = campaign;
+  showEmailModal.value = true;
+  loadingEmail.value = true;
+  emailHtml.value = "";
+
+  try {
+    const response = await ActiveCampaign.getCampaign(
+      campaign.project_id,
+      campaign.id
+    );
+
+    if (response.data && response.data.body) {
+      emailHtml.value = response.data.body;
+    } else {
+      toast({
+        title: "Aviso",
+        description: "Nenhum conteúdo disponível para este e-mail.",
+        variant: "default",
+      });
+    }
+  } catch (error) {
+    console.error("Erro ao carregar preview do e-mail:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar o preview do e-mail.",
+      variant: "destructive",
+    });
+  } finally {
+    loadingEmail.value = false;
+  }
+};
+
+const closeEmailModal = () => {
+  showEmailModal.value = false;
+  selectedCampaign.value = null;
+  emailHtml.value = "";
+};
+
 watch(perPages, (newPages) => {
   if (newPages) {
     applyFilter(1);
   }
 });
+
 const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
 
@@ -187,7 +328,6 @@ const applyFilter = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    // Adicione o filtro de última data de envio se existir
     const lastSendDateFilter = searchValues.value["search[1][last_send_date]"];
 
     const { data } = await ActiveCampaign.index({
@@ -199,10 +339,11 @@ const applyFilter = async (current = pages.value.current) => {
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
       per_pages: perPages.value,
-      last_send_date: lastSendDateFilter || null, // Novo parâmetro
+      last_send_date: lastSendDateFilter || null,
     });
 
     campaigns.value = data.campaigns.data;
+    integrations.value = data.integrations;
     totalCampaigns.value = data.campaigns.total;
     pages.value = {
       current: data.campaigns.pagination.current_page,
@@ -221,16 +362,70 @@ const applyFilter = async (current = pages.value.current) => {
 };
 
 const columnHelper = createColumnHelper<CampaignMetrics>();
+
+const actionColumn = columnHelper.accessor("id", {
+  header: () => "Ações",
+  cell: ({ row, table }) => {
+    const campaign = row.original;
+    const automationLink = getAutomationLink(campaign);
+
+    return h(DropdownMenu, {}, [
+      h(
+        DropdownMenuTrigger,
+        { asChild: true },
+        h(Button, { size: "icon", variant: "ghost" }, [
+          h(MoreHorizontal, { class: "h-4 w-4" }),
+          h("span", { class: "sr-only" }, "Ações"),
+        ])
+      ),
+      h(
+        DropdownMenuContent,
+        { align: "end" },
+        [
+          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuSeparator, {}),
+
+          h(
+            DropdownMenuItem,
+            {
+              onClick: () => {
+                openEmailPreview(campaign);
+              },
+            },
+            [h("div", {}), "Preview do E-mail"]
+          ),
+
+          automationLink
+            ? h(
+                DropdownMenuItem,
+                {
+                  onClick: () => {
+                    window.open(automationLink, "_blank");
+                  },
+                },
+                [h("div", {}), "Ver automação"]
+              )
+            : null,
+        ].filter(Boolean)
+      ),
+    ]);
+  },
+});
+
 const columns = [
   columnHelper.accessor("name", {
     header() {
-      return h(
-        "div",
-        { class: "text-pretty text-left py-3 pr-20" },
-        "Nome da Campanha"
-      );
+      return h("div", { class: "text-pretty text-left py-3 pr-20" }, "Titulo");
     },
     cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
+  }),
+
+  columnHelper.accessor("subject", {
+    header() {
+      return h("div", { class: "text-pretty text-left py-3 pr-20" }, "Assunto");
+    },
+    cell: ({ row }) =>
+      h("div", { class: "capitalize" }, row.getValue("subject")),
   }),
 
   columnHelper.accessor("ldate", {
@@ -319,6 +514,8 @@ const columns = [
     cell: ({ row }) =>
       h("div", { class: "text-right" }, row.getValue("rate_rejections")),
   }),
+
+  ...(hasMemberAccess.value ? [actionColumn] : []),
 ];
 
 function createHeaderButton(label: string, columnKey: string) {
@@ -352,6 +549,9 @@ watch(selectedRange, () => {
 });
 
 type CampaignMetrics = {
+  id: string;
+  project_id: number;
+  automation_id?: string;
   ldate: string;
   name: string;
   rate_clicks: number;
@@ -364,5 +564,12 @@ type CampaignMetrics = {
   subscriberclicks: number;
   uniqueopens: number;
   unsubscribes: number;
+};
+
+type Integration = {
+  id: number;
+  project_id: number;
+  integration_id: number;
+  account_name: string;
 };
 </script>
