@@ -72,9 +72,15 @@
         <TableHead
           v-for="(header, index) in headerGroup.headers"
           :key="header.id"
-          :class="index === 0 ? 'text-left' : 'text-right'"
+          :class="index === 0 ? 'text-left font-bold' : 'text-right font-bold'"
         >
-          {{ props.head?.[header.column.id] }}
+          {{
+            formatHeadValue(
+              header.column.id,
+              props.head?.[header.column.id],
+              header.column.columnDef.format
+            )
+          }}
         </TableHead>
       </TableRow>
     </TableHeader>
@@ -112,12 +118,17 @@
         <TableCell
           v-for="(column, index) in columns"
           :key="column.accessorKey"
-          :class="'text-right' + (index === 0 ? 'text-left' : '')"
+          :class="index === 0 ? 'text-left font-bold' : 'text-right font-bold'"
         >
           {{
-            props.result && props.result[column.accessorKey] !== undefined
-              ? props.result[column.accessorKey]
-              : footerData[column.accessorKey]
+            formatFooterValue(
+              column.accessorKey,
+              props.result && props.result[column.accessorKey] !== undefined
+                ? props.result[column.accessorKey]
+                : footerData[column.accessorKey],
+              column.footer,
+              column.format
+            )
           }}
         </TableCell>
       </TableRow>
@@ -175,7 +186,7 @@ const props = defineProps({
         key: string;
         label?: string;
         placeholder: string;
-        type?: string; // 'text' | 'date-range' | etc.
+        type?: string;
         options?: Array<{ value: string; label: string }>;
       }>
     >,
@@ -197,7 +208,12 @@ const props = defineProps({
     type: Object as PropType<Record<string, any>>,
     required: false,
   },
+  formatters: {
+    type: Object as PropType<Record<string, Function>>,
+    default: () => ({}),
+  },
 });
+
 const emit = defineEmits(["update:selected"]);
 const dataTable = ref([...props.data]);
 const searchValues = ref<Record<string, string>>({});
@@ -208,12 +224,13 @@ const table = ref(
     getCoreRowModel: getCoreRowModel(),
   })
 );
-const selectedRowIds = ref(new Set()); // armazenar IDs selecionados
+const selectedRowIds = ref(new Set());
 const selectedRows = computed(() =>
   table.value
     .getRowModel()
     .rows.filter((row) => selectedRowIds.value.has(row.id))
 );
+
 function toggleRowSelection(rowId) {
   if (selectedRowIds.value.has(rowId)) {
     selectedRowIds.value.delete(rowId);
@@ -225,18 +242,94 @@ function toggleRowSelection(rowId) {
     selectedRows.value.map((r) => r.original)
   );
 }
-watch(
-  () => props.data,
-  (newData) => {
-    dataTable.value = [...newData];
-    table.value = useVueTable({
-      data: dataTable.value,
-      columns: props.columns,
-      getCoreRowModel: getCoreRowModel(),
-    });
-  },
-  { deep: true }
-);
+
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
+const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR").format(value);
+};
+
+const formatDecimal = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
+const formatPercentage = (value: number): string => {
+  return `${(value || 0).toFixed(2)}%`;
+};
+
+const formatHeadValue = (
+  columnKey: string,
+  value: any,
+  formatType?: string
+) => {
+  if (value === undefined || value === null || value === "") return "";
+
+  if (props.formatters[columnKey]) {
+    return props.formatters[columnKey](value);
+  }
+
+  if (formatType) {
+    return applyFormatting(value, formatType);
+  }
+
+  return value;
+};
+
+const formatFooterValue = (
+  columnKey: string,
+  value: any,
+  footerType: string,
+  formatType?: string
+) => {
+  if (value === undefined || value === null || value === "") return "";
+
+  if (props.formatters[columnKey]) {
+    return props.formatters[columnKey](value);
+  }
+
+  if (formatType) {
+    return applyFormatting(value, formatType);
+  }
+
+  if (typeof value === "number") {
+    if (footerType === "avg") {
+      return formatDecimal(value);
+    } else {
+      return formatNumber(Math.round(value));
+    }
+  }
+
+  return value;
+};
+
+const applyFormatting = (value: any, formatType: string) => {
+  const numValue = typeof value === "number" ? value : parseFloat(value || 0);
+
+  switch (formatType) {
+    case "currency":
+      return formatCurrency(numValue);
+    case "percentage":
+      return formatPercentage(numValue);
+    case "number":
+      return formatNumber(Math.round(numValue));
+    case "decimal":
+      return formatDecimal(numValue);
+    case "integer":
+      return Math.round(numValue).toString();
+    default:
+      return value;
+  }
+};
 
 const footerData = computed(() => {
   const footerResult: Record<string, string | number> = {};
@@ -251,7 +344,7 @@ const footerData = computed(() => {
       } else if (footerType === "avg") {
         const total = values.reduce((a, b) => a + b, 0);
         const avg = values.length ? total / values.length : 0;
-        footerResult[col.accessorKey] = avg.toFixed(2) + "%";
+        footerResult[col.accessorKey] = avg;
       }
     } else {
       footerResult[col.accessorKey] = "";
@@ -271,6 +364,19 @@ watch(
   searchValues,
   () => {
     props.updateText(searchValues.value);
+  },
+  { deep: true }
+);
+
+watch(
+  () => props.data,
+  (newData) => {
+    dataTable.value = [...newData];
+    table.value = useVueTable({
+      data: dataTable.value,
+      columns: props.columns,
+      getCoreRowModel: getCoreRowModel(),
+    });
   },
   { deep: true }
 );

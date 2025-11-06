@@ -30,6 +30,7 @@
             :result="campaignsStats"
             :footer="true"
             :head="totalCampaigns"
+            :formatters="formatters"
             :search-fields="[
               {
                 key: 'campaign_name',
@@ -175,7 +176,6 @@ import {
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 
-// Importações do modal
 import {
   Dialog,
   DialogContent,
@@ -211,7 +211,6 @@ const order = ref(false);
 const loading = ref(true);
 const campaigns = ref<CampaignMetrics[]>([]);
 const integrations = ref<Record<number, Integration>>({});
-const totalCampaigns = ref();
 const pages = ref({
   current: 1,
   total: 0,
@@ -226,12 +225,93 @@ const selectedCampaign = ref<CampaignMetrics | null>(null);
 const emailIframe = ref<HTMLIFrameElement | null>(null);
 const currentEmailIndex = ref(0);
 
+const backendCampaignTotals = ref();
+const campaignsData = ref<CampaignMetrics[]>([]);
+
+const totalCampaigns = computed(() => {
+  if (!backendCampaignTotals.value) return null;
+
+  return {
+    message: "Total Geral",
+    blank: "",
+    send_amt: backendCampaignTotals.value.send_amt || 0,
+    uniqueopens: backendCampaignTotals.value.uniqueopens || 0,
+    subscriberclicks: backendCampaignTotals.value.subscriberclicks || 0,
+    unsubscribes: backendCampaignTotals.value.unsubscribes || 0,
+    softbounces: backendCampaignTotals.value.softbounces || 0,
+    rate_opens: backendCampaignTotals.value.rate_opens || 0,
+    rate_opens_click: backendCampaignTotals.value.rate_opens_click || 0,
+    rate_clicks: backendCampaignTotals.value.rate_clicks || 0,
+    rate_unsubscriptions: backendCampaignTotals.value.rate_unsubscriptions || 0,
+    rate_rejections: backendCampaignTotals.value.rate_rejections || 0,
+  };
+});
+
+const campaignsStats = computed(() => {
+  if (!campaignsData.value.length) {
+    return {
+      message: "Total da Página",
+      blank: "",
+      send_amt: 0,
+      uniqueopens: 0,
+      subscriberclicks: 0,
+      unsubscribes: 0,
+      softbounces: 0,
+      rate_opens: 0,
+      rate_opens_click: 0,
+      rate_clicks: 0,
+      rate_unsubscriptions: 0,
+      rate_rejections: 0,
+    };
+  }
+
+  const totals = {
+    message: "Total da Página",
+    blank: "",
+    send_amt: 0,
+    uniqueopens: 0,
+    subscriberclicks: 0,
+    unsubscribes: 0,
+    softbounces: 0,
+    rate_opens: 0,
+    rate_opens_click: 0,
+    rate_clicks: 0,
+    rate_unsubscriptions: 0,
+    rate_rejections: 0,
+  };
+
+  campaignsData.value.forEach((campaign) => {
+    totals.send_amt += campaign.send_amt;
+    totals.uniqueopens += campaign.uniqueopens;
+    totals.subscriberclicks += campaign.subscriberclicks;
+    totals.unsubscribes += campaign.unsubscribes;
+    totals.softbounces += campaign.softbounces;
+  });
+
+  const delivered = totals.send_amt - totals.softbounces;
+
+  totals.rate_opens =
+    delivered === 0 ? 0 : (totals.uniqueopens / delivered) * 100;
+  totals.rate_opens_click =
+    totals.uniqueopens === 0
+      ? 0
+      : (totals.subscriberclicks / totals.uniqueopens) * 100;
+  totals.rate_clicks =
+    delivered === 0 ? 0 : (totals.subscriberclicks / delivered) * 100;
+  totals.rate_unsubscriptions =
+    delivered === 0 ? 0 : (totals.unsubscribes / delivered) * 100;
+  totals.rate_rejections =
+    totals.send_amt === 0 ? 0 : (totals.softbounces / totals.send_amt) * 100;
+
+  return totals;
+});
+
 const hasMemberAccess = computed(() => {
   return authStore.user?.access_type === "member";
 });
 
 const filteredCampaigns = computed(() => {
-  return campaigns.value;
+  return campaignsData.value;
 });
 
 const navigateEmail = async (direction: "prev" | "next") => {
@@ -247,7 +327,7 @@ const navigateEmail = async (direction: "prev" | "next") => {
   ) {
     newIndex++;
   } else {
-    return; // Não há mais itens para navegar
+    return;
   }
 
   loadingEmail.value = true;
@@ -284,62 +364,6 @@ const navigateEmail = async (direction: "prev" | "next") => {
   }
 };
 
-const campaignsStats = computed(() => {
-  const totalStats = {
-    message: "Total",
-    blank: "",
-    send_amt: 0,
-    uniqueopens: 0,
-    subscriberclicks: 0,
-    unsubscribes: 0,
-    softbounces: 0,
-    rate_opens: "0%",
-    rate_opens_click: "0%",
-    rate_clicks: "0%",
-    rate_unsubscriptions: "0%",
-    rate_rejections: "0%",
-  };
-
-  campaigns.value.forEach((campaign) => {
-    totalStats.send_amt += campaign.send_amt;
-    totalStats.uniqueopens += campaign.uniqueopens;
-    totalStats.subscriberclicks += campaign.subscriberclicks;
-    totalStats.unsubscribes += campaign.unsubscribes;
-    totalStats.softbounces += campaign.softbounces;
-  });
-
-  const delivered = totalStats.send_amt - totalStats.softbounces;
-
-  totalStats.rate_opens =
-    delivered === 0
-      ? "0%"
-      : ((totalStats.uniqueopens / delivered) * 100).toFixed(2) + "%";
-
-  totalStats.rate_opens_click =
-    totalStats.uniqueopens === 0
-      ? "0%"
-      : ((totalStats.subscriberclicks / totalStats.uniqueopens) * 100).toFixed(
-          2
-        ) + "%";
-
-  totalStats.rate_clicks =
-    delivered === 0
-      ? "0%"
-      : ((totalStats.subscriberclicks / delivered) * 100).toFixed(2) + "%";
-
-  totalStats.rate_unsubscriptions =
-    delivered === 0
-      ? "0%"
-      : ((totalStats.unsubscribes / delivered) * 100).toFixed(2) + "%";
-
-  totalStats.rate_rejections =
-    totalStats.send_amt === 0
-      ? "0%"
-      : ((totalStats.softbounces / totalStats.send_amt) * 100).toFixed(2) + "%";
-
-  return totalStats;
-});
-
 const searchValues = ref<Record<string, string>>({
   "search[1][last_send_date]": "all",
 });
@@ -369,7 +393,7 @@ const getAutomationLink = (campaign: CampaignMetrics) => {
 const openEmailPreview = async (campaign: CampaignMetrics) => {
   selectedCampaign.value = campaign;
 
-  const index = filteredCampaigns.value.findIndex((c) => c.id === campaign.id);
+  const index = campaignsData.value.findIndex((c) => c.id === campaign.id);
   currentEmailIndex.value = index >= 0 ? index : 0;
 
   showEmailModal.value = true;
@@ -451,8 +475,10 @@ const applyFilter = async (current = pages.value.current) => {
     });
 
     campaigns.value = data.campaigns.data;
+    campaignsData.value = data.campaigns.data;
+    backendCampaignTotals.value = data.campaigns.total;
     integrations.value = data.integrations;
-    totalCampaigns.value = data.campaigns.total;
+
     pages.value = {
       current: data.campaigns.pagination.current_page,
       total: data.campaigns.pagination.total,
@@ -467,6 +493,42 @@ const applyFilter = async (current = pages.value.current) => {
   }
 
   loading.value = false;
+};
+
+const formatPercentage = (value: any): string => {
+  const numValue = typeof value === "number" ? value : parseFloat(value || 0);
+  return `${(numValue || 0).toFixed(2)}%`;
+};
+
+const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR").format(value);
+};
+
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
+const formatDate = (dateString: string): string => {
+  if (!dateString) return "-";
+  return moment(dateString).format("DD/MM/YYYY");
+};
+
+const formatters = {
+  rate_opens: formatPercentage,
+  rate_opens_click: formatPercentage,
+  rate_clicks: formatPercentage,
+  rate_unsubscriptions: formatPercentage,
+  rate_rejections: formatPercentage,
+  send_amt: formatNumber,
+  uniqueopens: formatNumber,
+  subscriberclicks: formatNumber,
+  unsubscribes: formatNumber,
+  softbounces: formatNumber,
 };
 
 const columnHelper = createColumnHelper<CampaignMetrics>();
@@ -523,9 +585,10 @@ const actionColumn = columnHelper.accessor("id", {
 const columns = [
   columnHelper.accessor("name", {
     header() {
-      return h("div", { class: "text-pretty text-left py-3 pr-20" }, "Titulo");
+      return h("div", { class: "text-pretty text-left py-3 pr-20" }, "Título");
     },
-    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
+    cell: ({ row }) =>
+      h("div", { class: "font-medium" }, row.getValue("name") || "-"),
   }),
 
   columnHelper.accessor("subject", {
@@ -533,94 +596,135 @@ const columns = [
       return h("div", { class: "text-pretty text-left py-3 pr-20" }, "Assunto");
     },
     cell: ({ row }) =>
-      h("div", { class: "capitalize" }, row.getValue("subject")),
+      h("div", { class: "font-medium" }, row.getValue("subject") || "-"),
   }),
 
   columnHelper.accessor("ldate", {
     header: () => createHeaderButton("Última Data de Envio", "ldate"),
     cell: ({ row }) =>
-      h(
-        "div",
-        { class: "capitalize text-right" },
-        moment(row.getValue("ldate")).format("DD/MM/YYYY")
-      ),
+      h("div", { class: "text-right" }, formatDate(row.getValue("ldate"))),
   }),
 
   columnHelper.accessor("send_amt", {
     header: () => createHeaderButton("Envios", "send_amt"),
     footer: "sum",
+    format: "number",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("send_amt")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("send_amt") || 0)
+      ),
   }),
 
   columnHelper.accessor("uniqueopens", {
-    header: ({ column }) => createHeaderButton("Aberturas", "uniqueopens"),
+    header: () => createHeaderButton("Aberturas", "uniqueopens"),
     footer: "sum",
+    format: "number",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("uniqueopens")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("uniqueopens") || 0)
+      ),
   }),
 
   columnHelper.accessor("subscriberclicks", {
-    header({ column }) {
-      return createHeaderButton("Cliques", "subscriberclicks");
-    },
+    header: () => createHeaderButton("Cliques", "subscriberclicks"),
     footer: "sum",
+    format: "number",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("subscriberclicks")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("subscriberclicks") || 0)
+      ),
   }),
 
   columnHelper.accessor("unsubscribes", {
     header: () => createHeaderButton("Cancelamentos", "unsubscribes"),
     footer: "sum",
+    format: "number",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("unsubscribes")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("unsubscribes") || 0)
+      ),
   }),
 
   columnHelper.accessor("softbounces", {
     header: () => createHeaderButton("Bounces", "softbounces"),
     footer: "sum",
+    format: "number",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("softbounces")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("softbounces") || 0)
+      ),
   }),
 
   columnHelper.accessor("rate_opens", {
     header: () => createHeaderButton("Taxa de Abertura", "rate_opens"),
     footer: "avg",
+    format: "percentage",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("rate_opens")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatPercentage(row.getValue("rate_opens") || 0)
+      ),
   }),
 
   columnHelper.accessor("rate_opens_click", {
     header: () =>
       createHeaderButton("Taxa de Abertura para Clique", "rate_opens_click"),
     footer: "avg",
+    format: "percentage",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("rate_opens_click")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatPercentage(row.getValue("rate_opens_click") || 0)
+      ),
   }),
 
   columnHelper.accessor("rate_clicks", {
     header: () => createHeaderButton("Taxa de Cliques", "rate_clicks"),
     footer: "avg",
+    format: "percentage",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("rate_clicks")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatPercentage(row.getValue("rate_clicks") || 0)
+      ),
   }),
 
   columnHelper.accessor("rate_unsubscriptions", {
     header: () =>
-      createHeaderButton(
-        "Taxa de Cancelamento de Inscrições",
-        "rate_unsubscriptions"
-      ),
+      createHeaderButton("Taxa de Cancelamento", "rate_unsubscriptions"),
     footer: "avg",
+    format: "percentage",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("rate_unsubscriptions")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatPercentage(row.getValue("rate_unsubscriptions") || 0)
+      ),
   }),
 
   columnHelper.accessor("rate_rejections", {
     header: () => createHeaderButton("Taxa de Rejeição", "rate_rejections"),
     footer: "avg",
+    format: "percentage",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("rate_rejections")),
+      h(
+        "div",
+        { class: "text-right" },
+        formatPercentage(row.getValue("rate_rejections") || 0)
+      ),
   }),
 
   ...(hasMemberAccess.value ? [actionColumn] : []),
