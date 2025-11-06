@@ -58,7 +58,9 @@
             />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+{{ last.sms.contracted }}</div>
+            <div class="text-2xl font-bold">
+              +{{ formatNumber(last.sms.contracted) }}
+            </div>
           </CardContent>
         </Card>
 
@@ -80,7 +82,9 @@
             />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+{{ last.sms.sent }}</div>
+            <div class="text-2xl font-bold">
+              +{{ formatNumber(last.sms.sent) }}
+            </div>
           </CardContent>
         </Card>
 
@@ -102,7 +106,9 @@
             />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+{{ last.sms.available }}</div>
+            <div class="text-2xl font-bold">
+              +{{ formatNumber(last.sms.available) }}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -135,6 +141,7 @@
             :result="campaignsStats"
             :footer="true"
             :head="totalCampaigns"
+            :formatters="formatters"
             :search-fields="[
               {
                 key: 'name',
@@ -427,6 +434,15 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
+const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR").format(value);
+};
+
+const formatters = {
+  sms: formatNumber,
+  clicks: formatNumber,
+};
+
 const columnHelper = createColumnHelper<CampaignMetrics>();
 const baseColumns = [
   columnHelper.accessor("name", {
@@ -436,14 +452,20 @@ const baseColumns = [
   columnHelper.accessor("sms", {
     header: () => createHeaderButton("Envios SMS", "sms"),
     footer: "sum",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("sms")),
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, formatNumber(row.getValue("sms") || 0)),
   }),
 ];
 
 const clicksColumn = columnHelper.accessor("clicks", {
   header: () => createHeaderButton("Total de Cliques", "clicks"),
   footer: "sum",
-  cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("clicks")),
+  cell: ({ row }) =>
+    h(
+      "div",
+      { class: "text-right" },
+      formatNumber(row.getValue("clicks") || 0)
+    ),
 });
 
 const filteredColumns = computed(() => {
