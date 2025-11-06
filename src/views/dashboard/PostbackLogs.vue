@@ -97,14 +97,7 @@
           />
         </CardContent>
 
-        <CardFooter
-          class="border-t"
-          v-if="
-            totalLogs.processed > 0 ||
-            totalLogs.pending > 0 ||
-            totalLogs.failed > 0
-          "
-        >
+        <CardFooter class="border-t" v-if="hasTotals">
           <div class="grid grid-cols-3 gap-4 w-full px-4">
             <div class="text-center p-3">
               <p class="text-sm text-gray-600">Processados</p>
@@ -257,6 +250,15 @@ const formattedPayload = computed(() => {
 const handleSearch = () => {
   fetchPostbackLogs(1);
 };
+
+const hasTotals = computed(() => {
+  return (
+    totalLogs.value.processed +
+      totalLogs.value.pending +
+      totalLogs.value.failed >
+    0
+  );
+});
 
 watch(perPage, () => fetchPostbackLogs(1));
 
