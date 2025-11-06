@@ -188,6 +188,8 @@
         </SidebarGroup>
       </SidebarContent>
 
+      <ServicesPreviewComponent />
+
       <SidebarFooter>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
@@ -711,6 +713,7 @@ import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
+import ServicesPreviewComponent from "@/components/layout/ServicesPreviewComponent.vue";
 
 interface BreadcrumbItem {
   name: string;

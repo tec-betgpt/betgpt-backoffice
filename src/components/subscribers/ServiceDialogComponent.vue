@@ -25,7 +25,7 @@
                 <SelectValue placeholder="Selecione um serviço/plano" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="row in services" :value="row.id" :key="row.id">
+                <SelectItem v-for="row in services" :value="row.id.toString()" :key="row.id">
                   {{ row.name }}
                 </SelectItem>
               </SelectContent>

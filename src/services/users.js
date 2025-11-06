@@ -234,5 +234,13 @@ export default {
   async updateSignatureService (id, body = {}) {
     const { data } = await api.patch(`/users/${id}/update-signature-service`, body)
     return data
+  },
+
+  /**
+   * GET /v1/users/service
+   */
+  async service () {
+    const { data } = await api.get('/users/service')
+    return data
   }
 }
