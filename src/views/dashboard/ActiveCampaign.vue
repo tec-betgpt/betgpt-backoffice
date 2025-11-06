@@ -364,12 +364,10 @@ const navigateEmail = async (direction: "prev" | "next") => {
   }
 };
 
-const searchValues = ref<Record<string, string>>({
-  "search[1][last_send_date]": "all",
-});
+const searchValues = ref<Record<string, string>>({});
 
 const setSearch = (values: Record<string, string>) => {
-  searchValues.value = { ...searchValues.value, ...values };
+  searchValues.value = { ...values };
 };
 
 const getAccountName = (campaign: CampaignMetrics) => {
@@ -460,8 +458,6 @@ const applyFilter = async (current = pages.value.current) => {
       return acc;
     }, {} as Record<string, string>);
 
-    const lastSendDateFilter = searchValues.value["search[1][last_send_date]"];
-
     const { data } = await ActiveCampaign.index({
       page: current,
       ...searchParams,
@@ -471,7 +467,6 @@ const applyFilter = async (current = pages.value.current) => {
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
       per_pages: perPages.value,
-      last_send_date: lastSendDateFilter || null,
     });
 
     campaigns.value = data.campaigns.data;
