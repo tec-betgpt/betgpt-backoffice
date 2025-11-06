@@ -232,7 +232,7 @@ const pages = ref({
   total: 0,
   last: 0,
 });
-const perPages = ref(10);
+const perPages = ref(20);
 const orderId = ref("sessions");
 const order = ref(false);
 
