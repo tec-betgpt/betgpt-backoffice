@@ -97,7 +97,14 @@
           />
         </CardContent>
 
-        <!--<CardFooter class="border-t" v-if="pages.total > 0">
+        <CardFooter
+          class="border-t"
+          v-if="
+            totalLogs.processed > 0 ||
+            totalLogs.pending > 0 ||
+            totalLogs.failed > 0
+          "
+        >
           <div class="grid grid-cols-3 gap-4 w-full px-4">
             <div class="text-center p-3">
               <p class="text-sm text-gray-600">Processados</p>
@@ -118,7 +125,7 @@
               </p>
             </div>
           </div>
-        </CardFooter>-->
+        </CardFooter>
       </Card>
     </div>
 
@@ -252,6 +259,7 @@ const handleSearch = () => {
 };
 
 watch(perPage, () => fetchPostbackLogs(1));
+
 const fetchPostbackLogs = async (page = 1) => {
   const isInitialLoad = page === 1;
 
@@ -296,6 +304,11 @@ const fetchPostbackLogs = async (page = 1) => {
 
     hasMore.value = data.logs.hasMore;
     currentPage.value = data.logs.currentPage;
+    totalLogs.value = {
+      processed: data.logs.total.processed || 0,
+      pending: data.logs.total.pending || 0,
+      failed: data.logs.total.failed || 0,
+    };
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
@@ -366,14 +379,15 @@ const columns = [
   columnHelper.accessor("type", {
     header: "Tipo",
     cell: ({ row }) => {
-      const type = row.original.type
-      const t = {
-        deposit: "Depósito",
-        withdraw: "Saque",
-        player: "Cliente",
-        status_change: "Alteração de Status",
-      }[type] || type;
-      return h("div", {class: "capitalize"}, t)
+      const type = row.original.type;
+      const t =
+        {
+          deposit: "Depósito",
+          withdraw: "Saque",
+          player: "Cliente",
+          status_change: "Alteração de Status",
+        }[type] || type;
+      return h("div", { class: "capitalize" }, t);
     },
   }),
   columnHelper.accessor("status", {
