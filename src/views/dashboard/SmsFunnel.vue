@@ -26,7 +26,7 @@
       </div>
 
       <div class="mt-4 grid gap-4 md:grid-cols-2 sm:grid-cols-1">
-        <Card v-for="n in 6" :key="n">
+        <Card v-for="n in hasMemberAccess ? 6 : 5" :key="n">
           <div class="p-4 rounded shadow">
             <div class="flex justify-between items-center mb-2">
               <Skeleton class="h-4 w-1/3" />
@@ -58,7 +58,9 @@
             />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+{{ last.sms.contracted }}</div>
+            <div class="text-2xl font-bold">
+              +{{ formatNumber(last.sms.contracted) }}
+            </div>
           </CardContent>
         </Card>
 
@@ -80,7 +82,9 @@
             />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+{{ last.sms.sent }}</div>
+            <div class="text-2xl font-bold">
+              +{{ formatNumber(last.sms.sent) }}
+            </div>
           </CardContent>
         </Card>
 
@@ -102,7 +106,9 @@
             />
           </CardHeader>
           <CardContent>
-            <div class="text-2xl font-bold">+{{ last.sms.available }}</div>
+            <div class="text-2xl font-bold">
+              +{{ formatNumber(last.sms.available) }}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -114,6 +120,7 @@
           :isLoading="loading"
         />
         <PeriodComponent
+          v-if="hasMemberAccess"
           :period="clicks"
           title="Cliques"
           :isLoading="loading"
@@ -127,13 +134,14 @@
         <CardContent>
           <CustomDataTable
             :data="campaigns"
-            :columns="columns"
+            :columns="filteredColumns"
             :loading="loading"
             :update-text="setSearch"
             :find="applyFilter"
             :result="campaignsStats"
             :footer="true"
             :head="totalCampaigns"
+            :formatters="formatters"
             :search-fields="[
               {
                 key: 'name',
@@ -283,6 +291,13 @@ import { CaretSortIcon } from "@radix-icons/vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 
+import { useAuthStore } from "@/stores/auth";
+const authStore = useAuthStore();
+
+const hasMemberAccess = computed(() => {
+  return authStore.user?.access_type === "member";
+});
+
 const responsiveClass =
   "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-3 mb-3";
 
@@ -391,30 +406,74 @@ const applyFilter = async (current = pages.value.current) => {
   loading.value = false;
 };
 
-const columnHelper = createColumnHelper<CampaignMetrics>();
-const columns = [
-  columnHelper.accessor("name", {
-    header({ column }) {
-      return "Nome da Campanha";
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+    Button,
+    {
+      variant: orderId.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        orderId.value = columnKey;
+        order.value = !order.value;
+        applyFilter();
+      },
+      class: "h-fit text-pretty my-1 w-full justify-end",
     },
+    () => [
+      h("div", { class: "flex items-center justify-end w-full" }, [
+        label,
+        h(
+          orderId.value === columnKey
+            ? order.value
+              ? ArrowDown
+              : ArrowUp
+            : CaretSortIcon,
+          { class: "ml-2" }
+        ),
+      ]),
+    ]
+  );
+}
+
+const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR").format(value);
+};
+
+const formatters = {
+  sms: formatNumber,
+  clicks: formatNumber,
+};
+
+const columnHelper = createColumnHelper<CampaignMetrics>();
+const baseColumns = [
+  columnHelper.accessor("name", {
+    header: () => "Nome da Campanha",
     cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
   }),
   columnHelper.accessor("sms", {
-    header({ column }) {
-      return createHeaderButton("Envios SMS", "sms");
-    },
-    footer: "sum",
-    cell: ({ row }) => h("div", { class: "text-right" }, row.getValue("sms")),
-  }),
-  columnHelper.accessor("clicks", {
-    header({ column }) {
-      return createHeaderButton("Total de Cliques", "clicks");
-    },
+    header: () => createHeaderButton("Envios SMS", "sms"),
     footer: "sum",
     cell: ({ row }) =>
-      h("div", { class: "text-right" }, row.getValue("clicks")),
+      h("div", { class: "text-right" }, formatNumber(row.getValue("sms") || 0)),
   }),
 ];
+
+const clicksColumn = columnHelper.accessor("clicks", {
+  header: () => createHeaderButton("Total de Cliques", "clicks"),
+  footer: "sum",
+  cell: ({ row }) =>
+    h(
+      "div",
+      { class: "text-right" },
+      formatNumber(row.getValue("clicks") || 0)
+    ),
+});
+
+const filteredColumns = computed(() => {
+  if (hasMemberAccess.value) {
+    return [...baseColumns, clicksColumn];
+  }
+  return baseColumns;
+});
 
 function calculateStats(key: string, data: Array<any>) {
   if (!data.length) return {};
@@ -428,37 +487,12 @@ function calculateStats(key: string, data: Array<any>) {
   return { max, min, avg: parseFloat(avg).toFixed(2) };
 }
 
-function createHeaderButton(label: string, columnKey: string) {
-  return h(
-    Button,
-    {
-      variant: orderId.value === columnKey ? "default" : "ghost",
-      onClick: () => {
-        orderId.value = columnKey;
-        order.value = !order.value;
-        applyFilter();
-      },
-      class: "h-fit text-pretty my-1",
-    },
-    () => [
-      label,
-      h(
-        orderId.value === columnKey
-          ? order.value
-            ? ArrowDown
-            : ArrowUp
-          : CaretSortIcon,
-        { class: "" }
-      ),
-    ]
-  );
-}
-
 watch(perPage, () => applyFilter(1));
 
 watch(selectedRange, () => {
   applyFilter();
 });
+
 type CampaignMetrics = {
   name: string;
   sms: number;
