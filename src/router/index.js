@@ -38,6 +38,7 @@ import UserLogins from "@/views/dashboard/UserLogins.vue";
 import Services from "@/views/dashboard/Services.vue";
 import Permissions from "@/views/dashboard/Permissions.vue";
 import Subscribers from "@/views/dashboard/Subscribers.vue";
+import ServiceConsumeds from "@/views/dashboard/ServiceConsumeds.vue";
 
 const routes = [
   {
@@ -127,6 +128,17 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Confirmação de E-mail",
+          roles: "member|client",
+        },
+      },
+      {
+        path: "service-consumeds",
+        name: "service-consumeds.index",
+        component: ServiceConsumeds,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Serviços Consumidos",
           roles: "member|client",
         },
       },

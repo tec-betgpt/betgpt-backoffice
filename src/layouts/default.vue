@@ -231,6 +231,14 @@
                 Configurações
               </router-link>
             </DropdownMenuItem>
+            <DropdownMenuItem>
+              <router-link
+                class="w-full"
+                :to="{ name: 'service-consumeds.index' }"
+              >
+                Serviços Consumidos
+              </router-link>
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
