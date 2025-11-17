@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { UserRoundIcon, LucideLock, ClipboardPenIcon, MessageCircle } from "lucide-vue-next";
+import { UserRoundIcon, LucideLock, ClipboardPenIcon, MessageCircle, CreditCard } from "lucide-vue-next";
 import { cn } from "@/lib/utils";
 import { useRouter, RouterView } from "vue-router";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -33,6 +33,12 @@ const sidebarNavItems: {title: string, route: string, show: boolean}[] = [
     route: "service-consumeds.index",
     show: true,
     icon: ClipboardPenIcon
+  },
+  {
+    title: "Faturas",
+    route: "invoices.index",
+    show: true,
+    icon: CreditCard
   },
 ];
 

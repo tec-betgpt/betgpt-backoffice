@@ -1,7 +1,7 @@
 <template>
   <div class="view-home p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="banner-promo">
-      <div class="inner">
+    <div class="relative py-4 xl:py-8 rounded-lg overflow-hidden">
+      <div class="relative z-20">
         <div class="px-5 grid md:grid-cols-2 xs:grid-cols-1 gap-2 w-full">
           <div>
             <div class="text-xl font-semibold text-white">
@@ -33,63 +33,8 @@
         </div>
       </div>
 
-      <div class="overlay"></div>
-      <video-background
-        src="/movies/mpeg/dashboard.mp4"
-        poster="/movies/poster/dashboard.jpg"
-        style="width: 100%; position: absolute; top: 0; left: 0; height: 100%"
-        :playsinline="true"
-        :sources="[
-          {
-            src: '/movies/mpeg/dashboard_720p.mp4',
-            res: 1200,
-            autoplay: true,
-            type: 'video/mp4',
-          },
-          {
-            src: '/movies/mpeg/dashboard_480p.mp4',
-            res: 800,
-            autoplay: true,
-            type: 'video/mp4',
-          },
-          {
-            src: '/movies/mpeg/dashboard_360p.mp4',
-            res: 600,
-            autoplay: true,
-            type: 'video/mp4',
-          },
-          {
-            src: '/movies/mpeg/dashboard_240p.mp4',
-            res: 400,
-            autoplay: true,
-            type: 'video/mp4',
-          },
-          {
-            src: '/movies/webm/dashboard_720p.webm',
-            res: 1200,
-            autoplay: true,
-            type: 'video/webm',
-          },
-          {
-            src: '/movies/webm/dashboard_480p.webm',
-            res: 800,
-            autoplay: true,
-            type: 'video/webm',
-          },
-          {
-            src: '/movies/webm/dashboard_360p.webm',
-            res: 600,
-            autoplay: true,
-            type: 'video/webm',
-          },
-          {
-            src: '/movies/webm/dashboard_240p.webm',
-            res: 400,
-            autoplay: true,
-            type: 'video/webm',
-          },
-        ]"
-      />
+      <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-[rgba(0,0,0,0.71)] to-[rgba(255,210,64,0.63)] z-10"></div>
+      <img src="/dashboard.jpg" class="absolute top-0 left-0 w-full h-full object-cover" />
     </div>
 
     <div v-if="loading" class="pt-4">
@@ -299,19 +244,19 @@
                     <small class="text-xs">Total</small>
 
                     <div v-if="isShowValues">
-                      <div v-if="subItem.variation" class="variation mt-3 flex">
+                      <div v-if="subItem.variation" class="mt-3 inline-block flex text-xs">
                         <div
                           v-if="subItem.variation > 0"
-                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                          class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-green-700 text-green-200"
                         >
                           <ArrowUp class="h-4 w-4 mr-1" />
                           {{ subItem.variation }}%
                         </div>
                         <div
                           v-else
-                          class="value flex justify-start items-center bg-red-700 text-red-200"
+                          class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-red-700 rounded-md text-red-200"
                         >
-                          <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}%
+                          <ArrowDown class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
                         </div>
                         desde a semana anterior
                       </div>
@@ -329,19 +274,19 @@
                     <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
 
                     <div v-if="isShowValues">
-                      <div v-if="subItem.variation" class="variation mt-3 flex">
+                      <div v-if="subItem.variation" class="mt-3 flex text-xs">
                         <div
                           v-if="subItem.variation > 0"
-                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                          class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-green-700 text-green-200"
                         >
                           <ArrowUp class="h-4 w-4 mr-1" />
                           {{ subItem.variation }}
                         </div>
                         <div
                           v-else
-                          class="value flex justify-start items-center bg-red-700 text-red-200"
+                          class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-red-700 text-red-300"
                         >
-                          <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}
+                          <ArrowDown class="h-4 w-4 mr-1" /> {{ subItem.variation }}
                         </div>
                         desde o dia anterior
                       </div>
@@ -364,17 +309,17 @@
                     <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
 
                     <div v-if="isShowValues">
-                      <div v-if="subItem.variation" class="variation mt-3 flex">
+                      <div v-if="subItem.variation" class="mt-3 flex items-center text-xs">
                         <div
                           v-if="subItem.variation > 0"
-                          class="value flex align-baseline justify-start items-center bg-green-700 text-green-200"
+                          class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-green-700 text-green-200"
                         >
                           <ArrowUp class="h-4 w-4 mr-1" />
                           {{ subItem.variation }}%
                         </div>
                         <div
                           v-else
-                          class="value flex justify-start items-center bg-red-700 text-red-200"
+                          class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-red-700 text-red-200"
                         >
                           <ArrowDown class="h-4 w-4" /> {{ subItem.variation }}%
                         </div>
@@ -443,7 +388,6 @@ import {
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
-import VideoBackground from "vue-responsive-video-background-player";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useColorMode } from "@vueuse/core";
@@ -523,7 +467,6 @@ export default {
     UserRound,
     UserRoundPlus,
     Users,
-    VideoBackground,
     Wallet,
     PencilRuler,
     SquarePen,

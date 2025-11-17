@@ -252,7 +252,7 @@
     </Sidebar>
     <SidebarInset>
       <header
-        class="flex sticky z-10 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4"
+        class="flex sticky z-30 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4"
       >
         <div class="flex items-center gap-2 w-full px-4">
           <SidebarTrigger :logo="true" :toggle="toggleSidebar" class="-ml-1" />

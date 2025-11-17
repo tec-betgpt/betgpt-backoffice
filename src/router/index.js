@@ -38,7 +38,8 @@ import UserLogins from "@/views/dashboard/UserLogins.vue";
 import Services from "@/views/dashboard/Services.vue";
 import Permissions from "@/views/dashboard/Permissions.vue";
 import Subscribers from "@/views/dashboard/Subscribers.vue";
-import ServiceConsumeds from "@/views/dashboard/ServiceConsumeds.vue";
+import ServiceConsumeds from "@/views/configurations/ServiceConsumeds.vue";
+import Invoices from "@/views/configurations/Invoices.vue";
 
 const routes = [
   {
@@ -139,6 +140,17 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Serviços Consumidos",
+          roles: "member|client",
+        },
+      },
+      {
+        path: "invoices",
+        name: "invoices.index",
+        component: Invoices,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Faturas",
           roles: "member|client",
         },
       },
