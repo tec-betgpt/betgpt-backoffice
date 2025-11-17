@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { UserRoundIcon, LucideLock, ClipboardPenIcon, MessageCircle } from "lucide-vue-next";
 import { cn } from "@/lib/utils";
 import { useRouter, RouterView } from "vue-router";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -13,19 +14,26 @@ const sidebarNavItems: {title: string, route: string, show: boolean}[] = [
     title: "Perfil",
     route: "configurations.profile",
     show: true,
+    icon: UserRoundIcon
   },
   {
     title: "Segurança",
     route: "configurations.security",
     show: true,
+    icon: LucideLock
   },
   {
     title: "Notificações",
     route: "configurations.notifications",
     show: true,
+    icon: MessageCircle
   },
-
-
+  {
+    title: "Consumo",
+    route: "service-consumeds.index",
+    show: true,
+    icon: ClipboardPenIcon
+  },
 ];
 
 const router = useRouter();
@@ -58,8 +66,8 @@ const router = useRouter();
           as-child
         >
           <router-link :to="{ name: item.route }">
-            {{ item.title }}</router-link
-          >
+            <component :is="item.icon" /> {{ item.title }}
+          </router-link>
         </Button>
       </nav>
       <router-view />

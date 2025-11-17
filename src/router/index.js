@@ -37,6 +37,8 @@ import Export from "@/views/dashboard/Export.vue";
 import UserLogins from "@/views/dashboard/UserLogins.vue";
 import Services from "@/views/dashboard/Services.vue";
 import Permissions from "@/views/dashboard/Permissions.vue";
+import Subscribers from "@/views/dashboard/Subscribers.vue";
+import ServiceConsumeds from "@/views/dashboard/ServiceConsumeds.vue";
 
 const routes = [
   {
@@ -126,6 +128,17 @@ const routes = [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Confirmação de E-mail",
+          roles: "member|client",
+        },
+      },
+      {
+        path: "service-consumeds",
+        name: "service-consumeds.index",
+        component: ServiceConsumeds,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Serviços Consumidos",
           roles: "member|client",
         },
       },
@@ -369,42 +382,7 @@ const routes = [
           title: "Usuários",
         },
       },
-      {
-        path: "roles",
-        name: "roles",
-        component: Roles,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member",
-          permissions: "access-to-permissions",
-          title: "Perfis",
-        },
-      },
-      {
-        path: "services",
-        name: "services",
-        component: Services,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: "Serviços",
-          roles: "member",
-          permissions: "access-to-permissions",
-        },
-      },
-      {
-        path: "permissions",
-        name: "permissions",
-        component: Permissions,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: "Permissões",
-          roles: "member",
-          permissions: "access-to-permissions",
-        },
-      },
+
       {
         path: "data-sources",
         name: "data-sources",
@@ -422,62 +400,98 @@ const routes = [
     {
     path: "/governance",
     name: "governance",
-        meta: {
+      meta: {
         requiresAuth: true,
-            title: "Governança",
+        title: "Governança",
+        roles: "member",
+        permissions: "access-to-member-governance",
+      },
+      children: [
+        {
+          path: "texts",
+          name: "texts",
+          component: Insights,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
             roles: "member",
-            permissions: "access-to-member-governance",
+            permissions: "access-to-motivational-texts",
+            title: "Textos",
+          },
         },
-        children: [
-            {
-                path: "texts",
-                name: "texts",
-                component: Insights,
-                meta: {
-                    layout: DefaultLayout,
-                    requiresAuth: true,
-                    roles: "member",
-                    permissions: "access-to-motivational-texts",
-                    title: "Textos",
-                },
-            },
-            {
-                path: "users",
-                name: "users",
-                component: Users,
-                meta: {
-                    layout: DefaultLayout,
-                    requiresAuth: true,
-                    roles: "member",
-                    permissions: "access-to-users",
-                    title: "Usuários",
-                },
-            },
-            {
-                path: "roles",
-                name: "roles",
-                component: Roles,
-                meta: {
-                    layout: DefaultLayout,
-                    requiresAuth: true,
-                    roles: "member",
-                    permissions: "access-to-permissions",
-                    title: "Perfis",
-                },
-            },
-            {
-                path: "user-logins",
-                name: "user-logins",
-                component: UserLogins,
-                meta: {
-                    layout: DefaultLayout,
-                    requiresAuth: true,
-                    roles: "member",
-                    permissions: "access-to-users",
-                    title: "Histórico de Login",
-                },
-            }
-        ]
+        {
+          path: "roles",
+          name: "roles",
+          component: Roles,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            roles: "member",
+            permissions: "access-to-roles",
+            title: "Perfis",
+          },
+        },
+        {
+          path: "services",
+          name: "services",
+          component: Services,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Serviços",
+            roles: "member",
+            permissions: "access-to-services",
+          },
+        },
+        {
+          path: "permissions",
+          name: "permissions",
+          component: Permissions,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Permissões",
+            roles: "member",
+            permissions: "access-to-permissions",
+          },
+        },
+        {
+          path: "subscribers",
+          name: "subscribers",
+          component: Subscribers,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Assinantes",
+            roles: "member",
+            permissions: "access-to-subscribers",
+          },
+        },
+        {
+          path: "users",
+          name: "users",
+          component: Users,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            roles: "member",
+            permissions: "access-to-users",
+            title: "Usuários",
+          },
+        },
+        {
+          path: "user-logins",
+          name: "user-logins",
+          component: UserLogins,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            roles: "member",
+            permissions: "access-to-users",
+            title: "Histórico de Login",
+          },
+        }
+      ]
     },
   {
     path: "/financial",

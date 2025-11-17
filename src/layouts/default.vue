@@ -188,6 +188,8 @@
         </SidebarGroup>
       </SidebarContent>
 
+      <ServicesPreviewComponent />
+
       <SidebarFooter>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
@@ -227,6 +229,14 @@
                 :to="{ name: 'configurations.profile' }"
               >
                 Configurações
+              </router-link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <router-link
+                class="w-full"
+                :to="{ name: 'service-consumeds.index' }"
+              >
+                Serviços Consumidos
               </router-link>
             </DropdownMenuItem>
 
@@ -686,6 +696,7 @@ import {
   LucideShieldUser,
   SquarePen,
   Square,
+  LucideUserCheck
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -710,6 +721,7 @@ import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
+import ServicesPreviewComponent from "@/components/layout/ServicesPreviewComponent.vue";
 
 interface BreadcrumbItem {
   name: string;
@@ -944,7 +956,7 @@ const navMenu = computed(() => {
           name: "Perfis",
           url: { name: "roles" },
           icon: UserCog,
-          show: canAccess("access-to-permissions"),
+          show: canAccess("access-to-roles"),
         },
         {
           name: "Permissões",
@@ -953,10 +965,16 @@ const navMenu = computed(() => {
           show: canAccess("access-to-permissions"),
         },
         {
+          name: "Assinantes",
+          url: { name: "subscribers" },
+          icon: LucideUserCheck,
+          show: canAccess("access-to-subscribers"),
+        },
+        {
           name: "Serviços",
           url: { name: "services" },
           icon: Briefcase,
-          show: canAccess("access-to-member-management"),
+          show: canAccess("access-to-services"),
         },
         {
           name: "MyElevate Insights",
