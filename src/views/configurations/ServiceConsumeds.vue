@@ -9,7 +9,7 @@
 
     <Separator class="mb-3" />
 
-    <div class="flex justify-start items-start  gap-8 flex-wrap w-full">
+    <div class="flex justify-start items-start  gap-8 flex-wrap w-full border rounded-lg">
       <Table class="w-full">
         <TableHeader>
           <TableRow>
