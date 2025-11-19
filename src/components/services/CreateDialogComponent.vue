@@ -1,5 +1,5 @@
 <template>
-  <Button @click="openDialog" class="bg-yellow-300 text-black dark:text-white hover:text-white dark:hover:text-black">
+  <Button @click="openDialog" class="bg-yellow-300 text-black hover:text-white dark:hover:text-black">
     <Plus />
     Novo Serviço
   </Button>
