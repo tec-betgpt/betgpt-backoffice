@@ -7,6 +7,16 @@
       @update:modelValue="handleSidebarExpand"
       :collapsed="sidebarExpanded"
     >
+      <div v-if="authStore && authStore.user && !authStore.user.is_available" class="bg-gray-50/5 w-full h-full backdrop-blur-lg absolute top-0 left-0 z-10 flex flex-col items-center justify-center px-4 text-center">
+        <LucideLockOpen />
+        <div class="text-sm font-bold">
+          Conta suspensa
+        </div>
+        <div class="text-xs">
+          Por favor, efetue o pagamento das faturas pendentes.
+        </div>
+      </div>
+
       <SidebarHeader v-if="activeGroupProject">
         <img
           @click="toggleSidebarOnMobile"
@@ -190,7 +200,7 @@
 
       <ServicesPreviewComponent />
 
-      <SidebarFooter>
+      <SidebarFooter class="z-20">
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <SidebarMenuButton
@@ -696,6 +706,7 @@ import {
   LucideShieldUser,
   SquarePen,
   Square,
+  LucideLockOpen,
   LucideUserCheck
 } from "lucide-vue-next";
 import {
