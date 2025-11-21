@@ -38,7 +38,6 @@
       </CardContent>
     </Card>
 
-    <!-- Sheet for Create/Edit Target Audience -->
     <div
       v-if="showSheet"
       class="fixed inset-0 z-40 bg-black/80"
@@ -84,125 +83,141 @@
                   </Tooltip>
                 </TooltipProvider>
             </div>
-            <Input id="ta-duration" type="number" v-model.number="targetAudienceForm.membership_duration" placeholder="Permanente" class="col-span-3" />
+            <Input id="ta-duration" v-model.number="targetAudienceForm.duration" placeholder="Permanente" class="col-span-3" />
+          </div>
+
+          <div class="grid grid-cols-4 items-start gap-4">
+            <Label class="text-right mt-2">Sincronizar com</Label>
+            <div class="col-span-3 space-y-2">
+                <div v-for="provider in availableProviders" :key="provider.id" class="flex items-center gap-2">
+                    <Checkbox
+                        :id="'provider-' + provider.id"
+                        :checked="targetAudienceForm.sync_providers.includes(provider.id)"
+                        @update:checked="(checked) => updateSyncProviders(checked, provider.id)"
+                    />
+                    <Label :for="'provider-' + provider.id" class="font-normal">{{ provider.label }}</Label>
+                </div>
+            </div>
           </div>
 
           <Separator class="my-4" />
 
-          <div class="space-y-6">
-            <div
-              v-for="(group, groupIndex) in targetAudienceForm.conditionGroups"
-              :key="groupIndex"
-              class="space-y-4 p-4 border rounded-md"
-            >
-              <div class="flex items-center justify-between">
-                <Label>Grupo de Condições {{ groupIndex + 1 }}</Label>
-                <div class="flex items-center gap-2">
-                  <ToggleGroup
-                    v-if="targetAudienceForm.conditionGroups.length > 1 && groupIndex > 0"
-                    v-model="group.groupOperator"
-                    type="single"
-                    variant="outline"
-                    class="h-8"
-                  >
-                    <ToggleGroupItem value="AND" class="h-8 px-3">E</ToggleGroupItem>
-                    <ToggleGroupItem value="OR" class="h-8 px-3">OU</ToggleGroupItem>
-                  </ToggleGroup>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    @click="removeTaConditionGroup(groupIndex)"
-                    class="text-destructive"
-                  >
-                    <Trash2Icon class="h-4 w-4" />
-                  </Button>
+          <div class="space-y-4">
+            <template v-for="(group, groupIndex) in targetAudienceForm.condition_groups" :key="groupIndex">
+                <div v-if="groupIndex > 0" class="relative flex justify-center">
+                    <div class="absolute inset-0 flex items-center">
+                        <span class="w-full border-t"></span>
+                    </div>
+                    <div class="relative flex justify-center text-xs uppercase">
+                        <span class="bg-background px-2 text-muted-foreground font-semibold">E</span>
+                    </div>
                 </div>
-              </div>
 
-              <div class="space-y-1 pl-6 border-l-2 border-muted">
-                <template v-for="(condition, conditionIndex) in group.conditions" :key="conditionIndex">
-                  <div v-if="conditionIndex > 0" class="flex justify-center h-8">
-                    <ToggleGroup
-                      v-model="condition.conditionOperator"
-                      type="single"
-                      variant="outline"
-                      class="h-8"
-                    >
-                      <ToggleGroupItem value="AND" class="h-8 px-3">E</ToggleGroupItem>
-                      <ToggleGroupItem value="OR" class="h-8 px-3">OU</ToggleGroupItem>
-                    </ToggleGroup>
-                  </div>
+                <div class="space-y-4 p-4 border rounded-md">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <Label>Grupo de Condições {{ groupIndex + 1 }}</Label>
+                             <div class="flex items-center gap-2">
+                                <Label class="text-sm text-muted-foreground">Lógica interna:</Label>
+                                <ToggleGroup
+                                    v-model="group.logic_operator"
+                                    type="single"
+                                    variant="outline"
+                                    class="h-8"
+                                >
+                                    <ToggleGroupItem value="AND" class="h-8 px-3">E</ToggleGroupItem>
+                                    <ToggleGroupItem value="OR" class="h-8 px-3">OU</ToggleGroupItem>
+                                </ToggleGroup>
+                            </div>
+                        </div>
+                        <Button
+                            v-if="targetAudienceForm.condition_groups.length > 1"
+                            variant="ghost"
+                            size="sm"
+                            @click="removeTaConditionGroup(groupIndex)"
+                            class="text-destructive"
+                        >
+                            <Trash2Icon class="h-4 w-4" />
+                        </Button>
+                    </div>
 
-                  <div class="flex items-center gap-2 py-1">
-                    <Select v-model="condition.field" class="flex-1 min-w-[120px]">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um campo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup v-for="fieldGroup in targetAudienceFields" :key="fieldGroup.name">
-                          <SelectLabel>{{ $t(fieldGroup.name) }}</SelectLabel>
-                          <SelectItem v-for="field in fieldGroup.fields" :key="field.field_key" :value="field.field_key">
-                            {{ $t(field.label) }}
-                          </SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <div class="space-y-3">
+                        <template v-for="(condition, conditionIndex) in group.conditions" :key="conditionIndex">
+                           <div v-if="conditionIndex > 0" class="flex justify-center items-center text-sm font-bold text-muted-foreground pt-2">
+                                {{ group.logic_operator === 'AND' ? 'E' : 'OU' }}
+                            </div>
 
-                    <Select v-model="condition.operator" class="flex-1 min-w-[120px]">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Operador" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Operadores</SelectLabel>
-                          <SelectItem v-for="op in getTaOperators(condition)" :key="op" :value="op">
-                            {{ $t(op) }}
-                          </SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                            <div class="flex items-center gap-2 py-1">
+                                <Select v-model="condition.field" class="flex-1 min-w-[120px]">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione um campo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup v-for="fieldGroup in targetAudienceFields" :key="fieldGroup.name">
+                                    <SelectLabel>{{ $t(fieldGroup.name) }}</SelectLabel>
+                                    <SelectItem v-for="field in fieldGroup.fields" :key="field.field_key" :value="field.field_key">
+                                        {{ $t(field.label) }}
+                                    </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                                </Select>
 
-                    <Input
-                      v-if="showTaTextInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
-                      v-model="condition.value"
-                      placeholder="Valor"
-                      class="flex-1 min-w-[240px]"
-                    />
+                                <Select v-model="condition.operator" class="flex-1 min-w-[120px]">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Operador" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                    <SelectLabel>Operadores</SelectLabel>
+                                    <SelectItem v-for="op in getTaOperators(condition)" :key="op" :value="op">
+                                        {{ $t(op) }}
+                                    </SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                                </Select>
 
-                    <Input
-                      v-else-if="showTaNumberInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
-                      v-model.number="condition.value"
-                      placeholder="Número"
-                      type="number"
-                      class="flex-1"
-                    />
+                                <Input
+                                v-if="showTaTextInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
+                                v-model="condition.value"
+                                placeholder="Valor"
+                                class="flex-1 min-w-[240px]"
+                                />
 
-                     <Select
-                      v-else-if="showTaBooleanInput(condition)"
-                      v-model="condition.value"
-                      class="flex-1"
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">Sim</SelectItem>
-                        <SelectItem value="false">Não</SelectItem>
-                      </SelectContent>
-                    </Select>
+                                <Input
+                                v-else-if="showTaNumberInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
+                                v-model.number="condition.value"
+                                placeholder="Número"
+                                type="number"
+                                class="flex-1"
+                                />
 
-                    <Button v-if="group.conditions.length > 1" variant="ghost" size="sm" @click="removeTaCondition(groupIndex, conditionIndex)" class="text-destructive">
-                      <Trash2Icon class="h-4 w-4" />
-                    </Button>
-                  </div>
-                </template>
+                                <Select
+                                v-else-if="showTaBooleanInput(condition)"
+                                v-model="condition.value"
+                                class="flex-1"
+                                >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="true">Sim</SelectItem>
+                                    <SelectItem value="false">Não</SelectItem>
+                                </SelectContent>
+                                </Select>
 
-                <Button variant="outline" size="sm" @click="addTaCondition(groupIndex)" class="mt-2">
-                  <PlusIcon class="mr-2 h-4 w-4" />
-                  Adicionar Condição
-                </Button>
-              </div>
-            </div>
+                                <Button v-if="group.conditions.length > 1" variant="ghost" size="sm" @click="removeTaCondition(groupIndex, conditionIndex)" class="text-destructive">
+                                <Trash2Icon class="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </template>
+
+                        <Button variant="outline" size="sm" @click="addTaCondition(groupIndex)" class="mt-2">
+                        <PlusIcon class="mr-2 h-4 w-4" />
+                        Adicionar Condição
+                        </Button>
+                    </div>
+                </div>
+            </template>
 
             <Button variant="outline" @click="addTaConditionGroup">
               <PlusIcon class="mr-2 h-4 w-4" />
@@ -233,6 +248,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Select,
@@ -280,12 +297,18 @@ const audiences = ref<Array<any>>([]);
 const targetAudienceFields = ref([]);
 const perPage = ref(10);
 
+const availableProviders = [
+  { id: 'meta', label: 'Meta Ads' },
+  { id: 'google-analytics', label: 'Google Analytics' }
+];
+
 const targetAudienceForm = ref({
   id: null,
   name: "",
   description: "",
-  membership_duration: null,
-  conditionGroups: [],
+  duration: null,
+  condition_groups: [],
+  sync_providers: [],
 });
 
 // --- Data Fetching ---
@@ -305,7 +328,7 @@ const fetchAudiences = async (current = pages.value.current) => {
       project_id: activeGroupProjectId,
     };
     const response = await TargetAudience.index(params);
-    audiences.value = response || [];
+    audiences.value = response.data || [];
     pages.value = {
       current: response.current_page,
       last: response.last_page,
@@ -334,16 +357,15 @@ const openCreateSheet = () => {
 
 const openEditSheet = async (audience) => {
   try {
-    isLoading.value = true;
+    isProcessing.value = true;
     const fullAudienceData = await TargetAudience.show({id:audience.id});
-    console.log(fullAudienceData);
     parseAudienceDataToForm(fullAudienceData);
     isEditing.value = true;
     showSheet.value = true;
   } catch (error) {
     toast({ title: 'Erro', description: 'Não foi possível carregar os dados do público alvo.', variant: 'destructive' });
   } finally {
-    isLoading.value = false;
+    isProcessing.value = false;
   }
 };
 
@@ -352,13 +374,14 @@ const resetTargetAudienceForm = () => {
     id: null,
     name: "",
     description: "",
-    membership_duration: null,
-    conditionGroups: [
+    duration: null,
+    condition_groups: [
       {
-        groupOperator: "AND",
-        conditions: [{ conditionOperator: "AND", field: "", operator: "", value: "" }],
+        logic_operator: "AND",
+        conditions: [{ field: "", operator: "", value: "" }],
       },
     ],
+    sync_providers: [],
   };
 };
 
@@ -366,9 +389,37 @@ const parseAudienceDataToForm = (audienceData) => {
     targetAudienceForm.value.id = audienceData.id;
     targetAudienceForm.value.name = audienceData.name;
     targetAudienceForm.value.description = audienceData.description;
-    targetAudienceForm.value.membership_duration = audienceData.membership_duration;
+    targetAudienceForm.value.duration = audienceData.duration;
+    targetAudienceForm.value.sync_providers = audienceData.syncs ? audienceData.syncs.map(sync => sync.provider) : [];
 
-    const conditionTree = audienceData.conditions;
+    if (audienceData.condition_groups && audienceData.condition_groups.length > 0) {
+        targetAudienceForm.value.condition_groups = audienceData.condition_groups.map(group => ({
+            logic_operator: group.logic_operator || 'AND',
+            conditions: group.conditions.map(c => ({
+                field: c.property,
+                operator: c.operator,
+                value: c.value
+            }))
+        }));
+    } else {
+        targetAudienceForm.value.condition_groups = [
+            {
+                logic_operator: "AND",
+                conditions: [{ field: "", operator: "", value: "" }],
+            },
+        ];
+    }
+};
+
+const updateSyncProviders = (checked, providerId) => {
+  const providers = targetAudienceForm.value.sync_providers;
+  const index = providers.indexOf(providerId);
+
+  if (checked && index === -1) {
+    providers.push(providerId);
+  } else if (!checked && index !== -1) {
+    providers.splice(index, 1);
+  }
 };
 
 // --- Condition Builder Logic ---
@@ -390,21 +441,20 @@ const showTaNumberInput = (condition) => getTaField(condition)?.data_type === 'n
 const showTaBooleanInput = (condition) => getTaField(condition)?.data_type === 'boolean';
 
 const addTaConditionGroup = () => {
-  targetAudienceForm.value.conditionGroups.push({
-    groupOperator: "AND",
-    conditions: [{ conditionOperator: "AND", field: "", operator: "", value: "" }],
+  targetAudienceForm.value.condition_groups.push({
+    logic_operator: "AND",
+    conditions: [{ field: "", operator: "", value: "" }],
   });
 };
 
 const removeTaConditionGroup = (groupIndex) => {
-  if (targetAudienceForm.value.conditionGroups.length > 1) {
-    targetAudienceForm.value.conditionGroups.splice(groupIndex, 1);
+  if (targetAudienceForm.value.condition_groups.length > 1) {
+    targetAudienceForm.value.condition_groups.splice(groupIndex, 1);
   }
 };
 
 const addTaCondition = (groupIndex) => {
-  targetAudienceForm.value.conditionGroups[groupIndex].conditions.push({
-    conditionOperator: "AND",
+  targetAudienceForm.value.condition_groups[groupIndex].conditions.push({
     field: "",
     operator: "",
     value: "",
@@ -412,8 +462,8 @@ const addTaCondition = (groupIndex) => {
 };
 
 const removeTaCondition = (groupIndex, conditionIndex) => {
-  if (targetAudienceForm.value.conditionGroups[groupIndex].conditions.length > 1) {
-    targetAudienceForm.value.conditionGroups[groupIndex].conditions.splice(conditionIndex, 1);
+  if (targetAudienceForm.value.condition_groups[groupIndex].conditions.length > 1) {
+    targetAudienceForm.value.condition_groups[groupIndex].conditions.splice(conditionIndex, 1);
   }
 };
 
@@ -453,48 +503,30 @@ const saveTargetAudience = async () => {
     try {
         if (!activeGroupProjectId) throw new Error("Nenhum projeto selecionado.");
 
-        const buildTreeFromList = (items, itemMapper) => {
-            const mappedItems = items.map(itemMapper).filter(Boolean);
-            if (mappedItems.length === 0) return null;
-            let tree = mappedItems[0];
-            for (let i = 1; i < mappedItems.length; i++) {
-                const operator = items[i].conditionOperator || items[i].groupOperator || 'AND';
-                if (tree.type === operator) {
-                     tree.conditions.push(mappedItems[i]);
-                } else {
-                    tree = { type: operator, conditions: [tree, mappedItems[i]] };
-                }
-            }
-            return tree;
-        }
-
-        const uiGroups = targetAudienceForm.value.conditionGroups;
-        const mappedGroups = uiGroups.map(group => buildTreeFromList(group.conditions, c => getTaField(c) ? ({ source: getTaField(c).source, property: c.field, operator: c.operator, value: c.value }) : null)).filter(Boolean);
-        if (mappedGroups.length === 0) throw new Error("Defina pelo menos uma condição válida.");
-
-        let finalConditions = mappedGroups[0];
-        for (let i = 1; i < mappedGroups.length; i++) {
-            const operator = uiGroups[i].groupOperator || 'AND';
-            if (finalConditions.type === operator) {
-                finalConditions.conditions.push(mappedGroups[i]);
-            } else {
-                finalConditions = { type: operator, conditions: [finalConditions, mappedGroups[i]] };
-            }
-        }
-        
-        let payloadConditions = finalConditions;
-        if (finalConditions && !finalConditions.type) payloadConditions = [finalConditions];
-
         const payload = {
-            project_id: activeGroupProjectId,
+            project_id: workspaceStore.activeGroupProject.project_id,
             name: targetAudienceForm.value.name,
             description: targetAudienceForm.value.description,
-            membership_duration: targetAudienceForm.value.membership_duration,
-            conditions: payloadConditions,
+            duration: targetAudienceForm.value.duration,
+            sync_providers: targetAudienceForm.value.sync_providers,
+            condition_groups: targetAudienceForm.value.condition_groups.map(group => ({
+                logic_operator: group.logic_operator,
+                conditions: group.conditions.map(c => {
+                    const field = getTaField(c);
+                    if (!field || !c.operator || c.value === '') return null;
+                    return {
+                        source: field.source,
+                        property: c.field,
+                        operator: c.operator,
+                        value: c.value,
+                    };
+                }).filter(Boolean)
+            })).filter(g => g.conditions.length > 0)
         };
 
         if (!payload.name) throw new Error('O nome do público alvo é obrigatório.');
-        
+        if (payload.condition_groups.length === 0) throw new Error("Defina pelo menos uma condição válida.");
+
         if (isEditing.value) {
             await TargetAudience.update(targetAudienceForm.value.id, payload);
         } else {
@@ -523,9 +555,9 @@ const columns = [
     header: "Descrição",
     cell: ({ row }) => h("div", {}, row.getValue("description") || "-"),
   }),
-    columnHelper.accessor("membership_duration", {
+    columnHelper.accessor("duration", {
     header: "Duração (dias)",
-    cell: ({ row }) => h("div", {}, row.getValue("membership_duration") ? `${row.getValue("membership_duration")} dias` : 'Permanente'),
+    cell: ({ row }) => h("div", {}, row.getValue("duration") ? `${row.getValue("duration")} dias` : 'Permanente'),
   }),
   {
     accessorKey: "actions",
@@ -547,6 +579,8 @@ onMounted(async () => {
   
   const audienceIdToOpen = route.query.openAudienceId;
   if (audienceIdToOpen) {
+    // Ensure we are not in a processing state from a previous action
+    isProcessing.value = false; 
     await openEditSheet({ id: audienceIdToOpen });
   }
   

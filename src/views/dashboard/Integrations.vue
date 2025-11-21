@@ -32,7 +32,7 @@
           </div>
         </div>
         <div
-          v-if="data.slug === 'google-analytics' && propetyList.length > 0"
+          v-if="data.slug === 'google-analytics' || data.slug === 'meta' && propetyList.length > 0"
           class="mt-4"
         >
           <Label for="property" class="mb-1">Propriedade do Projeto</Label>
@@ -164,12 +164,25 @@ async function fetchIntegrations() {
     const google = integrations.value.find(
       (value) => value.slug === "google-analytics"
     );
-    if (google.config !== null) {
-      if (google.config.property_id == "") {
-        await getProperty();
+    const meta = integrations.value.find(
+        (value) => value.slug === "meta"
+    );
+    if (google) {
+      if (google.config !== null) {
+        if (google.config.property_id == "") {
+          await getProperty();
+        }
       }
     }
+  if (meta) {
+    if (meta.config !== null) {
+      if (meta.config.ad_account == "") {
+        await getAccountIdMeta();
+      }
+    }
+  }
   } catch (error) {
+    console.log(error);
     toast({
       title: "Erro",
       description: "Erro ao carregar as fontes de dados.",
@@ -209,6 +222,15 @@ async function getProperty() {
     project_id: activeGroupProject.project_id,
     integration_id: integrations.value.find(
       (value) => value.slug === "google-analytics"
+    ).id,
+  });
+}
+
+async function getAccountIdMeta(){
+  propetyList.value = await Projects.adAccount({
+    project_id: activeGroupProject.project_id,
+    integration_id: integrations.value.find(
+        (value) => value.slug === "meta"
     ).id,
   });
 }

@@ -16,7 +16,7 @@ export default {
    */
   async index (params = {}) {
     const { data } = await api.get('/target-audiences', { params })
-    return data.data.data
+    return data.data
   },
 
   /**
@@ -26,6 +26,7 @@ export default {
    * @param {string} payload.description
    * @param {number} payload.project_id
    * @param {Array<object>} payload.conditions
+   * @param {Array<string>} [payload.sync_providers]
    */
   async store (payload) {
     const { data } = await api.post('/target-audiences', payload)
@@ -37,7 +38,7 @@ export default {
    * @param {object} params
    * @param {number} params.id
    */
-  async show (params ={ }) {
+  async show (params = {}) {
     const { data } = await api.get(`/target-audiences/${params.id}`)
     return data.data
   },
@@ -46,9 +47,10 @@ export default {
    * PUT /v1/target-audiences/{id}
    * @param {number} id
    * @param {object} payload
-   * @param {string} payload.name
-   * @param {string} payload.description
-   * @param {Array<object>} payload.conditions
+   * @param {string} [payload.name]
+   * @param {string} [payload.description]
+   * @param {Array<object>} [payload.conditions]
+   * @param {Array<string>} [payload.sync_providers]
    */
   async update (id, payload) {
     const { data } = await api.put(`/target-audiences/${id}`, payload)
@@ -64,32 +66,11 @@ export default {
   },
 
   /**
-   * POST /v1/target-audiences/{id}/segments
-   * @param {number} id
-   * @param {object} payload
-   * @param {number} payload.segment_id
+   * GET /v1/target-audiences/conditions
    */
-  async attachToSegment (id, payload) {
-    const { data } = await api.post(`/target-audiences/${id}/segments`, payload)
-    return data
-  },
-
-  /**
-   * DELETE /v1/target-audiences/{id}/segments
-   * @param {number} id
-   * @param {object} payload
-   * @param {number} payload.segment_id
-   */
-    async detachFromSegment (id, payload) {
-      await api.delete(`/target-audiences/${id}/segments`, { data: payload })
-    },
-  
-    /**
-     * GET /v1/target-audiences/available-conditions
-     */
-    async getAvailableConditions () {
-      const { data } = await api.get('/target-audiences/conditions')
-      return data.data
-    }
+  async getAvailableConditions () {
+    const { data } = await api.get('/target-audiences/conditions')
+    return data.data
   }
+}
   
