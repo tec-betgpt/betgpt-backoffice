@@ -311,7 +311,6 @@ const targetAudienceForm = ref({
   sync_providers: [],
 });
 
-// --- Data Fetching ---
 const pages = ref({
   current: 1,
   total: 0,
@@ -347,7 +346,6 @@ const fetchAudiences = async (current = pages.value.current) => {
 };
 watch(perPage, ()=> fetchAudiences(1));
 
-// --- Form and Sheet Logic ---
 
 const openCreateSheet = () => {
   resetTargetAudienceForm();

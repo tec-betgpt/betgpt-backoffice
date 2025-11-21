@@ -538,9 +538,21 @@
                   </Tooltip>
                 </TooltipProvider>
             </div>
-            <Input id="ta-duration" type="number" v-model.number="targetAudienceForm.duration" placeholder="Permanente" class="col-span-3" />
+            <Input id="ta-duration"  v-model="targetAudienceForm.duration" placeholder="Permanente" class="col-span-3" />
           </div>
-
+          <div class="grid grid-cols-4 items-start gap-4">
+            <Label class="text-right mt-2">Sincronizar com</Label>
+            <div class="col-span-3 space-y-2">
+              <div v-for="provider in availableProviders" :key="provider.id" class="flex items-center gap-2">
+                <Checkbox
+                    :id="'provider-' + provider.id"
+                    :checked="targetAudienceForm.sync_providers?.includes(provider.id)"
+                    @update:checked="(checked) => updateSyncProviders(checked, provider.id)"
+                />
+                <Label :for="'provider-' + provider.id" class="font-normal">{{ provider.label }}</Label>
+              </div>
+            </div>
+          </div>
           <Separator class="my-4" />
 
           <div class="space-y-4">
@@ -804,6 +816,11 @@ const operatorMap = {
   ],
   boolean: ["is", "is_not", "empty", "not_empty"],
 };
+const availableProviders = [
+  { id: 'meta', label: 'Meta Ads' },
+  { id: 'google-analytics', label: 'Google Analytics' }
+];
+
 const exportSeg = ref([]);
 const selectProjects = ref([]);
 const form = ref([
@@ -836,12 +853,14 @@ const form = ref([
   },
 ]);
 
+
 const targetAudienceForm = ref({
   id: null,
   name: "",
   description: "",
   duration: null,
   condition_groups: [],
+  sync_providers: [''],
 });
 const targetAudienceFields = ref([]);
 
@@ -999,7 +1018,16 @@ const addCondition = (groupIndex: number, formIndex: number) => {
     modifier: "exact",
   });
 };
+const updateSyncProviders = (checked, providerId) => {
+  const providers = targetAudienceForm.value.sync_providers;
+  const index = providers.indexOf(providerId);
 
+  if (checked && index === -1) {
+    providers.push(providerId);
+  } else if (!checked && index !== -1) {
+    providers.splice(index, 1);
+  }
+};
 const removeCondition = (
   groupIndex: number,
   conditionIndex: number,
@@ -1630,7 +1658,6 @@ const forceSegmentUpdate = async (segmentId: number) => {
   }
 };
 
-// --- Target Audience Functions ---
 
 const getTaField = (condition) => {
   const allTaFields = targetAudienceFields.value.flatMap(g => g.fields);
@@ -1732,7 +1759,7 @@ const saveTargetAudience = async () => {
         if (!activeGroupProjectId) throw new Error("Nenhum projeto selecionado.");
 
         const payload = {
-            project_id: activeGroupProjectId,
+            project_id: workspaceStore.activeGroupProject.project_id,
             segment_id: currentSegment.value?.id,
             name: targetAudienceForm.value.name,
             description: targetAudienceForm.value.description,
