@@ -14,145 +14,49 @@
       </div>
     </div>
 
-    <Card>
-      <CardHeader>
-        <CardTitle>Aquisição de Tráfego</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table class="min-w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Grupo</TableHead>
-              <TableHead>Sessões</TableHead>
-              <TableHead>Variação</TableHead>
-              <TableHead>Sessões Engajadas</TableHead>
-              <TableHead>Taxa de Engajamento</TableHead>
-              <TableHead>Tempo Médio de Engajamento por Sessão</TableHead>
-              <TableHead>Eventos por Sessão</TableHead>
-              <TableHead>Contagem de Eventos</TableHead>
-              <TableHead>Eventos Principais</TableHead>
-              <TableHead>Taxa de Eventos Principais por Sessão</TableHead>
-              <TableHead>Receita Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <template v-if="loading">
-              <TableRow v-for="n in 5" :key="`loading-${n}`">
-                <TableCell v-for="m in 11" :key="`loading-cell-${n}-${m}`">
-                  <Skeleton class="h-4 w-full bg-gray-300" />
-                </TableCell>
-              </TableRow>
-            </template>
-            <template v-else>
-              <TableRow>
-                <TableCell><b>Total</b></TableCell>
-                <TableCell>{{ groupSessionsStats.totalSessions }}</TableCell>
-                <TableCell>
-                  <div
-                    v-if="variationTotal !== null"
-                    class="flex items-center gap-1"
-                  >
-                    <span
-                      :class="{
-                        'text-green-600': variationTotal > 0,
-                        'text-red-600': variationTotal < 0,
-                        'text-gray-500': variationTotal === 0,
-                      }"
-                      class="flex items-center gap-1"
-                    >
-                      <span v-if="variationTotal > 0">▲</span>
-                      <span v-else-if="variationTotal < 0">▼</span>
-                      <span>{{ Math.abs(variationTotal).toFixed(2) }}%</span>
-                    </span>
-                  </div>
-                  <div v-else>—</div>
-                </TableCell>
+    <div>
+      <Card class="w-full">
+        <CardHeader>
+          <CardTitle>Aquisição de Tráfego</CardTitle>
+        </CardHeader>
 
-                <TableCell>{{
-                  groupSessionsStats.totalEngagedSessions
-                }}</TableCell>
-                <TableCell
-                  >{{
-                    groupSessionsStats.averageEngagementRate.toFixed(2)
-                  }}%</TableCell
-                >
-                <TableCell>{{
-                  formatDuration(groupSessionsStats.averageEngagementDuration)
-                }}</TableCell>
-                <TableCell>{{
-                  (groupSessionsStats.averageEventsPerSession / 100).toFixed(2)
-                }}</TableCell>
-                <TableCell>{{ groupSessionsStats.totalEventCount }}</TableCell>
-                <TableCell>{{ groupSessionsStats.totalKeyEvents }}</TableCell>
-                <TableCell
-                  >{{
-                    (
-                      groupSessionsStats.averageSessionKeyEventRate / 100
-                    ).toFixed(2)
-                  }}%</TableCell
-                >
-                <TableCell>{{
-                  $toCurrency(groupSessionsStats.totalRevenue / 100)
-                }}</TableCell>
-              </TableRow>
-              <TableRow
-                v-for="(group_session, index) in groupSessions"
-                :key="index"
-              >
-                <TableCell>{{ index }}</TableCell>
-                <TableCell>{{ group_session.sessions }}</TableCell>
-                <TableCell>
-                  <div
-                    v-if="
-                      group_session && group_session.variation !== undefined
-                    "
-                    class="flex items-center gap-1"
-                  >
-                    <span
-                      :class="{
-                        'text-green-600': group_session.variation > 0,
-                        'text-red-600': group_session.variation < 0,
-                        'text-gray-500': group_session.variation === 0,
-                      }"
-                      class="flex items-center gap-1"
-                    >
-                      <span v-if="group_session.variation > 0">▲</span>
-                      <span v-else-if="group_session.variation < 0">▼</span>
-                      <span
-                        >{{
-                          Math.abs(group_session.variation).toFixed(2)
-                        }}%</span
-                      >
-                    </span>
-                  </div>
-                  <div v-else>—</div>
-                </TableCell>
-                <TableCell>{{ group_session.engagedSessions }}</TableCell>
-                <TableCell
-                  >{{ group_session.engagementRate.toFixed(2) }}%</TableCell
-                >
-                <TableCell>{{
-                  formatDuration(group_session.averageEngagementDuration)
-                }}</TableCell>
-                <TableCell>{{
-                  (group_session.eventsPerSession / 100).toFixed(2)
-                }}</TableCell>
-                <TableCell>{{ group_session.eventCount }}</TableCell>
-                <TableCell>{{ group_session.keyEvents }}</TableCell>
-                <TableCell
-                  >{{
-                    (group_session.sessionKeyEventRate / 100).toFixed(2)
-                  }}%</TableCell
-                >
-                <TableCell>{{
-                  $toCurrency(group_session.totalRevenue / 100)
-                }}</TableCell>
-              </TableRow>
-            </template>
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+        <Separator />
+
+        <CardContent class="mt-5">
+          <CustomDataTable
+            :data="groupSessionsData"
+            :columns="columns"
+            :loading="loading"
+            :update-text="setSearch"
+            :find="applyFilter"
+            :result="groupSessionsStats"
+            :footer="true"
+            :head="totalGroupSessions"
+            :formatters="formatters"
+            :search-fields="[
+              {
+                key: 'channel',
+                placeholder: 'Buscar por canal...',
+                label: 'Canal',
+              },
+            ]"
+          />
+        </CardContent>
+
+        <CardFooter class="py-4 w-full">
+          <CustomPagination
+            :pages="{
+              current: pages.current,
+              last: pages.last,
+              total: pages.total,
+            }"
+            :select-page="applyFilter"
+            @update:perPages="(value) => (perPages = value)"
+            :per_pages="perPages"
+          />
+        </CardFooter>
+      </Card>
+    </div>
 
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
       <PeriodComponent
@@ -211,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted, h } from "vue";
 import GoogleAnalytics from "@/services/googleAnalytics";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import moment from "moment";
@@ -220,14 +124,23 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
+import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import { createColumnHelper } from "@tanstack/vue-table";
+import { Button } from "@/components/ui/button";
+import { ChevronsUpDown, ArrowDown, ArrowUp } from "lucide-vue-next";
 
 const workspaceStore = useWorkspaceStore();
-const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
-const startDate = currentDate.subtract({ days: 28 });
-const selectedRange = ref({ start: startDate, end: currentDate });
 const { toast } = useToast();
 
-const loading = ref(true);
+const currentDate = today(getLocalTimeZone());
+const startDate = currentDate.subtract({ days: 28 });
+const selectedRange = ref({
+  start: startDate,
+  end: currentDate,
+});
+
+const loading = ref(false);
 const usersPeriod = ref<{ name: string; value: number[] }[]>([]);
 const totalUsersPeriod = ref<{ name: string; value: number[] }[]>([]);
 const returningUsersPeriod = ref<{ name: string; value: number[] }[]>([]);
@@ -240,76 +153,127 @@ const engagementDurationSessionPeriod = ref<
 >([]);
 const arppuPeriod = ref<{ name: string; value: number[] }[]>([]);
 const arpuPeriod = ref<{ name: string; value: number[] }[]>([]);
-const variationTotal = ref(0);
-const groupSessions = ref([]);
-const groupSessionsStats = computed(() => {
-  const sessionsArray = Object.values(groupSessions.value);
 
-  const totalSessions = sessionsArray.reduce(
-    (acc, session) => acc + session.sessions,
-    0
-  );
-  const totalEngagedSessions = sessionsArray.reduce(
-    (acc, session) => acc + session.engagedSessions,
-    0
-  );
-  const totalEventCount = sessionsArray.reduce(
-    (acc, session) => acc + session.eventCount,
-    0
-  );
-  const totalKeyEvents = sessionsArray.reduce(
-    (acc, session) => acc + session.keyEvents,
-    0
-  );
-  const totalRevenue = sessionsArray.reduce(
-    (acc, session) => acc + session.totalRevenue,
-    0
-  );
+const groupSessionsData = ref<GroupSession[]>([]);
 
-  const count = sessionsArray.length;
-  const averageEngagementRate =
-    count > 0
-      ? sessionsArray.reduce(
-          (acc, session) => acc + session.engagementRate,
-          0
-        ) / count
-      : 0;
-  const averageEngagementDuration =
-    count > 0
-      ? sessionsArray.reduce(
-          (acc, session) => acc + session.averageEngagementDuration,
-          0
-        ) / count
-      : 0;
-  const averageEventsPerSession =
-    count > 0
-      ? sessionsArray.reduce(
-          (acc, session) => acc + session.eventsPerSession,
-          0
-        ) / count
-      : 0;
-  const averageSessionKeyEventRate =
-    count > 0
-      ? sessionsArray.reduce(
-          (acc, session) => acc + session.sessionKeyEventRate,
-          0
-        ) / count
-      : 0;
+const totalGroupSessions = computed(() => {
+  if (!backendTotals.value) return null;
 
   return {
-    totalSessions,
-    totalEngagedSessions,
-    averageEngagementRate,
-    averageEngagementDuration,
-    averageEventsPerSession,
-    totalEventCount,
-    totalKeyEvents,
-    averageSessionKeyEventRate,
-    totalRevenue,
+    channel: "Total Geral",
+    sessions: backendTotals.value.sessions || 0,
+    engagedSessions: backendTotals.value.engagedSessions || 0,
+    engagementRate: backendTotals.value.engagementRate || 0,
+    averageEngagementDuration:
+      backendTotals.value.averageEngagementDuration || 0,
+    eventsPerSession: backendTotals.value.eventsPerSession || 0,
+    eventCount: backendTotals.value.eventCount || 0,
+    keyEvents: backendTotals.value.keyEvents || 0,
+    sessionKeyEventRate: backendTotals.value.sessionKeyEventRate || 0,
+    totalRevenue: backendTotals.value.totalRevenue || 0,
+    variation: variationTotal.value,
   };
 });
 
-const applyFilter = async () => {
+const groupSessionsStats = computed(() => {
+  if (!groupSessionsData.value.length) {
+    return {
+      channel: "Total da Página",
+      sessions: 0,
+      engagedSessions: 0,
+      engagementRate: 0,
+      averageEngagementDuration: 0,
+      eventsPerSession: 0,
+      eventCount: 0,
+      keyEvents: 0,
+      sessionKeyEventRate: 0,
+      totalRevenue: 0,
+    };
+  }
+
+  const totals = {
+    channel: "Total da Página",
+    sessions: 0,
+    engagedSessions: 0,
+    engagementRate: 0,
+    averageEngagementDuration: 0,
+    eventsPerSession: 0,
+    eventCount: 0,
+    keyEvents: 0,
+    sessionKeyEventRate: 0,
+    totalRevenue: 0,
+  };
+
+  groupSessionsData.value.forEach((item) => {
+    totals.sessions += item.sessions || 0;
+    totals.engagedSessions += item.engagedSessions || 0;
+    totals.eventCount += item.eventCount || 0;
+    totals.keyEvents += item.keyEvents || 0;
+    totals.totalRevenue += item.totalRevenue || 0;
+    totals.engagementRate += item.engagementRate || 0;
+    totals.averageEngagementDuration += item.averageEngagementDuration || 0;
+    totals.eventsPerSession += item.eventsPerSession || 0;
+    totals.sessionKeyEventRate += item.sessionKeyEventRate || 0;
+  });
+
+  const count = groupSessionsData.value.length;
+  totals.engagementRate = count > 0 ? totals.engagementRate / count : 0;
+  totals.averageEngagementDuration =
+    count > 0 ? totals.averageEngagementDuration / count : 0;
+  totals.eventsPerSession = count > 0 ? totals.eventsPerSession / count : 0;
+  totals.sessionKeyEventRate =
+    count > 0 ? totals.sessionKeyEventRate / count : 0;
+
+  return totals;
+});
+
+const pages = ref({
+  current: 1,
+  total: 0,
+  last: 0,
+});
+const perPages = ref(20);
+const orderId = ref("sessions");
+const order = ref(false);
+
+const searchValues = ref<Record<string, string>>({
+  "search[1][channel]": "",
+});
+
+const isFirstLoad = ref(true);
+
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = { ...searchValues.value, ...values };
+};
+
+const formatDateForAPI = (date: any): string => {
+  if (!date) return "";
+
+  if (
+    date &&
+    typeof date === "object" &&
+    "year" in date &&
+    "month" in date &&
+    "day" in date
+  ) {
+    return `${date.year}-${String(date.month).padStart(2, "0")}-${String(
+      date.day
+    ).padStart(2, "0")}`;
+  }
+
+  if (typeof date === "string") {
+    return date;
+  }
+
+  return "";
+};
+
+const backendTotals = ref();
+const variationTotal = ref(0);
+
+const applyFilter = async (current = pages.value.current) => {
+  if (loading.value) return;
+
   loading.value = true;
 
   if (!workspaceStore.activeGroupProject?.id) {
@@ -318,78 +282,372 @@ const applyFilter = async () => {
       description: "Selecione um grupo ou projeto antes de filtrar.",
       variant: "destructive",
     });
-
     loading.value = false;
     return;
   }
 
   try {
-    const data = await GoogleAnalytics.index({
-      start_date: selectedRange.value.start?.toString(),
-      end_date: selectedRange.value.end?.toString(),
-      filter_id: workspaceStore.activeGroupProject.id,
+    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
+      if (searchValues.value[key]) {
+        acc[key] = searchValues.value[key];
+      }
+      return acc;
+    }, {} as Record<string, string>);
+
+    const channelSearch = searchValues.value["search[1][channel]"];
+
+    const startDateFormatted = formatDateForAPI(selectedRange.value.start);
+    const endDateFormatted = formatDateForAPI(selectedRange.value.end);
+
+    console.log("Datas enviadas para API:", {
+      start: startDateFormatted,
+      end: endDateFormatted,
+      selectedRange: selectedRange.value,
     });
 
+    const params: any = {
+      page: current,
+      ...searchParams,
+      start_date: startDateFormatted,
+      end_date: endDateFormatted,
+      filter_id: workspaceStore.activeGroupProject.id,
+      order_by: orderId.value,
+      type_order: order.value ? "asc" : "desc",
+      per_pages: perPages.value,
+    };
+
+    if (channelSearch && channelSearch.trim() !== "") {
+      params.search = channelSearch.trim();
+    }
+
+    const { data } = await GoogleAnalytics.index(params);
+
+    groupSessionsData.value = data.group_sessions?.data || [];
+    backendTotals.value = data.group_sessions?.total || {};
+    variationTotal.value = data.group_sessions?.variation_total || 0;
+
+    if (data.group_sessions?.pagination) {
+      pages.value = {
+        current: data.group_sessions.pagination.current_page || 1,
+        total: data.group_sessions.pagination.total || 0,
+        last: data.group_sessions.pagination.last_page || 1,
+      };
+    }
+
     usersPeriod.value = [
-      { name: "Usuários Novos", value: data.data.users_period },
-      { name: "Usuários Ativos", value: data.data.users_period },
+      { name: "Usuários Novos", value: data.users_period || [] },
+      { name: "Usuários Ativos", value: data.users_period || [] },
     ];
     totalUsersPeriod.value = [
-      { name: "Total de Usuários", value: data.data.total_users_period },
+      { name: "Total de Usuários", value: data.total_users_period || [] },
     ];
     returningUsersPeriod.value = [
-      { name: "Usuários Recorrentes", value: data.data.returning_users_period },
+      {
+        name: "Usuários Recorrentes",
+        value: data.returning_users_period || [],
+      },
     ];
     firstTimePurchasersPeriod.value = [
       {
         name: "Primeiros Compradores",
-        value: data.data.first_time_purchasers_period,
+        value: data.first_time_purchasers_period || [],
       },
     ];
     payingActivePeriod.value = [
-      { name: "7 Dias", value: data.data.paying_active_period },
-      { name: "14 Dias", value: data.data.paying_active_period },
-      { name: "28 Dias", value: data.data.paying_active_period },
+      { name: "7 Dias", value: data.paying_active_period || [] },
+      { name: "14 Dias", value: data.paying_active_period || [] },
+      { name: "28 Dias", value: data.paying_active_period || [] },
     ];
     engagementRatePeriod.value = [
       {
         name: "% Taxa de Engajamento",
-        value: data.data.engagement_rate_period,
+        value: data.engagement_rate_period || [],
       },
     ];
     totalRevenuePeriod.value = [
-      { name: "Receita", value: data.data.total_revenue },
+      { name: "Receita", value: data.total_revenue || [] },
     ];
     engagementDurationSessionPeriod.value = [
       {
         name: "Tempo médio",
-        value: data.data.engagement_duration_per_sessions,
+        value: data.engagement_duration_per_sessions || [],
       },
     ];
-    arppuPeriod.value = [{ name: "ARPPU", value: data.data.arppu }];
-    arpuPeriod.value = [{ name: "ARPU", value: data.data.arpu }];
-    groupSessions.value = data.data.group_sessions.channels;
-    variationTotal.value = data.data.group_sessions.variation_total ?? 0;
+    arppuPeriod.value = [{ name: "ARPPU", value: data.arppu || [] }];
+    arpuPeriod.value = [{ name: "ARPU", value: data.arpu || [] }];
   } catch (error) {
+    console.error("Erro ao carregar dados:", error);
     toast({
       title: "Erro ao carregar dados",
       description: "Não foi possível aplicar o filtro selecionado.",
       variant: "destructive",
     });
+  } finally {
+    loading.value = false;
+    isFirstLoad.value = false;
   }
-
-  loading.value = false;
 };
 
-const formatDuration = (averageEngagementDuration) => {
-  const duration = moment.duration(averageEngagementDuration, "seconds");
-  if (duration.asMinutes() < 1) {
-    return `${duration.seconds()}s`;
+const formatDuration = (seconds: number): string => {
+  if (!seconds) return "0s";
+
+  const duration = {
+    hours: Math.floor(seconds / 3600),
+    minutes: Math.floor((seconds % 3600) / 60),
+    seconds: Math.floor(seconds % 60),
+  };
+
+  if (duration.hours > 0) {
+    return `${duration.hours}h ${duration.minutes}min ${duration.seconds}s`;
+  } else if (duration.minutes > 0) {
+    return `${duration.minutes}min ${duration.seconds}s`;
+  } else {
+    return `${duration.seconds}s`;
   }
-  return `${duration.minutes()}min ${duration.seconds()}s`;
 };
 
-watch(selectedRange, () => {
-  applyFilter();
+const formatEventsPerSession = (value: number): string => {
+  const decimalValue = (value || 0) / 100;
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(decimalValue);
+};
+
+const formatPercentage = (value: number): string => {
+  return `${(value || 0).toFixed(2)}%`;
+};
+
+const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR").format(value);
+};
+
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
+const columnHelper = createColumnHelper<GroupSession>();
+
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+    Button,
+    {
+      variant: orderId.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        orderId.value = columnKey;
+        order.value = !order.value;
+        applyFilter(1);
+      },
+      class: "p-0 text-pretty text-left text-nowrap",
+    },
+    () => [
+      label,
+      h(
+        orderId.value === columnKey
+          ? order.value
+            ? ArrowDown
+            : ArrowUp
+          : ChevronsUpDown,
+        { class: "" }
+      ),
+    ]
+  );
+}
+
+const formatters = {
+  averageEngagementDuration: formatDuration,
+  eventsPerSession: formatEventsPerSession,
+  totalRevenue: formatCurrency,
+  engagementRate: formatPercentage,
+  sessionKeyEventRate: formatPercentage,
+  variation: formatPercentage,
+  sessions: formatNumber,
+  engagedSessions: formatNumber,
+  eventCount: formatNumber,
+  keyEvents: formatNumber,
+};
+
+const columns = [
+  columnHelper.accessor("channel", {
+    header: () => createHeaderButton("Grupo", "channel"),
+    cell: ({ row }) =>
+      h("div", { class: "font-medium" }, row.getValue("channel") || "-"),
+  }),
+
+  columnHelper.accessor("sessions", {
+    header: () => createHeaderButton("Sessões", "sessions"),
+    footer: "sum",
+    format: "number",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("sessions") || 0)
+      ),
+  }),
+
+  columnHelper.accessor("variation", {
+    header: () => createHeaderButton("Variação", "variation"),
+    format: "percentage",
+    cell: ({ row }) => {
+      const variation = row.getValue("variation") as number;
+      return h(
+        "div",
+        {
+          class: `text-right flex items-center justify-end gap-1 ${
+            variation > 0
+              ? "text-green-600"
+              : variation < 0
+              ? "text-red-600"
+              : "text-gray-500"
+          }`,
+        },
+        [
+          h("span", variation > 0 ? "▲" : variation < 0 ? "▼" : "—"),
+          h("span", `${Math.abs(variation || 0).toFixed(2)}%`),
+        ]
+      );
+    },
+  }),
+
+  columnHelper.accessor("engagedSessions", {
+    header: () => createHeaderButton("Sessões Engajadas", "engagedSessions"),
+    footer: "sum",
+    format: "number",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("engagedSessions") || 0)
+      ),
+  }),
+
+  columnHelper.accessor("engagementRate", {
+    header: () => createHeaderButton("Taxa de Engajamento", "engagementRate"),
+    footer: "avg",
+    format: "percentage",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatPercentage(row.getValue("engagementRate") as number)
+      ),
+  }),
+
+  columnHelper.accessor("averageEngagementDuration", {
+    header: () =>
+      createHeaderButton(
+        "Tempo Médio de Engajamento",
+        "averageEngagementDuration"
+      ),
+    footer: "avg",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatDuration(row.getValue("averageEngagementDuration") as number)
+      ),
+  }),
+
+  columnHelper.accessor("eventsPerSession", {
+    header: () => createHeaderButton("Eventos por Sessão", "eventsPerSession"),
+    footer: "avg",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatEventsPerSession(row.getValue("eventsPerSession") as number)
+      ),
+  }),
+
+  columnHelper.accessor("eventCount", {
+    header: () => createHeaderButton("Contagem de Eventos", "eventCount"),
+    footer: "sum",
+    format: "number",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("eventCount") || 0)
+      ),
+  }),
+
+  columnHelper.accessor("keyEvents", {
+    header: () => createHeaderButton("Eventos Principais", "keyEvents"),
+    footer: "sum",
+    format: "number",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("keyEvents") || 0)
+      ),
+  }),
+
+  columnHelper.accessor("sessionKeyEventRate", {
+    header: () =>
+      createHeaderButton("Taxa de Eventos Principais", "sessionKeyEventRate"),
+    footer: "avg",
+    format: "percentage",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatPercentage(row.getValue("sessionKeyEventRate") as number)
+      ),
+  }),
+
+  columnHelper.accessor("totalRevenue", {
+    header: () => createHeaderButton("Receita Total", "totalRevenue"),
+    footer: "sum",
+    format: "currency",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatCurrency(row.getValue("totalRevenue") as number)
+      ),
+  }),
+];
+
+type GroupSession = {
+  channel: string;
+  sessions: number;
+  variation: number;
+  engagedSessions: number;
+  engagementRate: number;
+  averageEngagementDuration: number;
+  eventsPerSession: number;
+  eventCount: number;
+  keyEvents: number;
+  sessionKeyEventRate: number;
+  totalRevenue: number;
+};
+
+watch(
+  selectedRange,
+  () => {
+    if (!isFirstLoad.value) {
+      applyFilter(1);
+    }
+  },
+  { deep: true }
+);
+
+watch(perPages, (newPages) => {
+  if (!isFirstLoad.value && newPages) {
+    applyFilter(1);
+  }
+});
+
+onMounted(() => {
+  setTimeout(() => {
+    applyFilter(1);
+  }, 100);
 });
 </script>

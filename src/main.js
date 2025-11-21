@@ -14,7 +14,7 @@ import globalComponents from "@/boot/components"
 import VueApexCharts from "vue3-apexcharts"
 
 import "tippy.js/dist/tippy.css"
-import "./styles/main.scss"
+import "./styles/base.css"
 
 const app = createApp(App)
 const pinia = createPinia()

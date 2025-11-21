@@ -191,7 +191,7 @@ export default {
   },
 
   /**
-   * POST /v1/users/list
+   * GET /v1/users/list
    *
    * @param {object} params
    * @param {number} body.limit
@@ -200,6 +200,47 @@ export default {
    */
   async list(params = {}) {
     const { data } = await api.get('/users/list', { params })
+    return data
+  },
+
+  /**
+   * GET /v1/users/with-projects
+   */
+  async withProjects(params = {}) {
+    const { data } = await api.get('/users/with-projects', { params })
+    return data
+  },
+
+  /**
+   * PATCH /v1/users/:id/change-service
+   *
+   * @param {object} body
+   * @param {string} body.service_id
+   */
+  async changeService (id, body = {}) {
+    const { data } = await api.patch(`/users/${id}/change-service`, body)
+    return data
+  },
+
+  /**
+   * PATCH /v1/users/:id/update-signature-service
+   *
+   * @param {number} id
+   * @param {object} body
+   * @param {string} body.day_to_debit
+   * @param {string} body.debit_in
+   * @param {string} body.expires_on
+   */
+  async updateSignatureService (id, body = {}) {
+    const { data } = await api.patch(`/users/${id}/update-signature-service`, body)
+    return data
+  },
+
+  /**
+   * GET /v1/users/service
+   */
+  async service () {
+    const { data } = await api.get('/users/service')
     return data
   }
 }
