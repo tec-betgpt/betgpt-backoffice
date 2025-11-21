@@ -135,4 +135,16 @@ export default {
     });
     return data;
   },
+    /**
+     * POST /v1/segments/audience
+     *
+     * @param {object} body
+     * @param {number} body.filter_id
+     * @param {Array<number>} body.audience_id
+     * @param {number} body.segment_id
+     */
+    async addAudience(body = {}) {
+      const { data } = await api.post(`/segments/audience`, body)
+        return data;
+    }
 };

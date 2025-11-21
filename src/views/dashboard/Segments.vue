@@ -492,6 +492,186 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <div
+      v-if="showSheet"
+      class="fixed inset-0 z-40 bg-black/80"
+      @click="showSheet = false"
+    ></div>
+    <div
+      :class="[
+        'fixed top-0 right-0 z-50 h-full w-3/5 transform bg-background p-6 shadow-lg transition-transform duration-300 ease-in-out',
+        showSheet ? 'translate-x-0' : 'translate-x-full',
+      ]"
+    >
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Criar Público Alvo</h2>
+        <Button variant="ghost" @click="showSheet = false">
+          <XIcon class="h-4 w-4" />
+        </Button>
+      </div>
+      <p class="text-sm text-muted-foreground">
+        Crie um novo público alvo para o segmento: {{ currentSegment?.name }}
+      </p>
+
+      <div class="mt-4">
+        <div class="space-y-4">
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label for="ta-name" class="text-right">Nome</Label>
+            <Input id="ta-name" v-model="targetAudienceForm.name" placeholder="Ex: Compradores de alto valor" class="col-span-3" />
+          </div>
+          <div class="grid grid-cols-4 items-start gap-4">
+            <Label for="ta-description" class="text-right mt-2">Descrição</Label>
+            <Textarea id="ta-description" v-model="targetAudienceForm.description" placeholder="Descrição opcional" class="col-span-3" rows="2" />
+          </div>
+
+          <div class="grid grid-cols-4 items-center gap-4">
+            <div class="text-right flex items-center justify-end gap-1">
+                <Label for="ta-duration">Duração da Adesão</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <InfoIcon class="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Número de dias que um contato permanecerá no público.<br>Deixe em branco para adesão permanente.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+            </div>
+            <Input id="ta-duration" type="number" v-model.number="targetAudienceForm.membership_duration" placeholder="Permanente" class="col-span-3" />
+          </div>
+
+          <Separator class="my-4" />
+
+          <div class="space-y-6">
+            <div
+              v-for="(group, groupIndex) in targetAudienceForm.conditionGroups"
+              :key="groupIndex"
+              class="space-y-4 p-4 border rounded-md"
+            >
+              <div class="flex items-center justify-between">
+                <Label>Grupo de Condições {{ groupIndex + 1 }}</Label>
+                <div class="flex items-center gap-2">
+                  <ToggleGroup
+                    v-if="targetAudienceForm.conditionGroups.length > 1 && groupIndex > 0"
+                    v-model="group.groupOperator"
+                    type="single"
+                    variant="outline"
+                    class="h-8"
+                  >
+                    <ToggleGroupItem value="AND" class="h-8 px-3">E</ToggleGroupItem>
+                    <ToggleGroupItem value="OR" class="h-8 px-3">OU</ToggleGroupItem>
+                  </ToggleGroup>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="removeTaConditionGroup(groupIndex)"
+                    class="text-destructive"
+                  >
+                    <Trash2Icon class="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div class="space-y-1 pl-6 border-l-2 border-muted">
+                <template v-for="(condition, conditionIndex) in group.conditions" :key="conditionIndex">
+                  <div v-if="conditionIndex > 0" class="flex justify-center h-8">
+                    <ToggleGroup
+                      v-model="condition.conditionOperator"
+                      type="single"
+                      variant="outline"
+                      class="h-8"
+                    >
+                      <ToggleGroupItem value="AND" class="h-8 px-3">E</ToggleGroupItem>
+                      <ToggleGroupItem value="OR" class="h-8 px-3">OU</ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+
+                  <div class="flex items-center gap-2 py-1">
+                    <Select v-model="condition.field" class="flex-1 min-w-[120px]">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um campo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup v-for="fieldGroup in targetAudienceFields" :key="fieldGroup.name">
+                          <SelectLabel>{{ $t(fieldGroup.name) }}</SelectLabel>
+                          <SelectItem v-for="field in fieldGroup.fields" :key="field.field_key" :value="field.field_key">
+                            {{ $t(field.label) }}
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+
+                    <Select v-model="condition.operator" class="flex-1 min-w-[120px]">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Operador" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Operadores</SelectLabel>
+                          <SelectItem v-for="op in getTaOperators(condition)" :key="op" :value="op">
+                            {{ $t(op) }}
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+
+                    <Input
+                      v-if="showTaTextInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
+                      v-model="condition.value"
+                      placeholder="Valor"
+                      class="flex-1 min-w-[240px]"
+                    />
+
+                    <Input
+                      v-else-if="showTaNumberInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
+                      v-model.number="condition.value"
+                      placeholder="Número"
+                      type="number"
+                      class="flex-1"
+                    />
+
+                     <Select
+                      v-else-if="showTaBooleanInput(condition)"
+                      v-model="condition.value"
+                      class="flex-1"
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Sim</SelectItem>
+                        <SelectItem value="false">Não</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+
+                    <Button v-if="group.conditions.length > 1" variant="ghost" size="sm" @click="removeTaCondition(groupIndex, conditionIndex)" class="text-destructive">
+                      <Trash2Icon class="h-4 w-4" />
+                    </Button>
+                  </div>
+                </template>
+
+                <Button variant="outline" size="sm" @click="addTaCondition(groupIndex)" class="mt-2">
+                  <PlusIcon class="mr-2 h-4 w-4" />
+                  Adicionar Condição
+                </Button>
+              </div>
+            </div>
+
+            <Button variant="outline" @click="addTaConditionGroup">
+              <PlusIcon class="mr-2 h-4 w-4" />
+              Adicionar Grupo de Condições
+            </Button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-auto pt-6 flex justify-end gap-2">
+         <Button variant="outline" @click="showSheet = false">Cancelar</Button>
+         <Button @click="saveTargetAudience">Salvar</Button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -544,6 +724,7 @@ import {
   Loader2Icon,
   CalendarIcon,
   MoreHorizontalIcon,
+  InfoIcon,
 } from "lucide-vue-next";
 import {
   DropdownMenu,
@@ -553,6 +734,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
@@ -561,6 +743,7 @@ import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "vue-router";
+import TargetAudience from "@/services/targetAudience";
 
 const { t } = useI18n();
 const { toast } = useToast();
@@ -568,6 +751,8 @@ const router = useRouter();
 const isLoading = ref(false);
 const isProcessing = ref(false);
 const showModal = ref(false);
+const showSheet = ref(false);
+const currentSegment = ref(null);
 const showExport = ref(false);
 const isEditing = ref(false);
 const selectedSavedSegment = ref<number | null>(null);
@@ -647,6 +832,14 @@ const form = ref([
     }>,
   },
 ]);
+
+const targetAudienceForm = ref({
+  name: "",
+  description: "",
+  conditionGroups: [],
+});
+const targetAudienceFields = ref([]);
+
 
 const segments = ref<Array<any>>([]);
 const savedSegments = ref<Array<any>>([]);
@@ -1419,7 +1612,8 @@ const forceSegmentUpdate = async (segmentId: number) => {
       variant: "default",
     });
     await Segments.forceUpdate(segmentId);
-  } catch (error) {
+  } catch (error)
+ {
     toast({
       title: "Erro",
       description:
@@ -1430,6 +1624,242 @@ const forceSegmentUpdate = async (segmentId: number) => {
     isUpdating.value = null;
   }
 };
+
+// --- Target Audience Functions ---
+
+const getTaField = (condition) => {
+  const allTaFields = targetAudienceFields.value.flatMap(g => g.fields);
+  return condition?.field
+    ? allTaFields.find((f) => f.field_key === condition.field)
+    : null;
+};
+
+const getTaOperators = (condition) => {
+  const field = getTaField(condition);
+  return field ? field.operators || [] : [];
+};
+
+const showTaTextInput = (condition) => getTaField(condition)?.data_type === 'string';
+const showTaNumberInput = (condition) => getTaField(condition)?.data_type === 'number';
+const showTaBooleanInput = (condition) => getTaField(condition)?.data_type === 'boolean';
+
+
+const addTaConditionGroup = () => {
+  targetAudienceForm.value.conditionGroups.push({
+    groupOperator: "AND",
+    conditions: [{ conditionOperator: "AND", field: "", operator: "", value: "" }],
+  });
+};
+
+const removeTaConditionGroup = (groupIndex) => {
+  if (targetAudienceForm.value.conditionGroups.length > 1) {
+    targetAudienceForm.value.conditionGroups.splice(groupIndex, 1);
+  } else {
+    toast({
+      title: "Aviso",
+      description: "Você deve ter pelo menos um grupo de condições",
+      variant: "destructive",
+    });
+  }
+};
+
+const addTaCondition = (groupIndex) => {
+  targetAudienceForm.value.conditionGroups[groupIndex].conditions.push({
+    conditionOperator: "AND",
+    field: "",
+    operator: "",
+    value: "",
+  });
+};
+
+const removeTaCondition = (groupIndex, conditionIndex) => {
+  if (targetAudienceForm.value.conditionGroups[groupIndex].conditions.length > 1) {
+    targetAudienceForm.value.conditionGroups[groupIndex].conditions.splice(conditionIndex, 1);
+  } else {
+    toast({
+      title: "Aviso",
+      description: "Você deve ter pelo menos uma condição no grupo",
+      variant: "destructive",
+    });
+  }
+};
+
+const fetchTargetAudienceFields = async () => {
+  try {
+    const response = await TargetAudience.getAvailableConditions();
+    if (Array.isArray(response)) {
+      const groups = response.reduce((acc, field) => {
+        if (!acc[field.source]) {
+          acc[field.source] = {
+            name: field.source,
+            fields: []
+          };
+        }
+        acc[field.source].fields.push({
+          field_key: field.property,
+          label: field.label,
+          data_type: field.type,
+          operators: field.operators,
+          source: field.source,
+        });
+        return acc;
+      }, {});
+
+      targetAudienceFields.value = Object.values(groups);
+
+    } else {
+       throw new Error("Estrutura de dados inesperada para campos de público alvo");
+    }
+  } catch (error) {
+    console.error("Erro ao carregar campos de público alvo:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar os campos para o público alvo.",
+      variant: "destructive",
+    });
+  }
+};
+
+const resetTargetAudienceForm = () => {
+  targetAudienceForm.value = {
+    name: "",
+    description: "",
+    membership_duration: null,
+    conditionGroups: [
+      {
+        groupOperator: "AND",
+        conditions: [{ conditionOperator: "AND", field: "", operator: "", value: "" }],
+      },
+    ],
+  };
+};
+
+const saveTargetAudience = async () => {
+    isProcessing.value = true;
+    try {
+        if (!activeGroupProjectId) {
+            throw new Error("Nenhum projeto selecionado. Por favor, selecione um projeto.");
+        }
+
+        // 1. Inner-most function: map a UI condition to an API rule object.
+        const mapConditionToRule = (uiCondition) => {
+            const field = getTaField(uiCondition);
+            if (!field || !uiCondition.field || !uiCondition.operator) {
+                return null; // Invalid condition
+            }
+            return {
+                source: field.source,
+                property: uiCondition.field,
+                operator: uiCondition.operator,
+                value: uiCondition.value,
+            };
+        };
+
+        // 2. A function to build a group from a list of UI conditions
+        const buildTreeFromList = (items, itemMapper) => {
+            const mappedItems = items.map(itemMapper).filter(Boolean);
+            if (mappedItems.length === 0) {
+                return null;
+            }
+
+            let tree = mappedItems[0];
+            for (let i = 1; i < mappedItems.length; i++) {
+                // The operator is on the current item and links it to the previous one.
+                const operator = items[i].conditionOperator || items[i].groupOperator || 'AND';
+                
+                // If the root of the current tree has the same operator, we can flatten it.
+                if (tree.type === operator) {
+                     tree.conditions.push(mappedItems[i]);
+                } else {
+                    tree = {
+                        type: operator,
+                        conditions: [tree, mappedItems[i]],
+                    };
+                }
+            }
+            return tree;
+        }
+
+        // 3. Main logic to build the final 'conditions' payload
+        const uiGroups = targetAudienceForm.value.conditionGroups;
+        
+        // Create a list of processed groups/rules
+        const mappedGroups = uiGroups.map(group => buildTreeFromList(group.conditions, mapConditionToRule)).filter(Boolean);
+        
+        if (mappedGroups.length === 0) {
+             throw new Error("Defina pelo menos uma condição válida.");
+        }
+        
+        // Now build the final tree from the list of processed groups
+        let finalConditions = mappedGroups[0];
+        for (let i = 1; i < mappedGroups.length; i++) {
+            const operator = uiGroups[i].groupOperator || 'AND';
+            if (finalConditions.type === operator) {
+                finalConditions.conditions.push(mappedGroups[i]);
+            } else {
+                finalConditions = {
+                    type: operator,
+                    conditions: [finalConditions, mappedGroups[i]],
+                };
+            }
+        }
+        
+        let payloadConditions = finalConditions;
+        // If finalConditions is a single rule (doesn't have a 'type' property), the API expects it in an array.
+        if (finalConditions && !finalConditions.type) {
+            payloadConditions = [finalConditions];
+        }
+
+        const payload = {
+            project_id: workspaceStore.activeGroupProject.project_id,
+            segment_id: currentSegment.value?.id,
+            name: targetAudienceForm.value.name,
+            description: targetAudienceForm.value.description,
+            membership_duration: targetAudienceForm.value.membership_duration,
+            conditions: payloadConditions, // The final constructed tree
+        };
+
+        if (!payload.name) {
+          throw new Error('O nome do público alvo é obrigatório.');
+        }
+
+        await TargetAudience.store(payload);
+
+        toast({
+            title: "Sucesso!",
+            description: "Público alvo salvo com sucesso."
+        });
+        showSheet.value = false;
+    } catch(e) {
+        toast({
+            title: "Erro",
+            description: e.message || "Não foi possível salvar o público alvo.",
+            variant: "destructive"
+        });
+    } finally {
+        isProcessing.value = false;
+    }
+}
+
+
+
+
+function viewTargetAudience(segment) {
+  if (segment.audiences && segment.audiences.length > 0) {
+    const audienceId = segment.audiences[0].id;
+    router.push({
+      name: 'target-audiences',
+      query: { openAudienceId: audienceId }
+    });
+  }
+}
+
+
+function createTargetAudience(segment) {
+  currentSegment.value = segment;
+  resetTargetAudienceForm();
+  showSheet.value = true;
+}
 
 const columns = [
   segmentColumnHelper.accessor("name", {
@@ -1561,13 +1991,17 @@ const columns = [
             },
             "Editar"
           ),
-          // h(
-          //   DropdownMenuItem,
-          //   {
-          //     onClick: () => exportSegment(row.original.id),
-          //   },
-          //   "Exportar"
-          // ),
+          (row.original.audiences && row.original.audiences.length > 0)
+            ? h(
+                DropdownMenuItem,
+                { onClick: () => viewTargetAudience(row.original) },
+                "Ver Publico Alvo"
+              )
+            : h(
+                DropdownMenuItem,
+                { onClick: () => createTargetAudience(row.original) },
+                "Criar Publico Alvo"
+              ),
           h(
             DropdownMenuItem,
             {
@@ -1613,6 +2047,7 @@ onMounted(async () => {
   isLoading.value = true;
   try {
     await fetchSegmentFields();
+    await fetchTargetAudienceFields();
     await fetchSegments();
     resetForm();
   } catch (error) {
@@ -1669,6 +2104,29 @@ watch(
             }
           }
         });
+      });
+    });
+  },
+  { deep: true }
+);
+
+watch(
+  () => targetAudienceForm.value.conditionGroups,
+  (groups) => {
+    groups?.forEach((group, groupIndex) => {
+      group?.conditions?.forEach((condition) => {
+        if (condition.field) {
+          const validOperators = getTaOperators(condition, groupIndex);
+          if (validOperators && !validOperators.includes(condition.operator)) {
+            condition.operator = "";
+          }
+        }
+        if (condition.field && condition.operator) {
+            const field = getTaField(condition, groupIndex);
+            if (field && ["empty", "not_empty"].includes(condition.operator)) {
+                condition.value = "";
+            }
+        }
       });
     });
   },

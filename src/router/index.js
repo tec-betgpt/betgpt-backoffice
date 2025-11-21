@@ -37,6 +37,7 @@ import Export from "@/views/dashboard/Export.vue";
 import UserLogins from "@/views/dashboard/UserLogins.vue";
 import Services from "@/views/dashboard/Services.vue";
 import Permissions from "@/views/dashboard/Permissions.vue";
+import TargetAudience from "@/views/dashboard/TargetAudience.vue";
 
 const routes = [
   {
@@ -259,6 +260,18 @@ const routes = [
           roles: "member",
           permissions: "view-segments",
           title: "Segmentos",
+        },
+      },
+      {
+        path: "target-audiences",
+        name: "target-audiences",
+        component: TargetAudience,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "view-segments",
+          title: "Audiências Alvo",
         },
       },
       {

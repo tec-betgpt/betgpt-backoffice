@@ -79,8 +79,8 @@
               :disabled="disableBt"
               @click="
                 data.config?.email
-                  ? logoutOAuth2()
-                  : initOAuth2(field.description)
+                  ? logoutOAuth2(data.integration.integration_id)
+                  : initOAuth2(field.description,data.id)
               "
             >
               <div
@@ -144,6 +144,7 @@ const popUp = ref<Window | null>(null);
 const propetyList = ref<Array<{ id: string; name: string }>>([]);
 const property = ref();
 const disableBt = ref(false);
+
 async function fetchIntegrations() {
   loading.value = true;
 
@@ -179,15 +180,13 @@ async function fetchIntegrations() {
   loading.value = false;
 }
 
-async function initOAuth2(url: string) {
+async function initOAuth2(url: string,id:number) {
   //window.open(url, "_blank", "width=500,height=600");
   disableBt.value = true;
   const response = await api.get(url, {
     params: {
       project_id: activeGroupProject.project_id,
-      integration_id: integrations.value.find(
-        (value) => value.slug === "google-analytics"
-      ).id,
+      integration_id: id
     },
   });
   popUp.value = window.open(
@@ -213,17 +212,19 @@ async function getProperty() {
     ).id,
   });
 }
-async function logoutOAuth2() {
+
+async function logoutOAuth2(id) {
   disableBt.value = true;
+  console.log(id)
+
   await Projects.logoutOAuth({
     project_id: activeGroupProject.project_id,
-    integration_id: integrations.value.find(
-      (value) => value.slug === "google-analytics"
-    ).id,
+    integration_id: id,
   });
   await fetchIntegrations();
   disableBt.value = false;
 }
+
 function getApplicationDetail(name: string) {
   switch (name) {
     case "ActiveCampaign":
@@ -238,6 +239,13 @@ function getApplicationDetail(name: string) {
         logo: "/third-party/google-analytics.png",
         brief:
           "Ferramenta para analise de desempenho de sites e apps, otimizando o marketing e a experiência do usuário.",
+      };
+
+    case "Meta":
+      return {
+        logo: "/third-party/meta.png",
+        brief:
+            "Ferramenta para analise de desempenho de sites e apps da Meta, otimizando o marketing e a experiência do usuário.",
       };
 
     case "SMS Funnel":
@@ -255,10 +263,6 @@ function getApplicationDetail(name: string) {
       };
   }
 }
-
-watch(property, () => {
-  console.log(property.value);
-});
 
 async function saveAllIntegrations() {
   saving.value = true;
