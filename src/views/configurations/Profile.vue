@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full">
+  <div class="w-full pb-10">
     <div class="mb-4">
       <h3 class="text-lg font-medium">Perfil</h3>
       <p class="text-sm text-muted-foreground">
@@ -43,6 +43,30 @@
               class="mt-1"
           />
         </div>
+
+        <div class="mb-3">
+          <Label for="email">Documento</Label>
+          <Input
+            id="document_number"
+            v-model="form.document_number"
+            placeholder="Digite o CPF ou CNPJ"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <Label for="access_type">Pessoa</Label>
+          <Select id="access_type" v-model="form.kind_person">
+            <SelectTrigger class="col-span-3">
+              <SelectValue placeholder="Selecione um tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PF">Física</SelectItem>
+              <SelectItem value="PJ">Jurídica</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div class="mb-3">
           <Label for="email">E-mail</Label>
           <Input
@@ -181,6 +205,8 @@ const emailChangeRequest = ref(false);
 const form = ref({
   first_name: "",
   last_name: "",
+  kind_person: "PF",
+  document_number: "",
   email: "",
   language_id: "",
   image: "",
@@ -265,6 +291,8 @@ watch(
       form.value.last_name = user.last_name || "";
       form.value.email = user.email || "";
       form.value.language_id = user.language_id || 1;
+      form.value.document_number = user.document_number || "";
+      form.value.kind_person = user.kind_person || "PF";
 
       if (user.email_change_request) {
         emailChangeRequest.value = true;

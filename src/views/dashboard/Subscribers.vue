@@ -51,7 +51,8 @@
                     -
                   </span>
                 </TableCell>
-                <TableCell class="text-right">
+                <TableCell class="text-right flex flex-row justify-end gap-2">
+                  <ToggleAvailableComponent :row="row" :reload="fetchUsers" />
                   <SettingsDialogComponent :reload="fetchUsers" :row="row" />
                   <ServiceDialogComponent :reload="fetchUsers" :row="row" />
                 </TableCell>
@@ -73,16 +74,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
+import { Card, CardContent } from "@/components/ui/card";
+import { Table } from "@/components/ui/table";
 import Users from "@/services/users";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import {Card, CardContent} from "@/components/ui/card";
-import {Table} from "@/components/ui/table";
 import ServiceDialogComponent from "@/components/subscribers/ServiceDialogComponent.vue";
 import SettingsDialogComponent from "@/components/subscribers/SettingsDialogComponent.vue";
-
-const { toast } = useToast();
+import ToggleAvailableComponent from "@/components/subscribers/ToggleAvailableComponent.vue";
 
 type User = {
   id: string;

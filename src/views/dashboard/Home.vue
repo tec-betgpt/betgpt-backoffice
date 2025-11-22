@@ -349,6 +349,16 @@
         </div>
       </TransitionGroup>
     </div>
+
+    <div v-if="user && !user.is_available" class="bg-gray-50/5 w-full h-full backdrop-blur-lg absolute top-0 left-0 z-20 flex flex-col items-center justify-start px-4 pt-64 text-center">
+      <LucideLockOpen />
+      <div class="text-sm font-bold">
+        Conta suspensa
+      </div>
+      <div class="text-xs">
+        Por favor, efetue o pagamento das faturas pendentes.
+      </div>
+    </div>
   </div>
 </template>
 
@@ -384,6 +394,7 @@ import {
   RefreshCcw,
   Eye,
   EyeClosed,
+  LucideLockOpen,
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -439,6 +450,7 @@ export default {
   },
 
   components: {
+    LucideLockOpen,
     SkeletonCustom,
     Skeleton,
     ArrowDown,

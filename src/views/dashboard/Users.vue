@@ -129,6 +129,28 @@
               />
             </div>
             <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="email">Documento</Label>
+              <Input
+                id="document_number"
+                v-model="form.document_number"
+                placeholder="Digite o CPF ou CNPJ"
+                class="col-span-3"
+                required
+              />
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
+              <Label for="access_type">Pessoa</Label>
+              <Select id="access_type" v-model="form.kind_person">
+                <SelectTrigger class="col-span-3">
+                  <SelectValue placeholder="Selecione um tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PF">Física</SelectItem>
+                  <SelectItem value="PJ">Jurídica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid grid-cols-4 items-center gap-4">
               <Label for="access_type">Acesso</Label>
               <Select id="access_type" v-model="form.access_type">
                 <SelectTrigger class="col-span-3">
@@ -140,10 +162,7 @@
                 </SelectContent>
               </Select>
             </div>
-            <div
-              class="grid grid-cols-4 gap-4"
-              v-if="form.access_type === 'member'"
-            >
+            <div class="grid grid-cols-4 gap-4" v-if="form.access_type === 'member'">
               <Label>Perfil</Label>
               <div class="space-y-2 max-h-72 overflow-y-auto col-span-3">
                 <div
@@ -293,6 +312,8 @@ const form = ref({
   admin_roles: [],
   project_ids: [],
   projects: [],
+  kind_person: 'PF',
+  document_number: '',
   filter_id: null,
 });
 const pages = ref({
@@ -490,6 +511,8 @@ const openCreateModal = () => {
     last_name: "",
     email: "",
     access_type: "client",
+    kind_person: "PF",
+    document_number: "",
     project_ids: [],
     roles: [],
     admin_roles: [],
