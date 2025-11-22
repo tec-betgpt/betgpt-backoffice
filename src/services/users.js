@@ -242,5 +242,17 @@ export default {
   async service () {
     const { data } = await api.get('/users/service')
     return data
+  },
+
+  /**
+   * PATCH /v1/users/{id}/toggle-available
+   *
+   * @param {number} id
+   * @param {object} body
+   * @param {number|boolean} body.is_available
+   */
+  async toggleAvailable (id, body = {}) {
+    const { data } = await api.patch(`/users/${id}/toggle-available`, body)
+    return data
   }
 }
