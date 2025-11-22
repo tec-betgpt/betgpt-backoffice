@@ -92,6 +92,11 @@
               Opcional
             </p>
           </div>
+          <div>
+            <Label for="date">Data</Label>
+            <DatePicker id="date"
+                :model-value="date" @update:model-value="args => date =  args" />
+          </div>
         </div>
 
         <SheetFooter>
@@ -114,6 +119,7 @@ import { Pencil } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import FinancialTransaction from "@/services/financialTransactions";
+import DatePicker from "@/components/custom/DatePicker.vue";
 
 interface FinancialData {
   id: number;
@@ -138,14 +144,14 @@ const props = defineProps<{
 }>();
 
 const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
-const financialForm = ref<FinancialData>();
+const financialForm = ref<FinancialData>(props.row);
 const showModal = ref(false);
 const isDialog = ref(false);
 const loading = ref(false);
-
+const date = ref(new Date());
 const onSubmit = async () => {
   loading.value = true;
-
+  financialForm.value.date = date.value.toLocaleDateString();
   try {
     await FinancialTransaction.update(financialForm.value.id, financialForm.value)
     isDialog.value = false;

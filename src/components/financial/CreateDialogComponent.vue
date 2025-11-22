@@ -116,6 +116,13 @@
             </p>
           </div>
         </div>
+        <div>
+          <DatePicker id="date"
+                      :model-value="date" @update:model-value="args => date =  args" />
+          <p class="text-xs mt-1 text-right text-muted-foreground">
+            Obrigatório
+          </p>
+        </div>
 
         <SheetFooter class="mt-4">
           <Button type="button" variant="secondary" @click="isDialog = false">
@@ -133,12 +140,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import {Ref, ref, watch} from "vue";
 import { PlusSquareIcon } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import FinancialTransaction from "@/services/financialTransactions";
-
+import {Calendar} from "@/components/ui/calendar";
+import {CalendarDate, DateValue, fromDate, getLocalTimeZone} from '@internationalized/date'
+import DatePicker from "@/components/custom/DatePicker.vue";
+import {Dialog} from "@/components/ui/dialog";
 const props = defineProps<{
   reload: () => void,
   costs: Array<{
@@ -147,7 +157,6 @@ const props = defineProps<{
     sector: string,
   }>
 }>();
-
 // data
 const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
 const costs = ref([]);
@@ -163,11 +172,12 @@ const financialForm = ref({
   description: "",
   related: null,
 });
+const date = ref<Date>(new Date());
 
 // methods
 const onSubmit = async () => {
   loading.value = true;
-
+  financialForm.value.date = date.value.toLocaleDateString();
   try {
     await FinancialTransaction.store({
       ...financialForm.value,

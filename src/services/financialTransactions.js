@@ -27,6 +27,7 @@ export default {
    * @param {number|null} body.amount
    * @param {string} body.description
    * @param {string|null} body.project_id
+   * @param {string} body.date
    */
   async store (body) {
     const { data } = await api.post('/financial-transactions', body)
