@@ -733,6 +733,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
 import ServicesPreviewComponent from "@/components/layout/ServicesPreviewComponent.vue";
+import Projects from "@/services/projects";
 
 interface BreadcrumbItem {
   name: string;
@@ -1352,6 +1353,20 @@ const swipeSidebars = () => {
   window.addEventListener("touchend", onTouchEnd, { passive: true });
 };
 
+const fetchStatusOAuth2 = async () => {
+ const response = await Projects.statusOAuth({project_id:workspaceStore.activeGroupProject.project_id})
+  if (response.data.length === 0) return;
+  const status = response.data
+  status.forEach((item) => {
+    toast({
+      variant:'destructive',
+      description:item.status_description,
+      duration:3000,
+      title:item.name,
+    })
+  })
+
+}
 onUnmounted(() => {
   window.removeEventListener("touchstart", onTouchStart);
   window.removeEventListener("touchmove", onTouchMove);
@@ -1403,6 +1418,7 @@ onMounted(async () => {
 
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
+    fetchStatusOAuth2()
     await getSuggestions();
     await loadChats();
   }

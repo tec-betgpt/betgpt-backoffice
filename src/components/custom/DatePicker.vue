@@ -19,18 +19,19 @@ const props = defineProps<{
   modelValue: Date;
 }>();
 
-const emit = defineEmits(["update:modelValue"]);
-
-const df = new DateFormatter("en-US", {
+const emit = defineEmits<{
+  (event: "update:modelValue", payload: Date): void;
+}>();
+const df = new DateFormatter("pt-Br", {
   dateStyle: "medium",
 });
 
 const value = ref(props.modelValue);
 
 // Atualiza o valor interno e emite para o componente pai
-const updateDate = (date: any) => {
-  value.value = date;
-  emit("update:modelValue", date);
+const updateDate = (date: DateValue) => {
+  value.value = date.toDate('America/Sao_Paulo');
+  emit("update:modelValue", value.value);
 };
 </script>
 
@@ -41,7 +42,7 @@ const updateDate = (date: any) => {
         variant="outline"
         :class="
           cn(
-            'w-[200px] justify-start text-left font-normal',
+            'w-full justify-start text-left font-normal',
             !value && 'text-muted-foreground'
           )
         "
@@ -49,7 +50,7 @@ const updateDate = (date: any) => {
         <CalendarIcon class="mr-2 h-4 w-4" />
         {{
           value
-            ? df.format(value.toDate(getLocalTimeZone()))
+            ? df.format(value)
             : "Escolha uma data"
         }}
       </Button>

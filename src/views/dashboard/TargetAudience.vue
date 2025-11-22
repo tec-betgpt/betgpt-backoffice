@@ -420,7 +420,6 @@ const updateSyncProviders = (checked, providerId) => {
   }
 };
 
-// --- Condition Builder Logic ---
 
 const getTaField = (condition) => {
   const allTaFields = targetAudienceFields.value.flatMap(g => g.fields);
@@ -541,7 +540,6 @@ const saveTargetAudience = async () => {
     }
 }
 
-// --- Table Columns and Lifecycle ---
 
 const columnHelper = createColumnHelper<any>();
 const columns = [

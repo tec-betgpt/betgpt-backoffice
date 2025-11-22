@@ -90,7 +90,7 @@ export default {
   },
 
     /**
-     * GET /v1/projects/adaccount
+     * GET /v1/projects/integrations/adaccount
      * @param {object} params
      * @param {string} params.integration_id
      * @param {string} params.project_id
@@ -100,7 +100,7 @@ export default {
         return data.data
     },
     /**
-     * GET /v1/projects/logoutOAuth
+     * GET /v1/projects/integrations/oauth/logout
      *
      * @param {object} params
      * @param {string} params.integration_id
@@ -109,5 +109,16 @@ export default {
   async logoutOAuth(params= {}) {
     const { data } = await api.get(`/projects/integrations/oauth/logout`, { params: params })
     return data
+  },
+
+    /**
+     * GET /v1/projects/status
+     *
+     * @param {object} params
+     * @param {string} params.project_id
+     */
+  async statusOAuth(params= {}) {
+      const { data } = await api.get(`/projects/integrations/status`, { params: params })
+        return data
   }
 }
