@@ -863,6 +863,12 @@ const navMenu = computed(() => {
           show: canAccess("view-segments"),
         },
         {
+          name:"Publico Alvo",
+          url: { name: "target-audiences" },
+          icon: ListFilter,
+          show: canAccess("view-segments"),
+        },
+        {
           name: "Eventos",
           url: { name: "events" },
           icon: SquarePen,

@@ -88,6 +88,17 @@ export default {
     const { data } = await api.get(`/projects/integrations/oauth/property`, { params: params })
     return data.data
   },
+
+    /**
+     * GET /v1/projects/adaccount
+     * @param {object} params
+     * @param {string} params.integration_id
+     * @param {string} params.project_id
+     */
+    async adAccount(params= {}) {
+        const { data } = await api.get(`/projects/integrations/oauth/adaccount`, { params: params })
+        return data.data
+    },
     /**
      * GET /v1/projects/logoutOAuth
      *
