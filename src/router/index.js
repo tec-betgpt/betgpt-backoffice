@@ -37,6 +37,7 @@ import Export from "@/views/dashboard/Export.vue";
 import UserLogins from "@/views/dashboard/UserLogins.vue";
 import Services from "@/views/dashboard/Services.vue";
 import Permissions from "@/views/dashboard/Permissions.vue";
+import ServiceConsumeds from "@/views/configurations/ServiceConsumeds.vue";
 
 const routes = [
   {
@@ -409,111 +410,111 @@ const routes = [
         name: "data-sources",
         component: Integrations,
         meta: {
-        layout: DefaultLayout,
-        requiresAuth: true,
-        roles: "member|client",
-        permissions: "access-to-integrations",
-        title: "Fontes de Dados",
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: "access-to-integrations",
+          title: "Fontes de Dados",
         },
-    },
+      },
     ],
   },
-    {
+  {
     path: "/governance",
     name: "governance",
-      meta: {
-        requiresAuth: true,
-        title: "Governança",
-        roles: "member",
-        permissions: "access-to-member-governance",
-      },
-      children: [
-        {
-          path: "texts",
-          name: "texts",
-          component: Insights,
-          meta: {
-            layout: DefaultLayout,
-            requiresAuth: true,
-            roles: "member",
-            permissions: "access-to-motivational-texts",
-            title: "Textos",
-          },
-        },
-        {
-          path: "roles",
-          name: "roles",
-          component: Roles,
-          meta: {
-            layout: DefaultLayout,
-            requiresAuth: true,
-            roles: "member",
-            permissions: "access-to-roles",
-            title: "Perfis",
-          },
-        },
-        {
-          path: "services",
-          name: "services",
-          component: Services,
-          meta: {
-            layout: DefaultLayout,
-            requiresAuth: true,
-            title: "Serviços",
-            roles: "member",
-            permissions: "access-to-services",
-          },
-        },
-        {
-          path: "permissions",
-          name: "permissions",
-          component: Permissions,
-          meta: {
-            layout: DefaultLayout,
-            requiresAuth: true,
-            title: "Permissões",
-            roles: "member",
-            permissions: "access-to-permissions",
-          },
-        },
-        {
-          path: "subscribers",
-          name: "subscribers",
-          component: Subscribers,
-          meta: {
-            layout: DefaultLayout,
-            requiresAuth: true,
-            title: "Assinantes",
-            roles: "member",
-            permissions: "access-to-subscribers",
-          },
-        },
-        {
-          path: "users",
-          name: "users",
-          component: Users,
-          meta: {
-            layout: DefaultLayout,
-            requiresAuth: true,
-            roles: "member",
-            permissions: "access-to-users",
-            title: "Usuários",
-          },
-        },
-        {
-          path: "user-logins",
-          name: "user-logins",
-          component: UserLogins,
-          meta: {
-            layout: DefaultLayout,
-            requiresAuth: true,
-            roles: "member",
-            permissions: "access-to-users",
-            title: "Histórico de Login",
-          },
-        }
-      ]
+    meta: {
+      requiresAuth: true,
+      title: "Governança",
+      roles: "member",
+      permissions: "access-to-member-governance",
     },
+    children: [
+      {
+        path: "texts",
+        name: "texts",
+        component: Insights,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-motivational-texts",
+          title: "Textos",
+        },
+      },
+      {
+        path: "roles",
+        name: "roles",
+        component: Roles,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-roles",
+          title: "Perfis",
+        },
+      },
+      {
+        path: "services",
+        name: "services",
+        component: Services,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Serviços",
+          roles: "member",
+          permissions: "access-to-services",
+        },
+      },
+      {
+        path: "permissions",
+        name: "permissions",
+        component: Permissions,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Permissões",
+          roles: "member",
+          permissions: "access-to-permissions",
+        },
+      },
+      {
+        path: "subscribers",
+        name: "subscribers",
+        component: Subscribers,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Assinantes",
+          roles: "member",
+          permissions: "access-to-subscribers",
+        },
+      },
+      {
+        path: "users",
+        name: "users",
+        component: Users,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-users",
+          title: "Usuários",
+        },
+      },
+      {
+        path: "user-logins",
+        name: "user-logins",
+        component: UserLogins,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-users",
+          title: "Histórico de Login",
+        },
+      },
+    ],
+  },
   {
     path: "/financial",
     name: "financial",
@@ -561,7 +562,7 @@ const routes = [
         },
       },
     ],
-  }
+  },
 ];
 
 const router = createRouter({
