@@ -32,13 +32,13 @@
           </div>
         </div>
         <div
-          v-if="data.slug === 'google-analytics' || data.slug === 'meta' && propetyList.length > 0"
+          v-if="(data.slug === 'google-analytics' || data.slug === 'meta') && propetyList.length > 0"
           class="mt-4"
         >
           <Label for="property" class="mb-1">Propriedade do Projeto</Label>
-          <Select id="property" v-model="data.config.property_id" class="my-1">
+          <Select id="property" :v-model="data.slug === 'google-analytics' ? data.config.property_id:data.config.ad_account" class="my-1">
             <SelectTrigger>
-              <SelectValue placeholder="Selecione o analytic" />
+              <SelectValue placeholder="Selecione a propriedade" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem
@@ -237,7 +237,6 @@ async function getAccountIdMeta(){
 
 async function logoutOAuth2(id) {
   disableBt.value = true;
-  console.log(id)
 
   await Projects.logoutOAuth({
     project_id: activeGroupProject.project_id,
