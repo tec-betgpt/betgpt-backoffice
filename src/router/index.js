@@ -39,6 +39,8 @@ import Services from "@/views/dashboard/Services.vue";
 import Permissions from "@/views/dashboard/Permissions.vue";
 import ServiceConsumeds from "@/views/configurations/ServiceConsumeds.vue";
 import Invoices from "@/views/configurations/Invoices.vue";
+import TargetAudience from "@/views/dashboard/TargetAudience.vue";
+import Subscribers from "@/views/dashboard/Subscribers.vue";
 
 const routes = [
   {
