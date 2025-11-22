@@ -38,6 +38,7 @@ import UserLogins from "@/views/dashboard/UserLogins.vue";
 import Services from "@/views/dashboard/Services.vue";
 import Permissions from "@/views/dashboard/Permissions.vue";
 import ServiceConsumeds from "@/views/configurations/ServiceConsumeds.vue";
+import Invoices from "@/views/configurations/Invoices.vue";
 
 const routes = [
   {
