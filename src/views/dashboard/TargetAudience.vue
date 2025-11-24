@@ -324,7 +324,7 @@ const fetchAudiences = async (current = pages.value.current) => {
     const params = {
       page: current,
       per_page: perPage.value,
-      project_id: activeGroupProjectId,
+      filter_id: workspaceStore.activeGroupProject.id,
     };
     const response = await TargetAudience.index(params);
     audiences.value = response.data || [];
