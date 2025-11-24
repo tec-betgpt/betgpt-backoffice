@@ -299,7 +299,7 @@ const perPage = ref(10);
 
 const availableProviders = [
   { id: 'meta', label: 'Meta Ads' },
-  { id: 'google-analytics', label: 'Google Analytics' }
+  //{ id: 'google-analytics', label: 'Google Analytics' }
 ];
 
 const targetAudienceForm = ref({
