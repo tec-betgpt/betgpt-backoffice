@@ -127,6 +127,7 @@
         />
       </div>
 
+      <!-- Tabela de Campanhas -->
       <Card class="w-full mt-4">
         <CardHeader>
           <CardTitle>Campanhas</CardTitle>
@@ -134,10 +135,10 @@
         <CardContent>
           <CustomDataTable
             :data="campaigns"
-            :columns="filteredColumns"
+            :columns="filteredCampaignColumns"
             :loading="loading"
-            :update-text="setSearch"
-            :find="applyFilter"
+            :update-text="setSearchCampaigns"
+            :find="applyCampaignFilter"
             :result="campaignsStats"
             :footer="true"
             :head="totalCampaigns"
@@ -153,13 +154,51 @@
         <CardFooter class="py-4 w-full">
           <CustomPagination
             :pages="{
-              current: pages.current,
-              last: pages.last,
-              total: pages.total,
+              current: campaignPages.current,
+              last: campaignPages.last,
+              total: campaignPages.total,
             }"
-            :select-page="applyFilter"
-            :per_pages="perPage"
-            @update:perPages="(args) => (perPage = args)"
+            :select-page="applyCampaignFilter"
+            :per_pages="campaignPerPage"
+            @update:perPages="(args) => (campaignPerPage = args)"
+          />
+        </CardFooter>
+      </Card>
+
+      <!-- Tabela de Broadcasts -->
+      <Card class="w-full mt-4">
+        <CardHeader>
+          <CardTitle>Broadcasts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CustomDataTable
+            :data="broadcasts"
+            :columns="filteredBroadcastColumns"
+            :loading="loading"
+            :update-text="setSearchBroadcasts"
+            :find="applyBroadcastFilter"
+            :result="broadcastsStats"
+            :footer="true"
+            :head="totalBroadcasts"
+            :formatters="formatters"
+            :search-fields="[
+              {
+                key: 'name',
+                placeholder: 'Buscar por nome do broadcast...',
+              },
+            ]"
+          />
+        </CardContent>
+        <CardFooter class="py-4 w-full">
+          <CustomPagination
+            :pages="{
+              current: broadcastPages.current,
+              last: broadcastPages.last,
+              total: broadcastPages.total,
+            }"
+            :select-page="applyBroadcastFilter"
+            :per_pages="broadcastPerPage"
+            @update:perPages="(args) => (broadcastPerPage = args)"
           />
         </CardFooter>
       </Card>
@@ -319,30 +358,73 @@ const sms = ref<{ name: string; value: number[] }[]>([]);
 const clicks = ref<{ name: string; value: number[] }[]>([]);
 const recharges = ref([]);
 const campaigns = ref([]);
+const broadcasts = ref([]);
 
-const orderId = ref();
-const order = ref(false);
-const pages = ref({
+const campaignOrderId = ref();
+const campaignOrder = ref(false);
+const campaignPages = ref({
   current: 1,
   total: 0,
   last: 0,
 });
-
-const perPage = ref(10);
-
+const campaignPerPage = ref(10);
 const totalCampaigns = ref();
+const searchCampaignValues = ref<Record<string, string>>({});
+
+const broadcastOrderId = ref();
+const broadcastOrder = ref(false);
+const broadcastPages = ref({
+  current: 1,
+  total: 0,
+  last: 0,
+});
+const broadcastPerPage = ref(10);
+const totalBroadcasts = ref();
+const searchBroadcastValues = ref<Record<string, string>>({});
+
+const localCampaignSearch = ref<Record<string, string>>({});
+const localBroadcastSearch = ref<Record<string, string>>({});
+
 const campaignsStats = computed(() => {
   const totalStats = {
     message: "Total",
     blank: "",
     sms: 0,
     clicks: 0,
+    ctr: "0.00",
   };
 
   campaigns.value.forEach((campaign) => {
     totalStats.sms += campaign.sms;
     totalStats.clicks += campaign.clicks;
   });
+
+  totalStats.ctr =
+    totalStats.sms > 0
+      ? ((totalStats.clicks / totalStats.sms) * 100).toFixed(2)
+      : "0.00";
+
+  return totalStats;
+});
+
+const broadcastsStats = computed(() => {
+  const totalStats = {
+    message: "Total",
+    blank: "",
+    sms: 0,
+    clicks: 0,
+    ctr: "0.00",
+  };
+
+  broadcasts.value.forEach((broadcast) => {
+    totalStats.sms += broadcast.sms;
+    totalStats.clicks += broadcast.clicks;
+  });
+
+  totalStats.ctr =
+    totalStats.sms > 0
+      ? ((totalStats.clicks / totalStats.sms) * 100).toFixed(2)
+      : "0.00";
 
   return totalStats;
 });
@@ -351,12 +433,27 @@ const redirectToInvoiceUrl = (url: any) => {
   window.open(url, "_blank");
 };
 
-const searchValues = ref<Record<string, string>>({});
-const setSearch = (values: Record<string, string>) => {
-  searchValues.value = values;
+const setSearchCampaigns = (values: Record<string, string>) => {
+  localCampaignSearch.value = values;
 };
 
-const applyFilter = async (current = pages.value.current) => {
+const setSearchBroadcasts = (values: Record<string, string>) => {
+  localBroadcastSearch.value = values;
+};
+
+const applyCampaignFilter = async (page = campaignPages.value.current) => {
+  searchCampaignValues.value = { ...localCampaignSearch.value };
+  campaignPages.value.current = page;
+  await loadData();
+};
+
+const applyBroadcastFilter = async (page = broadcastPages.value.current) => {
+  searchBroadcastValues.value = { ...localBroadcastSearch.value };
+  broadcastPages.value.current = page;
+  await loadData();
+};
+
+const loadData = async () => {
   loading.value = true;
   if (!workspaceStore.activeGroupProject?.id) {
     toast({
@@ -364,38 +461,68 @@ const applyFilter = async (current = pages.value.current) => {
       description: "Selecione um grupo ou projeto antes de filtrar.",
       variant: "destructive",
     });
+    loading.value = false;
     return;
   }
 
   try {
-    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
-      acc[key] = searchValues.value[key];
-      return acc;
-    }, {} as Record<string, string>);
-
-    const { data } = await SmsFunnel.index({
-      page: current,
-      ...searchParams,
+    const searchParams = {
       start_date: selectedRange.value.start?.toString(),
       end_date: selectedRange.value.end?.toString(),
       filter_id: workspaceStore.activeGroupProject.id,
-      order_by: orderId.value,
-      type_order: order.value ? "asc" : "desc",
-      per_page: perPage.value,
-    });
+
+      campaign_page: campaignPages.value.current,
+      campaign_per_page: campaignPerPage.value,
+      campaign_order_by: campaignOrderId.value,
+      campaign_type_order: campaignOrder.value ? "asc" : "desc",
+      campaign_search:
+        Object.keys(searchCampaignValues.value).length > 0
+          ? [searchCampaignValues.value]
+          : [],
+
+      broadcast_page: broadcastPages.value.current,
+      broadcast_per_page: broadcastPerPage.value,
+      broadcast_order_by: broadcastOrderId.value,
+      broadcast_type_order: broadcastOrder.value ? "asc" : "desc",
+      broadcast_search:
+        Object.keys(searchBroadcastValues.value).length > 0
+          ? [searchBroadcastValues.value]
+          : [],
+    };
+
+    const { data } = await SmsFunnel.index(searchParams);
 
     last.value = data.last;
     daily.value = data.daily;
     sms.value = [{ name: "Total SMS Enviado", value: data.daily.sms }];
     clicks.value = [{ name: "Total Cliques", value: data.daily.clicks }];
     recharges.value = data.recharges;
-    campaigns.value = data.campaigns.data;
-    totalCampaigns.value = data.campaigns.total;
-    pages.value = {
-      current: data.campaigns.pagination.current_page,
-      total: data.campaigns.pagination.total,
-      last: data.campaigns.pagination.last_page,
-    };
+
+    if (data.campaigns) {
+      campaigns.value = data.campaigns.data.map((c) => ({
+        ...c,
+        ctr: c.sms && c.clicks ? ((c.clicks / c.sms) * 100).toFixed(2) : "0.00",
+      }));
+      totalCampaigns.value = data.campaigns.total;
+      campaignPages.value = {
+        current: data.campaigns.pagination.current_page,
+        total: data.campaigns.pagination.total,
+        last: data.campaigns.pagination.last_page,
+      };
+    }
+
+    if (data.broadcasts) {
+      broadcasts.value = data.broadcasts.data.map((b) => ({
+        ...b,
+        ctr: b.sms && b.clicks ? ((b.clicks / b.sms) * 100).toFixed(2) : "0.00",
+      }));
+      totalBroadcasts.value = data.broadcasts.total;
+      broadcastPages.value = {
+        current: data.broadcasts.pagination.current_page,
+        total: data.broadcasts.pagination.total,
+        last: data.broadcasts.pagination.last_page,
+      };
+    }
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
@@ -406,15 +533,31 @@ const applyFilter = async (current = pages.value.current) => {
   loading.value = false;
 };
 
-function createHeaderButton(label: string, columnKey: string) {
+function createHeaderButton(
+  label: string,
+  columnKey: string,
+  type = "campaigns"
+) {
   return h(
     Button,
     {
-      variant: orderId.value === columnKey ? "default" : "ghost",
-      onClick: () => {
-        orderId.value = columnKey;
-        order.value = !order.value;
-        applyFilter();
+      variant:
+        (type === "campaigns"
+          ? campaignOrderId.value
+          : broadcastOrderId.value) === columnKey
+          ? "default"
+          : "ghost",
+      onClick: async () => {
+        if (type === "campaigns") {
+          campaignOrderId.value = columnKey;
+          campaignOrder.value = !campaignOrder.value;
+          campaignPages.value.current = 1;
+        } else {
+          broadcastOrderId.value = columnKey;
+          broadcastOrder.value = !broadcastOrder.value;
+          broadcastPages.value.current = 1;
+        }
+        await loadData();
       },
       class: "h-fit text-pretty my-1 w-full justify-end",
     },
@@ -422,8 +565,14 @@ function createHeaderButton(label: string, columnKey: string) {
       h("div", { class: "flex items-center justify-end w-full" }, [
         label,
         h(
-          orderId.value === columnKey
-            ? order.value
+          (type === "campaigns"
+            ? campaignOrderId.value
+            : broadcastOrderId.value) === columnKey
+            ? (
+                type === "campaigns"
+                  ? campaignOrder.value
+                  : broadcastOrder.value
+              )
               ? ArrowDown
               : ArrowUp
             : CaretSortIcon,
@@ -434,6 +583,11 @@ function createHeaderButton(label: string, columnKey: string) {
   );
 }
 
+const formatPercentage = (value: any): string => {
+  const numValue = typeof value === "number" ? value : parseFloat(value || 0);
+  return `${(numValue || 0).toFixed(2)}%`;
+};
+
 const formatNumber = (value: number): string => {
   return new Intl.NumberFormat("pt-BR").format(value);
 };
@@ -443,22 +597,23 @@ const formatters = {
   clicks: formatNumber,
 };
 
-const columnHelper = createColumnHelper<CampaignMetrics>();
-const baseColumns = [
+const columnHelper = createColumnHelper();
+
+const baseCampaignColumns = [
   columnHelper.accessor("name", {
     header: () => "Nome da Campanha",
     cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
   }),
   columnHelper.accessor("sms", {
-    header: () => createHeaderButton("Envios SMS", "sms"),
+    header: () => createHeaderButton("Envios SMS", "sms", "campaigns"),
     footer: "sum",
     cell: ({ row }) =>
       h("div", { class: "text-right" }, formatNumber(row.getValue("sms") || 0)),
   }),
 ];
 
-const clicksColumn = columnHelper.accessor("clicks", {
-  header: () => createHeaderButton("Total de Cliques", "clicks"),
+const clicksCampaignColumn = columnHelper.accessor("clicks", {
+  header: () => createHeaderButton("Total de Cliques", "clicks", "campaigns"),
   footer: "sum",
   cell: ({ row }) =>
     h(
@@ -468,34 +623,83 @@ const clicksColumn = columnHelper.accessor("clicks", {
     ),
 });
 
-const filteredColumns = computed(() => {
-  if (hasMemberAccess.value) {
-    return [...baseColumns, clicksColumn];
-  }
-  return baseColumns;
+const ctrCampaignColumn = columnHelper.accessor("ctr", {
+  header: () => createHeaderButton("CTR", "ctr", "campaigns"),
+  footer: () => "avg",
+  format: "percentage",
+  cell: ({ row }) =>
+    h(
+      "div",
+      { class: "text-right" },
+      formatPercentage(row.getValue("ctr") || 0)
+    ),
 });
 
-function calculateStats(key: string, data: Array<any>) {
-  if (!data.length) return {};
+const filteredCampaignColumns = computed(() => {
+  if (hasMemberAccess.value) {
+    return [...baseCampaignColumns, clicksCampaignColumn, ctrCampaignColumn];
+  }
+  return baseCampaignColumns;
+});
 
-  const values = data.map((item: any) => item[key]);
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const avg =
-    values.reduce((acc: any, val: any) => acc + val, 0) / values.length;
+const baseBroadcastColumns = [
+  columnHelper.accessor("name", {
+    header: () => "Nome do Broadcast",
+    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
+  }),
+  columnHelper.accessor("sms", {
+    header: () => createHeaderButton("Envios SMS", "sms", "broadcasts"),
+    footer: "sum",
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, formatNumber(row.getValue("sms") || 0)),
+  }),
+];
 
-  return { max, min, avg: parseFloat(avg).toFixed(2) };
-}
+const clicksBroadcastColumn = columnHelper.accessor("clicks", {
+  header: () => createHeaderButton("Total de Cliques", "clicks", "broadcasts"),
+  footer: "sum",
+  cell: ({ row }) =>
+    h(
+      "div",
+      { class: "text-right" },
+      formatNumber(row.getValue("clicks") || 0)
+    ),
+});
 
-watch(perPage, () => applyFilter(1));
+const ctrBroadcastColumn = columnHelper.accessor("ctr", {
+  header: () => createHeaderButton("CTR", "ctr", "broadcasts"),
+  footer: () => "avg",
+  format: "percentage",
+  cell: ({ row }) =>
+    h(
+      "div",
+      { class: "text-right" },
+      formatPercentage(row.getValue("ctr") || 0)
+    ),
+});
+
+const filteredBroadcastColumns = computed(() => {
+  if (hasMemberAccess.value) {
+    return [...baseBroadcastColumns, clicksBroadcastColumn, ctrBroadcastColumn];
+  }
+  return baseBroadcastColumns;
+});
+
+watch(campaignPerPage, () => {
+  campaignPages.value.current = 1;
+  loadData();
+});
+
+watch(broadcastPerPage, () => {
+  broadcastPages.value.current = 1;
+  loadData();
+});
 
 watch(selectedRange, () => {
-  applyFilter();
+  campaignPages.value.current = 1;
+  broadcastPages.value.current = 1;
+  loadData();
 });
 
-type CampaignMetrics = {
-  name: string;
-  sms: number;
-  clicks: number;
-};
+loadData();
 </script>
