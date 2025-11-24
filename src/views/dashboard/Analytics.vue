@@ -15,6 +15,8 @@
     </div>
     <div class="grid xl:grid-cols-2 grid-cols-1 gap-4" >
       <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" glossary="Dados de Usuários registrados e ativos"/>
+      <PeriodComponent :period="loginsDays" title="Logins diários" :isLoading="isLoading" glossary="Dados de Logins diários"/>
+
       <PeriodComponent :period="depositsPeriod" title="Deposito por periodo" :isLoading="isLoading" glossary="Dados de depósito por período, com diferença de 7D, 14D e 28D"/>
       <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" type="percent" class="xl:col-span-2" :isLoading="isLoading" glossary="Percentual de depósitos líquidos em relação ao total por período"/>
       <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período" :isLoading="isLoading" glossary="Valor líquido dos depósitos realizados em cada período"/>
@@ -52,6 +54,7 @@ const { toast } = useToast();
 const loading = ref(true);
 const projects = ref(null);
 const depositsPeriod = ref<{ name: string; value: number[] }[]>([]);
+const loginsDays = ref<{ name: string; value: number[] }[]>([]);
 const usersPeriod = ref<{ name: string; value: number[] }[]>([]);
 const percentNetDepositsPeriod = ref<{ name: string; value: number[];  }[]>([]);
 const netDepositsPeriod = ref<{ name: string; value: number[];  }[]>([]);
@@ -97,6 +100,8 @@ const applyFilter = async () => {
     valueWithdrawsPeriod.value = [{name:"Saques",value:data.value_withdraws_period}];
     registrationDepositRatePeriod.value = [{name:"% Depósito",value:data.registration_deposit_rate_period}];
     depositConversionRatePeriod.value = [{name:"% Pagos",value:data.deposit_conversion_rate_period}];
+    loginsDays.value = [{name:"Logins",value:data.player_logins_period}];
+
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",

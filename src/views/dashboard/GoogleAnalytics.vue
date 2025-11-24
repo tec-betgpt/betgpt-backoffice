@@ -299,11 +299,7 @@ const applyFilter = async (current = pages.value.current) => {
     const startDateFormatted = formatDateForAPI(selectedRange.value.start);
     const endDateFormatted = formatDateForAPI(selectedRange.value.end);
 
-    console.log("Datas enviadas para API:", {
-      start: startDateFormatted,
-      end: endDateFormatted,
-      selectedRange: selectedRange.value,
-    });
+
 
     const params: any = {
       page: current,

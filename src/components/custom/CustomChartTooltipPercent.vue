@@ -30,7 +30,7 @@ defineProps<{
           <span>{{ item.name }}</span>
         </div>
         <span class="font-semibold ml-4">
-          {{ (item.value / 100).toFixed(2) }}%
+          {{ (item.value).toFixed(2) }}%
         </span>
       </div>
     </CardContent>

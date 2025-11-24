@@ -35,7 +35,7 @@ defineProps<{
             new Intl.NumberFormat("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            }).format(item.value / 100)
+            }).format(item.value)
           }}
         </span>
       </div>
