@@ -818,7 +818,7 @@ const operatorMap = {
 };
 const availableProviders = [
   { id: 'meta', label: 'Meta Ads' },
-  { id: 'google-analytics', label: 'Google Analytics' }
+ // { id: 'google-analytics', label: 'Google Analytics' }
 ];
 
 const exportSeg = ref([]);

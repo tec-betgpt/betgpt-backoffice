@@ -72,6 +72,7 @@ import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import {formatLargeNumber} from "@/filters/formatLargeNumber";
+import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
 
 export default defineComponent({
   components: {
@@ -86,39 +87,58 @@ export default defineComponent({
     CustomChartTooltip() {
       return CustomChartTooltip
     },
+    CustomChartTooltipPrice() {
+      return CustomChartTooltipPrice
+    },
     categories(): string[] {
       return this.period.map(p => p.name)
    },
-    chartData(): number[] {
+    chartData(): any[] {
+      if (this.type === 'currency') {
+        return this.period.length ? this.period[0].value.map((v: any) => {
+
+          const metricName = Object.keys(v).find(key => key !== 'date');
+
+          if (metricName) {
+            const rawValue = v[metricName];
+            const valueInReais = Number((rawValue / 100).toFixed(2));
+            return {
+              [metricName]: valueInReais,
+              date: v.date
+            };
+          }
+
+          return v;
+        }): []
+      }
+      if (this.type === 'percent'){
+
+      }
       return this.period.length ? this.period[0].value : []
     },
     tooltip(){
-      return this.type === 'percent' ? this.CustomChartTooltipPercent : this.CustomChartTooltip
+      if (this.type === 'percent') return this.CustomChartTooltipPercent
+      if (this.type === 'currency') return this.CustomChartTooltipPrice
+      return this.CustomChartTooltip
     },
     yFormatter(): (tick: number) => string {
     if (this.type === 'percent') {
-      return (tick: number) => {
-        return   typeof tick === 'number'
-            ? `${(tick / 100).toFixed(2)}%`
-            : ''
-      }
+      return (tick: number) => `${(tick).toFixed(2)}%`
+
+
     }
     if (this.type ==='currency'){
       return (tick:number) =>
-          typeof tick === 'number'
-              ? `R$ ${new Intl.NumberFormat('pt-BR', {
+        `R$ ${new Intl.NumberFormat('pt-BR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })
-                  .format(tick / 100)
+                  .format(tick )
                   .toString()}`
-              : ''
+
     }
-    return (tick: number) => {
-      return typeof tick === 'number'
-        ? new Intl.NumberFormat('pt-BR').format(tick)
-        : '';
-    }
+    return (tick: number) => new Intl.NumberFormat('pt-BR').format(tick)
+
   },
 
   },
@@ -129,6 +149,9 @@ export default defineComponent({
   }),
 
   methods:{
+    getVarName(obj: Record<string, any>): string {
+      return Object.keys(obj)[0];
+    },
     calculateStats(key, data) {
       if (!data.length) return {}
       const values = data.map(item => item[key])
@@ -137,7 +160,12 @@ export default defineComponent({
       const avg = values.reduce((acc, val) => acc + val, 0) / values.length
       if(this.type == "percent")
       {
+        return {max: (max ).toFixed(2), min: (min ).toFixed(2), avg: (avg ).toFixed(2)}
+      }
+      if (this.type =="currency")
+      {
         return {max: (max / 100).toFixed(2), min: (min / 100).toFixed(2), avg: (avg / 100).toFixed(2)}
+
       }
       if (this.windowWidth < 640) {
         return { max: formatLargeNumber(max).content + formatLargeNumber(max).separator  ,
