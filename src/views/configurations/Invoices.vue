@@ -1,6 +1,11 @@
 <template>
-  <div class="space-y-4">
-    <h1 class="text-2xl font-semibold">Faturas</h1>
+  <div class="space-y-4 w-full">
+    <div class="mb-4">
+      <h1 class="text-lg font-medium">Faturas</h1>
+      <p class="text-sm text-muted-foreground">
+        Veja a lista em detalhes de todas as suas faturas.
+      </p>
+    </div>
 
     <Table v-if="isLoading">
       <TableRow v-for="i in 5" :key="i">
@@ -10,72 +15,65 @@
       </TableRow>
     </Table>
 
-    <div v-else-if="services && services.data && services.data.length > 0">
-      <div class="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Período</TableHead>
-              <TableHead class="text-right">Valor</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="invoice in services.data" :key="invoice.id">
-              <TableCell>{{ invoice.name }}</TableCell>
-              <TableCell>{{ formatDate(invoice.period_started_at) }} - {{ formatDate(invoice.period_ended_at) }}</TableCell>
-              <TableCell class="text-right">{{ formatCurrency(invoice.amount) }}</TableCell>
-              <TableCell>
-                <Badge :variant="getStatusVariant(invoice.status)">
-                  {{ invoice.status }}
-                </Badge>
-              </TableCell>
-              <TableCell class="flex items-center justify-end space-x-2">
-                <ShowComponent :row="invoice" />
-                <!-- Dpende de integração com gateway de pagamento
-                <Button variant="ghost" size="icon" @click="sendInvoiceByEmail(invoice)">
-                  <Mail class="w-4 h-4" />
-                </Button>
-                -->
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
-
-      <CustomPagination
-        :select-page="fetchInvoices"
-        :pages="pages"
-        :per_pages="perPage"
-        @update:perPages="(value) => perPage = value"
-      />
+    <div class="flex justify-start items-start  gap-8 flex-wrap w-full border rounded-lg">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>Período</TableHead>
+            <TableHead class="text-right">Valor</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead class="text-right">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody v-if="services && services.data && services.data.length > 0">
+          <TableRow v-for="row in services.data" :key="row.id">
+            <TableCell>{{ row.name }}</TableCell>
+            <TableCell>{{ formatDate(row.period_started_at) }} - {{ formatDate(row.period_ended_at) }}</TableCell>
+            <TableCell class="text-right">{{ currencyFilter(row.amount) }}</TableCell>
+            <TableCell>
+              <Badge :variant="getStatusVariant(row.status)">
+                {{ row.status }}
+              </Badge>
+            </TableCell>
+            <TableCell class="flex items-center justify-end space-x-2">
+              <ShowComponent :row="row" />
+              <GetLinkComponent :row="row" :user="user" />
+            </TableCell>
+          </TableRow>
+        </TableBody>
+        <TableBody v-else>
+          <TableRow>
+            <TableCell :colspan="4" class="text-center py-5">
+              Nenhuma fatura encontrada.
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
 
-    <div v-else>
-      <p>Nenhuma fatura encontrada.</p>
-    </div>
+    <CustomPagination
+      :select-page="fetchInvoices"
+      :pages="pages"
+      :per_pages="perPage"
+      @update:perPages="(value) => perPage = value"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
+import Auth from "@/services/auth";
 import Invoices from "@/services/invoices";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import ShowComponent from "@/components/invoices/ShowComponent.vue";
+import GetLinkComponent from "@/components/invoices/GetLinkComponent.vue";
+import currencyFilter from "@/filters/currencyFilter";
 
 const { toast } = useToast();
 
+const user = ref<any>(null);
 const services = ref<any>(null);
 const isLoading = ref(true);
 const currentPage = ref(1);
@@ -113,27 +111,10 @@ const fetchInvoices = async (page = 1) => {
   isLoading.value = false;
 };
 
-/**
- * @todo Requer integração com gateway de pagamento
- */
-const sendInvoiceByEmail = (invoice: any) => {
-  toast({
-    title: "E-mail enviado",
-    description: `A fatura ${invoice.name} foi enviada por e-mail.`,
-  });
-};
-
 const formatDate = (dateString: string) => {
   if (!dateString) return '';
   const date = new Date(dateString);
   return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-};
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
 };
 
 const getStatusVariant = (status: string) => {
@@ -149,7 +130,17 @@ const getStatusVariant = (status: string) => {
   }
 };
 
+const fetchUser = async () => {
+  try {
+    const response = await Auth.user();
+    user.value = response.data
+  } catch (e) {
+    console.error(e)
+  }
+};
+
 onMounted(async () => {
+  await fetchUser();
   await fetchInvoices();
 });
 </script>
