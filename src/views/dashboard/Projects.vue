@@ -152,6 +152,7 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import Projects from '@/services/projects'
 import {Dialog} from "@/components/ui/dialog";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 const imagePreview = ref();
 const errorMessage = ref("");
 
@@ -405,11 +406,18 @@ function createHeaderButton(label: string, columnKey: string) {
 }
 
 const columns = [
-  columnHelper.accessor("id", {
+  columnHelper.accessor("logo_url", {
     header({ column }) {
-      return createHeaderButton("ID", "id");
+      return createHeaderButton("Logo", "logo_url");
     },
-    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("id")),
+    cell: ({ row }) =>        h(
+        Avatar,
+        { class: "h-10 w-10 rounded-lg" },
+        [
+          h(AvatarImage, { src: row.getValue("logo_url") || undefined }),
+          h(AvatarFallback, { class: "p-10 rounded-lg" }, row.original.name.charAt(0) + row.original.name.charAt(1))
+        ]
+    ),
   }),
   columnHelper.accessor("name", {
     header({ header }) {
@@ -427,6 +435,29 @@ const columns = [
         {},
         moment(row.getValue("created_at")).format("DD/MM/YYYY HH:mm:ss")
       ),
+  }),
+  columnHelper.accessor("lastpostbacklog.created_at", {
+    header({ header }) {
+      return createHeaderButton("Ultima data da API", "lastpostbacklog.created_at");
+    },
+    cell: ({ row }) =>
+        h(
+            "div",
+            {},
+
+            row.getValue("lastpostbacklog.created_at")? moment(row.getValue("lastpostbacklog.created_at")).format("DD/MM/YYYY HH:mm:ss")
+                : 'Sem dados'
+        ),
+  }),
+  columnHelper.accessor("users_count", {
+    header({ header }) {
+      return createHeaderButton("Usuarios", "users_count");
+    },
+    cell: ({ row }) =>
+        h(
+            "div",
+            {class:"text-start"},
+            row.getValue("users_count")    ),
   }),
   columnHelper.accessor("statuses", {
     header({ header }) {
@@ -526,8 +557,12 @@ type Project = {
   id: number;
   name: string;
   created_at: string;
-  image_url: string;
+  logo_url: string;
   statuses: ProjectStatus[];
+  users_count: number;
+  lastpostbacklog:{
+    created_at: string;
+  }
 };
 
 onMounted(fetchProjects);
