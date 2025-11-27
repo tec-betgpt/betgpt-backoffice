@@ -952,7 +952,7 @@ const navMenu = computed(() => {
           name: "Fontes de Dados",
           url: { name: "data-sources" },
           icon: Blocks,
-          show: canAccess("access-to-integrations"),
+          show: canAccess("access-to-integrations") && activeGroupProject.value?.type === "project",
         },
       ],
     },
@@ -1072,8 +1072,8 @@ const hasPermissionInActiveProject = (permissionName: string) => {
   return !!authStore.user?.roles
     .filter(
       (role: any) =>
-        activeGroupProject &&
-        role.pivot.project_id === activeGroupProject.project_id!
+        activeGroupProject.value &&
+        role.pivot.project_id === activeGroupProject.value.project_id!
     )
     .some((role: any) =>
       role.permissions.some(
