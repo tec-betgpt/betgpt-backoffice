@@ -20,6 +20,7 @@
               <TableHead>Nome</TableHead>
               <TableHead>Acesso</TableHead>
               <TableHead class="text-right">Criado em</TableHead>
+              <TableHead class="text-right">Ultima atualização</TableHead>
               <TableHead class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -44,6 +45,9 @@
                 </TableCell>
                 <TableCell class="text-right text-nowrap">
                   {{ $moment(row.created_at).format('DD/MM/YYYY') }}
+                </TableCell>
+                <TableCell class="text-right text-nowrap">
+                  {{ $moment(row.updated_at).format('DD/MM/YYYY') }}
                 </TableCell>
                 <TableCell class="text-right">
                   <div class="gap-1 flex flex-nowrap justify-end">
@@ -91,6 +95,7 @@ import Roles from '@/services/roles'
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/roles/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/roles/EditDialogComponent.vue";
+import {Card, CardContent} from "@/components/ui/card";
 
 const { toast } = useToast();
 const roles = ref([]);

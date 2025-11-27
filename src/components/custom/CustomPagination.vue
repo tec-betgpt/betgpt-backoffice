@@ -98,7 +98,7 @@ const applyFilter = (page: number) => {
         <PaginationLast as-child @click="applyFilter(p.last)" />
       </PaginationList>
     </Pagination>
-      <p  class="text-muted-foreground font-medium text-sm w-fit">
+      <p v-if="p.last > 1" class="text-muted-foreground font-medium text-sm w-fit">
         {{per_pages}} de {{p.total}}
       </p>
     <Select
