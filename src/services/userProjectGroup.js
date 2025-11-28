@@ -12,13 +12,37 @@ export default {
   },
 
   /**
-   * POST /v1/user-project-groups/set-project-workspace
+   * POST /v1/user-project-groups
    *
    * @param {object} body
-   * @param {object} body.group_project
+   * @param {string} body.name
+   * @param {Array<number>} body.project_ids
    */
-  async setProjectWorkspace (body) {
-    const { data } = await api.post('/user-project-groups/set-project-workspace', body)
+  async store (body) {
+    const { data } = await api.post('/user-project-groups', body)
+    return data
+  },
+
+  /**
+   * POST /v1/user-project-groups/{id}
+   *
+   * @param {number} id
+   */
+  async show (id) {
+    const { data } = await api.get(`/user-project-groups/${id}`)
+    return data
+  },
+
+  /**
+   * PUT /v1/user-project-groups/{id}
+   *
+   * @param {number} id
+   * @param {object} body
+   * @param {string} body.name
+   * @param {Array<number>} body.project_ids
+   */
+  async update (id, body = {}) {
+    const { data } = await api.put(`/user-project-groups/${id}`, body)
     return data
   },
 
@@ -33,14 +57,13 @@ export default {
   },
 
   /**
-   * POST /v1/user-project-groups
+   * POST /v1/user-project-groups/set-project-workspace
    *
    * @param {object} body
-   * @param {string} body.name
-   * @param {Array<number>} body.project_ids
+   * @param {object} body.group_project
    */
-  async store (body) {
-    const { data } = await api.post('/user-project-groups', body)
+  async setProjectWorkspace (body) {
+    const { data } = await api.post('/user-project-groups/set-project-workspace', body)
     return data
-  },
+  }
 }
