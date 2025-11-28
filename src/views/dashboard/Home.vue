@@ -1,5 +1,5 @@
 <template>
-  <div class="view-home p-10 max-[450px]:p-2 pb-16 w-full">
+  <div class="view-home pb-16 w-full">
     <div class="relative py-4 xl:py-8 rounded-lg overflow-hidden">
       <div class="relative z-20">
         <div class="px-5 grid md:grid-cols-2 xs:grid-cols-1 gap-2 w-full">
@@ -118,9 +118,7 @@
                   @drop="onDropSub($event, subItem, item.id)"
                 >
                   <CardHeader class="pb-2">
-                    <CardTitle
-                      class="flex-row flex justify-between items-center"
-                    >
+                    <CardTitle class="flex-row flex justify-between items-center">
                       <div class="flex justify-between items-center">
                         <Avatar
                           v-if="subItem.icon"
@@ -129,33 +127,25 @@
                         >
                           <Component :is="subItem.icon" :color="iconColor" />
                         </Avatar>
-                        <span
-                          class="font-medium"
-                          :class="{ 'text-xs': !subItem.layout }"
-                        >
+                        <span class="font-medium" :class="{ 'text-xs': !subItem.layout }">
                           {{ subItem.title }}
                         </span>
                       </div>
 
-                      <GlossaryTooltipComponent
-                        :description="subItem.tooltip"
-                      />
+                      <GlossaryTooltipComponent :description="subItem.tooltip" />
                     </CardTitle>
-                    <CardDescription
-                      v-if="subItem.layout === 'list'"
-                      class="pb-5"
-                    >
+                    <CardDescription v-if="subItem.layout === 'list'" class="pb-5">
                       <span v-if="isShowValues">
-                        Tiveram {{ deposits.count30days }} depósitos nos últimos
-                        30 dias.
+                        Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
                       </span>
                       <skeleton-custom v-else />
                     </CardDescription>
                   </CardHeader>
 
                   <!-- LAYOUT TIPO GRÁFICO -->
-                  <CardContent v-if="subItem.layout === 'card'">
+                  <CardContent v-if="subItem.layout === 'card'" class="max-sm:p-3">
                     <BarChart
+                      class="w-full"
                       :data="deposits.monthly_counts"
                       :categories="['Total']"
                       :index="'name'"
@@ -170,59 +160,39 @@
 
                   <!-- LAYOUT TIPO LISTA -->
                   <CardContent v-else-if="subItem.layout === 'list'">
-                    <div class="space-y-8">
+                    <div class="space-y-8 w-full">
                       <div
                         v-for="deposit in deposits.lasts"
                         :key="deposit.id"
-                        class="flex items-center"
+                        class="flex items-center justify-between w-full"
                       >
-                        <Avatar class="h-9 w-9">
-                          <AvatarFallback>
-                            {{
-                              deposit.player.name
-                                ? deposit.player.name.charAt(0)
-                                : deposit.player.email.charAt(0).toUpperCase()
-                            }}{{
-                              deposit.player.name
-                                ? deposit.player.name.charAt(1)
-                                : deposit.player.email.charAt(1)
-                            }}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div class="ml-4 space-y-1 w-1/2">
+                        <div class="space-y-1 w-1/2 max-sm:w-56 min-w-0">
                           <p class="text-sm font-medium leading-none truncate">
                             {{ deposit.player.name }}
                           </p>
-                          <p class="text-sm text-muted-foreground truncate">
+                          <p class="text-xs text-muted-foreground truncate">
                             {{ deposit.player.email }}
                           </p>
                         </div>
-                        <div class="ml-auto text-right" v-if="isShowValues">
+
+                        <div class="text-right" v-if="isShowValues">
                           <span class="font-medium">
                             +{{ $toCurrency(deposit.value / 100) }}
                           </span>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <p
-                                  class="text-xs text-muted-foreground text-right"
-                                >
+                                <p class="text-xs text-muted-foreground text-right">
                                   {{ $moment(deposit.created_at).fromNow() }}
                                 </p>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>
-                                  {{
-                                    $moment(deposit.created_at).format(
-                                      "DD/MM/YYYY HH:mm:ss"
-                                    )
-                                  }}
-                                </p>
+                                {{ $moment(deposit.created_at).format("DD/MM/YYYY HH:mm:ss") }}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <div class="ml-auto text-right" v-else>
+                        <div class="text-right" v-else>
                           <SkeletonCustom class="h-6 w-6" />
                         </div>
                       </div>

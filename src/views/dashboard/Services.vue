@@ -27,15 +27,7 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group
-              appear
-              enter-active-class="enter-active"
-              leave-active-class="leave-active"
-              enter-from-class="enter"
-              enter-to-class="enter-to"
-              leave-from-class="leave"
-              leave-to-class="leave-to"
-            >
+            <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
               <TableRow v-for="(row, index) in services" :key="row.id" :style="`--delay: ${getMs(index)}`">
                 <TableCell>
                   {{ row.name }}

@@ -1,122 +1,83 @@
 <template>
   <div class="google-analytics-page p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="grid min-[900px]:grid-cols-2 gap-4 pb-10">
-      <div>
-        <h2 class="text-2xl font-bold tracking-tight">Configurações de Projetos</h2>
+    <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
+      <div class="space-y-0.5">
+        <h2 class="text-2xl font-bold tracking-tight">Grupos de Projetos</h2>
         <p class="text-muted-foreground">
           Gerencie seus grupos e selecione seu projeto favorito.
         </p>
+      </div>
+
+      <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+        <CreateDialogComponent :reload="fetchUserProjectGroups" />
       </div>
     </div>
 
     <div class="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Grupos de Projetos</CardTitle>
-        </CardHeader>
-        <Separator />
-        <CardContent>
-          <div v-if="loading">
-            <div class="space-y-4">
-              <Skeleton class="h-6 w-full" />
-              <Skeleton class="h-6 w-full" />
-              <Skeleton class="h-6 w-full" />
-            </div>
-          </div>
-          <div v-else-if="groups.length">
-            <div
-              v-for="group in groups"
-              :key="group.id"
-              class="flex items-center justify-between py-3"
-            >
-              <div>
-                <p class="px-1 font-medium">{{ group.name }}</p>
-                <Badge variant="secondary" class="m-1 " v-for="(item, index) in group.projects" :key="index">
-                  {{ item.name }}
-                </Badge>
-              </div>
-              <div class="flex space-x-2">
-                <Button
-                  v-if="
-                    workspaceStore.activeGroupProject?.id !== `group_${group.id}`
-                  "
-                  size="sm"
-                  variant="destructive"
-                  @click="deleteGroup(group.id)"
-                  :disabled="deletingGroupId === group.id"
-                >
-                  <LucideSpinner
-                    v-if="deletingGroupId === group.id"
-                    class="mr-2 h-4 w-4 animate-spin"
-                  />
-                  Excluir
-                </Button>
-              </div>
-            </div>
-          </div>
-          <p v-else class="text-sm text-muted-foreground">
-            Nenhum grupo criado. Crie um grupo abaixo.
-          </p>
-        </CardContent>
-      </Card>
+        <CardContent class="py-4">
+          <Table class="w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Projetos</TableHead>
+                <TableHead class="text-right">Criado em</TableHead>
+                <TableHead class="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody v-if="groups.length">
+              <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
+                <TableRow v-for="(row, index) in groups" :key="row.id" :style="`--delay: ${getMs(index)}`">
+                  <TableCell>
+                    {{ row.name }}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" class="m-1 py-2 " v-for="(item, index) in row.projects.slice(0, 3)" :key="index">
+                      {{ item.name }}
+                    </Badge>
+                    <DropdownMenu v-if="row.projects.length > 3" class="overflow-y-scroll">
+                      <DropdownMenuTrigger as-child>
+                        <Button size="sm" variant="secondary" class="py-0">
+                          +{{ row.projects.length - 3 }}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent class="w-56" align="start">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem v-for="(item, index) in row.projects.slice(3)">
+                            {{ item.name }}
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                  <TableCell class="text-right text-nowrap">
+                    {{ $moment(row.created_at).format('DD/MM/YYYY') }}
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <EditDialogComponent :row="row" :reload="fetchUserProjectGroups" />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Grupos de Projetos</CardTitle>
-        </CardHeader>
-        <Separator />
-        <CardContent>
-          <div class="space-y-3 mt-4">
-            <Label for="groupName">Nome do Grupo</Label>
-            <Input
-              id="groupName"
-              v-model="newGroupName"
-              placeholder="Digite o nome do grupo"
-            />
-            <div>
-              <Label>Projetos no Grupo</Label>
-              <div v-if="loading" class="mt-2">
-                <div class="space-y-4">
-                  <Skeleton class="h-6 w-full" />
-                  <Skeleton class="h-6 w-full" />
-                  <Skeleton class="h-6 w-full" />
-                </div>
-              </div>
-              <div
-                v-else
-                class="space-y-2 max-h-72 overflow-y-auto border p-2 rounded-lg mt-2"
-              >
-                <div
-                  v-for="project in projects"
-                  :key="project.id"
-                  class="flex items-center"
-                >
-                  <Checkbox
-                    :checked="selectedProjects.includes(project.id)"
-                    @update:checked="onCheckboxChange(project.id, $event)"
-                    :id="'project-' + project.id"
-                  />
-                  <Label class="ml-2 font-normal" :for="'project-' + project.id">
-                    {{ project.name }}
-                  </Label>
-                </div>
-              </div>
-            </div>
-            <div class="text-right">
-              <Button
-                @click="createGroup"
-                :disabled="creatingGroup"
-                variant="outline"
-                class="bg-yellow-400 text-black hover:bg-yellow-500 hover:text-black"
-              >
-                <LucideSpinner
-                  v-if="creatingGroup"
-                  class="mr-2 h-4 w-4 animate-spin"
-                />
-                Criar Grupo
-              </Button>
-            </div>
-          </div>
+                    <DestroyDialogComponent
+                      v-if="workspaceStore.activeGroupProject?.id !== `group_${row.id}`"
+                      :destroy="deleteGroup"
+                      :row="row"
+                      :reload="fetchUserProjectGroups"
+                    />
+                    <Button v-else size="icon" variant="ghost" disabled>
+                      <Trash />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </transition-group>
+            </TableBody>
+
+            <TableBody v-else>
+              <TableRow>
+                <TableCell :colspan="4" class="text-center py-5">
+                  Nenhum grupo encontrado.
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
@@ -126,34 +87,27 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { Loader2 as LucideSpinner, LucideStar } from "lucide-vue-next";
+import { Trash } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
-import Projects from '@/services/projects'
+import { getMs } from "@/filters/formatNumbers";
+import { Card, CardContent } from "@/components/ui/card";
+import { TableBody } from "@/components/ui/table";
+import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
+import CreateDialogComponent from "@/components/projects/CreateDialogComponent.vue";
+import EditDialogComponent from "@/components/projects/EditDialogComponent.vue";
 import UserProjectGroup from '@/services/userProjectGroup'
-import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
-import {Card, CardContent} from "@/components/ui/card";
 
 const { toast } = useToast();
+
 const workspaceStore = useWorkspaceStore();
-
 const loading = ref(false);
-const creatingGroup = ref(false);
 const groups: any = ref([]);
-const projects = ref([]);
-const newGroupName = ref("");
-const selectedProjects = ref([]);
-const deletingGroupId: any = ref(null);
 
-const fetchProjectsAndGroups = async () => {
+const fetchUserProjectGroups = async () => {
   loading.value = true;
 
   try {
-    const [projectsResponse, groupsResponse] = await Promise.all([
-      Projects.index(),
-      UserProjectGroup.index(),
-    ]);
-
-    projects.value = projectsResponse.data;
+    const groupsResponse = await UserProjectGroup.index()
     groups.value = groupsResponse.data;
   } catch (error) {
     toast({
@@ -166,17 +120,7 @@ const fetchProjectsAndGroups = async () => {
   loading.value = false;
 };
 
-const onCheckboxChange = (id: any, checked: any) => {
-  if (checked) {
-    selectedProjects.value.push(id);
-  } else {
-    selectedProjects.value = selectedProjects.value.filter((pid) => pid !== id);
-  }
-};
-
 const deleteGroup = async (groupId: number) => {
-  deletingGroupId.value = groupId;
-
   try {
     await UserProjectGroup.destroy(groupId)
     groups.value = groups.value.filter((group) => group.id !== groupId);
@@ -184,7 +128,6 @@ const deleteGroup = async (groupId: number) => {
     toast({
       title: "Sucesso",
       description: "Grupo excluído com sucesso.",
-      variant: "success",
     });
   } catch (error) {
     toast({
@@ -193,55 +136,7 @@ const deleteGroup = async (groupId: number) => {
       variant: "destructive",
     });
   }
-
-  deletingGroupId.value = null;
 };
 
-const createGroup = async () => {
-  if (!newGroupName.value.trim()) {
-    toast({
-      title: "Erro",
-      description: "O nome do grupo não pode estar vazio.",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  if (selectedProjects.value.length < 2) {
-    toast({
-      title: "Erro",
-      description: "Selecione no mínimo dois projetos para criar o grupo.",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  try {
-    creatingGroup.value = true;
-
-    const { data } = await UserProjectGroup.store({
-      name: newGroupName.value,
-      project_ids: selectedProjects.value,
-    })
-
-    groups.value.push(data);
-    newGroupName.value = "";
-    selectedProjects.value = [];
-    toast({
-      title: "Sucesso",
-      description: "Grupo criado com sucesso.",
-      variant: "success",
-    });
-  } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao criar grupo.",
-      variant: "destructive",
-    });
-  }
-
-  creatingGroup.value = false;
-};
-
-onMounted(fetchProjectsAndGroups);
+onMounted(fetchUserProjectGroups);
 </script>
