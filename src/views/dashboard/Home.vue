@@ -166,7 +166,7 @@
                         :key="deposit.id"
                         class="flex items-center justify-between w-full"
                       >
-                        <div class="space-y-1 w-1/2 max-sm:w-36 min-w-0">
+                        <div class="space-y-1 w-1/2 max-sm:w-56 min-w-0">
                           <p class="text-sm font-medium leading-none truncate">
                             {{ deposit.player.name }}
                           </p>
