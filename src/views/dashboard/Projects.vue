@@ -419,6 +419,12 @@ const columns = [
         ]
     ),
   }),
+  columnHelper.accessor("id", {
+    header({ header }) {
+      return createHeaderButton("ID", "id");
+    },
+    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("id")),
+  }),
   columnHelper.accessor("name", {
     header({ header }) {
       return createHeaderButton("Nome", "name");
