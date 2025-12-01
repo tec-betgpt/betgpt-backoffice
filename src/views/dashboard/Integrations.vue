@@ -42,11 +42,20 @@
             </SelectTrigger>
             <SelectContent>
               <SelectItem
+                  v-if="data.slug === 'google-analytics'"
                 v-for="property in propetyList"
                 :key="property.id"
                 :value="property.id"
               >
                 {{ property.name }}/{{ property.id }}
+              </SelectItem>
+              <SelectItem
+                  v-if="data.slug === 'meta'"
+                  v-for="account in adAccountMeta"
+                  :key="account.id"
+                  :value="account.id"
+              >
+                {{ account.name }}/{{ account.id }}
               </SelectItem>
             </SelectContent>
           </Select>
