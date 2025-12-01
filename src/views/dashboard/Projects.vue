@@ -436,18 +436,19 @@ const columns = [
         moment(row.getValue("created_at")).format("DD/MM/YYYY HH:mm:ss")
       ),
   }),
-  columnHelper.accessor("lastpostbacklog.created_at", {
+  columnHelper.accessor("last_postback_log", {
     header({ header }) {
-      return createHeaderButton("Ultima data da API", "lastpostbacklog.created_at");
+      return createHeaderButton("Ultima data da API", "last_postback_log");
     },
-    cell: ({ row }) =>
-        h(
-            "div",
-            {},
+    cell: ({ row }) => {
+      return h(
+          "div",
+          {},
 
-            row.getValue("lastpostbacklog.created_at")? moment(row.getValue("lastpostbacklog.created_at")).format("DD/MM/YYYY HH:mm:ss")
-                : 'Sem dados'
-        ),
+          row.getValue("last_postback_log") ? moment(row.getValue("last_postback_log").created_at).format("DD/MM/YYYY HH:mm:ss")
+              : 'Sem dados'
+      )
+    },
   }),
   columnHelper.accessor("users_count", {
     header({ header }) {
@@ -560,8 +561,11 @@ type Project = {
   logo_url: string;
   statuses: ProjectStatus[];
   users_count: number;
-  lastpostbacklog:{
+  last_postback_log:{
+    id: number;
+    project_id: number;
     created_at: string;
+
   }
 };
 
