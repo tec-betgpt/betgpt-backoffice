@@ -32,11 +32,11 @@
           </div>
         </div>
         <div
-          v-if="(data.slug === 'google-analytics' || data.slug === 'meta') && propetyList.length > 0"
+          v-if="(data.slug === 'google-analytics' || data.slug === 'meta') && ( propetyList.length > 0 || adAccountMeta.length > 0)"
           class="mt-4"
         >
           <Label for="property" class="mb-1">Propriedade do Projeto</Label>
-          <Select id="property" :v-model="data.slug === 'google-analytics' ? data.config.property_id:data.config.ad_account" class="my-1">
+          <Select id="property" :v-model="data.slug === 'google-analytics' ? data.config.property_id : data.config.ad_account" class="my-1">
             <SelectTrigger>
               <SelectValue placeholder="Selecione a propriedade" />
             </SelectTrigger>
@@ -142,7 +142,7 @@ const integrations = ref<Array<any>>([]);
 const activeGroupProject = workspaceStore.activeGroupProject;
 const popUp = ref<Window | null>(null);
 const propetyList = ref<Array<{ id: string; name: string }>>([]);
-const property = ref();
+const adAccountMeta = ref<Array<{ id: string; name: string }>>([]);
 const disableBt = ref(false);
 
 async function fetchIntegrations() {
@@ -227,7 +227,7 @@ async function getProperty() {
 }
 
 async function getAccountIdMeta(){
-  propetyList.value = await Projects.adAccount({
+  adAccountMeta.value = await Projects.adAccount({
     project_id: activeGroupProject.project_id,
     integration_id: integrations.value.find(
         (value) => value.slug === "meta"
