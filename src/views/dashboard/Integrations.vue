@@ -73,6 +73,19 @@
             }}
           </span>
         </div>
+        <div
+            class="mt-4 text-sm"
+            v-if="data.slug === 'meta' && data.config?.ad_account"
+        >
+          <span>
+            Propriedade vinculada:
+            {{
+              data.config?.ad_account
+                  ? data.config.ad_account
+                  : "Não conectado"
+            }}
+          </span>
+        </div>
         <div class="mt-4 space-y-4">
           <div v-for="field in data.fields" :key="field.key" class="space-y-2">
             <Label :for="`${data.slug}-${data.key}`">{{ field.title }}</Label>
@@ -166,10 +179,16 @@ async function fetchIntegrations() {
 
     const { data } = await Projects.integrations(activeGroupProject.project_id);
 
-    integrations.value = data.map((integration: any) => ({
-      ...integration,
-      config: integration.integration ? integration.integration.config : [],
-    }));
+    integrations.value = data.map((integration: any) => {
+      const rawConfig = integration.integration?.config;
+
+      const configFixed = (Array.isArray(rawConfig) || !rawConfig) ? {} : rawConfig;
+
+      return {
+        ...integration,
+        config: configFixed
+      };
+    });
     const google = integrations.value.find(
       (value) => value.slug === "google-analytics"
     );
@@ -314,7 +333,7 @@ async function saveAllIntegrations() {
   try {
     await Projects.bulkUpdate(
       activeGroupProject.project_id,
-      integrations.value
+        integrations.value,
     );
 
     toast({
@@ -323,6 +342,7 @@ async function saveAllIntegrations() {
     });
     propetyList.value = [];
   } catch (error) {
+    console.error(error);
     toast({
       title: "Erro",
       description: "Erro ao carregar as Fontes de Dados.",
