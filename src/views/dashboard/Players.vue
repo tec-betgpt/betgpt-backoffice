@@ -83,24 +83,12 @@ import { ref, onMounted } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { getMs } from "@/filters/formatNumbers";
-import Players from "@/services/players";
-import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
-import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 import { ArrowDown, ArrowUp } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import ShowDialogComponent from "@/components/players/ShowDialogComponent.vue";
+import Players from "@/services/players";
+import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
+import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 
 const { toast } = useToast();
 
@@ -114,11 +102,6 @@ type Player = {
 const players = ref<Player[]>([]);
 const isLoading = ref(true);
 const currentPage = ref(1);
-const pages = ref({
-  current: 1,
-  last: 1,
-  total: 0
-});
 const searchValues = ref<Record<string, string>>({});
 const order = ref('id');
 const direction = ref(false); // false = desc, true = asc
