@@ -320,7 +320,7 @@ const routes = [
           requiresAuth: true,
           roles: "member|client",
           permissions: "player-registrations",
-          title: "Jogadores",
+          title: "Clientes",
         },
       },
       {
