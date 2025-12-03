@@ -104,7 +104,7 @@ const isLoading = ref(true);
 const currentPage = ref(1);
 const searchValues = ref<Record<string, string>>({});
 const order = ref('id');
-const direction = ref(false); // false = desc, true = asc
+const direction = ref(false);
 const perPage = ref(15);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
@@ -148,7 +148,12 @@ const handleSearch = async () => {
 
 const handleSort = (column: string) => {
   if (order.value === column) {
-    direction.value = !direction.value;
+    if (direction.value === false) {
+      direction.value = true;
+    } else {
+      order.value = "id";
+      direction.value = false;
+    }
   } else {
     order.value = column;
     direction.value = false;
