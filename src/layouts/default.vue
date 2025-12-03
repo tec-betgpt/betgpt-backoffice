@@ -1354,19 +1354,23 @@ const swipeSidebars = () => {
 };
 
 const fetchStatusOAuth2 = async () => {
- const response = await Projects.statusOAuth({project_id:workspaceStore.activeGroupProject.project_id})
-  if (response.data.length === 0) return;
-  const status = response.data
-  status.forEach((item) => {
-    toast({
-      variant:'destructive',
-      description:item.status_description,
-      duration:3000,
-      title:item.name,
+  try {
+   const response = await Projects.statusOAuth({project_id:workspaceStore.activeGroupProject.project_id})
+    if (response.data.length === 0) return;
+    const status = response.data
+    status.forEach((item) => {
+      toast({
+        variant:'destructive',
+        description:item.status_description,
+        duration:3000,
+        title:item.name,
+      })
     })
-  })
-
+  } catch (e) {
+    console.error(e)
+  }
 }
+
 onUnmounted(() => {
   window.removeEventListener("touchstart", onTouchStart);
   window.removeEventListener("touchmove", onTouchMove);
