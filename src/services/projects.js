@@ -61,8 +61,6 @@ export default {
    *
    * @param {number} id
    * @param {Array<object>} body
-   * @param {number} body.id
-   * @param {string} body.config
    */
   async bulkUpdate (id, body) {
     const { data } = await api.post(`/projects/${id}/integrations/bulk-update`, body)

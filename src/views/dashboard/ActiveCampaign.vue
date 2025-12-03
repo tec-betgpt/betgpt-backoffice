@@ -66,7 +66,26 @@
         </CardFooter>
       </Card>
     </div>
-
+    <Card v-for="limit in limitsCards" class="flex flex-col sm:w-full">
+      <CardHeader>
+        <CardTitle>
+          Status do {{workspaceStore.activeGroupProject.name}}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div class="grid space-y-2">
+          <span class="">Limite de contatos</span>
+          <Progress  :model-value="(limit.qt_contact/limit.limit_contact)*100"  class="w-full"/>
+          <p class="text-sm">Faltam {{limit.qt_limit_exceeded}}</p>
+        </div>
+        <Separator class="my-2"/>
+        <div class="grid space-y-2">
+          <span class="">Limite de envio</span>
+          <Progress  :model-value="(limit.qt_mail_sent/limit.qt_mail_limits)*100"  class="w-full"/>
+          <p class="text-sm">Faltam {{limit.qt_mail_exceeded}}</p>
+        </div>
+      </CardContent>
+    </Card>
     <!-- Modal de Preview do E-mail -->
     <Dialog v-model:open="showEmailModal">
       <DialogContent
@@ -202,6 +221,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Progress} from "@/components/ui/progress";
+import {Separator} from "@/components/ui/separator";
 
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
@@ -224,7 +246,12 @@ const emailHtml = ref("");
 const selectedCampaign = ref<CampaignMetrics | null>(null);
 const emailIframe = ref<HTMLIFrameElement | null>(null);
 const currentEmailIndex = ref(0);
-
+const limitsCards = ref<{qt_contact: number;
+  limit_contact: number;
+  qt_limit_exceeded: number;
+  qt_mail_limits: number;
+  qt_mail_sent: number;
+  qt_mail_exceeded: number;}[]>([])
 const backendCampaignTotals = ref();
 const campaignsData = ref<CampaignMetrics[]>([]);
 
@@ -473,7 +500,7 @@ const applyFilter = async (current = pages.value.current) => {
     campaignsData.value = data.campaigns.data;
     backendCampaignTotals.value = data.campaigns.total;
     integrations.value = data.integrations;
-
+    limitsCards.value = data.status
     pages.value = {
       current: data.campaigns.pagination.current_page,
       total: data.campaigns.pagination.total,
