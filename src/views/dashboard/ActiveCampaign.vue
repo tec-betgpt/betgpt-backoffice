@@ -66,10 +66,10 @@
         </CardFooter>
       </Card>
     </div>
-    <Card v-for="limit in limitsCards" class="flex flex-col sm:w-fit">
+    <Card v-for="limit in limitsCards" class="flex flex-col sm:w-full">
       <CardHeader>
         <CardTitle>
-          Status
+          Status do {{workspaceStore.activeGroupProject.name}}
         </CardTitle>
       </CardHeader>
       <CardContent>
