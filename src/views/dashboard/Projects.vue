@@ -408,7 +408,7 @@ function createHeaderButton(label: string, columnKey: string) {
 const columns = [
   columnHelper.accessor("logo_url", {
     header({ column }) {
-      return createHeaderButton("Logo", "logo_url");
+      return "Logo"
     },
     cell: ({ row }) =>        h(
         Avatar,
@@ -444,14 +444,14 @@ const columns = [
   }),
   columnHelper.accessor("last_postback_log", {
     header({ header }) {
-      return createHeaderButton("Ultima data da API", "last_postback_log");
+      return createHeaderButton("Ultima data da API", "postback_log.created_at");
     },
     cell: ({ row }) => {
       return h(
           "div",
           {},
 
-          row.getValue("last_postback_log") ? moment(row.getValue("last_postback_log").created_at).format("DD/MM/YYYY HH:mm:ss")
+          row.getValue("last_postback_log").created_at ? moment(row.getValue("last_postback_log").created_at).format("DD/MM/YYYY HH:mm:ss")
               : 'Sem dados'
       )
     },
