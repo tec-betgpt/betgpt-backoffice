@@ -88,18 +88,26 @@ const applyFilter = async () => {
       end_date: selectedRange.value.end?.toString(),
       filter_id: workspaceStore.activeGroupProject.id,
     })
-
+    let percent_net = data.percent_net_deposits_period.map(deposit => {
+      return {date:deposit.date,["7 Dias %"]:deposit["7 Dias %"]/100,["14 Dias %"]:deposit["14 Dias %"]/100,["28 Dias %"]:deposit["28 Dias %"]/100};
+    })
+    let registration_deposit = data.registration_deposit_rate_period.map(deposit => {
+      return {date:deposit.date,["% Depósito"]:deposit["% Depósito"]/100}  })
+    let deposit_conversion = data.deposit_conversion_rate_period.map(deposit => {
+      return {date:deposit.date,["% Pagos"]:deposit["% Pagos"]/100}  })
+    let ftd = data.percent_ftd_day_period.map(deposit => {
+      return {date:deposit.date,["FTD/Dia"]:deposit["FTD/Dia"]/100}  })
     depositsPeriod.value = [{name:"7 Dias",value:data.deposits_period},{name:"14 Dias",value:data.deposits_period}, {name:"28 Dias",value:data.deposits_period}];
     usersPeriod.value = [{name:"Registrados",value:data.users_period}, {name:"Ativos",value:data.users_period}];
-    percentNetDepositsPeriod.value = [{name:"7 Dias %",value:data.percent_net_deposits_period},{name:"14 Dias %",value:data.percent_net_deposits_period}, {name:"28 Dias %",value:data.percent_net_deposits_period}];
+    percentNetDepositsPeriod.value = [{name:"7 Dias %",value:percent_net},{name:"14 Dias %",value:percent_net}, {name:"28 Dias %",value:percent_net}];
     netDepositsPeriod.value = [{name:"7 Dias",value:data.net_deposits_period},{name:"14 Dias",value:data.net_deposits_period}, {name:"28 Dias",value:data.net_deposits_period}];
     activeUsersPeriod.value = [{name:"7 Dias",value:data.active_users_period},{name:"14 Dias",value:data.active_users_period}, {name:"28 Dias",value:data.active_users_period}];
-    percentFtdDayPeriod.value = [{name:"FTD/Dia",value:data.percent_ftd_day_period}];
+    percentFtdDayPeriod.value = [{name:"FTD/Dia",value:ftd}];
     valueNetDepositsPeriod.value = [{name:"Depósitos",value:data.value_net_deposits_period}];
     valueDepositsPeriod.value = [{name:"Depósitos",value:data.value_deposits_period}];
     valueWithdrawsPeriod.value = [{name:"Saques",value:data.value_withdraws_period}];
-    registrationDepositRatePeriod.value = [{name:"% Depósito",value:data.registration_deposit_rate_period}];
-    depositConversionRatePeriod.value = [{name:"% Pagos",value:data.deposit_conversion_rate_period}];
+    registrationDepositRatePeriod.value = [{name:"% Depósito",value:registration_deposit}];
+    depositConversionRatePeriod.value = [{name:"% Pagos",value:deposit_conversion}];
     loginsDays.value = [{name:"Logins",value:data.player_logins_period}];
 
   } catch (error) {
