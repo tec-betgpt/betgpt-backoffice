@@ -1355,7 +1355,8 @@ const swipeSidebars = () => {
 
 const fetchStatusOAuth2 = async () => {
   try {
-   const response = await Projects.statusOAuth({project_id:workspaceStore.activeGroupProject.project_id})
+    if (activeGroupProject.value.type === "group") return
+    const response = await Projects.statusOAuth({project_id:workspaceStore.activeGroupProject.project_id})
     if (response.data.length === 0) return;
     const status = response.data
     status.forEach((item) => {
@@ -1392,6 +1393,9 @@ watch(
   { immediate: true, deep: true }
 );
 
+watch(activeGroupProject,async () =>{
+  fetchStatusOAuth2();
+})
 watch(
   activeGroupProject,
   async () => {
