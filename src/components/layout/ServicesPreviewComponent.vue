@@ -1,6 +1,6 @@
 <template>
-  <div v-if="service && service.id" class="p-2" @click="$router.push({ name: 'invoices.index' })">
-    <SidebarGroup class="bg-black rounded-md text-white relative overflow-hidden">
+  <div v-if="service && service.id" class="p-2" @click="$router.push({ name: 'service-consumeds.index' })">
+    <SidebarGroup class="bg-black rounded-md text-white relative overflow-hidden cursor-pointer">
       <SidebarMenu>
         <SidebarMenuItem>
           <div class="flex items-center justify-start gap-2">
