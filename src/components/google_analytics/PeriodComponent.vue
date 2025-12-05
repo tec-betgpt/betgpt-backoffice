@@ -24,30 +24,32 @@
       <div :class="`gap-2 md:grid-cols-1 sm:grid-cols-1 grid mb-10 w-2/3 mx-auto`">
         <div v-for="(p, index) in period" :key="p.name" class="mx-auto mt-5 md:text-left sm:text-center">
           <div class="flex sm:flex-row flex-col items-center justify-center w-full gap-2">
-            <div class="text-sm text-gray-400 flex items-center justify-center">
-              <div :style="`background: ${colors[index]}`" class="rounded-full w-3 h-3 inline-block mr-1"></div>
+            <div class="text-sm text-gray-400 flex items-center justify-center w-full">
+              <div :style="`background: ${colors[index]}`" class="rounded-full w-3 h-3 inline-block mr-1 text-nowrap"></div>
               {{ p.name }}
             </div>
-            <Badge
-                :title="`Mínimo: ${calculateStats(p.name, p.value).min}`"
-                class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center">
-              <img src="/svg/down.svg" class="w-4 h-4 mr-1" alt="down" />
-              {{ calculateStats(p.name, p.value).min }}
-            </Badge>
-            <Badge
-                :title="`Média: ${calculateStats(p.name, p.value).avg}`"
+            <div class="flex justify-between flex-nowrap gap-5">
+              <Badge
+                  :title="`Mínimo: ${calculateStats(p.name, p.value).min}`"
+                  class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center">
+                <img src="/svg/down.svg" class="w-4 h-4 mr-1" alt="down" />
+                {{ calculateStats(p.name, p.value).min }}
+              </Badge>
+              <Badge
+                  :title="`Média: ${calculateStats(p.name, p.value).avg}`"
+                  class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center"
+              >
+                <img src="/svg/middle.svg" class="w-4 h-4 mr-1" alt="middle" />
+                {{ calculateStats(p.name, p.value).avg }}
+              </Badge>
+              <Badge
+                :title="`Máximo: ${calculateStats(p.name, p.value).max}`"
                 class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center"
-            >
-              <img src="/svg/middle.svg" class="w-4 h-4 mr-1" alt="middle" />
-              {{ calculateStats(p.name, p.value).avg }}
-            </Badge>
-            <Badge
-              :title="`Máximo: ${calculateStats(p.name, p.value).max}`"
-              class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center"
-            >
-              <img src="/svg/up.svg" class="w-4 h-4 mr-1" alt="up" />
-              {{ calculateStats(p.name, p.value).max }}
-            </Badge>
+              >
+                <img src="/svg/up.svg" class="w-4 h-4 mr-1" alt="up" />
+                {{ calculateStats(p.name, p.value).max }}
+              </Badge>
+            </div>
           </div>
         </div>
       </div>
@@ -68,10 +70,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { formatLargeNumber } from "@/filters/formatLargeNumber";
 import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
-import {formatLargeNumber} from "@/filters/formatLargeNumber";
 import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
 
 export default defineComponent({
