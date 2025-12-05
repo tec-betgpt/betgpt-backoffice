@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Button class="bg-yellow-400" @click="modal = true">
+    <Button class="bg-yellow-400 text-black" @click="modal = true">
       <ListFilter />
       Filtro
     </Button>

@@ -16,7 +16,6 @@
     <div class="grid xl:grid-cols-2 grid-cols-1 gap-4" >
       <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" glossary="Dados de Usuários registrados e ativos"/>
       <PeriodComponent :period="loginsDays" title="Logins diários" :isLoading="isLoading" glossary="Dados de Logins diários"/>
-
       <PeriodComponent :period="depositsPeriod" title="Deposito por periodo" :isLoading="isLoading" glossary="Dados de depósito por período, com diferença de 7D, 14D e 28D"/>
       <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" type="percent" class="xl:col-span-2" :isLoading="isLoading" glossary="Percentual de depósitos líquidos em relação ao total por período"/>
       <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período" :isLoading="isLoading" glossary="Valor líquido dos depósitos realizados em cada período"/>
@@ -31,28 +30,20 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, watch} from "vue";
-import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
-import { LineChart } from "@/components/ui/chart-line";
+import { ref, watch } from "vue";
+import {  getLocalTimeZone, today } from "@internationalized/date";
 import { useToast } from "@/components/ui/toast/use-toast";
-import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
-import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
-import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
-import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
-import DateRangePicker from "@/components/custom/DateRangePicker.vue";
-import Analytics from "@/services/analytics";
 import { useWorkspaceStore } from "@/stores/workspace";
+import Analytics from "@/services/analytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 
 const workspaceStore = useWorkspaceStore();
+const { toast } = useToast();
+
 const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
-const { toast } = useToast();
-
-const loading = ref(true);
-const projects = ref(null);
 const depositsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const loginsDays = ref<{ name: string; value: number[] }[]>([]);
 const usersPeriod = ref<{ name: string; value: number[] }[]>([]);
@@ -66,7 +57,6 @@ const valueWithdrawsPeriod = ref<{ name: string; value: number[]; }[]>([]);
 const registrationDepositRatePeriod = ref<{ name: string; value: number[]; }[]>([]);
 const depositConversionRatePeriod = ref<{ name: string; value: number[]; }[]>([]);
 const isLoading = ref(true);
-
 
 const applyFilter = async () => {
   isLoading.value = true;
@@ -112,7 +102,8 @@ const applyFilter = async () => {
 
   isLoading.value = false;
 };
-watch(selectedRange,()=>{
+
+watch(selectedRange,() => {
   applyFilter()
 })
 

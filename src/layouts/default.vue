@@ -153,9 +153,7 @@
                       :tooltip="item.name"
                       @click="toggleCollapsed(item.type)"
                     >
-                      <div
-                        class="flex items-center flex-col justify-center gap-1"
-                      >
+                      <div class="flex items-center flex-col justify-center gap-1">
                         <Component :is="item.icon" :size="16" />
                       </div>
                       <span>{{ item.name }}</span>
