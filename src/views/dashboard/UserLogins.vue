@@ -27,21 +27,18 @@
                 IP
               </TableHead>
               <TableHead class="text-right">
-                Entrou em
+                <Button class="p-0" variant="ghost" @click="handleSort('created_at')">
+                  Entrou em
+                  <ArrowUp v-if="order === 'created_at' && direction" class="ml-2 h-4 w-4" />
+                  <ArrowDown v-else-if="order === 'created_at' && !direction" class="ml-2 h-4 w-4" />
+                  <CaretSortIcon v-else class="ml-2 h-4 w-4" />
+                </Button>
               </TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            <transition-group
-              appear
-              enter-active-class="enter-active"
-              leave-active-class="leave-active"
-              enter-from-class="enter"
-              enter-to-class="enter-to"
-              leave-from-class="leave"
-              leave-to-class="leave-to"
-            >
+            <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
               <TableRow v-for="(row, index) in userLogins" :key="row.id" :style="`--delay: ${getMs(index)}`">
                 <TableCell>
                   {{ row.user.first_name }} {{ row.user.last_name }}
@@ -59,7 +56,7 @@
             </transition-group>
 
             <template v-if="isLoading">
-              <TableRow v-for="i in limit" :key="i">
+              <TableRow v-for="i in perPage" :key="i">
                 <TableCell v-for="j in 4" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
@@ -76,15 +73,12 @@
           </TableBody>
         </Table>
 
-        <Button
-          v-if="userLogins && userLogins.length"
-          :disabled="isAllRecords"
-          @click="loadMore()"
-          variant="ghost"
-          class=":text-yellow-400"
-        >
-          {{ isAllRecords ? 'Limite de registros atingido' : 'Carregar mais' }}
-        </Button>
+        <CustomSimplePagination
+          :current-page="currentPage"
+          :per-page="perPage"
+          @page-changed="fetchUserLogins"
+          @update:per-page="(val) => perPage = val"
+        />
       </CardContent>
     </Card>
 
@@ -95,70 +89,62 @@
 import {ref, onMounted} from "vue";
 import FilterDialogComponent from "@/components/user_logins/FilterDialogComponent.vue";
 import UserLogins from '@/services/userLogins';
+import { getMs } from "@/filters/formatNumbers";
+import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
+import {CaretSortIcon} from "@radix-icons/vue";
+import {ArrowDown, ArrowUp} from "lucide-vue-next";
 
-// data
 const isLoading = ref(true);
-const isAllRecords = ref(false);
-const offset = ref(0);
-const limit = ref(15);
+const perPage = ref(15);
+const currentPage = ref(1);
 const userLogins: any = ref([]);
 const filters = ref({});
+const order = ref("id");
+const direction = ref(false);
 
-// hooks
-onMounted(async () => {
-  await _userLogins({
-    offset: offset.value,
-    limit: limit.value,
-  });
-});
-
-// functions
-const _userLogins = async (params = {}) => {
-  isLoading.value = true;
+const fetchUserLogins = async (page = currentPage.value) => {
+  currentPage.value = page;
 
   try {
-    const data: Array<any> = await UserLogins.index(params);
+    const response = await UserLogins.index({
+      ...filters.value,
+      orderBy: order.value,
+      perPage: perPage.value,
+      page: currentPage.value,
+      orderDirection: direction.value ? "asc" : "desc",
+    });
 
-    if (data.length === 0) {
-      isLoading.value = false;
-      isAllRecords.value = true;
-      return;
-    }
-
-    userLogins.value.push(...data);
+    userLogins.value = response.data
   } catch (e) {
     console.error(e);
   }
-
-  isLoading.value = false;
 };
 
-const loadMore = async () => {
-  offset.value += limit.value;
+const handleSort = (column: string) => {
+  if (order.value === column) {
+    if (direction.value === false) {
+      direction.value = true;
+    } else {
+      order.value = "id";
+      direction.value = false;
+    }
+  } else {
+    order.value = column;
+    direction.value = false;
+  }
 
-  await _userLogins({
-    ...filters.value,
-    offset: offset.value,
-    limit: limit.value,
-  });
+  fetchUserLogins(currentPage.value);
 };
 
 const setFilters = async (params: any) => {
   isLoading.value = true;
-  isAllRecords.value = false;
-  offset.value = 0;
-  filters.value = params;
-  limit.value = params.limit || limit.value;
-  userLogins.value = [];
-
-  await _userLogins({
-    ...filters.value,
-    offset: offset.value,
-    limit: limit.value,
-  });
+  await fetchUserLogins(1);
+  isLoading.value = false;
 };
 
-const getMs = (num: number): string => {
-  return (num / 10).toFixed(1) + "s";
-};
+onMounted(async () => {
+  isLoading.value = true;
+  await fetchUserLogins(1);
+  isLoading.value = false;
+});
 </script>
