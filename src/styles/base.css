@@ -239,3 +239,30 @@
   opacity: 0;
   transform: translateY(-3px);
 }
+
+.loading-dots {
+  display: flex;
+  justify-content: start;
+  align-items: flex-end;
+  font-size: 2rem;
+  height: 2.5rem; /* altura do container */
+}
+
+.loading-dots span {
+  display: inline-block;
+  margin: 0 0.1rem;
+  animation: bounce 0.8s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
