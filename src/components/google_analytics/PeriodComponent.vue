@@ -96,27 +96,37 @@ export default defineComponent({
       return this.period.map(p => p.name)
    },
     chartData(): any[] {
+      // 1. Verificação de segurança para evitar erros de undefined/null
+      if (!this.period || !this.period.length || !this.period[0]?.value) {
+        return [];
+      }
+
+      const rawData = this.period[0].value;
+
       if (this.type === 'currency') {
-        return this.period.length ? this.period[0].value.map((v: any) => {
+        return rawData.map((item: any) => {
 
-          const metricName = Object.keys(v).find(key => key !== 'date');
+          return Object.keys(item).reduce((novoObjeto: any, key) => {
 
-          if (metricName) {
-            const rawValue = v[metricName];
-            const valueInReais = Number((rawValue / 100).toFixed(2));
-            return {
-              [metricName]: valueInReais,
-              date: v.date
-            };
-          }
+            if (key === 'date') {
+              novoObjeto[key] = item[key];
+            }
+            else {
+              const rawValue = Number(item[key]);
 
-          return v;
-        }): []
+              if (!isNaN(rawValue)) {
+                novoObjeto[key] = Number((rawValue / 100).toFixed(2));
+              } else {
+                novoObjeto[key] = item[key];
+              }
+            }
+
+            return novoObjeto;
+          }, {});
+        });
       }
-      if (this.type === 'percent'){
 
-      }
-      return this.period.length ? this.period[0].value : []
+      return rawData;
     },
     tooltip(){
       if (this.type === 'percent') return this.CustomChartTooltipPercent
@@ -157,17 +167,18 @@ export default defineComponent({
     calculateStats(key, data) {
       if (!data.length) return {}
       const values = data.map(item => item[key])
-      const max = Math.max(...values)
-      const min = Math.min(...values)
-      const avg = values.reduce((acc, val) => acc + val, 0) / values.length
+      let max = Math.max(...values)
+      let min = Math.min(...values)
+      let avg = values.reduce((acc, val) => {
+       return Number.parseInt(acc) + Number.parseInt(val)
+      }, 0) / values.length
       if(this.type == "percent")
       {
-        return {max: (max ).toFixed(2), min: (min ).toFixed(2), avg: (avg ).toFixed(2)}
+        return {max: (max ).toFixed(2), min: (min ).toFixed(2), avg: (avg).toFixed(2)}
       }
       if (this.type =="currency")
       {
         return {max: (max / 100).toFixed(2), min: (min / 100).toFixed(2), avg: (avg / 100).toFixed(2)}
-
       }
       if (this.windowWidth < 640) {
         return { max: formatLargeNumber(max).content + formatLargeNumber(max).separator  ,
@@ -197,6 +208,10 @@ export default defineComponent({
     },
     glossary:{
       type: String,
+      required:false
+    },
+    isGroup:{
+      type:Boolean,
       required:false
     }
   }
