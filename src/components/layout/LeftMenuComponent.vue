@@ -334,15 +334,10 @@ import { useConfigStore } from "@/stores/config";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
-import { computed, ref, watch, defineProps, defineEmits } from "vue";
+import { computed, ref, watch, defineModel } from "vue";
 import ServicesPreviewComponent from "@/components/layout/ServicesPreviewComponent.vue";
 
-const props = defineProps<{
-  sidebarExpanded: boolean;
-  toggleSidebar: () => void;
-}>();
-
-const emit = defineEmits(['update:sidebarExpanded']);
+const sidebarExpanded = defineModel<boolean>('sidebarExpanded');
 
 const DARK_LOGOS = {
   square: "/logo-elevate-square-white.png",
@@ -369,7 +364,7 @@ const activeGroupProject = computed(
 );
 
 const logoSrc = computed(() =>
-  getLogoSrc(mode.value === "dark", props.sidebarExpanded)
+  getLogoSrc(mode.value === "dark", sidebarExpanded.value)
 );
 
 const navMenu = computed(() => {
@@ -615,7 +610,7 @@ const canAccess = (permissionName: string) => {
 };
 
 const setActiveGroupProject = async (project: any) => {
-  emit('update:sidebarExpanded', false); // Emit event to collapse sidebar
+  sidebarExpanded.value = false;
   configStore.loading = true;
 
   await workspaceStore.setActiveGroupProject(project);
@@ -623,7 +618,7 @@ const setActiveGroupProject = async (project: any) => {
   setTimeout(() => {
     configStore.loading = false;
     const isMobile = window.innerWidth < 768;
-    emit('update:sidebarExpanded', !isMobile); // Emit event to set sidebar state
+    sidebarExpanded.value = !isMobile;
     document.body.style.overflow = "";
   }, 2000);
 };
@@ -639,14 +634,14 @@ const toggleCollapsed = (type: string) => {
     if (type !== "") {
       collapsed.value = collapsed.value === type ? "" : type;
     } else {
-      emit('update:sidebarExpanded', false); // Collapse sidebar on mobile
+      sidebarExpanded.value = false;
     }
     return;
   }
 
-  if (!props.sidebarExpanded) {
+  if (!sidebarExpanded.value) {
     if (type !== "") {
-      emit('update:sidebarExpanded', true); // Expand sidebar
+      sidebarExpanded.value = true;
     }
   }
 
@@ -654,7 +649,16 @@ const toggleCollapsed = (type: string) => {
 };
 
 const handleSidebarExpand = (value: boolean) => {
-  emit('update:sidebarExpanded', value);
+  sidebarExpanded.value = value;
+};
+
+const toggleSidebar = () => {
+  const isMobile = window.innerWidth < 768;
+  if (isMobile) {
+    sidebarExpanded.value = !sidebarExpanded.value;
+  } else {
+    router.push({ name: "home" });
+  }
 };
 
 // Hooks
