@@ -3,7 +3,7 @@ import type { DateRange } from "radix-vue";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
+  PopoverAnchor,
 } from "@/components/ui/popover";
 import { RangeCalendar } from "@/components/ui/range-calendar";
 import {
@@ -155,7 +155,7 @@ watch(openS, (newV) => {
 
 <template>
   <Popover v-model:open="popoverOpen">
-    <PopoverTrigger as-child>
+    <PopoverAnchor as-child>
       <Select
         v-model:open="openS"
         :modelValue="selectedPreset"
@@ -194,7 +194,7 @@ watch(openS, (newV) => {
           <SelectItem value="month">Este mês</SelectItem>
         </SelectContent>
       </Select>
-    </PopoverTrigger>
+    </PopoverAnchor>
 
     <PopoverContent class="w-full p-4" align="center">
       <RangeCalendar
