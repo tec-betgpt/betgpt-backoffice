@@ -103,273 +103,12 @@
       </main>
     </SidebarInset>
 
-    <Sidebar
-      class="ia"
-      side="right"
-      :collapsed="sidebarAi"
-      :setOpen="setOpenAi"
-      collapsible="offcanvas"
-      :openMobile="false"
-      @update:modelValue="handleSidebarAiExpand"
-    >
-      <SidebarHeader>
-        <div class="flex justify-between items-center align-middle pl-2">
-          <img :src="iconIa" alt="Logo" class="w-10 py-4" />
-
-          <div class="flex justify-end items-center align-middle p-4 gap-6">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Plus
-                    :stroke-width="2"
-                    class="cursor-pointer"
-                    absoluteStrokeWidth
-                    @click="resetChat"
-                  />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="bottom"
-                  align="end"
-                  :align-offset="4"
-                  :arrow-padding="8"
-                  avoid-collisions
-                  :collision-padding="10"
-                  hide-when-detached
-                  position-strategy="absolute"
-                  sticky="always"
-                  update-position-strategy="optimized"
-                  :collision-boundary="null"
-                >
-                  Nova sessão
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <History
-                  :stroke-width="2"
-                  absoluteStrokeWidth
-                  class="cursor-pointer"
-                />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem
-                  v-for="chat in chats"
-                  :key="chat.id"
-                  @click="selectChat(chat.id)"
-                >
-                  {{ chat.title }}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <div
-          v-if="isLoadingChat"
-          class="h-full flex items-center justify-center w-full"
-        >
-          <LoadingFakeComponent />
-        </div>
-
-        <div class="h-full" v-else>
-          <div
-            v-if="messages.length == 0 && !file"
-            class="p-4 text-center flex flex-col justify-center align-middle items-center text-sm h-full font-semibold"
-          >
-            <div class="h-full flex flex-col justify-end items-center">
-              <img :src="logoInChat" class="size-12" alt="logoInChat" />
-              <span>Como posso ajudar?</span>
-            </div>
-
-            <div
-              class="h-full flex flex-col justify-end items-center pb-2 gap-2 w-full"
-            >
-              <div
-                v-if="suggestionList.length > 0"
-                v-for="suggestion in suggestionList"
-                @click="
-                  () => {
-                    newMessage.message = suggestion;
-                    sendMessage();
-                  }
-                "
-                class="p-2 rounded-xl bg-accent/60 text-accent-foreground/80 w-full flex gap-2 items-center cursor-pointer hover:bg-accent"
-              >
-                <Search :size="18" />
-                <span class="text-[12px] text-muted-foreground">{{
-                  suggestion
-                }}</span>
-              </div>
-              <Skeleton
-                v-else
-                v-for="n in 4"
-                class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full"
-              />
-            </div>
-          </div>
-
-          <div
-            v-else
-            ref="messageContainerRef"
-            type="hover"
-            class="overflow-x-hidden h-full px-6"
-          >
-            <CustomTextChart
-              v-for="(message, index) in messages"
-              :key="message.id"
-              class="mb-6 last:mb-20"
-              :class="
-                message.role === 'user'
-                  ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
-                  : 'flex-col text-start justify-start'
-              "
-              :html="message.message"
-              :start="
-                message.role !== 'user' &&
-                index + 1 === messages.length &&
-                isAnimating
-              "
-              :speed="8"
-              @tick="scrollToBottom"
-              @done="
-                () => {
-                  isAnimating = false;
-                  isInputDisabled = false;
-                }
-              "
-            />
-
-            <div v-if="loading" class="flex flex-col gap-2">
-              <Avatar class="h-4 w-4 rounded-lg">
-                <AvatarImage :src="iconIa" />
-                <AvatarFallback class="rounded-lg">
-                  {{ authStore.user?.initials }}
-                </AvatarFallback>
-              </Avatar>
-              <div class="loading-dots">
-                <span
-                  v-for="n in 3"
-                  :key="n"
-                  :style="{ animationDelay: `${n * 0.2}s` }"
-                  >.</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <div
-            v-if="file"
-            class="flex justify-end w-full items-center cursor-default gap-2 px-6"
-          >
-            <Badge class="p-4">
-              {{ file.name }}
-            </Badge>
-            <Button
-              v-if="!loading"
-              variant="ghost"
-              @click="
-                () => {
-                  file = undefined;
-                }
-              "
-            >
-              <Trash />
-            </Button>
-          </div>
-        </div>
-      </SidebarContent>
-      <SidebarFooter>
-        <div class="relative w-full items-center mb-2">
-          <Button
-            variant="link"
-            @click="sendMessage"
-            :disabled="isInputDisabled"
-            class="absolute end-0 flex items-center justify-center h-full"
-          >
-            <SendHorizontal :stroke-width="2.5" absoluteStrokeWidth />
-          </Button>
-          <span
-            class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2"
-          >
-            <Popover>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <PopoverTrigger as-child>
-                      <Ellipsis
-                        :stroke-width="2.5"
-                        absoluteStrokeWidth
-                        class="cursor-pointer"
-                      />
-                    </PopoverTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    align="start"
-                    :align-offset="-4"
-                    :arrow-padding="8"
-                    avoid-collisions
-                    :collision-padding="10"
-                    hide-when-detached
-                    position-strategy="absolute"
-                    sticky="always"
-                    update-position-strategy="optimized"
-                    :collision-boundary="null"
-                  >
-                    Opcões
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <PopoverContent
-                align="start"
-                :alignOffset="-8"
-                :sideOffset="16"
-                :arrowPadding="0"
-                class="w-56 p-2"
-              >
-                <div class="flex flex-col gap-2 text-sm">
-                  <Label
-                    for="file"
-                    class="cursor-pointer text-sm truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <Paperclip class="size-4" />
-                    Anexar
-                  </Label>
-                  <Input
-                    id="file"
-                    type="file"
-                    class="hidden"
-                    @change="handleFileUpload"
-                    :disabled="isInputDisabled"
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
-          </span>
-          <Input
-            id="search"
-            @keyup.enter="!isInputDisabled && sendMessage()"
-            v-model="newMessage.message"
-            type="text"
-            placeholder="Pergunte alguma coisa"
-            class="px-10 h-12"
-          />
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+    <RightMenuComponent v-model:sidebarAi="sidebarAi" />
   </SidebarProvider>
 </template>
 
 <script setup lang="ts">
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -379,72 +118,28 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   SidebarTrigger,
   SidebarInset,
   SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import {
-  Plus,
-  Paperclip,
-  EyeClosed,
-  Eye,
-  Trash,
-  History,
-  Ellipsis,
-  SendHorizontal,
-  Search,
-} from "lucide-vue-next";
+import { EyeClosed, Eye } from "lucide-vue-next";
 import { useColorMode } from "@vueuse/core";
 import CustomLoading from "@/components/custom/CustomLoading.vue";
 import { useConfigStore } from "@/stores/config";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
-import { Label } from "@/components/ui/label";
-import { marked } from "marked";
-import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
-import IntelligenceArtificial from "@/services/intelligenceArtificial";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { toast } from "@/components/ui/toast";
-import { Button } from "@/components/ui/button";
-import CustomTextChart from "@/components/custom/CustomTextChart.vue";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
 import Projects from "@/services/projects";
 import LeftMenuComponent from "@/components/layout/LeftMenuComponent.vue";
+import RightMenuComponent from "@/components/layout/RightMenuComponent.vue";
 
 interface BreadcrumbItem {
   name: string;
   title: string;
   path: string | null;
-}
-interface Chat {
-  id: number;
-  title: string;
-}
-interface Message {
-  id: number | undefined;
-  role: "user" | "assistant";
-  message: string;
-  file: File | null;
 }
 
 const DARK_LOGOS = {
@@ -467,24 +162,7 @@ const configStore = useConfigStore();
 const route = useRoute();
 const router = useRouter();
 
-// Chat e mensagens
-const chats = ref<Chat[]>([]);
-const isLoadingChat = ref(false);
-const selectedChatId = ref<number | undefined>(undefined);
-const messages = ref<Message[]>([]);
-const newMessage = ref<Message>({
-  id: 0,
-  role: "user",
-  message: "",
-  file: null,
-});
-const loading = ref(false);
-const file = ref<File>();
-const messageContainerRef = ref<HTMLElement | null>(null);
 const isShowValues = ref(false);
-const isAnimating = ref(false);
-const isInputDisabled = computed(() => loading.value || isAnimating.value);
-const suggestionList = ref([]);
 
 // Computed
 const activeGroupProject = computed(
@@ -507,14 +185,6 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
   return items;
 });
 
-const logoInChat = computed(() => getLogoSrc(mode.value === "dark", false));
-
-const iconIa = computed(() => {
-  return mode.value === "dark"
-    ? "/logo-elevate-square-white.png"
-    : "/logo-elevate-square-black.png";
-});
-
 const logoCustomAi = computed(() => {
   return mode.value === "dark"
     ? "/svg/logo-ia-v1-white.svg"
@@ -522,26 +192,8 @@ const logoCustomAi = computed(() => {
 });
 
 // Methods
-const handleSidebarAiExpand = () => {
-  sidebarAi.value = false;
-};
-
-const scrollToBottom = () => {
-  nextTick(() => {
-    const container = messageContainerRef.value;
-    if (container) {
-      messageContainerRef.value!.scrollTop = container.scrollHeight;
-    }
-  });
-};
-
 const toggleValues = () => {
   isShowValues.value = !isShowValues.value;
-};
-
-const getLogoSrc = (isDarkMode: boolean, isSidebarExpanded: boolean) => {
-  const logos = isDarkMode ? DARK_LOGOS : LIGHT_LOGOS;
-  return isSidebarExpanded ? logos.full : logos.square;
 };
 
 const toggleSidebar = () => {
@@ -551,143 +203,6 @@ const toggleSidebar = () => {
 const toggleSidebarIA = () => {
   localStorage.setItem("sidebarAi", sidebarAi.value ? "0" : "1");
   sidebarAi.value = !sidebarAi.value;
-};
-
-const loadChats = async () => {
-  loading.value = true;
-
-  try {
-    const data = await IntelligenceArtificial.getListSessions();
-    chats.value = data.data;
-  } catch (err) {
-    console.error("Erro ao carregar chats:", err);
-  }
-
-  loading.value = false;
-};
-
-const getSuggestions = async () => {
-  try {
-    const suggestions = await IntelligenceArtificial.getSuggestions();
-    suggestionList.value = suggestions.data;
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-const createNewChat = async () => {
-  try {
-    const response = await IntelligenceArtificial.createSession();
-    selectedChatId.value = response.data.id;
-  } catch (error) {
-    console.error("Erro ao criar chat:", error);
-  }
-};
-
-const selectChat = async (chatId: number) => {
-  if (chatId == 0) return;
-
-  isLoadingChat.value = true;
-  selectedChatId.value = chatId;
-  localStorage.setItem("chatId", `${chatId}`);
-  await loadMessages();
-  isLoadingChat.value = false;
-};
-
-const loadMessages = async () => {
-  if (!selectedChatId.value) return;
-
-  messages.value = [];
-  loading.value = true;
-
-  try {
-    const data = await IntelligenceArtificial.getSession({
-      chat_id: selectedChatId.value,
-    });
-
-    messages.value = data.data.map((message: any) => ({
-      id: message.id,
-      role: message.role,
-      message: marked.parse(message.message[0]),
-      file: null,
-    }));
-    scrollToBottom();
-  } catch (error) {
-    console.error("Erro ao carregar mensagens:", error);
-  } finally {
-    loading.value = false;
-  }
-};
-
-const sendMessage = async () => {
-  if (!newMessage.value.message) {
-    toast({
-      title: "Adicione um Texto",
-    });
-    return;
-  }
-
-  if (selectedChatId.value === undefined) {
-    await createNewChat();
-    await sendMessage();
-  } else {
-    const userMessage = {
-      chat_id: selectedChatId.value,
-      message: newMessage.value.message,
-      file: newMessage.value.file,
-      project_id: activeGroupProject.value?.id,
-    };
-
-    loading.value = true;
-    newMessage.value.id = messages.value.length;
-    try {
-      messages.value.push(newMessage.value);
-      scrollToBottom();
-
-      newMessage.value = { id: 0, role: "user", message: "", file: null };
-
-      const response = await IntelligenceArtificial.sendMessage(userMessage);
-      file.value = undefined;
-      const assistantMessage: Message = {
-        id: messages.value.length,
-        role: "assistant",
-        message: await marked.parse(response.data.message),
-        file: null,
-      };
-
-      messages.value.push(assistantMessage);
-      scrollToBottom();
-      loading.value = false;
-      isAnimating.value = true;
-    } catch (error) {
-      console.error("Erro ao enviar mensagem:", error);
-      loading.value = false;
-      isAnimating.value = false;
-    }
-  }
-};
-
-const handleFileUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (!target.files?.length) return;
-  file.value = target.files[0];
-  newMessage.value.file = file.value;
-};
-
-const resetChat = async () => {
-  selectedChatId.value = undefined;
-  localStorage.removeItem("chatId");
-  messages.value = [];
-  file.value = undefined;
-  newMessage.value = { id: undefined, role: "user", message: "", file: null };
-  await loadChats();
-};
-
-const setOpenAi = () => {
-  const isMobile = window.innerWidth < 768;
-  if (!isMobile) {
-    return (sidebarAi.value = localStorage.getItem("sidebarAi") === "1");
-  }
 };
 
 const minSwipeDistance = 60;
@@ -703,8 +218,8 @@ const onTouchStart = (e: TouchEvent) => {
   const touchEvent = e.changedTouches[0];
   touch.startX = touchEvent.clientX;
   touch.startY = touchEvent.clientY;
-  touch.endX = touch.startX;
-  touch.endY = touch.startY;
+  touch.endX = touchEvent.clientX;
+  touch.endY = touchEvent.clientY;
 };
 const onTouchMove = (e: TouchEvent) => {
   const touchEvent = e.changedTouches[0];
@@ -787,11 +302,8 @@ onMounted(async () => {
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
     fetchStatusOAuth2()
-    await getSuggestions();
-    await loadChats();
   }
 
-  setTimeout(() => setOpenAi(), 100);
   swipeSidebars();
 });
 </script>
