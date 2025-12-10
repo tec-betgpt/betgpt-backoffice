@@ -217,53 +217,40 @@
                 <TableHead>Data</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Serviço</TableHead>
-                <TableHead>Créditos</TableHead>
-                <TableHead>Preço</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Situação</TableHead>
-                <TableHead>Nota Fiscal</TableHead>
+                <TableHead class="text-right">Créditos</TableHead>
+                <TableHead class="text-right">Preço</TableHead>
+                <TableHead class="text-right">Valor</TableHead>
+                <TableHead class="text-right">Situação</TableHead>
+                <TableHead class="text-right">Nota Fiscal</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <template v-if="loading">
                 <TableRow v-for="n in 5" :key="`loading-${n}`">
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
-                  <TableCell
-                    ><Skeleton class="h-4 w-full bg-gray-300"
-                  /></TableCell>
+                  <TableCell v-for="j in 8" :key="j">
+                    <Skeleton class="h-4 w-full bg-gray-300" />
+                  </TableCell>
                 </TableRow>
               </template>
+
               <template v-else>
+                <TableRow class="font-bold">
+                  <TableCell colspan="3"></TableCell>
+                  <TableCell class="text-right">{{ rechargesTotal.credits }}</TableCell>
+                  <TableCell class="text-right">{{ $toCurrency(rechargesTotal.price) }}</TableCell>
+                  <TableCell class="text-right">{{ $toCurrency(rechargesTotal.total) }}</TableCell>
+                  <TableCell class="text-right" colspan="2"></TableCell>
+                </TableRow>
                 <TableRow v-for="(recharge, index) in recharges" :key="index">
                   <TableCell>{{
-                    $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss")
+                      recharge.created_at ? $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss") : ''
                   }}</TableCell>
                   <TableCell>{{ recharge.description }}</TableCell>
                   <TableCell>{{ recharge.service }}</TableCell>
-                  <TableCell>{{ recharge.credits }}</TableCell>
-                  <TableCell>{{ $toCurrency(recharge.price) }}</TableCell>
-                  <TableCell>{{ $toCurrency(recharge.total) }}</TableCell>
-                  <TableCell>
+                  <TableCell class="text-right">{{ recharge.credits }}</TableCell>
+                  <TableCell class="text-right">{{ $toCurrency(recharge.price) }}</TableCell>
+                  <TableCell class="text-right">{{ $toCurrency(recharge.total) }}</TableCell>
+                  <TableCell class="text-right">
                     <span
                       class="text-green-600"
                       v-if="recharge.situation == 'APPROVED'"
@@ -271,7 +258,7 @@
                     >
                     <span class="text-red-600" v-else>Pendente</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell class="text-right">
                     <Button
                       v-if="recharge.invoice_url"
                       variant="outline"
@@ -284,6 +271,7 @@
                 </TableRow>
               </template>
             </TableBody>
+
           </Table>
         </CardContent>
       </Card>
@@ -293,30 +281,14 @@
 
 <script setup lang="ts">
 import { ref, h, watch, computed } from "vue";
-import SmsFunnel from "@/services/smsFunnel";
 import { getLocalTimeZone, today } from "@internationalized/date";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { LineChart } from "@/components/ui/chart-line";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast/use-toast";
-import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
-import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { createColumnHelper } from "@tanstack/vue-table";
+import { CaretSortIcon } from "@radix-icons/vue";
+import { useAuthStore } from "@/stores/auth";
+import { useWorkspaceStore } from "@/stores/workspace";
 import {
   Mail,
   MailCheck,
@@ -324,13 +296,23 @@ import {
   Download,
   ArrowDown,
   ArrowUp,
-  ChartLine,
 } from "lucide-vue-next";
-import { CaretSortIcon } from "@radix-icons/vue";
+import SmsFunnel from "@/services/smsFunnel";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-import { useAuthStore } from "@/stores/auth";
 const authStore = useAuthStore();
 
 const hasMemberAccess = computed(() => {
@@ -345,10 +327,6 @@ const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
 const { toast } = useToast();
 
-import { useWorkspaceStore } from "@/stores/workspace";
-import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
-import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
-import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 const workspaceStore = useWorkspaceStore();
 
 const loading = ref(true);
@@ -384,6 +362,18 @@ const searchBroadcastValues = ref<Record<string, string>>({});
 
 const localCampaignSearch = ref<Record<string, string>>({});
 const localBroadcastSearch = ref<Record<string, string>>({});
+
+const rechargesTotal = computed(() => {
+  return recharges.value.reduce(
+    (acc, recharge) => {
+      acc.credits += Number(recharge.credits) || 0;
+      acc.price += Number(recharge.price) || 0;
+      acc.total += Number(recharge.total) || 0;
+      return acc;
+    },
+    { credits: 0, price: 0, total: 0 }
+  );
+});
 
 const campaignsStats = computed(() => {
   const totalStats = {
