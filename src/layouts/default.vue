@@ -301,7 +301,9 @@ onMounted(async () => {
 
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
-    fetchStatusOAuth2()
+    if (workspaceStore.activeGroupProject.type == "project") {
+      fetchStatusOAuth2()
+    }
   }
 
   swipeSidebars();
