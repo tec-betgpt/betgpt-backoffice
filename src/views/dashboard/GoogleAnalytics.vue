@@ -98,6 +98,13 @@
       />
       <PeriodComponent
         :is-loading="loading"
+        :period="bounceRatePeriod"
+        title="Taxa de Rejeição"
+        type="percent"
+        glossary="Percentual de usuários que saíram do site sem interagir"
+      />
+      <PeriodComponent
+        :is-loading="loading"
         :period="arpuPeriod"
         title="ARPU"
         type="currency"
@@ -153,6 +160,7 @@ const engagementDurationSessionPeriod = ref<
 >([]);
 const arppuPeriod = ref<{ name: string; value: number[] }[]>([]);
 const arpuPeriod = ref<{ name: string; value: number[] }[]>([]);
+const bounceRatePeriod = ref<{ name: string; value: number[] }[]>([]);
 
 const groupSessionsData = ref<GroupSession[]>([]);
 
@@ -358,6 +366,12 @@ const applyFilter = async (current = pages.value.current) => {
       {
         name: "% Taxa de Engajamento",
         value: data.engagement_rate_period || [],
+      },
+    ];
+    bounceRatePeriod.value = [
+      {
+        name: "% Taxa de Rejeição",
+        value: data.bounce_rate_period || [],
       },
     ];
     totalRevenuePeriod.value = [
