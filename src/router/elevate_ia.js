@@ -1,6 +1,7 @@
 import ChatIA from "@/views/dashboard/ChatIA.vue";
 import DefaultLayout from "@/layouts/default.vue";
 import JarbasBOT from "@/views/dashboard/JarbasBOT.vue";
+import InsightIA from "@/views/dashboard/InsightIA.vue";
 
 export default [
   {
@@ -13,18 +14,18 @@ export default [
       title: "Elevate IA",
     },
     children: [
-      {
-        path: "chat",
-        name: "chat",
-        component: ChatIA,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: "Chat",
-          roles: "member|client",
-          permissions: "access-to-ai",
-        },
-      },
+      // {
+      //   path: "insight-ia",
+      //   name: "insightIA",
+      //   component: InsightIA,
+      //   meta: {
+      //     layout: DefaultLayout,
+      //     requiresAuth: true,
+      //     title: "Insight IA",
+      //     roles: "member",
+      //     permissions: "access-to-ai",
+      //   },
+      // },
       {
         path: "jarbas-bot",
         name: "jarbas-bot",

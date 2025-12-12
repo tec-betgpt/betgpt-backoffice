@@ -6,6 +6,7 @@ import Permissions from "@/views/dashboard/Permissions.vue";
 import Subscribers from "@/views/dashboard/Subscribers.vue";
 import Users from "@/views/dashboard/Users.vue";
 import UserLogins from "@/views/dashboard/UserLogins.vue";
+import InsightIA from "@/views/dashboard/InsightIA.vue";
 
 export default [
   {
@@ -101,7 +102,20 @@ export default [
           permissions: "access-to-users",
           title: "Histórico de Login",
         },
+
       },
+        {
+            path: "insight-ia",
+            name: "insightIA",
+            component: InsightIA,
+            meta: {
+                layout: DefaultLayout,
+                requiresAuth: true,
+                title: "Insight IA",
+                roles: "member",
+                permissions: "access-to-ai",
+            },
+        },
     ],
   },
 ]

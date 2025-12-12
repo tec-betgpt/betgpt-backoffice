@@ -178,6 +178,18 @@
       </div>
     </SidebarContent>
     <SidebarFooter>
+      <div class=" w-full flex items-center justify-end ">
+        <CustomStarScore v-if="messages.length > 0" :readonly="false" :modelValue="star" @update:modelValue="args => star = args" >
+          <form @submit.prevent="sendFeed" class="flex justify-end flex-col gap-2">
+            <Textarea placeholder="Feedback" v-model="feedback"/>
+            <Button >
+              Enviar Feedback
+            </Button>
+          </form>
+
+        </CustomStarScore>
+      </div>
+
       <div class="relative w-full items-center mb-2">
         <Button
           variant="link"
@@ -306,6 +318,8 @@ import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
+import CustomStarScore from "@/components/custom/CustomStarScore.vue";
+import {Textarea} from "@/components/ui/textarea";
 
 interface Chat {
   id: number;
@@ -353,6 +367,8 @@ const newMessage = ref<Message>({
   message: "",
   file: null,
 });
+const star = ref<number>(0)
+const feedback = ref<string>("");
 const loading = ref(false);
 const file = ref<File>();
 const messageContainerRef = ref<HTMLElement | null>(null);
@@ -416,7 +432,7 @@ const getSuggestions = async () => {
 
 const createNewChat = async () => {
   try {
-    const response = await IntelligenceArtificial.createSession();
+    const response = await IntelligenceArtificial.createSession({project_id:activeGroupProject.value.project_id});
     selectedChatId.value = response.data.id;
   } catch (error) {
     console.error("Erro ao criar chat:", error);
@@ -474,7 +490,7 @@ const sendMessage = async () => {
       chat_id: selectedChatId.value,
       message: newMessage.value.message,
       file: newMessage.value.file,
-      project_id: activeGroupProject.value?.id,
+      project_id: activeGroupProject.value?.project_id,
     };
 
     loading.value = true;
@@ -505,6 +521,23 @@ const sendMessage = async () => {
     }
   }
 };
+
+const sendFeed = async () => {
+  try {
+    const response = await IntelligenceArtificial.sendFeedback({
+      chat_id: selectedChatId.value,
+      feedback: feedback.value,
+      score: star.value
+    })
+    toast({
+      title: "Feedback",
+      description:"Feedback enviado com sucesso!",
+      duration: 2000
+    })
+  }catch (error) {
+    console.error("Erro ao enviar mensagem:", error);
+  }
+}
 
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;

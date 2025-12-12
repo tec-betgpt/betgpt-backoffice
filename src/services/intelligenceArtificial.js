@@ -65,8 +65,8 @@ export default {
      *
      * @returns {Promise<{id:number, title:string}>} - Nova sessão criada
      */
-    async createSession() {
-        const { data } = await api.post(`ia/create`);
+    async createSession(params={}) {
+        const { data } = await api.post(`ia/create`,params);
         return data;
     },
 
@@ -93,5 +93,33 @@ export default {
     async getSuggestions() {
             const { data } = await api.get(`ia/suggestions`);
             return data;
-        }
+        },
+
+    /**
+     * POST /ia/feedback
+     *
+     * Enviar um Feedback do chat
+     *
+     * @param {Object} body
+     * @param {number} body.chat_id - ID do chat
+     * @param {number} body.score
+     * @param {string} body.feedback
+     * @returns {Promise<any>}
+     */
+    async sendFeedback(body = {}) {
+        const { data } = await api.post(`ia/feedback`, body);
+        return data;
+    },
+    /**
+     *
+     * @param {Object} params
+     * @param {number} params.page
+     * @param {number} params.per_page
+     * @param {string} params.filter_id
+     * @returns {Promise<any>}
+     */
+    async index(params={}){
+        const { data } = await api.get(`ia/index`,{params:params});
+        return data;
+    }
 }
