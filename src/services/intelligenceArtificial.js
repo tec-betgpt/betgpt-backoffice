@@ -110,9 +110,15 @@ export default {
         const { data } = await api.post(`ia/feedback`, body);
         return data;
     },
-
-    async index(){
-        const { data } = await api.get(`ia/index`);
+    /**
+     *
+     * @param {Object} params
+     * @param {number} params.page
+     * @param {number} params.per_page
+     * @returns {Promise<any>}
+     */
+    async index(params={}){
+        const { data } = await api.get(`ia/index`,{params:params});
         return data;
     }
 }

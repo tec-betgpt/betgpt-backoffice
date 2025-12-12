@@ -44,14 +44,17 @@ const pagination = ref({
 
 const perPage = ref('10');
 
-const fetchInsight = async (page: number = 1, itemsPerPage: string = '10') => {
+const fetchInsight = async (page: number = 1, itemsPerPage: number = 10) => {
   loading.value = true;
   try {
-    const response = await IntelligenceArtificial.index();
+    const response = await IntelligenceArtificial.index({
+      per_page:itemsPerPage,
+      page:page
+    });
     insightsData.value = response.data.data;
-    pagination.value.total = insightsData.value.length;
-    pagination.value.last = Math.ceil(insightsData.value.length / parseInt(itemsPerPage));
-    pagination.value.current = page;
+    pagination.value.total = response.data.total;
+    pagination.value.last = response.data.last_page;
+    pagination.value.current = response.data.current_page;
   } catch (error) {
     console.error("Erro ao buscar insights da IA:", error);
     insightsData.value = [];

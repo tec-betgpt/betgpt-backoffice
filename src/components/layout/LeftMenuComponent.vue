@@ -382,10 +382,10 @@ const navMenu = computed(() => {
       show: canAccess("access-to-ai"),
       children: [
         {
-          name: "Performance",
+          name: "Insights IA",
           url: { name: "insightIA" },
-          icon: LineChart,
-          show: canAccess("access-to-ia"),
+          icon: Bot,
+          show: canAccess("member-proprietor") || canAccess("member-admin"),
         },
       ]
     },
@@ -601,6 +601,11 @@ const hasPermission = (permissionName: string) => {
     )
   );
 };
+const hasRole = (roleName: string) => {
+  return !!authStore.user?.roles.filter((role: any) => {
+    return role.name === roleName
+  });
+};
 
 const hasPermissionInActiveProject = (permissionName: string) => {
   return !!authStore.user?.roles
@@ -619,7 +624,8 @@ const hasPermissionInActiveProject = (permissionName: string) => {
 const canAccess = (permissionName: string) => {
   return (
     hasPermission(permissionName) ||
-    hasPermissionInActiveProject(permissionName)
+    hasPermissionInActiveProject(permissionName)  ||
+    hasRole(permissionName)
   );
 };
 

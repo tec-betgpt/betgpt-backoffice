@@ -178,15 +178,18 @@
       </div>
     </SidebarContent>
     <SidebarFooter>
-      <CustomStarScore v-if="messages.length > 0" :readonly="false" :modelValue="star" @update:modelValue="args => star = args" >
-        <form @submit.prevent="sendFeed" class="flex justify-end flex-col gap-2">
-          <Textarea placeholder="Feedback" v-model="feedback"/>
-          <Button >
-            Enviar Feedback
-          </Button>
-        </form>
+      <div class=" w-full flex items-center justify-end ">
+        <CustomStarScore v-if="messages.length > 0" :readonly="false" :modelValue="star" @update:modelValue="args => star = args" >
+          <form @submit.prevent="sendFeed" class="flex justify-end flex-col gap-2">
+            <Textarea placeholder="Feedback" v-model="feedback"/>
+            <Button >
+              Enviar Feedback
+            </Button>
+          </form>
 
-      </CustomStarScore>
+        </CustomStarScore>
+      </div>
+
       <div class="relative w-full items-center mb-2">
         <Button
           variant="link"
