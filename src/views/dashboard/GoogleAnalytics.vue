@@ -35,11 +35,42 @@
             :formatters="formatters"
             :search-fields="[
               {
+                key: 'group_by',
+                label: 'Grupo',
+                type: 'select',
+                options: [
+                  {
+                    value: 'sessionDefaultChannelGroup',
+                    label: 'Grupo de canais padrão da sessão',
+                  },
+                  {
+                    value: 'sessionPrimaryChannelGroup',
+                    label: 'Grupo principal de canais da sessão',
+                  },
+                  {
+                    value: 'sessionSourceMedium',
+                    label: 'Origem / mídia da sessão',
+                  },
+                  { value: 'sessionMedium', label: 'Meio da sessão' },
+                  { value: 'sessionSource', label: 'Origem da sessão' },
+                  {
+                    value: 'sessionTrafficOrigin',
+                    label: 'Plataforma de origem da sessão',
+                  },
+                  { value: 'sessionCampaignName', label: 'Campanha da sessão' },
+                ],
+                placeholder: 'Selecione o agrupamento...',
+                default: 'sessionDefaultChannelGroup',
+              },
+              {
                 key: 'channel',
                 placeholder: 'Buscar por canal...',
                 label: 'Canal',
               },
             ]"
+            :initial-values="{
+              'search[0][group_by]': 'sessionDefaultChannelGroup',
+            }"
           />
         </CardContent>
 
@@ -166,6 +197,7 @@ const engagementDurationSessionPeriod = ref<
 const arppuPeriod = ref<{ name: string; value: number[] }[]>([]);
 const arpuPeriod = ref<{ name: string; value: number[] }[]>([]);
 const bounceRatePeriod = ref<{ name: string; value: number[] }[]>([]);
+const selectedGroupBy = ref("sessionDefaultChannelGroup");
 
 const groupSessionsData = ref<GroupSession[]>([]);
 
@@ -257,6 +289,10 @@ const isFirstLoad = ref(true);
 
 const setSearch = (values: Record<string, string>) => {
   searchValues.value = { ...searchValues.value, ...values };
+
+  if (values["search[0][group_by]"]) {
+    selectedGroupBy.value = values["search[0][group_by]"];
+  }
 };
 
 const formatDateForAPI = (date: any): string => {
@@ -308,6 +344,7 @@ const applyFilter = async (current = pages.value.current) => {
     }, {} as Record<string, string>);
 
     const channelSearch = searchValues.value["search[1][channel]"];
+    const groupByValue = selectedGroupBy.value || "sessionDefaultChannelGroup";
 
     const startDateFormatted = formatDateForAPI(selectedRange.value.start);
     const endDateFormatted = formatDateForAPI(selectedRange.value.end);
@@ -321,6 +358,7 @@ const applyFilter = async (current = pages.value.current) => {
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
       per_pages: perPages.value,
+      group_by: groupByValue,
     };
 
     if (channelSearch && channelSearch.trim() !== "") {
@@ -665,6 +703,11 @@ watch(perPages, (newPages) => {
 });
 
 onMounted(() => {
+  searchValues.value = {
+    "search[0][group_by]": "sessionDefaultChannelGroup",
+    "search[1][channel]": "",
+  };
+
   setTimeout(() => {
     applyFilter(1);
   }, 100);

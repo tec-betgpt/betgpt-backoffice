@@ -17,6 +17,25 @@
         v-model="searchValues[`search[${index}][${field.key}]`]"
       />
 
+      <!-- Adicione esta seção para o tipo select -->
+      <Select
+        v-else-if="field.type === 'select'"
+        v-model="searchValues[`search[${index}][${field.key}]`]"
+      >
+        <SelectTrigger class="sm:max-w-sm w-full">
+          <SelectValue :placeholder="field.placeholder" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+            v-for="option in field.options"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+
       <Select
         v-else-if="field.type === 'date-range'"
         v-model="searchValues[`search[${index}][${field.key}]`]"
@@ -188,9 +207,11 @@ const props = defineProps({
         placeholder: string;
         type?: string;
         options?: Array<{ value: string; label: string }>;
+        default?: string;
       }>
     >,
     required: false,
+    default: () => [],
   },
   footer: {
     type: Boolean,
@@ -379,6 +400,23 @@ watch(
     });
   },
   { deep: true }
+);
+
+watch(
+  () => props.searchFields,
+  (newFields) => {
+    if (newFields && newFields.length > 0) {
+      newFields.forEach((field, index) => {
+        if (
+          field.default &&
+          !searchValues.value[`search[${index}][${field.key}]`]
+        ) {
+          searchValues.value[`search[${index}][${field.key}]`] = field.default;
+        }
+      });
+    }
+  },
+  { immediate: true }
 );
 
 const hasLabel = computed(() => {
