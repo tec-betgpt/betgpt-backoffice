@@ -376,6 +376,20 @@ const navMenu = computed(() => {
       show: canAccess("access-to-dashboard"),
     },
     {
+      name: "Elevate IA",
+      icon: Bot,
+      type: "ia",
+      show: canAccess("access-to-ai"),
+      children: [
+        {
+          name: "Performance",
+          url: { name: "insightIA" },
+          icon: LineChart,
+          show: canAccess("access-to-ia"),
+        },
+      ]
+    },
+    {
       name: "Jarbas BOT",
       icon: Bot,
       url: { name: "jarbas-bot" },

@@ -93,5 +93,26 @@ export default {
     async getSuggestions() {
             const { data } = await api.get(`ia/suggestions`);
             return data;
-        }
+        },
+
+    /**
+     * POST /ia/feedback
+     *
+     * Enviar um Feedback do chat
+     *
+     * @param {Object} body
+     * @param {number} body.chat_id - ID do chat
+     * @param {number} body.score
+     * @param {string} body.feedback
+     * @returns {Promise<any>}
+     */
+    async sendFeedback(body = {}) {
+        const { data } = await api.post(`ia/feedback`, body);
+        return data;
+    },
+
+    async index(){
+        const { data } = await api.get(`ia/index`);
+        return data;
+    }
 }
