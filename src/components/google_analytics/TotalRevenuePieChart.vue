@@ -34,14 +34,14 @@ const chartOptions = computed(() => ({
     position: 'bottom',
   },
   dataLabels: {
-    formatter: function (val: number) {
-      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+    formatter: function (val: string) {
+      return parseFloat(val || '0').toFixed(2).concat('%');
     }
   },
   tooltip: {
     y: {
-      formatter: function (val: number) {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+      formatter: function (val: string) {
+        return parseFloat(val || '0').toFixed(2).concat('%');
       }
     }
   },
