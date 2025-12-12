@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h, onMounted, ref } from "vue";
+import {computed, h, onMounted, ref} from "vue";
 import CustomAccordionDataTable from "@/components/custom/CustomAccordionDataTable.vue";
 import { Badge } from "@/components/ui/badge";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
@@ -13,18 +13,32 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import CustomStarScore from "@/components/custom/CustomStarScore.vue";
+import {useWorkspaceStore} from "@/stores/workspace";
 
 const loading = ref(true);
 const insightsData = ref([]);
-
+const workspaceStore = useWorkspaceStore()
+const activeGroupProject = computed(
+    () => workspaceStore.activeGroupProject || null
+);
 const selectedMessages = ref([]);
 const isHistoryDialogOpen = ref(false);
 
 const columns = [
   {
     accessorKey: 'chat.title',
-    header: 'Insight',
+    header: 'Titulo',
     cell: ({ row }) => h('span', { class: 'font-medium' }, row.original.chat.title),
+  },
+  {
+    accessorKey: 'chat.project.name',
+    header: 'Projeto',
+    cell: ({ row }) => h('span', { class: 'font-medium' }, row.original.chat.project?.name),
+  },
+  {
+    accessorKey: 'chat.user.name',
+    header: 'Usuario',
+    cell: ({ row }) => h('span', { class: 'font-medium' }, row.original.chat.user.name),
   },
   {
     accessorKey: 'created_at',
@@ -49,7 +63,8 @@ const fetchInsight = async (page: number = 1, itemsPerPage: number = 10) => {
   try {
     const response = await IntelligenceArtificial.index({
       per_page:itemsPerPage,
-      page:page
+      page:page,
+      filter_id: activeGroupProject.value.id
     });
     insightsData.value = response.data.data;
     pagination.value.total = response.data.total;

@@ -65,8 +65,8 @@ export default {
      *
      * @returns {Promise<{id:number, title:string}>} - Nova sessão criada
      */
-    async createSession() {
-        const { data } = await api.post(`ia/create`);
+    async createSession(params={}) {
+        const { data } = await api.post(`ia/create`,params);
         return data;
     },
 
@@ -115,6 +115,7 @@ export default {
      * @param {Object} params
      * @param {number} params.page
      * @param {number} params.per_page
+     * @param {string} params.filter_id
      * @returns {Promise<any>}
      */
     async index(params={}){

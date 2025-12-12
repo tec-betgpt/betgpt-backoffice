@@ -375,20 +375,20 @@ const navMenu = computed(() => {
       icon: Home,
       show: canAccess("access-to-dashboard"),
     },
-    {
-      name: "Elevate IA",
-      icon: Bot,
-      type: "ia",
-      show: canAccess("access-to-ai"),
-      children: [
-        {
-          name: "Insights IA",
-          url: { name: "insightIA" },
-          icon: Bot,
-          show: canAccess("member-proprietor") || canAccess("member-admin"),
-        },
-      ]
-    },
+    // {
+    //   name: "Elevate IA",
+    //   icon: Bot,
+    //   type: "ia",
+    //   show: canAccess("access-to-ai"),
+    //   children: [
+    //     {
+    //       name: "Insights IA",
+    //       url: { name: "insightIA" },
+    //       icon: Bot,
+    //       show: canAccess("member-proprietor") || canAccess("member-admin"),
+    //     },
+    //   ]
+    // },
     {
       name: "Jarbas BOT",
       icon: Bot,
@@ -557,6 +557,12 @@ const navMenu = computed(() => {
           icon: History,
           show: canAccess("access-to-users"),
         },
+            {
+              name: "Insights IA",
+              url: { name: "insightIA" },
+              icon: Bot,
+              show: canAccess("member-proprietor") || canAccess("member-admin"),
+            },
       ],
     },
     {

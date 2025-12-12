@@ -14,18 +14,18 @@ export default [
       title: "Elevate IA",
     },
     children: [
-      {
-        path: "insight-ia",
-        name: "insightIA",
-        component: InsightIA,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: "Insight IA",
-          roles: "member",
-          permissions: "access-to-ai",
-        },
-      },
+      // {
+      //   path: "insight-ia",
+      //   name: "insightIA",
+      //   component: InsightIA,
+      //   meta: {
+      //     layout: DefaultLayout,
+      //     requiresAuth: true,
+      //     title: "Insight IA",
+      //     roles: "member",
+      //     permissions: "access-to-ai",
+      //   },
+      // },
       {
         path: "jarbas-bot",
         name: "jarbas-bot",

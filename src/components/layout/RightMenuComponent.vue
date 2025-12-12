@@ -432,7 +432,7 @@ const getSuggestions = async () => {
 
 const createNewChat = async () => {
   try {
-    const response = await IntelligenceArtificial.createSession();
+    const response = await IntelligenceArtificial.createSession({project_id:activeGroupProject.value.project_id});
     selectedChatId.value = response.data.id;
   } catch (error) {
     console.error("Erro ao criar chat:", error);
@@ -490,7 +490,7 @@ const sendMessage = async () => {
       chat_id: selectedChatId.value,
       message: newMessage.value.message,
       file: newMessage.value.file,
-      project_id: activeGroupProject.value?.id,
+      project_id: activeGroupProject.value?.project_id,
     };
 
     loading.value = true;
