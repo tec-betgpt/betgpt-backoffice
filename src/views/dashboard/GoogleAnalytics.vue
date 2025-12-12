@@ -307,8 +307,6 @@ const applyFilter = async (current = pages.value.current) => {
     const startDateFormatted = formatDateForAPI(selectedRange.value.start);
     const endDateFormatted = formatDateForAPI(selectedRange.value.end);
 
-
-
     const params: any = {
       page: current,
       ...searchParams,
@@ -365,14 +363,19 @@ const applyFilter = async (current = pages.value.current) => {
     engagementRatePeriod.value = [
       {
         name: "% Taxa de Engajamento",
-        value:
-          data.engagement_rate_period?.map((rate: number) => rate / 100) || [],
+        value: (data.engagement_rate_period ?? []).map((item) => ({
+          ...item,
+          "% Taxa de Engajamento": (item["% Taxa de Engajamento"] ?? 0) / 100,
+        })),
       },
     ];
     bounceRatePeriod.value = [
       {
         name: "% Taxa de Rejeição",
-        value: data.bounce_rate_period?.map((rate: number) => rate / 100) || [],
+        value: (data.bounce_rate_period ?? []).map((item) => ({
+          ...item,
+          "% Taxa de Rejeição": (item["% Taxa de Rejeição"] ?? 0) / 100,
+        })),
       },
     ];
     totalRevenuePeriod.value = [
