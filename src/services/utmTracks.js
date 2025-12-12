@@ -14,5 +14,17 @@ export default {
   async index (params = {}) {
    const { data } = await api.get('/utm-tracks', { params })
    return data
-  }
+  },
+
+    /**
+     *
+     * @param params
+     * @param params.source_id
+     * @param {string} params.filter_id
+     * @returns {Promise<any>}
+     */
+    async show (params = {}) {
+      const { data } = await api.get('/utm-tracks/details', { params:params })
+        return data
+    }
 }

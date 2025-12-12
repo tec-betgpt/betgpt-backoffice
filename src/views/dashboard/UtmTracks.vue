@@ -97,27 +97,55 @@
       </Card>
     </div>
   </div>
+
+  <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
+    <DialogContent class="sm:max-w-[625px]">
+      <DialogHeader>
+        <DialogTitle>Detalhes da Atribuição</DialogTitle>
+      </DialogHeader>
+      <div class="py-4">
+        <div v-if="isDialogLoading" class="flex items-center justify-center h-48">
+          <Spinner class="h-8 w-8" />
+        </div>
+        <div v-else-if="selectedTrackData" class="h-full">
+          <pre  class="bg-gray-100 h-[600px] dark:bg-gray-800 p-4 rounded-md overflow-y-scroll">{{
+              JSON.stringify(selectedTrackData, null, 2) }}
+          </pre>
+        </div>
+         <div v-else class="text-center text-muted-foreground">
+            Nenhum dado para exibir.
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" @click="isDialogOpen = false">Fechar</Button>
+      </DialogFooter>
+    </DialogContent>
+
+  </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h, watch } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
-import { Button } from "@/components/ui/button";
+import {h, onMounted, ref, watch} from "vue";
+import {useToast} from "@/components/ui/toast/use-toast";
+import {Button} from "@/components/ui/button";
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChevronDownIcon, ArrowDown, ArrowUp } from "lucide-vue-next";
+import {ArrowDown, ArrowUp, ChevronDownIcon} from "lucide-vue-next";
 import UtmTracks from "@/services/utmTracks";
-import { createColumnHelper } from "@tanstack/vue-table";
+import {createColumnHelper} from "@tanstack/vue-table";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
-import { CaretSortIcon } from "@radix-icons/vue";
-import { useWorkspaceStore } from "@/stores/workspace";
+import {CaretSortIcon} from "@radix-icons/vue";
+import {useWorkspaceStore} from "@/stores/workspace";
 import moment from "moment";
-import {Card, CardContent} from "@/components/ui/card";
+import {Card, CardContent, CardHeader} from "@/components/ui/card";
 import ChartBarComponent from "@/components/utm_tracks/ChartBarComponent.vue";
+import {Skeleton} from "@/components/ui/skeleton";
+import {Spinner} from "@/components/ui/spinner";
 
 type UtmTrack = {
   id: number
@@ -146,6 +174,11 @@ const pages = ref({
   total: 0
 })
 const typeFilter = ref<Array<String>>(["deposit", "player"]);
+
+const isDialogOpen = ref(false);
+const isDialogLoading = ref(false);
+const selectedTrackData = ref(null);
+
 
 watch(typeFilter.value, async () => {
   pages.value.current = 0;
@@ -198,6 +231,29 @@ const fetchUtmTracks = async (current = pages.value.current) => {
 
   isLoading.value = false;
 };
+
+const openDialogAndFetchTrack = async (trackValue: string) => {
+  isDialogOpen.value = true;
+  isDialogLoading.value = true;
+  selectedTrackData.value = null;
+  try {
+   const response = await UtmTracks.show({source_id: trackValue,filter_id:activeGroupProjectId});
+    console.log(response.data);
+   selectedTrackData.value = response.data;
+    console.log(selectedTrackData.value);
+  } catch (error) {
+    console.error("Erro ao buscar detalhes da atribuição:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar os detalhes da atribuição.",
+      variant: "destructive",
+    });
+    isDialogOpen.value = false;
+  } finally {
+    isDialogLoading.value = false;
+  }
+};
+
 
 const loadMore = async () => {
   pages.value.current = pages.value.current + 100
@@ -276,6 +332,15 @@ const columns = [
         {},
         moment(row.original.created_at).format("DD/MM/YYYY HH:mm:ss")
       ),
+  }),
+  columnHelper.display({
+    id: 'view',
+    header: () => 'Visualizar',
+    cell: ({ row }) => h(Button, {
+      variant: 'outline',
+      size: 'sm',
+      onClick: () => openDialogAndFetchTrack(row.original.id)
+    }, () => 'Visualizar'),
   }),
 ]
 </script>
