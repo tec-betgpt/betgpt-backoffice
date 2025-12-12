@@ -365,13 +365,14 @@ const applyFilter = async (current = pages.value.current) => {
     engagementRatePeriod.value = [
       {
         name: "% Taxa de Engajamento",
-        value: data.engagement_rate_period || [],
+        value:
+          data.engagement_rate_period?.map((rate: number) => rate / 100) || [],
       },
     ];
     bounceRatePeriod.value = [
       {
         name: "% Taxa de Rejeição",
-        value: data.bounce_rate_period || [],
+        value: data.bounce_rate_period?.map((rate: number) => rate / 100) || [],
       },
     ];
     totalRevenuePeriod.value = [
