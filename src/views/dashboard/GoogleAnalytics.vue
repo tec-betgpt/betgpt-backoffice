@@ -59,6 +59,10 @@
     </div>
 
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <SessionChannelPieChart :group-session-data="groupSessionsData" />
+
+      <TotalRevenuePieChart :group-session-data="groupSessionsData" />
+
       <PeriodComponent
         :is-loading="loading"
         :period="usersPeriod"
@@ -123,19 +127,20 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, h } from "vue";
-import GoogleAnalytics from "@/services/googleAnalytics";
-import { getLocalTimeZone, today } from "@internationalized/date";
-import moment from "moment";
-import "moment/dist/locale/pt-br";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { getLocalTimeZone, today } from "@internationalized/date";
+import { createColumnHelper } from "@tanstack/vue-table";
+import { Button } from "@/components/ui/button";
+import { ChevronsUpDown, ArrowDown, ArrowUp } from "lucide-vue-next";
+import "moment/dist/locale/pt-br";
+import GoogleAnalytics from "@/services/googleAnalytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import { createColumnHelper } from "@tanstack/vue-table";
-import { Button } from "@/components/ui/button";
-import { ChevronsUpDown, ArrowDown, ArrowUp } from "lucide-vue-next";
+import SessionChannelPieChart from "@/components/google_analytics/SessionChannelPieChart.vue";
+import TotalRevenuePieChart from "@/components/google_analytics/TotalRevenuePieChart.vue";
 
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
