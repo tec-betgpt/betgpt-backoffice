@@ -35,11 +35,42 @@
             :formatters="formatters"
             :search-fields="[
               {
+                key: 'group_by',
+                label: 'Grupo',
+                type: 'select',
+                options: [
+                  {
+                    value: 'sessionDefaultChannelGroup',
+                    label: 'Grupo de canais padrão da sessão',
+                  },
+                  {
+                    value: 'sessionPrimaryChannelGroup',
+                    label: 'Grupo principal de canais da sessão',
+                  },
+                  {
+                    value: 'sessionSourceMedium',
+                    label: 'Origem / mídia da sessão',
+                  },
+                  { value: 'sessionMedium', label: 'Meio da sessão' },
+                  { value: 'sessionSource', label: 'Origem da sessão' },
+                  {
+                    value: 'sessionTrafficOrigin',
+                    label: 'Plataforma de origem da sessão',
+                  },
+                  { value: 'sessionCampaignName', label: 'Campanha da sessão' },
+                ],
+                placeholder: 'Selecione o agrupamento...',
+                default: 'sessionDefaultChannelGroup',
+              },
+              {
                 key: 'channel',
                 placeholder: 'Buscar por canal...',
                 label: 'Canal',
               },
             ]"
+            :initial-values="{
+              'search[0][group_by]': 'sessionDefaultChannelGroup',
+            }"
           />
         </CardContent>
 
@@ -59,6 +90,10 @@
     </div>
 
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
+      <SessionChannelPieChart :group-session-data="groupSessionsData" />
+
+      <TotalRevenuePieChart :group-session-data="groupSessionsData" />
+
       <PeriodComponent
         :is-loading="loading"
         :period="usersPeriod"
@@ -123,19 +158,20 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, h } from "vue";
-import GoogleAnalytics from "@/services/googleAnalytics";
-import { getLocalTimeZone, today } from "@internationalized/date";
-import moment from "moment";
-import "moment/dist/locale/pt-br";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { getLocalTimeZone, today } from "@internationalized/date";
+import { createColumnHelper } from "@tanstack/vue-table";
+import { Button } from "@/components/ui/button";
+import { ChevronsUpDown, ArrowDown, ArrowUp } from "lucide-vue-next";
+import "moment/dist/locale/pt-br";
+import GoogleAnalytics from "@/services/googleAnalytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import { createColumnHelper } from "@tanstack/vue-table";
-import { Button } from "@/components/ui/button";
-import { ChevronsUpDown, ArrowDown, ArrowUp } from "lucide-vue-next";
+import SessionChannelPieChart from "@/components/google_analytics/SessionChannelPieChart.vue";
+import TotalRevenuePieChart from "@/components/google_analytics/TotalRevenuePieChart.vue";
 
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
@@ -161,6 +197,7 @@ const engagementDurationSessionPeriod = ref<
 const arppuPeriod = ref<{ name: string; value: number[] }[]>([]);
 const arpuPeriod = ref<{ name: string; value: number[] }[]>([]);
 const bounceRatePeriod = ref<{ name: string; value: number[] }[]>([]);
+const selectedGroupBy = ref("sessionDefaultChannelGroup");
 
 const groupSessionsData = ref<GroupSession[]>([]);
 
@@ -252,6 +289,10 @@ const isFirstLoad = ref(true);
 
 const setSearch = (values: Record<string, string>) => {
   searchValues.value = { ...searchValues.value, ...values };
+
+  if (values["search[0][group_by]"]) {
+    selectedGroupBy.value = values["search[0][group_by]"];
+  }
 };
 
 const formatDateForAPI = (date: any): string => {
@@ -303,11 +344,10 @@ const applyFilter = async (current = pages.value.current) => {
     }, {} as Record<string, string>);
 
     const channelSearch = searchValues.value["search[1][channel]"];
+    const groupByValue = selectedGroupBy.value || "sessionDefaultChannelGroup";
 
     const startDateFormatted = formatDateForAPI(selectedRange.value.start);
     const endDateFormatted = formatDateForAPI(selectedRange.value.end);
-
-
 
     const params: any = {
       page: current,
@@ -318,6 +358,7 @@ const applyFilter = async (current = pages.value.current) => {
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
       per_pages: perPages.value,
+      group_by: groupByValue,
     };
 
     if (channelSearch && channelSearch.trim() !== "") {
@@ -365,13 +406,19 @@ const applyFilter = async (current = pages.value.current) => {
     engagementRatePeriod.value = [
       {
         name: "% Taxa de Engajamento",
-        value: data.engagement_rate_period || [],
+        value: (data.engagement_rate_period ?? []).map((item) => ({
+          ...item,
+          "% Taxa de Engajamento": (item["% Taxa de Engajamento"] ?? 0) / 100,
+        })),
       },
     ];
     bounceRatePeriod.value = [
       {
         name: "% Taxa de Rejeição",
-        value: data.bounce_rate_period || [],
+        value: (data.bounce_rate_period ?? []).map((item) => ({
+          ...item,
+          "% Taxa de Rejeição": (item["% Taxa de Rejeição"] ?? 0) / 100,
+        })),
       },
     ];
     totalRevenuePeriod.value = [
@@ -656,6 +703,11 @@ watch(perPages, (newPages) => {
 });
 
 onMounted(() => {
+  searchValues.value = {
+    "search[0][group_by]": "sessionDefaultChannelGroup",
+    "search[1][channel]": "",
+  };
+
   setTimeout(() => {
     applyFilter(1);
   }, 100);
