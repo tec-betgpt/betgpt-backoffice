@@ -120,13 +120,13 @@ const chartOptions = computed(() => ({
   tooltip: {
     y: {
       formatter: function (val: number) {
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        return new Intl.NumberFormat('pt-BR', {}).format(val);
       }
     }
   },
   dataLabels: {
     formatter: function (val: number) {
-      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+      return new Intl.NumberFormat('pt-BR', { style: 'percent' }).format(val);
     }
   },
   responsive: [{
