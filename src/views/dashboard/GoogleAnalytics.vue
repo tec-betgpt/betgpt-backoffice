@@ -68,9 +68,6 @@
                 label: 'Canal',
               },
             ]"
-            :initial-values="{
-              'search[0][group_by]': 'sessionDefaultChannelGroup',
-            }"
           />
         </CardContent>
 
