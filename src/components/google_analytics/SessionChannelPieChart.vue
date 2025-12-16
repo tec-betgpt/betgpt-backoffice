@@ -126,7 +126,7 @@ const chartOptions = computed(() => ({
   },
   dataLabels: {
     formatter: function (val: number) {
-      return new Intl.NumberFormat('pt-BR', { style: 'percent' }).format(val);
+      return Number(val).toFixed(1).concat('%');
     }
   },
   responsive: [{
