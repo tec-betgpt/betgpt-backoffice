@@ -107,12 +107,30 @@
         <div v-if="isDialogLoading" class="flex items-center justify-center h-48">
           <Spinner class="h-8 w-8" />
         </div>
-        <div v-else-if="selectedTrackData" class="h-full">
-          <pre  class="bg-gray-100 h-[600px] dark:bg-gray-800 p-4 rounded-md overflow-y-scroll">{{
-              JSON.stringify(selectedTrackData, null, 2) }}
-          </pre>
+        <div v-else-if="selectedTrackData && Object.keys(groupedTrackData).length" class="h-full max-h-[600px] overflow-y-auto space-y-4 p-1">
+          <div v-for="(tracks, groupName) in groupedTrackData" :key="groupName">
+            <Card>
+              <CardHeader class="py-4">
+                <CardTitle class="text-lg">
+                  {{ groupName === 'Player' ? 'Origem do Cadastro' : groupName === 'Deposit' ? 'Origem do Depósito' : groupName }}
+                </CardTitle>
+              </CardHeader>
+              <CardContent class="grid gap-3">
+                <div v-for="track in tracks" :key="track.id" class="grid grid-cols-2 gap-2 border-b last:border-b-0 py-2">
+                  <div class="col-span-2 flex justify-between items-center text-sm">
+                    <span class="font-semibold text-muted-foreground">{{ track.name }}</span>
+                    <span class="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{{ track.value }}</span>
+                  </div>
+                  <div class="col-span-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                    <span>Data de Inserção:</span>
+                    <span>{{ moment(track.created_at).format("DD/MM/YYYY HH:mm:ss") }}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-         <div v-else class="text-center text-muted-foreground">
+        <div v-else class="text-center text-muted-foreground">
             Nenhum dado para exibir.
         </div>
       </div>
@@ -125,24 +143,24 @@
 </template>
 
 <script setup lang="ts">
-import {h, onMounted, ref, watch} from "vue";
+import {computed, h, onMounted, ref, watch} from "vue";
 import {useToast} from "@/components/ui/toast/use-toast";
 import {Button} from "@/components/ui/button";
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
-  DropdownMenuContent,
+  DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {ArrowDown, ArrowUp, ChevronDownIcon} from "lucide-vue-next";
+import {ArrowDown, ArrowUp, ChevronDownIcon, Loader2 as LucideSpinner, MoreHorizontal} from "lucide-vue-next";
 import UtmTracks from "@/services/utmTracks";
 import {createColumnHelper} from "@tanstack/vue-table";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import {CaretSortIcon} from "@radix-icons/vue";
 import {useWorkspaceStore} from "@/stores/workspace";
 import moment from "moment";
-import {Card, CardContent, CardHeader} from "@/components/ui/card";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import ChartBarComponent from "@/components/utm_tracks/ChartBarComponent.vue";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Spinner} from "@/components/ui/spinner";
@@ -178,6 +196,20 @@ const typeFilter = ref<Array<String>>(["deposit", "player"]);
 const isDialogOpen = ref(false);
 const isDialogLoading = ref(false);
 const selectedTrackData = ref(null);
+
+const groupedTrackData = computed(() => {
+  if (!Array.isArray(selectedTrackData.value)) {
+    return {};
+  }
+  return selectedTrackData.value.reduce((acc, track) => {
+    const sourceType = track.source_type.split('\\').pop();
+    if (!acc[sourceType]) {
+      acc[sourceType] = [];
+    }
+    acc[sourceType].push(track);
+    return acc;
+  }, {});
+});
 
 
 watch(typeFilter.value, async () => {
@@ -237,10 +269,8 @@ const openDialogAndFetchTrack = async (trackValue: string) => {
   isDialogLoading.value = true;
   selectedTrackData.value = null;
   try {
-   const response = await UtmTracks.show({source_id: trackValue,filter_id:activeGroupProjectId});
-    console.log(response.data);
+   const response = await UtmTracks.show({id: trackValue,filter_id:activeGroupProjectId});
    selectedTrackData.value = response.data;
-    console.log(selectedTrackData.value);
   } catch (error) {
     console.error("Erro ao buscar detalhes da atribuição:", error);
     toast({
@@ -333,14 +363,40 @@ const columns = [
         moment(row.original.created_at).format("DD/MM/YYYY HH:mm:ss")
       ),
   }),
-  columnHelper.display({
-    id: 'view',
-    header: () => 'Visualizar',
-    cell: ({ row }) => h(Button, {
-      variant: 'outline',
-      size: 'sm',
-      onClick: () => openDialogAndFetchTrack(row.original.id)
-    }, () => 'Visualizar'),
+
+  columnHelper.accessor("statuses", {
+    header({ header }) {
+      return "Ações";
+    },
+    cell: ({ row, table }) =>
+        h(DropdownMenu, {}, [
+          h(
+              DropdownMenuTrigger,
+              { asChild: true },
+              h(
+                  Button,
+                  { size: "icon", variant: "ghost"},
+                  [
+                    h(MoreHorizontal, { class: "h-4 w-4" }),
+                    h("span", { class: "sr-only" }, "Ações"),
+                  ]
+              )
+          ),
+          h(DropdownMenuContent, { align: "end" }, [
+            h(DropdownMenuLabel, {}, "Ações"),
+            h(DropdownMenuSeparator, {}),
+            h(
+                DropdownMenuItem,
+                {
+                  onClick: () => {
+                    openDialogAndFetchTrack(row.original.id);
+                  },
+                },
+                "Visualizar"
+            ),
+
+          ]),
+        ]),
   }),
 ]
 </script>
