@@ -119,7 +119,9 @@
                 <div v-for="track in tracks" :key="track.id" class="grid grid-cols-2 gap-2 border-b last:border-b-0 py-2">
                   <div class="col-span-2 flex justify-between items-center text-sm">
                     <span class="font-semibold text-muted-foreground">{{ track.name }}</span>
-                    <p class="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-wrap max-w-56 overflow-hidden text-ellipsis whitespace-pre-wrap">{{ track.value }}</p>
+                    <p class="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded max-w-56 break-words whitespace-pre-wrap">
+                      {{ track.value }}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -350,7 +352,7 @@ const columns = [
     header: () => createHeaderButton("Valor", "value"),
     cell: ({ row }) => h(
         "div",
-        { class: "max-w-56 overflow-hidden text-ellipsis whitespace-nowrap" },
+        { class: "max-w-56 line-clamp-3 break-words whitespace-normal" },
         `${row.original.value}`
     ),
   }),
