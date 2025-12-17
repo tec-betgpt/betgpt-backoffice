@@ -119,11 +119,7 @@
                 <div v-for="track in tracks" :key="track.id" class="grid grid-cols-2 gap-2 border-b last:border-b-0 py-2">
                   <div class="col-span-2 flex justify-between items-center text-sm">
                     <span class="font-semibold text-muted-foreground">{{ track.name }}</span>
-                    <span class="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{{ track.value }}</span>
-                  </div>
-                  <div class="col-span-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-                    <span>Data de Inserção:</span>
-                    <span>{{ moment(track.created_at).format("DD/MM/YYYY HH:mm:ss") }}</span>
+                    <p class="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-wrap max-w-56 overflow-hidden text-ellipsis whitespace-pre-wrap">{{ track.value }}</p>
                   </div>
                 </div>
               </CardContent>
@@ -352,7 +348,11 @@ const columns = [
   }),
   columnHelper.accessor("value", {
     header: () => createHeaderButton("Valor", "value"),
-    cell: ({ row }) => h("div", {}, `${row.original.value}`),
+    cell: ({ row }) => h(
+        "div",
+        { class: "max-w-56 overflow-hidden text-ellipsis whitespace-nowrap" },
+        `${row.original.value}`
+    ),
   }),
   columnHelper.accessor("created_at", {
     header: () => createHeaderButton("Data", "created_at"),
