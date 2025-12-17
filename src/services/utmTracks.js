@@ -19,7 +19,7 @@ export default {
     /**
      *
      * @param params
-     * @param params.source_id
+     * @param params.id
      * @param {string} params.filter_id
      * @returns {Promise<any>}
      */
