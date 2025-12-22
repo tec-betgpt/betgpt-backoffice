@@ -66,26 +66,45 @@
         </CardFooter>
       </Card>
     </div>
-    <Card v-for="limit in limitsCards" class="flex flex-col sm:w-full">
-      <CardHeader>
-        <CardTitle>
-          Status do {{workspaceStore.activeGroupProject.name}}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div class="grid space-y-2">
-          <span class="">Limite de contatos</span>
-          <Progress  :model-value="(limit.qt_contact/limit.limit_contact)*100"  class="w-full"/>
-          <p class="text-sm">Faltam {{limit.qt_limit_exceeded}}</p>
-        </div>
-        <Separator class="my-2"/>
-        <div class="grid space-y-2">
-          <span class="">Limite de envio</span>
-          <Progress  :model-value="(limit.qt_mail_sent/limit.qt_mail_limits)*100"  class="w-full"/>
-          <p class="text-sm">Faltam {{limit.qt_mail_exceeded}}</p>
-        </div>
-      </CardContent>
-    </Card>
+
+    <div
+      :class="[
+        'grid gap-3 sm:grid-cols-1',
+        {
+          'md:grid-cols-2': Object.keys(limitsCards).length === 2,
+          'md:grid-cols-3': Object.keys(limitsCards).length >= 3,
+        },
+      ]"
+    >
+
+      <Card v-for="limit in limitsCards">
+        <CardHeader>
+          <CardTitle>
+            <div class="flex justify-between items-center">
+              <div>Status do {{getAccountName(limit.project_id)}}</div>
+              <Button variant="outline">
+                <a target="_blank" :href="`https://${getAccountName(limit.project_id)}.activehosted.com/admin/`">
+                  Abrir
+                </a>
+              </Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="grid space-y-2">
+            <span class="">Limite de contatos</span>
+            <Progress  :model-value="(limit.qt_contact/limit.limit_contact)*100"  class="w-full"/>
+            <p class="text-sm">Faltam {{limit.qt_limit_exceeded}}</p>
+          </div>
+          <Separator class="my-2"/>
+          <div class="grid space-y-2">
+            <span class="">Limite de envio</span>
+            <Progress  :model-value="(limit.qt_mail_sent/limit.qt_mail_limits)*100"  class="w-full"/>
+            <p class="text-sm">Faltam {{limit.qt_mail_exceeded}}</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
     <!-- Modal de Preview do E-mail -->
     <Dialog v-model:open="showEmailModal">
       <DialogContent
@@ -158,7 +177,7 @@
           <Button
             v-if="emailHtml"
             variant="secondary"
-            @click="editTemplateModal(selectedCampaign)"
+            @click="editTemplateModal(selectedCampaign!.project_id)"
           >
             Editar Template
           </Button>
@@ -246,12 +265,15 @@ const emailHtml = ref("");
 const selectedCampaign = ref<CampaignMetrics | null>(null);
 const emailIframe = ref<HTMLIFrameElement | null>(null);
 const currentEmailIndex = ref(0);
-const limitsCards = ref<{qt_contact: number;
+const limitsCards = ref<{
+  project_id: number;
+  qt_contact: number;
   limit_contact: number;
   qt_limit_exceeded: number;
   qt_mail_limits: number;
   qt_mail_sent: number;
-  qt_mail_exceeded: number;}[]>([])
+  qt_mail_exceeded: number;
+}[]>([])
 const backendCampaignTotals = ref();
 const campaignsData = ref<CampaignMetrics[]>([]);
 
@@ -397,10 +419,8 @@ const setSearch = (values: Record<string, string>) => {
   searchValues.value = { ...values };
 };
 
-const getAccountName = (campaign: CampaignMetrics) => {
-  const projectId = campaign.project_id;
+const getAccountName = (projectId: any) => {
   const integration = integrations.value[projectId];
-
   return integration.account_name;
 };
 
@@ -524,15 +544,6 @@ const formatPercentage = (value: any): string => {
 
 const formatNumber = (value: number): string => {
   return new Intl.NumberFormat("pt-BR").format(value);
-};
-
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
 };
 
 const formatDate = (dateString: string): string => {
