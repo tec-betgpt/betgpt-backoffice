@@ -33,6 +33,7 @@
     "v-resize-observer": "^2.1.0",
     "vform": "^2.1.2",
     "vue": "^3.4.37",
+    "vue-dragscroll": "^4.0.6",
     "vue-i18n": "^9.14.0",
     "vue-resize-observer": "^2.0.15",
     "vue-router": "^4.4.3",

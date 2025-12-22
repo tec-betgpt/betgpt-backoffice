@@ -65,7 +65,7 @@
     <slot></slot>
   </div>
 
-  <Table class="w-full my-2">
+  <Table class="w-full my-2" v-dragscroll>
     <TableHeader>
       <TableRow
         v-for="headerGroup in table.getHeaderGroups()"
