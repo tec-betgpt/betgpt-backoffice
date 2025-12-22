@@ -1,48 +1,50 @@
-import { createApp } from "vue"
-import { createPinia } from "pinia"
-import i18n from "./i18n"
-import App from "./App.vue"
-import router from "./router"
-import VueTippy from "vue-tippy"
-import toCurrency from "@/filters/currencyFilter"
-import toK from "@/filters/numberFilter"
-import { useAuthStore } from "@/stores/auth"
-import { useConfigStore } from "@/stores/config"
-import moment from "moment"
-import "moment/dist/locale/pt-br"
-import globalComponents from "@/boot/components"
-import VueApexCharts from "vue3-apexcharts"
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import i18n from "./i18n";
+import App from "./App.vue";
+import router from "./router";
+import VueTippy from "vue-tippy";
+import toCurrency from "@/filters/currencyFilter";
+import toK from "@/filters/numberFilter";
+import { useAuthStore } from "@/stores/auth";
+import { useConfigStore } from "@/stores/config";
+import moment from "moment";
+import "moment/dist/locale/pt-br";
+import globalComponents from "@/boot/components";
+import VueApexCharts from "vue3-apexcharts";
+import VueDragscroll from "vue-dragscroll";
 
-import "tippy.js/dist/tippy.css"
-import "./styles/base.css"
+import "tippy.js/dist/tippy.css";
+import "./styles/base.css";
 
-const app = createApp(App)
-const pinia = createPinia()
+const app = createApp(App);
+const pinia = createPinia();
 
-moment.locale("pt-br")
+moment.locale("pt-br");
 
-app.config.globalProperties.$toCurrency = toCurrency
-app.config.globalProperties.$moment = moment
-app.config.globalProperties.$toK = toK
+app.config.globalProperties.$toCurrency = toCurrency;
+app.config.globalProperties.$moment = moment;
+app.config.globalProperties.$toK = toK;
 
 app.use(VueTippy, {
   directive: "tippy",
   component: "tippy",
 })
-app.use(VueApexCharts)
-app.use(pinia)
-app.use(router)
-app.use(i18n)
+app.use(VueApexCharts);
+app.use(pinia);
+app.use(router);
+app.use(i18n);
+app.use(VueDragscroll);
 
 for (const [path, component] of Object.entries(globalComponents)) {
-  const componentName = path.split("/").pop()?.replace(".vue", "") || ""
-  app.component(componentName, (component).default)
+  const componentName = path.split("/").pop()?.replace(".vue", "") || "";
+  app.component(componentName, (component).default);
 }
 
-const authStore = useAuthStore()
-authStore.restoreSession()
+const authStore = useAuthStore();
+authStore.restoreSession();
 
-const configStore = useConfigStore()
-configStore.fetchConfigs()
+const configStore = useConfigStore();
+configStore.fetchConfigs();
 
-app.mount("#app")
+app.mount("#app");
