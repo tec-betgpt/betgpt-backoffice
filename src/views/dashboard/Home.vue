@@ -5,7 +5,7 @@
         <div class="px-5 grid md:grid-cols-2 xs:grid-cols-1 gap-2 w-full">
           <div>
             <div class="text-xl font-semibold text-white">
-              {{ greeting() }} {{ user ? user.first_name : "" }},
+              {{ greeting() }} {{ user ? user.first_name : "" }}.
             </div>
             <div class="text-xs text-white">
               Confira as principais atualizações
