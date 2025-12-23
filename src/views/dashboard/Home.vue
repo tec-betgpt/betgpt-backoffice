@@ -703,8 +703,7 @@ export default {
     },
 
     async _user() {
-      const { data } = await Auth.user();
-      this.user = data;
+      this.user = useAuthStore().user ;
     },
 
     greeting() {
