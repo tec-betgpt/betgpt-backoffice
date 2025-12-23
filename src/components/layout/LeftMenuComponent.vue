@@ -6,11 +6,12 @@
     @update:modelValue="handleSidebarExpand"
     :collapsed="sidebarExpanded"
   >
-    <div v-if="authStore && authStore.user && !authStore.user.is_available" class="bg-gray-50/5 w-full h-full backdrop-blur-lg absolute top-0 left-0 z-10 flex flex-col items-center justify-center px-4 text-center">
+    <div
+      v-if="authStore && authStore.user && !authStore.user.is_available"
+      class="bg-gray-50/5 w-full h-full backdrop-blur-lg absolute top-0 left-0 z-10 flex flex-col items-center justify-center px-4 text-center"
+    >
       <LucideLockOpen />
-      <div class="text-sm font-bold">
-        Conta suspensa
-      </div>
+      <div class="text-sm font-bold">Conta suspensa</div>
       <div class="text-xs">
         Por favor, efetue o pagamento das faturas pendentes.
       </div>
@@ -152,7 +153,9 @@
                     :tooltip="item.name"
                     @click="toggleCollapsed(item.type)"
                   >
-                    <div class="flex items-center flex-col justify-center gap-1">
+                    <div
+                      class="flex items-center flex-col justify-center gap-1"
+                    >
                       <Component :is="item.icon" :size="16" />
                     </div>
                     <span>{{ item.name }}</span>
@@ -205,10 +208,7 @@
             class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
             <Avatar class="h-8 w-8 rounded-lg">
-              <AvatarImage
-                v-if="authStore.user"
-                :src="authStore.user?.icon"
-              />
+              <AvatarImage v-if="authStore.user" :src="authStore.user?.icon" />
               <AvatarFallback class="rounded-lg text-white">
                 {{ authStore.user?.initials }}
               </AvatarFallback>
@@ -322,7 +322,7 @@ import {
   SquarePen,
   Square,
   LucideLockOpen,
-  LucideUserCheck
+  LucideUserCheck,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -337,7 +337,7 @@ import { useRoute, useRouter } from "vue-router";
 import { computed, ref, watch, defineModel } from "vue";
 import ServicesPreviewComponent from "@/components/layout/ServicesPreviewComponent.vue";
 
-const sidebarExpanded = defineModel<boolean>('sidebarExpanded');
+const sidebarExpanded = defineModel<boolean>("sidebarExpanded");
 
 const DARK_LOGOS = {
   square: "/logo-elevate-square-white.png",
@@ -415,13 +415,13 @@ const navMenu = computed(() => {
           show: canAccess("view-segments"),
         },
         {
-          name:"Publico Alvo",
+          name: "Publico Alvo",
           url: { name: "target-audiences" },
           icon: ListFilter,
           show: canAccess("view-segments"),
         },
         {
-          name: "Eventos",
+          name: "Conversões",
           url: { name: "events" },
           icon: SquarePen,
           show: canAccess("view-events"),
@@ -503,7 +503,9 @@ const navMenu = computed(() => {
           name: "Fontes de Dados",
           url: { name: "data-sources" },
           icon: Blocks,
-          show: canAccess("access-to-integrations") && activeGroupProject.value?.type === "project",
+          show:
+            canAccess("access-to-integrations") &&
+            activeGroupProject.value?.type === "project",
         },
       ],
     },
@@ -537,19 +539,28 @@ const navMenu = computed(() => {
           name: "Assinantes",
           url: { name: "subscribers" },
           icon: LucideUserCheck,
-          show: (hasRole("member-proprietor") || hasRole("member-admin")) || canAccess("access-to-subscribers"),
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            canAccess("access-to-subscribers"),
         },
         {
           name: "Serviços",
           url: { name: "services" },
           icon: Briefcase,
-          show: (hasRole("member-proprietor") || hasRole("member-admin")) || canAccess("access-to-services"),
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            canAccess("access-to-services"),
         },
         {
           name: "MyElevate Insights",
           url: { name: "texts" },
           icon: Album,
-          show: (hasRole("member-proprietor") || hasRole("member-admin")) || canAccess("access-to-motivational-texts"),
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            canAccess("access-to-motivational-texts"),
         },
         {
           name: "Logins",
@@ -601,17 +612,16 @@ const getLogoSrc = (isDarkMode: boolean, isSidebarExpanded: boolean) => {
 };
 
 const hasPermission = (permissionName: string) => {
-  return  !!authStore.user?.roles.some((role: any) =>
-    role.permissions.some(
-      (permission: any) => {
-        return permission.name === permissionName
-      }
-    )
+  return !!authStore.user?.roles.some((role: any) =>
+    role.permissions.some((permission: any) => {
+      return permission.name === permissionName;
+    })
   );
-
 };
-const hasRole = (roleName: string):Boolean => {
-  return authStore.user?.roles?.some((role: any) => role.name === roleName) ?? false;
+const hasRole = (roleName: string): Boolean => {
+  return (
+    authStore.user?.roles?.some((role: any) => role.name === roleName) ?? false
+  );
 };
 
 const hasPermissionInActiveProject = (permissionName: string) => {
@@ -631,7 +641,7 @@ const hasPermissionInActiveProject = (permissionName: string) => {
 const canAccess = (permissionName: string) => {
   return (
     hasPermission(permissionName) ||
-    hasPermissionInActiveProject(permissionName)  ||
+    hasPermissionInActiveProject(permissionName) ||
     hasRole(permissionName)
   );
 };
