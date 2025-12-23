@@ -16,6 +16,7 @@
     <div class="grid xl:grid-cols-2 grid-cols-1 gap-4" >
       <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" glossary="Dados de Usuários registrados e ativos"/>
       <PeriodComponent :period="loginsDays" title="Logins diários" :isLoading="isLoading" glossary="Dados de Logins diários"/>
+      <PeriodComponent :period="uniquePlayerLoginsPeriod" title="Logins únicos" :isLoading="isLoading" glossary="Usuários únicos que entraram no sistema por dia"/>
       <PeriodComponent :period="depositsPeriod" title="Deposito por periodo" :isLoading="isLoading" glossary="Dados de depósito por período, com diferença de 7D, 14D e 28D"/>
       <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" type="percent" class="xl:col-span-2" :isLoading="isLoading" glossary="Percentual de depósitos líquidos em relação ao total por período"/>
       <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período" :isLoading="isLoading" glossary="Valor líquido dos depósitos realizados em cada período"/>
@@ -43,6 +44,7 @@ const { toast } = useToast();
 
 const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
 const startDate = currentDate.subtract({ days: 28 });
+const uniquePlayerLoginsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const selectedRange = ref({ start: startDate, end: currentDate });
 const depositsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const loginsDays = ref<{ name: string; value: number[] }[]>([]);
@@ -87,6 +89,9 @@ const applyFilter = async () => {
       return {date:deposit.date,["% Pagos"]:deposit["% Pagos"]/100}  })
     let ftd = data.percent_ftd_day_period.map(deposit => {
       return {date:deposit.date,["FTD/Dia"]:deposit["FTD/Dia"]/100}  })
+    let unique_logins = data.unique_player_logins_period.map(login => {
+      return {date:login.date,["Logins únicos"]:login["Logins"]}
+    })
     depositsPeriod.value = [{name:"7 Dias",value:data.deposits_period},{name:"14 Dias",value:data.deposits_period}, {name:"28 Dias",value:data.deposits_period}];
     usersPeriod.value = [{name:"Registrados",value:data.users_period}, {name:"Ativos",value:data.users_period}];
     percentNetDepositsPeriod.value = [{name:"7 Dias %",value:percent_net},{name:"14 Dias %",value:percent_net}, {name:"28 Dias %",value:percent_net}];
@@ -99,7 +104,7 @@ const applyFilter = async () => {
     registrationDepositRatePeriod.value = [{name:"% Depósito",value:registration_deposit}];
     depositConversionRatePeriod.value = [{name:"% Pagos",value:deposit_conversion}];
     loginsDays.value = [{name:"Logins",value:data.player_logins_period}];
-
+    uniquePlayerLoginsPeriod.value = [{name:"Logins únicos",value:unique_logins}];
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
