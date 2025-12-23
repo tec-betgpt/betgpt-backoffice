@@ -537,31 +537,31 @@ const navMenu = computed(() => {
           name: "Assinantes",
           url: { name: "subscribers" },
           icon: LucideUserCheck,
-          show: (canAccess("member-proprietor") || canAccess("member-admin")) || canAccess("access-to-subscribers"),
+          show: (hasRole("member-proprietor") || hasRole("member-admin")) || canAccess("access-to-subscribers"),
         },
         {
           name: "Serviços",
           url: { name: "services" },
           icon: Briefcase,
-          show: (canAccess("member-proprietor") || canAccess("member-admin")) || canAccess("access-to-services"),
+          show: (hasRole("member-proprietor") || hasRole("member-admin")) || canAccess("access-to-services"),
         },
         {
           name: "MyElevate Insights",
           url: { name: "texts" },
           icon: Album,
-          show: (canAccess("member-proprietor") || canAccess("member-admin")) || canAccess("access-to-motivational-texts"),
+          show: (hasRole("member-proprietor") || hasRole("member-admin")) || canAccess("access-to-motivational-texts"),
         },
         {
           name: "Logins",
           url: { name: "user-logins" },
           icon: History,
-          show: canAccess("member-proprietor") || canAccess("member-admin"),
+          show: hasRole("member-proprietor") || hasRole("member-admin"),
         },
         {
           name: "Insights IA",
           url: { name: "insightIA" },
           icon: Bot,
-          show: canAccess("member-proprietor"),
+          show: hasRole("member-proprietor"),
         },
       ],
     },
@@ -610,10 +610,8 @@ const hasPermission = (permissionName: string) => {
   );
 
 };
-const hasRole = (roleName: string) => {
-    return !authStore.user?.roles.filter((role: any) => {
-      return role.name === roleName
-    })
+const hasRole = (roleName: string):Boolean => {
+  return authStore.user?.roles?.some((role: any) => role.name === roleName) ?? false;
 };
 
 const hasPermissionInActiveProject = (permissionName: string) => {
