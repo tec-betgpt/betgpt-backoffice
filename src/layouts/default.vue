@@ -301,7 +301,7 @@ onMounted(async () => {
 
   if (user) {
     await workspaceStore.loadInitialData(user.preferences, user.group_projects);
-    if (workspaceStore.activeGroupProject.type == "project") {
+    if (workspaceStore.activeGroupProject.type == "project" && user.access_type == "member") {
       fetchStatusOAuth2()
     }
   }
