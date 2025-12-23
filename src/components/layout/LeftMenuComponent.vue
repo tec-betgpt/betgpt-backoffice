@@ -537,32 +537,32 @@ const navMenu = computed(() => {
           name: "Assinantes",
           url: { name: "subscribers" },
           icon: LucideUserCheck,
-          show: canAccess("access-to-subscribers"),
+          show: (canAccess("member-proprietor") || canAccess("member-admin")) || canAccess("access-to-subscribers"),
         },
         {
           name: "Serviços",
           url: { name: "services" },
           icon: Briefcase,
-          show: canAccess("access-to-services"),
+          show: (canAccess("member-proprietor") || canAccess("member-admin")) || canAccess("access-to-services"),
         },
         {
           name: "MyElevate Insights",
           url: { name: "texts" },
           icon: Album,
-          show: canAccess("access-to-motivational-texts"),
+          show: (canAccess("member-proprietor") || canAccess("member-admin")) || canAccess("access-to-motivational-texts"),
         },
         {
           name: "Logins",
           url: { name: "user-logins" },
           icon: History,
-          show: canAccess("access-to-users"),
+          show: canAccess("member-proprietor") || canAccess("member-admin"),
         },
-            {
-              name: "Insights IA",
-              url: { name: "insightIA" },
-              icon: Bot,
-              show: canAccess("member-proprietor") || canAccess("member-admin"),
-            },
+        {
+          name: "Insights IA",
+          url: { name: "insightIA" },
+          icon: Bot,
+          show: canAccess("member-proprietor"),
+        },
       ],
     },
     {
@@ -601,16 +601,19 @@ const getLogoSrc = (isDarkMode: boolean, isSidebarExpanded: boolean) => {
 };
 
 const hasPermission = (permissionName: string) => {
-  return !!authStore.user?.roles.some((role: any) =>
+  return  !!authStore.user?.roles.some((role: any) =>
     role.permissions.some(
-      (permission: any) => permission.name === permissionName
+      (permission: any) => {
+        return permission.name === permissionName
+      }
     )
   );
+
 };
 const hasRole = (roleName: string) => {
-  return !!authStore.user?.roles.filter((role: any) => {
-    return role.name === roleName
-  });
+    return !authStore.user?.roles.filter((role: any) => {
+      return role.name === roleName
+    })
 };
 
 const hasPermissionInActiveProject = (permissionName: string) => {
