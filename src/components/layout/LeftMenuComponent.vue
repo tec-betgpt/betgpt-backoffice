@@ -420,12 +420,7 @@ const navMenu = computed(() => {
           icon: ListFilter,
           show: canAccess("view-segments"),
         },
-        {
-          name: "Conversões",
-          url: { name: "events" },
-          icon: SquarePen,
-          show: canAccess("view-events"),
-        },
+
         {
           name: "Atribuições",
           url: { name: "attributions" },
@@ -434,9 +429,29 @@ const navMenu = computed(() => {
         },
         {
           name: "Exportações",
-          url: { name: "exports" },
+          url: {name: "exports"},
           icon: Download,
-          show: canAccess("access-to-exportations"),
+          show: true
+        }
+      ],
+    },
+    {
+      name: "Conversões",
+      icon: SquarePen,
+      type: "conversions",
+      show: true,
+      children: [
+        {
+          name: "Lista de Conversões",
+          url: { name: "conversionsList" },
+          icon: ListFilter,
+          show: true,
+        },
+        {
+          name: "Eventos",
+          url: { name: "events" },
+          icon: SquarePen,
+          show: true,
         },
       ],
     },

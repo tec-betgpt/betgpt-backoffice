@@ -20,6 +20,7 @@ export default {
    * @param {string} body.description
    * @param {string} body.type
    * @param {boolean} body.is_primary
+   * @param {boolean} body.include_in_report
    * @param {string} body.project_id
    * @param {string} body.conversion_value_field
    * @param {Array<object>} body.conditions
@@ -48,6 +49,7 @@ export default {
    * @param {string} body.description
    * @param {string} body.type
    * @param {boolean} body.is_primary
+   * @param {boolean} body.include_in_report
    * @param {string} body.project_id
    * @param {string} body.conversion_value_field
    * @param {Array<object>} body.conditions
@@ -84,6 +86,11 @@ export default {
      */
     async getValues (){
       const {data} = await api.get(`/conversion-definitions/values`)
+        return data
+    },
+
+    async getChannelList(){
+      const {data} = await api.get(`/conversion-definitions/channels`)
         return data
     }
 }

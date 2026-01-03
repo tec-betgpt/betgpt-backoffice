@@ -10,6 +10,7 @@ import configurations from "@/router/configurations.js";
 import elevate_ia from "@/router/elevate_ia.js";
 import controls from "@/router/controls.js";
 import audiences from "@/router/audiences.js";
+import conversions from "@/router/conversions.js";
 import manage from "@/router/manage.js";
 import governance from "@/router/governance.js";
 import financial from "@/router/financial.js";
@@ -55,6 +56,7 @@ const routes = [
   ...elevate_ia,
   ...controls,
   ...audiences,
+  ...conversions,
   ...manage,
   ...governance,
   ...financial
