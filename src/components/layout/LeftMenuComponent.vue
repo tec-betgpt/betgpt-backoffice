@@ -439,19 +439,19 @@ const navMenu = computed(() => {
       name: "Conversões",
       icon: SquarePen,
       type: "conversions",
-      show: true,
+      show: canAccess("access-to-conversion"),
       children: [
         {
           name: "Lista de Conversões",
           url: { name: "conversionsList" },
           icon: ListFilter,
-          show: true,
+          show: canAccess("access-to-conversion"),
         },
         {
           name: "Eventos",
           url: { name: "events" },
           icon: SquarePen,
-          show: true,
+          show: canAccess("access-to-events"),
         },
       ],
     },

@@ -27,7 +27,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const configStore = useConfigStore();
 const { loading } = storeToRefs(authStore);
-const layout = computed(() => route.meta.layout || DefaultLayout);
+const layout = computed(() => route.meta.layout);
 
 onMounted(() => {});
 </script>
