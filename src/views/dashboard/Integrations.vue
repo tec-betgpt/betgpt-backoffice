@@ -32,23 +32,35 @@
           </div>
         </div>
         <div
-          v-if="(data.slug === 'google-analytics' || data.slug === 'meta') && ( propetyList.length > 0 || adAccountMeta.length > 0)"
+          v-if="data.slug === 'google-analytics' &&  propetyList.length > 0"
           class="mt-4"
         >
           <Label for="property" class="mb-1">Propriedade do Projeto</Label>
-          <Select id="property" :v-model="data.slug === 'google-analytics' ? data.config.property_id : data.config.ad_account" class="my-1">
+          <Select id="property" v-model="propetySelect"  class="my-1">
             <SelectTrigger>
               <SelectValue placeholder="Selecione a propriedade" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem
-                  v-if="data.slug === 'google-analytics'"
                 v-for="property in propetyList"
                 :key="property.id"
                 :value="property.id"
               >
-                {{ property.name }}/{{ property.id }}
+                {{ property.name }}/{{ property.id.replace('properties/', '') }}
               </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div
+            v-if="data.slug === 'meta' &&  adAccountMeta.length > 0"
+            class="mt-4"
+        >
+          <Label for="property" class="mb-1">Propriedade do Projeto</Label>
+          <Select id="property" :v-model="data.config.ad_account" class="my-1">
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione a propriedade" />
+            </SelectTrigger>
+            <SelectContent>
               <SelectItem
                   v-if="data.slug === 'meta'"
                   v-for="account in adAccountMeta"
@@ -164,6 +176,8 @@ const integrations = ref<Array<any>>([]);
 const activeGroupProject = workspaceStore.activeGroupProject;
 const popUp = ref<Window | null>(null);
 const propetyList = ref<Array<{ id: string; name: string }>>([]);
+const propetySelect = ref('')
+const adAccountSelect = ref('')
 const adAccountMeta = ref<Array<{ id: string; name: string }>>([]);
 const disableBt = ref(false);
 
@@ -316,20 +330,15 @@ function getApplicationDetail(name: string) {
 async function saveAllIntegrations() {
   saving.value = true;
 
-  integrations.value.forEach((integration) => {
-    if (
-      propetyList.value.length > 0 &&
-      integration.slug === "google-analytics"
-    ) {
-      const selectedProperty = propetyList.value.find(
-        (property) => property.id === integration.config.property_id
-      );
-      integration.config.property_name = selectedProperty
-        ? selectedProperty.name
-        : "";
-    }
-  });
-
+  if (propetySelect){
+    integrations.value[1].config.property_id = propetySelect.value;
+    integrations.value[1].config.property_name = propetyList.value.find(
+        (property) => property.id === propetySelect.value
+    ).name;
+  }
+  if (adAccountSelect){
+    integrations.value[3].config.property_id = adAccountSelect.value
+  }
   try {
     await Projects.bulkUpdate(
       activeGroupProject.project_id,
