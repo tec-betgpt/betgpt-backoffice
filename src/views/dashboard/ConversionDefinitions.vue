@@ -55,7 +55,7 @@
                 {{ row.is_primary ? 'Primária' : 'Quantitativa' }}
               </TableCell>
               <TableCell class="text-right">
-                {{ row.register_in_return ? 'Sim' : 'Não' }}
+                {{ row.is_return_report ? 'Sim' : 'Não' }}
               </TableCell>
               <TableCell class="text-right">
                 {{ formatDate(row.updated_at) }}h
