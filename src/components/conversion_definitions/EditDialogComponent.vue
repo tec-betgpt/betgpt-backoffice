@@ -7,17 +7,16 @@
     <DialogContent class="sm:max-w-2xl max-h-[60vw] overflow-y-scroll">
       <DialogHeader>
         <DialogTitle>
-          Nova Definição de Conversão
+          Editar Definição de Conversão
         </DialogTitle>
         <DialogDescription>
-          Defina as regras para sua definição de conversão.
+          Edite as regras para sua definição de conversão.
         </DialogDescription>
       </DialogHeader>
 
       <ErrorComponent :errors="errors" />
 
       <div class="grid gap-6 p-4">
-        <!-- Campos Principais -->
         <div class="space-y-4">
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="name" class="text-right">Nome</Label>
@@ -78,6 +77,15 @@
               required
             />
           </div>
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label for="channel_group" class="text-right">Grupo de Canais</Label>
+            <Input
+              id="channel_group"
+              v-model="form.channel_group"
+              class="col-span-3"
+              required
+            />
+          </div>
           <div class="grid grid-cols-4 items-center gap-4" v-if="canManageReports">
             <Label for="is_return_report" class="text-right">
               Registrar no Retorno
@@ -131,11 +139,20 @@
                   </div>
 
                   <div class="flex-1 min-w-0">
-                    <Input
-                      v-model="condition.conditionable_id"
-                      placeholder="ID do Segmento"
-                      class="bg-transparent"
-                    />
+                    <Select v-model="condition.conditionable_id">
+                      <SelectTrigger class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2">
+                        <SelectValue placeholder="Selecione um Segmento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                          v-for="segment in segments"
+                          :key="segment.id"
+                          :value="segment.id"
+                        >
+                          {{ segment.name }}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <Button
@@ -189,12 +206,13 @@ import ErrorComponent from "@/components/layout/ErrorComponent.vue";
 const props = defineProps<{ row: object, reload: (() => Promise<void>) }>();
 
 const { toast } = useToast();
+const authStore = useAuthStore();
 const errors = ref([]);
 const modal = ref(false);
 const workspaceStore = useWorkspaceStore();
-const authStore = useAuthStore();
 const isProcessing = ref(false);
 const values = ref<string[]>([]);
+const segments = ref<any[]>([]);
 const form = ref({
   id: null as number | null,
   name: "",
@@ -204,6 +222,7 @@ const form = ref({
   conversion_value_field: "",
   metric_source_type: "",
   conversion_category: "",
+  channel_group: "",
   conditions: [] as any[],
 });
 
@@ -225,6 +244,7 @@ const resetForm = () => {
     conversion_value_field: "",
     metric_source_type: "",
     conversion_category: "",
+    channel_group: "",
     conditions: [],
   };
 };
@@ -237,12 +257,22 @@ const fetchValues = async () => {
   }
 }
 
+// Nova função para buscar segmentos
+const fetchSegments = async () => {
+  try {
+    segments.value = await ConversionDefinitions.segments({
+      filter_id: activeGroupProject.value?.id
+    })
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 const addCondition = (type: string) => {
-  const increment = form.value.conditions.length + 1
   if (type === "segment") {
     form.value.conditions.push({
       conditionable_type: "segment",
-      conditionable_id: increment,
+      conditionable_id: null,
     });
   }
 };
@@ -273,6 +303,7 @@ const onSubmit = async () => {
       conversion_value_field: form.value.conversion_value_field,
       metric_source_type: form.value.metric_source_type,
       conversion_category: form.value.conversion_category,
+      channel_group: form.value.channel_group,
       conditions: form.value.conditions.filter(c => c.conditionable_id),
     };
 
@@ -283,7 +314,7 @@ const onSubmit = async () => {
 
     toast({
       title: "Sucesso",
-      description: "Definição de conversão criada com sucesso",
+      description: "Definição de conversão atualizada com sucesso",
       variant: "default",
     });
   } catch (error: any) {
@@ -295,8 +326,11 @@ const onSubmit = async () => {
 
 const openModal = async () => {
   resetForm()
+
   await fetchValues()
+  await fetchSegments()
   await show()
+
   modal.value = true
 }
 </script>

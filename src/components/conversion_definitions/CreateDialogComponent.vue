@@ -79,6 +79,15 @@
               required
             />
           </div>
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label for="channel_group" class="text-right">Grupo de Canais</Label>
+            <Input
+              id="channel_group"
+              v-model="form.channel_group"
+              class="col-span-3"
+              required
+            />
+          </div>
           <div class="grid grid-cols-4 items-center gap-4" v-if="canManageReports">
             <Label for="is_return_report" class="text-right">
               Registrar no Retorno
@@ -116,7 +125,7 @@
                 </div>
                 <p class="text-sm font-medium text-foreground">Nenhum segmento adicionado</p>
                 <p class="text-xs text-muted-foreground mb-3">Adicione regras para refinar sua conversão.</p>
-                <Button variant="outline" size="sm" @click="addCondition('segment', 1)">
+                <Button variant="outline" size="sm" @click="addCondition('segment')">
                   Adicionar Primeiro Segmento
                 </Button>
               </div>
@@ -132,11 +141,20 @@
                   </div>
 
                   <div class="flex-1 min-w-0">
-                    <Input
-                      v-model="condition.conditionable_id"
-                      placeholder="ID do Segmento"
-                      class="bg-transparent"
-                    />
+                    <Select v-model="condition.conditionable_id">
+                      <SelectTrigger class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2">
+                        <SelectValue placeholder="Selecione um Segmento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                          v-for="segment in segments"
+                          :key="segment.id"
+                          :value="segment.id"
+                        >
+                          {{ segment.name }}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <Button
@@ -155,7 +173,7 @@
                 v-if="form.conditions.length > 0"
                 variant="outline"
                 size="sm"
-                @click="addCondition('segment', form.conditions.length + 1)"
+                @click="addCondition('segment')"
                 class="w-full border-dashed text-muted-foreground hover:text-foreground"
               >
                 <PlusIcon class="mr-2 h-4 w-4"/>
@@ -196,6 +214,7 @@ const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
 const isProcessing = ref(false);
 const values = ref<string[]>([]);
+const segments = ref<any[]>([]);
 const form = ref({
   id: null as number | null,
   name: "",
@@ -205,6 +224,7 @@ const form = ref({
   conversion_value_field: "",
   metric_source_type: "",
   conversion_category: "",
+  channel_group: "",
   conditions: [] as any[],
 });
 
@@ -226,6 +246,7 @@ const resetForm = () => {
     conversion_value_field: "",
     metric_source_type: "",
     conversion_category: "",
+    channel_group: "",
     conditions: [],
   };
 };
@@ -238,11 +259,31 @@ const fetchValues = async () => {
   }
 }
 
-const addCondition = (type: string, increment: number) => {
+const fetchSegments = async () => {
+  try {
+    segments.value = await ConversionDefinitions.segments({
+      filter_id: activeGroupProject.value?.id
+    })
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const fetchChannelGroups = async () => {
+  try {
+    values.value = await ConversionDefinitions.channelGroups({
+      project_id: String(activeGroupProject.value?.id).split('_')[1],
+    });
+  } catch (error) {
+    console.error("Error loading values:", error);
+  }
+}
+
+const addCondition = (type: string) => {
   if (type === "segment") {
     form.value.conditions.push({
       conditionable_type: "segment",
-      conditionable_id: increment,
+      conditionable_id: null,
     });
   }
 };
@@ -265,6 +306,7 @@ const onSubmit = async () => {
       conversion_value_field: form.value.conversion_value_field,
       metric_source_type: form.value.metric_source_type,
       conversion_category: form.value.conversion_category,
+      channel_group: form.value.channel_group,
       conditions: form.value.conditions.filter(c => c.conditionable_id),
     };
 
@@ -287,7 +329,11 @@ const onSubmit = async () => {
 
 const openModal = async () => {
   resetForm()
+
   await fetchValues()
+  await fetchSegments()
+  await fetchChannelGroups()
+
   modal.value = true
 }
 </script>

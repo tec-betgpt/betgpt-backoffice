@@ -74,20 +74,29 @@ export default {
     /**
      *
      * @param {object} params
-     * @param {string} params.filter_id
-     * @param {string} params.find_name
+     * @param {string|number} params.filter_id
      *
      */
-  async segments (params) {
+  async segments (params = {}) {
       const { data } = await api.get('/conversion-definitions/segments', {params})
       return data
   },
 
-    /**
-     * @returns {Promise<any>}
-     */
-    async values () {
-      const { data } = await api.get('/conversion-definitions/values')
-      return data
-    }
+  /**
+   * @returns {Promise<any>}
+   */
+  async values () {
+    const { data } = await api.get('/conversion-definitions/values')
+    return data
+  },
+
+  /**
+   *
+   * @param {object} params
+   * @param {string} params.project_id
+   */
+  async channelGroups(params = {}) {
+    const { data } = await api.get('/conversion-definitions/channel-groups', { params })
+    return data
+  }
 }
