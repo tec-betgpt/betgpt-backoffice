@@ -1,6 +1,7 @@
 const avatar = import.meta.glob("./../components/ui/avatar/*.vue", { eager: true })
 const badge = import.meta.glob("./../components/ui/badge/*.vue", { eager: true })
 const breadcrumb = import.meta.glob("./../components/ui/breadcrumb/*.vue", { eager: true })
+const combobox =  import.meta.glob("./../components/ui/combobox/*.vue", { eager: true })
 const button = import.meta.glob("./../components/ui/button/*.vue", { eager: true })
 const card = import.meta.glob("./../components/ui/card/*.vue", { eager: true })
 const chartBar = import.meta.glob("./../components/ui/chart-bar/*.vue", { eager: true })
@@ -27,6 +28,7 @@ export default {
     ...badge,
     ...breadcrumb,
     ...button,
+    ...combobox,
     ...card,
     ...chartBar,
     ...lineChart,

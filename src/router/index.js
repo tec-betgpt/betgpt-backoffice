@@ -13,6 +13,7 @@ import audiences from "@/router/audiences.js";
 import manage from "@/router/manage.js";
 import governance from "@/router/governance.js";
 import financial from "@/router/financial.js";
+import conversions from "@/router/conversions.js";
 
 const routes = [
   {
@@ -57,7 +58,8 @@ const routes = [
   ...audiences,
   ...manage,
   ...governance,
-  ...financial
+  ...financial,
+  ...conversions
 ];
 
 const router = createRouter({
