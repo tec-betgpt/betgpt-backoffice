@@ -9,7 +9,7 @@
         <CircleQuestionMark />
       </Button>
     </TooltipTrigger>
-    <TooltipContent class="w-auto">
+    <TooltipContent class="w-auto max-w-96">
       <span>{{ description }}</span>
     </TooltipContent>
   </Tooltip>

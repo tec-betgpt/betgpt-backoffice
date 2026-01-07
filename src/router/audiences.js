@@ -1,7 +1,6 @@
 import Segments from "@/views/dashboard/Segments.vue";
 import DefaultLayout from "@/layouts/default.vue";
 import TargetAudience from "@/views/dashboard/TargetAudience.vue";
-import ConversionDefinitions from "@/views/dashboard/ConversionDefinitions.vue";
 import Players from "@/views/dashboard/Players.vue";
 import UtmTracks from "@/views/dashboard/UtmTracks.vue";
 import Export from "@/views/dashboard/Export.vue";
@@ -39,18 +38,6 @@ export default [
           roles: "member",
           permissions: "view-segments",
           title: "Audiências Alvo",
-        },
-      },
-      {
-        path: "events",
-        name: "events",
-        component: ConversionDefinitions,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member",
-          permissions: "view-events",
-          title: "Definições de Conversão",
         },
       },
       {

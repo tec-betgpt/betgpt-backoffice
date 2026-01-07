@@ -20,6 +20,9 @@ export default {
    * @param {string} body.description
    * @param {string} body.type
    * @param {boolean} body.is_primary
+   * @param {boolean} body.is_return_report
+   * @param {string} body.metric_source_type
+   * @param {string} body.conversion_category
    * @param {string} body.project_id
    * @param {string} body.conversion_value_field
    * @param {Array<object>} body.conditions
@@ -48,8 +51,10 @@ export default {
    * @param {string} body.description
    * @param {string} body.type
    * @param {boolean} body.is_primary
+   * @param {boolean} body.register_in_return
    * @param {string} body.project_id
    * @param {string} body.conversion_value_field
+   * @param {string} body.channel_group
    * @param {Array<object>} body.conditions
    */
   async update (id, body) {
@@ -73,17 +78,16 @@ export default {
      * @param {string} params.find_name
      *
      */
-  async getSegment(params){
-      const { data } = await api.get(`/conversion-definitions/segments`, {params})
-        return data
+  async segments (params) {
+      const { data } = await api.get('/conversion-definitions/segments', {params})
+      return data
   },
 
     /**
-     *
      * @returns {Promise<any>}
      */
-    async getValues (){
-      const {data} = await api.get(`/conversion-definitions/values`)
-        return data
+    async values () {
+      const { data } = await api.get('/conversion-definitions/values')
+      return data
     }
 }
