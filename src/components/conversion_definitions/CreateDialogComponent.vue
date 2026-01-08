@@ -41,7 +41,8 @@
           </div>
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="conversion_value_field" class="text-right">Campo de Valor</Label>
-            <Select v-model="form.conversion_value_field">
+            <Skeleton v-if="isLoading" class="h-10 col-span-3" />
+            <Select v-else v-model="form.conversion_value_field">
               <SelectTrigger class="w-full col-span-3">
                 <SelectValue placeholder="Selecione um valor"/>
               </SelectTrigger>
@@ -81,12 +82,17 @@
           </div>
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="channel_group" class="text-right">Grupo de Canais</Label>
-            <Input
-              id="channel_group"
-              v-model="form.channel_group"
-              class="col-span-3"
-              required
-            />
+            <Skeleton v-if="isLoading" class="h-10 col-span-3" />
+            <Select v-else v-model="form.channel_group">
+              <SelectTrigger class="w-full col-span-3">
+                <SelectValue placeholder="Selecione um valor"/>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="(channel) in channels" :key="channel" :value="channel.name">
+                  {{ channel.displayName }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div class="grid grid-cols-4 items-center gap-4" v-if="canManageReports">
             <Label for="is_return_report" class="text-right">
@@ -101,7 +107,26 @@
 
         <Separator />
 
-        <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
+        <div v-if="isLoading" class="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div class="p-4 space-y-4">
+            <div class="flex flex-col space-y-1">
+              <Skeleton class="h-5 w-24" />
+              <Skeleton class="h-4 w-64" />
+            </div>
+
+            <div class="space-y-3 pt-4">
+              <div class="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed rounded-md bg-muted/10">
+                <div class="bg-muted p-2 rounded-full mb-2">
+                  <Search class="h-4 w-4 text-muted-foreground" />
+                </div>
+                <p class="text-sm font-medium text-foreground">Nenhum segmento adicionado</p>
+                <p class="text-xs text-muted-foreground mb-3">Adicione regras para refinar sua conversão.</p>
+                <Skeleton class="h-9 w-40" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="rounded-lg border bg-card text-card-foreground shadow-sm">
           <div class="p-4 space-y-4">
             <div class="flex flex-col space-y-1">
               <h3 class="font-medium leading-none tracking-tight flex items-center gap-2">
@@ -204,6 +229,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import ConversionDefinitions from "@/services/conversionDefinitions";
 import ErrorComponent from "@/components/layout/ErrorComponent.vue";
+import { Skeleton } from '@/components/ui/skeleton';
 
 const props = defineProps<{ reload: (() => Promise<void>) }>();
 
@@ -213,7 +239,9 @@ const modal = ref(false);
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
 const isProcessing = ref(false);
+const isLoading = ref(false);
 const values = ref<string[]>([]);
+const channels = ref<any[]>([])
 const segments = ref<any[]>([]);
 const form = ref({
   id: null as number | null,
@@ -271,9 +299,10 @@ const fetchSegments = async () => {
 
 const fetchChannelGroups = async () => {
   try {
-    values.value = await ConversionDefinitions.channelGroups({
-      project_id: String(activeGroupProject.value?.id).split('_')[1],
+    let response = await ConversionDefinitions.channelGroups({
+      project_id: activeGroupProject.value?.project_id
     });
+    channels.value = response.data
   } catch (error) {
     console.error("Error loading values:", error);
   }
@@ -329,11 +358,19 @@ const onSubmit = async () => {
 
 const openModal = async () => {
   resetForm()
-
-  await fetchValues()
-  await fetchSegments()
-  await fetchChannelGroups()
-
   modal.value = true
+  isLoading.value = true;
+  try {
+    await Promise.all([fetchValues(), fetchSegments(), fetchChannelGroups()]);
+  } catch (error) {
+    console.error("Error loading initial data:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar os dados necessários.",
+      variant: "destructive",
+    });
+  } finally {
+    isLoading.value = false;
+  }
 }
 </script>
