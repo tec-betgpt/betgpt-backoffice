@@ -461,11 +461,10 @@ const formatDuration = (seconds: number): string => {
 };
 
 const formatEventsPerSession = (value: number): string => {
-  const decimalValue = (value || 0) / 100;
   return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(decimalValue);
+  }).format(value || 0);
 };
 
 const formatPercentage = (value: number): string => {
