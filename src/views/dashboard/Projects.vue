@@ -451,7 +451,7 @@ const columns = [
           "div",
           {},
 
-          row.getValue("last_postback_log").created_at ? moment(row.getValue("last_postback_log").created_at).format("DD/MM/YYYY HH:mm:ss")
+          row.getValue("last_postback_log")?.created_at ? moment(row.getValue("last_postback_log").created_at).format("DD/MM/YYYY HH:mm:ss")
               : 'Sem dados'
       )
     },
