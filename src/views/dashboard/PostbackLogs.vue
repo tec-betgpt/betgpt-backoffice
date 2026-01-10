@@ -310,7 +310,7 @@ const getStatus = (status: string) => {
 }
 
 onMounted(async () => {
-  await fetchPostbackLogs()
+  //await fetchPostbackLogs()
 })
 
 watch(selectedRange, (value) => {
