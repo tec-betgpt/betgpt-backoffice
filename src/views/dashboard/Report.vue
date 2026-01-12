@@ -301,6 +301,7 @@ const columnHelper = createColumnHelper<Report>();
 const projectReturnColumnHelper = createColumnHelper<ProjectReturnReport>();
 
 const statusMapping = {
+  pending: { text: "Pendente", variant: "outline" },
   processing: { text: "Processando", variant: "default" },
   completed: { text: "Concluído", variant: "secondary" },
   failed: { text: "Falhou", variant: "destructive" },
