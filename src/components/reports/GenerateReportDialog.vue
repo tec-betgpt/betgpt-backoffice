@@ -37,7 +37,7 @@
                 <SelectGroup>
                   <SelectLabel>Grupos de Canal</SelectLabel>
                   <SelectItem v-for="group in channelGroups" :key="group.id" :value="group.name">
-                    {{ group.name }}
+                    {{ group.displayName }}
                   </SelectItem>
                 </SelectGroup>
               </SelectContent>
