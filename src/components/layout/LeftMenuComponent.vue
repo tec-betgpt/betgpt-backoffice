@@ -447,7 +447,7 @@ const navMenu = computed(() => {
           show: canAccess("view-events"),
         },
         {
-          name: "Reportes",
+          name: "Relatórios",
           url: { name: "reports" },
           icon: ChartArea,
           show: canAccess("view-events"),
