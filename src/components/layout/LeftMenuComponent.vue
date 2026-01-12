@@ -439,7 +439,21 @@ const navMenu = computed(() => {
       icon: ChartArea,
       type: "conversions",
       show: canAccess("view-events"),
-      url: { name: "conversions" },
+      children: [
+        {
+          name: "Definições de Conversão",
+          url: { name: "definitions" },
+          icon: ChartArea,
+          show: canAccess("view-events"),
+        },
+        {
+          name: "Reportes",
+          url: { name: "reports" },
+          icon: ChartArea,
+          show: canAccess("view-events"),
+        },
+
+      ]
     },
     {
       name: "Controles",

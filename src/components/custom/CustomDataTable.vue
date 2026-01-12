@@ -21,6 +21,7 @@
       <Select
         v-else-if="field.type === 'select'"
         v-model="searchValues[`search[${index}][${field.key}]`]"
+        :multiple="field.multiple"
       >
         <SelectTrigger class="sm:max-w-sm w-full">
           <SelectValue :placeholder="field.placeholder" />
@@ -208,6 +209,7 @@ const props = defineProps({
         type?: string;
         options?: Array<{ value: string; label: string }>;
         default?: string;
+        multiple?: boolean;
       }>
     >,
     required: false,
