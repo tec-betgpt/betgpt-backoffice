@@ -1,5 +1,7 @@
 import DefaultLayout from "@/layouts/default.vue";
 import ConversionDefinitions from "@/views/dashboard/ConversionDefinitions.vue";
+import Report from "@/views/dashboard/Report.vue";
+
 
 export default [
   {
@@ -7,21 +9,35 @@ export default [
     name: "conversions",
     meta: {
       requiresAuth: true,
-      title: "Conversões",
-      roles: "member",
+      title: "Conversões", // Parent title
+      roles: "member|client",
       permissions: "view-events",
     },
-  },
-  {
-    path: "/conversions",
-    name: "conversions",
-    component: ConversionDefinitions,
-    meta: {
-      layout: DefaultLayout,
-      requiresAuth: true,
-      roles: "member",
-      permissions: "view-events",
-      title: "Definições de Conversão",
-    },
+    children: [
+      {
+        path: "definitions", // Default child route for /conversions
+        name: "definitions", // More specific name
+        component: ConversionDefinitions,
+        meta: {
+          layout: DefaultLayout,
+
+          roles: "member|client",
+          title: "Definições de Conversão",
+          permissions: "view-events",
+
+        },
+      },
+      {
+        path: "reports", // /conversions/reports
+        name: "reports", // Specific name for reports
+        component: Report,
+        meta: {
+          layout: DefaultLayout,
+          roles: "member|client",
+          permissions: "view-events",
+          title: "Relatórios",
+        },
+      },
+    ],
   },
 ];
