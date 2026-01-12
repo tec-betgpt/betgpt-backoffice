@@ -364,7 +364,9 @@ const columns = [
             h(
               DropdownMenuItem,
               { onClick: () => downloadReport(row.original.url) },
-              [h(Download, { class: "mr-2 h-4 w-4" }), "Baixar"]
+              [h(Download, { class: "mr-2 h-4 w-4",disabled:()=>{
+                return row.original.status === "completed";
+                } }), "Baixar"]
             ),
              h(
               DropdownMenuItem,
