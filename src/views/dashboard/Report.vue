@@ -391,8 +391,7 @@ watch(projectReturnPerPages, (newValue) => {
 
 onMounted(() => {
   fetchReports();
-
-
+  fetchChannelGroups()
   fetchProjectReturnReports().then(() => {
     isProjectReturnFirstLoad.value = false;
   });

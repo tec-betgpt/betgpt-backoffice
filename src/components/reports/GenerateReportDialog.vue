@@ -118,7 +118,7 @@ const openDialog = () => {
   form.value = {
     start_date: new Date(),
     end_date: new Date(),
-    channel_group: '',
+    channel_group: [],
     send_email: false,
     name: '',
   };
