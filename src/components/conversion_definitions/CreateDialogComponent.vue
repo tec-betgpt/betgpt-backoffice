@@ -315,6 +315,7 @@ const addCondition = (type: string) => {
       conditionable_id: null,
     });
   }
+
 };
 
 const removeCondition = (index: number) => {
@@ -328,10 +329,9 @@ const onSubmit = async () => {
     const payload = {
       name: form.value.name,
       description: form.value.description,
-      type: "segment_membership",
       is_primary: form.value.is_primary,
       is_return_report: form.value.is_return_report,
-      project_id: activeGroupProject.value?.id,
+      project_id: activeGroupProject.value?.project_id,
       conversion_value_field: form.value.conversion_value_field,
       metric_source_type: form.value.metric_source_type,
       conversion_category: form.value.conversion_category,
