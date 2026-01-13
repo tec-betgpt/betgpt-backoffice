@@ -47,29 +47,38 @@
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="(row, index) in conversionDefinitions" :key="row.id" :style="`--delay: ${getMs(index)}`">
-              <TableCell>
-                {{ row.name }}
-              </TableCell>
-              <TableCell>
-                {{ row.is_primary ? 'Primária' : 'Quantitativa' }}
-              </TableCell>
-              <TableCell class="text-right">
-                {{ row.is_return_report ? 'Sim' : 'Não' }}
-              </TableCell>
-              <TableCell class="text-right">
-                {{ formatDate(row.updated_at) }}h
-              </TableCell>
-              <TableCell class="text-right">
-                {{ row.events.length }}
-              </TableCell>
-              <TableCell>
-                <div class="flex flex-nowrap justify-end">
-                  <EditDialogComponent :row="row" :reload="fetchConversionDefinitions" />
-                  <DestroyDialogComponent :reload="fetchConversionDefinitions" :row="row" :destroy="destroy" />
-                </div>
-              </TableCell>
-            </TableRow>
+            <template v-if="isLoading">
+              <TableRow v-for="i in 5" :key="i">
+                <TableCell v-for="j in 6" :key="j">
+                  <SkeletonCustom class="h-6 w-full" />
+                </TableCell>
+              </TableRow>
+            </template>
+            <template v-else>
+              <TableRow v-for="(row, index) in conversionDefinitions" :key="row.id" :style="`--delay: ${getMs(index)}`">
+                <TableCell>
+                  {{ row.name }}
+                </TableCell>
+                <TableCell>
+                  {{ row.is_primary ? 'Primária' : 'Quantitativa' }}
+                </TableCell>
+                <TableCell class="text-right">
+                  {{ row.is_return_report ? 'Sim' : 'Não' }}
+                </TableCell>
+                <TableCell class="text-right">
+                  {{ formatDate(row.updated_at) }}h
+                </TableCell>
+                <TableCell class="text-right">
+                  {{ row.events.length }}
+                </TableCell>
+                <TableCell>
+                  <div class="flex flex-nowrap justify-end">
+                    <EditDialogComponent :row="row" :reload="fetchConversionDefinitions" />
+                    <DestroyDialogComponent :reload="fetchConversionDefinitions" :row="row" :destroy="destroy" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            </template>
           </TableBody>
         </Table>
       </CardContent>
@@ -87,6 +96,7 @@ import CreateDialogComponent from "@/components/conversion_definitions/CreateDia
 import EditDialogComponent from "@/components/conversion_definitions/EditDialogComponent.vue";
 import ConversionDefinitions from "@/services/conversionDefinitions";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
+import SkeletonCustom from "@/components/custom/SkeletonCustom.vue";
 
 const { toast } = useToast();
 const isLoading = ref(false);
@@ -98,7 +108,6 @@ const activeGroupProject = computed(() => workspaceStore.activeGroupProject || n
 
 const fetchConversionDefinitions = async () => {
   isLoading.value = true;
-
   try {
     conversionDefinitions.value = await ConversionDefinitions.index({ filter_id: activeGroupProject.value.id });
   } catch (error) {
