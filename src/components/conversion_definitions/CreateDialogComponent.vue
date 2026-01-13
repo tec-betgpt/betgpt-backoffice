@@ -187,8 +187,8 @@
                       <SelectValue placeholder="Selecione um valor"/>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="(channel) in channels" :key="channel" :value="channel.rules">
-                        {{ channel.rules }}
+                      <SelectItem v-for="(channel) in channels.rules" :key="channel" :value="channel.displayName">
+                        {{ channel.displayName }}
                       </SelectItem>
                     </SelectContent>
                   </Select>
