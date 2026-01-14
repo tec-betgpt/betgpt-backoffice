@@ -15,7 +15,7 @@
         </DialogDescription>
       </DialogHeader>
 
-      <ErrorComponent :errors="errors" />
+<!--      <ErrorComponent :errors="errors" />-->
 
       <div class="grid gap-6 p-4">
         <div class="space-y-4">
@@ -59,6 +59,26 @@
                       <Label for="return_report">Incluir nos relatórios consolidados</Label>
                     </div>
                 </div>
+                <div class="grid grid-cols-4 items-center gap-4">
+                  <Label> Campo de valor</Label>
+                  <div class="col-span-3 flex items-center space-x-2">
+                    <Select v-model=" form.conversion_value_field">
+                      <SelectTrigger class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2">
+                        <SelectValue placeholder="Selecione um campo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                            v-for="value in values"
+                            :key="value"
+                            :value="value"
+                        >
+                          {{ value }}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div v-if="isLoading" class="rounded-lg border bg-card text-card-foreground shadow-sm">
                   <div class="p-4 space-y-4">
                     <div class="flex flex-col space-y-1">
@@ -242,7 +262,7 @@
                           </div>
 
                           <div v-if="condition.conditionable_id" class="flex-1 min-w-0">
-                            <Select v-model="condition.channel_rule">
+                            <Select v-model="condition.conditionable_rule">
                               <SelectTrigger class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2">
                                 <SelectValue placeholder="Selecione uma Regra" />
                               </SelectTrigger>
@@ -330,13 +350,14 @@ const segments = ref<any[]>([]);
 const creationType = ref('');
 
 const form = ref({
-  id: null as number | null,
+  id: "",
   name: "",
   description: "",
+  conversion_value_field:"",
   is_primary: false,
   is_return_report: false,
-  channel_group: "",
-  channel_rule:"",
+  // channel_group: "",
+  // channel_rule:"",
   conditions: [] as any[],
   conversion_category: ""
 });
@@ -349,10 +370,10 @@ const updateCreationType = (value: string) => {
   form.value = {
     ...form.value,
     is_return_report: false,
-    id: null,
+    id: "",
     is_primary: false,
-    channel_group: "",
-    channel_rule: "",
+    // channel_group: "",
+    // channel_rule: "",
     conditions: [],
     conversion_category: creationType.value == "segment" ? "Elevate":"Google Analytics",
   };
@@ -361,12 +382,12 @@ const updateCreationType = (value: string) => {
 const resetForm = () => {
   form.value = {
     is_return_report: false,
-    id: null,
+    id: "",
     name: "",
     description: "",
     is_primary: false,
-    channel_group: "",
-    channel_rule: "",
+    // channel_group: "",
+    // channel_rule: "",
     conditions: [],
     conversion_category: ""
   };
@@ -435,10 +456,21 @@ const onSubmit = async () => {
 
     if (creationType.value === 'segment') {
         payload.is_primary = form.value.is_primary;
-        payload.conditions = form.value.conditions.filter(c => c.conditionable_id);
+        payload.conditions = form.value.conditions.filter(c => c.conditionable_id)
         payload.is_return_report = form.value.is_return_report;
+        payload.conversion_category = "Elevate";
+        payload.conversion_value_field = form.value.conversion_value_field;
     } else if (creationType.value === 'channel_group') {
-        payload.conditions = form.value.conditions.filter(c => c.conditionable_id && c.group_rule);
+        payload.conditions = form.value.conditions.filter(c => c.conditionable_type).map(condition => {
+          return {
+            conditionable_type: condition.conditionable_type,
+            conditionable_id: condition.conditionable_id,
+            conditionable_rule: condition.conditionable_rule,
+            conditionable_name:channels.value.filter(c => c.name === condition.conditionable_id)[0].displayName,
+          }
+        });
+        payload.conversion_category = "Google analytics";
+
     } else {
       toast({
           title: "Erro",
