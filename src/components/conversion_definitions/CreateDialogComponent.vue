@@ -242,7 +242,7 @@
                           </div>
 
                           <div v-if="condition.conditionable_id" class="flex-1 min-w-0">
-                            <Select v-model="condition.group_rule">
+                            <Select v-model="condition.channel_rule">
                               <SelectTrigger class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2">
                                 <SelectValue placeholder="Selecione uma Regra" />
                               </SelectTrigger>
@@ -336,7 +336,7 @@ const form = ref({
   is_primary: false,
   is_return_report: false,
   channel_group: "",
-  group_rule:"",
+  channel_rule:"",
   conditions: [] as any[],
   conversion_category: ""
 });
@@ -352,7 +352,7 @@ const updateCreationType = (value: string) => {
     id: null,
     is_primary: false,
     channel_group: "",
-    group_rule: "",
+    channel_rule: "",
     conditions: [],
     conversion_category: creationType.value == "segment" ? "Elevate":"Google Analytics",
   };
@@ -366,7 +366,7 @@ const resetForm = () => {
     description: "",
     is_primary: false,
     channel_group: "",
-    group_rule: "",
+    channel_rule: "",
     conditions: [],
     conversion_category: ""
   };
@@ -477,7 +477,7 @@ const openModal = async () => {
   isLoading.value = true;
   try {
     await Promise.all([fetchValues(), fetchSegments(),
-     // fetchChannelGroups()
+     fetchChannelGroups()
     ]);
   } catch (error) {
     console.error("Error loading initial data:", error);
