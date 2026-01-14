@@ -166,32 +166,122 @@
             <AccordionTrigger>Criar conversão por Canais de Grupos do Analytics</AccordionTrigger>
             <AccordionContent>
               <div class="space-y-4 pt-4">
-                <div class="grid grid-cols-4 items-center gap-4">
-                  <Label for="channel_group" class="text-right">Grupo de Canais</Label>
-                  <Skeleton v-if="isLoading" class="h-10 col-span-3" />
-                  <Select v-else v-model="form.channel_group">
-                    <SelectTrigger class="w-full col-span-3">
-                      <SelectValue placeholder="Selecione um valor"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="(channel) in channels" :key="channel" :value="channel.name">
-                        {{ channel.displayName }}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div v-if="isLoading" class="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <div class="p-4 space-y-4">
+                    <div class="flex flex-col space-y-1">
+                      <Skeleton class="h-5 w-24" />
+                      <Skeleton class="h-4 w-64" />
+                    </div>
+
+                    <div class="space-y-3 pt-4">
+                      <div class="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed rounded-md bg-muted/10">
+                        <div class="bg-muted p-2 rounded-full mb-2">
+                          <Search class="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <p class="text-sm font-medium text-foreground">Nenhum canal de grupo adicionado</p>
+                        <p class="text-xs text-muted-foreground mb-3">Adicione regras para refinar sua conversão.</p>
+                        <Skeleton class="h-9 w-40" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div  v-if="form.channel_group"class="grid grid-cols-4 items-center gap-4">
-                  <Label for="channel_group" class="text-right">Canais</Label>
-                  <Select  v-model="form.group_rule">
-                    <SelectTrigger class="w-full col-span-3">
-                      <SelectValue placeholder="Selecione um valor"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="(channel) in channels.rules" :key="channel" :value="channel.displayName">
-                        {{ channel.displayName }}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div v-else class="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <div class="p-4 space-y-4">
+                    <div class="flex flex-col space-y-1">
+                      <h3 class="font-medium leading-none tracking-tight flex items-center gap-2">
+                        Canais de Grupo
+                        <span class="px-2 py-0.5 rounded-full bg-muted text-xs text-muted-foreground font-normal">
+                          {{ form.conditions.length }}
+                        </span>
+                      </h3>
+                      <p class="text-sm text-muted-foreground">
+                        A conversão será disparada se o usuário acessar por um destes canais.
+                      </p>
+                    </div>
+
+                    <div class="space-y-3">
+                      <div
+                        v-if="form.conditions.length === 0"
+                        class="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed rounded-md bg-muted/10 transition-colors hover:bg-muted/20"
+                      >
+                        <div class="bg-muted p-2 rounded-full mb-2">
+                          <Search class="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <p class="text-sm font-medium text-foreground">Nenhum canal de grupo adicionado</p>
+                        <p class="text-xs text-muted-foreground mb-3">Adicione regras para refinar sua conversão.</p>
+                        <Button variant="outline" size="sm" @click="addCondition('channel_group_analytics')">
+                          Adicionar Primeiro Canal de Grupo
+                        </Button>
+                      </div>
+
+                      <transition-group name="list" tag="div" class="space-y-2">
+                        <div
+                          v-for="(condition, index) in form.conditions"
+                          :key="index"
+                          class="group flex items-center gap-3 p-2 pr-3 border rounded-md bg-background transition-all hover:shadow-sm"
+                        >
+                          <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
+                            {{ index + 1 }}
+                          </div>
+
+                          <div class="flex-1 min-w-0">
+                            <Select v-model="condition.conditionable_id" @update:modelValue="condition.group_rule = null">
+                              <SelectTrigger class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2">
+                                <SelectValue placeholder="Selecione um Canal de Grupo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem
+                                  v-for="channel in channels"
+                                  :key="channel.name"
+                                  :value="channel.name"
+                                >
+                                  {{ channel.displayName }}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div v-if="condition.conditionable_id" class="flex-1 min-w-0">
+                            <Select v-model="condition.group_rule">
+                              <SelectTrigger class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2">
+                                <SelectValue placeholder="Selecione uma Regra" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem
+                                  v-for="rule in (channels.find(c => c.name === condition.conditionable_id) || {rules: []}).rules"
+                                  :key="rule.displayName"
+                                  :value="rule.displayName"
+                                >
+                                  {{ rule.displayName }}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            @click="removeCondition(index)"
+                            class="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-70 group-hover:opacity-100 transition-opacity"
+                            title="Remover canal de grupo"
+                          >
+                            <Trash2Icon class="h-4 w-4"/>
+                          </Button>
+                        </div>
+                      </transition-group>
+
+                      <Button
+                        v-if="form.conditions.length > 0"
+                        variant="outline"
+                        size="sm"
+                        @click="addCondition('channel_group_analytics')"
+                        class="w-full border-dashed text-muted-foreground hover:text-foreground"
+                      >
+                        <PlusIcon class="mr-2 h-4 w-4"/>
+                        Adicionar Outro Canal de Grupo
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </AccordionContent>
@@ -248,12 +338,14 @@ const form = ref({
   channel_group: "",
   group_rule:"",
   conditions: [] as any[],
+  conversion_category: ""
 });
 
 const activeGroupProject = computed(() => workspaceStore.activeGroupProject || null);
 
 const updateCreationType = (value: string) => {
   creationType.value = value;
+
   form.value = {
     ...form.value,
     is_return_report: false,
@@ -261,7 +353,8 @@ const updateCreationType = (value: string) => {
     is_primary: false,
     channel_group: "",
     group_rule: "",
-    conditions: []
+    conditions: [],
+    conversion_category: creationType.value == "segment" ? "Elevate":"Google Analytics",
   };
 };
 
@@ -274,7 +367,8 @@ const resetForm = () => {
     is_primary: false,
     channel_group: "",
     group_rule: "",
-    conditions: []
+    conditions: [],
+    conversion_category: ""
   };
   creationType.value = '';
 };
@@ -315,6 +409,12 @@ const addCondition = (type: string) => {
       conditionable_id: null,
     });
   }
+  if (type === "channel_group_analytics") {
+    form.value.conditions.push({
+      conditionable_type: "channel_group_analytics",
+      conditionable_id: null,
+    })
+  }
 
 };
 
@@ -338,7 +438,7 @@ const onSubmit = async () => {
         payload.conditions = form.value.conditions.filter(c => c.conditionable_id);
         payload.is_return_report = form.value.is_return_report;
     } else if (creationType.value === 'channel_group') {
-        payload.channel_group = form.value.channel_group
+        payload.conditions = form.value.conditions.filter(c => c.conditionable_id && c.group_rule);
     } else {
       toast({
           title: "Erro",
@@ -376,7 +476,9 @@ const openModal = async () => {
   modal.value = true
   isLoading.value = true;
   try {
-    await Promise.all([fetchValues(), fetchSegments(), fetchChannelGroups()]);
+    await Promise.all([fetchValues(), fetchSegments(),
+     // fetchChannelGroups()
+    ]);
   } catch (error) {
     console.error("Error loading initial data:", error);
     toast({
