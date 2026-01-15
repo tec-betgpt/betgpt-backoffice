@@ -268,8 +268,8 @@
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem
-                                  v-for="rule in (channels.find(c => c.name === condition.conditionable_id) || {rules: []}).rules"
-                                  :key="rule.display_name"
+                                  v-for="(rule,index) in (channels.find(c => c.name === condition.conditionable_id) || {rules: []}).rules"
+                                  :key="index"
                                   :value="rule.display_name"
                                 >
                                   {{ rule.display_name }}
