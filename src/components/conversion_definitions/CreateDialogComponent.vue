@@ -269,10 +269,10 @@
                               <SelectContent>
                                 <SelectItem
                                   v-for="rule in (channels.find(c => c.name === condition.conditionable_id) || {rules: []}).rules"
-                                  :key="rule.displayName"
-                                  :value="rule.displayName"
+                                  :key="rule.display_name"
+                                  :value="rule.display_name"
                                 >
-                                  {{ rule.displayName }}
+                                  {{ rule.display_name }}
                                 </SelectItem>
                               </SelectContent>
                             </Select>
