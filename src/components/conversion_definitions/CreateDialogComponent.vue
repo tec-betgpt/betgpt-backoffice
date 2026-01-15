@@ -469,7 +469,7 @@ const onSubmit = async () => {
             conditionable_name:channels.value.filter(c => c.name === condition.conditionable_id)[0].displayName,
           }
         });
-        payload.conversion_category = "Google analytics";
+        payload.conversion_category = "Google Analytics";
         payload.is_return_report = true;
 
     } else {
