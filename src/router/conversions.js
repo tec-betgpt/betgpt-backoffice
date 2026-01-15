@@ -1,7 +1,7 @@
 import DefaultLayout from "@/layouts/default.vue";
 import ConversionDefinitions from "@/views/dashboard/ConversionDefinitions.vue";
 import Report from "@/views/dashboard/Report.vue";
-
+import ConversionAnalytics from "@/views/analytics/ConversionAnalytics.vue";
 
 export default [
   {
@@ -36,6 +36,18 @@ export default [
           roles: "member|client",
           permissions: "view-events",
           title: "Relatórios",
+        },
+      },
+      {
+        path: "analytics", // /conversions/analytics
+        name: "ConversionAnalytics", // Specific name for conversion analytics
+        component: ConversionAnalytics,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Análise de Conversão",
+          roles: "member|client",
+          permissions: "view-events",
         },
       },
     ],

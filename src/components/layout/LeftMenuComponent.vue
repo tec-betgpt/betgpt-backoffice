@@ -324,6 +324,7 @@ import {
   LucideLockOpen,
   LucideUserCheck,
   ChartArea,
+  Goal,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -452,6 +453,12 @@ const navMenu = computed(() => {
           url: { name: "reports" },
           icon: ChartArea,
           show: canAccess("view-events"),
+        },
+        {
+            name: "Análise de Conversão",
+            url: { name: "ConversionAnalytics" },
+            icon: Goal,
+            show: canAccess("view-events"),
         },
       ],
     },
