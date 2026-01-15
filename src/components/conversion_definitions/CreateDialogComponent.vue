@@ -470,6 +470,7 @@ const onSubmit = async () => {
           }
         });
         payload.conversion_category = "Google analytics";
+        payload.is_return_report = true;
 
     } else {
       toast({
