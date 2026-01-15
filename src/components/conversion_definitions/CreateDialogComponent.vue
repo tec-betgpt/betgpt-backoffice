@@ -38,6 +38,20 @@
               class="col-span-3"
             />
           </div>
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label for="is_primary" class="text-right">Tipo</Label>
+            <div class="col-span-3 flex items-center space-x-2">
+              <Switch id="is_primary" v-model="form.is_primary"/>
+              <Label for="is_primary">{{ form.is_primary ? 'Primária' : 'Quantitativa' }}</Label>
+            </div>
+          </div>
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label> Registrar no retorno</Label>
+            <div class="col-span-3 flex items-center space-x-2">
+              <Switch id="return_report" :disabled="form.is_primary"  v-model="form.is_return_report"/>
+              <Label for="return_report">Incluir nos relatórios consolidados</Label>
+            </div>
+          </div>
         </div>
 
         <Accordion type="single" collapsible class="w-full" @update:model-value="updateCreationType">
@@ -45,20 +59,7 @@
             <AccordionTrigger>Criar conversão pela Elevate</AccordionTrigger>
             <AccordionContent>
               <div class="space-y-4 pt-4">
-                <div class="grid grid-cols-4 items-center gap-4">
-                  <Label for="is_primary" class="text-right">Tipo</Label>
-                  <div class="col-span-3 flex items-center space-x-2">
-                    <Switch id="is_primary" v-model="form.is_primary"/>
-                    <Label for="is_primary">{{ form.is_primary ? 'Primária' : 'Quantitativa' }}</Label>
-                  </div>
-                </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                  <Label> Registrar no retorno</Label>
-                  <div class="col-span-3 flex items-center space-x-2">
-                      <Switch id="return_report" :disabled="form.is_primary"  v-model="form.is_return_report"/>
-                      <Label for="return_report">Incluir nos relatórios consolidados</Label>
-                    </div>
-                </div>
+
                 <div class="grid grid-cols-4 items-center gap-4">
                   <Label> Campo de valor</Label>
                   <div class="col-span-3 flex items-center space-x-2">
@@ -369,9 +370,7 @@ const updateCreationType = (value: string) => {
 
   form.value = {
     ...form.value,
-    is_return_report: false,
     id: "",
-    is_primary: false,
     // channel_group: "",
     // channel_rule: "",
     conditions: [],
@@ -470,7 +469,9 @@ const onSubmit = async () => {
           }
         });
         payload.conversion_category = "Google Analytics";
-        payload.is_return_report = true;
+        payload.is_return_report = form.value.is_return_report;
+        payload.is_primary = form.value.is_primary;
+
 
     } else {
       toast({
