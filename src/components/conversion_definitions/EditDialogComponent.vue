@@ -164,7 +164,7 @@
           </div>
         </div>
 
-        <div v-else-if="form.conversion_category === 'Google Analytics' || form.conversion_category === 'Google analytics'" class="space-y-6">
+        <div v-else-if="form.conversion_category === 'Google Analytics'" class="space-y-6">
           <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
             <div class="p-4 space-y-4">
               <div class="flex flex-col space-y-1">
@@ -228,11 +228,11 @@
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem
-                              v-for="rule in (channels.find(c => c.name === condition.conditionable_id) || {rules: []}).rules"
-                              :key="rule.displayName"
-                              :value="rule.displayName"
+                              v-for="(rule,index) in (channels.find(c => c.name === condition.conditionable_id) || {rules: []}).rules"
+                              :key="index"
+                              :value="rule.display_name"
                           >
-                            {{ rule.displayName }}
+                            {{ rule.display_name }}
                           </SelectItem>
                         </SelectContent>
                       </Select>
