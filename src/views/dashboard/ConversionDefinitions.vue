@@ -61,7 +61,7 @@
                   {{ row.name }}
                 </TableCell>
                 <TableCell>
-                  {{ row.channel_group }}
+                  {{ row.conversion_category }}
                 </TableCell>
                 <TableCell>
                   {{ row.is_primary ? 'Primária' : 'Quantitativa' }}
