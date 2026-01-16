@@ -13,11 +13,12 @@
     </div>
 
     <div class="grid gap-4 grid-cols-1">
-      <PeriodComponent
+      <ConversionPeriodComponent
           :is-loading="loading"
           title="Receita por canal"
           :period="revenuePeriod"
           type="currency"
+          glossary="Dados de receita registrada"
       />
       <PeriodComponent
           :is-loading="loading"
@@ -44,6 +45,7 @@ import ConversionAnalyticsService from "@/services/conversionAnalytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import ConversionPieChart from "@/components/conversion_analytics/ConversionPieChart.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
+import ConversionPeriodComponent from "@/components/conversion_analytics/ConversionPeriodComponent.vue";
 
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
@@ -89,7 +91,7 @@ const applyFilter = async () => {
 
     const data = await ConversionAnalyticsService.index(params);
     revenuePeriod.value = [{name:"Receita Total",value:data.data_by_period}]
-    eventsPeriod.value = [{name:"Eventos",value:data.data_by_period}]
+    eventsPeriod.value = [{name:"Eventos",value:data.data_by_event}]
     pieChartCounts.value = data.pie_chart_counts
     pieChartValues.value = data.pie_chart_values
 

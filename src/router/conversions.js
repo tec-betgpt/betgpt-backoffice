@@ -1,7 +1,7 @@
 import DefaultLayout from "@/layouts/default.vue";
 import ConversionDefinitions from "@/views/dashboard/ConversionDefinitions.vue";
 import Report from "@/views/dashboard/Report.vue";
-import ConversionAnalytics from "@/views/analytics/ConversionAnalytics.vue";
+import ConversionAnalytics from "@/views/dashboard/ConversionAnalytics.vue";
 
 export default [
   {

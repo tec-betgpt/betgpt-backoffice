@@ -328,6 +328,14 @@ const projectReturnColumns = [
         header: "Conversões",
         cell: ({ row }) => h("div", row.original.conversion_count),
     }),
+  projectReturnColumnHelper.accessor("conversion_count", {
+    header: "Ticket Médio",
+    cell: ({ row }) => h("div",new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+        row.original.conversion_count
+            ? Number(row.original.total_value) / row.original.conversion_count
+            : 0
+    )),
+  }),
 ];
 
 const columns = [

@@ -37,6 +37,20 @@
                 class="col-span-3"
             />
           </div>
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label for="is_primary" class="text-right">Tipo</Label>
+            <div class="col-span-3 flex items-center space-x-2">
+              <Switch id="is_primary" v-model="form.is_primary"/>
+              <Label for="is_primary">{{ form.is_primary ? 'Primária' : 'Quantitativa' }}</Label>
+            </div>
+          </div>
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label> Registrar no retorno</Label>
+            <div class="col-span-3 flex items-center space-x-2">
+              <Switch id="return_report" :disabled="form.is_primary"  v-model="form.is_return_report"/>
+              <Label for="return_report">Incluir nos relatórios consolidados</Label>
+            </div>
+          </div>
         </div>
 
         <div v-if="!form.id" class="space-y-4">
@@ -46,20 +60,7 @@
 
         <div v-else-if="form.conversion_category === 'Elevate'" class="space-y-6">
           <div class="space-y-4 pt-4">
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label for="is_primary" class="text-right">Tipo</Label>
-              <div class="col-span-3 flex items-center space-x-2">
-                <Switch id="is_primary" v-model="form.is_primary"/>
-                <Label for="is_primary">{{ form.is_primary ? 'Primária' : 'Quantitativa' }}</Label>
-              </div>
-            </div>
-            <div class="grid grid-cols-4 items-center gap-4">
-              <Label> Registrar no retorno</Label>
-              <div class="col-span-3 flex items-center space-x-2">
-                <Switch id="return_report" :disabled="form.is_primary"  v-model="form.is_return_report"/>
-                <Label for="return_report">Incluir nos relatórios consolidados</Label>
-              </div>
-            </div>
+
             <div class="grid grid-cols-4 items-center gap-4">
               <Label> Campo de valor</Label>
               <div class="col-span-3 flex items-center space-x-2">
@@ -205,7 +206,7 @@
                     </div>
 
                     <div class="flex-1 min-w-0">
-                      <Select v-model="condition.conditionable_id" @update:modelValue="condition.conditionable_rule = null">
+                      <Select v-model="condition.conditionable_id" @update:modelValue="condition.conditionable_rule = ''">
                         <SelectTrigger class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2">
                           <SelectValue placeholder="Selecione um Canal de Grupo" />
                         </SelectTrigger>

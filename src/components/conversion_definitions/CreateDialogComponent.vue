@@ -321,7 +321,7 @@
                           <div class="flex-1 min-w-0">
                             <Select
                               v-model="condition.conditionable_id"
-                              @update:modelValue="condition.group_rule = null"
+                              @update:modelValue="condition.conditionable_rule = ''"
                             >
                               <SelectTrigger
                                 class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2"
