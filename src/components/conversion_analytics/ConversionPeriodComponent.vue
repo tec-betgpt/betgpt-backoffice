@@ -75,9 +75,20 @@ import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
 import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
+import {Badge} from "@/components/ui/badge";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Skeleton} from "@/components/ui/skeleton";
+import {LineChart} from "@/components/ui/chart-line";
 
 export default defineComponent({
   components: {
+    LineChart,
+    Skeleton,
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+    Badge,
     GlossaryTooltipComponent,
     CustomChartTooltip
   },

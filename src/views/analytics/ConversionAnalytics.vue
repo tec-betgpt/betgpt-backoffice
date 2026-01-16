@@ -13,13 +13,13 @@
     </div>
 
     <div class="grid gap-4 grid-cols-1">
-      <ConversionPeriodComponent
+      <PeriodComponent
           :is-loading="loading"
           title="Receita por canal"
           :period="revenuePeriod"
           type="currency"
       />
-      <ConversionPeriodComponent
+      <PeriodComponent
           :is-loading="loading"
           title="Eventos por canal"
           :period="eventsPeriod"
@@ -42,8 +42,8 @@ import { getLocalTimeZone, today } from "@internationalized/date";
 import "moment/dist/locale/pt-br";
 import ConversionAnalyticsService from "@/services/conversionAnalytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
-import ConversionPeriodComponent from "@/components/conversion_analytics/ConversionPeriodComponent.vue";
 import ConversionPieChart from "@/components/conversion_analytics/ConversionPieChart.vue";
+import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
@@ -56,48 +56,13 @@ const selectedRange = ref({
 });
 
 const loading = ref(true);
-const lineChartData = ref({ series: [], dates: [] });
 const pieChartCounts = ref({ series: [], labels: [] });
 const pieChartValues = ref({ series: [], labels: [] });
 const isFirstLoad = ref(true);
 
-const formatDateForAPI = (date: any): string => {
-  if (!date) return "";
-  if (date && typeof date === "object" && "year" in date && "month" in date && "day" in date) {
-    return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
-  }
-  if (typeof date === "string") return date;
-  return "";
-};
+const revenuePeriod = ref<{ name: string; value: number[] }[]>([]);
 
-const transformLineChartData = (series: any[], dates: any[], filter: string) => {
-  const filteredSeries = series.filter(s => s.name.toLowerCase().includes(filter));
-  if (filteredSeries.length === 0) return [];
-
-  const chartData = dates.map((date, index) => {
-    const dataPoint: any = { date };
-    filteredSeries.forEach(s => {
-      dataPoint[s.name] = s.data[index];
-    });
-    return dataPoint;
-  });
-
-  return filteredSeries.map(s => ({
-    name: s.name,
-    value: chartData,
-  }));
-};
-
-const revenuePeriod = computed(() => {
-  if (!lineChartData.value || !lineChartData.value.series) return [];
-  return transformLineChartData(lineChartData.value.series, lineChartData.value.dates, 'revenue');
-});
-
-const eventsPeriod = computed(() => {
-  if (!lineChartData.value || !lineChartData.value.series) return [];
-  return transformLineChartData(lineChartData.value.series, lineChartData.value.dates, 'events');
-});
-
+const eventsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const applyFilter = async () => {
   if (!workspaceStore.activeGroupProject?.id) {
     if (!isFirstLoad.value) {
@@ -113,8 +78,8 @@ const applyFilter = async () => {
   loading.value = true;
 
   try {
-    const startDateFormatted = formatDateForAPI(selectedRange.value.start);
-    const endDateFormatted = formatDateForAPI(selectedRange.value.end);
+    const startDateFormatted = selectedRange.value.start.toString();
+    const endDateFormatted = selectedRange.value.end.toString()
 
     const params: any = {
       start_date: startDateFormatted,
@@ -123,10 +88,10 @@ const applyFilter = async () => {
     };
 
     const data = await ConversionAnalyticsService.index(params);
-
-    lineChartData.value = data.line_chart || { series: [], dates: [] };
-    pieChartCounts.value = data.pie_chart_counts || { series: [], labels: [] };
-    pieChartValues.value = data.pie_chart_values || { series: [], labels: [] };
+    revenuePeriod.value = [{name:"Receita Total",value:data.data_by_period}]
+    eventsPeriod.value = [{name:"Eventos",value:data.data_by_period}]
+    pieChartCounts.value = data.pie_chart_counts
+    pieChartValues.value = data.pie_chart_values
 
   } catch (error) {
     console.error("Erro ao carregar dados de análise de conversão:", error);
