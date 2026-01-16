@@ -2,15 +2,15 @@
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
       <div class="space-y-0.5">
-        <h2 class="text-2xl font-bold tracking-tight">Gerenciar Definições de Conversão</h2>
+        <h2 class="text-2xl font-bold tracking-tight">
+          Gerenciar Definições de Conversão
+        </h2>
         <p class="text-muted-foreground">
           Crie e gerencie definições de conversão com regras personalizadas.
         </p>
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-        <CreateDialogComponent
-          :reload="fetchConversionDefinitions"
-        />
+        <CreateDialogComponent :reload="fetchConversionDefinitions" />
       </div>
     </div>
 
@@ -24,12 +24,8 @@
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="primary">
-                Primárias
-              </SelectItem>
-              <SelectItem value="quantitative">
-                Quantitativas
-              </SelectItem>
+              <SelectItem value="primary"> Primárias </SelectItem>
+              <SelectItem value="quantitative"> Quantitativas </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -39,7 +35,7 @@
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
-              <TableHead>Grupo</TableHead>
+              <TableHead>Conversão</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead class="text-right">Registrar no Retorno</TableHead>
               <TableHead class="text-right">Editado pela última vez</TableHead>
@@ -56,18 +52,22 @@
               </TableRow>
             </template>
             <template v-else>
-              <TableRow v-for="(row, index) in conversionDefinitions" :key="row.id" :style="`--delay: ${getMs(index)}`">
+              <TableRow
+                v-for="(row, index) in conversionDefinitions"
+                :key="row.id"
+                :style="`--delay: ${getMs(index)}`"
+              >
                 <TableCell>
                   {{ row.name }}
                 </TableCell>
                 <TableCell>
-                  {{ row.channel_group }}
+                  {{ row.conversion_category }}
                 </TableCell>
                 <TableCell>
-                  {{ row.is_primary ? 'Primária' : 'Quantitativa' }}
+                  {{ row.is_primary ? "Primária" : "Quantitativa" }}
                 </TableCell>
                 <TableCell class="text-right">
-                  {{ row.is_return_report ? 'Sim' : 'Não' }}
+                  {{ row.is_return_report ? "Sim" : "Não" }}
                 </TableCell>
                 <TableCell class="text-right">
                   {{ formatDate(row.updated_at) }}h
@@ -77,8 +77,15 @@
                 </TableCell>
                 <TableCell>
                   <div class="flex flex-nowrap justify-end">
-                    <EditDialogComponent :row="row" :reload="fetchConversionDefinitions" />
-                    <DestroyDialogComponent :reload="fetchConversionDefinitions" :row="row" :destroy="destroy" />
+                    <EditDialogComponent
+                      :row="row"
+                      :reload="fetchConversionDefinitions"
+                    />
+                    <DestroyDialogComponent
+                      :reload="fetchConversionDefinitions"
+                      :row="row"
+                      :destroy="destroy"
+                    />
                   </div>
                 </TableCell>
               </TableRow>
@@ -92,9 +99,15 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { useToast} from "@/components/ui/toast/use-toast";
+import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@/components/ui/table";
 import { getMs } from "@/filters/formatNumbers";
 import CreateDialogComponent from "@/components/conversion_definitions/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/conversion_definitions/EditDialogComponent.vue";
@@ -108,12 +121,16 @@ const conversionType = ref("primary");
 const workspaceStore = useWorkspaceStore();
 const conversionDefinitions = ref<any[]>([]);
 
-const activeGroupProject = computed(() => workspaceStore.activeGroupProject || null);
+const activeGroupProject = computed(
+  () => workspaceStore.activeGroupProject || null
+);
 
 const fetchConversionDefinitions = async () => {
   isLoading.value = true;
   try {
-    conversionDefinitions.value = await ConversionDefinitions.index({ filter_id: activeGroupProject.value.id });
+    conversionDefinitions.value = await ConversionDefinitions.index({
+      filter_id: activeGroupProject.value.id,
+    });
   } catch (error) {
     console.error("Error loading conversion definitions:", error);
     toast({
