@@ -306,16 +306,28 @@ const statusMapping = {
   completed: { text: "Concluído", variant: "secondary" },
   failed: { text: "Falhou", variant: "destructive" },
 };
-
+const channelTranslations = {
+  'sessionDefaultChannelGroup': 'Grupo de canais padrão da sessão',
+  'sessionPrimaryChannelGroup': 'Grupo principal de canais da sessão',
+  'sessionSourceMedium': 'Origem / mídia da sessão',
+  'sessionMedium': 'Sessão / Mídia',
+  'sessionSource': 'Origem da sessão',
+  'sessionTrafficOrigin': 'Plataforma de origem da sessão',
+  'sessionCampaignName': 'Campanha da sessão',
+};
 const projectReturnColumns = [
     projectReturnColumnHelper.accessor("date", {
         header: "Data",
         cell: ({ row }) => h("div", moment(row.original.date).format("DD/MM/YYYY")),
     }),
-    projectReturnColumnHelper.accessor("channel_group", {
-        header: "Grupo de Canal",
-        cell: ({ row }) => h("div", row.original.channel_group),
-    }),
+  projectReturnColumnHelper.accessor("channel_group", {
+    header: "Grupo de Canal",
+    cell: ({ row }) => {
+      const rawValue = row.original.channel_group;
+
+      return h("div", channelTranslations[rawValue] || rawValue);
+    },
+  }),
     projectReturnColumnHelper.accessor("channel_name", {
         header: "Nome do Canal",
         cell: ({ row }) => h("div", row.original.channel_name),

@@ -336,7 +336,7 @@
                                   :key="channel.name"
                                   :value="channel.name"
                                 >
-                                  {{ channel.displayName }}
+                                  {{ channelTranslations[channel.displayName] || channel.displayName }}
                                 </SelectItem>
                               </SelectContent>
                             </Select>
@@ -491,7 +491,15 @@ const resetForm = () => {
   };
   creationType.value = "";
 };
-
+const channelTranslations = {
+  'sessionDefaultChannelGroup': 'Grupo de canais padrão da sessão',
+  'sessionPrimaryChannelGroup': 'Grupo principal de canais da sessão',
+  'sessionSourceMedium': 'Origem / mídia da sessão',
+  'sessionMedium': 'Sessão / Mídia',
+  'sessionSource': 'Origem da sessão',
+  'sessionTrafficOrigin': 'Plataforma de origem da sessão',
+  'sessionCampaignName': 'Campanha da sessão',
+};
 const fetchValues = async () => {
   try {
     values.value = await ConversionDefinitions.values();
