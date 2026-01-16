@@ -39,7 +39,6 @@
               <TableHead>Tipo</TableHead>
               <TableHead class="text-right">Registrar no Retorno</TableHead>
               <TableHead class="text-right">Editado pela última vez</TableHead>
-              <TableHead class="text-right">Eventos</TableHead>
               <TableHead class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -71,9 +70,6 @@
                 </TableCell>
                 <TableCell class="text-right">
                   {{ formatDate(row.updated_at) }}h
-                </TableCell>
-                <TableCell class="text-right">
-                  {{ row.events }}
                 </TableCell>
                 <TableCell>
                   <div class="flex flex-nowrap justify-end">
