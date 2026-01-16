@@ -145,7 +145,7 @@ const chartOptions = computed(() => ({
     }
   },
   dataLabels: {
-    formatter: function (val: number, { seriesIndex, w }) => {
+    formatter: (val: number, { seriesIndex, w }) => {
       const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
       const percentage = (w.globals.series[seriesIndex] / total) * 100;
       return percentage.toFixed(1) + '%';
