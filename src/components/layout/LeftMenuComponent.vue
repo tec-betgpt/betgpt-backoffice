@@ -455,7 +455,7 @@ const navMenu = computed(() => {
           show: canAccess("view-events"),
         },
         {
-            name: "Análise de Conversão",
+            name: "Resultados",
             url: { name: "ConversionAnalytics" },
             icon: Goal,
             show: canAccess("view-events"),

@@ -265,7 +265,7 @@
                           <div v-if="condition.conditionable_id" class="flex-1 min-w-0">
                             <Select v-model="condition.conditionable_rule">
                               <SelectTrigger class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2">
-                                <SelectValue placeholder="Selecione uma Regra" />
+                                <SelectValue placeholder="Selecione um Canal" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem

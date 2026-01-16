@@ -39,6 +39,7 @@
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>Grupo</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead class="text-right">Registrar no Retorno</TableHead>
               <TableHead class="text-right">Editado pela última vez</TableHead>
@@ -60,6 +61,9 @@
                   {{ row.name }}
                 </TableCell>
                 <TableCell>
+                  {{ row.channel_group }}
+                </TableCell>
+                <TableCell>
                   {{ row.is_primary ? 'Primária' : 'Quantitativa' }}
                 </TableCell>
                 <TableCell class="text-right">
@@ -69,7 +73,7 @@
                   {{ formatDate(row.updated_at) }}h
                 </TableCell>
                 <TableCell class="text-right">
-                  {{ row.events.length }}
+                  {{ row.events }}
                 </TableCell>
                 <TableCell>
                   <div class="flex flex-nowrap justify-end">
