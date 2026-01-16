@@ -46,7 +46,7 @@
           <TableBody>
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
-                <TableCell v-for="j in 6" :key="j">
+                <TableCell v-for="j in 7" :key="j">
                   <SkeletonCustom class="h-6 w-full" />
                 </TableCell>
               </TableRow>
