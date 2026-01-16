@@ -19,34 +19,34 @@
       <Separator />
       <CardContent class="mt-5">
         <CustomDataTable
-            :data="projectReturnReports"
-            :columns="projectReturnColumns"
-            :loading="projectReturnLoading"
-            :footer="false"
-            :update-text="setProjectReturnSearch"
-            :find="() => fetchProjectReturnReports(1)"
-            :search-fields="[
-              {
-                key: 'channel_group',
-                placeholder: 'Buscar por grupo de canal...',
-                type:'select',
-                label: 'Grupo de Canal',
-                options: channelGroups,
-                multiple:true
-              },
-            ]"
+          :data="projectReturnReports"
+          :columns="projectReturnColumns"
+          :loading="projectReturnLoading"
+          :footer="false"
+          :update-text="setProjectReturnSearch"
+          :find="() => fetchProjectReturnReports(1)"
+          :search-fields="[
+            {
+              key: 'channel_group',
+              placeholder: 'Buscar por grupo de canal...',
+              type: 'select',
+              label: 'Grupo de Canal',
+              options: channelGroups,
+              multiple: true,
+            },
+          ]"
         />
       </CardContent>
       <CardFooter class="py-4 w-full">
         <CustomPagination
-            :pages="{
-              current: projectReturnPages.current,
-              last: projectReturnPages.last,
-              total: projectReturnPages.total,
-            }"
-            :select-page="fetchProjectReturnReports"
-            @update:perPages="(value) => (projectReturnPerPages = value)"
-            :per_pages="projectReturnPerPages"
+          :pages="{
+            current: projectReturnPages.current,
+            last: projectReturnPages.last,
+            total: projectReturnPages.total,
+          }"
+          :select-page="fetchProjectReturnReports"
+          @update:perPages="(value) => (projectReturnPerPages = value)"
+          :per_pages="projectReturnPerPages"
         />
       </CardFooter>
     </Card>
@@ -84,21 +84,28 @@
     </div>
 
     <!-- Delete Confirmation Dialog -->
-    <AlertDialog :open="showDeleteDialog" @update:open="showDeleteDialog = false">
+    <AlertDialog
+      :open="showDeleteDialog"
+      @update:open="showDeleteDialog = false"
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar Exclusão?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esse procedimento não pode ser desfeito. O relatório será removido permanentemente.
+            Esse procedimento não pode ser desfeito. O relatório será removido
+            permanentemente.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel @click="showDeleteDialog = false">Cancelar</AlertDialogCancel>
-          <AlertDialogAction class="bg-red-600" @click="confirmDelete()">Continuar</AlertDialogAction>
+          <AlertDialogCancel @click="showDeleteDialog = false"
+            >Cancelar</AlertDialogCancel
+          >
+          <AlertDialogAction class="bg-red-600" @click="confirmDelete()"
+            >Continuar</AlertDialogAction
+          >
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-
   </div>
 </template>
 
@@ -136,7 +143,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-
 import {
   Card,
   CardContent,
@@ -146,7 +152,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import {useWorkspaceStore} from "@/stores/workspace";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 const { toast } = useToast();
 
@@ -154,7 +160,7 @@ type Report = {
   id: number;
   name: string;
   date: string;
-  status: 'processing' | 'completed' | 'failed';
+  status: "processing" | "completed" | "failed";
   created_at: string;
 };
 
@@ -189,17 +195,16 @@ const projectReturnPages = ref({
 const projectReturnPerPages = ref(10);
 const projectReturnSearchValues = ref({});
 const isProjectReturnFirstLoad = ref(true);
-const channelGroups = ref([])
+const channelGroups = ref([]);
 
 const setProjectReturnSearch = (values: Record<string, string>) => {
   const searchParams: Record<string, string> = {};
   for (const key in values) {
-    const newKey = key.replace(/search\[\d+\]\[(\w+)\]/, '$1');
+    const newKey = key.replace(/search\[\d+\]\[(\w+)\]/, "$1");
     searchParams[newKey] = values[key];
   }
   projectReturnSearchValues.value = searchParams;
 };
-
 
 const fetchProjectReturnReports = async (page = 1) => {
   projectReturnLoading.value = true;
@@ -208,7 +213,7 @@ const fetchProjectReturnReports = async (page = 1) => {
       page,
       per_page: projectReturnPerPages.value,
       project_id: workspaceStore.activeGroupProject.project_id,
-      ...projectReturnSearchValues.value
+      ...projectReturnSearchValues.value,
     };
     const data = await ReportsService.projectReturnReports(params);
     projectReturnReports.value = data.data;
@@ -220,7 +225,8 @@ const fetchProjectReturnReports = async (page = 1) => {
   } catch (error) {
     toast({
       title: "Erro",
-      description: "Não foi possível carregar os relatórios de retorno do projeto.",
+      description:
+        "Não foi possível carregar os relatórios de retorno do projeto.",
       variant: "destructive",
     });
   } finally {
@@ -228,11 +234,14 @@ const fetchProjectReturnReports = async (page = 1) => {
   }
 };
 
-
 const fetchReports = async (page = 1) => {
   loading.value = true;
   try {
-    const data = await ReportsService.index({ page, per_page: perPages.value, project_id: workspaceStore.activeGroupProject.project_id });
+    const data = await ReportsService.index({
+      page,
+      per_page: perPages.value,
+      project_id: workspaceStore.activeGroupProject.project_id,
+    });
     reports.value = data.data;
     pages.value = {
       current: data.current_page,
@@ -251,7 +260,9 @@ const fetchReports = async (page = 1) => {
 };
 const fetchChannelGroups = async () => {
   try {
-    const response = await ConversionDefinitions.channelGroups({ project_id: workspaceStore.activeGroupProject.project_id });
+    const response = await ConversionDefinitions.channelGroups({
+      project_id: workspaceStore.activeGroupProject.project_id,
+    });
     channelGroups.value = response.data;
   } catch (error) {
     toast({
@@ -262,7 +273,7 @@ const fetchChannelGroups = async () => {
   }
 };
 
-const downloadReport = (url:string) => {
+const downloadReport = (url: string) => {
   ReportsService.download(url);
   toast({
     title: "Download Iniciado",
@@ -285,7 +296,7 @@ const confirmDelete = async () => {
     });
     await fetchReports(pages.value.current);
   } catch (error) {
-     toast({
+    toast({
       title: "Erro",
       description: "Não foi possível remover o relatório.",
       variant: "destructive",
@@ -295,7 +306,6 @@ const confirmDelete = async () => {
     reportToDeleteId.value = null;
   }
 };
-
 
 const columnHelper = createColumnHelper<Report>();
 const projectReturnColumnHelper = createColumnHelper<ProjectReturnReport>();
@@ -307,19 +317,15 @@ const statusMapping = {
   failed: { text: "Falhou", variant: "destructive" },
 };
 const channelTranslations = {
-  'sessionDefaultChannelGroup': 'Grupo de canais padrão da sessão',
-  'sessionPrimaryChannelGroup': 'Grupo principal de canais da sessão',
-  'sessionSourceMedium': 'Origem / mídia da sessão',
-  'sessionMedium': 'Sessão / Mídia',
-  'sessionSource': 'Origem da sessão',
-  'sessionTrafficOrigin': 'Plataforma de origem da sessão',
-  'sessionCampaignName': 'Campanha da sessão',
+  sessionDefaultChannelGroup: "Grupo de canais padrão da sessão",
+  sessionPrimaryChannelGroup: "Grupo principal de canais da sessão",
+  sessionSourceMedium: "Origem / mídia da sessão",
+  sessionMedium: "Sessão / Mídia",
+  sessionSource: "Origem da sessão",
+  sessionTrafficOrigin: "Plataforma de origem da sessão",
+  sessionCampaignName: "Campanha da sessão",
 };
 const projectReturnColumns = [
-    projectReturnColumnHelper.accessor("date", {
-        header: "Data",
-        cell: ({ row }) => h("div", moment(row.original.date).format("DD/MM/YYYY")),
-    }),
   projectReturnColumnHelper.accessor("channel_group", {
     header: "Grupo de Canal",
     cell: ({ row }) => {
@@ -328,33 +334,47 @@ const projectReturnColumns = [
       return h("div", channelTranslations[rawValue] || rawValue);
     },
   }),
-    projectReturnColumnHelper.accessor("channel_name", {
-        header: "Nome do Canal",
-        cell: ({ row }) => h("div", row.original.channel_name),
-    }),
-    projectReturnColumnHelper.accessor("total_value", {
-        header: "Valor Total",
-        cell: ({ row }) => h("div", new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(row.original.total_value))),
-    }),
-    projectReturnColumnHelper.accessor("conversion_count", {
-        header: "Conversões",
-        cell: ({ row }) => h("div", row.original.conversion_count),
-    }),
+  projectReturnColumnHelper.accessor("channel_name", {
+    header: "Nome do Canal",
+    cell: ({ row }) => h("div", row.original.channel_name),
+  }),
+  projectReturnColumnHelper.accessor("total_value", {
+    header: "Valor Total",
+    cell: ({ row }) =>
+      h(
+        "div",
+        new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(Number(row.original.total_value)),
+      ),
+  }),
+  projectReturnColumnHelper.accessor("conversion_count", {
+    header: "Conversões",
+    cell: ({ row }) => h("div", row.original.conversion_count),
+  }),
   projectReturnColumnHelper.accessor("conversion_count", {
     header: "Ticket Médio",
-    cell: ({ row }) => h("div",new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-        row.original.conversion_count
+    cell: ({ row }) =>
+      h(
+        "div",
+        new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(
+          row.original.conversion_count
             ? Number(row.original.total_value) / row.original.conversion_count
-            : 0
-    )),
+            : 0,
+        ),
+      ),
   }),
 ];
 
 const columns = [
-    columnHelper.accessor("name", {
-  header: "Nome",
-  cell: ({ row }) => h("div", row.original.name || 'N/A'),
-}),
+  columnHelper.accessor("name", {
+    header: "Nome",
+    cell: ({ row }) => h("div", row.original.name || "N/A"),
+  }),
   columnHelper.accessor("date", {
     header: "Data de criação",
     cell: ({ row }) => h("div", moment(row.original.date).format("DD/MM/YYYY")),
@@ -362,7 +382,10 @@ const columns = [
   columnHelper.accessor("status", {
     header: "Status",
     cell: ({ row }) => {
-      const statusInfo = statusMapping[row.original.status] || { text: 'Desconhecido', variant: 'outline' };
+      const statusInfo = statusMapping[row.original.status] || {
+        text: "Desconhecido",
+        variant: "outline",
+      };
       return h(Badge, { variant: statusInfo.variant }, () => statusInfo.text);
     },
   }),
@@ -377,24 +400,26 @@ const columns = [
             { asChild: true },
             h(Button, { size: "icon", variant: "ghost" }, () => [
               h(MoreHorizontal, { class: "h-4 w-4" }),
-            ])
+            ]),
           ),
           h(DropdownMenuContent, { align: "end" }, () => [
             h(DropdownMenuLabel, {}, "Ações"),
             h(DropdownMenuSeparator),
             h(
               DropdownMenuItem,
-              { onClick: () => downloadReport(row.original.url),disabled: row.original.status !== "completed" },
-              [h(Download, { class: "mr-2 h-4 w-4",
-              }), "Baixar"]
+              {
+                onClick: () => downloadReport(row.original.url),
+                disabled: row.original.status !== "completed",
+              },
+              [h(Download, { class: "mr-2 h-4 w-4" }), "Baixar"],
             ),
-             h(
+            h(
               DropdownMenuItem,
               {
-                class: 'text-red-600',
-                onClick: () => promptDelete(row.original.id)
+                class: "text-red-600",
+                onClick: () => promptDelete(row.original.id),
               },
-              [h(Trash, { class: "mr-2 h-4 w-4" }), "Remover"]
+              [h(Trash, { class: "mr-2 h-4 w-4" }), "Remover"],
             ),
           ]),
         ]),
@@ -408,10 +433,9 @@ watch(projectReturnPerPages, (newValue) => {
   }
 });
 
-
 onMounted(() => {
   fetchReports();
-  fetchChannelGroups()
+  fetchChannelGroups();
   fetchProjectReturnReports().then(() => {
     isProjectReturnFirstLoad.value = false;
   });
