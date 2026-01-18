@@ -123,6 +123,7 @@ const openDialog = () => {
     name: '',
   };
   isDialogOpen.value = true;
+  fetchChannelGroups()
 };
 
 const handleGenerate = async () => {
@@ -175,5 +176,4 @@ const fetchChannelGroups = async () => {
   }
 };
 
-onMounted(fetchChannelGroups);
 </script>

@@ -69,6 +69,11 @@
             :columns="columns"
             :loading="loading"
             :footer="false"
+            :update-text="setSearch"
+            :find="() => fetchReports(1)"
+            :search-fields="[
+              { key: 'name', placeholder: 'Buscar por nome...' },
+            ]"
           />
         </CardContent>
 
@@ -118,7 +123,8 @@ import { ref, onMounted, h, watch } from "vue";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { createColumnHelper } from "@tanstack/vue-table";
-import { MoreHorizontal, Download, Trash } from "lucide-vue-next";
+import { MoreHorizontal, Download, Trash, ArrowDown, ArrowUp } from "lucide-vue-next";
+import { CaretSortIcon } from "@radix-icons/vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import ReportsService from "@/services/reports";
@@ -158,16 +164,17 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
-import {getLocalTimeZone, today} from "@internationalized/date";
+import { getLocalTimeZone, today } from "@internationalized/date";
 
 const { toast } = useToast();
 
 type Report = {
   id: number;
   name: string;
-  date: string;
   status: "processing" | "completed" | "failed";
   created_at: string;
+  updated_at: string;
+  url: string;
 };
 
 type ProjectReturnReport = {
@@ -187,6 +194,10 @@ const pages = ref({
   last: 0,
 });
 const perPages = ref(10);
+const order = ref("updated_at");
+const direction = ref(false);
+const searchValues = ref<Record<string, string>>({});
+
 const showDeleteDialog = ref(false);
 const reportToDeleteId = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
@@ -200,6 +211,9 @@ const projectReturnPages = ref({
 });
 const projectReturnPerPages = ref(10);
 const projectReturnSearchValues = ref({});
+const projectReturnOrder = ref("date");
+const projectReturnDirection = ref(false);
+
 const isProjectReturnFirstLoad = ref(true);
 const channelGroups = ref([]);
 const currentDate = today(getLocalTimeZone());
@@ -208,6 +222,11 @@ const selectedRange = ref({
   start: startDate,
   end: currentDate,
 });
+
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = values;
+};
+
 const setProjectReturnSearch = (values: Record<string, string>) => {
   const searchParams: Record<string, string> = {};
   for (const key in values) {
@@ -217,6 +236,32 @@ const setProjectReturnSearch = (values: Record<string, string>) => {
   projectReturnSearchValues.value = searchParams;
 };
 
+function createHeaderButton(label: string, columnKey: string, currentOrder: any, currentDirection: any, action: any) {
+  return h(
+    Button,
+    {
+      variant: currentOrder.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        currentOrder.value = columnKey;
+        currentDirection.value = !currentDirection.value;
+        action(1);
+      },
+      class: "h-fit text-pretty my-1",
+    },
+    () => [
+      label,
+      h(
+        currentOrder.value === columnKey
+          ? currentDirection.value
+            ? ArrowDown
+            : ArrowUp
+          : CaretSortIcon,
+        { class: "" },
+      ),
+    ],
+  );
+}
+
 const fetchProjectReturnReports = async (page = 1) => {
   projectReturnLoading.value = true;
   try {
@@ -225,7 +270,9 @@ const fetchProjectReturnReports = async (page = 1) => {
       start_date: selectedRange.value.start.toString(),
       end_date: selectedRange.value.end.toString(),
       per_page: projectReturnPerPages.value,
-      project_id: workspaceStore.activeGroupProject.project_id,
+      filter_id: workspaceStore.activeGroupProject.id,
+      orderBy: projectReturnOrder.value,
+      orderDirection: projectReturnDirection.value ? "asc" : "desc",
       ...projectReturnSearchValues.value,
     };
     const data = await ReportsService.projectReturnReports(params);
@@ -250,11 +297,26 @@ const fetchProjectReturnReports = async (page = 1) => {
 const fetchReports = async (page = 1) => {
   loading.value = true;
   try {
-    const data = await ReportsService.index({
+    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
+      if (searchValues.value[key]) {
+        acc.push({ [key]: searchValues.value[key] });
+      }
+      return acc;
+    }, [] as Record<string, string>[]);
+
+    const params: any = {
       page,
       per_page: perPages.value,
-      project_id: workspaceStore.activeGroupProject.project_id,
-    });
+      filter_id: workspaceStore.activeGroupProject.id,
+      orderBy: order.value,
+      orderDirection: direction.value ? "asc" : "desc",
+    };
+
+    if (searchParams.length > 0) {
+      params.search = searchParams;
+    }
+
+    const data = await ReportsService.index(params);
     reports.value = data.data;
     pages.value = {
       current: data.current_page,
@@ -340,10 +402,9 @@ const channelTranslations = {
 };
 const projectReturnColumns = [
   projectReturnColumnHelper.accessor("channel_group", {
-    header: "Grupo de Canal",
+    header: ({ header }) => createHeaderButton("Grupo de Canal", "channel_group", projectReturnOrder, projectReturnDirection, fetchProjectReturnReports),
     cell: ({ row }) => {
       const rawValue = row.original.channel_group;
-
       return h("div", channelTranslations[rawValue] || rawValue);
     },
   }),
@@ -385,15 +446,11 @@ const projectReturnColumns = [
 
 const columns = [
   columnHelper.accessor("name", {
-    header: "Nome",
-    cell: ({ row }) => h("div", row.original.name || "N/A"),
-  }),
-  columnHelper.accessor("date", {
-    header: "Data de criação",
-    cell: ({ row }) => h("div", moment(row.original.date).format("DD/MM/YYYY")),
+    header: () => createHeaderButton("Nome", "name", order, direction, fetchReports),
+    cell: ({ row }) => h("div", { class: "capitalize" }, row.original.name || "N/A"),
   }),
   columnHelper.accessor("status", {
-    header: "Status",
+    header: () => createHeaderButton("Status", "status", order, direction, fetchReports),
     cell: ({ row }) => {
       const statusInfo = statusMapping[row.original.status] || {
         text: "Desconhecido",
@@ -401,6 +458,10 @@ const columns = [
       };
       return h(Badge, { variant: statusInfo.variant }, () => statusInfo.text);
     },
+  }),
+  columnHelper.accessor("updated_at", {
+    header: () => createHeaderButton("Editado pela última vez", "updated_at", order, direction, fetchReports),
+    cell: ({ row }) => h("div", { class: "text-right" }, moment(row.original.updated_at).format("DD/MM/YYYY HH:mm")),
   }),
   columnHelper.display({
     id: "actions",
@@ -440,6 +501,8 @@ const columns = [
   }),
 ];
 
+watch(perPages, () => fetchReports(1));
+
 watch(projectReturnPerPages, (newValue) => {
   if (!isProjectReturnFirstLoad.value && newValue) {
     fetchProjectReturnReports(1);
@@ -447,16 +510,15 @@ watch(projectReturnPerPages, (newValue) => {
 });
 
 watch(selectedRange, () => {
-  fetchProjectReturnReports();
-
-}, { deep: false });
-onMounted(() => {
   fetchReports();
-  fetchChannelGroups();
-  fetchProjectReturnReports().then(() => {
-    isProjectReturnFirstLoad.value = false;
-  });
-});
+  // fetchChannelGroups();
+  // fetchProjectReturnReports().then(() => {
+  //   isProjectReturnFirstLoad.value = false;
+  // });
+
+}, { deep: true });
+
+
 </script>
 
 <style scoped>
