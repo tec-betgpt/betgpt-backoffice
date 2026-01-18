@@ -8,8 +8,9 @@
         </p>
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-        <GenerateReportDialog @report-generated="fetchReports" />
+        <CustomDatePicker v-model="selectedRange" />
       </div>
+
     </div>
 
     <Card class="w-full">
@@ -53,8 +54,11 @@
 
     <div>
       <Card class="w-full">
-        <CardHeader>
+        <CardHeader class="flex ">
           <CardTitle>Lista de Relatórios</CardTitle>
+          <div class="flex  justify-end sm:flex-row gap-2 w-full">
+            <GenerateReportDialog @report-generated="fetchReports" />
+          </div>
         </CardHeader>
 
         <Separator />
@@ -153,6 +157,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspaceStore } from "@/stores/workspace";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import {getLocalTimeZone, today} from "@internationalized/date";
 
 const { toast } = useToast();
 
@@ -196,7 +202,12 @@ const projectReturnPerPages = ref(10);
 const projectReturnSearchValues = ref({});
 const isProjectReturnFirstLoad = ref(true);
 const channelGroups = ref([]);
-
+const currentDate = today(getLocalTimeZone());
+const startDate = currentDate.subtract({ days: 28 });
+const selectedRange = ref({
+  start: startDate,
+  end: currentDate,
+});
 const setProjectReturnSearch = (values: Record<string, string>) => {
   const searchParams: Record<string, string> = {};
   for (const key in values) {
@@ -211,6 +222,8 @@ const fetchProjectReturnReports = async (page = 1) => {
   try {
     const params = {
       page,
+      start_date: selectedRange.value.start.toString(),
+      end_date: selectedRange.value.end.toString(),
       per_page: projectReturnPerPages.value,
       project_id: workspaceStore.activeGroupProject.project_id,
       ...projectReturnSearchValues.value,
@@ -433,6 +446,10 @@ watch(projectReturnPerPages, (newValue) => {
   }
 });
 
+watch(selectedRange, () => {
+  fetchProjectReturnReports();
+
+}, { deep: false });
 onMounted(() => {
   fetchReports();
   fetchChannelGroups();
