@@ -338,7 +338,7 @@ const fetchChannelGroups = async () => {
     const response = await ConversionDefinitions.channelGroups({
       project_id: workspaceStore.activeGroupProject.project_id,
     });
-    channelGroups.value = response.data;
+    channelGroups.value = response.data.map( ch => { return ch.displayName; } );
   } catch (error) {
     toast({
       title: "Erro",
