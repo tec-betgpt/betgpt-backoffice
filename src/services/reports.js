@@ -3,17 +3,17 @@ import axios from "axios";
 
 const ReportsService = {
   index: async (params) => {
-    const response = await api.get("/conversion-definitions/generated-reports", { params });
+    const response = await api.get("/generated-reports", { params });
     return response.data.data;
   },
 
   store: async (params) => {
-    const response = await api.post("/conversion-definitions/generated-reports", params);
+    const response = await api.post("/generated-reports", params);
     return response.data;
   },
 
   destroy: async (id) => {
-    const response = await api.delete(`/conversion-definitions/generated-reports/${id}`);
+    const response = await api.delete(`generated-reports/${id}`);
     return response.data;
   },
 
@@ -23,7 +23,7 @@ const ReportsService = {
   },
 
   projectReturnReports: async (params) => {
-    const response = await api.get("/conversion-definitions/project-return-reports", { params });
+    const response = await api.get("/project-return-reports", { params });
     return response.data.data;
   },
 };

@@ -511,10 +511,10 @@ watch(projectReturnPerPages, (newValue) => {
 
 watch(selectedRange, () => {
   fetchReports();
-  // fetchChannelGroups();
-  // fetchProjectReturnReports().then(() => {
-  //   isProjectReturnFirstLoad.value = false;
-  // });
+  fetchChannelGroups();
+  fetchProjectReturnReports().then(() => {
+    isProjectReturnFirstLoad.value = false;
+  });
 
 }, { deep: true });
 

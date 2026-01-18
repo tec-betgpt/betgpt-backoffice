@@ -18,7 +18,13 @@
           <CardTitle>Ticket Médio</CardTitle>
         </CardHeader>
         <CardContent>
-          <p class="text-2xl font-bold">{{ currencyFilter(averageTicket) }}</p>
+          <div v-if="loading">
+            <Skeleton class="h-8 w-3/4 mb-2" />
+            <Skeleton class="h-4 w-1/2" />
+          </div>
+          <div v-else>
+            <p class="text-2xl font-bold">{{ currencyFilter(averageTicket) }}</p>
+          </div>
         </CardContent>
       </Card>
       <Card>
@@ -26,8 +32,14 @@
           <CardTitle>Receita (Elevate)</CardTitle>
         </CardHeader>
         <CardContent>
-          <p class="text-2xl font-bold">{{ currencyFilter(periodTotals.elevate?.total_value || 0) }}</p>
-          <p class="text-xs text-muted-foreground">{{ periodTotals.elevate?.conversion_count || 0 }} conversões</p>
+          <div v-if="loading">
+            <Skeleton class="h-8 w-3/4 mb-2" />
+            <Skeleton class="h-4 w-1/2" />
+          </div>
+          <div v-else>
+            <p class="text-2xl font-bold">{{ currencyFilter(periodTotals.elevate?.total_value || 0) }}</p>
+            <p class="text-xs text-muted-foreground">{{ periodTotals.elevate?.conversion_count || 0 }} conversões</p>
+          </div>
         </CardContent>
       </Card>
       <Card>
@@ -35,8 +47,14 @@
           <CardTitle>Receita (Outros)</CardTitle>
         </CardHeader>
         <CardContent>
-          <p class="text-2xl font-bold">{{ currencyFilter(periodTotals.others?.total_value || 0) }}</p>
-          <p class="text-xs text-muted-foreground">{{ periodTotals.others?.conversion_count || 0 }} conversões</p>
+          <div v-if="loading">
+            <Skeleton class="h-8 w-3/4 mb-2" />
+            <Skeleton class="h-4 w-1/2" />
+          </div>
+          <div v-else>
+            <p class="text-2xl font-bold">{{ currencyFilter(periodTotals.others?.total_value || 0) }}</p>
+            <p class="text-xs text-muted-foreground">{{ periodTotals.others?.conversion_count || 0 }} conversões</p>
+          </div>
         </CardContent>
       </Card>
     </div>
