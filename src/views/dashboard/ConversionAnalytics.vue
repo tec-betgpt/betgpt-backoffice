@@ -68,16 +68,7 @@
                 <SelectValue placeholder="Selecione o grupo..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Elevate">Elevate</SelectItem>
-                <SelectItem value="Affiliates">Afiliados</SelectItem>
-                <SelectItem value="Direct">Direto</SelectItem>
-                <SelectItem value="Display">Display</SelectItem>
-                <SelectItem value="Email">Email</SelectItem>
-                <SelectItem value="Organic Search">Busca Orgânica</SelectItem>
-                <SelectItem value="Organic Social">Social Orgânico</SelectItem>
-                <SelectItem value="Paid Search">Busca Paga</SelectItem>
-                <SelectItem value="Paid Social">Social Pago</SelectItem>
-                <SelectItem value="Referral">Referência</SelectItem>
+                <SelectItem v-for="(channelGroup,index) in channelGroups" :key="index" :value="channelGroup">{{channelGroup}}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -164,7 +155,7 @@ const channelPerformanceData = ref<any[]>([]);
 const orderId = ref('totalRevenue');
 const order = ref(false);
 const perPages = ref(100);
-
+const channelGroups = ref([])
 const searchValues = ref<Record<string, string>>({
   channel_group: 'Elevate'
 });
@@ -242,7 +233,7 @@ const applyFilter = async () => {
     averageTicket.value = data.average_ticket
     periodTotals.value = data.period_totals
     channelPerformanceData.value = data.channel_performance
-
+    channelGroups.value = data.channel_groups
   } catch (error) {
     console.error("Erro ao carregar dados de análise de conversão:", error);
     toast({
