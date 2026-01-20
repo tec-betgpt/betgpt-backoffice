@@ -126,12 +126,16 @@
     </div>
 
     <Dialog :open="isHistoryDetailDialogOpen" @update:open="isHistoryDetailDialogOpen = false">
-      <DialogContent v-if="selectedHistoryEvent" class="sm:max-w-[425px]">
+      <DialogContent v-if="selectedHistoryEvent" :class="['transition-all duration-300', isPayloadVisible ? 'sm:max-w-3xl' : 'sm:max-w-[425px]']">
         <DialogHeader>
-          <DialogTitle>Detalhes do Evento</DialogTitle>
-          <DialogDescription>
-            Informações detalhadas sobre o evento de histórico.
-          </DialogDescription>
+          <div class="flex justify-between items-start">
+            <div>
+              <DialogTitle>Detalhes do Evento</DialogTitle>
+              <DialogDescription>
+                Informações detalhadas sobre o evento de histórico.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
         <div class="grid gap-4 pt-4 text-sm">
           <div>
@@ -158,7 +162,22 @@
               {{ selectedHistoryEvent.description }}
             </div>
           </div>
+          <Button
+              v-if="selectedHistoryEvent.payload"
+              variant="outline"
+              size="sm"
+              @click="isPayloadVisible = !isPayloadVisible"
+          >
+            <Code class="h-4 w-4 mr-2" />
+            {{ isPayloadVisible ? 'Ocultar' : 'Ver' }} Payload
+          </Button>
         </div>
+
+        <div v-if="isPayloadVisible && selectedHistoryEvent.payload" class="mt-4">
+          <div class="text-xs font-bold mb-2">Payload</div>
+          <pre class="bg-gray-900 text-white p-4 rounded-md text-xs overflow-x-auto"><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
+        </div>
+
         <DialogFooter>
           <Button @click="isHistoryDetailDialogOpen = false">Fechar</Button>
         </DialogFooter>
@@ -170,7 +189,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
-import { ChevronLeft } from "lucide-vue-next";
+import {ChevronLeft, Code} from "lucide-vue-next";
 import Players from "@/services/players";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -194,16 +213,18 @@ const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
 const isHistoryDetailDialogOpen = ref(false);
 const selectedHistoryEvent = ref(null);
+const isPayloadVisible = ref(false);
 
 const showHistoryEventDetails = (event) => {
   selectedHistoryEvent.value = event;
+  isPayloadVisible.value = false;
   isHistoryDetailDialogOpen.value = true;
 };
 
 // Mocked history data
 const history = ref([
   { type: 'login', date: '2024-07-19T10:00:00Z', title: 'Login', description: 'Login bem-sucedido.' },
-  { type: 'deposit', date: '2024-07-18T15:30:00Z', title: 'Depósito', description: 'Depósito de R$ 100,00 via PIX.' },
+  { type: 'deposit', date: '2024-07-18T15:30:00Z', title: 'Depósito', description: 'Depósito de R$ 100,00 via PIX.', payload: { transaction_id: 'xyz-123', payment_method: 'pix', amount: 100.00, currency: 'BRL', status: 'completed' } },
   { type: 'deposit', date: '2024-07-18T15:32:00Z', title: 'Depósito', description: 'Depósito de R$ 50,00 via Cartão.' },
   { type: 'segment', date: '2024-07-17T11:00:00Z', title: 'Segmento', description: 'Entrou no segmento "Jogadores VIP".' },
   { type: 'withdrawal', date: '2024-07-16T09:00:00Z', title: 'Retirada', description: 'Retirada de R$ 200,00.' },
