@@ -52,13 +52,6 @@
                 </Button>
               </TableHead>
             </TableRow>
-            <TableRow v-if="grandTotal" class="bg-gray-50/10">
-              <TableHead v-for="column in columns.filter(c => columnVisibility[c.id])" :key="column.id" :class="column.class" class="font-bold">
-                 <slot :name="`grand-total-cell-${column.id}`" :total="grandTotal">
-                    {{ column.formatter ? column.formatter(grandTotal[column.id]) : grandTotal[column.id] }}
-                  </slot>
-              </TableHead>
-            </TableRow>
           </TableHeader>
           <TableBody>
             <template v-if="loading">
@@ -91,6 +84,13 @@
                 <slot :name="`footer-cell-${column.id}`" :total="pageTotal">
                   {{ column.formatter ? column.formatter(pageTotal[column.id]) : pageTotal[column.id] }}
                 </slot>
+              </TableCell>
+            </TableRow>
+            <TableRow v-if="grandTotal" class="bg-gray-50/10">
+              <TableCell v-for="column in columns.filter(c => columnVisibility[c.id])" :key="column.id" :class="column.class" class="font-bold">
+                 <slot :name="`grand-total-cell-${column.id}`" :total="grandTotal">
+                    {{ column.formatter ? column.formatter(grandTotal[column.id]) : grandTotal[column.id] }}
+                  </slot>
               </TableCell>
             </TableRow>
           </TableFooter>
@@ -149,6 +149,7 @@ type Column = {
   tooltip?: string;
   class?: string;
   formatter?: (value: any) => string;
+  type?: 'text' | 'numeric' | 'currency';
 };
 
 const props = defineProps<{
