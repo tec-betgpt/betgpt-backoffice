@@ -69,7 +69,7 @@ import {
   MoreHorizontal,
   ChevronDownIcon,
   ArrowDown,
-  ArrowUp,
+  ArrowUp, Trash, Pencil,
 } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { createColumnHelper } from "@tanstack/vue-table";
@@ -265,52 +265,53 @@ const columns = [
       h("div", { class: "text-right" }, formatDate(row.getValue("updated_at"))),
   }),
   columnHelper.accessor("id", {
-    header: "Ações",
+    header: () => h('div', { class: 'text-right' }, 'Ações'),
     cell: ({ row }) => {
-      return h(DropdownMenu, {}, [
+      return h(DropdownMenu, {}, () => [
         h(
-          DropdownMenuTrigger,
-          { asChild: true },
-          h(
-            Button,
-            { size: "icon", variant: "ghost", disabled: isProcessing.value },
-            [
-              h(MoreHorizontal, { class: "h-4 w-4" }),
-              h("span", { class: "sr-only" }, "Ações"),
-            ],
-          ),
+            DropdownMenuTrigger,
+            { asChild: true },
+            {
+              default: () => h(
+                  Button,
+                  { size: "icon", variant: "ghost", disabled: isProcessing.value },
+                  {
+                    default: () => [
+                      h(MoreHorizontal, { class: "h-4 w-4" }),
+                      h("span", { class: "sr-only" }, "Ações"),
+                    ]
+                  }
+              )
+            }
         ),
-        h(DropdownMenuContent, { align: "end" }, [
+        h(DropdownMenuContent, { align: "end" }, () => [
           h(DropdownMenuLabel, {}, "Ações"),
-          h(DropdownMenuSeparator, {}),
+          h(DropdownMenuSeparator),
           h(
-            DropdownMenuItem,
-            {
-              onClick: () => {
-                // Para usar o EditDialogComponent, você pode precisar adaptá-lo
-                // para funcionar com dropdown ou mantê-lo como estava
-                // Por enquanto, vou manter a lógica original em um alerta
-                // Você precisará adaptar conforme sua implementação
-                const editComponent = h(EditDialogComponent, {
-                  row: row.original,
-                  reload: fetchConversionDefinitions,
-                });
-                // Aqui você precisaria implementar a lógica para abrir o modal
-                // Sugiro adaptar o EditDialogComponent para ser acionado programaticamente
-              },
-            },
-            "Editar",
+              EditDialogComponent,
+              { row: row.original, reload: fetchConversionDefinitions },
+              {
+                default: () => h(DropdownMenuItem, { onSelect: (e) => e.preventDefault(), class:'flex gap-2' },
+                    [
+                        h(Pencil, { class: 'h-4 w-4' }),
+                        "Editar"
+                    ]
+                )
+              }
           ),
           h(
-            DropdownMenuItem,
-            {
-              onMousedown: () => {
-                destroy(row.original.id);
-              },
-            },
-            isProcessing.value
-              ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
-              : "Excluir",
+              DestroyDialogComponent,
+              { destroy: destroy, row: row.original, reload: fetchConversionDefinitions },
+              {
+                default: () => h(DropdownMenuItem, { onSelect: (e) => e.preventDefault(), class: 'flex gap-2 text-red-500 focus:text-white focus:bg-red-500' },
+                    [
+                      isProcessing.value
+                          ? h(LucideSpinner, { class: "h-4 w-4 animate-spin" })
+                          : h(Trash, { class: 'h-4 w-4' }),
+                      "Excluir"
+                    ]
+                )
+              }
           ),
         ]),
       ]);

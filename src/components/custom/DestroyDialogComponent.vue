@@ -1,9 +1,12 @@
 <template>
-  <Button size="icon" variant="ghost" class="text-red-400 hover:text-white hover:bg-red-400" @click="isDialog = true">
-    <Trash />
-  </Button>
-
-  <AlertDialog :open="isDialog" @close="isDialog = false">
+  <AlertDialog>
+    <AlertDialogTrigger as-child>
+      <slot>
+        <Button size="icon" variant="ghost" class="text-red-400 hover:text-white hover:bg-red-400">
+          <Trash />
+        </Button>
+      </slot>
+    </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>Confirmar Exclusão?</AlertDialogTitle>
@@ -12,7 +15,7 @@
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel @click="isDialog = false">Cancelar</AlertDialogCancel>
+        <AlertDialogCancel>Cancelar</AlertDialogCancel>
         <AlertDialogAction class="bg-red-600" @click="confirm()">Continuar</AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
@@ -20,7 +23,6 @@
 </template>
 <script setup lang="ts">
 import { Trash } from "lucide-vue-next";
-import {ref} from "vue";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +32,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {Button} from "@/components/ui/button";
 
 const props = defineProps<{
   /**
@@ -49,9 +53,7 @@ const props = defineProps<{
   row: Object,
 }>();
 
-const isDialog = ref(false);
 const confirm = async () => {
-  isDialog.value = false;
   await props.destroy(props.row.id);
   await props.reload();
 }
