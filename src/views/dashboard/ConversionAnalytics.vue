@@ -57,6 +57,21 @@
           </div>
         </CardContent>
       </Card>
+      <Card class="col-span-3">
+        <CardHeader>
+          <CardTitle>Total</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div v-if="loading">
+            <Skeleton class="h-8 w-3/4 mb-2" />
+            <Skeleton class="h-4 w-1/2" />
+          </div>
+          <div v-else>
+            <p class="text-2xl font-bold">{{ currencyFilter((periodTotals.others?.total_value + periodTotals.elevate?.total_value ) || 0) }}</p>
+            <p class="text-xs text-muted-foreground">{{ (periodTotals.others?.conversion_count + periodTotals.elevate?.conversion_count)|| 0 }} conversões</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
 
     <div class="grid gap-4 grid-cols-1">
@@ -64,7 +79,7 @@
           title="Performance por Canal"
           :loading="loading"
           :data="channelPerformanceData"
-          :grand-total="null"
+          :grand-total="performanceTotal"
           :page-total="null"
           :pages="{ current: 1, last: 1, total: channelPerformanceData.length }"
           :per-pages="100"
@@ -86,6 +101,7 @@
                 <SelectValue placeholder="Selecione o grupo..." />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
                 <SelectItem v-for="(channelGroup,index) in channelGroups" :key="index" :value="channelGroup">{{channelGroup}}</SelectItem>
               </SelectContent>
             </Select>
@@ -170,18 +186,19 @@ const eventsPeriod = ref<{ name: string; value: any[] }[]>([]);
 const averageTicket = ref(0);
 const periodTotals = ref({ elevate: null, others: null });
 const channelPerformanceData = ref<any[]>([]);
+const performanceTotal = ref<number>();
 const orderId = ref('totalRevenue');
 const order = ref(false);
 const perPages = ref(100);
 const channelGroups = ref([])
 const searchValues = ref<Record<string, string>>({
-  channel_group: 'Elevate'
+  channel_group: 'todos'
 });
 
 const columns = ref([
   { id: 'channel', label: 'Canal', tooltip: 'Nome do Canal' },
   { id: 'eventCount', label: 'Contagem de Eventos', tooltip: 'Número de eventos de conversão.' },
-  { id: 'totalRevenue', label: 'Receita Total', tooltip: 'Soma da receita.' },
+  { id: 'totalRevenue', label: 'Receita Total', tooltip: 'Soma da receita.', formatter: (value) => currencyFilter(value) },
   { id: 'variation', label: 'Variação', tooltip: 'Variação percentual da receita.' },
 ]);
 
@@ -251,6 +268,7 @@ const applyFilter = async () => {
     averageTicket.value = data.average_ticket
     periodTotals.value = data.period_totals
     channelPerformanceData.value = data.channel_performance
+    performanceTotal.value = data.channel_performance.reduce((acc, p) => acc + p.totalRevenue, 0);
     channelGroups.value = data.channel_groups
   } catch (error) {
     console.error("Erro ao carregar dados de análise de conversão:", error);

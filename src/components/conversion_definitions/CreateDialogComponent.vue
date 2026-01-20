@@ -71,11 +71,11 @@
             <AccordionContent>
               <div class="space-y-4 pt-4">
                 <div class="grid grid-cols-4 items-center gap-4">
-                  <Label> Campo de valor</Label>
+                  <Label> Campo de Dado</Label>
                   <div class="col-span-3 flex items-center space-x-2">
                     <Select v-model="form.conversion_value_field">
                       <SelectTrigger
-                        class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2"
+                        class="w-full bg-transparent shadow-none focus:ring-0 h-auto p-0 px-2"
                       >
                         <SelectValue placeholder="Selecione um campo" />
                       </SelectTrigger>

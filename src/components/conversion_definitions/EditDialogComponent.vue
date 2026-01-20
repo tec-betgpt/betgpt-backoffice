@@ -62,7 +62,7 @@
           <div class="space-y-4 pt-4">
 
             <div class="grid grid-cols-4 items-center gap-4">
-              <Label> Campo de valor</Label>
+              <Label> Campo de Dados</Label>
               <div class="col-span-3 flex items-center space-x-2">
                 <Select v-model="form.conversion_value_field">
                   <SelectTrigger class="w-full">
