@@ -22,6 +22,7 @@ export default {
    * @param {number} id
    * @param {object|any} params
    * @param {any} params.filter_id
+   * @param {string} params.include
    */
   async show (id, params = {}) {
     const { data } = await api.get(`/players/${id}`, { params })

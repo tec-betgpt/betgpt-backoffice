@@ -2,87 +2,80 @@
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
       <div class="space-y-0.5">
-        <h2 class="text-2xl font-bold tracking-tight">Gerenciar Definições de Conversão</h2>
+        <h2 class="text-2xl font-bold tracking-tight">
+          Gerenciar Definições de Conversão
+        </h2>
         <p class="text-muted-foreground">
           Crie e gerencie definições de conversão com regras personalizadas.
         </p>
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-        <CreateDialogComponent
-          :reload="fetchConversionDefinitions"
-        />
+        <CreateDialogComponent :reload="fetchConversionDefinitions" />
       </div>
     </div>
 
     <Card>
-      <CardHeader>
-        <div class="flex justify-between items-center flex-nowrap">
-          <CardTitle>Definições de Conversão</CardTitle>
-
-          <Select v-model="conversionType">
+      <CardContent class="py-4">
+        <CustomDataTable
+          :loading="isLoading"
+          :data="conversionDefinitions"
+          :columns="columns"
+          :update-text="setSearch"
+          :find="fetchConversionDefinitions"
+          :search-fields="[
+            { key: 'name', placeholder: 'Buscar por nome da definição...' },
+          ]"
+        >
+          <Select
+            v-model="conversionType"
+            @update:modelValue="fetchConversionDefinitions(1)"
+          >
             <SelectTrigger class="w-[180px]">
               <SelectValue placeholder="" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="primary">
-                Primárias
-              </SelectItem>
-              <SelectItem value="quantitative">
-                Quantitativas
-              </SelectItem>
+              <SelectItem value="primary"> Primárias </SelectItem>
+              <SelectItem value="quantitative"> Quantitativas </SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </CardHeader>
-      <CardContent class="py-4">
-        <Table class="w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead class="text-right">Registrar no Retorno</TableHead>
-              <TableHead class="text-right">Editado pela última vez</TableHead>
-              <TableHead class="text-right">Eventos</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="(row, index) in conversionDefinitions" :key="row.id" :style="`--delay: ${getMs(index)}`">
-              <TableCell>
-                {{ row.name }}
-              </TableCell>
-              <TableCell>
-                {{ row.is_primary ? 'Primária' : 'Quantitativa' }}
-              </TableCell>
-              <TableCell class="text-right">
-                {{ row.is_return_report ? 'Sim' : 'Não' }}
-              </TableCell>
-              <TableCell class="text-right">
-                {{ formatDate(row.updated_at) }}h
-              </TableCell>
-              <TableCell class="text-right">
-                {{ row.events.length }}
-              </TableCell>
-              <TableCell>
-                <div class="flex flex-nowrap justify-end">
-                  <EditDialogComponent :row="row" :reload="fetchConversionDefinitions" />
-                  <DestroyDialogComponent :reload="fetchConversionDefinitions" :row="row" :destroy="destroy" />
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        </CustomDataTable>
+        <CustomPagination
+          v-if="pages.total > 0"
+          :select-page="fetchConversionDefinitions"
+          :pages="pages"
+          :per_pages="perPage"
+          @update:perPages="(args) => (perPage = args)"
+        />
       </CardContent>
     </Card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { useToast} from "@/components/ui/toast/use-toast";
+import { ref, onMounted, h, watch } from "vue";
+import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/table";
-import { getMs } from "@/filters/formatNumbers";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  MoreHorizontal,
+  ChevronDownIcon,
+  ArrowDown,
+  ArrowUp, Trash, Pencil,
+} from "lucide-vue-next";
+import { Loader2 as LucideSpinner } from "lucide-vue-next";
+import { createColumnHelper } from "@tanstack/vue-table";
+import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
+import { CaretSortIcon } from "@radix-icons/vue";
 import CreateDialogComponent from "@/components/conversion_definitions/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/conversion_definitions/EditDialogComponent.vue";
 import ConversionDefinitions from "@/services/conversionDefinitions";
@@ -90,49 +83,25 @@ import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.v
 
 const { toast } = useToast();
 const isLoading = ref(false);
+const isProcessing = ref(false);
 const conversionType = ref("primary");
 const workspaceStore = useWorkspaceStore();
+
 const conversionDefinitions = ref<any[]>([]);
+const pages = ref({
+  current: 1,
+  total: 0,
+  last: 0,
+});
+const perPage = ref(10);
+const order = ref();
+const direction = ref(false);
+const searchValues = ref<Record<string, string>>({});
 
-const activeGroupProject = computed(() => workspaceStore.activeGroupProject || null);
+const activeGroupProject = ref(workspaceStore.activeGroupProject || null);
 
-const fetchConversionDefinitions = async () => {
-  isLoading.value = true;
-
-  try {
-    conversionDefinitions.value = await ConversionDefinitions.index({ filter_id: activeGroupProject.value.id });
-  } catch (error) {
-    console.error("Error loading conversion definitions:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar as definições de conversão",
-      variant: "destructive",
-    });
-  }
-
-  isLoading.value = false;
-};
-
-const destroy = async (id: number) => {
-  isLoading.value = true;
-
-  try {
-    await ConversionDefinitions.destroy(id);
-    await fetchConversionDefinitions();
-
-    toast({
-      title: "Sucesso",
-      description: "Definição de conversão removida com sucesso",
-    });
-  } catch (_) {
-    toast({
-      title: "Erro",
-      description: "Não foi possível remover a definição de conversão",
-      variant: "destructive",
-    });
-  }
-
-  isLoading.value = false;
+const setSearch = (values: Record<string, string>) => {
+  searchValues.value = values;
 };
 
 const formatDate = (dateString: string) => {
@@ -146,7 +115,210 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString("pt-BR", options);
 };
 
-onMounted(async () => {
-  await fetchConversionDefinitions();
+const fetchConversionDefinitions = async (current = pages.value.current) => {
+  try {
+    isLoading.value = true;
+
+    const searchParams = Object.keys(searchValues.value).reduce(
+      (acc, key) => {
+        acc[key] = searchValues.value[key];
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    // Adicionar filtro por tipo
+    const typeFilter: any = {};
+    if (conversionType.value === "primary") {
+      typeFilter.is_primary = true;
+    } else if (conversionType.value === "quantitative") {
+      typeFilter.is_primary = false;
+    }
+
+    const { data } = await ConversionDefinitions.index({
+      page: current,
+      ...searchParams,
+      ...typeFilter,
+      filter_id: activeGroupProject.value?.id,
+      orderBy: order.value,
+      orderDirection: direction.value ? "asc" : "desc",
+      per_page: perPage.value,
+    });
+
+    conversionDefinitions.value = data.data;
+    pages.value = {
+      current: data.current_page,
+      last: data.last_page,
+      total: data.total,
+    };
+  } catch (error) {
+    console.error("Error loading conversion definitions:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar as definições de conversão",
+      variant: "destructive",
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const destroy = async (id: number) => {
+  isProcessing.value = true;
+
+  try {
+    await ConversionDefinitions.destroy(id);
+    await fetchConversionDefinitions(pages.value.current);
+
+    toast({
+      title: "Sucesso",
+      description: "Definição de conversão removida com sucesso",
+    });
+  } catch (_) {
+    toast({
+      title: "Erro",
+      description: "Não foi possível remover a definição de conversão",
+      variant: "destructive",
+    });
+  }
+
+  isProcessing.value = false;
+};
+
+watch(perPage, () => fetchConversionDefinitions(1));
+watch(conversionType, () => fetchConversionDefinitions(1));
+
+// Configuração das colunas da tabela
+const columnHelper = createColumnHelper<any>();
+
+function createHeaderButton(label: string, columnKey: string) {
+  return h(
+    Button,
+    {
+      variant: order.value === columnKey ? "default" : "ghost",
+      onClick: () => {
+        order.value = columnKey;
+        direction.value = !direction.value;
+        fetchConversionDefinitions(1);
+      },
+      class: "h-fit text-pretty my-1",
+    },
+    () => [
+      label,
+      h(
+        order.value === columnKey
+          ? direction.value
+            ? ArrowDown
+            : ArrowUp
+          : CaretSortIcon,
+        { class: "" },
+      ),
+    ],
+  );
+}
+
+const columns = [
+  columnHelper.accessor("name", {
+    header({ header }) {
+      return createHeaderButton("Nome", "name");
+    },
+    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
+  }),
+  columnHelper.accessor("conversion_category", {
+    header({ header }) {
+      return createHeaderButton("Conversão", "conversion_category");
+    },
+    cell: ({ row }) => h("div", {}, row.getValue("conversion_category")),
+  }),
+  columnHelper.accessor("is_primary", {
+    header({ header }) {
+      return createHeaderButton("Tipo", "is_primary");
+    },
+    cell: ({ row }) =>
+      h(
+        Badge,
+        {
+          variant: row.getValue("is_primary") ? "default" : "secondary",
+        },
+        row.getValue("is_primary") ? "Primária" : "Quantitativa",
+      ),
+  }),
+  columnHelper.accessor("is_return_report", {
+    header({ header }) {
+      return "Registrar no Retorno";
+    },
+    cell: ({ row }) =>
+      h(
+        Badge,
+        {
+          variant: row.getValue("is_return_report") ? "default" : "outline",
+        },
+        row.getValue("is_return_report") ? "Sim" : "Não",
+      ),
+  }),
+  columnHelper.accessor("updated_at", {
+    header({ header }) {
+      return createHeaderButton("Editado pela última vez", "updated_at");
+    },
+    cell: ({ row }) =>
+      h("div", { class: "text-right" }, formatDate(row.getValue("updated_at"))),
+  }),
+  columnHelper.accessor("id", {
+    header: () => h('div', { class: 'text-right' }, 'Ações'),
+    cell: ({ row }) => {
+      return h(DropdownMenu, {}, () => [
+        h(
+            DropdownMenuTrigger,
+            { asChild: true },
+            {
+              default: () => h(
+                  Button,
+                  { size: "icon", variant: "ghost", disabled: isProcessing.value },
+                  {
+                    default: () => [
+                      h(MoreHorizontal, { class: "h-4 w-4" }),
+                      h("span", { class: "sr-only" }, "Ações"),
+                    ]
+                  }
+              )
+            }
+        ),
+        h(DropdownMenuContent, { align: "end" }, () => [
+          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuSeparator),
+          h(
+              EditDialogComponent,
+              { row: row.original, reload: fetchConversionDefinitions },
+              {
+                default: () => h(DropdownMenuItem, { onSelect: (e) => e.preventDefault(), class:'flex gap-2' },
+                    [
+                        h(Pencil, { class: 'h-4 w-4' }),
+                        "Editar"
+                    ]
+                )
+              }
+          ),
+          h(
+              DestroyDialogComponent,
+              { destroy: destroy, row: row.original, reload: fetchConversionDefinitions },
+              {
+                default: () => h(DropdownMenuItem, { onSelect: (e) => e.preventDefault(), class: 'flex gap-2 text-red-500 focus:text-white focus:bg-red-500' },
+                    [
+                      isProcessing.value
+                          ? h(LucideSpinner, { class: "h-4 w-4 animate-spin" })
+                          : h(Trash, { class: 'h-4 w-4' }),
+                      "Excluir"
+                    ]
+                )
+              }
+          ),
+        ]),
+      ]);
+    },
+  }),
+];
+
+onMounted(() => {
+  fetchConversionDefinitions(1);
 });
 </script>

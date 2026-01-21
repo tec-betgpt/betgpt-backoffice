@@ -322,7 +322,9 @@ import {
   SquarePen,
   Square,
   LucideLockOpen,
-  LucideUserCheck, ChartArea,
+  LucideUserCheck,
+  ChartArea,
+  Goal,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -439,7 +441,26 @@ const navMenu = computed(() => {
       icon: ChartArea,
       type: "conversions",
       show: canAccess("view-events"),
-      url: { name: "conversions" },
+      children: [
+        {
+          name: "Definições",
+          url: { name: "definitions" },
+          icon: ChartArea,
+          show: canAccess("view-events"),
+        },
+        {
+          name: "Relatórios",
+          url: { name: "reports" },
+          icon: ChartArea,
+          show: canAccess("view-events"),
+        },
+        {
+            name: "Resultados",
+            url: { name: "ConversionAnalytics" },
+            icon: Goal,
+            show: canAccess("view-events"),
+        },
+      ],
     },
     {
       name: "Controles",

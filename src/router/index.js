@@ -59,7 +59,7 @@ const routes = [
   ...manage,
   ...governance,
   ...financial,
-  ...conversions
+  ...conversions,
 ];
 
 const router = createRouter({
