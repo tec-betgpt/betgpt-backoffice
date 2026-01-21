@@ -223,14 +223,14 @@ const showHistoryEventDetails = (event) => {
 
 // Mocked history data
 const history = ref([
-  { type: 'login', date: '2024-07-19T10:00:00Z', title: 'Login', description: 'Login bem-sucedido.' },
-  { type: 'deposit', date: '2024-07-18T15:30:00Z', title: 'Depósito', description: 'Depósito de R$ 100,00 via PIX.', payload: { transaction_id: 'xyz-123', payment_method: 'pix', amount: 100.00, currency: 'BRL', status: 'completed' } },
-  { type: 'deposit', date: '2024-07-18T15:32:00Z', title: 'Depósito', description: 'Depósito de R$ 50,00 via Cartão.' },
-  { type: 'segment', date: '2024-07-17T11:00:00Z', title: 'Segmento', description: 'Entrou no segmento "Jogadores VIP".' },
-  { type: 'withdrawal', date: '2024-07-16T09:00:00Z', title: 'Retirada', description: 'Retirada de R$ 200,00.' },
-  { type: 'profile_update', date: '2024-07-15T14:20:00Z', title: 'Alteração de Dados', description: 'Número de telefone atualizado.' },
-  { type: 'login', date: '2024-07-15T08:00:00Z', title: 'Login', description: 'Login bem-sucedido.' },
-  { type: 'segment', date: '2024-07-14T18:00:00Z', title: 'Segmento', description: 'Saiu do segmento "Novos Jogadores".' },
+  // { type: 'login', date: '2024-07-19T10:00:00Z', title: 'Login', description: 'Login bem-sucedido.' },
+  // { type: 'deposit', date: '2024-07-18T15:30:00Z', title: 'Depósito', description: 'Depósito de R$ 100,00 via PIX.', payload: { transaction_id: 'xyz-123', payment_method: 'pix', amount: 100.00, currency: 'BRL', status: 'completed' } },
+  // { type: 'deposit', date: '2024-07-18T15:32:00Z', title: 'Depósito', description: 'Depósito de R$ 50,00 via Cartão.' },
+  // { type: 'segment', date: '2024-07-17T11:00:00Z', title: 'Segmento', description: 'Entrou no segmento "Jogadores VIP".' },
+  // { type: 'withdrawal', date: '2024-07-16T09:00:00Z', title: 'Retirada', description: 'Retirada de R$ 200,00.' },
+  // { type: 'profile_update', date: '2024-07-15T14:20:00Z', title: 'Alteração de Dados', description: 'Número de telefone atualizado.' },
+  // { type: 'login', date: '2024-07-15T08:00:00Z', title: 'Login', description: 'Login bem-sucedido.' },
+  // { type: 'segment', date: '2024-07-14T18:00:00Z', title: 'Segmento', description: 'Saiu do segmento "Novos Jogadores".' },
 ]);
 
 const selectedEventType = ref('all');
@@ -272,8 +272,8 @@ const isSameTypeAsPrevious = (index) => {
 const fetchPlayer = async () => {
   isLoading.value = true;
   try {
-    player.value = await Players.show(route.params.id as string, { filter_id: activeGroupProjectId });
-    // In a real scenario, you would fetch the history here as well.
+    player.value = await Players.show(route.params.id as string, { filter_id: activeGroupProjectId,include:'history'});
+    history.value = player.value.history.data;
   } catch(e) {
     console.error(e);
   } finally {
