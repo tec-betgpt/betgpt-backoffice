@@ -219,7 +219,7 @@
                               :key="channel.name"
                               :value="channel.name"
                           >
-                            {{ channelTranslations[channel.displayName] || channel.displayName }}
+                            {{ channelTranslations[channel.displayName] || channel.nickName }}
                           </SelectItem>
                         </SelectContent>
                       </Select>
