@@ -13,13 +13,14 @@
         </div>
       </div>
     </div>
-    <div v-if="player" class="pt-4 text-sm">
-      <Card>
+    <div v-if="player" class="flex gap-6 pt-4 sm:flex-row flex-col flex-wrap text-sm">
+      <!-- Player Details Card -->
+      <Card class="sm:w-80  ">
         <CardHeader>
-          <CardTitle>Dados e Histórico do Usuário</CardTitle>
+          <CardTitle>Dados do Usuário</CardTitle>
         </CardHeader>
-        <CardContent class="space-y-6">
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <CardContent class="space-y-4">
+          <div class="grid grid-cols-1 gap-4">
             <div>
               <div class="text-xs font-bold">Nome</div>
               <div class="text-sm">
@@ -55,15 +56,21 @@
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <hr/>
-
+      <!-- History Card -->
+      <Card class="flex-1" >
+        <CardHeader>
+          <CardTitle>Histórico do Usuário</CardTitle>
+        </CardHeader>
+        <CardContent class="space-y-4">
           <div class="flex flex-col gap-2">
             <label for="history-filter" class="text-sm font-medium">Filtrar histórico por tipo:</label>
             <select
-              id="history-filter"
-              v-model="selectedEventType"
-              class="block w-full max-w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                id="history-filter"
+                v-model="selectedEventType"
+                class="block w-full max-w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="all">Todos</option>
               <option v-for="option in filterOptions" :key="option.value" :value="option.value">
@@ -72,7 +79,7 @@
             </select>
           </div>
 
-          <div class="relative h-96 overflow-y-auto">
+          <div ref="timelineContainer" @scroll="handleScroll" class="relative h-[calc(100vh-24rem)] overflow-y-auto">
             <div class="absolute left-1/2 transform -translate-x-1/2 h-full border-l border-gray-300"></div>
             <div v-for="(event, index) in filteredHistory" :key="index" class="mb-8">
               <div class="flex items-center" :class="[isSameTypeAsPrevious(index) ? (getEventTypeSide(event.type) === 'left' ? 'justify-start' : 'justify-end') : (getEventTypeSide(event.type) === 'left' ? 'justify-start' : 'justify-end')]">
@@ -90,34 +97,43 @@
                 </div>
               </div>
             </div>
+            <div v-if="isHistoryLoading" class="text-center p-4 text-sm text-muted-foreground">
+              Carregando mais...
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
-    <div v-else-if="isLoading" class="pt-4">
+    <div v-else-if="isLoading" class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+      <!-- Skeleton for Player Card -->
       <Card>
         <CardHeader>
-          <CardTitle>
-            <Skeleton class="h-8 w-1/4" />
-          </CardTitle>
+          <Skeleton class="h-8 w-1/2" />
         </CardHeader>
         <CardContent class="space-y-6">
-           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div v-for="i in 5" :key="i" class="space-y-2">
-                <Skeleton class="h-4 w-1/3" />
-                <Skeleton class="h-6 w-2/3" />
-              </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div v-for="i in 5" :key="i" class="space-y-2">
+              <Skeleton class="h-4 w-1/3" />
+              <Skeleton class="h-6 w-2/3" />
             </div>
-            <hr/>
-             <div class="flex flex-col gap-2">
-              <Skeleton class="h-4 w-1/4" />
-              <Skeleton class="h-10 w-[200px]" />
-            </div>
-            <div class="space-y-4">
-              <Skeleton class="h-16 w-full" />
-              <Skeleton class="h-16 w-full" />
-              <Skeleton class="h-16 w-full" />
-            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <!-- Skeleton for History Card -->
+      <Card>
+        <CardHeader>
+          <Skeleton class="h-8 w-1/2" />
+        </CardHeader>
+        <CardContent class="space-y-4">
+          <div class="flex flex-col gap-2">
+            <Skeleton class="h-4 w-1/4" />
+            <Skeleton class="h-10 w-[200px]" />
+          </div>
+          <div class="space-y-4">
+            <Skeleton class="h-16 w-full" />
+            <Skeleton class="h-16 w-full" />
+            <Skeleton class="h-16 w-full" />
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -207,7 +223,13 @@ import {
 
 const route = useRoute();
 const player = ref();
+const history = ref([]);
 const isLoading = ref(true);
+const isHistoryLoading = ref(false);
+const currentPage = ref(1);
+const lastPage = ref(1);
+const timelineContainer = ref(null);
+
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
@@ -220,18 +242,6 @@ const showHistoryEventDetails = (event) => {
   isPayloadVisible.value = false;
   isHistoryDetailDialogOpen.value = true;
 };
-
-// Mocked history data
-const history = ref([
-  // { type: 'login', date: '2024-07-19T10:00:00Z', title: 'Login', description: 'Login bem-sucedido.' },
-  // { type: 'deposit', date: '2024-07-18T15:30:00Z', title: 'Depósito', description: 'Depósito de R$ 100,00 via PIX.', payload: { transaction_id: 'xyz-123', payment_method: 'pix', amount: 100.00, currency: 'BRL', status: 'completed' } },
-  // { type: 'deposit', date: '2024-07-18T15:32:00Z', title: 'Depósito', description: 'Depósito de R$ 50,00 via Cartão.' },
-  // { type: 'segment', date: '2024-07-17T11:00:00Z', title: 'Segmento', description: 'Entrou no segmento "Jogadores VIP".' },
-  // { type: 'withdrawal', date: '2024-07-16T09:00:00Z', title: 'Retirada', description: 'Retirada de R$ 200,00.' },
-  // { type: 'profile_update', date: '2024-07-15T14:20:00Z', title: 'Alteração de Dados', description: 'Número de telefone atualizado.' },
-  // { type: 'login', date: '2024-07-15T08:00:00Z', title: 'Login', description: 'Login bem-sucedido.' },
-  // { type: 'segment', date: '2024-07-14T18:00:00Z', title: 'Segmento', description: 'Saiu do segmento "Novos Jogadores".' },
-]);
 
 const selectedEventType = ref('all');
 
@@ -268,20 +278,61 @@ const isSameTypeAsPrevious = (index) => {
   return history.value[index].type === history.value[index - 1].type;
 }
 
+const hasMoreHistory = computed(() => currentPage.value < lastPage.value);
 
-const fetchPlayer = async () => {
-  isLoading.value = true;
+const fetchHistory = async (page) => {
+  if (page > 1 && (isHistoryLoading.value || !hasMoreHistory.value)) {
+    return;
+  }
+
+  if (page > 1) {
+    isHistoryLoading.value = true;
+  } else {
+    isLoading.value = true;
+  }
+
   try {
-    player.value = await Players.show(route.params.id as string, { filter_id: activeGroupProjectId,include:'history'});
-    history.value = player.value.history.data;
-  } catch(e) {
+    const params = {
+      filter_id: activeGroupProjectId,
+      include: 'history',
+      page: page,
+    };
+    // The API is likely structured to paginate the 'history' relationship
+    const data = await Players.show(route.params.id as string, params);
+
+    if (page === 1) {
+      player.value = data;
+      history.value = data.history.data;
+    } else {
+      // Append new history items to the existing list
+      history.value.push(...data.history.data);
+    }
+
+    currentPage.value = data.history.current_page;
+    lastPage.value = data.history.last_page;
+
+  } catch (e) {
     console.error(e);
   } finally {
     isLoading.value = false;
+    isHistoryLoading.value = false;
   }
 };
 
-onMounted(fetchPlayer);
+const handleScroll = () => {
+  const el = timelineContainer.value;
+  if (el) {
+    const bottomOfWindow = el.scrollTop + el.clientHeight >= el.scrollHeight - 100;
+    if (bottomOfWindow && hasMoreHistory.value && !isHistoryLoading.value) {
+      fetchHistory(currentPage.value + 1);
+    }
+  }
+};
+
+onMounted(() => {
+  fetchHistory(1);
+});
+
 
 const getAge = (value: number) => {
   if (!value) return '';
