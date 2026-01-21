@@ -210,7 +210,7 @@ const projectReturnPages = ref({
   last: 0,
 });
 const projectReturnPerPages = ref(10);
-const projectReturnSearchValues = ref({});
+const projectReturnSearchValues = ref([]);
 const projectReturnOrder = ref("date");
 const projectReturnDirection = ref(false);
 
@@ -231,9 +231,10 @@ const setProjectReturnSearch = (values: Record<string, string>) => {
   const searchParams: Record<string, string> = {};
   for (const key in values) {
     const newKey = key.replace(/search\[\d+\]\[(\w+)\]/, "$1");
-    searchParams[newKey] = values[key];
+    // searchParams[newKey] = ;
+    projectReturnSearchValues.value.push(values[key]) ;
+
   }
-  projectReturnSearchValues.value = searchParams;
 };
 
 function createHeaderButton(label: string, columnKey: string, currentOrder: any, currentDirection: any, action: any) {
@@ -273,7 +274,7 @@ const fetchProjectReturnReports = async (page = 1) => {
       filter_id: workspaceStore.activeGroupProject.id,
       orderBy: projectReturnOrder.value,
       orderDirection: projectReturnDirection.value ? "asc" : "desc",
-      ...projectReturnSearchValues.value,
+      channel_group: projectReturnSearchValues.value,
     };
     const data = await ReportsService.projectReturnReports(params);
     projectReturnReports.value = data.data;
@@ -313,7 +314,7 @@ const fetchReports = async (page = 1) => {
     };
 
     if (searchParams.length > 0) {
-      params.search = searchParams;
+      params.channel_group = searchParams;
     }
 
     const data = await ReportsService.index(params);
@@ -338,7 +339,8 @@ const fetchChannelGroups = async () => {
     const response = await ConversionDefinitions.channelGroups({
       project_id: workspaceStore.activeGroupProject.project_id,
     });
-    channelGroups.value = response.data.map( ch => { return {value: ch.displayName,label:channelTranslations[ch.displayName] || ch.displayName}; } );
+    channelGroups.value = response.data.map( ch => { return {value: ch.displayName, label:channelTranslations[ch.displayName] || ch.displayName}; } );
+    channelGroups.value.push({value:"Elevate", label:"Elevate"});
   } catch (error) {
     toast({
       title: "Erro",
