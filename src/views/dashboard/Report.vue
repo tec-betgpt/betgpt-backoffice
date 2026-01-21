@@ -314,7 +314,7 @@ const fetchReports = async (page = 1) => {
     };
 
     if (searchParams.length > 0) {
-      params.channel_group = searchParams;
+      params.search = searchParams;
     }
 
     const data = await ReportsService.index(params);
