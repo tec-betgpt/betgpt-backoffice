@@ -479,14 +479,15 @@ const updateCreationType = (value: string) => {
 
 const resetForm = () => {
   form.value = {
-    is_return_report: false,
     id: "",
     name: "",
     description: "",
+    conversion_value_field: "",
     is_primary: false,
+    is_return_report: false,
     // channel_group: "",
-    // channel_rule: "",
-    conditions: [],
+    // channel_rule:"",
+    conditions: [] as any[],
     conversion_category: "",
   };
   creationType.value = "";
@@ -594,6 +595,7 @@ const onSubmit = async () => {
     }
 
     await ConversionDefinitions.store(payload);
+    resetForm()
     await props.reload();
 
     modal.value = false;
