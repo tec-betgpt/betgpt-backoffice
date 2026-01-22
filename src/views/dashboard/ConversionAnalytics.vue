@@ -152,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import {ref, watch, onMounted, computed} from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { getLocalTimeZone, today } from "@internationalized/date";
@@ -297,7 +297,7 @@ const showDateRangeWarning = computed(() => {
     return false;
   }
 
-  const isEndDateTodayOrYesterday = end.equals(currentDate) || end.equals(yesterdayDate);
+  const isEndDateTodayOrYesterday = end == currentDate || end == yesterdayDate;
   const isRangeTooShort = (start.add({ days: 2 })).compare(end) > 0;
 
   return isEndDateTodayOrYesterday && isRangeTooShort;
