@@ -309,8 +309,6 @@ const form = ref({
   email: "",
   access_type: "client",
   roles: [],
-  admin_roles: [],
-  project_ids: [],
   projects: [],
   kind_person: 'PF',
   document_number: '',
@@ -381,25 +379,25 @@ const isProjectSelected = (projectId: number) => {
 };
 const toggleProject = (projectId: number, checked: boolean) => {
   if (!Array.isArray(form.value.projects)) {
-    form.value.projects = []; // Inicializa como array vazio se não for um array
+    form.value.projects = [];
   }
 
-  const projectIndex = form.value.projects.findIndex((p) => p.id === projectId);
+  let projectEntry = form.value.projects.find((p) => p.id === projectId);
 
   if (checked) {
-    if (projectIndex === -1) {
+    if (!projectEntry) {
       form.value.projects.push({
         id: projectId,
         selected: true,
         roles: [],
       });
     } else {
-      form.value.projects[projectIndex].selected = true;
+      projectEntry.selected = true;
     }
   } else {
-    if (projectIndex !== -1) {
-      form.value.projects[projectIndex].selected = false;
-      form.value.projects[projectIndex].roles = [];
+    if (projectEntry) {
+      projectEntry.selected = false;
+      projectEntry.roles = [];
     }
   }
 };
@@ -424,18 +422,20 @@ const isRoleSelected = (projectId: number, roleName: string) => {
 const toggleRole = (projectId: number, roleName: string, checked: boolean) => {
   if (!Array.isArray(form.value.projects)) return;
 
-  const projectIndex = form.value.projects.findIndex((p) => p.id === projectId);
+  const projectEntry = form.value.projects.find((p) => p.id === projectId);
 
-  if (projectIndex === -1) return;
+  if (!projectEntry) return;
+
+  if (!Array.isArray(projectEntry.roles)) {
+    projectEntry.roles = [];
+  }
 
   if (checked) {
-    if (!form.value.projects[projectIndex].roles.includes(roleName)) {
-      form.value.projects[projectIndex].roles.push(roleName);
+    if (!projectEntry.roles.includes(roleName)) {
+      projectEntry.roles.push(roleName);
     }
   } else {
-    form.value.projects[projectIndex].roles = form.value.projects[
-      projectIndex
-    ].roles.filter((r) => r !== roleName);
+    projectEntry.roles = projectEntry.roles.filter((r) => r !== roleName);
   }
 };
 const fetchUsersAndProjects = async (current = pages.value.current) => {
@@ -506,6 +506,7 @@ const openEditModal = (user: any) => {
 
 const openCreateModal = () => {
   form.value = {
+    ...form.value,
     id: null,
     first_name: "",
     last_name: "",
@@ -513,9 +514,7 @@ const openCreateModal = () => {
     access_type: "client",
     kind_person: "PF",
     document_number: "",
-    project_ids: [],
     roles: [],
-    admin_roles: [],
     projects: [],
   };
   isEditing.value = false;

@@ -9,6 +9,10 @@
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CustomDatePicker v-model="selectedRange" />
+        <div v-if="showDateRangeWarning" class="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+            <Info class="w-4 h-4" />
+            <span>Para uma visão completa do relatório verifique um período superior a 2 dias.</span>
+        </div>
       </div>
     </div>
 
@@ -164,7 +168,7 @@ import currencyFilter from "@/filters/currencyFilter";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowDown, ArrowUp } from "lucide-vue-next";
+import { Search, ArrowDown, ArrowUp, Info } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 
 const workspaceStore = useWorkspaceStore();
@@ -198,7 +202,7 @@ const searchValues = ref<Record<string, string>>({
 const columns = ref([
   { id: 'channel', label: 'Canal', tooltip: 'Nome do Canal' },
   { id: 'eventCount', label: 'Contagem de Eventos', tooltip: 'Número de eventos de conversão.' },
-  { id: 'totalRevenue', label: 'Receita Total', tooltip: 'Soma da receita.', formatter: (value) => currencyFilter(value) },
+  { id: 'totalRevenue', label: 'Receita Total', tooltip: 'Soma da receita.', formatter: (value:Number) => currencyFilter(value) },
   { id: 'variation', label: 'Variação', tooltip: 'Variação percentual da receita.' },
 ]);
 
@@ -282,6 +286,22 @@ const applyFilter = async () => {
     isFirstLoad.value = false;
   }
 };
+
+const yesterdayDate = currentDate.subtract({ days: 1 });
+
+const showDateRangeWarning = computed(() => {
+  const start = selectedRange.value.start;
+  const end = selectedRange.value.end;
+
+  if (!start || !end) {
+    return false;
+  }
+
+  const isEndDateTodayOrYesterday = end.equals(currentDate) || end.equals(yesterdayDate);
+  const isRangeTooShort = (start.add({ days: 2 })).compare(end) > 0;
+
+  return isEndDateTodayOrYesterday && isRangeTooShort;
+});
 
 watch(selectedRange, () => {
   if (!isFirstLoad.value) {
