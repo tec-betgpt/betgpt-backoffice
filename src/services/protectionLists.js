@@ -45,7 +45,6 @@ export default {
   /**
    * @param {number} id
    * @param {object} body
-   * @param {number} body.player_id
    * @param {number} body.project_id
    * @param {'LP_ENTERED' | 'LP_EXITED' | 'LP_UPDATED'} body.dispatch_type
    * @param {'forced' | 'exclusion' | 'temp_suspension' } body.event_type
