@@ -438,6 +438,7 @@ const toggleRole = (projectId: number, roleName: string, checked: boolean) => {
     projectEntry.roles = projectEntry.roles.filter((r) => r !== roleName);
   }
 };
+
 const fetchUsersAndProjects = async (current = pages.value.current) => {
   isLoading.value = true;
 
@@ -479,21 +480,24 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
 
   isLoading.value = false;
 };
+
 watch(perPage,()=>fetchUsersAndProjects(1));
+
 const openEditModal = (user: any) => {
+
   const projectsWithRoles = projects.value
     .filter((project) => user.project_ids.includes(project.id))
     .map((project) => ({
       id: project.id,
       selected: true,
-      roles: user.roles
-        .filter(
-          (role) =>
-            role.project_id === project.id || role.scope_access === "client"
-        )
-        .map((role) => role.name),
+      roles: user.projects
+          .filter(
+              (p) =>
+                  p.id === project.id || project.access_type === "client"
+          )
+          .flatMap((p) => p.roles),
     }));
-
+  console.log(projectsWithRoles);
   form.value = {
     ...user,
     access_type: user.access_type,
@@ -540,6 +544,8 @@ const createUser = async () => {
       description: "Erro ao criar o usuário.",
       variant: "destructive",
     });
+  }finally {
+    await fetchUsersAndProjects()
   }
 
   isProcessing.value = false;
@@ -565,9 +571,11 @@ const updateUser = async () => {
       description: "Erro ao atualizar o usuário.",
       variant: "destructive",
     });
+  } finally {
+    isProcessing.value = false;
+    await fetchUsersAndProjects()
   }
 
-  isProcessing.value = false;
 };
 
 const resetPassword = async (user) => {
