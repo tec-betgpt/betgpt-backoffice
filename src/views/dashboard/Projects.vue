@@ -93,6 +93,8 @@
               class="w-full"
               alt="Pré-visualização da imagem"
             />
+            <Label id="webhook">WebHook</Label>
+            <Input  id="webhook" v-model="form.webhook"/>
           </div>
 
           <DialogFooter class="p-6 pt-0">
@@ -153,6 +155,8 @@ import { CaretSortIcon } from "@radix-icons/vue";
 import Projects from '@/services/projects'
 import {Dialog} from "@/components/ui/dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Label} from "@/components/ui/label";
+import {Input} from "@/components/ui/input";
 const imagePreview = ref();
 const errorMessage = ref("");
 
@@ -178,6 +182,7 @@ const form = ref({
   id: null,
   name: "",
   image: "",
+  webhook:""
 })
 const order = ref();
 const direction = ref(false);
