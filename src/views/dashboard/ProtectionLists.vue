@@ -116,6 +116,7 @@
 import { ref, onMounted, reactive } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
+import { useWorkspaceStore } from "@/stores/workspace";
 import ProtectionLists from "@/services/protectionLists";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/protection-lists/CreateDialogComponent.vue";
@@ -132,6 +133,7 @@ import { Button } from "@/components/ui/button";
 
 const { toast } = useToast();
 
+const workspaceStore = useWorkspaceStore();
 const protectionLists = ref([]);
 const isLoading = ref(true);
 const perPage = ref(15);
@@ -151,6 +153,7 @@ const fetchProtectionLists = async (page = 1) => {
   isLoading.value = true;
   try {
     const params = {
+      project_id: workspaceStore.activeGroupProject?.id!,
       page,
       per_page: perPage.value,
       ...filters
