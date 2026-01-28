@@ -325,6 +325,7 @@ import {
   LucideUserCheck,
   ChartArea,
   Goal, ShieldAlert,
+  FileText,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -601,6 +602,12 @@ const navMenu = computed(() => {
           url: { name: "protection-lists" },
           icon: ShieldAlert,
           show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists"),
+        },
+        {
+          name: "Relatórios de Proteção",
+          url: { name: "protection-list-reports" },
+          icon: FileText,
+          show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("protection-list-report-view"),
         },
       ],
     },

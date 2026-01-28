@@ -209,7 +209,13 @@
                   <TableHead v-if="columnVisibility.channel" class="text-left font-bold">
                     {{ totalGroupSessions.channel }}
                   </TableHead>
-                  <TableHead v-if="columnVisibility.sessions" :title="numberLocale(totalGroupSessions.sessions)" class="text-right font-bold">
+                  <TableHead v-if="columnVisibility.sessions" :title="numberLocale(totalGroupSessions.sessions)" class="text-right font-bold flex items-center justify-end">
+                    <Badge v-if="totalGroupSessions.variation > 0" class="bg-green-200 text-green-600 h-4 px-1 mr-2">
+                      <ArrowUp class="w-3 mr-2" /> {{ Math.abs(totalGroupSessions.variation || 0).toFixed(1) }}%
+                    </Badge>
+                    <Badge v-if="totalGroupSessions.variation < 0" class="bg-red-200 text-red-600 h-4 px-1 mr-2">
+                      <ArrowUp class="w-3 mr-2" /> {{ Math.abs(totalGroupSessions.variation || 0).toFixed(1) }}%
+                    </Badge>
                     {{ formatMinifiedNumber(totalGroupSessions.sessions) }}
                   </TableHead>
                   <TableHead v-if="columnVisibility.engagedSessions" :title="numberLocale(totalGroupSessions.engagedSessions)" class="text-right font-bold">
@@ -506,6 +512,7 @@ const groupSessionsStats = computed(() => {
       keyEvents: 0,
       sessionKeyEventRate: 0,
       totalRevenue: 0,
+      variation: 0
     };
   }
 
@@ -520,6 +527,7 @@ const groupSessionsStats = computed(() => {
     keyEvents: 0,
     sessionKeyEventRate: 0,
     totalRevenue: 0,
+    variation: 0
   };
 
   groupSessionsData.value.forEach((item) => {
@@ -532,6 +540,7 @@ const groupSessionsStats = computed(() => {
     totals.averageEngagementDuration += item.averageEngagementDuration || 0;
     totals.eventsPerSession += item.eventsPerSession || 0;
     totals.sessionKeyEventRate += item.sessionKeyEventRate || 0;
+    totals.variation += item.variation || 0;
   });
 
   const count = groupSessionsData.value.length;
