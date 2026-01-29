@@ -4,13 +4,13 @@ export function getMs (num) {
 
 export function formatMinifiedNumber (value) {
   if (value >= 1000000000) {
-    return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(value / 1000000000)} bi`;
+    return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2,roundingMode: "trunc" }).format(value / 1000000000)} bi`;
   }
   if (value >= 1000000) {
-    return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(value / 1000000)} mi`;
+    return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2,roundingMode: "trunc"}).format(value / 1000000)} mi`;
   }
   if (value >= 1000) {
-    return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(value / 1000)} mil`;
+    return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2,roundingMode: "trunc" }).format(value / 1000)} mil`;
   }
 
   return new Intl.NumberFormat("pt-BR").format(value);

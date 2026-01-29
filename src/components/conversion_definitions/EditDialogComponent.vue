@@ -1,9 +1,12 @@
 <template>
-  <Button @click="openModal()" size="icon" variant="ghost">
-    <Pencil class="h-4 w-4"/>
-  </Button>
-
-  <Dialog :open="modal" @update:open="modal = false">
+  <Dialog v-model:open="open">
+    <DialogTrigger as-child>
+      <slot>
+        <Button size="icon" variant="ghost">
+          <Pencil class="h-4 w-4"/>
+        </Button>
+      </slot>
+    </DialogTrigger>
     <DialogContent class="sm:max-w-2xl max-h-[60vw] overflow-y-scroll">
       <DialogHeader>
         <DialogTitle>
@@ -14,7 +17,7 @@
         </DialogDescription>
       </DialogHeader>
 
-      <ErrorComponent :errors="errors" />
+<!--      <ErrorComponent :errors="errors" />-->
 
       <div class="grid gap-6 p-4">
         <div class="space-y-4">
@@ -62,7 +65,7 @@
           <div class="space-y-4 pt-4">
 
             <div class="grid grid-cols-4 items-center gap-4">
-              <Label> Campo de valor</Label>
+              <Label> Campo de Dados</Label>
               <div class="col-span-3 flex items-center space-x-2">
                 <Select v-model="form.conversion_value_field">
                   <SelectTrigger class="w-full">
@@ -216,7 +219,7 @@
                               :key="channel.name"
                               :value="channel.name"
                           >
-                            {{ channelTranslations[channel.displayName] || channel.displayName }}
+                            {{ channelTranslations[channel.displayName] || channel.nickName }}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -268,7 +271,9 @@
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="() => modal = false">Cancelar</Button>
+        <DialogClose as-child>
+          <Button variant="outline">Cancelar</Button>
+        </DialogClose>
         <Button type="submit" @click="onSubmit" :disabled="isProcessing">
           <Loader2Icon v-if="isProcessing" class="mr-2 h-4 w-4 animate-spin" />
           Salvar
@@ -279,7 +284,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Loader2Icon, PlusIcon, Search, Trash2Icon, Pencil } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -292,13 +297,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 
 const props = defineProps<{ row: object, reload: (() => Promise<void>) }>();
 
 const { toast } = useToast();
+const open = ref(false);
 const errors = ref([]);
-const modal = ref(false);
 const workspaceStore = useWorkspaceStore();
 const isProcessing = ref(false);
 const values = ref<string[]>([]);
@@ -433,12 +438,15 @@ const onSubmit = async () => {
             }
           });
       payload.conversion_category = "Google Analytics";
+      payload.is_primary = form.value.is_primary;
+      payload.is_return_report = form.value.is_return_report;
+
     }
 
     await ConversionDefinitions.update(props.row.id, payload);
     await props.reload()
 
-    modal.value = false
+    open.value = false;
 
     toast({
       title: "Sucesso",
@@ -455,15 +463,16 @@ const onSubmit = async () => {
   isProcessing.value = false;
 };
 
-const openModal = async () => {
-  resetForm()
-  modal.value = true
-
-  await Promise.all([
-    fetchValues(),
-    fetchSegments(),
-    fetchChannelGroups()
-  ]);
-  await show()
-}
+watch(open, async (isOpen) => {
+  if (isOpen) {
+    resetForm();
+    await Promise.all([
+      fetchValues(),
+      fetchSegments(),
+      fetchChannelGroups()
+    ]);
+    await show();
+  }
+})
 </script>
+

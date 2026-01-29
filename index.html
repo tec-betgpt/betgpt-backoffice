@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -46,24 +46,43 @@
 
     <meta property="og:url" content="https://app.myelevate.ai/" />
     <meta property="og:title" content="Elevate" />
-    <meta property="og:description" content="Elevate é a plataforma integrada para análise em tempo real, gerenciamento de projetos e ferramentas de engajamento para maximizar a performance do seu negócio."/>
-    <meta property="og:image" content="https://app.myelevate.ai/icon/android-chrome-512x512.png" />
+    <meta
+      property="og:description"
+      content="Elevate é a plataforma integrada para análise em tempo real, gerenciamento de projetos e ferramentas de engajamento para maximizar a performance do seu negócio."
+    />
+    <meta
+      property="og:image"
+      content="https://app.myelevate.ai/icon/android-chrome-512x512.png"
+    />
 
     <meta property="fb:app_id" content="2441699212898960" />
     <meta name="theme-color" content="#00000" />
     <meta name="google" content="notranslate" />
-</head>
-<body>
-<noscript
-><iframe
+
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-TBDTVTFJ");
+    </script>
+  </head>
+  <body>
+    <noscript
+      ><iframe
         src="https://www.googletagmanager.com/ns.html?id=GTM-TBDTVTFJ"
         height="0"
         width="0"
         style="display: none; visibility: hidden"
-></iframe
-></noscript>
+      ></iframe
+    ></noscript>
 
-<div id="app"></div>
-<script type="module" src="/src/main.js"></script>
-</body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>

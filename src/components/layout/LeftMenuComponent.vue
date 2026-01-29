@@ -324,7 +324,8 @@ import {
   LucideLockOpen,
   LucideUserCheck,
   ChartArea,
-  Goal,
+  Goal, ShieldAlert,
+  FileText,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -595,6 +596,18 @@ const navMenu = computed(() => {
           url: { name: "insightIA" },
           icon: Bot,
           show: hasRole("member-proprietor"),
+        },
+        {
+          name: "Listas de Proteção",
+          url: { name: "protection-lists" },
+          icon: ShieldAlert,
+          show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists"),
+        },
+        {
+          name: "Relatórios de Proteção",
+          url: { name: "protection-list-reports" },
+          icon: FileText,
+          show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("protection-list-report-view"),
         },
       ],
     },

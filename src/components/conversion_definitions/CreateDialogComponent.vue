@@ -71,11 +71,11 @@
             <AccordionContent>
               <div class="space-y-4 pt-4">
                 <div class="grid grid-cols-4 items-center gap-4">
-                  <Label> Campo de valor</Label>
+                  <Label> Campo de Dado</Label>
                   <div class="col-span-3 flex items-center space-x-2">
                     <Select v-model="form.conversion_value_field">
                       <SelectTrigger
-                        class="w-full bg-transparent border-none shadow-none focus:ring-0 h-auto p-0 px-2"
+                        class="w-full bg-transparent shadow-none focus:ring-0 h-auto p-0 px-2"
                       >
                         <SelectValue placeholder="Selecione um campo" />
                       </SelectTrigger>
@@ -336,7 +336,7 @@
                                   :key="channel.name"
                                   :value="channel.name"
                                 >
-                                  {{ channelTranslations[channel.displayName] || channel.displayName }}
+                                  {{ channelTranslations[channel.displayName] || channel.nickName }}
                                 </SelectItem>
                               </SelectContent>
                             </Select>
@@ -479,14 +479,15 @@ const updateCreationType = (value: string) => {
 
 const resetForm = () => {
   form.value = {
-    is_return_report: false,
     id: "",
     name: "",
     description: "",
+    conversion_value_field: "",
     is_primary: false,
+    is_return_report: false,
     // channel_group: "",
-    // channel_rule: "",
-    conditions: [],
+    // channel_rule:"",
+    conditions: [] as any[],
     conversion_category: "",
   };
   creationType.value = "";
@@ -594,6 +595,7 @@ const onSubmit = async () => {
     }
 
     await ConversionDefinitions.store(payload);
+    resetForm()
     await props.reload();
 
     modal.value = false;

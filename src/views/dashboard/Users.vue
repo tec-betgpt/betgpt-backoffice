@@ -77,7 +77,7 @@
           :select-page="fetchUsersAndProjects"
           :pages="pages"
           :per-pages="perPage"
-          @update:perPages="(value) => perPage = value"
+          @update:perPages="(value) => (perPage = value)"
         />
       </CardContent>
     </Card>
@@ -135,7 +135,6 @@
                 v-model="form.document_number"
                 placeholder="Digite o CPF ou CNPJ"
                 class="col-span-3"
-                required
               />
             </div>
             <div class="grid grid-cols-4 items-center gap-4">
@@ -162,7 +161,10 @@
                 </SelectContent>
               </Select>
             </div>
-            <div class="grid grid-cols-4 gap-4" v-if="form.access_type === 'member'">
+            <div
+              class="grid grid-cols-4 gap-4"
+              v-if="form.access_type === 'member'"
+            >
               <Label>Perfil</Label>
               <div class="space-y-2 max-h-72 overflow-y-auto col-span-3">
                 <div
@@ -236,20 +238,19 @@
               </div>
             </div>
             <DialogFooter class="pt-2">
-              <Button variant="ghost" @click="cancel">
-                Cancelar
-              </Button>
-              <Button class="bg-yellow-300" type="submit" :disabled="isProcessing">
-                <LucideSpinner
-                  v-if="isProcessing"
-                  class="animate-spin"
-                />
+              <Button variant="ghost" @click="cancel"> Cancelar </Button>
+              <Button
+                class="bg-yellow-300"
+                type="submit"
+                :disabled="isProcessing"
+              >
+                <LucideSpinner v-if="isProcessing" class="animate-spin" />
                 {{
                   isProcessing
                     ? "Carregando..."
                     : isEditing
-                    ? "Salvar"
-                    : "Criar Usuário"
+                      ? "Salvar"
+                      : "Criar Usuário"
                 }}
               </Button>
             </DialogFooter>
@@ -279,7 +280,7 @@ import {
   ChevronDownIcon,
   ArrowDown,
   ArrowUp,
-  Plus
+  Plus,
 } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import Users from "@/services/users";
@@ -289,7 +290,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
-import {Avatar, AvatarImage, AvatarFallback} from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import moment from "moment";
 
 const { toast } = useToast();
@@ -309,11 +310,9 @@ const form = ref({
   email: "",
   access_type: "client",
   roles: [],
-  admin_roles: [],
-  project_ids: [],
   projects: [],
-  kind_person: 'PF',
-  document_number: '',
+  kind_person: "PF",
+  document_number: "",
   filter_id: null,
 });
 const pages = ref({
@@ -359,7 +358,7 @@ watch(
     if (newVal !== oldVal) {
       form.value.roles = [];
     }
-  }
+  },
 );
 const globalRoles = computed(() => {
   return roles.value.filter((role) => role.scope_access === "member");
@@ -369,7 +368,7 @@ const onProfileCheckboxChange = (roleId, checked) => {
     form.value.admin_roles.push(roleId);
   } else {
     form.value.admin_roles = form.value.admin_roles.filter(
-      (id) => id !== roleId
+      (id) => id !== roleId,
     );
   }
 };
@@ -381,25 +380,25 @@ const isProjectSelected = (projectId: number) => {
 };
 const toggleProject = (projectId: number, checked: boolean) => {
   if (!Array.isArray(form.value.projects)) {
-    form.value.projects = []; // Inicializa como array vazio se não for um array
+    form.value.projects = [];
   }
 
-  const projectIndex = form.value.projects.findIndex((p) => p.id === projectId);
+  let projectEntry = form.value.projects.find((p) => p.id === projectId);
 
   if (checked) {
-    if (projectIndex === -1) {
+    if (!projectEntry) {
       form.value.projects.push({
         id: projectId,
         selected: true,
         roles: [],
       });
     } else {
-      form.value.projects[projectIndex].selected = true;
+      projectEntry.selected = true;
     }
   } else {
-    if (projectIndex !== -1) {
-      form.value.projects[projectIndex].selected = false;
-      form.value.projects[projectIndex].roles = [];
+    if (projectEntry) {
+      projectEntry.selected = false;
+      projectEntry.roles = [];
     }
   }
 };
@@ -408,7 +407,7 @@ const getProjectRoles = (projectId: number) => {
   return Array.isArray(roles.value)
     ? roles.value.filter(
         (role) =>
-          role.project_id === projectId || role.scope_access === "client"
+          role.project_id === projectId || role.scope_access === "client",
       )
     : [];
 };
@@ -424,28 +423,34 @@ const isRoleSelected = (projectId: number, roleName: string) => {
 const toggleRole = (projectId: number, roleName: string, checked: boolean) => {
   if (!Array.isArray(form.value.projects)) return;
 
-  const projectIndex = form.value.projects.findIndex((p) => p.id === projectId);
+  const projectEntry = form.value.projects.find((p) => p.id === projectId);
 
-  if (projectIndex === -1) return;
+  if (!projectEntry) return;
+
+  if (!Array.isArray(projectEntry.roles)) {
+    projectEntry.roles = [];
+  }
 
   if (checked) {
-    if (!form.value.projects[projectIndex].roles.includes(roleName)) {
-      form.value.projects[projectIndex].roles.push(roleName);
+    if (!projectEntry.roles.includes(roleName)) {
+      projectEntry.roles.push(roleName);
     }
   } else {
-    form.value.projects[projectIndex].roles = form.value.projects[
-      projectIndex
-    ].roles.filter((r) => r !== roleName);
+    projectEntry.roles = projectEntry.roles.filter((r) => r !== roleName);
   }
 };
+
 const fetchUsersAndProjects = async (current = pages.value.current) => {
   isLoading.value = true;
 
   try {
-    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
-      acc[key] = searchValues.value[key];
-      return acc;
-    }, {} as Record<string, string>);
+    const searchParams = Object.keys(searchValues.value).reduce(
+      (acc, key) => {
+        acc[key] = searchValues.value[key];
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
     const [userResponse, projectResponse] = await Promise.all([
       Users.index({
@@ -479,21 +484,20 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
 
   isLoading.value = false;
 };
-watch(perPage,()=>fetchUsersAndProjects(1));
+
+watch(perPage, () => fetchUsersAndProjects(1));
+
 const openEditModal = (user: any) => {
   const projectsWithRoles = projects.value
     .filter((project) => user.project_ids.includes(project.id))
     .map((project) => ({
       id: project.id,
       selected: true,
-      roles: user.roles
-        .filter(
-          (role) =>
-            role.project_id === project.id || role.scope_access === "client"
-        )
-        .map((role) => role.name),
+      roles: user.projects
+        .filter((p) => p.id === project.id || project.access_type === "client")
+        .flatMap((p) => p.roles),
     }));
-
+  console.log(projectsWithRoles);
   form.value = {
     ...user,
     access_type: user.access_type,
@@ -506,6 +510,7 @@ const openEditModal = (user: any) => {
 
 const openCreateModal = () => {
   form.value = {
+    ...form.value,
     id: null,
     first_name: "",
     last_name: "",
@@ -513,9 +518,7 @@ const openCreateModal = () => {
     access_type: "client",
     kind_person: "PF",
     document_number: "",
-    project_ids: [],
     roles: [],
-    admin_roles: [],
     projects: [],
   };
   isEditing.value = false;
@@ -541,6 +544,8 @@ const createUser = async () => {
       description: "Erro ao criar o usuário.",
       variant: "destructive",
     });
+  } finally {
+    await fetchUsersAndProjects();
   }
 
   isProcessing.value = false;
@@ -566,9 +571,10 @@ const updateUser = async () => {
       description: "Erro ao atualizar o usuário.",
       variant: "destructive",
     });
+  } finally {
+    isProcessing.value = false;
+    await fetchUsersAndProjects();
   }
-
-  isProcessing.value = false;
 };
 
 const resetPassword = async (user) => {
@@ -597,7 +603,7 @@ const toggleStatus = async (user) => {
   processingAction.value = `status-${user.id}`;
 
   try {
-    await Users.toggleUser(user.id)
+    await Users.toggleUser(user.id);
     const currentStatus = getStatus(user);
     const newStatus = currentStatus === "active" ? "inactive" : "active";
 
@@ -634,7 +640,7 @@ const setSearch = (values: Record<string, string>) => {
 const cancel = (e: Event) => {
   e.preventDefault();
   showModal.value = false;
-}
+};
 
 const order = ref();
 const direction = ref(false);
@@ -659,28 +665,27 @@ function createHeaderButton(label: string, columnKey: string) {
             ? ArrowDown
             : ArrowUp
           : CaretSortIcon,
-        { class: "" }
+        { class: "" },
       ),
-    ]
+    ],
   );
 }
 const columns = [
-  columnHelper.accessor(
-    "photo",
-    {
-      header: () => "Perfil",
-      cell: ({ row }) => h(
-        h(
-          Avatar,
-          { class: "h-10 w-10 rounded-lg" },
-          [
-            h(AvatarImage, { src: row.getValue("photo") || undefined }),
-            h(AvatarFallback, { class: "p-10 rounded-lg" }, row.original.first_name.charAt(0) + row.original.last_name.charAt(0))
-          ]
-        )
-      )
-    }
-  ),
+  columnHelper.accessor("photo", {
+    header: () => "Perfil",
+    cell: ({ row }) =>
+      h(
+        h(Avatar, { class: "h-10 w-10 rounded-lg" }, [
+          h(AvatarImage, { src: row.getValue("photo") || undefined }),
+          h(
+            AvatarFallback,
+            { class: "p-10 rounded-lg" },
+            row.original.first_name.charAt(0) +
+              row.original.last_name.charAt(0),
+          ),
+        ]),
+      ),
+  }),
   columnHelper.accessor("first_name", {
     header({ column }) {
       return createHeaderButton("Nome", "first_name");
@@ -689,7 +694,7 @@ const columns = [
       h(
         "div",
         { class: "capitalize" },
-        `${row.getValue("first_name")} ${row.original.last_name}`
+        `${row.getValue("first_name")} ${row.original.last_name}`,
       ),
   }),
   columnHelper.accessor("email", {
@@ -715,12 +720,12 @@ const columns = [
                   row.getValue("statuses")?.[0]?.name === "active"
                     ? "default"
                     : "destructive",
-                class: "shadow-none"
+                class: "shadow-none",
               },
               row.getValue("statuses")?.[0]?.name === "active"
                 ? "Ativo"
-                : "Inativo"
-            )
+                : "Inativo",
+            ),
       ),
   }),
   columnHelper.accessor("auth2fa", {
@@ -728,15 +733,23 @@ const columns = [
       return "2FA";
     },
     cell: ({ row }) => {
-      const is = row.getValue("auth2fa")
+      const is = row.getValue("auth2fa");
       return h(
         "div",
-        {class: "capitalize"},
-        is && is !== 'pending'
-          ? h(Badge, {variant: "default", class: "bg-green-500 shadow-none"}, "Habilitado")
-          : h(Badge, {variant: "destructive", class: "shadow-none"}, "Desabilitado")
-      )
-    }
+        { class: "capitalize" },
+        is && is !== "pending"
+          ? h(
+              Badge,
+              { variant: "default", class: "bg-green-500 shadow-none" },
+              "Habilitado",
+            )
+          : h(
+              Badge,
+              { variant: "destructive", class: "shadow-none" },
+              "Desabilitado",
+            ),
+      );
+    },
   }),
   columnHelper.accessor("access_type", {
     header({ column }) {
@@ -746,7 +759,7 @@ const columns = [
       h(
         "div",
         { class: "capitalize" },
-        row.getValue("access_type") == "member" ? "Membro" : "Cliente"
+        row.getValue("access_type") == "member" ? "Membro" : "Cliente",
       ),
   }),
   columnHelper.accessor("last_login_at", {
@@ -758,8 +771,10 @@ const columns = [
         "div",
         { class: "capitalize" },
         row.getValue("last_login_at")
-          ? moment(row.getValue("last_login_at")).format("DD/MM/YYYY HH:mm").concat("h")
-          : "-"
+          ? moment(row.getValue("last_login_at"))
+              .format("DD/MM/YYYY HH:mm")
+              .concat("h")
+          : "-",
       ),
   }),
 
@@ -771,17 +786,17 @@ const columns = [
       return h(DropdownMenu, {}, [
         h(
           DropdownMenuTrigger,
-          {asChild: true},
+          { asChild: true },
           h(
             Button,
-            {size: "icon", variant: "ghost", disabled: isProcessing.value},
+            { size: "icon", variant: "ghost", disabled: isProcessing.value },
             [
-              h(MoreHorizontal, {class: "h-4 w-4"}),
-              h("span", {class: "sr-only"}, "Ações"),
-            ]
-          )
+              h(MoreHorizontal, { class: "h-4 w-4" }),
+              h("span", { class: "sr-only" }, "Ações"),
+            ],
+          ),
         ),
-        h(DropdownMenuContent, {align: "end"}, [
+        h(DropdownMenuContent, { align: "end" }, [
           h(DropdownMenuLabel, {}, "Ações"),
           h(DropdownMenuSeparator, {}),
           h(
@@ -792,7 +807,7 @@ const columns = [
                 openEditModal(project);
               },
             },
-            "Editar"
+            "Editar",
           ),
           h(
             DropdownMenuItem,
@@ -801,21 +816,20 @@ const columns = [
                 const user = row.original; // Obtém o usuário da linha
                 resetPassword(user);
               },
-              disabled:
-                processingAction.value === `reset-${row.id}`,
+              disabled: processingAction.value === `reset-${row.id}`,
             },
             h(
               "div",
-              {class: "flex items-center"},
+              { class: "flex items-center" },
               processingAction.value === `reset-${row.id}`
                 ? [
-                  h(LucideSpinner, {
-                    class: "mr-2 h-4 w-4 animate-spin",
-                  }),
-                  "Resetando senha...",
-                ]
-                : "Resetar Senha"
-            )
+                    h(LucideSpinner, {
+                      class: "mr-2 h-4 w-4 animate-spin",
+                    }),
+                    "Resetando senha...",
+                  ]
+                : "Resetar Senha",
+            ),
           ),
           h(
             DropdownMenuItem,
@@ -824,22 +838,21 @@ const columns = [
                 const project = row.original;
                 toggleStatus(project);
               },
-              disabled:
-                processingAction.value === `status-${row.id}`,
+              disabled: processingAction.value === `status-${row.id}`,
             },
             processingAction.value === `status-${row.id}`
-              ? h(LucideSpinner, {class: "mr-2 h-4 w-4 animate-spin"})
+              ? h(LucideSpinner, { class: "mr-2 h-4 w-4 animate-spin" })
               : h(
-                "div",
-                {},
-                row.getValue("statuses")?.[0]?.name === "active"
-                  ? "Inativar"
-                  : "Ativar"
-              )
+                  "div",
+                  {},
+                  row.getValue("statuses")?.[0]?.name === "active"
+                    ? "Inativar"
+                    : "Ativar",
+                ),
           ),
         ]),
-      ])
-    }
+      ]);
+    },
   }),
 ];
 

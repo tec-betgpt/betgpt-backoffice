@@ -7,6 +7,8 @@ import Subscribers from "@/views/dashboard/Subscribers.vue";
 import Users from "@/views/dashboard/Users.vue";
 import UserLogins from "@/views/dashboard/UserLogins.vue";
 import InsightIA from "@/views/dashboard/InsightIA.vue";
+import ProtectionLists from "@/views/dashboard/ProtectionLists.vue";
+import ProtectionListReports from "@/views/dashboard/ProtectionListReports.vue";
 
 export default [
   {
@@ -115,6 +117,30 @@ export default [
                 roles: "member",
                 permissions: "access-to-ai",
             },
+        },
+        {
+          path: "protection-lists",
+          name: "protection-lists",
+          component: ProtectionLists,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Listas de Proteção",
+            roles: "member",
+            permissions: "protection-list-view",
+          },
+        },
+        {
+          path: "protection-list-reports",
+          name: "protection-list-reports",
+          component: ProtectionListReports,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Relatórios de Proteção",
+            roles: "member",
+            permissions: "protection-list-view",
+          },
         },
     ],
   },
