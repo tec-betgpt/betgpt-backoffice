@@ -325,7 +325,7 @@ import {
   LucideUserCheck,
   ChartArea,
   Goal, ShieldAlert,
-  FileText,
+  FileText, Webhook,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -608,6 +608,12 @@ const navMenu = computed(() => {
           url: { name: "protection-list-reports" },
           icon: FileText,
           show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("protection-list-report-view"),
+        },
+        {
+          name: "Webhook",
+          url: { name: "webhook-logs" },
+          icon: Webhook,
+          show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-webhook-logs"),
         },
       ],
     },

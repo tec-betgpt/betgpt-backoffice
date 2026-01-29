@@ -38,6 +38,7 @@ export default {
    * @param {FormData} body
    * @param {string} body.name
    * @param {File|Blob} body.image
+   * @param {string} body.webhook_url
    */
   async update (id, body) {
     const { data } = await api.post(`/projects/${id}`, body, {

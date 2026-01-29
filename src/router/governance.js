@@ -9,6 +9,7 @@ import UserLogins from "@/views/dashboard/UserLogins.vue";
 import InsightIA from "@/views/dashboard/InsightIA.vue";
 import ProtectionLists from "@/views/dashboard/ProtectionLists.vue";
 import ProtectionListReports from "@/views/dashboard/ProtectionListReports.vue";
+import WebhookLogs from "@/views/dashboard/WebhookLogs.vue";
 
 export default [
   {
@@ -140,6 +141,18 @@ export default [
             title: "Relatórios de Proteção",
             roles: "member",
             permissions: "protection-list-view",
+          },
+        },
+        {
+          path: "webhook-logs",
+          name: "webhook-logs",
+          component: WebhookLogs,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Logs de Webhooks",
+            roles: "member",
+            permissions: "access-to-webhook-logs",
           },
         },
     ],
