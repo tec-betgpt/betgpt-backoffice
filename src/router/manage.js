@@ -4,6 +4,7 @@ import Projects from "@/views/dashboard/Projects.vue";
 import Insights from "@/views/dashboard/Insights.vue";
 import Users from "@/views/dashboard/Users.vue";
 import Integrations from "@/views/dashboard/Integrations.vue";
+import Webhooks from "@/views/dashboard/Webhooks.vue";
 
 export default [
   {
@@ -75,6 +76,18 @@ export default [
           roles: "member|client",
           permissions: "access-to-integrations",
           title: "Fontes de Dados",
+        },
+      },
+      {
+        path: "webhooks",
+        name: "webhooks",
+        component: Webhooks,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: "access-to-webhooks",
+          title: "Webhooks",
         },
       },
     ],

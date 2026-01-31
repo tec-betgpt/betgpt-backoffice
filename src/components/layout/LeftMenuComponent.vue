@@ -530,6 +530,12 @@ const navMenu = computed(() => {
             canAccess("access-to-integrations") &&
             activeGroupProject.value?.type === "project",
         },
+        {
+          name: "Webhooks",
+          url: { name: "webhooks" },
+          icon: Building2,
+          show: canAccess("access-to-webhooks"),
+        },
       ],
     },
     {
@@ -610,7 +616,7 @@ const navMenu = computed(() => {
           show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("protection-list-report-view"),
         },
         {
-          name: "Webhook",
+          name: "Webhook Logs",
           url: { name: "webhook-logs" },
           icon: Webhook,
           show: hasRole("member-proprietor") || hasRole("member-admin"),
