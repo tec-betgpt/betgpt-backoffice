@@ -17,7 +17,7 @@
         </DialogDescription>
       </DialogHeader>
 
-      <ErrorComponent :errors="errors" />
+<!--      <ErrorComponent :errors="errors" />-->
 
       <div class="grid gap-6 p-4">
         <div class="space-y-4">
@@ -219,7 +219,7 @@
                               :key="channel.name"
                               :value="channel.name"
                           >
-                            {{ channelTranslations[channel.displayName] || channel.displayName }}
+                            {{ channelTranslations[channel.displayName] || channel.nickName }}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -438,6 +438,9 @@ const onSubmit = async () => {
             }
           });
       payload.conversion_category = "Google Analytics";
+      payload.is_primary = form.value.is_primary;
+      payload.is_return_report = form.value.is_return_report;
+
     }
 
     await ConversionDefinitions.update(props.row.id, payload);

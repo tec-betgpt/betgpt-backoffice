@@ -93,6 +93,8 @@
               class="w-full"
               alt="Pré-visualização da imagem"
             />
+            <Label id="webhook">WebHook</Label>
+            <Input  id="webhook" v-model="form.webhook_url"/>
           </div>
 
           <DialogFooter class="p-6 pt-0">
@@ -153,6 +155,8 @@ import { CaretSortIcon } from "@radix-icons/vue";
 import Projects from '@/services/projects'
 import {Dialog} from "@/components/ui/dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Label} from "@/components/ui/label";
+import {Input} from "@/components/ui/input";
 const imagePreview = ref();
 const errorMessage = ref("");
 
@@ -178,6 +182,7 @@ const form = ref({
   id: null,
   name: "",
   image: "",
+  webhook_url:""
 })
 const order = ref();
 const direction = ref(false);
@@ -239,7 +244,7 @@ const cancel = (e: Event) => {
   e.preventDefault();
   showModal.value = false;
   isEditing.value = false;
-  form.value = { id: null, name: "", image: "" };
+  form.value = { id: null, name: "", image: "", webhook_url: "" };
   imagePreview.value = "";
   errorMessage.value = "";
 }
@@ -313,14 +318,14 @@ const toggleStatus = async (project) => {
 };
 
 const openEditModal = (project) => {
-  form.value = { id: project.id, name: project.name, image: project.logo_url };
+  form.value = { id: project.id, name: project.name, image: project.logo_url, webhook_url: project.webhook_url };
   imagePreview.value = project.logo_url;
   isEditing.value = true;
   showModal.value = true;
 };
 
 const openCreateModal = () => {
-  form.value = { id: null, name: "" };
+  form.value = { id: null, name: "",webhook_url: "", image: "" };
   isEditing.value = false;
   showModal.value = true;
 };
@@ -567,6 +572,7 @@ type Project = {
   logo_url: string;
   statuses: ProjectStatus[];
   users_count: number;
+  webhook_url: string;
   last_postback_log:{
     id: number;
     project_id: number;
