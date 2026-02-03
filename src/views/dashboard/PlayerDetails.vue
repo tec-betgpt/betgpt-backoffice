@@ -80,7 +80,7 @@
           </div>
 
           <div ref="timelineContainer" @scroll="handleScroll" class="relative h-[calc(100vh-24rem)] overflow-y-auto">
-            <div class="absolute left-1/2 transform -translate-x-1/2 h-full border-l border-gray-300"></div>
+            <div v-if="filteredHistory.length > 0" class="absolute left-1/2 transform -translate-x-1/2 h-full border-l border-gray-300"></div>
             <div v-for="(event, index) in filteredHistory" :key="index" class="mb-8">
               <div class="flex items-center" :class="[isSameTypeAsPrevious(index) ? (getEventTypeSide(event.type) === 'left' ? 'justify-start' : 'justify-end') : (getEventTypeSide(event.type) === 'left' ? 'justify-start' : 'justify-end')]">
                 <div :class="[getEventTypeSide(event.type) === 'left' ? 'w-5/12' : 'w-5/12 order-2']">
@@ -97,6 +97,11 @@
                 </div>
               </div>
             </div>
+
+            <div v-if="filteredHistory.length === 0 && !isHistoryLoading" class="h-full flex items-center justify-center text-muted-foreground">
+              <p>Nenhum histórico disponível para este cliente.</p>
+            </div>
+
             <div v-if="isHistoryLoading" class="text-center p-4 text-sm text-muted-foreground">
               Carregando mais...
             </div>
