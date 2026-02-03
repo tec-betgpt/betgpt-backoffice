@@ -53,6 +53,18 @@ export default [
         },
       },
       {
+        path: "clients/:id",
+        name: "clients.show",
+        component: () => import("@/views/dashboard/PlayerDetails.vue"),
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: "player-registrations",
+          title: "Detalhes do Cliente",
+        },
+      },
+      {
         path: "attributions",
         name: "attributions",
         component: UtmTracks,

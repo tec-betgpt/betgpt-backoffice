@@ -235,6 +235,7 @@ const setProjectReturnSearch = (values: Record<string, string>) => {
     projectReturnSearchValues.value.push(values[key]) ;
 
   }
+  projectReturnSearchValues.value = searchParams;
 };
 
 function createHeaderButton(label: string, columnKey: string, currentOrder: any, currentDirection: any, action: any) {
@@ -339,8 +340,7 @@ const fetchChannelGroups = async () => {
     const response = await ConversionDefinitions.channelGroups({
       project_id: workspaceStore.activeGroupProject.project_id,
     });
-    channelGroups.value = response.data.map( ch => { return {value: ch.displayName, label:channelTranslations[ch.displayName] || ch.displayName}; } );
-    channelGroups.value.push({value:"Elevate", label:"Elevate"});
+    channelGroups.value = response.data.map( ch => { return {value: ch.displayName,label:channelTranslations[ch.displayName] || ch.displayName}; } );
   } catch (error) {
     toast({
       title: "Erro",

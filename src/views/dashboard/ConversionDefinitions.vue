@@ -143,7 +143,6 @@ const fetchConversionDefinitions = async (current = pages.value.current) => {
       orderBy: order.value,
       orderDirection: direction.value ? "asc" : "desc",
       per_page: perPage.value,
-      is_primary: conversionType.value === "primary",
     });
 
     conversionDefinitions.value = data.data;

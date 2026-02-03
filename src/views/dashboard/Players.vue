@@ -42,7 +42,9 @@
                 </TableCell>
                 <TableCell class="text-right">
                   <div class="gap-1 flex flex-nowrap justify-end">
-                    <ShowDialogComponent :row="row" :filter-id="activeGroupProjectId" />
+                    <Button size="icon" variant="ghost" @click="showPlayer(row.id)">
+                      <Eye class="h-4 w-4" />
+                    </Button>
                     <EditDialogComponent :row="row" :reload="fetchPlayers" :filter-id="activeGroupProjectId" />
                   </div>
                 </TableCell>
@@ -83,20 +85,25 @@ import { ref, onMounted } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { getMs } from "@/filters/formatNumbers";
-import { ArrowDown, ArrowUp } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, Eye } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
-import ShowDialogComponent from "@/components/players/ShowDialogComponent.vue";
 import Players from "@/services/players";
 import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
+import { useRouter } from "vue-router";
 
 const { toast } = useToast();
+const router = useRouter();
 
 type Player = {
   id: string;
   name: string;
   email: string;
   created_at: string;
+};
+
+const showPlayer = (id: string) => {
+  router.push({ name: 'clients.show', params: { id } });
 };
 
 const players = ref<Player[]>([]);
