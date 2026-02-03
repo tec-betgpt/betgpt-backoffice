@@ -134,7 +134,7 @@ import { ref, onMounted, reactive, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
-import WebhookLogs from "@/services/webhookLogs";
+import WebhookLogs from "@/services/webhooks";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -179,7 +179,7 @@ const fetchLogs = async (page = 1) => {
       ...(filters.status !== 'all' && { status: filters.status })
     };
 
-    const response = await WebhookLogs.index(params);
+    const response = await WebhookLogs.indexLogs(params);
 
     logs.value = response.data;
     pages.value = {
