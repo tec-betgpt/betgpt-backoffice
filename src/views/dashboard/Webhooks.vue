@@ -14,7 +14,7 @@
       <Skeleton class="h-6 w-full" />
     </div>
 
-    <div v-else class="grid md:grid-cols-1 lg:grid-cols-3 gap-4">
+    <div v-else-if="webhooks.length > 0" class="grid md:grid-cols-1 lg:grid-cols-3 gap-4">
       <Card v-for="webhook in webhooks" :key="webhook.id" class="p-5">
         <div class="mb-5">
           <div class="h-14 w-14 rounded bg-gray-100 flex items-center justify-center">
@@ -34,6 +34,10 @@
              <Button variant="outline" size="sm" @click="openConfigureDialog(webhook)">Configurar</Button>
         </div>
       </Card>
+    </div>
+
+    <div v-else class="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-xl">
+      <p class="text-muted-foreground">Nenhum webhook disponível para configuração neste projeto.</p>
     </div>
 
     <Dialog :open="isDialogOpen" @update:open="isDialogOpen = false">
