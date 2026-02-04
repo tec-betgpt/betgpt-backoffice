@@ -142,10 +142,10 @@
                     <Button
                       :variant="orderId === 'averageEngagementDuration' ? 'default' : 'ghost'"
                       @click="() => { orderId = 'averageEngagementDuration'; order = !order; applyFilter(1); }"
-                      class="px-3 text-nowrap"
+                      class="px-3 text-right"
                       :title="columnsList.find(i => i.id === 'averageEngagementDuration')?.tooltip"
                     >
-                      Tempo Médio de Engajamento
+                      Tempo Médio <br> de Engajamento
                       <component :is="orderId === 'averageEngagementDuration' ? (order ? ArrowDown : ArrowUp) : ChevronsUpDown" />
                     </Button>
                   </TableHead>
