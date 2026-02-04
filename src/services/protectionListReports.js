@@ -5,7 +5,6 @@ export default {
    * GET /v1/projects
    *
    * @param {object} params
-   * @param {number} params.user_id
    * @param {number} params.project_id
    * @param {number} params.page
    * @param {number} params.per_page
