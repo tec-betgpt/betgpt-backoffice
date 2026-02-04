@@ -619,7 +619,7 @@ const navMenu = computed(() => {
           name: "Webhook Logs",
           url: { name: "webhook-logs" },
           icon: Webhook,
-          show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-webhook-logs"),
+          show: (hasRole("member-proprietor") || hasRole("member-admin")) && canAccess("access-to-webhook-logs"),
         },
       ],
     },
