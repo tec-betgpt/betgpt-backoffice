@@ -214,7 +214,7 @@
                       <ArrowUp class="w-3 mr-2" /> {{ Math.abs(totalGroupSessions.variation || 0).toFixed(1) }}%
                     </Badge>
                     <Badge v-if="totalGroupSessions.variation < 0" class="bg-red-200 text-red-600 h-4 px-1 mr-2">
-                      <ArrowUp class="w-3 mr-2" /> {{ Math.abs(totalGroupSessions.variation || 0).toFixed(1) }}%
+                      <ArrowDown class="w-3 mr-2" /> {{ Math.abs(totalGroupSessions.variation || 0).toFixed(1) }}%
                     </Badge>
                     {{ formatMinifiedNumber(totalGroupSessions.sessions) }}
                   </TableHead>
@@ -266,7 +266,7 @@
                           <ArrowUp class="w-3 mr-2" /> {{ Math.abs(row.variation || 0).toFixed(1) }}%
                         </Badge>
                         <Badge v-if="row.variation < 0" class="bg-red-200 text-red-600 h-4 px-1 mr-2">
-                          <ArrowUp class="w-3 mr-2" /> {{ Math.abs(row.variation || 0).toFixed(1) }}%
+                          <ArrowDown class="w-3 mr-2" /> {{ Math.abs(row.variation || 0).toFixed(1) }}%
                         </Badge>
 
                         {{ formatMinifiedNumber(row.sessions || 0) }}
