@@ -378,20 +378,13 @@ const navMenu = computed(() => {
       icon: Home,
       show: canAccess("access-to-dashboard"),
     },
-    // {
-    //   name: "Elevate IA",
-    //   icon: Bot,
-    //   type: "ia",
-    //   show: canAccess("access-to-ai"),
-    //   children: [
-    //     {
-    //       name: "Insights IA",
-    //       url: { name: "insightIA" },
-    //       icon: Bot,
-    //       show: canAccess("member-proprietor") || canAccess("member-admin"),
-    //     },
-    //   ]
-    // },
+    {
+      name: "Elevate IA",
+      url: { name: "chat-ia" },
+      icon: Bot,
+      type: "ia",
+      show: canAccess("access-to-ai"),
+    },
     {
       name: "Jarbas BOT",
       icon: Bot,
