@@ -204,17 +204,7 @@
 
       <!-- Footer / Input Area -->
       <footer class="p-4 border-t bg-background/80 backdrop-blur-sm">
-        <div v-if="messages.length > 0 && !loadingMessages && !sendingMessage" class="w-full flex justify-center mb-4">
-           <CustomStarScore :readonly="false" v-model="currentRating">
-             <form @submit.prevent="submitFeedback" class="flex gap-2 items-center mt-2 p-2 bg-popover rounded-md shadow-lg border">
-                <Input v-model="feedbackText" class="h-8 text-xs w-48" placeholder="O que podemos melhorar?" />
-                <Button size="sm" type="submit" class="h-8 text-xs">Enviar</Button>
-             </form>
-           </CustomStarScore>
-        </div>
-
         <div class="relative max-w-4xl mx-auto flex items-end gap-2 bg-muted/30 p-2 rounded-xl border focus-within:ring-2 focus-within:ring-ring/20 transition-all">
-          
           <Popover>
             <PopoverTrigger as-child>
                <Button variant="ghost" size="icon" class="h-10 w-10 text-muted-foreground hover:text-foreground shrink-0 rounded-lg">
@@ -265,6 +255,33 @@
             <SendHorizontal class="h-5 w-5" />
           </Button>
         </div>
+
+        <!-- Rating Trigger (Below Input) -->
+        <div v-if="messages.length > 0 && !loadingMessages && !sendingMessage" class="max-w-4xl mx-auto mt-2 flex justify-start">
+          <Popover>
+            <PopoverTrigger as-child>
+               <Button 
+                variant="ghost" 
+                size="sm" 
+                class="h-auto p-0 text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                title="Avaliar conversa"
+              >
+                <span class="underline underline-offset-2">Avalie essa conversa</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" class="w-auto p-4 shadow-xl border-2">
+               <div class="flex flex-col gap-3">
+                 <h4 class="font-medium leading-none text-sm">Como foi a resposta?</h4>
+                 <CustomStarScore :readonly="false" v-model="currentRating" />
+                 <form @submit.prevent="submitFeedback" class="flex flex-col gap-2">
+                    <Input v-model="feedbackText" class="h-8 text-xs min-w-[200px]" placeholder="Algum comentário extra?" />
+                    <Button size="sm" type="submit" class="h-8 text-xs w-full font-semibold">Enviar Feedback</Button>
+                 </form>
+               </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
         <div class="text-center mt-2">
             <p class="text-[10px] text-muted-foreground">O Elevate IA pode cometer erros. Considere verificar informações importantes.</p>
         </div>
@@ -288,7 +305,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
@@ -426,12 +443,15 @@ const selectChat = async (chatId: number) => {
   }
 };
 
-const createNewChat = async () => {
+const createNewChat = async (select = true) => {
   try {
     const response = await IntelligenceArtificial.createSession({ project_id: activeGroupProject.value?.project_id });
     if (response.data) {
       chats.value.unshift(response.data);
-      await selectChat(response.data.id);
+      if (select === true || (typeof select === 'object' && select.type === 'click')) {
+         await selectChat(response.data.id);
+      }
+      return response.data;
     }
   } catch (error) {
     console.error("Failed to create chat", error);
@@ -476,16 +496,26 @@ const sendMessage = async () => {
   
   scrollToBottom();
 
-  if (!selectedChatId.value) {
-     // If no chat selected (should be handled by createNewChat usually, but as fallback)
-     await createNewChat();
+  let chatId = selectedChatId.value;
+
+  if (!chatId) {
+     // Create new chat but DO NOT select/wipe messages
+     const newChat = await createNewChat(false);
+     if (newChat) {
+       chatId = newChat.id;
+       selectedChatId.value = chatId;
+     } else {
+       // If creation failed, maybe show error and remove optimistic message?
+       // For now, let's just return to avoid further errors
+       return;
+     }
   }
 
   sendingMessage.value = true;
 
   try {
     const response = await IntelligenceArtificial.sendMessage({
-      chat_id: selectedChatId.value,
+      chat_id: chatId,
       project_id: activeGroupProject.value?.id,
       message: content,
       file: file
