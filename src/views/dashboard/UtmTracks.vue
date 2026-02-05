@@ -44,7 +44,7 @@
         />
 
         <ChartBarComponent
-          title="Depósitos por src e utm_source"
+          title="Entradas por src e utm_source"
           :labels="chartDepositsUtmSource.labels"
           :series="chartDepositsUtmSource.series"
         />
@@ -82,7 +82,7 @@
                     @update:checked="setType('deposit')"
                     class="capitalize"
                 >
-                  Depósito
+                  Entrada
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
                     :checked="typeFilter.includes('player')"
@@ -112,7 +112,7 @@
             <Card>
               <CardHeader class="py-4">
                 <CardTitle class="text-lg">
-                  {{ groupName === 'Player' ? 'Origem do Cadastro' : groupName === 'Deposit' ? 'Origem do Depósito' : groupName }}
+                  {{ groupName === 'Player' ? 'Origem do Cadastro' : groupName === 'Deposit' ? 'Origem da Entrada' : groupName }}
                 </CardTitle>
               </CardHeader>
               <CardContent class="grid gap-3">
@@ -341,7 +341,7 @@ const columns = [
       h(
         "div",
         { class: "capitalize" },
-        row.original.model_type == "Deposit" ? "Depósito" : "Cadastro"
+        row.original.model_type == "Deposit" ? "Entrada" : "Cadastro"
       ),
   }),
   columnHelper.accessor("name", {

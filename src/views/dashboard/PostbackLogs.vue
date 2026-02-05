@@ -82,8 +82,8 @@
               </SelectTrigger>
               <SelectContent>
                 <SelectItem :value="PostbackLogService.types.PLAYER">Cliente</SelectItem>
-                <SelectItem :value="PostbackLogService.types.DEPOSIT">Depósito</SelectItem>
-                <SelectItem :value="PostbackLogService.types.WITHDRAW">Saque</SelectItem>
+                <SelectItem :value="PostbackLogService.types.DEPOSIT">Entrada</SelectItem>
+                <SelectItem :value="PostbackLogService.types.WITHDRAW">Saída</SelectItem>
                 <SelectItem :value="PostbackLogService.types.LOGIN">Logins</SelectItem>
                 <SelectItem :value="PostbackLogService.types.STATUS_CHANGE">Alteração de Status</SelectItem>
                 <SelectItem value="all">Todos</SelectItem>

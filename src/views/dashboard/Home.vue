@@ -136,7 +136,7 @@
                     </CardTitle>
                     <CardDescription v-if="subItem.layout === 'list'" class="pb-5">
                       <span v-if="isShowValues">
-                        Tiveram {{ deposits.count30days }} depósitos nos últimos 30 dias.
+                        Tiveram {{ deposits.count30days }} entradas nos últimos 30 dias.
                       </span>
                       <skeleton-custom v-else />
                     </CardDescription>
@@ -792,7 +792,7 @@ export default {
           this.cards = [
             {
               id: "depositors",
-              title: "Visão Geral dos Depósitos",
+              title: "Visão Geral das Entradas",
               subtitle: "Confira os últimos indicadores",
               content: this.buildCardsDeposits(),
               edit: false,
@@ -806,7 +806,7 @@ export default {
             },
             {
               id: "withdraws",
-              title: "Visão Geral dos Saques",
+              title: "Visão Geral das Saídas",
               subtitle: "Confira os últimos indicadores",
               content: this.buildCardsWithdraws(),
               edit: false,
@@ -843,7 +843,7 @@ export default {
       const allGroupsDefault = [
         {
           id: "depositors",
-          title: "Visão Geral dos Depósitos",
+          title: "Visão Geral das Entradas",
           subtitle: "Confira os últimos indicadores",
           content: this.buildCardsDeposits(),
           edit: false,
@@ -857,7 +857,7 @@ export default {
         },
         {
           id: "withdraws",
-          title: "Visão Geral dos Saques",
+          title: "Visão Geral das Saídas",
           subtitle: "Confira os últimos indicadores",
           content: this.buildCardsWithdraws(),
           edit: false,
@@ -1019,7 +1019,7 @@ export default {
         },
         {
           id: "primeiros-depositantes",
-          title: "Primeiros Depositantes",
+          title: "Primeiros Entrantes",
           tooltip:
             "Usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro.",
           value: this.players.ftd_registered_users_count,
@@ -1046,7 +1046,7 @@ export default {
       const allCards = [
         {
           id: "saques-7d",
-          title: "Saques 7D",
+          title: "Saídas 7D",
           tooltip: null,
           value: this.withdraws.total / 100,
           variation: this.withdraws.percentage,
@@ -1107,8 +1107,8 @@ export default {
         },
         // {
         //   id: "frequencia-media-deposito",
-        //   title: "Frequência Média de Depósito",
-        //   tooltip: "Frequência média de depósito do usuário.",
+        //   title: "Frequência Média de Entrada",
+        //   tooltip: "Frequência média de entrada do usuário.",
         //   count: 0,
         //   icon: "SquareActivity",
         // },

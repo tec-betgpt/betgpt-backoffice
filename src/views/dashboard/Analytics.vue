@@ -17,16 +17,16 @@
       <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" glossary="Dados de Usuários registrados e ativos"/>
       <PeriodComponent :period="loginsDays" title="Logins diários" :isLoading="isLoading" glossary="Dados de Logins diários"/>
       <PeriodComponent :period="uniquePlayerLoginsPeriod" title="Logins únicos" :isLoading="isLoading" glossary="Usuários únicos que entraram no sistema por dia"/>
-      <PeriodComponent :period="depositsPeriod" title="Deposito por periodo" :isLoading="isLoading" glossary="Dados de depósito por período, com diferença de 7D, 14D e 28D"/>
-      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de depósitos líquidos por período" type="percent" class="xl:col-span-2" :isLoading="isLoading" glossary="Percentual de depósitos líquidos em relação ao total por período"/>
-      <PeriodComponent :period="netDepositsPeriod" title="Depósitos Líquidos por período" :isLoading="isLoading" glossary="Valor líquido dos depósitos realizados em cada período"/>
+      <PeriodComponent :period="depositsPeriod" title="Entrada por periodo" :isLoading="isLoading" glossary="Dados de entrada por período, com diferença de 7D, 14D e 28D"/>
+      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de entradas líquidas por período" type="percent" class="xl:col-span-2" :isLoading="isLoading" glossary="Percentual de entradas líquidas em relação ao total por período"/>
+      <PeriodComponent :period="netDepositsPeriod" title="Entradas Líquidas por período" :isLoading="isLoading" glossary="Valor líquido das entradas realizadas em cada período"/>
       <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" :isLoading="isLoading" glossary="Quantidade de usuários ativos em cada período"/>
       <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia" type="percent" :isLoading="isLoading" glossary="Percentual de First Time Deposits (FTD) por dia"/>
-      <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Depósitos Líquidos por período" :isLoading="isLoading" glossary="Valor total dos depósitos líquidos por período"/>
-      <PeriodComponent :period="valueDepositsPeriod" title="Valor de Depósitos por período" :isLoading="isLoading" glossary="Valor total dos depósitos realizados por período"/>
-      <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saques por período" :isLoading="isLoading" glossary="Valor total dos saques realizados por período"/>
-      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Depósito por período" type="percent" :isLoading="isLoading" glossary="Percentual de usuários registrados que realizaram depósito por período"/>
-      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Depósito por período" type="percent" :isLoading="isLoading" glossary="Percentual de conversão de depósitos pagos por período"/>    </div>
+      <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Entradas Líquidas por período" :isLoading="isLoading" glossary="Valor total das entradas líquidas por período"/>
+      <PeriodComponent :period="valueDepositsPeriod" title="Valor de Entradas por período" :isLoading="isLoading" glossary="Valor total das entradas realizadas por período"/>
+      <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saídas por período" :isLoading="isLoading" glossary="Valor total das saídas realizadas por período"/>
+      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Entrada por período" type="percent" :isLoading="isLoading" glossary="Percentual de usuários registrados que realizaram entrada por período"/>
+      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Entrada por período" type="percent" :isLoading="isLoading" glossary="Percentual de conversão de entradas pagas por período"/>    </div>
   </div>
 </template>
 
@@ -84,9 +84,9 @@ const applyFilter = async () => {
       return {date:deposit.date,["7 Dias %"]:deposit["7 Dias %"]/100,["14 Dias %"]:deposit["14 Dias %"]/100,["28 Dias %"]:deposit["28 Dias %"]/100};
     })
     let registration_deposit = data.registration_deposit_rate_period.map(deposit => {
-      return {date:deposit.date,["% Depósito"]:deposit["% Depósito"]/100}  })
+      return {date:deposit.date,["% Entrada"]:deposit["% Entrada"]/100}  })
     let deposit_conversion = data.deposit_conversion_rate_period.map(deposit => {
-      return {date:deposit.date,["% Pagos"]:deposit["% Pagos"]/100}  })
+      return {date:deposit.date,["% Saída"]:deposit["% Saída"]/100}  })
     let ftd = data.percent_ftd_day_period.map(deposit => {
       return {date:deposit.date,["FTD/Dia"]:deposit["FTD/Dia"]/100}  })
     let unique_logins = data.unique_player_logins_period.map(login => {
@@ -98,11 +98,11 @@ const applyFilter = async () => {
     netDepositsPeriod.value = [{name:"7 Dias",value:data.net_deposits_period},{name:"14 Dias",value:data.net_deposits_period}, {name:"28 Dias",value:data.net_deposits_period}];
     activeUsersPeriod.value = [{name:"7 Dias",value:data.active_users_period},{name:"14 Dias",value:data.active_users_period}, {name:"28 Dias",value:data.active_users_period}];
     percentFtdDayPeriod.value = [{name:"FTD/Dia",value:ftd}];
-    valueNetDepositsPeriod.value = [{name:"Depósitos",value:data.value_net_deposits_period}];
-    valueDepositsPeriod.value = [{name:"Depósitos",value:data.value_deposits_period}];
-    valueWithdrawsPeriod.value = [{name:"Saques",value:data.value_withdraws_period}];
-    registrationDepositRatePeriod.value = [{name:"% Depósito",value:registration_deposit}];
-    depositConversionRatePeriod.value = [{name:"% Pagos",value:deposit_conversion}];
+    valueNetDepositsPeriod.value = [{name:"Entradas",value:data.value_net_deposits_period}];
+    valueDepositsPeriod.value = [{name:"Entradas",value:data.value_deposits_period}];
+    valueWithdrawsPeriod.value = [{name:"Saídas",value:data.value_withdraws_period}];
+    registrationDepositRatePeriod.value = [{name:"% Entrada",value:registration_deposit}];
+    depositConversionRatePeriod.value = [{name:"% Saída",value:deposit_conversion}];
     loginsDays.value = [{name:"Logins",value:data.player_logins_period}];
     uniquePlayerLoginsPeriod.value = [{name:"Logins únicos",value:unique_logins}];
   } catch (error) {

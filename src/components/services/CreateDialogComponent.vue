@@ -153,7 +153,7 @@
             }"
             v-model="form.price_percent_by_deposit"
           >
-            <Label for="price_percent_by_deposit" class="mb-2">Percentual por Depósito (%)</Label>
+            <Label for="price_percent_by_deposit" class="mb-2">Percentual por Entrada (%)</Label>
             <NumberFieldContent>
               <NumberFieldDecrement />
               <NumberFieldInput />

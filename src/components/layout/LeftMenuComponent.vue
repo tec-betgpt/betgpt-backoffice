@@ -585,7 +585,7 @@ const navMenu = computed(() => {
             canAccess("access-to-motivational-texts"),
         },
         {
-          name: "Logins",
+          name: "Acessos",
           url: { name: "user-logins" },
           icon: History,
           show: hasRole("member-proprietor") || hasRole("member-admin"),
