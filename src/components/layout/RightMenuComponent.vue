@@ -16,6 +16,34 @@
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
+                <Maximize2
+                  :stroke-width="2"
+                  class="cursor-pointer"
+                  absoluteStrokeWidth
+                  @click="router.push({ name: 'chat-ia' })"
+                />
+              </TooltipTrigger>
+              <TooltipContent
+                side="bottom"
+                align="end"
+                :align-offset="4"
+                :arrow-padding="8"
+                avoid-collisions
+                :collision-padding="10"
+                hide-when-detached
+                position-strategy="absolute"
+                sticky="always"
+                update-position-strategy="optimized"
+                :collision-boundary="null"
+              >
+                Expandir Chat
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
                 <Plus
                   :stroke-width="2"
                   class="cursor-pointer"
@@ -303,6 +331,7 @@ import {
   Ellipsis,
   SendHorizontal,
   Search,
+  Maximize2,
 } from "lucide-vue-next";
 import { useColorMode } from "@vueuse/core";
 import { Input } from "@/components/ui/input";
@@ -311,6 +340,7 @@ import { useAuthStore } from "@/stores/auth";
 import { Label } from "@/components/ui/label";
 import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, toRefs } from "vue";
+import { useRouter } from "vue-router";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -355,6 +385,7 @@ const LIGHT_LOGOS = {
 const mode: any = useColorMode();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
+const router = useRouter();
 
 // Chat e mensagens
 const chats = ref<Chat[]>([]);

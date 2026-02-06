@@ -14,6 +14,18 @@ export default [
       title: "Elevate IA",
     },
     children: [
+      {
+        path: "chat",
+        name: "chat-ia",
+        component: ChatIA,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Chat IA",
+          roles: "member|client",
+          permissions: "access-to-ai",
+        },
+      },
       // {
       //   path: "insight-ia",
       //   name: "insightIA",

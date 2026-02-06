@@ -20,7 +20,7 @@
       <div v-if="invoice.service_consumed" class="grid gap-4 pb-4 text-sm">
         <p><strong>ActiveCampaign®:</strong> {{ invoice.service_consumed.active_campaign }}</p>
         <p><strong>AI Tokens:</strong> {{ invoice.service_consumed.ai_token }}</p>
-        <p><strong>Depósitos:</strong> {{ invoice.service_consumed.deposits }}</p>
+        <p><strong>Entradas:</strong> {{ invoice.service_consumed.deposits }}</p>
         <p><strong>E-mails:</strong> {{ invoice.service_consumed.email }}</p>
         <p><strong>Google Analytics®:</strong> {{ invoice.service_consumed.google_analytics }}</p>
         <p><strong>Projetos:</strong> {{ invoice.service_consumed.project }}</p>

@@ -16,7 +16,7 @@
             <TableHead>Plano</TableHead>
             <TableHead class="text-right">ActiveCampaign</TableHead>
             <TableHead class="text-right">AI</TableHead>
-            <TableHead class="text-right">Depósitos</TableHead>
+            <TableHead class="text-right">Entradas</TableHead>
             <TableHead class="text-right">E-mail</TableHead>
             <TableHead class="text-right">GoogleAnalytics</TableHead>
             <TableHead class="text-right">SMS Funnel</TableHead>

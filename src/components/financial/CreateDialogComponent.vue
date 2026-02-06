@@ -69,13 +69,13 @@
                 <SelectValue placeholder="Adicionar à" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="deposits">Depósitos</SelectItem>
-                <SelectItem value="withdraws">Saques</SelectItem>
+                <SelectItem value="deposits">Entradas</SelectItem>
+                <SelectItem value="withdraws">Saídas</SelectItem>
                 <SelectItem value="none">Nenhum</SelectItem>
               </SelectContent>
             </Select>
             <p class="text-xs mt-1 text-right text-muted-foreground">
-              Vincule a depósitos ou saques, opcional.
+              Vincule a entradas ou saídas, opcional.
             </p>
           </div>
 
