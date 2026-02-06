@@ -78,6 +78,26 @@ export default {
   async export(body = {}) {
     const { data } = await api.post('/protection-lists/export', body)
     return data
+  },
+
+  /**
+   * @param {object} params
+   * @param {number} params.project_id
+   * @returns {Promise<void>}
+   */
+  async dashboard(params = {}) {
+    const { data } = await api.get('/protection-lists/dashboard', { params })
+    return data
+  },
+
+  /**
+   * @param {object} params
+   * @param {number} params.project_id
+   * @returns {Promise<void>}
+   */
+  async alerts(params = {}) {
+    const { data } = await api.get('/protection-lists/alerts', { params })
+    return data
   }
 }
 
