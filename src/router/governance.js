@@ -9,6 +9,7 @@ import UserLogins from "@/views/dashboard/UserLogins.vue";
 import InsightIA from "@/views/dashboard/InsightIA.vue";
 import ProtectionLists from "@/views/dashboard/ProtectionLists.vue";
 import ProtectionListReports from "@/views/dashboard/ProtectionListReports.vue";
+import ProtectionListDashboard from "@/views/dashboard/ProtectionListDashboard.vue";
 import WebhookLogs from "@/views/dashboard/WebhookLogs.vue";
 
 export default [
@@ -139,6 +140,18 @@ export default [
             layout: DefaultLayout,
             requiresAuth: true,
             title: "Relatórios de Proteção",
+            roles: "member",
+            permissions: "protection-list-view",
+          },
+        },
+        {
+          path: "protection-list-dashboards",
+          name: "protection-list-dashboards",
+          component: ProtectionListDashboard,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Dashboard da Lista de Proteção",
             roles: "member",
             permissions: "protection-list-view",
           },

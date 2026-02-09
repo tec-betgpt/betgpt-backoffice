@@ -1,5 +1,5 @@
 <template>
-  <div class="google-analytics-page p-10 max-[450px]:p-2 pb-16 w-full">
+  <div class="google-analytics-page p-10 max-[450px]:p-0 pb-16 w-full">
     <div class="grid min-[900px]:grid-cols-2 gap-4 pb-10">
       <div>
         <h2 class="text-2xl font-bold tracking-tight">Performance</h2>

@@ -604,6 +604,12 @@ const navMenu = computed(() => {
           show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists"),
         },
         {
+          name: "Dashboard da Listas de Proteção",
+          url: { name: "protection-list-dashboards" },
+          icon: ShieldAlert,
+          show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists"),
+        },
+        {
           name: "Relatórios de Proteção",
           url: { name: "protection-list-reports" },
           icon: FileText,
