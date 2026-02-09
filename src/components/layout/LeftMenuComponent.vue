@@ -327,6 +327,8 @@ import {
   ChartArea,
   Goal, ShieldAlert,
   FileText, Webhook,
+  HeartPulse,
+  LayoutDashboard,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -598,14 +600,28 @@ const navMenu = computed(() => {
           show: hasRole("member-proprietor"),
         },
         {
-          name: "Listas de Proteção",
-          url: { name: "protection-lists" },
-          icon: ShieldAlert,
+          name: "Webhook Logs",
+          url: { name: "webhook-logs" },
+          icon: Webhook,
+          show: (hasRole("member-proprietor") || hasRole("member-admin")) && canAccess("access-to-webhook-logs"),
+        },
+      ],
+    },
+    {
+      name: "Proteção",
+      icon: HeartPulse,
+      type: "protection",
+      show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists") || canAccess("protection-list-report-view"),
+      children: [
+        {
+          name: "Dashboard",
+          url: { name: "protection-list-dashboard" },
+          icon: LayoutDashboard,
           show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists"),
         },
         {
-          name: "Dashboard da Listas de Proteção",
-          url: { name: "protection-list-dashboards" },
+          name: "Listas de Proteção",
+          url: { name: "protection-lists" },
           icon: ShieldAlert,
           show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists"),
         },
@@ -615,13 +631,7 @@ const navMenu = computed(() => {
           icon: FileText,
           show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("protection-list-report-view"),
         },
-        {
-          name: "Webhook Logs",
-          url: { name: "webhook-logs" },
-          icon: Webhook,
-          show: (hasRole("member-proprietor") || hasRole("member-admin")) && canAccess("access-to-webhook-logs"),
-        },
-      ],
+      ]
     },
     {
       name: "Financeiro",

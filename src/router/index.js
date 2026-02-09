@@ -12,6 +12,7 @@ import controls from "@/router/controls.js";
 import audiences from "@/router/audiences.js";
 import manage from "@/router/manage.js";
 import governance from "@/router/governance.js";
+import protection from "@/router/protection.js";
 import financial from "@/router/financial.js";
 import conversions from "@/router/conversions.js";
 
@@ -58,6 +59,7 @@ const routes = [
   ...audiences,
   ...manage,
   ...governance,
+  ...protection,
   ...financial,
   ...conversions,
 ];
