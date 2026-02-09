@@ -11,7 +11,7 @@ export default [
       requiresAuth: true,
       roles: "member|client",
       permissions: "access-to-ai",
-      title: "Elevate IA",
+      title: "Elevate Brain",
     },
     children: [
       {
