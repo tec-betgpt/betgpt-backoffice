@@ -70,8 +70,8 @@
           </Button>
           <div>
             <h1 class="text-lg font-semibold flex items-center gap-2">
-              <Bot class="h-5 w-5 text-primary" />
-              Elevate IA
+              <Brain class="h-5 w-5 text-primary" />
+              Elevate Brain
             </h1>
             <p class="text-xs text-muted-foreground hidden sm:block">
               Assistente inteligente para análise e estratégias.
@@ -103,7 +103,7 @@
           <!-- Empty State -->
           <div v-if="messages.length === 0 && !loadingMessages" class="h-full flex flex-col items-center justify-center space-y-8 text-center px-4">
             <div class="bg-primary/10 p-6 rounded-full">
-              <Bot class="h-12 w-12 text-primary" />
+              <Brain class="h-12 w-12 text-primary" />
             </div>
             <div class="space-y-2 max-w-md">
               <h3 class="text-xl font-semibold">Como posso ajudar hoje?</h3>
@@ -175,7 +175,7 @@
                 
                 <!-- Timestamp or Status -->
                 <span class="text-[10px] text-muted-foreground px-1" :class="message.role === 'user' ? 'text-right' : 'text-left'">
-                  {{ message.role === 'user' ? 'Você' : 'Elevate IA' }}
+                  {{ message.role === 'user' ? 'Você' : 'Elevate Brain' }}
                 </span>
               </div>
 
@@ -236,24 +236,61 @@
             </Button>
           </div>
 
-          <Textarea
-            v-model="newMessage"
-            placeholder="Digite sua mensagem..."
-            class="min-h-[40px] max-h-[120px] resize-none border-0 shadow-none bg-transparent focus-visible:ring-0 px-2 py-2.5 flex-1"
-            @keydown.enter.prevent="handleEnterKey"
-            :disabled="isInputDisabled"
-            ref="textareaRef"
-          />
+          <div v-if="!isRecording" class="flex-1 flex items-end gap-2">
+            <Textarea
+              v-model="newMessage"
+              placeholder="Digite sua mensagem..."
+              class="min-h-[40px] max-h-[120px] resize-none border-0 shadow-none bg-transparent focus-visible:ring-0 px-2 py-2.5 flex-1"
+              @keydown.enter.prevent="handleEnterKey"
+              :disabled="isInputDisabled"
+              ref="textareaRef"
+            />
+          </div>
 
-          <Button 
-            size="icon" 
-            :disabled="(!newMessage.trim() && !attachedFile) || isInputDisabled" 
-            @click="sendMessage"
-            class="h-10 w-10 shrink-0 rounded-lg transition-all"
-            :class="{ 'opacity-50 cursor-not-allowed': (!newMessage.trim() && !attachedFile) || isInputDisabled }"
-          >
-            <SendHorizontal class="h-5 w-5" />
-          </Button>
+          <!-- Recording Animation State -->
+          <div v-else class="flex-1 flex items-center justify-center gap-4 h-[40px] px-2">
+             <div class="flex items-center gap-1.5 h-full">
+                <!-- Reative Golden Waveform -->
+                <div 
+                  v-for="i in 8" 
+                  :key="i"
+                  class="w-1 bg-yellow-500 rounded-full transition-all duration-75 origin-center"
+                  :style="{ 
+                    height: `${Math.max(4, audioLevel * (15 + (i % 4) * 10))}px`,
+                    opacity: 0.4 + (audioLevel * 0.6)
+                  }"
+                ></div>
+             </div>
+             <span class="text-xs text-muted-foreground">
+               {{ audioLevel > 0.1 ? 'Detectando fala...' : 'Silêncio detectado...' }}
+             </span>
+          </div>
+
+          <div class="flex gap-1">
+             <Button
+              v-if=" ((!newMessage.trim() && !attachedFile) || isRecording) && SpeechRecognition "
+              size="icon"
+              variant="ghost"
+              class="h-10 w-10 shrink-0 rounded-lg transition-all hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+              @click="toggleRecording"
+              :class="{ 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400': isRecording }"
+              :title="isRecording ? 'Parar gravação' : 'Gravar áudio'"
+            >
+              <Square v-if="isRecording" class="h-5 w-5 fill-current" />
+              <Mic v-else class="h-5 w-5" />
+            </Button>
+
+            <Button 
+              v-if="!isRecording"
+              size="icon" 
+              :disabled="(!newMessage.trim() && !attachedFile) || isInputDisabled" 
+              @click="sendMessage"
+              class="h-10 w-10 shrink-0 rounded-lg transition-all"
+              :class="{ 'opacity-50 cursor-not-allowed': (!newMessage.trim() && !attachedFile) || isInputDisabled }"
+            >
+              <SendHorizontal class="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         <!-- Rating Trigger (Below Input) -->
@@ -283,7 +320,7 @@
         </div>
 
         <div class="text-center mt-2">
-            <p class="text-[10px] text-muted-foreground">O Elevate IA pode cometer erros. Considere verificar informações importantes.</p>
+            <p class="text-[10px] text-muted-foreground">O Elevate Brain pode cometer erros. Considere verificar informações importantes.</p>
         </div>
       </footer>
     </main>
@@ -291,48 +328,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { marked } from "marked";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWindowSize } from '@vueuse/core';
+import { useRoute } from 'vue-router';
 
 // UI Components
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Label } from '@/components/ui/label';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
+import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
+import {ScrollArea} from '@/components/ui/scroll-area';
+import {Skeleton} from '@/components/ui/skeleton';
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {Label} from '@/components/ui/label';
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
 import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
 import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 import CustomStarScore from "@/components/custom/CustomStarScore.vue";
 
 // Icons
 import {
-  Bot,
-  SendHorizontal,
-  Paperclip,
-  MoreVertical,
-  Plus,
-  MessageSquare,
-  Trash2,
+  Brain,
   Menu,
-  X,
+  MessageSquare,
+  Mic,
+  MoreVertical,
+  Paperclip,
+  Plus,
   Search,
+  SendHorizontal,
+  Square,
+  SquarePen,
+  Trash2,
   Upload,
-  SquarePen
+  X
 } from 'lucide-vue-next';
 
 // Setup
@@ -343,6 +377,7 @@ const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
 const activeGroupProject = computed(() => workspaceStore.activeGroupProject);
+const route = useRoute();
 
 // State
 const chats = ref<Array<{id: number, title: string}>>([]);
@@ -366,6 +401,123 @@ const feedbackText = ref('');
 
 // Computed
 const isInputDisabled = computed(() => sendingMessage.value || isAnimating.value || loadingMessages.value);
+
+// Audio Recording State
+const isRecording = ref(false);
+const mediaRecorder = ref<MediaRecorder | null>(null);
+const audioChunks = ref<Blob[]>([]);
+const audioLevel = ref(0);
+let audioContext: AudioContext | null = null;
+let analyser: AnalyserNode | null = null;
+let animationFrame: number | null = null;
+let recognition: any = null;
+const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+// Audio Recording Methods
+const toggleRecording = async () => {
+  if (isRecording.value) {
+    stopRecording();
+  } else {
+    await startRecording();
+  }
+};
+
+const startRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    
+    audioContext = new AudioContext({latencyHint:"playback"});
+    const source = audioContext.createMediaStreamSource(stream);
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 512;
+    source.connect(analyser);
+    
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const updateLevel = () => {
+      if (!analyser) return;
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        sum += dataArray[i];
+      }
+      const average = sum / bufferLength;
+      audioLevel.value = average / 100;
+      animationFrame = requestAnimationFrame(updateLevel);
+    };
+    updateLevel();
+
+    if (SpeechRecognition) {
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'pt-BR';
+
+      recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        // Append only new final results or replace with interim if empty
+        if (finalTranscript) {
+           newMessage.value = (newMessage.value ? newMessage.value + ' ' : '') + finalTranscript;
+        }
+        // Note: Handling interim results strictly alongside existing text can be tricky in Vue without duplication
+        // A simple approach is just updating the model, but for continuous dictation, we focus on final results 
+        // to avoid text cursor jumping. If you want real-time preview in input, we can enhance this.
+      };
+
+      recognition.start();
+    } else {
+      console.warn("Web Speech API not supported in this browser.");
+      toast({ variant: 'destructive', title: 'Erro', description: 'Navegador sem suporte.' });
+
+    }
+
+    mediaRecorder.value = new MediaRecorder(stream);
+    audioChunks.value = [];
+
+    mediaRecorder.value.ondataavailable = (event) => {
+      audioChunks.value.push(event.data);
+    };
+
+    mediaRecorder.value.onstop = async () => {
+      // Audio is discarded as requested, only transcription is kept in newMessage.value
+      audioChunks.value = []; 
+      isRecording.value = false;
+      
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      if (audioContext)  await audioContext.close();
+      if (recognition) recognition.stop();
+      
+      analyser = null;
+      audioLevel.value = 0;
+      
+      stream.getTracks().forEach(track => track.stop());
+    };
+
+    mediaRecorder.value.start();
+    isRecording.value = true;
+
+  } catch (error) {
+    console.error("Error accessing microphone:", error);
+    toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível acessar o microfone.' });
+  }
+};
+
+const stopRecording = () => {
+  if (mediaRecorder.value && isRecording.value) {
+    mediaRecorder.value.stop();
+  }
+};
 
 // --- Methods ---
 
@@ -570,6 +722,13 @@ const submitFeedback = async () => {
 onMounted(async () => {
   if (activeGroupProject.value) {
     await Promise.all([loadChats(), loadSuggestions()]);
+    
+    if (route.query.chatId) {
+      const chatId = Number(route.query.chatId);
+      if (!isNaN(chatId)) {
+        await selectChat(chatId);
+      }
+    }
   }
   
   // Check if routed with a specific chat ID (optional)
@@ -598,5 +757,10 @@ watch(() => isMobile.value, (mobile) => {
 /* Hide scrollbar for sidebar but keep functionality */
 .scroll-area-viewport::-webkit-scrollbar {
   width: 4px;
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(2); }
 }
 </style>

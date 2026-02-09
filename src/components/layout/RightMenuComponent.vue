@@ -20,7 +20,7 @@
                   :stroke-width="2"
                   class="cursor-pointer"
                   absoluteStrokeWidth
-                  @click="router.push({ name: 'chat-ia' })"
+                  @click="router.push({ name: 'chat-ia', query: { chatId: selectedChatId } })"
                 />
               </TooltipTrigger>
               <TooltipContent
@@ -218,16 +218,34 @@
         </CustomStarScore>
       </div>
 
-      <div class="relative w-full items-center mb-2">
-        <Button
-          variant="link"
-          @click="sendMessage"
-          :disabled="isInputDisabled"
-          class="absolute end-0 flex items-center justify-center h-full"
-        >
-          <SendHorizontal :stroke-width="2.5" absoluteStrokeWidth />
-        </Button>
+      <div class="relative w-full items-center">
+        <div class="absolute end-0 flex  align-middle items-center justify-end w-28 h-full">
+          <Button
+              v-if="((!newMessage.message.trim() && !file) || isRecording) && SpeechRecognition "
+              variant="link"
+              @click="toggleRecording"
+              class="relative"
+              :class="{ 'text-red-600 hover:text-red-700': isRecording }"
+          >
+            <Square v-if="isRecording" class="h-5 w-5 fill-current" />
+            <Mic v-else class="h-5 w-5" />
+          </Button>
+          <Button
+              v-if="!isRecording"
+              variant="link"
+              @click="sendMessage"
+              :disabled="isInputDisabled"
+              class="relative"
+          >
+            <SendHorizontal :stroke-width="2.5" absoluteStrokeWidth />
+          </Button>
+
+
+        </div>
+
+
         <span
+          v-if="!isRecording"
           class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2"
         >
           <Popover>
@@ -285,7 +303,9 @@
             </PopoverContent>
           </Popover>
         </span>
+        
         <Input
+          v-if="!isRecording"
           id="search"
           @keyup.enter="!isInputDisabled && sendMessage()"
           v-model="newMessage.message"
@@ -293,6 +313,24 @@
           placeholder="Pergunte alguma coisa"
           class="px-10 h-12"
         />
+        
+        <!-- Recording Animation State -->
+        <div v-else class="flex items-center justify-center gap-4 h-12 px-2 border rounded-md bg-background">
+             <div class="flex items-center gap-1.5 h-full">
+                <div 
+                  v-for="i in 8" 
+                  :key="i"
+                  class="w-1 bg-yellow-500 rounded-full transition-all duration-75 origin-center"
+                  :style="{ 
+                    height: `${Math.max(4, audioLevel * (15 + (i % 4) * 10))}px`,
+                    opacity: 0.4 + (audioLevel * 0.6)
+                  }"
+                ></div>
+             </div>
+             <span class="text-xs text-muted-foreground w-full text-center">
+               {{ audioLevel > 0.1 ? 'Detectando fala...' : 'Silêncio...' }}
+             </span>
+        </div>
       </div>
     </SidebarFooter>
   </Sidebar>
@@ -332,6 +370,8 @@ import {
   SendHorizontal,
   Search,
   Maximize2,
+  Mic,
+  Square
 } from "lucide-vue-next";
 import { useColorMode } from "@vueuse/core";
 import { Input } from "@/components/ui/input";
@@ -406,6 +446,112 @@ const messageContainerRef = ref<HTMLElement | null>(null);
 const isAnimating = ref(false);
 const isInputDisabled = computed(() => loading.value || isAnimating.value);
 const suggestionList = ref([]);
+
+// Audio Recording State
+const isRecording = ref(false);
+const mediaRecorder = ref<MediaRecorder | null>(null);
+const audioChunks = ref<Blob[]>([]);
+const audioLevel = ref(0);
+let audioContext: AudioContext | null = null;
+let analyser: AnalyserNode | null = null;
+let animationFrame: number | null = null;
+let recognition: any = null;
+const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+// Audio Recording Methods
+const toggleRecording = async () => {
+  if (isRecording.value) {
+    stopRecording();
+  } else {
+    await startRecording();
+  }
+};
+
+const startRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    
+    // Audio Analysis Setup
+    audioContext = new AudioContext();
+    const source = audioContext.createMediaStreamSource(stream);
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    source.connect(analyser);
+    
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const updateLevel = () => {
+      if (!analyser) return;
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        sum += dataArray[i];
+      }
+      const average = sum / bufferLength;
+      audioLevel.value = average / 100;
+      animationFrame = requestAnimationFrame(updateLevel);
+    };
+    updateLevel();
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'pt-BR';
+
+      recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+           newMessage.value.message = (newMessage.value.message ? newMessage.value.message + ' ' : '') + finalTranscript;
+        }
+      };
+
+      recognition.start();
+    }
+
+    mediaRecorder.value = new MediaRecorder(stream);
+    audioChunks.value = [];
+
+    mediaRecorder.value.ondataavailable = (event) => {
+      audioChunks.value.push(event.data);
+    };
+
+    mediaRecorder.value.onstop = async () => {
+      audioChunks.value = [];
+      isRecording.value = false;
+      
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      if (audioContext) audioContext.close();
+      if (recognition) recognition.stop();
+      
+      analyser = null;
+      audioLevel.value = 0;
+      
+      stream.getTracks().forEach(track => track.stop());
+    };
+
+    mediaRecorder.value.start();
+    isRecording.value = true;
+
+  } catch (error) {
+    console.error("Error accessing microphone:", error);
+    toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível acessar o microfone.' });
+  }
+};
+
+const stopRecording = () => {
+  if (mediaRecorder.value && isRecording.value) {
+    mediaRecorder.value.stop();
+  }
+};
 
 // Computed
 const activeGroupProject = computed(
