@@ -239,7 +239,13 @@
                   <TableHead v-if="columnVisibility.sessionKeyEventRate" class="text-right font-bold">
                     {{ formatPercentage(totalGroupSessions.sessionKeyEventRate) }}
                   </TableHead>
-                  <TableHead v-if="columnVisibility.totalRevenue" :title="currencyFilter(totalGroupSessions.totalRevenue)" class="text-right font-bold">
+                  <TableHead v-if="columnVisibility.totalRevenue" :title="currencyFilter(totalGroupSessions.totalRevenue)" class="text-right font-bold flex items-center justify-end">
+                    <Badge v-if="totalGroupSessions.totalRevenueVariation > 0" class="bg-green-200 text-green-600 h-4 px-1 mr-2">
+                      <ArrowUp class="w-3 mr-2" /> {{ Math.abs(totalGroupSessions.totalRevenueVariation || 0).toFixed(1) }}%
+                    </Badge>
+                    <Badge v-if="totalGroupSessions.totalRevenueVariation < 0" class="bg-red-200 text-red-600 h-4 px-1 mr-2">
+                      <ArrowDown class="w-3 mr-2" /> {{ Math.abs(totalGroupSessions.totalRevenueVariation || 0).toFixed(1) }}%
+                    </Badge>
                     R$ {{ formatMinifiedNumber(totalGroupSessions.totalRevenue) }}
                   </TableHead>
                 </TableRow>
@@ -296,7 +302,15 @@
                       <div class="text-right">{{ formatPercentage(row.sessionKeyEventRate) }}</div>
                     </TableCell>
                     <TableCell v-if="columnVisibility.totalRevenue" :title="currencyFilter(row.totalRevenue)">
-                      <div class="text-right">R$ {{ formatMinifiedNumber(row.totalRevenue) }}</div>
+                      <div class="text-right flex items-center justify-end">
+                        <Badge v-if="row.totalRevenueVariation > 0" class="bg-green-200 text-green-600 h-4 px-1 mr-2">
+                          <ArrowUp class="w-3 mr-2" /> {{ Math.abs(row.totalRevenueVariation || 0).toFixed(1) }}%
+                        </Badge>
+                        <Badge v-if="row.totalRevenueVariation < 0" class="bg-red-200 text-red-600 h-4 px-1 mr-2">
+                          <ArrowDown class="w-3 mr-2" /> {{ Math.abs(row.totalRevenueVariation || 0).toFixed(1) }}%
+                        </Badge>
+                        R$ {{ formatMinifiedNumber(row.totalRevenue) }}
+                      </div>
                     </TableCell>
                   </TableRow>
                 </template>
@@ -496,6 +510,7 @@ const totalGroupSessions = computed(() => {
     sessionKeyEventRate: backendTotals.value.sessionKeyEventRate || 0,
     totalRevenue: backendTotals.value.totalRevenue || 0,
     variation: variationTotal.value,
+    totalRevenueVariation: backendTotals.value.totalRevenueVariation || 0,
   };
 });
 
@@ -512,7 +527,8 @@ const groupSessionsStats = computed(() => {
       keyEvents: 0,
       sessionKeyEventRate: 0,
       totalRevenue: 0,
-      variation: 0
+      variation: 0,
+      totalRevenueVariation: 0
     };
   }
 
@@ -527,7 +543,8 @@ const groupSessionsStats = computed(() => {
     keyEvents: 0,
     sessionKeyEventRate: 0,
     totalRevenue: 0,
-    variation: 0
+    variation: 0,
+    totalRevenueVariation: 0
   };
 
   groupSessionsData.value.forEach((item) => {
@@ -541,6 +558,7 @@ const groupSessionsStats = computed(() => {
     totals.eventsPerSession += item.eventsPerSession || 0;
     totals.sessionKeyEventRate += item.sessionKeyEventRate || 0;
     totals.variation += item.variation || 0;
+    totals.totalRevenueVariation += item.totalRevenueVariation || 0;
   });
 
   const count = groupSessionsData.value.length;
@@ -713,6 +731,7 @@ type GroupSession = {
   keyEvents: number;
   sessionKeyEventRate: number;
   totalRevenue: number;
+  totalRevenueVariation?: number;
 };
 
 const columnVisibility = ref<Record<string, boolean>>({
