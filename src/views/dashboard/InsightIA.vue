@@ -127,6 +127,12 @@ onMounted(() => {
                 <Badge v-for="key in row.keys" :key="key" variant="secondary">{{ key }}</Badge>
               </div>
             </div>
+            <div v-if="row.chat.reason && row.chat.reason.length">
+              <p class="font-semibold mb-1 text-destructive">Erros identificados:</p>
+              <div class="flex flex-wrap gap-2">
+                <Badge v-for="reason in row.chat.reason" :key="reason" variant="destructive">{{ reason }}</Badge>
+              </div>
+            </div>
             <div>
               <div class="flex flex-wrap gap-2 items-center align-middle" >
                 <p class="font-semibold mb-1">Feedback:</p> <CustomStarScore :readonly="true" :modelValue="row.score"/>

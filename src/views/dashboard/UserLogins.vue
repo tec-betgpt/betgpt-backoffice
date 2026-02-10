@@ -7,18 +7,32 @@
           Visualização de últimas autenticações dos usuários
         </p>
       </div>
-      <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-        <FilterDialogComponent :setFilters="setFilters" />
-      </div>
     </div>
 
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
+        <div class="flex flex-col justify-end sm:flex-row gap-2 w-full mb-2">
+          <Select v-model="selectedType" @update:modelValue="fetchUserLogins(1)">
+            <SelectTrigger class="w-full sm:w-[180px]">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="login">Login</SelectItem>
+              <SelectItem value="access">Acessos</SelectItem>
+            </SelectContent>
+          </Select>
+          <FilterDialogComponent :setFilters="setFilters" />
+        </div>
+
         <Table class="w-full overflow-hidden">
           <TableHeader>
             <TableRow>
               <TableHead>
                 Usuário
+              </TableHead>
+              <TableHead>
+                Tipo
               </TableHead>
               <TableHead class="text-right">
                 E-mail
@@ -43,6 +57,11 @@
                 <TableCell>
                   {{ row.user.first_name }} {{ row.user.last_name }}
                 </TableCell>
+                <TableCell>
+                  <Badge >
+                    {{ row.type === 'login' ? 'Login' : 'Acesso' }}
+                  </Badge>
+                </TableCell>
                 <TableCell class="text-right">
                   {{ row.user.email }}
                 </TableCell>
@@ -57,7 +76,7 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in perPage" :key="i">
-                <TableCell v-for="j in 4" :key="i">
+                <TableCell v-for="j in 5" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
@@ -65,7 +84,7 @@
 
             <template v-if="!isLoading && (!userLogins || !userLogins.length)">
               <TableRow>
-                <TableCell :colspan="4" class="text-center pt-5">
+                <TableCell :colspan="5" class="text-center pt-5">
                   Nenhum histórico de login encontrado.
                 </TableCell>
               </TableRow>
@@ -94,6 +113,15 @@ import CustomSimplePagination from "@/components/custom/CustomSimplePagination.v
 import {CaretSortIcon} from "@radix-icons/vue";
 import {ArrowDown, ArrowUp} from "lucide-vue-next";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+
 const isLoading = ref(true);
 const perPage = ref(15);
 const currentPage = ref(1);
@@ -101,6 +129,7 @@ const userLogins: any = ref([]);
 const filters = ref({});
 const order = ref("id");
 const direction = ref(false);
+const selectedType = ref("all");
 
 const fetchUserLogins = async (page = currentPage.value) => {
   currentPage.value = page;
@@ -108,6 +137,7 @@ const fetchUserLogins = async (page = currentPage.value) => {
   try {
     const response = await UserLogins.index({
       ...filters.value,
+      type: selectedType.value,
       orderBy: order.value,
       perPage: perPage.value,
       page: currentPage.value,
@@ -137,6 +167,7 @@ const handleSort = (column: string) => {
 };
 
 const setFilters = async (params: any) => {
+  filters.value = params;
   isLoading.value = true;
   await fetchUserLogins(1);
   isLoading.value = false;
