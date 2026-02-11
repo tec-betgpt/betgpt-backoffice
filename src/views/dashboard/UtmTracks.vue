@@ -41,12 +41,14 @@
           title="Cadastro por src e utm_source"
           :labels="chartRegistersUtmSource.labels"
           :series="chartRegistersUtmSource.series"
+          :glossary="meta['registers_utm_tracks']"
         />
 
         <ChartBarComponent
           title="Entradas por src e utm_source"
           :labels="chartDepositsUtmSource.labels"
           :series="chartDepositsUtmSource.series"
+          :glossary="meta['deposits_utm_tracks']"
         />
       </div>
 
@@ -105,7 +107,7 @@
       </DialogHeader>
       <div class="py-4">
         <div v-if="isDialogLoading" class="flex items-center justify-center h-48">
-          <Spinner class="h-8 w-8" />
+          <LucideSpinner class="h-8 w-8 animate-spin" />
         </div>
         <div v-else-if="selectedTrackData && Object.keys(groupedTrackData).length" class="h-full max-h-[600px] overflow-y-auto space-y-4 p-1">
           <div v-for="(tracks, groupName) in groupedTrackData" :key="groupName">
@@ -161,7 +163,6 @@ import moment from "moment";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import ChartBarComponent from "@/components/utm_tracks/ChartBarComponent.vue";
 import {Skeleton} from "@/components/ui/skeleton";
-import {Spinner} from "@/components/ui/spinner";
 
 type UtmTrack = {
   id: number
@@ -184,6 +185,7 @@ const chartDepositsUtmSource = ref<any>({
   series: []
 });
 const isLoading = ref(true);
+const meta = ref<Record<string, string>>({});
 const pages = ref({
   current: 0,
   last: 0,
@@ -239,6 +241,7 @@ const fetchUtmTracks = async (current = pages.value.current) => {
     })
 
     utmTracks.value = data.utm_tracks;
+    meta.value = data.meta || {};
 
     chartRegistersUtmSource.value.labels = data.registers_utm_tracks.labels
     chartRegistersUtmSource.value.series = [{

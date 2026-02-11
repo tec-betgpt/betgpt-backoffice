@@ -1,9 +1,12 @@
 <template>
   <Card class="">
     <CardHeader class="pb-3">
-      <CardTitle>
-        {{ props.title }}
-      </CardTitle>
+      <div class="flex justify-between items-center align-middle">
+        <CardTitle>
+          {{ props.title }}
+        </CardTitle>
+        <GlossaryTooltipComponent v-if="glossary" :description="glossary"/>
+      </div>
     </CardHeader>
 
     <CardContent class="h-[400px] w-full px-0 chart-container">
@@ -14,11 +17,13 @@
 <script setup lang="ts">
 import { useColorMode } from "@vueuse/core";
 import { defineProps } from "vue";
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 
 const props = defineProps<{
   title: string,
   labels: Array<string>,
   series: Array<any>,
+  glossary?: string
 }>();
 
 const mode: any = useColorMode();
