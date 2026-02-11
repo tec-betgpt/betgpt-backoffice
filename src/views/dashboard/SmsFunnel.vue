@@ -155,10 +155,15 @@
             :head="totalCampaigns"
             :formatters="formatters"
             :search-fields="[
-              { key: 'name', placeholder: 'Buscar por nome da campanha...' },
+              {
+                key: 'name',
+                placeholder: 'Buscar por nome da campanha...',
+                label: 'Titulo da campanha',
+              },
               {
                 key: 'body',
                 placeholder: 'Buscar por conteúdo da campanha...',
+                label: 'Conteúdo da campanha',
               },
             ]"
           />
@@ -194,15 +199,19 @@
             :head="totalBroadcasts"
             :formatters="formatters"
             :search-fields="[
-              { key: 'name', placeholder: 'Buscar por nome do broadcast...' },
+              {
+                key: 'name',
+                placeholder: 'Buscar por nome do broadcast...',
+                label: 'Titulo do broadcast',
+              },
               {
                 key: 'body',
+                label: 'Conteúdo do broadcast',
                 placeholder: 'Buscar por conteúdo do broadcast...',
               },
               {
                 key: 'last_send_date',
                 type: 'date-range',
-                label: 'Data do último envio',
                 placeholder: 'Filtrar por última data de envio',
               },
             ]"
