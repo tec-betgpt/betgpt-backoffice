@@ -19,7 +19,10 @@
     <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
       <Card>
         <CardHeader>
-          <CardTitle>Ticket Médio</CardTitle>
+          <div class="flex justify-between items-center">
+            <CardTitle>Ticket Médio</CardTitle>
+            <GlossaryTooltipComponent v-if="meta['average_ticket']" :description="meta['average_ticket']" />
+          </div>
         </CardHeader>
         <CardContent>
           <div v-if="loading">
@@ -33,7 +36,10 @@
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Receita (Elevate)</CardTitle>
+          <div class="flex justify-between items-center">
+            <CardTitle>Receita (Elevate)</CardTitle>
+            <GlossaryTooltipComponent v-if="meta['period_totals']" :description="meta['period_totals']" />
+          </div>
         </CardHeader>
         <CardContent>
           <div v-if="loading">
@@ -48,7 +54,10 @@
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Receita (Outros)</CardTitle>
+          <div class="flex justify-between items-center">
+            <CardTitle>Receita (Outros)</CardTitle>
+            <GlossaryTooltipComponent v-if="meta['period_totals']" :description="meta['period_totals']" />
+          </div>
         </CardHeader>
         <CardContent>
           <div v-if="loading">
@@ -63,7 +72,10 @@
       </Card>
       <Card class="col-span-3">
         <CardHeader>
-          <CardTitle>Total</CardTitle>
+          <div class="flex justify-between items-center">
+            <CardTitle>Total</CardTitle>
+            <GlossaryTooltipComponent v-if="meta['period_totals']" :description="meta['period_totals']" />
+          </div>
         </CardHeader>
         <CardContent>
           <div v-if="loading">
@@ -134,19 +146,20 @@
           title="Receita por canal"
           :period="revenuePeriod"
           type="currency"
-          glossary="Dados de receita registrada"
+          :glossary="meta['data_by_period'] || 'Dados de receita registrada'"
       />
       <PeriodComponent
           :is-loading="loading"
           title="Eventos por canal"
           :period="eventsPeriod"
           type="numeric"
+          :glossary="meta['data_by_event']"
       />
     </div>
 
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1">
-      <ConversionDefinitionPieChart :is-loading="loading" :chart-data="pieChartCounts" title="Contagem de Eventos de Conversão" type="numeric" />
-      <ConversionDefinitionPieChart :is-loading="loading" :chart-data="pieChartValues" title="Valor dos Eventos de Conversão" type="currency"/>
+      <ConversionDefinitionPieChart :is-loading="loading" :chart-data="pieChartCounts" title="Contagem de Eventos de Conversão" type="numeric" :glossary="meta['pie_chart_counts']" />
+      <ConversionDefinitionPieChart :is-loading="loading" :chart-data="pieChartValues" title="Valor dos Eventos de Conversão" type="currency" :glossary="meta['pie_chart_values']" />
     </div>
   </div>
 </template>
@@ -170,6 +183,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Search, ArrowDown, ArrowUp, Info } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
+import {Skeleton} from "@/components/ui/skeleton";
+import {Separator} from "@/components/ui/separator";
 
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
@@ -198,12 +214,13 @@ const channelGroups = ref([])
 const searchValues = ref<Record<string, string>>({
   channel_group: 'todos'
 });
+const meta = ref<Record<string, string>>({});
 
-const columns = ref([
+const columns = computed(() => [
   { id: 'channel', label: 'Canal', tooltip: 'Nome do Canal' },
   { id: 'eventCount', label: 'Contagem de Eventos', tooltip: 'Número de eventos de conversão.' },
   { id: 'totalRevenue', label: 'Receita Total', tooltip: 'Soma da receita.', formatter: (value:Number) => currencyFilter(value) },
-  { id: 'variation', label: 'Variação', tooltip: 'Variação percentual da receita.' },
+  { id: 'variation', label: 'Variação', tooltip: meta.value['variation'] || 'Variação percentual da receita.' },
 ]);
 
 const columnVisibility = ref<Record<string, boolean>>({
@@ -264,7 +281,10 @@ const applyFilter = async () => {
       ...searchValues.value
     };
 
-    const data = await ConversionAnalyticsService.index(params);
+    const response = await ConversionAnalyticsService.index(params);
+    const { data } = response;
+    meta.value = response.meta || {};
+
     revenuePeriod.value = [{name:"Receita Total",value:data.data_by_period}]
     eventsPeriod.value = [{name:"Eventos",value:data.data_by_event}]
     pieChartCounts.value = data.pie_chart_counts

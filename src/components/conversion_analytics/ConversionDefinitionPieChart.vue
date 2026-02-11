@@ -2,7 +2,10 @@
   <Card>
     <CardHeader>
       <div class="flex justify-between items-center">
-        <CardTitle>{{ title }}</CardTitle>
+        <div class="flex items-center gap-2">
+          <CardTitle>{{ title }}</CardTitle>
+          <GlossaryTooltipComponent v-if="glossary" :description="glossary" />
+        </div>
         <div class="w-52">
           <Popover v-model:open="open">
             <PopoverTrigger as-child>
@@ -61,6 +64,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { ChevronsUpDown } from 'lucide-vue-next';
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 
 type DefinitionOption = {
   label: string;
@@ -80,6 +84,10 @@ const props = defineProps({
   type: {
     type: String as () => 'currency' | 'numeric',
     default: 'numeric',
+  },
+  glossary: {
+    type: String,
+    required: false,
   },
 });
 
