@@ -54,7 +54,7 @@
               <CardTitle class="text-sm font-medium">SMS Contratado</CardTitle>
             </div>
             <GlossaryTooltipComponent
-              description="Quantidade total de SMS contratados no período selecionado."
+              :description="meta['sms.contracted'] || 'Quantidade total de SMS contratados no período selecionado.'"
             />
           </CardHeader>
           <CardContent>
@@ -78,7 +78,7 @@
               <CardTitle class="text-sm font-medium">SMS Enviado</CardTitle>
             </div>
             <GlossaryTooltipComponent
-              description="Quantidade total de SMS enviados no período selecionado."
+              :description="meta['sms.sent'] || 'Quantidade total de SMS enviados no período selecionado.'"
             />
           </CardHeader>
           <CardContent>
@@ -102,7 +102,7 @@
               <CardTitle class="text-sm font-medium">SMS Disponivel</CardTitle>
             </div>
             <GlossaryTooltipComponent
-              description="Quantidade total de SMS disponíveis para envio no período selecionado."
+              :description="meta['sms.available'] || 'Quantidade total de SMS disponíveis para envio no período selecionado.'"
             />
           </CardHeader>
           <CardContent>
@@ -117,13 +117,15 @@
         <PeriodComponent
           :period="sms"
           title="SMS Enviados"
-          :isLoading="loading"
+          :is-loading="loading"
+          :glossary="meta['sms.sent'] || 'Dados de SMS Enviados'"
         />
         <PeriodComponent
           v-if="hasMemberAccess"
           :period="clicks"
           title="Cliques"
-          :isLoading="loading"
+          :is-loading="loading"
+          :glossary="meta['clicks'] || 'Dados de Cliques'"
         />
       </div>
 
@@ -330,13 +332,14 @@ const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 
 const loading = ref(true);
-const last = ref([]);
-const daily = ref([]);
+const last = ref<any>([]);
+const daily = ref<any>([]);
 const sms = ref<{ name: string; value: number[] }[]>([]);
 const clicks = ref<{ name: string; value: number[] }[]>([]);
 const recharges = ref([]);
 const campaigns = ref([]);
 const broadcasts = ref([]);
+const meta = ref<Record<string, string>>({});
 
 const campaignOrderId = ref();
 const campaignOrder = ref(false);
@@ -365,7 +368,7 @@ const localBroadcastSearch = ref<Record<string, string>>({});
 
 const rechargesTotal = computed(() => {
   return recharges.value.reduce(
-    (acc, recharge) => {
+    (acc: any, recharge: any) => {
       acc.credits += Number(recharge.credits) || 0;
       acc.price += Number(recharge.price) || 0;
       acc.total += Number(recharge.total) || 0;
@@ -384,7 +387,7 @@ const campaignsStats = computed(() => {
     ctr: "0.00",
   };
 
-  campaigns.value.forEach((campaign) => {
+  campaigns.value.forEach((campaign: any) => {
     totalStats.sms += campaign.sms;
     totalStats.clicks += campaign.clicks;
   });
@@ -406,7 +409,7 @@ const broadcastsStats = computed(() => {
     ctr: "0.00",
   };
 
-  broadcasts.value.forEach((broadcast) => {
+  broadcasts.value.forEach((broadcast: any) => {
     totalStats.sms += broadcast.sms;
     totalStats.clicks += broadcast.clicks;
   });
@@ -418,10 +421,6 @@ const broadcastsStats = computed(() => {
 
   return totalStats;
 });
-
-const redirectToInvoiceUrl = (url: any) => {
-  window.open(url, "_blank");
-};
 
 const setSearchCampaigns = (values: Record<string, string>) => {
   localCampaignSearch.value = values;
@@ -487,9 +486,10 @@ const loadData = async () => {
     sms.value = [{ name: "Total SMS Enviado", value: data.daily.sms }];
     clicks.value = [{ name: "Total Cliques", value: data.daily.clicks }];
     recharges.value = data.recharges;
+    meta.value = data.meta || {};
 
     if (data.campaigns) {
-      campaigns.value = data.campaigns.data.map((c) => ({
+      campaigns.value = data.campaigns.data.map((c: any) => ({
         ...c,
         ctr: c.sms && c.clicks ? ((c.clicks / c.sms) * 100).toFixed(2) : "0.00",
       }));
@@ -502,7 +502,7 @@ const loadData = async () => {
     }
 
     if (data.broadcasts) {
-      broadcasts.value = data.broadcasts.data.map((b) => ({
+      broadcasts.value = data.broadcasts.data.map((b: any) => ({
         ...b,
         ctr: b.sms && b.clicks ? ((b.clicks / b.sms) * 100).toFixed(2) : "0.00",
       }));
@@ -587,7 +587,7 @@ const formatters = {
   clicks: formatNumber,
 };
 
-const columnHelper = createColumnHelper();
+const columnHelper = createColumnHelper<any>();
 
 const baseCampaignColumns = [
   columnHelper.accessor("name", {

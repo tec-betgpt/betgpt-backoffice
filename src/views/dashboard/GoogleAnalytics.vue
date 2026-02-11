@@ -384,59 +384,59 @@
         :is-loading="loading"
         :period="usersPeriod"
         title="Usuários"
-        glossary="Dados de Usuários novos e ativo"
+        :glossary="meta['users_period'] || 'Dados de Usuários novos e ativo'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="payingActivePeriod"
         title="Usuários Ativos Pagantes por período"
-        glossary="Dados de Pagantes Ativos por período, com diferença de 7D, 14D e 28D"
+        :glossary="meta['paying_active_period'] || 'Dados de Pagantes Ativos por período, com diferença de 7D, 14D e 28D'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="totalUsersPeriod"
         title="Total de Usuários"
-        glossary="Dados de total de usuários"
+        :glossary="meta['total_users_period'] || 'Dados de total de usuários'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="returningUsersPeriod"
         title="Usuários Recorrentes"
-        glossary="Dados de Usuários Recorrentes por período"
+        :glossary="meta['returning_users_period'] || 'Dados de Usuários Recorrentes por período'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="firstTimePurchasersPeriod"
         title="Total de Primeiros Compradores"
-        glossary="Dados de Primeiros Compradores por período"
+        :glossary="meta['first_time_purchasers_period'] || 'Dados de Primeiros Compradores por período'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="engagementRatePeriod"
         title="Taxa de Engajamento por período"
         type="percent"
-        glossary="Percentual de usuários engajados por período"
+        :glossary="meta['engagement_rate_period'] || 'Percentual de usuários engajados por período'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="bounceRatePeriod"
         title="Taxa de Rejeição"
         type="percent"
-        glossary="Percentual de usuários que saíram do site sem interagir"
+        :glossary="meta['bounce_rate_period'] || 'Percentual de usuários que saíram do site sem interagir'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="arpuPeriod"
         title="ARPU"
         type="currency"
-        glossary="Receita média por usuário ativo por período"
+        :glossary="meta['arpu'] || 'Receita média por usuário ativo por período'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="arppuPeriod"
         title="ARPPU"
         type="currency"
-        glossary="Receita média por usuário pagante por período"
+        :glossary="meta['arppu'] || 'Receita média por usuário pagante por período'"
       />
     </div>
   </div>
@@ -495,6 +495,9 @@ const searchValues = ref<Record<string, string>>({ "search[1][channel]": "" });
 const backendTotals = ref();
 const variationTotal = ref(0);
 const variationTotalRevenue = ref(0)
+const meta = ref<Record<string, string>>({});
+
+
 const totalGroupSessions = computed(() => {
   if (!backendTotals.value) return null;
 
@@ -645,6 +648,7 @@ const applyFilter = async (current = pages.value.current) => {
     backendTotals.value = data.group_sessions?.total || {};
     variationTotal.value = data.group_sessions?.variation_total || 0;
     variationTotalRevenue.value = data.group_sessions?.total_revenue_variation_total || 0;
+    meta.value = data.meta || {};
     if (data.group_sessions?.pagination) {
       pages.value = {
         current: data.group_sessions.pagination.current_page || 1,
@@ -747,58 +751,58 @@ const columnVisibility = ref<Record<string, boolean>>({
   totalRevenue: true,
 });
 
-const columnsList = [
+const columnsList = computed(() => [
   {
     id: 'channel',
     label: 'Grupo',
-    tooltip: 'Canais de origem do tráfego agrupados por categorias (ex: Busca Orgânica, Social, Direto).'
+    tooltip: meta.value['channel'] || 'Canais de origem do tráfego agrupados por categorias (ex: Busca Orgânica, Social, Direto).'
   },
   {
     id: 'sessions',
     label: 'Sessões',
-    tooltip: 'Número de visitas iniciadas no seu site ou aplicativo.'
+    tooltip: meta.value['sessions'] || 'Número de visitas iniciadas no seu site ou aplicativo.'
   },
   {
     id: 'engagedSessions',
     label: 'Sessões Engajadas',
-    tooltip: 'Sessões que duraram mais de 10s, tiveram um evento principal ou pelo menos 2 visualizações de página.'
+    tooltip: meta.value['engagedSessions'] || 'Sessões que duraram mais de 10s, tiveram um evento principal ou pelo menos 2 visualizações de página.'
   },
   {
     id: 'engagementRate',
     label: 'Engajamento',
-    tooltip: 'Porcentagem de sessões que foram consideradas engajadas em relação ao total de sessões.'
+    tooltip: meta.value['engagementRate'] || 'Porcentagem de sessões que foram consideradas engajadas em relação ao total de sessões.'
   },
   {
     id: 'averageEngagementDuration',
     label: 'Tempo Médio de Engajamento',
-    tooltip: 'Tempo médio que o site ou aplicativo ficou ativo em primeiro plano na tela do usuário.'
+    tooltip: meta.value['averageEngagementDuration'] || 'Tempo médio que o site ou aplicativo ficou ativo em primeiro plano na tela do usuário.'
   },
   {
     id: 'eventsPerSession',
     label: 'Eventos por Sessão',
-    tooltip: 'Média de eventos disparados por sessão.'
+    tooltip: meta.value['eventsPerSession'] || 'Média de eventos disparados por sessão.'
   },
   {
     id: 'eventCount',
     label: 'Contagem de Eventos',
-    tooltip: 'Número total de eventos disparados pelos usuários.'
+    tooltip: meta.value['eventCount'] || 'Número total de eventos disparados pelos usuários.'
   },
   {
     id: 'keyEvents',
     label: 'Eventos Principais',
-    tooltip: 'Número de eventos marcados como importantes para o negócio (antigas Conversões).'
+    tooltip: meta.value['keyEvents'] || 'Número de eventos marcados como importantes para o negócio (antigas Conversões).'
   },
   {
     id: 'sessionKeyEventRate',
     label: 'Taxa de Eventos Principais',
-    tooltip: 'Porcentagem de sessões que geraram pelo menos um evento principal.'
+    tooltip: meta.value['sessionKeyEventRate'] || 'Porcentagem de sessões que geraram pelo menos um evento principal.'
   },
   {
     id: 'totalRevenue',
     label: 'Receita Total',
-    tooltip: 'Soma da receita proveniente de compras, assinaturas e publicidade.'
+    tooltip: meta.value['totalRevenue'] || 'Soma da receita proveniente de compras, assinaturas e publicidade.'
   },
-];
+]);
 
 watch(
   selectedRange,

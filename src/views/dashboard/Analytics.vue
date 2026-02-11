@@ -14,19 +14,19 @@
       </div>
     </div>
     <div class="grid xl:grid-cols-2 grid-cols-1 gap-4" >
-      <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" glossary="Dados de Usuários registrados e ativos"/>
-      <PeriodComponent :period="loginsDays" title="Logins diários" :isLoading="isLoading" glossary="Dados de Logins diários"/>
-      <PeriodComponent :period="uniquePlayerLoginsPeriod" title="Logins únicos" :isLoading="isLoading" glossary="Usuários únicos que entraram no sistema por dia"/>
-      <PeriodComponent :period="depositsPeriod" title="Entrada por periodo" :isLoading="isLoading" glossary="Dados de entrada por período, com diferença de 7D, 14D e 28D"/>
-      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de entradas líquidas por período" type="percent" class="xl:col-span-2" :isLoading="isLoading" glossary="Percentual de entradas líquidas em relação ao total por período"/>
-      <PeriodComponent :period="netDepositsPeriod" title="Entradas Líquidas por período" :isLoading="isLoading" glossary="Valor líquido das entradas realizadas em cada período"/>
-      <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" :isLoading="isLoading" glossary="Quantidade de usuários ativos em cada período"/>
-      <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia" type="percent" :isLoading="isLoading" glossary="Percentual de First Time Deposits (FTD) por dia"/>
-      <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Entradas Líquidas por período" :isLoading="isLoading" glossary="Valor total das entradas líquidas por período"/>
-      <PeriodComponent :period="valueDepositsPeriod" title="Valor de Entradas por período" :isLoading="isLoading" glossary="Valor total das entradas realizadas por período"/>
-      <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saídas por período" :isLoading="isLoading" glossary="Valor total das saídas realizadas por período"/>
-      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Entrada por período" type="percent" :isLoading="isLoading" glossary="Percentual de usuários registrados que realizaram entrada por período"/>
-      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Entrada por período" type="percent" :isLoading="isLoading" glossary="Percentual de conversão de entradas pagas por período"/>    </div>
+      <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" :glossary="meta['users_period'] || 'Dados de Usuários registrados e ativos'"/>
+      <PeriodComponent :period="loginsDays" title="Logins diários" :isLoading="isLoading" :glossary="meta['player_logins_period'] || 'Dados de Logins diários'"/>
+      <PeriodComponent :period="uniquePlayerLoginsPeriod" title="Logins únicos" :isLoading="isLoading" :glossary="meta['unique_player_logins_period'] || 'Usuários únicos que entraram no sistema por dia'"/>
+      <PeriodComponent :period="depositsPeriod" title="Entrada por periodo" :isLoading="isLoading" :glossary="meta['deposits_period'] || 'Dados de entrada por período, com diferença de 7D, 14D e 28D'"/>
+      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de entradas líquidas por período" type="percent" class="xl:col-span-2" :isLoading="isLoading" :glossary="meta['percent_net_deposits_period'] || 'Percentual de entradas líquidas em relação ao total por período'"/>
+      <PeriodComponent :period="netDepositsPeriod" title="Entradas Líquidas por período" :isLoading="isLoading" :glossary="meta['net_deposits_period'] || 'Valor líquido das entradas realizadas em cada período'"/>
+      <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" :isLoading="isLoading" :glossary="meta['active_users_period'] || 'Quantidade de usuários ativos em cada período'"/>
+      <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia" type="percent" :isLoading="isLoading" :glossary="meta['percent_ftd_day_period'] || 'Percentual de First Time Deposits (FTD) por dia'"/>
+      <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Entradas Líquidas por período" :isLoading="isLoading" :glossary="meta['value_net_deposits_period'] || 'Valor total das entradas líquidas por período'"/>
+      <PeriodComponent :period="valueDepositsPeriod" title="Valor de Entradas por período" :isLoading="isLoading" :glossary="meta['value_deposits_period'] || 'Valor total das entradas realizadas por período'"/>
+      <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saídas por período" :isLoading="isLoading" :glossary="meta['value_withdraws_period'] || 'Valor total das saídas realizadas por período'"/>
+      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Entrada por período" type="percent" :isLoading="isLoading" :glossary="meta['registration_deposit_rate_period'] || 'Percentual de usuários registrados que realizaram entrada por período'"/>
+      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Entrada por período" type="percent" :isLoading="isLoading" :glossary="meta['deposit_conversion_rate_period'] || 'Percentual de conversão de entradas pagas por período'"/>    </div>
   </div>
 </template>
 
@@ -59,6 +59,7 @@ const valueWithdrawsPeriod = ref<{ name: string; value: number[]; }[]>([]);
 const registrationDepositRatePeriod = ref<{ name: string; value: number[]; }[]>([]);
 const depositConversionRatePeriod = ref<{ name: string; value: number[]; }[]>([]);
 const isLoading = ref(true);
+const meta = ref<Record<string, string>>({});
 
 const applyFilter = async () => {
   isLoading.value = true;
@@ -80,6 +81,7 @@ const applyFilter = async () => {
       end_date: selectedRange.value.end?.toString(),
       filter_id: workspaceStore.activeGroupProject.id,
     })
+    meta.value = data.meta || {};
     let percent_net = data.percent_net_deposits_period.map(deposit => {
       return {date:deposit.date,["7 Dias %"]:deposit["7 Dias %"]/100,["14 Dias %"]:deposit["14 Dias %"]/100,["28 Dias %"]:deposit["28 Dias %"]/100};
     })

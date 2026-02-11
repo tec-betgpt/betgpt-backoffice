@@ -77,7 +77,7 @@
       ]"
     >
 
-      <Card v-for="limit in limitsCards">
+      <Card v-for="limit in limitsCards" :key="limit.project_id">
         <CardHeader>
           <CardTitle>
             <div class="flex justify-between items-center">
@@ -213,6 +213,7 @@ import {
 } from "lucide-vue-next";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 
 import {
   Dialog,
@@ -258,6 +259,7 @@ const pages = ref({
   last: 0,
 });
 const perPages = ref(10);
+const meta = ref<Record<string, string>>({});
 
 const showEmailModal = ref(false);
 const loadingEmail = ref(false);
@@ -421,7 +423,7 @@ const setSearch = (values: Record<string, string>) => {
 
 const getAccountName = (projectId: any) => {
   const integration = integrations.value[projectId];
-  return integration.account_name;
+  return integration?.account_name || "";
 };
 
 const getAutomationLink = (campaign: CampaignMetrics) => {
@@ -521,6 +523,7 @@ const applyFilter = async (current = pages.value.current) => {
     backendCampaignTotals.value = data.campaigns.total;
     integrations.value = data.integrations;
     limitsCards.value = data.status
+    meta.value = data.meta || {};
     pages.value = {
       current: data.campaigns.pagination.current_page,
       total: data.campaigns.pagination.total,
@@ -568,7 +571,7 @@ const columnHelper = createColumnHelper<CampaignMetrics>();
 
 const actionColumn = columnHelper.accessor("id", {
   header: () => "Ações",
-  cell: ({ row, table }) => {
+  cell: ({ row }) => {
     const campaign = row.original;
     const automationLink = getAutomationLink(campaign);
 
@@ -615,7 +618,7 @@ const actionColumn = columnHelper.accessor("id", {
   },
 });
 
-const columns = [
+const columns = computed(() => [
   columnHelper.accessor("name", {
     header() {
       return h("div", { class: "text-pretty text-left py-3 pr-20" }, "Título");
@@ -641,7 +644,6 @@ const columns = [
   columnHelper.accessor("send_amt", {
     header: () => createHeaderButton("Envios", "send_amt"),
     footer: "sum",
-    format: "number",
     cell: ({ row }) =>
       h(
         "div",
@@ -653,7 +655,6 @@ const columns = [
   columnHelper.accessor("uniqueopens", {
     header: () => createHeaderButton("Aberturas", "uniqueopens"),
     footer: "sum",
-    format: "number",
     cell: ({ row }) =>
       h(
         "div",
@@ -665,7 +666,6 @@ const columns = [
   columnHelper.accessor("subscriberclicks", {
     header: () => createHeaderButton("Cliques", "subscriberclicks"),
     footer: "sum",
-    format: "number",
     cell: ({ row }) =>
       h(
         "div",
@@ -677,7 +677,6 @@ const columns = [
   columnHelper.accessor("unsubscribes", {
     header: () => createHeaderButton("Cancelamentos", "unsubscribes"),
     footer: "sum",
-    format: "number",
     cell: ({ row }) =>
       h(
         "div",
@@ -689,7 +688,6 @@ const columns = [
   columnHelper.accessor("softbounces", {
     header: () => createHeaderButton("Bounces", "softbounces"),
     footer: "sum",
-    format: "number",
     cell: ({ row }) =>
       h(
         "div",
@@ -701,7 +699,6 @@ const columns = [
   columnHelper.accessor("rate_opens", {
     header: () => createHeaderButton("Taxa de Abertura", "rate_opens"),
     footer: "avg",
-    format: "percentage",
     cell: ({ row }) =>
       h(
         "div",
@@ -714,7 +711,6 @@ const columns = [
     header: () =>
       createHeaderButton("Taxa de Abertura para Clique", "rate_opens_click"),
     footer: "avg",
-    format: "percentage",
     cell: ({ row }) =>
       h(
         "div",
@@ -726,7 +722,6 @@ const columns = [
   columnHelper.accessor("rate_clicks", {
     header: () => createHeaderButton("Taxa de Cliques", "rate_clicks"),
     footer: "avg",
-    format: "percentage",
     cell: ({ row }) =>
       h(
         "div",
@@ -739,7 +734,6 @@ const columns = [
     header: () =>
       createHeaderButton("Taxa de Cancelamento", "rate_unsubscriptions"),
     footer: "avg",
-    format: "percentage",
     cell: ({ row }) =>
       h(
         "div",
@@ -751,7 +745,6 @@ const columns = [
   columnHelper.accessor("rate_rejections", {
     header: () => createHeaderButton("Taxa de Rejeição", "rate_rejections"),
     footer: "avg",
-    format: "percentage",
     cell: ({ row }) =>
       h(
         "div",
@@ -761,30 +754,39 @@ const columns = [
   }),
 
   ...(hasMemberAccess.value ? [actionColumn] : []),
-];
+]);
 
 function createHeaderButton(label: string, columnKey: string) {
   return h(
-    Button,
-    {
-      variant: orderId.value === columnKey ? "default" : "ghost",
-      onClick: () => {
-        orderId.value = columnKey;
-        order.value = !order.value;
-        applyFilter();
-      },
-      class: "p-0 text-pretty text-left text-nowrap",
-    },
-    () => [
-      label,
+    "div",
+    { class: "flex items-center gap-1 justify-end w-full" },
+    [
       h(
-        orderId.value === columnKey
-          ? order.value
-            ? ArrowDown
-            : ArrowUp
-          : CaretSortIcon,
-        { class: "" }
+        Button,
+        {
+          variant: orderId.value === columnKey ? "default" : "ghost",
+          onClick: () => {
+            orderId.value = columnKey;
+            order.value = !order.value;
+            applyFilter();
+          },
+          class: "p-0 h-auto text-pretty text-right text-nowrap hover:bg-transparent flex items-center gap-1",
+        },
+        () => [
+          label,
+          h(
+            orderId.value === columnKey
+              ? order.value
+                ? ArrowDown
+                : ArrowUp
+              : CaretSortIcon,
+            { class: "h-4 w-4" }
+          ),
+        ]
       ),
+      meta.value[columnKey] 
+        ? h(GlossaryTooltipComponent, { description: meta.value[columnKey] })
+        : null
     ]
   );
 }
