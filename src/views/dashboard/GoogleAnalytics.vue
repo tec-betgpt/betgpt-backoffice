@@ -494,7 +494,7 @@ const isFirstLoad = ref(true);
 const searchValues = ref<Record<string, string>>({ "search[1][channel]": "" });
 const backendTotals = ref();
 const variationTotal = ref(0);
-
+const variationTotalRevenue = ref(0)
 const totalGroupSessions = computed(() => {
   if (!backendTotals.value) return null;
 
@@ -510,7 +510,7 @@ const totalGroupSessions = computed(() => {
     sessionKeyEventRate: backendTotals.value.sessionKeyEventRate || 0,
     totalRevenue: backendTotals.value.totalRevenue || 0,
     variation: variationTotal.value,
-    totalRevenueVariation: backendTotals.value.totalRevenueVariation || 0,
+    totalRevenueVariation: variationTotalRevenue.value || 0,
   };
 });
 
@@ -644,7 +644,7 @@ const applyFilter = async (current = pages.value.current) => {
     groupSessionsData.value = data.group_sessions?.data || [];
     backendTotals.value = data.group_sessions?.total || {};
     variationTotal.value = data.group_sessions?.variation_total || 0;
-
+    variationTotalRevenue.value = data.group_sessions?.total_revenue_variation_total || 0;
     if (data.group_sessions?.pagination) {
       pages.value = {
         current: data.group_sessions.pagination.current_page || 1,
