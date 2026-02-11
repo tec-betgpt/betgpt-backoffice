@@ -54,7 +54,10 @@
               <CardTitle class="text-sm font-medium">SMS Contratado</CardTitle>
             </div>
             <GlossaryTooltipComponent
-              :description="meta['sms.contracted'] || 'Quantidade total de SMS contratados no período selecionado.'"
+              :description="
+                meta['sms.contracted'] ||
+                'Quantidade total de SMS contratados no período selecionado.'
+              "
             />
           </CardHeader>
           <CardContent>
@@ -78,7 +81,10 @@
               <CardTitle class="text-sm font-medium">SMS Enviado</CardTitle>
             </div>
             <GlossaryTooltipComponent
-              :description="meta['sms.sent'] || 'Quantidade total de SMS enviados no período selecionado.'"
+              :description="
+                meta['sms.sent'] ||
+                'Quantidade total de SMS enviados no período selecionado.'
+              "
             />
           </CardHeader>
           <CardContent>
@@ -102,7 +108,10 @@
               <CardTitle class="text-sm font-medium">SMS Disponivel</CardTitle>
             </div>
             <GlossaryTooltipComponent
-              :description="meta['sms.available'] || 'Quantidade total de SMS disponíveis para envio no período selecionado.'"
+              :description="
+                meta['sms.available'] ||
+                'Quantidade total de SMS disponíveis para envio no período selecionado.'
+              "
             />
           </CardHeader>
           <CardContent>
@@ -146,9 +155,10 @@
             :head="totalCampaigns"
             :formatters="formatters"
             :search-fields="[
+              { key: 'name', placeholder: 'Buscar por nome da campanha...' },
               {
-                key: 'name',
-                placeholder: 'Buscar por nome da campanha...',
+                key: 'body',
+                placeholder: 'Buscar por conteúdo da campanha...',
               },
             ]"
           />
@@ -184,9 +194,16 @@
             :head="totalBroadcasts"
             :formatters="formatters"
             :search-fields="[
+              { key: 'name', placeholder: 'Buscar por nome do broadcast...' },
               {
-                key: 'name',
-                placeholder: 'Buscar por nome do broadcast...',
+                key: 'body',
+                placeholder: 'Buscar por conteúdo do broadcast...',
+              },
+              {
+                key: 'last_send_date',
+                type: 'date-range',
+                label: 'Data do último envio',
+                placeholder: 'Filtrar por última data de envio',
               },
             ]"
           />
@@ -238,20 +255,36 @@
               <template v-else>
                 <TableRow class="font-bold">
                   <TableCell colspan="3"></TableCell>
-                  <TableCell class="text-right">{{ rechargesTotal.credits }}</TableCell>
-                  <TableCell class="text-right">{{ $toCurrency(rechargesTotal.price) }}</TableCell>
-                  <TableCell class="text-right">{{ $toCurrency(rechargesTotal.total) }}</TableCell>
+                  <TableCell class="text-right">{{
+                    rechargesTotal.credits
+                  }}</TableCell>
+                  <TableCell class="text-right">{{
+                    $toCurrency(rechargesTotal.price)
+                  }}</TableCell>
+                  <TableCell class="text-right">{{
+                    $toCurrency(rechargesTotal.total)
+                  }}</TableCell>
                   <TableCell class="text-right" colspan="2"></TableCell>
                 </TableRow>
                 <TableRow v-for="(recharge, index) in recharges" :key="index">
                   <TableCell>{{
-                      recharge.created_at ? $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss") : ''
+                    recharge.created_at
+                      ? $moment(recharge.created_at).format(
+                          "DD/MM/YYYY HH:mm:ss",
+                        )
+                      : ""
                   }}</TableCell>
                   <TableCell>{{ recharge.description }}</TableCell>
                   <TableCell>{{ recharge.service }}</TableCell>
-                  <TableCell class="text-right">{{ recharge.credits }}</TableCell>
-                  <TableCell class="text-right">{{ $toCurrency(recharge.price) }}</TableCell>
-                  <TableCell class="text-right">{{ $toCurrency(recharge.total) }}</TableCell>
+                  <TableCell class="text-right">{{
+                    recharge.credits
+                  }}</TableCell>
+                  <TableCell class="text-right">{{
+                    $toCurrency(recharge.price)
+                  }}</TableCell>
+                  <TableCell class="text-right">{{
+                    $toCurrency(recharge.total)
+                  }}</TableCell>
                   <TableCell class="text-right">
                     <span
                       class="text-green-600"
@@ -273,7 +306,6 @@
                 </TableRow>
               </template>
             </TableBody>
-
           </Table>
         </CardContent>
       </Card>
@@ -374,7 +406,7 @@ const rechargesTotal = computed(() => {
       acc.total += Number(recharge.total) || 0;
       return acc;
     },
-    { credits: 0, price: 0, total: 0 }
+    { credits: 0, price: 0, total: 0 },
   );
 });
 
@@ -526,7 +558,7 @@ const loadData = async () => {
 function createHeaderButton(
   label: string,
   columnKey: string,
-  type = "campaigns"
+  type = "campaigns",
 ) {
   return h(
     Button,
@@ -566,10 +598,10 @@ function createHeaderButton(
               ? ArrowDown
               : ArrowUp
             : CaretSortIcon,
-          { class: "ml-2" }
+          { class: "ml-2" },
         ),
       ]),
-    ]
+    ],
   );
 }
 
@@ -609,7 +641,7 @@ const clicksCampaignColumn = columnHelper.accessor("clicks", {
     h(
       "div",
       { class: "text-right" },
-      formatNumber(row.getValue("clicks") || 0)
+      formatNumber(row.getValue("clicks") || 0),
     ),
 });
 
@@ -621,7 +653,7 @@ const ctrCampaignColumn = columnHelper.accessor("ctr", {
     h(
       "div",
       { class: "text-right" },
-      formatPercentage(row.getValue("ctr") || 0)
+      formatPercentage(row.getValue("ctr") || 0),
     ),
 });
 
@@ -652,7 +684,7 @@ const clicksBroadcastColumn = columnHelper.accessor("clicks", {
     h(
       "div",
       { class: "text-right" },
-      formatNumber(row.getValue("clicks") || 0)
+      formatNumber(row.getValue("clicks") || 0),
     ),
 });
 
@@ -664,7 +696,7 @@ const ctrBroadcastColumn = columnHelper.accessor("ctr", {
     h(
       "div",
       { class: "text-right" },
-      formatPercentage(row.getValue("ctr") || 0)
+      formatPercentage(row.getValue("ctr") || 0),
     ),
 });
 
