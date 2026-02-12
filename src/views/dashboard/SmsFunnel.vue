@@ -131,8 +131,7 @@
             </DialogHeader>
 
             <div class="space-y-4">
-              <div class="border rounded-lg p-4 bg-gray-50">
-                <p class="text-sm font-medium mb-2">Conteúdo:</p>
+              <div class="border rounded-lg p-4">
                 <p class="text-sm whitespace-pre-wrap">
                   {{
                     selectedSmsCampaign?.body || "Nenhum conteúdo disponível."
@@ -152,14 +151,6 @@
                 >
                   {{ selectedSmsCampaign.url }}
                 </a>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  @click="window.open(selectedSmsCampaign.url, '_blank')"
-                >
-                  <ExternalLink class="h-4 w-4 mr-2" />
-                  Abrir
-                </Button>
               </div>
             </div>
 
@@ -391,7 +382,17 @@ import {
   ArrowUp,
   ExternalLink,
   Eye,
+  MoreHorizontal,
+  Loader2 as LucideSpinner,
 } from "lucide-vue-next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -698,24 +699,40 @@ const formatters = {
 
 const columnHelper = createColumnHelper<any>();
 
-const actionsCampaignColumn = columnHelper.display({
-  id: "actions",
+const actionsCampaignColumn = columnHelper.accessor("id", {
   header: () => "Ações",
-  cell: ({ row }) =>
-    h("div", { class: "text-center" }, [
+  cell: ({ row }) => {
+    const campaign = row.original;
+
+    return h(DropdownMenu, {}, [
       h(
-        Button,
-        {
-          variant: "ghost",
-          size: "icon",
-          onClick: () => openSmsTemplate(row.original),
-        },
-        [
-          h(Eye, { class: "h-4 w-4" }),
-          h("span", { class: "sr-only" }, "Ver Template"),
-        ],
+        DropdownMenuTrigger,
+        { asChild: true },
+        h(Button, { size: "icon", variant: "ghost" }, [
+          h(MoreHorizontal, { class: "h-4 w-4" }),
+          h("span", { class: "sr-only" }, "Ações"),
+        ]),
       ),
-    ]),
+      h(
+        DropdownMenuContent,
+        { align: "end" },
+        [
+          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuSeparator, {}),
+
+          h(
+            DropdownMenuItem,
+            {
+              onClick: () => {
+                openSmsTemplate(campaign);
+              },
+            },
+            [h("div", {}), "Ver Template"],
+          ),
+        ].filter(Boolean),
+      ),
+    ]);
+  },
 });
 
 const baseCampaignColumns = [
@@ -804,9 +821,14 @@ const ctrBroadcastColumn = columnHelper.accessor("ctr", {
 
 const filteredBroadcastColumns = computed(() => {
   if (hasMemberAccess.value) {
-    return [...baseBroadcastColumns, clicksBroadcastColumn, ctrBroadcastColumn];
+    return [
+      ...baseBroadcastColumns,
+      clicksBroadcastColumn,
+      ctrBroadcastColumn,
+      actionsCampaignColumn,
+    ];
   }
-  return baseBroadcastColumns;
+  return [...baseBroadcastColumns, actionsCampaignColumn];
 });
 
 watch(campaignPerPage, () => {
