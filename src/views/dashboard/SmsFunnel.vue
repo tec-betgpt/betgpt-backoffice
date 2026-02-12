@@ -120,6 +120,56 @@
             </div>
           </CardContent>
         </Card>
+
+        <Dialog v-model:open="showSmsTemplateModal">
+          <DialogContent class="sm:max-w-[600px] max-h-[90vh] p-6">
+            <DialogHeader>
+              <DialogTitle>Preview do SMS</DialogTitle>
+              <DialogDescription>
+                Visualização do conteúdo do SMS: {{ selectedSmsCampaign?.name }}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div class="space-y-4">
+              <div class="border rounded-lg p-4 bg-gray-50">
+                <p class="text-sm font-medium mb-2">Conteúdo:</p>
+                <p class="text-sm whitespace-pre-wrap">
+                  {{
+                    selectedSmsCampaign?.body || "Nenhum conteúdo disponível."
+                  }}
+                </p>
+              </div>
+
+              <div
+                v-if="selectedSmsCampaign?.url"
+                class="flex items-center gap-2"
+              >
+                <p class="text-sm font-medium">Link:</p>
+                <a
+                  :href="selectedSmsCampaign.url"
+                  target="_blank"
+                  class="text-blue-600 hover:underline text-sm break-all"
+                >
+                  {{ selectedSmsCampaign.url }}
+                </a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  @click="window.open(selectedSmsCampaign.url, '_blank')"
+                >
+                  <ExternalLink class="h-4 w-4 mr-2" />
+                  Abrir
+                </Button>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" @click="showSmsTemplateModal = false">
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mt-4">
@@ -339,7 +389,17 @@ import {
   Download,
   ArrowDown,
   ArrowUp,
+  ExternalLink,
+  Eye,
 } from "lucide-vue-next";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import SmsFunnel from "@/services/smsFunnel";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
@@ -381,6 +441,14 @@ const recharges = ref([]);
 const campaigns = ref([]);
 const broadcasts = ref([]);
 const meta = ref<Record<string, string>>({});
+
+const showSmsTemplateModal = ref(false);
+const selectedSmsCampaign = ref<any>(null);
+
+const openSmsTemplate = (campaign: any) => {
+  selectedSmsCampaign.value = campaign;
+  showSmsTemplateModal.value = true;
+};
 
 const campaignOrderId = ref();
 const campaignOrder = ref(false);
@@ -630,6 +698,26 @@ const formatters = {
 
 const columnHelper = createColumnHelper<any>();
 
+const actionsCampaignColumn = columnHelper.display({
+  id: "actions",
+  header: () => "Ações",
+  cell: ({ row }) =>
+    h("div", { class: "text-center" }, [
+      h(
+        Button,
+        {
+          variant: "ghost",
+          size: "icon",
+          onClick: () => openSmsTemplate(row.original),
+        },
+        [
+          h(Eye, { class: "h-4 w-4" }),
+          h("span", { class: "sr-only" }, "Ver Template"),
+        ],
+      ),
+    ]),
+});
+
 const baseCampaignColumns = [
   columnHelper.accessor("name", {
     header: () => "Nome da Campanha",
@@ -668,9 +756,14 @@ const ctrCampaignColumn = columnHelper.accessor("ctr", {
 
 const filteredCampaignColumns = computed(() => {
   if (hasMemberAccess.value) {
-    return [...baseCampaignColumns, clicksCampaignColumn, ctrCampaignColumn];
+    return [
+      ...baseCampaignColumns,
+      clicksCampaignColumn,
+      ctrCampaignColumn,
+      actionsCampaignColumn,
+    ];
   }
-  return baseCampaignColumns;
+  return [...baseCampaignColumns, actionsCampaignColumn];
 });
 
 const baseBroadcastColumns = [
