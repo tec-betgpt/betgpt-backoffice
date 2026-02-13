@@ -196,7 +196,7 @@
 
         <div v-if="isPayloadVisible && selectedHistoryEvent.payload" class="mt-4">
           <div class="text-xs font-bold mb-2">Payload</div>
-          <pre class="bg-gray-900 text-white p-4 rounded-md text-xs overflow-x-auto"><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
+          <pre class="bg-gray-900 text-white p-4 rounded-md text-xs overflow-x-auto overflow-y-scroll h-64"><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
         </div>
 
         <DialogFooter>
