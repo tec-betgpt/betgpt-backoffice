@@ -121,40 +121,83 @@
           </CardContent>
         </Card>
 
+        <!-- Modal de Preview do SMS com Navegação -->
         <Dialog v-model:open="showSmsTemplateModal">
-          <DialogContent class="sm:max-w-[600px] max-h-[90vh] p-6">
-            <DialogHeader>
+          <DialogContent
+            class="sm:max-w-[600px] max-h-[90vh] grid-rows-[auto_minmax(0,1fr)_auto] p-0"
+          >
+            <DialogHeader class="p-6 pb-2">
               <DialogTitle>Preview do SMS</DialogTitle>
               <DialogDescription>
                 Visualização do conteúdo do SMS: {{ selectedSmsCampaign?.name }}
+                <span class="text-sm text-muted-foreground ml-2">
+                  ({{ currentSmsIndex + 1 }} de {{ campaigns.length }})
+                </span>
               </DialogDescription>
             </DialogHeader>
 
-            <div class="space-y-4">
-              <div class="border rounded-lg p-4">
-                <p class="text-sm whitespace-pre-wrap">
-                  {{
-                    selectedSmsCampaign?.body || "Nenhum conteúdo disponível."
-                  }}
-                </p>
+            <div class="flex-1 overflow-hidden p-6 pb-0 pt-0">
+              <!-- Loading state -->
+              <div
+                v-if="loadingSmsTemplate"
+                class="flex items-center justify-center h-64"
+              >
+                <div class="flex flex-col items-center gap-2">
+                  <LucideSpinner class="h-8 w-8 animate-spin" />
+                  <p class="text-muted-foreground">Carregando preview...</p>
+                </div>
               </div>
 
-              <div
-                v-if="selectedSmsCampaign?.url"
-                class="flex items-center gap-2"
-              >
-                <p class="text-sm font-medium">Link:</p>
-                <a
-                  :href="selectedSmsCampaign.url"
-                  target="_blank"
-                  class="text-blue-600 hover:underline text-sm break-all"
+              <!-- Conteúdo do SMS -->
+              <div v-else class="space-y-4">
+                <div class="border rounded-lg p-4">
+                  <p class="text-sm whitespace-pre-wrap">
+                    {{
+                      selectedSmsCampaign?.body || "Nenhum conteúdo disponível."
+                    }}
+                  </p>
+                </div>
+
+                <div
+                  v-if="selectedSmsCampaign?.url"
+                  class="flex items-center gap-2"
                 >
-                  {{ selectedSmsCampaign.url }}
-                </a>
+                  <p class="text-sm font-medium">Link:</p>
+                  <a
+                    :href="selectedSmsCampaign.url"
+                    target="_blank"
+                    class="text-blue-600 hover:underline text-sm break-all"
+                  >
+                    {{ selectedSmsCampaign.url }}
+                  </a>
+                </div>
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter class="p-6 pt-0 flex justify-between">
+              <div class="flex gap-2">
+                <Button
+                  variant="outline"
+                  @click="navigateSms('prev')"
+                  :disabled="currentSmsIndex === 0 || loadingSmsTemplate"
+                >
+                  <ArrowLeft class="h-4 w-4 mr-2" />
+                  Anterior
+                </Button>
+
+                <Button
+                  variant="outline"
+                  @click="navigateSms('next')"
+                  :disabled="
+                    currentSmsIndex === campaigns.length - 1 ||
+                    loadingSmsTemplate
+                  "
+                >
+                  Próximo
+                  <ArrowRight class="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+
               <Button variant="outline" @click="showSmsTemplateModal = false">
                 Fechar
               </Button>
@@ -274,7 +317,7 @@
 
       <Card class="w-full mt-4">
         <CardHeader>
-          <CardTitle>Últimas Recargas</CardTitle>
+          <CardTitle>Recargas</CardTitle>
         </CardHeader>
 
         <Separator />
@@ -329,9 +372,11 @@
                   <TableCell class="text-right">{{
                     recharge.credits
                   }}</TableCell>
-                  <TableCell class="text-right">{{
-                    $toCurrency(recharge.price)
-                  }}</TableCell>
+                  <TableCell
+                    class="text-right"
+                    :title="'R$ ' + recharge.total / recharge.credits"
+                    >{{ $toCurrency(recharge.price) }}</TableCell
+                  >
                   <TableCell class="text-right">{{
                     $toCurrency(recharge.total)
                   }}</TableCell>
@@ -380,6 +425,8 @@ import {
   Download,
   ArrowDown,
   ArrowUp,
+  ArrowLeft,
+  ArrowRight,
   ExternalLink,
   Eye,
   MoreHorizontal,
@@ -445,10 +492,42 @@ const meta = ref<Record<string, string>>({});
 
 const showSmsTemplateModal = ref(false);
 const selectedSmsCampaign = ref<any>(null);
+const currentSmsIndex = ref(0);
+const loadingSmsTemplate = ref(false);
 
 const openSmsTemplate = (campaign: any) => {
-  selectedSmsCampaign.value = campaign;
+  const index = campaigns.value.findIndex((c) => c.id === campaign.id);
+  if (index !== -1) {
+    currentSmsIndex.value = index;
+    selectedSmsCampaign.value = campaign;
+  } else {
+    selectedSmsCampaign.value = campaign;
+    currentSmsIndex.value = 0;
+  }
   showSmsTemplateModal.value = true;
+};
+
+const navigateSms = async (direction: "prev" | "next") => {
+  if (loadingSmsTemplate.value) return;
+
+  let newIndex = currentSmsIndex.value;
+  if (direction === "prev" && currentSmsIndex.value > 0) {
+    newIndex--;
+  } else if (
+    direction === "next" &&
+    currentSmsIndex.value < campaigns.value.length - 1
+  ) {
+    newIndex++;
+  } else {
+    return;
+  }
+
+  // Se futuramente houver necessidade de buscar mais dados, ative o loading.
+  // loadingSmsTemplate.value = true;
+  // try { ... } finally { loadingSmsTemplate.value = false; }
+
+  currentSmsIndex.value = newIndex;
+  selectedSmsCampaign.value = campaigns.value[newIndex];
 };
 
 const campaignOrderId = ref();
