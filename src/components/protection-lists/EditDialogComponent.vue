@@ -1,8 +1,10 @@
 <template>
-  <Button @click="openDialog()" size="icon" variant="ghost" :disabled="isLoading.show">
-    <Spinner v-if="isLoading.show" class="h-4 w-4 animate-spin" />
-    <PencilLine v-else />
-  </Button>
+  <slot :open="openDialog">
+    <Button @click="openDialog()" size="icon" variant="ghost" :disabled="isLoading.show">
+      <Spinner v-if="isLoading.show" class="h-4 w-4 animate-spin" />
+      <PencilLine v-else />
+    </Button>
+  </slot>
 
   <Dialog v-model:open="isDialog">
     <DialogContent class="max-w-2xl">

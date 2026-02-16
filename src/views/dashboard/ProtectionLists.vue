@@ -17,15 +17,19 @@
       <CardHeader>
         <div class="flex flex-col md:flex-row gap-4">
           <div class="flex-1">
+            <Label for="player_name">Jogador</Label>
+            <Input id="player_name" v-model="filters.player_name" placeholder="Nome do jogador" @input="fetchProtectionLists(1)" />
+          </div>
+          <div class="flex-1">
             <Label for="protectionType">Tipo de Proteção</Label>
             <Select v-model="filters.event_type" @update:modelValue="fetchProtectionLists(1)">
               <SelectTrigger id="protectionType">
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="forced">Forced</SelectItem>
-                <SelectItem value="exclusion">Exclusion</SelectItem>
-                <SelectItem value="temp_suspension">Temp Suspension</SelectItem>
+                <SelectItem value="forced">Forçada</SelectItem>
+                <SelectItem value="exclusion">Exclusão</SelectItem>
+                <SelectItem value="temp_suspension">Suspensão temporária</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -35,7 +39,7 @@
           </div>
           <div class="flex-1">
             <Label for="date">Data</Label>
-            <Input id="date" type="date" v-model="filters.date" @change="fetchProtectionLists(1)" />
+            <DateRangePicker v-model="selectedRange" />
           </div>
           <div class="flex items-end">
              <Button variant="outline" @click="clearFilters">Limpar Filtros</Button>
@@ -51,6 +55,14 @@
               <TableHead>Canal</TableHead>
               <TableHead>Período</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead class="cursor-pointer select-none" @click="toggleSort">
+                <div class="flex items-center gap-1">
+                  Criado em
+                  <ArrowUpDown v-if="!filters.orderDirection" class="h-4 w-4" />
+                  <ArrowUp v-else-if="filters.orderDirection === 'asc'" class="h-4 w-4" />
+                  <ArrowDown v-else class="h-4 w-4" />
+                </div>
+              </TableHead>
               <TableHead class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -71,21 +83,49 @@
                   {{ $moment(row.start_at).format('DD/MM/YYYY') }} - {{ row.end_at ? $moment(row.end_at).format('DD/MM/YYYY') : 'Indefinido' }}
                 </TableCell>
                 <TableCell>
-                  <Badge v-if="row.dispatch_type === 'LP_ENTERED'" variant="secondary" class="bg-blue-200 text-blue-800">Regra Manual</Badge>
-                  <Badge v-else variant="secondary" class="bg-gray-200 text-gray-800">Status do Usuário</Badge>
+                  <Badge variant="secondary" class="bg-blue-200 text-blue-800"> {{
+                    row.user_id === null ? "Regra do Sistema":"Regra Manual"
+                    }}</Badge>
+                </TableCell>
+                <TableCell>
+                  {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm') }}
                 </TableCell>
                 <TableCell class="text-right">
-                  <div class="gap-1 flex flex-nowrap justify-end">
-                    <EditDialogComponent :row="row" :reload="fetchProtectionLists" />
-                    <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchProtectionLists" />
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                      <Button variant="ghost" class="h-8 w-8 p-0">
+                        <span class="sr-only">Abrir menu</span>
+                        < MoreHorizontal class="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      
+                      <EditDialogComponent :row="row" :reload="fetchProtectionLists">
+                        <template #default="{ open }">
+                          <DropdownMenuItem @click="open">
+                            <Pencil class="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                        </template>
+                      </EditDialogComponent>
+
+                      <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchProtectionLists">
+                        <DropdownMenuItem @click.prevent class="text-red-600 focus:text-red-600 focus:bg-red-50">
+                          <Trash class="mr-2 h-4 w-4" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DestroyDialogComponent>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             </transition-group>
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
-                <TableCell v-for="j in 6" :key="i">
+                <TableCell v-for="j in 7" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
@@ -93,7 +133,7 @@
 
             <template v-if="!isLoading && (!protectionLists || !protectionLists.length)">
               <TableRow>
-                <TableCell :colspan="6" class="text-center py-5">
+                <TableCell :colspan="7" class="text-center py-5">
                   Nenhum registro encontrado.
                 </TableCell>
               </TableRow>
@@ -113,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted, reactive, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -122,6 +162,7 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/protection-lists/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/protection-lists/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
+import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -130,6 +171,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-vue-next";
 
 const { toast } = useToast();
 
@@ -143,11 +193,25 @@ const pages = ref({
   total: 0
 });
 
+const selectedRange = ref({ start: undefined, end: undefined });
+
 const filters = reactive({
   event_type: '',
   channel: '',
-  date: ''
+  orderBy: 'created_at',
+  orderDirection: ''
 });
+
+const toggleSort = () => {
+  if (filters.orderDirection === '') {
+    filters.orderDirection = 'asc';
+  } else if (filters.orderDirection === 'asc') {
+    filters.orderDirection = 'desc';
+  } else {
+    filters.orderDirection = '';
+  }
+  fetchProtectionLists(1);
+}
 
 const fetchProtectionLists = async (page = 1) => {
   isLoading.value = true;
@@ -156,11 +220,13 @@ const fetchProtectionLists = async (page = 1) => {
       project_id: workspaceStore.activeGroupProject?.id!,
       page,
       per_page: perPage.value,
-      ...filters
+      ...filters,
+      start_date: selectedRange.value.start?.toString(),
+      end_date: selectedRange.value.end?.toString(),
     };
 
     Object.keys(params).forEach(key => {
-      if (params[key] === '' || params[key] === null) {
+      if (params[key] === '' || params[key] === null || params[key] === undefined) {
         delete params[key];
       }
     });
@@ -199,9 +265,16 @@ const destroy = async (id: number) => {
 const clearFilters = () => {
   filters.event_type = '';
   filters.channel = '';
-  filters.date = '';
+  filters.orderDirection = '';
+  selectedRange.value = { start: undefined, end: undefined };
   fetchProtectionLists(1);
 }
+
+watch(selectedRange, () => {
+  if (selectedRange.value.start && selectedRange.value.end) {
+    fetchProtectionLists(1);
+  }
+});
 
 onMounted(async () => {
   await fetchProtectionLists();
