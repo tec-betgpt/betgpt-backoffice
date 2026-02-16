@@ -16,6 +16,53 @@
         <div class="grid gap-4 py-4">
           <div class="grid grid-cols-2 gap-4">
             <div class="gap-2">
+              <Label for="project_id">Projeto</Label>
+              <Popover v-model:open="openProject">
+                <PopoverTrigger as-child>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    :aria-expanded="openProject"
+                    class="w-full justify-between"
+                  >
+                    {{ form.project_id ? projects.find((project) => project.id === form.project_id)?.name || form.project_id : "Selecione o projeto..." }}
+                    <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-[300px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar projeto..." @input="onSearchProject" />
+                    <CommandEmpty>Nenhum projeto encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandList>
+                        <CommandItem
+                          v-for="project in projects"
+                          :key="project.id"
+                          :value="project.name"
+                          @select="() => {
+                            form.project_id = project.id
+                            form.player_id = null
+                            players = []
+                            openProject = false
+                            fetchPlayers()
+                          }"
+                        >
+                          <Check
+                            :class="cn(
+                              'mr-2 h-4 w-4',
+                              form.project_id === project.id ? 'opacity-100' : 'opacity-0'
+                            )"
+                          />
+                          {{ project.name }}
+                        </CommandItem>
+                      </CommandList>
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div class="gap-2">
               <Label for="player_id">Jogador</Label>
               <Popover v-model:open="openPlayer">
                 <PopoverTrigger as-child>
@@ -23,6 +70,7 @@
                     variant="outline"
                     role="combobox"
                     :aria-expanded="openPlayer"
+                    :disabled="!form.project_id"
                     class="w-full justify-between"
                   >
                     {{ form.player_id ? players.find((player) => player.id === form.player_id)?.name || form.player_id : "Selecione o jogador..." }}
@@ -50,51 +98,7 @@
                               form.player_id === player.id ? 'opacity-100' : 'opacity-0'
                             )"
                           />
-                          {{ player.name }} ({{ player.email }})
-                        </CommandItem>
-                      </CommandList>
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div class="gap-2">
-              <Label for="project_id">Projeto</Label>
-              <Popover v-model:open="openProject">
-                <PopoverTrigger as-child>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    :aria-expanded="openProject"
-                    class="w-full justify-between"
-                  >
-                    {{ form.project_id ? projects.find((project) => project.id === form.project_id)?.name || form.project_id : "Selecione o projeto..." }}
-                    <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent class="w-[300px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Buscar projeto..." @input="onSearchProject" />
-                    <CommandEmpty>Nenhum projeto encontrado.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandList>
-                        <CommandItem
-                          v-for="project in projects"
-                          :key="project.id"
-                          :value="project.name"
-                          @select="() => {
-                            form.project_id = project.id
-                            openProject = false
-                          }"
-                        >
-                          <Check
-                            :class="cn(
-                              'mr-2 h-4 w-4',
-                              form.project_id === project.id ? 'opacity-100' : 'opacity-0'
-                            )"
-                          />
-                          {{ project.name }}
+                          {{ player.name }}
                         </CommandItem>
                       </CommandList>
                     </CommandGroup>
@@ -139,15 +143,9 @@
             <Input v-model="form.channel" placeholder="Canal" />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="gap-2">
-              <Label for="start_at">Início</Label>
-              <Input type="datetime-local" v-model="form.start_at" />
-            </div>
-            <div class="gap-2">
-              <Label for="end_at">Fim</Label>
-              <Input type="datetime-local" v-model="form.end_at" />
-            </div>
+          <div class="gap-2 flex flex-col">
+            <Label>Período de Proteção</Label>
+            <DateRangePicker v-model="selectedRange" />
           </div>
 
           <div class="gap-2">
@@ -167,33 +165,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { Plus, Check, ChevronsUpDown } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast";
+import {ref} from "vue";
+import {Check, ChevronsUpDown, Plus} from "lucide-vue-next";
+import {useToast} from "@/components/ui/toast";
 import ProtectionLists from "@/services/protectionLists";
-import Players from "@/services/players";
 import Projects from "@/services/projects";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { useWorkspaceStore } from "@/stores/workspace";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import {Button} from "@/components/ui/button";
+import {Label} from "@/components/ui/label";
+import {Input} from "@/components/ui/input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Textarea} from "@/components/ui/textarea";
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {cn} from "@/lib/utils";
+import {useWorkspaceStore} from "@/stores/workspace";
+import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 
 const props = defineProps<{ reload: () => Promise<void> }>();
 const { toast } = useToast();
 
-const projectId = useWorkspaceStore().activeGroupProject!.id
 const isLoading = ref(false);
 const isDialog = ref(false);
 const openPlayer = ref(false);
 const openProject = ref(false);
-const players = ref([]);
-const projects = ref([]);
+const players = ref<{id: number, name: string}[]>([]);
+const projects = ref<{id: number, name: string}[]>([]);
+const workspaceStore = useWorkspaceStore();
+const selectedRange = ref({ start: undefined, end: undefined });
 
 const form = ref({
   player_id: null,
@@ -206,20 +212,25 @@ const form = ref({
   reason: ''
 });
 
+const fetchPlayers = async (search = '') => {
+  if (!form.value.project_id) return;
+  
+  try {
+    players.value = await ProtectionLists.getPlayersByProject(form.value.project_id, {
+      search: search,
+      per_page: 10,
+      filter_id: workspaceStore.activeGroupProject.id
+    });
+    console.log(players.value);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 const onSearchPlayer = async (e: any) => {
   const search = e.target.value;
   if (search.length > 2) {
-    try {
-      const response = await Players.index({
-        search: [search],
-        perPage: 10,
-        filter_id: projectId
-      });
-
-      players.value = response.data;
-    } catch (error) {
-        console.error(error);
-    }
+    await fetchPlayers(search);
   }
 }
 
@@ -241,15 +252,7 @@ const onSearchProject = async (e: any) => {
 
 const fetchInitialData = async () => {
   try {
-    const [playersRes, projectsRes] = await Promise.all([
-      Players.index({
-        perPage: 10,
-        filter_id: projectId
-      }),
-      Projects.index({ per_page: 10 })
-    ]);
-
-    players.value = playersRes.data;
+    const projectsRes = await Projects.index({ per_page: 10 });
     projects.value = projectsRes.data;
   } catch (error) {
       console.error(error);
@@ -261,7 +264,13 @@ const onSubmit = async () => {
   isLoading.value = true
 
   try {
-    await ProtectionLists.store(form.value)
+    const payload = {
+      ...form.value,
+      start_at: selectedRange.value.start?.toString(),
+      end_at: selectedRange.value.end?.toString(),
+    }
+
+    await ProtectionLists.store(payload)
     await props.reload();
     isDialog.value = false;
     toast({
@@ -291,6 +300,8 @@ const openDialog = async () => {
     end_at: '',
     reason: ''
   }
+  selectedRange.value = { start: undefined, end: undefined };
+  players.value = [];
   await fetchInitialData();
   isDialog.value = true;
 }

@@ -98,6 +98,16 @@ export default {
   async alerts(params = {}) {
     const { data } = await api.get('/protection-lists/alerts', { params })
     return data
+  },
+
+  /**
+   * @param {number} projectId
+   * @param {object} params
+   * @returns {Promise<any>}
+   */
+  async getPlayersByProject(projectId, params = {}) {
+    const { data } = await api.get(`/protection-lists/projects/${projectId}/players`, { params })
+    return data
   }
 }
 

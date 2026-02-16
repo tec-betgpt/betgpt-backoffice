@@ -52,6 +52,7 @@
             <TableRow>
               <TableHead>Jogador</TableHead>
               <TableHead>Tipo</TableHead>
+              <TableHead>Movimentação</TableHead>
               <TableHead>Canal</TableHead>
               <TableHead>Período</TableHead>
               <TableHead>Status</TableHead>
@@ -74,13 +75,21 @@
                   {{ row.player?.name }}
                 </TableCell>
                 <TableCell>
-                  {{ row.event_type }}
+                  {{ eventTypeMap[row.event_type] || row.event_type }}
                 </TableCell>
                 <TableCell>
-                  {{ row.channel }}
+                  <Badge :variant="row.dispatch_type === 'LP_ENTERED' ? 'default' : 'outline'" 
+                         :class="row.dispatch_type === 'LP_ENTERED' ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100' : 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100'">
+                    {{ dispatchTypeMap[row.dispatch_type] || row.dispatch_type }}
+                  </Badge>
                 </TableCell>
                 <TableCell>
-                  {{ $moment(row.start_at).format('DD/MM/YYYY') }} - {{ row.end_at ? $moment(row.end_at).format('DD/MM/YYYY') : 'Indefinido' }}
+                  {{ row.channel || '-' }}
+                </TableCell>
+                <TableCell class="whitespace-nowrap">
+                  {{ $moment(row.start_at).format('DD/MM/YYYY') }}
+                  <span v-if="row.end_at"> - {{ $moment(row.end_at).format('DD/MM/YYYY') }}</span>
+                  <span v-else class="text-muted-foreground italic"> - Indefinido</span>
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary" class="bg-blue-200 text-blue-800"> {{
@@ -125,7 +134,7 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
-                <TableCell v-for="j in 7" :key="i">
+                <TableCell v-for="j in 8" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
@@ -133,7 +142,7 @@
 
             <template v-if="!isLoading && (!protectionLists || !protectionLists.length)">
               <TableRow>
-                <TableCell :colspan="7" class="text-center py-5">
+                <TableCell :colspan="8" class="text-center py-5">
                   Nenhum registro encontrado.
                 </TableCell>
               </TableRow>
@@ -194,6 +203,18 @@ const pages = ref({
 });
 
 const selectedRange = ref({ start: undefined, end: undefined });
+
+const eventTypeMap = {
+  forced: 'Forçada',
+  exclusion: 'Exclusão',
+  temp_suspension: 'Suspensão Temporária'
+};
+
+const dispatchTypeMap = {
+  LP_ENTERED: 'Entrando',
+  LP_EXITED: 'Saindo',
+  LP_UPDATED: 'Atualizando'
+};
 
 const filters = reactive({
   player_name: '',
@@ -282,3 +303,4 @@ onMounted(async () => {
   await fetchProtectionLists();
 });
 </script>
+
