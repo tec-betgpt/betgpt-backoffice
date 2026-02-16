@@ -95,7 +95,7 @@
                     <DropdownMenuTrigger as-child>
                       <Button variant="ghost" class="h-8 w-8 p-0">
                         <span class="sr-only">Abrir menu</span>
-                        < MoreHorizontal class="h-4 w-4" />
+                        <MoreHorizontal class="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
