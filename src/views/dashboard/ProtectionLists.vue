@@ -50,7 +50,7 @@
         <Table class="w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>Identificador</TableHead>
+              <TableHead>Jogador</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Canal</TableHead>
               <TableHead>Período</TableHead>
@@ -71,7 +71,7 @@
             <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
               <TableRow v-for="(row, index) in protectionLists" :key="row.id" :style="`--delay: ${getMs(index)}`">
                 <TableCell>
-                  {{ row.id }}
+                  {{ row.player?.name }}
                 </TableCell>
                 <TableCell>
                   {{ row.event_type }}
@@ -196,6 +196,7 @@ const pages = ref({
 const selectedRange = ref({ start: undefined, end: undefined });
 
 const filters = reactive({
+  player_name: '',
   event_type: '',
   channel: '',
   orderBy: 'created_at',
@@ -263,6 +264,7 @@ const destroy = async (id: number) => {
 }
 
 const clearFilters = () => {
+  filters.player_name = '';
   filters.event_type = '';
   filters.channel = '';
   filters.orderDirection = '';
