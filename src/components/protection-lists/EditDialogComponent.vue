@@ -1,5 +1,5 @@
 <template>
-  <slot :open="openDialog">
+  <slot v-if="$slots.default" :open="openDialog">
     <Button @click="openDialog()" size="icon" variant="ghost" :disabled="isLoading.show">
       <Spinner v-if="isLoading.show" class="h-4 w-4 animate-spin" />
       <PencilLine v-else />
@@ -51,15 +51,9 @@
             <Input v-model="form.channel" placeholder="Canal" />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="gap-2">
-              <Label for="start_at">Início</Label>
-              <Input type="datetime-local" v-model="form.start_at" />
-            </div>
-            <div class="gap-2">
-              <Label for="end_at">Fim</Label>
-              <Input type="datetime-local" v-model="form.end_at" />
-            </div>
+          <div class="gap-2">
+            <Label>Período de Proteção</Label>
+            <DateRangePicker v-model="selectedRange" />
           </div>
 
           <div class="gap-2">
@@ -90,6 +84,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
+import DateRangePicker from "@/components/custom/DateRangePicker.vue";
+import { CalendarDate, parseDate } from "@internationalized/date";
 
 const props = defineProps<{
   row: any,
@@ -102,13 +98,13 @@ const isLoading = ref({
   show: false
 });
 const isDialog = ref(false);
+const selectedRange = ref({ start: undefined, end: undefined });
+
 const form = ref({
   project_id: null,
   dispatch_type: '',
   event_type: '',
   channel: '',
-  start_at: '',
-  end_at: '',
   reason: ''
 });
 
@@ -116,7 +112,13 @@ const onSubmit = async () => {
   isLoading.value.onSubmit = true
 
   try {
-    await ProtectionLists.update(props.row.id, form.value)
+    const payload = {
+      ...form.value,
+      start_at: selectedRange.value.start?.toString(),
+      end_at: selectedRange.value.end?.toString(),
+    }
+
+    await ProtectionLists.update(props.row.id, payload)
     await props.reload();
     isDialog.value = false;
     toast({
@@ -141,10 +143,18 @@ const show = async () => {
   try {
     const data = await ProtectionLists.show(props.row.id);
     form.value = {
-        ...data,
-        start_at: data.start_at ? data.start_at.slice(0, 16) : '',
-        end_at: data.end_at ? data.end_at.slice(0, 16) : ''
+        project_id: data.project_id,
+        dispatch_type: data.dispatch_type,
+        event_type: data.event_type,
+        channel: data.channel,
+        reason: data.reason
     };
+
+    if (data.start_at) {
+      const start = parseDate(data.start_at.slice(0, 10));
+      const end = data.end_at ? parseDate(data.end_at.slice(0, 10)) : undefined;
+      selectedRange.value = { start, end };
+    }
   } catch (e) {
     console.error(e)
     toast({
@@ -161,4 +171,8 @@ const openDialog = async () => {
   await show()
   isDialog.value = true;
 }
+
+defineExpose({
+  openDialog
+});
 </script>

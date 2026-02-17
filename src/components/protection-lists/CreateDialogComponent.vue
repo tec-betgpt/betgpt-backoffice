@@ -16,53 +16,6 @@
         <div class="grid gap-4 py-4">
           <div class="grid grid-cols-2 gap-4">
             <div class="gap-2">
-              <Label for="project_id">Projeto</Label>
-              <Popover v-model:open="openProject">
-                <PopoverTrigger as-child>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    :aria-expanded="openProject"
-                    class="w-full justify-between"
-                  >
-                    {{ form.project_id ? projects.find((project) => project.id === form.project_id)?.name || form.project_id : "Selecione o projeto..." }}
-                    <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent class="w-[300px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Buscar projeto..." @input="onSearchProject" />
-                    <CommandEmpty>Nenhum projeto encontrado.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandList>
-                        <CommandItem
-                          v-for="project in projects"
-                          :key="project.id"
-                          :value="project.name"
-                          @select="() => {
-                            form.project_id = project.id
-                            form.player_id = null
-                            players = []
-                            openProject = false
-                            fetchPlayers()
-                          }"
-                        >
-                          <Check
-                            :class="cn(
-                              'mr-2 h-4 w-4',
-                              form.project_id === project.id ? 'opacity-100' : 'opacity-0'
-                            )"
-                          />
-                          {{ project.name }}
-                        </CommandItem>
-                      </CommandList>
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div class="gap-2">
               <Label for="player_id">Jogador</Label>
               <Popover v-model:open="openPlayer">
                 <PopoverTrigger as-child>
@@ -70,7 +23,7 @@
                     variant="outline"
                     role="combobox"
                     :aria-expanded="openPlayer"
-                    :disabled="!form.project_id"
+                    :disabled="!players"
                     class="w-full justify-between"
                   >
                     {{ form.player_id ? players.find((player) => player.id === form.player_id)?.name || form.player_id : "Selecione o jogador..." }}
@@ -78,11 +31,11 @@
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent class="w-[300px] p-0">
-                  <Command>
+                  <Command :filter-results="false">
                     <CommandInput placeholder="Buscar jogador..." @input="onSearchPlayer" />
-                    <CommandEmpty>Nenhum jogador encontrado.</CommandEmpty>
+                    <CommandEmpty v-if="!isLoadingPlayers && !players.length">Nenhum jogador encontrado.</CommandEmpty>
                     <CommandGroup>
-                      <CommandList>
+                      <CommandList @scroll="handleScroll">
                         <CommandItem
                           v-for="player in players"
                           :key="player.id"
@@ -100,6 +53,9 @@
                           />
                           {{ player.name }}
                         </CommandItem>
+                        <div v-if="isLoadingPlayers" class="py-2 text-center text-sm text-muted-foreground">
+                          Carregando...
+                        </div>
                       </CommandList>
                     </CommandGroup>
                   </Command>
@@ -130,9 +86,9 @@
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="forced">Forced</SelectItem>
-                  <SelectItem value="exclusion">Exclusion</SelectItem>
-                  <SelectItem value="temp_suspension">Temp Suspension</SelectItem>
+                  <SelectItem value="forced">Forçada</SelectItem>
+                  <SelectItem value="exclusion">Exclusão</SelectItem>
+                  <SelectItem value="temp_suspension">Suspensão temporária</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -193,6 +149,7 @@ const props = defineProps<{ reload: () => Promise<void> }>();
 const { toast } = useToast();
 
 const isLoading = ref(false);
+const isLoadingPlayers = ref(false);
 const isDialog = ref(false);
 const openPlayer = ref(false);
 const openProject = ref(false);
@@ -200,6 +157,13 @@ const players = ref<{id: number, name: string}[]>([]);
 const projects = ref<{id: number, name: string}[]>([]);
 const workspaceStore = useWorkspaceStore();
 const selectedRange = ref({ start: undefined, end: undefined });
+
+const playerPages = ref({
+  current: 1,
+  last: 1
+});
+const playerSearch = ref('');
+let searchTimeout: any = null;
 
 const form = ref({
   player_id: null,
@@ -212,25 +176,49 @@ const form = ref({
   reason: ''
 });
 
-const fetchPlayers = async (search = '') => {
-  if (!form.value.project_id) return;
+const fetchPlayers = async (page = 1, append = false) => {
+  if (isLoadingPlayers.value) return;
   
+  isLoadingPlayers.value = true;
   try {
-    players.value = await ProtectionLists.getPlayersByProject(form.value.project_id, {
-      search: search,
-      per_page: 10,
+    const response = await ProtectionLists.getPlayersByProject(workspaceStore.activeGroupProject.project_id, {
+      search: playerSearch.value,
+      per_page: 15,
+      page: page,
       filter_id: workspaceStore.activeGroupProject.id
     });
-    console.log(players.value);
+
+    if (append) {
+      players.value = [...players.value, ...response.data];
+    } else {
+      players.value = response.data;
+    }
+
+    playerPages.value = {
+      current: response.current_page,
+      last: response.last_page
+    };
   } catch (error) {
     console.error(error);
+  } finally {
+    isLoadingPlayers.value = false;
   }
 }
 
-const onSearchPlayer = async (e: any) => {
-  const search = e.target.value;
-  if (search.length > 2) {
-    await fetchPlayers(search);
+const onSearchPlayer = (e: any) => {
+  playerSearch.value = e.target.value;
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    fetchPlayers(1, false);
+  }, 500);
+}
+
+const handleScroll = (e: any) => {
+  const { scrollTop, scrollHeight, clientHeight } = e.target;
+  if (scrollTop + clientHeight >= scrollHeight - 5) {
+    if (playerPages.value.current < playerPages.value.last && !isLoadingPlayers.value) {
+      fetchPlayers(playerPages.value.current + 1, true);
+    }
   }
 }
 
@@ -302,7 +290,10 @@ const openDialog = async () => {
   }
   selectedRange.value = { start: undefined, end: undefined };
   players.value = [];
-  await fetchInitialData();
+  playerSearch.value = '';
+  playerPages.value = { current: 1, last: 1 };
+  
+  fetchPlayers();
   isDialog.value = true;
 }
 </script>

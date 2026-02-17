@@ -1,7 +1,7 @@
 <template>
-  <AlertDialog>
-    <AlertDialogTrigger as-child>
-      <slot>
+  <AlertDialog v-model:open="isDialog">
+    <AlertDialogTrigger v-if="$slots.default" as-child>
+      <slot :open="openDialog">
         <Button size="icon" variant="ghost" class="text-red-400 hover:text-white hover:bg-red-400">
           <Trash />
         </Button>
@@ -22,6 +22,7 @@
   </AlertDialog>
 </template>
 <script setup lang="ts">
+import { ref } from "vue";
 import { Trash } from "lucide-vue-next";
 import {
   AlertDialog,
@@ -50,11 +51,21 @@ const props = defineProps<{
   /**
    * Objeto que representa o registro a ser deletado, importante ter o id
    */
-  row: Object,
+  row: any,
 }>();
+
+const isDialog = ref(false);
+
+const openDialog = () => {
+  isDialog.value = true;
+}
 
 const confirm = async () => {
   await props.destroy(props.row.id);
   await props.reload();
 }
+
+defineExpose({
+  openDialog
+});
 </script>

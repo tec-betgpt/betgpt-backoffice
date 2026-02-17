@@ -87,9 +87,8 @@
                   {{ row.channel || '-' }}
                 </TableCell>
                 <TableCell class="whitespace-nowrap">
-                  {{ $moment(row.start_at).format('DD/MM/YYYY') }}
-                  <span v-if="row.end_at"> - {{ $moment(row.end_at).format('DD/MM/YYYY') }}</span>
-                  <span v-else class="text-muted-foreground italic"> - Indefinido</span>
+                 <span v-if="row.start_at" >{{ $moment(row.start_at).format('DD/MM/YYYY') }} - {{ $moment(row.end_at).format('DD/MM/YYYY') }}</span>
+                  <span v-else class="text-muted-foreground italic"> - </span>
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary" class="bg-blue-200 text-blue-800"> {{
@@ -111,21 +110,15 @@
                       <DropdownMenuLabel>Ações</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       
-                      <EditDialogComponent :row="row" :reload="fetchProtectionLists">
-                        <template #default="{ open }">
-                          <DropdownMenuItem @click="open">
-                            <Pencil class="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                        </template>
-                      </EditDialogComponent>
+                      <DropdownMenuItem @click.prevent="openEdit(row)">
+                        <Pencil class="mr-2 h-4 w-4" />
+                        Editar
+                      </DropdownMenuItem>
 
-                      <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchProtectionLists">
-                        <DropdownMenuItem @click.prevent class="text-red-600 focus:text-red-600 focus:bg-red-50">
-                          <Trash class="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DestroyDialogComponent>
+                      <DropdownMenuItem @click.prevent="openDestroy(row)" class="text-red-600 focus:text-red-600 focus:bg-red-50">
+                        <Trash class="mr-2 h-4 w-4" />
+                        Excluir
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -158,11 +151,15 @@
         />
       </CardContent>
     </Card>
+
+    <!-- Diálogos fora do loop da tabela -->
+    <EditDialogComponent ref="editDialogRef" :row="selectedRow" :reload="fetchProtectionLists" />
+    <DestroyDialogComponent ref="destroyDialogRef" :destroy="destroy" :row="selectedRow" :reload="fetchProtectionLists" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, watch } from "vue";
+import { ref, onMounted, reactive, watch, nextTick } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -203,6 +200,9 @@ const pages = ref({
 });
 
 const selectedRange = ref({ start: undefined, end: undefined });
+const selectedRow = ref<any>(null);
+const editDialogRef = ref<any>(null);
+const destroyDialogRef = ref<any>(null);
 
 const eventTypeMap = {
   forced: 'Forçada',
@@ -223,6 +223,20 @@ const filters = reactive({
   orderBy: 'created_at',
   orderDirection: ''
 });
+
+const openEdit = (row: any) => {
+  selectedRow.value = row;
+  setTimeout(() => {
+    editDialogRef.value?.openDialog();
+  }, 200);
+}
+
+const openDestroy = (row: any) => {
+  selectedRow.value = row;
+  setTimeout(() => {
+    destroyDialogRef.value?.openDialog();
+  }, 200);
+}
 
 const toggleSort = () => {
   if (filters.orderDirection === '') {
