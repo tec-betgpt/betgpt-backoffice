@@ -79,31 +79,43 @@
             </select>
           </div>
 
-          <div ref="timelineContainer" @scroll="handleScroll" class="relative h-[calc(100vh-24rem)] overflow-y-auto">
-            <div v-if="filteredHistory.length > 0" class="absolute left-1/2 transform -translate-x-1/2 h-full border-l border-gray-300"></div>
-            <div v-for="(event, index) in filteredHistory" :key="index" class="mb-8">
-              <div class="flex items-center" :class="[isSameTypeAsPrevious(index) ? (getEventTypeSide(event.type) === 'left' ? 'justify-start' : 'justify-end') : (getEventTypeSide(event.type) === 'left' ? 'justify-start' : 'justify-end')]">
-                <div :class="[getEventTypeSide(event.type) === 'left' ? 'w-5/12' : 'w-5/12 order-2']">
-                  <Card :class="[getEventColor(event.type), 'shadow-md', 'cursor-pointer', 'hover:scale-105 transition-transform duration-200']" @click="showHistoryEventDetails(event)">
-                    <CardContent class="p-3">
-                      <p class="font-semibold">{{ event.title }}</p>
-                      <p class="text-xs">{{ event.description }}</p>
-                      <p class="text-xs mt-1 text-current opacity-75">{{ $moment(event.date).format('DD/MM/YYYY HH:mm') }}</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div class="w-1/12 flex justify-center order-1">
-                  <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
+          <div ref="timelineContainer" @scroll="handleScroll" class="h-[calc(100vh-24rem)] overflow-y-auto px-4">
+            <div class="relative min-h-full">
+              <!-- Linha vertical que agora acompanha o conteúdo total -->
+              <div v-if="filteredHistory.length > 0" class="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 border-l-2 border-gray-200"></div>
+              
+              <div v-for="(event, index) in filteredHistory" :key="index" class="mb-8 relative z-10">
+                <div class="flex items-center" :class="getEventTypeSide(event.type) === 'left' ? 'justify-start' : 'justify-end'">
+                  <div :class="[getEventTypeSide(event.type) === 'left' ? 'w-5/12' : 'w-5/12 order-2']">
+                    <Card 
+                      :class="[
+                        getEventColor(event.type), 
+                        'shadow-md cursor-pointer transition-all duration-200',
+                        getEventTypeSide(event.type) === 'left' ? 'hover:translate-x-1' : 'hover:-translate-x-1',
+                        'hover:scale-[1.02] hover:shadow-lg'
+                      ]" 
+                      @click="showHistoryEventDetails(event)"
+                    >
+                      <CardContent class="p-3">
+                        <p class="font-semibold">{{ event.title }}</p>
+                        <p class="text-xs">{{ event.description }}</p>
+                        <p class="text-xs mt-1 text-current opacity-75">{{ $moment(event.date).format('DD/MM/YYYY HH:mm') }}</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <div class="w-1/12 flex justify-center order-1">
+                    <div class="w-3 h-3 bg-gray-400 rounded-full border-2 border-background shadow-sm"></div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div v-if="filteredHistory.length === 0 && !isHistoryLoading" class="h-full flex items-center justify-center text-muted-foreground">
-              <p>Nenhum histórico disponível para este cliente.</p>
-            </div>
+              <div v-if="filteredHistory.length === 0 && !isHistoryLoading" class="h-full flex items-center justify-center text-muted-foreground pt-10">
+                <p>Nenhum histórico disponível para este cliente.</p>
+              </div>
 
-            <div v-if="isHistoryLoading" class="text-center p-4 text-sm text-muted-foreground">
-              Carregando mais...
+              <div v-if="isHistoryLoading" class="text-center p-4 text-sm text-muted-foreground">
+                Carregando mais...
+              </div>
             </div>
           </div>
         </CardContent>
