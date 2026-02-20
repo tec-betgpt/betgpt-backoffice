@@ -238,7 +238,7 @@
         >
           <div class="text-xs font-bold mb-2">Payload</div>
           <pre
-            class="bg-gray-900 text-white p-4 rounded-md text-xs overflow-x-auto overflow-y-scroll h-64"
+            class="bg-gray-900 text-white p-4 rounded-md text-xs overflow-x-scroll overflow-y-scroll h-64 w-full"
           ><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
         </div>
 
