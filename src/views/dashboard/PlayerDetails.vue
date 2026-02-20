@@ -133,6 +133,7 @@
               Carregando mais...
             </div>
           </div>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -180,70 +181,70 @@
       <DialogContent
         v-if="selectedHistoryEvent"
         :class="[
-          'transition-all duration-300',
-          isPayloadVisible ? 'sm:max-w-3xl' : 'sm:max-w-[425px]',
+          'transition-all duration-300 gap-0 p-0 overflow-hidden flex flex-col',
+          isPayloadVisible ? 'sm:max-w-3xl w-[95vw]' : 'sm:max-w-[425px] w-[95vw]',
         ]"
       >
-        <DialogHeader>
-          <div class="flex justify-between items-start">
-            <div>
-              <DialogTitle>Detalhes do Evento</DialogTitle>
-              <DialogDescription>
-                Informações detalhadas sobre o evento de histórico.
-              </DialogDescription>
-            </div>
-          </div>
+        <DialogHeader class="p-6 pb-2">
+          <DialogTitle>Detalhes do Evento</DialogTitle>
+          <DialogDescription>
+            Informações detalhadas sobre o evento de histórico.
+          </DialogDescription>
         </DialogHeader>
-        <div class="grid gap-4 pt-4 text-sm">
+        
+        <div class="p-6 pt-2 overflow-y-auto max-h-[70vh] space-y-4 text-sm">
           <div>
-            <div class="text-xs font-bold">Título</div>
-            <div class="text-sm">
+            <div class="text-xs font-bold text-muted-foreground uppercase">Título</div>
+            <div class="text-sm font-medium">
               {{ selectedHistoryEvent.title }}
             </div>
           </div>
           <div>
-            <div class="text-xs font-bold">Tipo</div>
-            <div class="text-sm">
+            <div class="text-xs font-bold text-muted-foreground uppercase">Tipo</div>
+            <div class="text-sm font-medium">
               {{ selectedHistoryEvent.type }}
             </div>
           </div>
           <div>
-            <div class="text-xs font-bold">Data</div>
-            <div class="text-sm">
+            <div class="text-xs font-bold text-muted-foreground uppercase">Data</div>
+            <div class="text-sm font-medium">
               {{
                 $moment(selectedHistoryEvent.date).format("DD/MM/YYYY HH:mm:ss")
               }}
             </div>
           </div>
           <div>
-            <div class="text-xs font-bold">Descrição</div>
-            <div class="text-sm">
+            <div class="text-xs font-bold text-muted-foreground uppercase">Descrição</div>
+            <div class="text-sm font-medium">
               {{ selectedHistoryEvent.description }}
             </div>
           </div>
-          <Button
-            v-if="selectedHistoryEvent.payload"
-            variant="outline"
-            size="sm"
-            @click="isPayloadVisible = !isPayloadVisible"
+          
+          <div v-if="selectedHistoryEvent.payload" class="pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              class="w-full sm:w-auto"
+              @click="isPayloadVisible = !isPayloadVisible"
+            >
+              <Code class="h-4 w-4 mr-2" />
+              {{ isPayloadVisible ? "Ocultar" : "Ver" }} Payload
+            </Button>
+          </div>
+
+          <div
+            v-if="isPayloadVisible && selectedHistoryEvent.payload"
+            class="mt-4 animate-in fade-in slide-in-from-top-2 duration-200"
           >
-            <Code class="h-4 w-4 mr-2" />
-            {{ isPayloadVisible ? "Ocultar" : "Ver" }} Payload
-          </Button>
+            <div class="text-xs font-bold mb-2 text-muted-foreground uppercase">Payload</div>
+            <pre
+              class="bg-gray-950 text-gray-100 p-4 rounded-md text-xs overflow-auto max-h-64 border border-border shadow-inner"
+            ><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
+          </div>
         </div>
 
-        <div
-          v-if="isPayloadVisible && selectedHistoryEvent.payload"
-          class="mt-4"
-        >
-          <div class="text-xs font-bold mb-2">Payload</div>
-          <pre
-            class="bg-gray-900 text-white p-4 rounded-md text-xs overflow-x-scroll overflow-y-scroll h-64 w-full"
-          ><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
-        </div>
-
-        <DialogFooter>
-          <Button @click="isHistoryDetailDialogOpen = false">Fechar</Button>
+        <DialogFooter class="p-6 pt-2 flex-row justify-end gap-2 border-t mt-auto">
+          <Button variant="secondary" @click="isHistoryDetailDialogOpen = false">Fechar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
