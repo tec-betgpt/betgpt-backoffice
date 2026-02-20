@@ -33,8 +33,13 @@
         </div>
       </div>
 
-      <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-[rgba(0,0,0,0.71)] to-[rgba(255,210,64,0.63)] z-10"></div>
-      <img src="/dashboard.jpg" class="absolute top-0 left-0 w-full h-full object-cover" />
+      <div
+        class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-[rgba(0,0,0,0.71)] to-[rgba(255,210,64,0.63)] z-10"
+      ></div>
+      <img
+        src="/dashboard.jpg"
+        class="absolute top-0 left-0 w-full h-full object-cover"
+      />
     </div>
 
     <div v-if="loading" class="pt-4">
@@ -118,7 +123,9 @@
                   @drop="onDropSub($event, subItem, item.id)"
                 >
                   <CardHeader class="pb-2">
-                    <CardTitle class="flex-row flex justify-between items-center">
+                    <CardTitle
+                      class="flex-row flex justify-between items-center"
+                    >
                       <div class="flex justify-between items-center">
                         <Avatar
                           v-if="subItem.icon"
@@ -127,23 +134,35 @@
                         >
                           <Component :is="subItem.icon" :color="iconColor" />
                         </Avatar>
-                        <span class="font-medium" :class="{ 'text-xs': !subItem.layout }">
+                        <span
+                          class="font-medium"
+                          :class="{ 'text-xs': !subItem.layout }"
+                        >
                           {{ subItem.title }}
                         </span>
                       </div>
 
-                      <GlossaryTooltipComponent :description="subItem.tooltip" />
+                      <GlossaryTooltipComponent
+                        :description="subItem.tooltip"
+                      />
                     </CardTitle>
-                    <CardDescription v-if="subItem.layout === 'list'" class="pb-5">
+                    <CardDescription
+                      v-if="subItem.layout === 'list'"
+                      class="pb-5"
+                    >
                       <span v-if="isShowValues">
-                        Tiveram {{ deposits.count30days }} entradas nos últimos 30 dias.
+                        Tiveram {{ deposits.count30days }} entradas nos últimos
+                        30 dias.
                       </span>
                       <skeleton-custom v-else />
                     </CardDescription>
                   </CardHeader>
 
                   <!-- LAYOUT TIPO GRÁFICO -->
-                  <CardContent v-if="subItem.layout === 'card'" class="max-sm:p-3">
+                  <CardContent
+                    v-if="subItem.layout === 'card'"
+                    class="max-sm:p-3"
+                  >
                     <BarChart
                       class="w-full"
                       :data="deposits.monthly_counts"
@@ -164,9 +183,9 @@
                       <div
                         v-for="deposit in deposits.lasts"
                         :key="deposit.id"
-                        class="flex items-center justify-between w-full"
+                        class="flex items-center w-full gap-2"
                       >
-                        <div class="space-y-1 w-1/2 max-sm:w-56 min-w-0">
+                        <div class="flex-1 min-w-0 space-y-1">
                           <p class="text-sm font-medium leading-none truncate">
                             {{ deposit.player.name }}
                           </p>
@@ -176,23 +195,46 @@
                         </div>
 
                         <div class="text-right" v-if="isShowValues">
-                          <span class="font-medium">
-                            +{{ $toCurrency(deposit.value / 100) }}
-                          </span>
+                          <span class="font-medium"
+                            >+{{ $toCurrency(deposit.value / 100) }}</span
+                          >
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <p class="text-xs text-muted-foreground text-right">
+                                <p
+                                  class="text-xs text-muted-foreground text-right"
+                                >
                                   {{ $moment(deposit.created_at).fromNow() }}
                                 </p>
                               </TooltipTrigger>
                               <TooltipContent>
-                                {{ $moment(deposit.created_at).format("DD/MM/YYYY HH:mm:ss") }}
+                                {{
+                                  $moment(deposit.created_at).format(
+                                    "DD/MM/YYYY HH:mm:ss",
+                                  )
+                                }}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </div>
                         <div class="text-right" v-else>
+                          <SkeletonCustom class="h-6 w-6" />
+                        </div>
+
+                        <div class="flex-shrink-0" v-if="isShowValues">
+                          <router-link
+                            :to="{
+                              name: 'clients.show',
+                              params: { id: deposit.player.id },
+                            }"
+                            target="_blank"
+                            class="inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
+                            title="Ver detalhes do cliente"
+                          >
+                            <Eye class="h-4 w-4" />
+                          </router-link>
+                        </div>
+                        <div v-else class="flex-shrink-0">
                           <SkeletonCustom class="h-6 w-6" />
                         </div>
                       </div>
@@ -214,7 +256,10 @@
                     <small class="text-xs">Total</small>
 
                     <div v-if="isShowValues">
-                      <div v-if="subItem.variation" class="mt-3 inline-block flex text-xs">
+                      <div
+                        v-if="subItem.variation"
+                        class="mt-3 inline-block flex text-xs"
+                      >
                         <div
                           v-if="subItem.variation > 0"
                           class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-green-700 text-green-200"
@@ -226,7 +271,8 @@
                           v-else
                           class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-red-700 rounded-md text-red-200"
                         >
-                          <ArrowDown class="h-4 w-4 mr-1" /> {{ subItem.variation }}%
+                          <ArrowDown class="h-4 w-4 mr-1" />
+                          {{ subItem.variation }}%
                         </div>
                         desde a semana anterior
                       </div>
@@ -256,7 +302,8 @@
                           v-else
                           class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-red-700 text-red-300"
                         >
-                          <ArrowDown class="h-4 w-4 mr-1" /> {{ subItem.variation }}
+                          <ArrowDown class="h-4 w-4 mr-1" />
+                          {{ subItem.variation }}
                         </div>
                         desde o dia anterior
                       </div>
@@ -279,7 +326,10 @@
                     <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
 
                     <div v-if="isShowValues">
-                      <div v-if="subItem.variation" class="mt-3 flex items-center text-xs">
+                      <div
+                        v-if="subItem.variation"
+                        class="mt-3 flex items-center text-xs"
+                      >
                         <div
                           v-if="subItem.variation > 0"
                           class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-green-700 text-green-200"
@@ -320,11 +370,12 @@
       </TransitionGroup>
     </div>
 
-    <div v-if="user && !user.is_available" class="bg-gray-50/5 w-full h-full backdrop-blur-lg absolute top-0 left-0 z-20 flex flex-col items-center justify-start px-4 pt-64 text-center">
+    <div
+      v-if="user && !user.is_available"
+      class="bg-gray-50/5 w-full h-full backdrop-blur-lg absolute top-0 left-0 z-20 flex flex-col items-center justify-start px-4 pt-64 text-center"
+    >
       <LucideLockOpen />
-      <div class="text-sm font-bold">
-        Conta suspensa
-      </div>
+      <div class="text-sm font-bold">Conta suspensa</div>
       <div class="text-xs">
         Por favor, efetue o pagamento das faturas pendentes.
       </div>
@@ -531,7 +582,7 @@ export default {
   beforeUnmount() {
     Object.values(this.resizeObservers).forEach((obs) => obs.disconnect());
     Object.values(this.debounceTimers).forEach((timerId) =>
-      clearTimeout(timerId)
+      clearTimeout(timerId),
     );
   },
 
@@ -561,7 +612,7 @@ export default {
               this.rowWidths[index] = entry.contentRect.width;
             },
             150,
-            `resize_${index}`
+            `resize_${index}`,
           );
         }
       });
@@ -594,10 +645,10 @@ export default {
 
       if (draggedItemId && draggedItemId !== targetItem.id) {
         const draggedItemIndex = this.cards.findIndex(
-          (i) => i.id === draggedItemId
+          (i) => i.id === draggedItemId,
         );
         const targetItemIndex = this.cards.findIndex(
-          (i) => i.id === targetItem.id
+          (i) => i.id === targetItem.id,
         );
 
         if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
@@ -626,13 +677,13 @@ export default {
 
       for (let i = 0; i < parentCard.content.length; i++) {
         const sourceIndex = parentCard.content[i].findIndex(
-          (c) => c.id === draggedItemId
+          (c) => c.id === draggedItemId,
         );
         if (sourceIndex !== -1) {
           sourceLocation = { rowIndex: i, itemIndex: sourceIndex };
         }
         const targetIndex = parentCard.content[i].findIndex(
-          (c) => c.id === targetItem.id
+          (c) => c.id === targetItem.id,
         );
         if (targetIndex !== -1) {
           targetLocation = { rowIndex: i, itemIndex: targetIndex };
@@ -644,13 +695,13 @@ export default {
 
       const [removedItem] = parentCard.content[sourceLocation.rowIndex].splice(
         sourceLocation.itemIndex,
-        1
+        1,
       );
 
       parentCard.content[targetLocation.rowIndex].splice(
         targetLocation.itemIndex,
         0,
-        removedItem
+        removedItem,
       );
 
       parentCard.content = parentCard.content.filter((row) => row.length > 0);
@@ -671,7 +722,7 @@ export default {
 
       for (let i = 0; i < parentCard.content.length; i++) {
         const itemIndex = parentCard.content[i].findIndex(
-          (c) => c.id === draggedItemId
+          (c) => c.id === draggedItemId,
         );
         if (itemIndex !== -1) {
           [draggedItem] = parentCard.content[i].splice(itemIndex, 1);
@@ -703,7 +754,7 @@ export default {
     },
 
     async _user() {
-      this.user = useAuthStore().user ;
+      this.user = useAuthStore().user;
     },
 
     greeting() {
@@ -720,7 +771,7 @@ export default {
 
     editLayout(value: string) {
       this.cards = this.cards.map((card) =>
-        card.id === value ? { ...card, edit: !card.edit } : card
+        card.id === value ? { ...card, edit: !card.edit } : card,
       );
       const card = this.cards.find((card) => card.id === value);
 
@@ -897,7 +948,7 @@ export default {
             .map((savedRow) =>
               savedRow
                 .map((cardId) => allSubItemsMap.get(cardId))
-                .filter(Boolean)
+                .filter(Boolean),
             )
             .filter((row) => row.length > 0);
           return { ...groupData, content: newContent };
@@ -1287,5 +1338,12 @@ export default {
   to {
     transform: rotate(360deg);
   }
+}
+
+.icon-link {
+  transition: color 0.2s ease;
+}
+.icon-link:hover {
+  color: var(--primary);
 }
 </style>

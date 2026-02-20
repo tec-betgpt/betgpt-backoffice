@@ -2,7 +2,11 @@
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="space-y-0.5">
       <div class="flex items-center gap-4">
-        <Button variant="outline" size="icon" @click="$router.back()">
+        <Button
+          variant="outline"
+          size="icon"
+          @click="$router.push({ name: 'clients' })"
+        >
           <ChevronLeft class="h-4 w-4" />
         </Button>
         <div>
@@ -13,9 +17,12 @@
         </div>
       </div>
     </div>
-    <div v-if="player" class="flex gap-6 pt-4 sm:flex-row flex-col flex-wrap text-sm">
+    <div
+      v-if="player"
+      class="flex gap-6 pt-4 sm:flex-row flex-col flex-wrap text-sm"
+    >
       <!-- Player Details Card -->
-      <Card class="sm:w-80  ">
+      <Card class="sm:w-80">
         <CardHeader>
           <CardTitle>Dados do Usuário</CardTitle>
         </CardHeader>
@@ -24,7 +31,7 @@
             <div>
               <div class="text-xs font-bold">Nome</div>
               <div class="text-sm">
-                {{ player.name ?? 'Não Informado' }}
+                {{ player.name ?? "Não Informado" }}
               </div>
             </div>
 
@@ -38,7 +45,10 @@
             <div>
               <div class="text-xs font-bold">Nascimento</div>
               <div class="text-sm">
-                {{ $moment(player.birthday).format('DD/MM/YYYY') }} ({{ getAge(player.birthday) }} anos)
+                {{ $moment(player.birthday).format("DD/MM/YYYY") }} ({{
+                  getAge(player.birthday)
+                }}
+                anos)
               </div>
             </div>
 
@@ -52,7 +62,7 @@
             <div>
               <div class="text-xs font-bold">Cadastrado em</div>
               <div class="text-sm">
-                {{ $moment(player.created_at).format('DD/MM/YYYY') }}
+                {{ $moment(player.created_at).format("DD/MM/YYYY") }}
               </div>
             </div>
           </div>
@@ -60,20 +70,26 @@
       </Card>
 
       <!-- History Card -->
-      <Card class="flex-1" >
+      <Card class="flex-1">
         <CardHeader>
           <CardTitle>Histórico do Usuário</CardTitle>
         </CardHeader>
         <CardContent class="space-y-4">
           <div class="flex flex-col gap-2">
-            <label for="history-filter" class="text-sm font-medium">Filtrar histórico por tipo:</label>
+            <label for="history-filter" class="text-sm font-medium"
+              >Filtrar histórico por tipo:</label
+            >
             <select
-                id="history-filter"
-                v-model="selectedEventType"
-                class="block w-full max-w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              id="history-filter"
+              v-model="selectedEventType"
+              class="block w-full max-w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="all">Todos</option>
-              <option v-for="option in filterOptions" :key="option.value" :value="option.value">
+              <option
+                v-for="option in filterOptions"
+                :key="option.value"
+                :value="option.value"
+              >
                 {{ option.label }}
               </option>
             </select>
@@ -83,17 +99,17 @@
             <div class="relative min-h-full">
               <!-- Linha vertical que agora acompanha o conteúdo total -->
               <div v-if="filteredHistory.length > 0" class="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 border-l-2 border-gray-200"></div>
-              
+
               <div v-for="(event, index) in filteredHistory" :key="index" class="mb-8 relative z-10">
                 <div class="flex items-center" :class="getEventTypeSide(event.type) === 'left' ? 'justify-start' : 'justify-end'">
                   <div :class="[getEventTypeSide(event.type) === 'left' ? 'w-5/12' : 'w-5/12 order-2']">
-                    <Card 
+                    <Card
                       :class="[
-                        getEventColor(event.type), 
+                        getEventColor(event.type),
                         'shadow-md cursor-pointer transition-all duration-200',
                         getEventTypeSide(event.type) === 'left' ? 'hover:translate-x-1' : 'hover:-translate-x-1',
                         'hover:scale-[1.02] hover:shadow-lg'
-                      ]" 
+                      ]"
                       @click="showHistoryEventDetails(event)"
                     >
                       <CardContent class="p-3">
@@ -109,13 +125,12 @@
                 </div>
               </div>
 
-              <div v-if="filteredHistory.length === 0 && !isHistoryLoading" class="h-full flex items-center justify-center text-muted-foreground pt-10">
-                <p>Nenhum histórico disponível para este cliente.</p>
-              </div>
+            <div v-if="filteredHistory.length === 0 && !isHistoryLoading" class="h-full flex items-center justify-center text-muted-foreground">
+              <p>Nenhum histórico disponível para este cliente.</p>
+            </div>
 
-              <div v-if="isHistoryLoading" class="text-center p-4 text-sm text-muted-foreground">
-                Carregando mais...
-              </div>
+            <div v-if="isHistoryLoading" class="text-center p-4 text-sm text-muted-foreground">
+              Carregando mais...
             </div>
           </div>
         </CardContent>
@@ -154,12 +169,21 @@
         </CardContent>
       </Card>
     </div>
-     <div v-else class="text-center py-10">
+    <div v-else class="text-center py-10">
       <p>Nenhum dado de jogador encontrado.</p>
     </div>
 
-    <Dialog :open="isHistoryDetailDialogOpen" @update:open="isHistoryDetailDialogOpen = false">
-      <DialogContent v-if="selectedHistoryEvent" :class="['transition-all duration-300', isPayloadVisible ? 'sm:max-w-3xl' : 'sm:max-w-[425px]']">
+    <Dialog
+      :open="isHistoryDetailDialogOpen"
+      @update:open="isHistoryDetailDialogOpen = false"
+    >
+      <DialogContent
+        v-if="selectedHistoryEvent"
+        :class="[
+          'transition-all duration-300',
+          isPayloadVisible ? 'sm:max-w-3xl' : 'sm:max-w-[425px]',
+        ]"
+      >
         <DialogHeader>
           <div class="flex justify-between items-start">
             <div>
@@ -186,7 +210,9 @@
           <div>
             <div class="text-xs font-bold">Data</div>
             <div class="text-sm">
-              {{ $moment(selectedHistoryEvent.date).format('DD/MM/YYYY HH:mm:ss') }}
+              {{
+                $moment(selectedHistoryEvent.date).format("DD/MM/YYYY HH:mm:ss")
+              }}
             </div>
           </div>
           <div>
@@ -196,19 +222,24 @@
             </div>
           </div>
           <Button
-              v-if="selectedHistoryEvent.payload"
-              variant="outline"
-              size="sm"
-              @click="isPayloadVisible = !isPayloadVisible"
+            v-if="selectedHistoryEvent.payload"
+            variant="outline"
+            size="sm"
+            @click="isPayloadVisible = !isPayloadVisible"
           >
             <Code class="h-4 w-4 mr-2" />
-            {{ isPayloadVisible ? 'Ocultar' : 'Ver' }} Payload
+            {{ isPayloadVisible ? "Ocultar" : "Ver" }} Payload
           </Button>
         </div>
 
-        <div v-if="isPayloadVisible && selectedHistoryEvent.payload" class="mt-4">
+        <div
+          v-if="isPayloadVisible && selectedHistoryEvent.payload"
+          class="mt-4"
+        >
           <div class="text-xs font-bold mb-2">Payload</div>
-          <pre class="bg-gray-900 text-white p-4 rounded-md text-xs overflow-x-auto overflow-y-scroll h-64"><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
+          <pre
+            class="bg-gray-900 text-white p-4 rounded-md text-xs overflow-x-auto overflow-y-scroll h-64"
+          ><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
         </div>
 
         <DialogFooter>
@@ -222,11 +253,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
-import {ChevronLeft, Code} from "lucide-vue-next";
+import { ChevronLeft, Code } from "lucide-vue-next";
 import Players from "@/services/players";
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspaceStore } from "@/stores/workspace";
 import {
   Dialog,
@@ -235,8 +266,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-
+} from "@/components/ui/dialog";
 
 const route = useRoute();
 const player = ref();

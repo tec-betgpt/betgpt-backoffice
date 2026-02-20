@@ -3,9 +3,7 @@
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
       <div class="space-y-0.5">
         <h2 class="text-2xl font-bold tracking-tight">Listas de Proteção</h2>
-        <p class="text-muted-foreground">
-          Gerencie os registros de proteção.
-        </p>
+        <p class="text-muted-foreground">Gerencie os registros de proteção.</p>
       </div>
 
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
@@ -18,31 +16,48 @@
         <div class="flex flex-col md:flex-row gap-4">
           <div class="flex-1">
             <Label for="player_name">Jogador</Label>
-            <Input id="player_name" v-model="filters.player_name" placeholder="Nome do jogador" @input="fetchProtectionLists(1)" />
+            <Input
+              id="player_name"
+              v-model="filters.player_name"
+              placeholder="Nome do jogador"
+              @input="fetchProtectionLists(1)"
+            />
           </div>
           <div class="flex-1">
             <Label for="protectionType">Tipo de Proteção</Label>
-            <Select v-model="filters.event_type" @update:modelValue="fetchProtectionLists(1)">
+            <Select
+              v-model="filters.event_type"
+              @update:modelValue="fetchProtectionLists(1)"
+            >
               <SelectTrigger id="protectionType">
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="forced">Forçada</SelectItem>
                 <SelectItem value="exclusion">Exclusão</SelectItem>
-                <SelectItem value="temp_suspension">Suspensão temporária</SelectItem>
+                <SelectItem value="temp_suspension"
+                  >Suspensão temporária</SelectItem
+                >
               </SelectContent>
             </Select>
           </div>
           <div class="flex-1">
             <Label for="channel">Canal</Label>
-            <Input id="channel" v-model="filters.channel" placeholder="Filtrar por canal" @input="fetchProtectionLists(1)" />
+            <Input
+              id="channel"
+              v-model="filters.channel"
+              placeholder="Filtrar por canal"
+              @input="fetchProtectionLists(1)"
+            />
           </div>
           <div class="flex-1">
             <Label for="date">Data</Label>
             <DateRangePicker v-model="selectedRange" />
           </div>
           <div class="flex items-end">
-             <Button variant="outline" @click="clearFilters">Limpar Filtros</Button>
+            <Button variant="outline" @click="clearFilters"
+              >Limpar Filtros</Button
+            >
           </div>
         </div>
       </CardHeader>
@@ -60,7 +75,10 @@
                 <div class="flex items-center gap-1">
                   Criado em
                   <ArrowUpDown v-if="!filters.orderDirection" class="h-4 w-4" />
-                  <ArrowUp v-else-if="filters.orderDirection === 'asc'" class="h-4 w-4" />
+                  <ArrowUp
+                    v-else-if="filters.orderDirection === 'asc'"
+                    class="h-4 w-4"
+                  />
                   <ArrowDown v-else class="h-4 w-4" />
                 </div>
               </TableHead>
@@ -69,8 +87,17 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
-              <TableRow v-for="(row, index) in protectionLists" :key="row.id" :style="`--delay: ${getMs(index)}`">
+            <transition-group
+              appear
+              enter-active-class="enter-active"
+              enter-from-class="enter"
+              enter-to-class="enter-to"
+            >
+              <TableRow
+                v-for="(row, index) in protectionLists"
+                :key="row.id"
+                :style="`--delay: ${getMs(index)}`"
+              >
                 <TableCell>
                   {{ row.player?.name }}
                 </TableCell>
@@ -78,25 +105,40 @@
                   {{ eventTypeMap[row.event_type] || row.event_type }}
                 </TableCell>
                 <TableCell>
-                  <Badge :variant="row.dispatch_type === 'LP_ENTERED' ? 'default' : 'outline'" 
-                         :class="row.dispatch_type === 'LP_ENTERED' ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100' : 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100'">
-                    {{ dispatchTypeMap[row.dispatch_type] || row.dispatch_type }}
+                  <Badge
+                    :variant="
+                      row.dispatch_type === 'LP_ENTERED' ? 'default' : 'outline'
+                    "
+                    :class="
+                      row.dispatch_type === 'LP_ENTERED'
+                        ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100'
+                        : 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100'
+                    "
+                  >
+                    {{
+                      dispatchTypeMap[row.dispatch_type] || row.dispatch_type
+                    }}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {{ row.channel || '-' }}
+                  {{ row.channel || "-" }}
                 </TableCell>
                 <TableCell class="whitespace-nowrap">
-                 <span v-if="row.start_at" >{{ $moment(row.start_at).format('DD/MM/YYYY') }} - {{ $moment(row.end_at).format('DD/MM/YYYY') }}</span>
+                  <span v-if="row.start_at"
+                    >{{ $moment(row.start_at).format("DD/MM/YYYY") }} -
+                    {{ $moment(row.end_at).format("DD/MM/YYYY") }}</span
+                  >
                   <span v-else class="text-muted-foreground italic"> - </span>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary" class="bg-blue-200 text-blue-800"> {{
-                    row.user_id === null ? "Regra do Sistema":"Regra Manual"
-                    }}</Badge>
+                  <Badge variant="secondary" class="bg-blue-200 text-blue-800">
+                    {{
+                      row.user_id === null ? "Regra do Sistema" : "Regra Manual"
+                    }}</Badge
+                  >
                 </TableCell>
                 <TableCell>
-                  {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm') }}
+                  {{ $moment(row.created_at).format("DD/MM/YYYY HH:mm") }}
                 </TableCell>
                 <TableCell class="text-right">
                   <DropdownMenu>
@@ -109,13 +151,16 @@
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Ações</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      
+
                       <DropdownMenuItem @click.prevent="openEdit(row)">
                         <Pencil class="mr-2 h-4 w-4" />
                         Editar
                       </DropdownMenuItem>
 
-                      <DropdownMenuItem @click.prevent="openDestroy(row)" class="text-red-600 focus:text-red-600 focus:bg-red-50">
+                      <DropdownMenuItem
+                        @click.prevent="openDestroy(row)"
+                        class="text-red-600 focus:text-red-600 focus:bg-red-50"
+                      >
                         <Trash class="mr-2 h-4 w-4" />
                         Excluir
                       </DropdownMenuItem>
@@ -133,7 +178,9 @@
               </TableRow>
             </template>
 
-            <template v-if="!isLoading && (!protectionLists || !protectionLists.length)">
+            <template
+              v-if="!isLoading && (!protectionLists || !protectionLists.length)"
+            >
               <TableRow>
                 <TableCell :colspan="8" class="text-center py-5">
                   Nenhum registro encontrado.
@@ -147,14 +194,23 @@
           :select-page="fetchProtectionLists"
           :pages="pages"
           :per_pages="perPage"
-          @update:perPages="(value) => perPage = value"
+          @update:perPages="(value) => (perPage = value)"
         />
       </CardContent>
     </Card>
 
     <!-- Diálogos fora do loop da tabela -->
-    <EditDialogComponent ref="editDialogRef" :row="selectedRow" :reload="fetchProtectionLists" />
-    <DestroyDialogComponent ref="destroyDialogRef" :destroy="destroy" :row="selectedRow" :reload="fetchProtectionLists" />
+    <EditDialogComponent
+      ref="editDialogRef"
+      :row="selectedRow"
+      :reload="fetchProtectionLists"
+    />
+    <DestroyDialogComponent
+      ref="destroyDialogRef"
+      :destroy="destroy"
+      :row="selectedRow"
+      :reload="fetchProtectionLists"
+    />
   </div>
 </template>
 
@@ -171,11 +227,24 @@ import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.v
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -185,7 +254,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-vue-next";
+import {
+  MoreHorizontal,
+  Pencil,
+  Trash,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-vue-next";
 
 const { toast } = useToast();
 
@@ -196,7 +272,7 @@ const perPage = ref(15);
 const pages = ref({
   current: 1,
   last: 1,
-  total: 0
+  total: 0,
 });
 
 const selectedRange = ref({ start: undefined, end: undefined });
@@ -205,23 +281,23 @@ const editDialogRef = ref<any>(null);
 const destroyDialogRef = ref<any>(null);
 
 const eventTypeMap = {
-  forced: 'Forçada',
-  exclusion: 'Exclusão',
-  temp_suspension: 'Suspensão Temporária'
+  forced: "Forçada",
+  exclusion: "Exclusão",
+  temp_suspension: "Suspensão Temporária",
 };
 
 const dispatchTypeMap = {
-  LP_ENTERED: 'Entrando',
-  LP_EXITED: 'Saindo',
-  LP_UPDATED: 'Atualizando'
+  LP_ENTERED: "Bloqueado",
+  LP_EXITED: "Desbloqueado",
+  LP_UPDATED: "Atualizando",
 };
 
 const filters = reactive({
-  player_name: '',
-  event_type: '',
-  channel: '',
-  orderBy: 'created_at',
-  orderDirection: ''
+  player_name: "",
+  event_type: "",
+  channel: "",
+  orderBy: "created_at",
+  orderDirection: "",
 });
 
 const openEdit = (row: any) => {
@@ -229,25 +305,25 @@ const openEdit = (row: any) => {
   setTimeout(() => {
     editDialogRef.value?.openDialog();
   }, 200);
-}
+};
 
 const openDestroy = (row: any) => {
   selectedRow.value = row;
   setTimeout(() => {
     destroyDialogRef.value?.openDialog();
   }, 200);
-}
+};
 
 const toggleSort = () => {
-  if (filters.orderDirection === '') {
-    filters.orderDirection = 'asc';
-  } else if (filters.orderDirection === 'asc') {
-    filters.orderDirection = 'desc';
+  if (filters.orderDirection === "") {
+    filters.orderDirection = "asc";
+  } else if (filters.orderDirection === "asc") {
+    filters.orderDirection = "desc";
   } else {
-    filters.orderDirection = '';
+    filters.orderDirection = "";
   }
   fetchProtectionLists(1);
-}
+};
 
 const fetchProtectionLists = async (page = 1) => {
   isLoading.value = true;
@@ -261,8 +337,12 @@ const fetchProtectionLists = async (page = 1) => {
       end_date: selectedRange.value.end?.toString(),
     };
 
-    Object.keys(params).forEach(key => {
-      if (params[key] === '' || params[key] === null || params[key] === undefined) {
+    Object.keys(params).forEach((key) => {
+      if (
+        params[key] === "" ||
+        params[key] === null ||
+        params[key] === undefined
+      ) {
         delete params[key];
       }
     });
@@ -284,7 +364,7 @@ const fetchProtectionLists = async (page = 1) => {
   } finally {
     isLoading.value = false;
   }
-}
+};
 
 const destroy = async (id: number) => {
   try {
@@ -296,16 +376,16 @@ const destroy = async (id: number) => {
       variant: "destructive",
     });
   }
-}
+};
 
 const clearFilters = () => {
-  filters.player_name = '';
-  filters.event_type = '';
-  filters.channel = '';
-  filters.orderDirection = '';
+  filters.player_name = "";
+  filters.event_type = "";
+  filters.channel = "";
+  filters.orderDirection = "";
   selectedRange.value = { start: undefined, end: undefined };
   fetchProtectionLists(1);
-}
+};
 
 watch(selectedRange, () => {
   if (selectedRange.value.start && selectedRange.value.end) {
@@ -317,4 +397,3 @@ onMounted(async () => {
   await fetchProtectionLists();
 });
 </script>
-
