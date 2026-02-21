@@ -104,7 +104,7 @@ async function fetchWebhooks() {
       //console.log(response.data[0].webhook.webhook_url)
      webhooks.value = response.data.map((web: any) => ({
         ...web,
-        webhook: {webhook_url: web.webhook.webhook_url}
+        webhook: {webhook_url: web.webhook?.webhook_url}
      }))
   } catch (error) {
     console.error(error);
