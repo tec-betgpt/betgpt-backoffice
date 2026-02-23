@@ -176,8 +176,23 @@
                                 </SelectContent>
                                 </Select>
 
+                                <Select
+                                v-if="getTaField(condition)?.options && !['empty', 'not_empty'].includes(condition.operator)"
+                                v-model="condition.value"
+                                class="flex-1 min-w-[240px]"
+                                >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="option in getTaField(condition).options" :key="option.value || option.id" :value="String(option.value || option.id)">
+                                        {{ option.label || option.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                                </Select>
+
                                 <Input
-                                v-if="showTaTextInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
+                                v-else-if="showTaTextInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
                                 v-model="condition.value"
                                 placeholder="Valor"
                                 class="flex-1 min-w-[240px]"
@@ -188,11 +203,18 @@
                                 v-model.number="condition.value"
                                 placeholder="Número"
                                 type="number"
-                                class="flex-1"
+                                class="flex-1 min-w-[240px]"
+                                />
+
+                                <Input
+                                v-else-if="showTaDateInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
+                                v-model="condition.value"
+                                :type="getTaField(condition)?.data_type === 'datetime' ? 'datetime-local' : 'date'"
+                                class="flex-1 min-w-[240px]"
                                 />
 
                                 <Select
-                                v-else-if="showTaBooleanInput(condition)"
+                                v-else-if="showTaBooleanInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
                                 v-model="condition.value"
                                 class="flex-1"
                                 >
@@ -423,9 +445,10 @@ const updateSyncProviders = (checked, providerId) => {
 
 const getTaField = (condition) => {
   const allTaFields = targetAudienceFields.value.flatMap(g => g.fields);
-  return condition?.field
+  const v = condition?.field
     ? allTaFields.find((f) => f.field_key === condition.field)
     : null;
+  return v;
 };
 
 const getTaOperators = (condition) => {
@@ -434,8 +457,9 @@ const getTaOperators = (condition) => {
 };
 
 const showTaTextInput = (condition) => getTaField(condition)?.data_type === 'string';
-const showTaNumberInput = (condition) => getTaField(condition)?.data_type === 'number';
+const showTaNumberInput = (condition) => ['number', 'integer', 'float', 'numeric'].includes(getTaField(condition)?.data_type);
 const showTaBooleanInput = (condition) => getTaField(condition)?.data_type === 'boolean';
+const showTaDateInput = (condition) => ['date', 'datetime'].includes(getTaField(condition)?.data_type);
 
 const addTaConditionGroup = () => {
   targetAudienceForm.value.condition_groups.push({
@@ -478,6 +502,7 @@ const fetchTargetAudienceFields = async () => {
           data_type: field.type,
           operators: field.operators,
           source: field.source,
+          options: field.options,
         });
         return acc;
       }, {});
