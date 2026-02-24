@@ -576,6 +576,10 @@ const columns = [
     header: "Descrição",
     cell: ({ row }) => h("div", {}, row.getValue("description") || "-"),
   }),
+  columnHelper.accessor("players", {
+    header: "Alvos",
+    cell: ({ row }) => h("div", {}, row.getValue("players") ?? 0),
+  }),
     columnHelper.accessor("duration", {
     header: "Duração (dias)",
     cell: ({ row }) => h("div", {}, row.getValue("duration") ? `${row.getValue("duration")} dias` : 'Permanente'),
