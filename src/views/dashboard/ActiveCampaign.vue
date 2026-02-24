@@ -76,14 +76,16 @@
         },
       ]"
     >
-
       <Card v-for="limit in limitsCards" :key="limit.project_id">
         <CardHeader>
           <CardTitle>
             <div class="flex justify-between items-center">
-              <div>Status do {{getAccountName(limit.project_id)}}</div>
+              <div>Status do {{ getAccountName(limit.project_id) }}</div>
               <Button variant="outline">
-                <a target="_blank" :href="`https://${getAccountName(limit.project_id)}.activehosted.com/admin/`">
+                <a
+                  target="_blank"
+                  :href="`https://${getAccountName(limit.project_id)}.activehosted.com/admin/`"
+                >
                   Abrir
                 </a>
               </Button>
@@ -93,14 +95,20 @@
         <CardContent>
           <div class="grid space-y-2">
             <span class="">Limite de contatos</span>
-            <Progress  :model-value="(limit.qt_contact/limit.limit_contact)*100"  class="w-full"/>
-            <p class="text-sm">Faltam {{limit.qt_limit_exceeded}}</p>
+            <Progress
+              :model-value="(limit.qt_contact / limit.limit_contact) * 100"
+              class="w-full"
+            />
+            <p class="text-sm">Faltam {{ limit.qt_limit_exceeded }}</p>
           </div>
-          <Separator class="my-2"/>
+          <Separator class="my-2" />
           <div class="grid space-y-2">
             <span class="">Limite de envio</span>
-            <Progress  :model-value="(limit.qt_mail_sent/limit.qt_mail_limits)*100"  class="w-full"/>
-            <p class="text-sm">Faltam {{limit.qt_mail_exceeded}}</p>
+            <Progress
+              :model-value="(limit.qt_mail_sent / limit.qt_mail_limits) * 100"
+              class="w-full"
+            />
+            <p class="text-sm">Faltam {{ limit.qt_mail_exceeded }}</p>
           </div>
         </CardContent>
       </Card>
@@ -177,7 +185,7 @@
           <Button
             v-if="emailHtml"
             variant="secondary"
-            @click="editTemplateModal(selectedCampaign!.project_id)"
+            @click="editTemplateModal(selectedCampaign)"
           >
             Editar Template
           </Button>
@@ -241,9 +249,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Progress} from "@/components/ui/progress";
-import {Separator} from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
@@ -267,15 +275,17 @@ const emailHtml = ref("");
 const selectedCampaign = ref<CampaignMetrics | null>(null);
 const emailIframe = ref<HTMLIFrameElement | null>(null);
 const currentEmailIndex = ref(0);
-const limitsCards = ref<{
-  project_id: number;
-  qt_contact: number;
-  limit_contact: number;
-  qt_limit_exceeded: number;
-  qt_mail_limits: number;
-  qt_mail_sent: number;
-  qt_mail_exceeded: number;
-}[]>([])
+const limitsCards = ref<
+  {
+    project_id: number;
+    qt_contact: number;
+    limit_contact: number;
+    qt_limit_exceeded: number;
+    qt_mail_limits: number;
+    qt_mail_sent: number;
+    qt_mail_exceeded: number;
+  }[]
+>([]);
 const backendCampaignTotals = ref();
 const campaignsData = ref<CampaignMetrics[]>([]);
 
@@ -391,7 +401,7 @@ const navigateEmail = async (direction: "prev" | "next") => {
 
     const response = await ActiveCampaign.getCampaign(
       campaign.project_id,
-      campaign.id
+      campaign.id,
     );
 
     if (response.data && response.data.body) {
@@ -450,7 +460,7 @@ const openEmailPreview = async (campaign: CampaignMetrics) => {
   try {
     const response = await ActiveCampaign.getCampaign(
       campaign.project_id,
-      campaign.id
+      campaign.id,
     );
 
     if (response.data && response.data.body) {
@@ -477,9 +487,9 @@ const openEmailPreview = async (campaign: CampaignMetrics) => {
 const editTemplateModal = (selectedCampaign: any) => {
   window.open(
     `https://${getAccountName(
-      selectedCampaign
+      selectedCampaign?.project_id,
     )}.activehosted.com/campaign/editor/?cid=${selectedCampaign?.id}`,
-    "_blank"
+    "_blank",
   );
 };
 
@@ -502,10 +512,13 @@ const applyFilter = async (current = pages.value.current) => {
   }
 
   try {
-    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
-      acc[key] = searchValues.value[key];
-      return acc;
-    }, {} as Record<string, string>);
+    const searchParams = Object.keys(searchValues.value).reduce(
+      (acc, key) => {
+        acc[key] = searchValues.value[key];
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
     const { data } = await ActiveCampaign.index({
       page: current,
@@ -522,7 +535,7 @@ const applyFilter = async (current = pages.value.current) => {
     campaignsData.value = data.campaigns.data;
     backendCampaignTotals.value = data.campaigns.total;
     integrations.value = data.integrations;
-    limitsCards.value = data.status
+    limitsCards.value = data.status;
     meta.value = data.meta || {};
     pages.value = {
       current: data.campaigns.pagination.current_page,
@@ -582,7 +595,7 @@ const actionColumn = columnHelper.accessor("id", {
         h(Button, { size: "icon", variant: "ghost" }, [
           h(MoreHorizontal, { class: "h-4 w-4" }),
           h("span", { class: "sr-only" }, "Ações"),
-        ])
+        ]),
       ),
       h(
         DropdownMenuContent,
@@ -598,7 +611,7 @@ const actionColumn = columnHelper.accessor("id", {
                 openEmailPreview(campaign);
               },
             },
-            [h("div", {}), "Ver Template"]
+            [h("div", {}), "Ver Template"],
           ),
 
           automationLink
@@ -609,10 +622,10 @@ const actionColumn = columnHelper.accessor("id", {
                     window.open(automationLink, "_blank");
                   },
                 },
-                [h("div", {}), "Ver Automação"]
+                [h("div", {}), "Ver Automação"],
               )
             : null,
-        ].filter(Boolean)
+        ].filter(Boolean),
       ),
     ]);
   },
@@ -648,7 +661,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatNumber(row.getValue("send_amt") || 0)
+        formatNumber(row.getValue("send_amt") || 0),
       ),
   }),
 
@@ -659,7 +672,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatNumber(row.getValue("uniqueopens") || 0)
+        formatNumber(row.getValue("uniqueopens") || 0),
       ),
   }),
 
@@ -670,7 +683,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatNumber(row.getValue("subscriberclicks") || 0)
+        formatNumber(row.getValue("subscriberclicks") || 0),
       ),
   }),
 
@@ -681,7 +694,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatNumber(row.getValue("unsubscribes") || 0)
+        formatNumber(row.getValue("unsubscribes") || 0),
       ),
   }),
 
@@ -692,7 +705,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatNumber(row.getValue("softbounces") || 0)
+        formatNumber(row.getValue("softbounces") || 0),
       ),
   }),
 
@@ -703,7 +716,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatPercentage(row.getValue("rate_opens") || 0)
+        formatPercentage(row.getValue("rate_opens") || 0),
       ),
   }),
 
@@ -715,7 +728,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatPercentage(row.getValue("rate_opens_click") || 0)
+        formatPercentage(row.getValue("rate_opens_click") || 0),
       ),
   }),
 
@@ -726,7 +739,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatPercentage(row.getValue("rate_clicks") || 0)
+        formatPercentage(row.getValue("rate_clicks") || 0),
       ),
   }),
 
@@ -738,7 +751,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatPercentage(row.getValue("rate_unsubscriptions") || 0)
+        formatPercentage(row.getValue("rate_unsubscriptions") || 0),
       ),
   }),
 
@@ -749,7 +762,7 @@ const columns = computed(() => [
       h(
         "div",
         { class: "text-right" },
-        formatPercentage(row.getValue("rate_rejections") || 0)
+        formatPercentage(row.getValue("rate_rejections") || 0),
       ),
   }),
 
@@ -757,38 +770,35 @@ const columns = computed(() => [
 ]);
 
 function createHeaderButton(label: string, columnKey: string) {
-  return h(
-    "div",
-    { class: "flex items-center gap-1 justify-end w-full" },
-    [
-      h(
-        Button,
-        {
-          variant: orderId.value === columnKey ? "default" : "ghost",
-          onClick: () => {
-            orderId.value = columnKey;
-            order.value = !order.value;
-            applyFilter();
-          },
-          class: "p-0 h-auto text-pretty text-right text-nowrap hover:bg-transparent flex items-center gap-1",
+  return h("div", { class: "flex items-center gap-1 justify-end w-full" }, [
+    h(
+      Button,
+      {
+        variant: orderId.value === columnKey ? "default" : "ghost",
+        onClick: () => {
+          orderId.value = columnKey;
+          order.value = !order.value;
+          applyFilter();
         },
-        () => [
-          label,
-          h(
-            orderId.value === columnKey
-              ? order.value
-                ? ArrowDown
-                : ArrowUp
-              : CaretSortIcon,
-            { class: "h-4 w-4" }
-          ),
-        ]
-      ),
-      meta.value[columnKey] 
-        ? h(GlossaryTooltipComponent, { description: meta.value[columnKey] })
-        : null
-    ]
-  );
+        class:
+          "p-0 h-auto text-pretty text-right text-nowrap hover:bg-transparent flex items-center gap-1",
+      },
+      () => [
+        label,
+        h(
+          orderId.value === columnKey
+            ? order.value
+              ? ArrowDown
+              : ArrowUp
+            : CaretSortIcon,
+          { class: "h-4 w-4" },
+        ),
+      ],
+    ),
+    meta.value[columnKey]
+      ? h(GlossaryTooltipComponent, { description: meta.value[columnKey] })
+      : null,
+  ]);
 }
 
 watch(selectedRange, () => {
