@@ -328,7 +328,7 @@ import {
   Goal, ShieldAlert,
   FileText, Webhook,
   HeartPulse,
-  LayoutDashboard,
+  LayoutDashboard, Tag,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -559,6 +559,12 @@ const navMenu = computed(() => {
           url: { name: "permissions" },
           icon: LucideShieldUser,
           show: canAccess("access-to-permissions"),
+        },
+        {
+          name: "Tags",
+          url: { name: "tags" },
+          icon: Tag,
+          show: canAccess("access-to-tags"),
         },
         {
           name: "Assinantes",

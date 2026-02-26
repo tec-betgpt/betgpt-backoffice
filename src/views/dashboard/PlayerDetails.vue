@@ -66,6 +66,13 @@
               </div>
             </div>
           </div>
+
+          <Separator class="my-4" />
+
+          <PlayerTagManager 
+            :player-id="player.id" 
+            :project-id="activeGroupProjectId" 
+          />
         </CardContent>
       </Card>
 
@@ -259,6 +266,8 @@ import Players from "@/services/players";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import PlayerTagManager from "@/components/players/PlayerTagManager.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import {
   Dialog,
