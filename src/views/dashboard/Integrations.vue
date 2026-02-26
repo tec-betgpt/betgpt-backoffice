@@ -257,7 +257,7 @@ async function fetchIntegrations() {
     );
     if (google) {
       if (google.config !== null) {
-        if (!google.config.property_id == "") {
+        if (google.config.property_id == "") {
           await getProperty();
         }
       }
