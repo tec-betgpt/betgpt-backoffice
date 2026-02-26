@@ -56,7 +56,7 @@
             class="mt-4"
         >
           <Label for="property" class="mb-1">Propriedade do Projeto</Label>
-          <Select id="property" :v-model="data.config.ad_account" class="my-1">
+          <Select id="property" v-model="adAccountSelect" class="my-1">
             <SelectTrigger>
               <SelectValue placeholder="Selecione a propriedade" />
             </SelectTrigger>
@@ -113,7 +113,7 @@
               :disabled="disableBt"
               @click="
                 data.config?.email
-                  ? logoutOAuth2(data.integration.integration_id)
+                  ? confirmLogout(data.integration.integration_id)
                   : initOAuth2(field.description,data.id)
               "
             >
@@ -144,6 +144,23 @@
         Salvar
       </Button>
     </div>
+
+    <AlertDialog :open="isLogoutDialogOpen" @update:open="isLogoutDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Deseja realmente desconectar?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Ao desconectar esta integração, o acesso aos dados será interrompido até que um novo login seja realizado.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="isLogoutDialogOpen = false">Cancelar</AlertDialogCancel>
+          <AlertDialogAction @click="handleLogoutConfirm" class="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Confirmar Desconexão
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
@@ -159,14 +176,27 @@ import {
 import Projects from "@/services/projects";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/services/base";
-import Integrations from "@/views/dashboard/Integrations.vue";
 import {
   Select,
   SelectContent,
+  SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
@@ -180,6 +210,22 @@ const propetySelect = ref('')
 const adAccountSelect = ref('')
 const adAccountMeta = ref<Array<{ id: string; name: string }>>([]);
 const disableBt = ref(false);
+
+const isLogoutDialogOpen = ref(false);
+const integrationIdToLogout = ref(null);
+
+function confirmLogout(id: any) {
+  integrationIdToLogout.value = id;
+  isLogoutDialogOpen.value = true;
+}
+
+async function handleLogoutConfirm() {
+  if (integrationIdToLogout.value) {
+    await logoutOAuth2(integrationIdToLogout.value);
+  }
+  isLogoutDialogOpen.value = false;
+  integrationIdToLogout.value = null;
+}
 
 async function fetchIntegrations() {
   loading.value = true;
@@ -211,13 +257,13 @@ async function fetchIntegrations() {
     );
     if (google) {
       if (google.config !== null) {
-        if (google.config.property_id == "") {
+        if (!google.config.property_id == "") {
           await getProperty();
         }
       }
     }
   if (meta) {
-    if (meta.config !== null) {
+    if (meta.config) {
       if (meta.config.ad_account == "") {
         await getAccountIdMeta();
       }
@@ -329,15 +375,14 @@ function getApplicationDetail(name: string) {
 
 async function saveAllIntegrations() {
   saving.value = true;
-
-  if (propetySelect){
+  if (propetySelect.value) {
     integrations.value[1].config.property_id = propetySelect.value;
     integrations.value[1].config.property_name = propetyList.value.find(
         (property) => property.id === propetySelect.value
-    ).name;
+    ).name
   }
-  if (adAccountSelect){
-    integrations.value[3].config.property_id = adAccountSelect.value
+  if (adAccountSelect.value){
+    integrations.value[3].config.ad_account = adAccountSelect.value
   }
   try {
     await Projects.bulkUpdate(
@@ -360,6 +405,8 @@ async function saveAllIntegrations() {
   }
 
   saving.value = false;
+  await fetchIntegrations();
+
 }
 
 onMounted(async () => {
