@@ -256,6 +256,24 @@
          </Button>
       </div>
     </div>
+
+    <AlertDialog v-model:open="showDeleteDialog">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta ação não pode ser desfeita. Isso excluirá permanentemente o público alvo
+            e removerá seus dados de nossos servidores.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="showDeleteDialog = false">Cancelar</AlertDialogCancel>
+          <AlertDialogAction @click="deleteTargetAudience" class="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
@@ -298,6 +316,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -312,6 +340,8 @@ const isLoading = ref(false);
 const isProcessing = ref(false);
 const showSheet = ref(false);
 const isEditing = ref(false);
+const showDeleteDialog = ref(false);
+const audienceToDelete = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
@@ -520,6 +550,33 @@ const fetchTargetAudienceFields = async () => {
   }
 };
 
+const confirmDelete = (id: number) => {
+    audienceToDelete.value = id;
+    showDeleteDialog.value = true;
+};
+
+const deleteTargetAudience = async () => {
+  if (!audienceToDelete.value) return;
+
+  try {
+    isLoading.value = true;
+    await TargetAudience.destroy(audienceToDelete.value);
+    toast({ title: "Sucesso!", description: "Público alvo excluído com sucesso." });
+    await fetchAudiences();
+  } catch (error) {
+    console.error("Error deleting target audience:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível excluir o público alvo.",
+      variant: "destructive",
+    });
+  } finally {
+    isLoading.value = false;
+    showDeleteDialog.value = false;
+    audienceToDelete.value = null;
+  }
+};
+
 const saveTargetAudience = async () => {
     isProcessing.value = true;
     try {
@@ -592,6 +649,7 @@ const columns = [
       h(DropdownMenuContent, { align: "end" }, [
         h(DropdownMenuLabel, {}, "Ações"),
         h(DropdownMenuItem, { onClick: () => openEditSheet(row.original) }, "Editar"),
+        h(DropdownMenuItem, { onClick: () => confirmDelete(row.original.id), class: "text-destructive" }, "Excluir"),
       ]),
     ]),
   },
