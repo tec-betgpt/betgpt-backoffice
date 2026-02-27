@@ -148,19 +148,49 @@
                             </div>
 
                             <div class="flex items-center gap-2 py-1">
-                                <Select v-model="condition.field" class="flex-1 min-w-[120px]">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecione um campo" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup v-for="fieldGroup in targetAudienceFields" :key="fieldGroup.name">
-                                    <SelectLabel>{{ $t(fieldGroup.name) }}</SelectLabel>
-                                    <SelectItem v-for="field in fieldGroup.fields" :key="field.field_key" :value="field.field_key">
-                                        {{ $t(field.label) }}
-                                    </SelectItem>
-                                    </SelectGroup>
-                                </SelectContent>
-                                </Select>
+                                <Popover v-model:open="condition.open">
+                                  <PopoverTrigger as-child>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      :aria-expanded="condition.open"
+                                      class="flex-1 min-w-[200px] justify-between text-left font-normal"
+                                    >
+                                      {{ condition.field 
+                                          ? $t(targetAudienceFields.flatMap(g => g.fields).find(f => `${f.source}:${f.field_key}` === condition.field)?.label || 'Selecione um campo')
+                                          : 'Selecione um campo' 
+                                      }}
+                                      <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent class="w-[300px] p-0" align="start">
+                                    <Command>
+                                      <CommandInput placeholder="Buscar campo..." />
+                                      <CommandEmpty>Nenhum campo encontrado.</CommandEmpty>
+                                      <CommandList>
+                                        <CommandGroup v-for="fieldGroup in targetAudienceFields" :key="fieldGroup.name" :heading="$t(fieldGroup.name)">
+                                          <CommandItem
+                                            v-for="field in fieldGroup.fields"
+                                            :key="`${field.source}:${field.field_key}`"
+                                            :value="`${field.source}:${field.field_key}`"
+                                            @select="() => {
+                                              condition.field = `${field.source}:${field.field_key}`;
+                                              condition.open = false;
+                                            }"
+                                          >
+                                            <CheckIcon
+                                              :class="[
+                                                'mr-2 h-4 w-4',
+                                                condition.field === `${field.source}:${field.field_key}` ? 'opacity-100' : 'opacity-0',
+                                              ]"
+                                            />
+                                            {{ $t(field.label) }}
+                                          </CommandItem>
+                                        </CommandGroup>
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
 
                                 <Select v-model="condition.operator" class="flex-1 min-w-[120px]">
                                 <SelectTrigger>
@@ -301,12 +331,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   PlusIcon,
   XIcon,
   Trash2Icon,
   Loader2Icon,
   InfoIcon,
   MoreHorizontalIcon,
+  CheckIcon,
+  ChevronsUpDownIcon,
 } from "lucide-vue-next";
 import {
   DropdownMenu,
@@ -428,7 +473,7 @@ const resetTargetAudienceForm = () => {
     condition_groups: [
       {
         logic_operator: "AND",
-        conditions: [{ field: "", operator: "", value: "" }],
+        conditions: [{ field: "", operator: "", value: "", open: false }],
       },
     ],
     sync_providers: [],
@@ -446,16 +491,17 @@ const parseAudienceDataToForm = (audienceData) => {
         targetAudienceForm.value.condition_groups = audienceData.condition_groups.map(group => ({
             logic_operator: group.logic_operator || 'AND',
             conditions: group.conditions.map(c => ({
-                field: c.property,
+                field: `${c.source}:${c.property}`,
                 operator: c.operator,
-                value: c.value
+                value: c.value,
+                open: false,
             }))
         }));
     } else {
         targetAudienceForm.value.condition_groups = [
             {
                 logic_operator: "AND",
-                conditions: [{ field: "", operator: "", value: "" }],
+                conditions: [{ field: "", operator: "", value: "", open: false }],
             },
         ];
     }
@@ -474,11 +520,10 @@ const updateSyncProviders = (checked, providerId) => {
 
 
 const getTaField = (condition) => {
-  const allTaFields = targetAudienceFields.value.flatMap(g => g.fields);
-  const v = condition?.field
-    ? allTaFields.find((f) => f.field_key === condition.field)
-    : null;
-  return v;
+  if (!condition?.field) return null;
+  const [source, fieldKey] = condition.field.split(':');
+  const group = targetAudienceFields.value.find(g => g.name === source);
+  return group ? group.fields.find((f) => f.field_key === fieldKey) : null;
 };
 
 const getTaOperators = (condition) => {
@@ -494,7 +539,7 @@ const showTaDateInput = (condition) => ['date', 'datetime'].includes(getTaField(
 const addTaConditionGroup = () => {
   targetAudienceForm.value.condition_groups.push({
     logic_operator: "AND",
-    conditions: [{ field: "", operator: "", value: "" }],
+    conditions: [{ field: "", operator: "", value: "", open: false }],
   });
 };
 
@@ -509,6 +554,7 @@ const addTaCondition = (groupIndex) => {
     field: "",
     operator: "",
     value: "",
+    open: false,
   });
 };
 
@@ -595,7 +641,7 @@ const saveTargetAudience = async () => {
                     if (!field || !c.operator || c.value === '') return null;
                     return {
                         source: field.source,
-                        property: c.field,
+                        property: field.field_key,
                         operator: c.operator,
                         value: c.value,
                     };
