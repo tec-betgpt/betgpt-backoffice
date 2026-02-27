@@ -243,6 +243,25 @@
                                 class="flex-1 min-w-[240px]"
                                 />
 
+                                <div v-else-if="showTaDayMonthInput(condition) && !['empty', 'not_empty'].includes(condition.operator)" class="flex gap-2 flex-1 min-w-[240px]">
+                                    <Select :model-value="getMonthValue(condition.value)" @update:model-value="v => updateDayMonthValue(condition, 'month', v)">
+                                        <SelectTrigger class="flex-1">
+                                            <SelectValue placeholder="Mês" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem v-for="m in months" :key="m.value" :value="m.value">{{ m.label }}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <Select :model-value="getDayValue(condition.value)" @update:model-value="v => updateDayMonthValue(condition, 'day', v)">
+                                        <SelectTrigger class="flex-1">
+                                            <SelectValue placeholder="Dia" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem v-for="d in days" :key="d.value" :value="d.value">{{ d.label }}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
                                 <Select
                                 v-else-if="showTaBooleanInput(condition) && !['empty', 'not_empty'].includes(condition.operator)"
                                 v-model="condition.value"
@@ -535,6 +554,25 @@ const showTaTextInput = (condition) => getTaField(condition)?.data_type === 'str
 const showTaNumberInput = (condition) => ['number', 'integer', 'float', 'numeric'].includes(getTaField(condition)?.data_type);
 const showTaBooleanInput = (condition) => getTaField(condition)?.data_type === 'boolean';
 const showTaDateInput = (condition) => ['date', 'datetime'].includes(getTaField(condition)?.data_type);
+const showTaDayMonthInput = (condition) => getTaField(condition)?.data_type === 'date_md';
+
+const days = Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1) }));
+const months = [
+  { value: '01', label: 'Janeiro' }, { value: '02', label: 'Fevereiro' }, { value: '03', label: 'Março' },
+  { value: '04', label: 'Abril' }, { value: '05', label: 'Maio' }, { value: '06', label: 'Junho' },
+  { value: '07', label: 'Julho' }, { value: '08', label: 'Agosto' }, { value: '09', label: 'Setembro' },
+  { value: '10', label: 'Outubro' }, { value: '11', label: 'Novembro' }, { value: '12', label: 'Dezembro' }
+];
+
+const getDayValue = (value) => value?.split('-')[1] || '';
+const getMonthValue = (value) => value?.split('-')[0] || '';
+
+const updateDayMonthValue = (condition, type, val) => {
+  let [m, d] = (condition.value || '-').split('-');
+  if (type === 'month') m = val;
+  if (type === 'day') d = val;
+  condition.value = `${m || '01'}-${d || '01'}`;
+};
 
 const addTaConditionGroup = () => {
   targetAudienceForm.value.condition_groups.push({
