@@ -63,12 +63,12 @@
           </DialogDescription>
         </DialogHeader>
 
-        <Card class="grid gap-4 p-4" v-for="(form, formIndex) in form">
+        <Card class="grid gap-4 p-4" v-for="(formItem, formIndex) in form">
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="name" class="text-right">Nome do Segmento</Label>
             <Input
               id="name"
-              v-model="form.name"
+              v-model="formItem.name"
               placeholder="Ex: Clientes VIP"
               class="col-span-3"
               required
@@ -79,7 +79,7 @@
             <Label for="description" class="text-right mt-2">Descrição</Label>
             <Textarea
               id="description"
-              v-model="form.description"
+              v-model="formItem.description"
               placeholder="Descrição opcional do segmento"
               class="col-span-3"
               rows="2"
@@ -90,7 +90,7 @@
 
           <div class="space-y-6">
             <div
-              v-for="(group, groupIndex) in form.conditionGroups"
+              v-for="(group, groupIndex) in formItem.conditionGroups"
               :key="groupIndex"
               class="space-y-4"
             >
@@ -323,7 +323,7 @@
               </div>
 
               <div
-                v-if="groupIndex < form.conditionGroups.length - 1"
+                v-if="groupIndex < formItem.conditionGroups.length - 1"
                 class="flex justify-center"
               >
                 <ToggleGroup
@@ -337,7 +337,7 @@
                   >
                   <ToggleGroupItem value="OR" class="h-8 px-3"
                     >OU</ToggleGroupItem
-                  >
+                >
                 </ToggleGroup>
               </div>
             </div>
@@ -562,7 +562,7 @@
             </div>
             <Input
               id="ta-duration"
-              v-model="targetAudienceForm.duration"
+              v-model.number="targetAudienceForm.duration"
               placeholder="Permanente"
               class="col-span-3"
             />
@@ -656,29 +656,69 @@
                     </div>
 
                     <div class="flex items-center gap-2 py-1">
-                      <Select
-                        v-model="condition.field"
-                        class="flex-1 min-w-[120px]"
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um campo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup
-                            v-for="fieldGroup in targetAudienceFields"
-                            :key="fieldGroup.name"
+                      <Popover v-model:open="condition.open">
+                        <PopoverTrigger as-child>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            :aria-expanded="condition.open"
+                            class="flex-1 min-w-[200px] justify-between text-left font-normal"
                           >
-                            <SelectLabel>{{ $t(fieldGroup.name) }}</SelectLabel>
-                            <SelectItem
-                              v-for="field in fieldGroup.fields"
-                              :key="field.field_key"
-                              :value="field.field_key"
-                            >
-                              {{ $t(field.label) }}
-                            </SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                            {{
+                              condition.field
+                                ? $t(
+                                    targetAudienceFields
+                                      .flatMap((g) => g.fields)
+                                      .find(
+                                        (f) =>
+                                          `${f.source}:${f.field_key}` ===
+                                          condition.field,
+                                      )?.label || "Selecione um campo",
+                                  )
+                                : "Selecione um campo"
+                            }}
+                            <ChevronsUpDownIcon
+                              class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                            />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent class="w-[300px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Buscar campo..." />
+                            <CommandEmpty>Nenhum campo encontrado.</CommandEmpty>
+                            <CommandList>
+                              <CommandGroup
+                                v-for="fieldGroup in targetAudienceFields"
+                                :key="fieldGroup.name"
+                                :heading="$t(fieldGroup.name)"
+                              >
+                                <CommandItem
+                                  v-for="field in fieldGroup.fields"
+                                  :key="`${field.source}:${field.field_key}`"
+                                  :value="`${field.source}:${field.field_key}`"
+                                  @select="
+                                    () => {
+                                      condition.field = `${field.source}:${field.field_key}`;
+                                      condition.open = false;
+                                    }
+                                  "
+                                >
+                                  <CheckIcon
+                                    :class="[
+                                      'mr-2 h-4 w-4',
+                                      condition.field ===
+                                      `${field.source}:${field.field_key}`
+                                        ? 'opacity-100'
+                                        : 'opacity-0',
+                                    ]"
+                                  />
+                                  {{ $t(field.label) }}
+                                </CommandItem>
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
 
                       <Select
                         v-model="condition.operator"
@@ -719,11 +759,73 @@
                         v-model.number="condition.value"
                         placeholder="Número"
                         type="number"
-                        class="flex-1"
+                        class="flex-1 min-w-[240px]"
                       />
 
+                      <Input
+                        v-else-if="
+                          showTaDateInput(condition) &&
+                          !['empty', 'not_empty'].includes(condition.operator)
+                        "
+                        v-model="condition.value"
+                        :type="
+                          getTaField(condition)?.data_type === 'datetime'
+                            ? 'datetime-local'
+                            : 'date'
+                        "
+                        class="flex-1 min-w-[240px]"
+                      />
+
+                      <div
+                        v-else-if="
+                          showTaDayMonthInput(condition) &&
+                          !['empty', 'not_empty'].includes(condition.operator)
+                        "
+                        class="flex gap-2 flex-1 min-w-[240px]"
+                      >
+                        <Select
+                          :model-value="getMonthValue(condition.value)"
+                          @update:model-value="
+                            (v) => updateDayMonthValue(condition, 'month', v)
+                          "
+                        >
+                          <SelectTrigger class="flex-1">
+                            <SelectValue placeholder="Mês" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem
+                              v-for="m in months"
+                              :key="m.value"
+                              :value="m.value"
+                              >{{ m.label }}</SelectItem
+                            >
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          :model-value="getDayValue(condition.value)"
+                          @update:model-value="
+                            (v) => updateDayMonthValue(condition, 'day', v)
+                          "
+                        >
+                          <SelectTrigger class="flex-1">
+                            <SelectValue placeholder="Dia" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem
+                              v-for="d in days"
+                              :key="d.value"
+                              :value="d.value"
+                              >{{ d.label }}</SelectItem
+                            >
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       <Select
-                        v-else-if="showTaBooleanInput(condition)"
+                        v-else-if="
+                          showTaBooleanInput(condition) &&
+                          !['empty', 'not_empty'].includes(condition.operator)
+                        "
                         v-model="condition.value"
                         class="flex-1"
                       >
@@ -823,6 +925,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   PlusIcon,
   XIcon,
   Trash2Icon,
@@ -830,6 +940,8 @@ import {
   CalendarIcon,
   MoreHorizontalIcon,
   InfoIcon,
+  CheckIcon,
+  ChevronsUpDownIcon,
 } from "lucide-vue-next";
 import {
   DropdownMenu,
@@ -879,6 +991,15 @@ const hasMoreContacts = ref(false);
 const currentContactsPage = ref(1);
 const contacts = ref<any[]>([]);
 const currentSegmentId = ref<number | null>(null);
+
+const days = Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1) }));
+const months = [
+  { value: '01', label: 'Janeiro' }, { value: '02', label: 'Fevereiro' }, { value: '03', label: 'Março' },
+  { value: '04', label: 'Abril' }, { value: '05', label: 'Maio' }, { value: '06', label: 'Junho' },
+  { value: '07', label: 'Julho' }, { value: '08', label: 'Agosto' }, { value: '09', label: 'Setembro' },
+  { value: '10', label: 'Outubro' }, { value: '11', label: 'Novembro' }, { value: '12', label: 'Dezembro' }
+];
+
 const operatorMap = {
   string: [
     "equals",
@@ -914,7 +1035,6 @@ const operatorMap = {
 };
 const availableProviders = [
   { id: "meta", label: "Meta Ads" },
-  // { id: 'google-analytics', label: 'Google Analytics' }
 ];
 
 const exportSeg = ref([]);
@@ -955,7 +1075,7 @@ const targetAudienceForm = ref({
   description: "",
   duration: null,
   condition_groups: [],
-  sync_providers: [""],
+  sync_providers: [],
 });
 const targetAudienceFields = ref([]);
 
@@ -1755,10 +1875,10 @@ const forceSegmentUpdate = async (segmentId: number) => {
 };
 
 const getTaField = (condition) => {
-  const allTaFields = targetAudienceFields.value.flatMap((g) => g.fields);
-  return condition?.field
-    ? allTaFields.find((f) => f.field_key === condition.field)
-    : null;
+  if (!condition?.field) return null;
+  const [source, fieldKey] = condition.field.split(':');
+  const group = targetAudienceFields.value.find(g => g.name === source);
+  return group ? group.fields.find((f) => f.field_key === fieldKey) : null;
 };
 
 const getTaOperators = (condition) => {
@@ -1766,17 +1886,25 @@ const getTaOperators = (condition) => {
   return field ? field.operators || [] : [];
 };
 
-const showTaTextInput = (condition) =>
-  getTaField(condition)?.data_type === "string";
-const showTaNumberInput = (condition) =>
-  getTaField(condition)?.data_type === "number";
-const showTaBooleanInput = (condition) =>
-  getTaField(condition)?.data_type === "boolean";
+const showTaTextInput = (condition) => getTaField(condition)?.data_type === 'string';
+const showTaNumberInput = (condition) => ['number', 'integer', 'float', 'numeric'].includes(getTaField(condition)?.data_type);
+const showTaBooleanInput = (condition) => getTaField(condition)?.data_type === 'boolean';
+const showTaDateInput = (condition) => ['date', 'datetime'].includes(getTaField(condition)?.data_type);
+const showTaDayMonthInput = (condition) => getTaField(condition)?.data_type === 'date_md';
+
+const getDayValue = (value) => value?.split('-')[1] || '';
+const getMonthValue = (value) => value?.split('-')[0] || '';
+
+const updateDayMonthValue = (condition, type, val) => {
+  let [m, d] = (condition.value || '01-01').split('-');
+  if (type === 'month') m = val; else d = val;
+  condition.value = `${m}-${d}`;
+};
 
 const addTaConditionGroup = () => {
   targetAudienceForm.value.condition_groups.push({
     logic_operator: "AND",
-    conditions: [{ field: "", operator: "", value: "" }],
+    conditions: [{ field: "", operator: "", value: "", open: false }],
   });
 };
 
@@ -1791,6 +1919,7 @@ const addTaCondition = (groupIndex) => {
     field: "",
     operator: "",
     value: "",
+    open: false,
   });
 };
 
@@ -1850,9 +1979,10 @@ const resetTargetAudienceForm = () => {
     condition_groups: [
       {
         logic_operator: "AND",
-        conditions: [{ field: "", operator: "", value: "" }],
+        conditions: [{ field: "", operator: "", value: "", open: false }],
       },
     ],
+    sync_providers: [],
   };
 };
 
@@ -1867,6 +1997,7 @@ const saveTargetAudience = async () => {
       name: targetAudienceForm.value.name,
       description: targetAudienceForm.value.description,
       duration: targetAudienceForm.value.duration,
+      sync_providers: targetAudienceForm.value.sync_providers,
       condition_groups: targetAudienceForm.value.condition_groups
         .map((group) => ({
           logic_operator: group.logic_operator,
@@ -1876,7 +2007,7 @@ const saveTargetAudience = async () => {
               if (!field || !c.operator || c.value === "") return null;
               return {
                 source: field.source,
-                property: c.field,
+                property: field.field_key,
                 operator: c.operator,
                 value: c.value,
               };
