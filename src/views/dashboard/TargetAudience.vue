@@ -717,6 +717,13 @@ const columns = [
     header: "Descrição",
     cell: ({ row }) => h("div", {}, row.getValue("description") || "-"),
   }),
+  columnHelper.accessor("segments", {
+    header: "Segmento",
+    cell: ({ row }) => {
+      const segments = row.original.segments || row.original.segment;
+      return h("div", {}, (Array.isArray(segments) && segments.length > 0) ? segments[0].name : "-");
+    },
+  }),
   columnHelper.accessor("players", {
     header: "Alvos",
     cell: ({ row }) => h("div", {}, row.getValue("players") ?? 0),
