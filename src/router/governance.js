@@ -9,6 +9,8 @@ import UserLogins from "@/views/dashboard/UserLogins.vue";
 import InsightIA from "@/views/dashboard/InsightIA.vue";
 import WebhookLogs from "@/views/dashboard/WebhookLogs.vue";
 
+import Tags from "@/views/dashboard/Tags.vue";
+
 export default [
   {
     path: "/governance",
@@ -20,6 +22,18 @@ export default [
       permissions: "access-to-member-governance",
     },
     children: [
+      {
+        path: "tags",
+        name: "tags",
+        component: Tags,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-tags",
+          title: "Tags",
+        },
+      },
       {
         path: "texts",
         name: "texts",
