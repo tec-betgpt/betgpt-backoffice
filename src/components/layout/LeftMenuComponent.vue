@@ -325,10 +325,14 @@ import {
   LucideLockOpen,
   LucideUserCheck,
   ChartArea,
-  Goal, ShieldAlert,
-  FileText, Webhook,
+  Goal,
+  ShieldAlert,
+  FileText,
+  Webhook,
   HeartPulse,
-  LayoutDashboard, Tag,
+  Tag,
+  LayoutDashboard,
+  Target,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -366,11 +370,11 @@ const router = useRouter();
 
 // Computed
 const activeGroupProject = computed(
-  () => workspaceStore.activeGroupProject || null
+  () => workspaceStore.activeGroupProject || null,
 );
 
 const logoSrc = computed(() =>
-  getLogoSrc(mode.value === "dark", sidebarExpanded.value)
+  getLogoSrc(mode.value === "dark", sidebarExpanded.value),
 );
 
 const navMenu = computed(() => {
@@ -416,7 +420,7 @@ const navMenu = computed(() => {
         {
           name: "Publico Alvo",
           url: { name: "target-audiences" },
-          icon: ListFilter,
+          icon: Target,
           show: canAccess("view-segments"),
         },
         {
@@ -452,10 +456,10 @@ const navMenu = computed(() => {
           show: canAccess("view-events"),
         },
         {
-            name: "Resultados",
-            url: { name: "ConversionAnalytics" },
-            icon: Goal,
-            show: canAccess("view-events"),
+          name: "Resultados",
+          url: { name: "ConversionAnalytics" },
+          icon: Goal,
+          show: canAccess("view-events"),
         },
       ],
     },
@@ -609,7 +613,9 @@ const navMenu = computed(() => {
           name: "Webhook Logs",
           url: { name: "webhook-logs" },
           icon: Webhook,
-          show: (hasRole("member-proprietor") || hasRole("member-admin")) && canAccess("access-to-webhook-logs"),
+          show:
+            (hasRole("member-proprietor") || hasRole("member-admin")) &&
+            canAccess("access-to-webhook-logs"),
         },
       ],
     },
@@ -617,27 +623,40 @@ const navMenu = computed(() => {
       name: "Proteção",
       icon: HeartPulse,
       type: "protection",
-      show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists") || canAccess("protection-list-report-view"),
+      show:
+        hasRole("member-proprietor") ||
+        hasRole("member-admin") ||
+        canAccess("access-to-protection-lists") ||
+        canAccess("protection-list-report-view"),
       children: [
         {
           name: "Dashboard",
           url: { name: "protection-list-dashboard" },
           icon: LayoutDashboard,
-          show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists"),
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            canAccess("access-to-protection-lists"),
         },
         {
           name: "Listas de Proteção",
           url: { name: "protection-lists" },
           icon: ShieldAlert,
-          show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("access-to-protection-lists"),
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            canAccess("access-to-protection-lists"),
         },
         {
           name: "Relatórios de Proteção",
           url: { name: "protection-list-reports" },
           icon: FileText,
-          show: hasRole("member-proprietor") || hasRole("member-admin") || canAccess("protection-list-report-view"),
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            canAccess("protection-list-report-view"),
         },
-      ]
+      ],
     },
     {
       name: "Financeiro",
@@ -678,7 +697,7 @@ const hasPermission = (permissionName: string) => {
   return !!authStore.user?.roles.some((role: any) =>
     role.permissions.some((permission: any) => {
       return permission.name === permissionName;
-    })
+    }),
   );
 };
 const hasRole = (roleName: string): Boolean => {
@@ -692,12 +711,12 @@ const hasPermissionInActiveProject = (permissionName: string) => {
     .filter(
       (role: any) =>
         activeGroupProject.value &&
-        role.pivot.project_id === activeGroupProject.value.project_id!
+        role.pivot.project_id === activeGroupProject.value.project_id!,
     )
     .some((role: any) =>
       role.permissions.some(
-        (permission: any) => permission.name === permissionName
-      )
+        (permission: any) => permission.name === permissionName,
+      ),
     );
 };
 
@@ -773,7 +792,7 @@ watch(
       });
     });
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 watch(
@@ -783,13 +802,13 @@ watch(
       const is = authStore.user?.roles
         .filter(
           (role: any) =>
-            role.pivot.project_id === activeGroupProject.value?.project_id
+            role.pivot.project_id === activeGroupProject.value?.project_id,
         )
         .some(
           (role: any) =>
             route.meta.permissions?.includes?.(
-              role.permissions.map((p: any) => p.name)
-            ) ?? true
+              role.permissions.map((p: any) => p.name),
+            ) ?? true,
         );
 
       const hasAccess = authStore.user?.access_type === "member" || is;
@@ -797,6 +816,6 @@ watch(
       if (!hasAccess) await router.push({ name: "home" });
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
