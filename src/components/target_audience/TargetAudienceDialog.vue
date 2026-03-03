@@ -32,7 +32,7 @@
                   </Tooltip>
                 </TooltipProvider>
             </div>
-            <Input id="ta-duration" v-model.number="form.duration" placeholder="Permanente" class="col-span-3" />
+            <Input id="ta-duration" v-model="form.duration" placeholder="Permanente" class="col-span-3" />
           </div>
 
           <div class="grid grid-cols-4 items-start gap-4">
