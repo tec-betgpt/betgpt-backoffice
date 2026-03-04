@@ -70,6 +70,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   PlusIcon,
   MoreHorizontalIcon,
+  RefreshCcwIcon,
 } from "lucide-vue-next";
 import {
   DropdownMenu,
@@ -155,7 +156,19 @@ const confirmDelete = (id: number) => {
     audienceToDelete.value = id;
     showDeleteDialog.value = true;
 };
+const reloadTargetAudience = async (id: number) => {
+  try {
+    await TargetAudience.reload({id})
+    toast({title:'Sucesso!',description:'Publico alvo recarregado'})
+  }catch (error) {
+    console.error(error);
+    toast({
+      title: "Erro",
+      description: "Falha ao recarregar o Publico alvo",
+    })
+  }
 
+}
 const deleteTargetAudience = async () => {
   if (!audienceToDelete.value) return;
 
@@ -202,6 +215,30 @@ const columns = [
     columnHelper.accessor("duration", {
     header: "Duração (dias)",
     cell: ({ row }) => h("div", {}, row.getValue("duration") ? `${row.getValue("duration")} dias` : 'Permanente'),
+  }),
+  columnHelper.accessor("updated_at", {
+    header: "Ultima atualização",
+    cell: ({ row }) => {
+      const dateValue = row.getValue("updated_at");
+      const formattedDate = dateValue 
+        ? new Intl.DateTimeFormat("pt-BR", {
+            dateStyle: "short",
+            timeStyle: "short",
+          }).format(new Date(dateValue))
+        : "-";
+
+      return h("div", { class: "flex items-center gap-2" }, [
+        h("span", {}, formattedDate),
+        h(Button, {
+          variant: "ghost",
+          size: "icon",
+          class: "h-8 w-8",
+          onClick: () => reloadTargetAudience(row.original.id)
+        }, [
+          h(RefreshCcwIcon, { class: "h-4 w-4" })
+        ])
+      ]);
+    },
   }),
   {
     accessorKey: "actions",
