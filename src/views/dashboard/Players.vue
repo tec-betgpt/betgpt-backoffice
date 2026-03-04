@@ -7,9 +7,37 @@
 
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
-        <div class="flex w-full max-w-sm items-center space-x-2">
-          <Input v-model="searchInput" type="text" placeholder="Pesquisar por nome ou e-mail..." @keydown.enter="handleSearch" />
-          <Button @click="handleSearch">Pesquisar</Button>
+        <div class="flex w-full items-center justify-between gap-4 flex-wrap">
+          <div class="flex items-center gap-2">
+            <Input v-model="searchInput" type="text" placeholder="Pesquisar por nome ou e-mail..." class="w-[300px]" @keydown.enter="handleSearch" />
+            <Button @click="handleSearch">Pesquisar</Button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <Label class="text-nowrap">Filtrar por Tag:</Label>
+            <Combobox v-model="selectedTagName">
+              <ComboboxAnchor class="relative w-[200px] flex items-center">
+                <ComboboxInput placeholder="Selecione uma tag" />
+                <ComboboxTrigger class="absolute right-2 h-full flex items-center">
+                  <ChevronsUpDown class="h-4 w-4 opacity-50" />
+                </ComboboxTrigger>
+              </ComboboxAnchor>
+              <ComboboxList>
+                <ComboboxEmpty>Nenhuma tag encontrada.</ComboboxEmpty>
+                <ComboboxGroup>
+                  <ComboboxItem value="all">
+                    Todas as Tags
+                  </ComboboxItem>
+                  <ComboboxItem v-for="tag in tags" :key="tag.id" :value="tag.name">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: tag.color || '#e2e8f0' }"></div>
+                      {{ tag.name }}
+                    </div>
+                  </ComboboxItem>
+                </ComboboxGroup>
+              </ComboboxList>
+            </Combobox>
+          </div>
         </div>
 
         <Table class="w-full">
@@ -81,16 +109,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { getMs } from "@/filters/formatNumbers";
-import { ArrowDown, ArrowUp, Eye } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, Eye, Check, ChevronsUpDown } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import Players from "@/services/players";
+import TagsService from "@/services/tags";
+import { Tag } from "@/contracts/tag";
 import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 import { useRouter } from "vue-router";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
 const { toast } = useToast();
 const router = useRouter();
@@ -107,6 +139,9 @@ const showPlayer = (id: string) => {
 };
 
 const players = ref<Player[]>([]);
+const tags = ref<Tag[]>([]);
+const selectedTagName = ref('all');
+const isTagPopoverOpen = ref(false);
 const isLoading = ref(true);
 const currentPage = ref(1);
 const searchValues = ref<Record<string, string>>({});
@@ -117,24 +152,36 @@ const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const searchInput = ref('');
 
+const fetchTags = async () => {
+  try {
+    const response = await TagsService.index({
+      filter_id: activeGroupProjectId,
+      per_page: 100
+    });
+    tags.value = response.data || [];
+  } catch (error) {
+    console.error("Error loading tags:", error);
+  }
+};
+
 const fetchPlayers = async (page = currentPage.value) => {
   currentPage.value = page;
 
   try {
-    const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
-      acc[key] = searchValues.value[key];
-      return acc;
-    }, {} as Record<string, string>);
-
-    const response = await Players.index({
+    const params: any = {
       page: currentPage.value,
       perPage: perPage.value,
-      ...searchParams,
       orderBy: order.value,
       orderDirection: direction.value ? "asc" : "desc",
       filter_id: activeGroupProjectId,
-    });
+      ...searchValues.value,
+    };
 
+    if (selectedTagName.value && selectedTagName.value !== 'all') {
+      params.tag_name = selectedTagName.value;
+    }
+
+    const response = await Players.index(params);
     players.value = response.data
   } catch (error) {
     toast({
@@ -152,6 +199,10 @@ const handleSearch = async () => {
   await fetchPlayers(1);
   isLoading.value = false
 };
+
+watch(selectedTagName, () => {
+  fetchPlayers(1);
+});
 
 const handleSort = (column: string) => {
   if (order.value === column) {
@@ -171,7 +222,10 @@ const handleSort = (column: string) => {
 
 onMounted(async () => {
   isLoading.value = true
-  await fetchPlayers()
+  await Promise.all([
+    fetchPlayers(),
+    fetchTags()
+  ]);
   isLoading.value = false
 });
 </script>
