@@ -25,7 +25,7 @@
               <ComboboxList>
                 <ComboboxEmpty>Nenhuma tag encontrada.</ComboboxEmpty>
                 <ComboboxGroup>
-                  <ComboboxItem value="all">
+                  <ComboboxItem value="Todas as Tags">
                     Todas as Tags
                   </ComboboxItem>
                   <ComboboxItem v-for="tag in tags" :key="tag.id" :value="tag.name">
@@ -140,8 +140,7 @@ const showPlayer = (id: string) => {
 
 const players = ref<Player[]>([]);
 const tags = ref<Tag[]>([]);
-const selectedTagName = ref('all');
-const isTagPopoverOpen = ref(false);
+const selectedTagName = ref('Todas as Tags');
 const isLoading = ref(true);
 const currentPage = ref(1);
 const searchValues = ref<Record<string, string>>({});
@@ -177,7 +176,7 @@ const fetchPlayers = async (page = currentPage.value) => {
       ...searchValues.value,
     };
 
-    if (selectedTagName.value && selectedTagName.value !== 'all') {
+    if (selectedTagName.value && selectedTagName.value !== 'Todas as Tags') {
       params.tag_name = selectedTagName.value;
     }
 
