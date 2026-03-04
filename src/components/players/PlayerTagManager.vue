@@ -48,7 +48,7 @@ const handleViewTag = (tag: Tag) => {
 const fetchPlayerTags = async () => {
   isLoading.value = true;
   try {
-    const response = await TagsService.getPlayerTags(Number(props.playerId));
+    const response = await TagsService.getModelTags({model_type:'player',model_id:Number(props.playerId)});
     playerTags.value = Array.isArray(response) ? response : (response.data || []);
   } catch (error) {
     console.error('Error fetching player tags:', error);

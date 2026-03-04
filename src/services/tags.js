@@ -65,12 +65,10 @@ export default {
     return res.data;
   },
 
-  /**
-   * Listar tags de um player
-   * @param {number} playerId
-   */
-  async getPlayerTags(playerId) {
-    const res = await api.get(`/players/${playerId}/tags`);
+
+
+  async getModelTags(params={}){
+    const res = await api.get(`/tags/model`,{params:params});
     return res.data;
   },
 

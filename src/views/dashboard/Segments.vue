@@ -499,6 +499,27 @@
       </DialogContent>
     </Dialog>
     <TargetAudienceDialog ref="targetAudienceDialogRef" @saved="fetchSegments" />
+
+    <Dialog v-model:open="showTagsDialog">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Gerenciar Tags do Segmento</DialogTitle>
+          <DialogDescription>
+            Adicione ou remova etiquetas para organizar seus segmentos.
+          </DialogDescription>
+        </DialogHeader>
+        <div class="py-4">
+          <TagManager
+            v-if="segmentForTags"
+            :model-id="segmentForTags.id"
+            model-type="segment"
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="secondary" @click="showTagsDialog = false">Fechar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -582,6 +603,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import TargetAudienceDialog from "@/components/target_audience/TargetAudienceDialog.vue";
+import TagManager from "@/components/custom/TagManager.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
@@ -598,6 +620,8 @@ const showModal = ref(false);
 const currentSegment = ref(null);
 const showExport = ref(false);
 const isEditing = ref(false);
+const showTagsDialog = ref(false);
+const segmentForTags = ref<any>(null);
 const selectedSavedSegment = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
@@ -1494,6 +1518,11 @@ function viewTargetAudience(segment) {
   }
 }
 
+function openTagsManager(segment) {
+  segmentForTags.value = segment;
+  showTagsDialog.value = true;
+}
+
 function createTargetAudience(segment) {
   targetAudienceDialogRef.value.openWithSegment(segment.id);
 }
@@ -1639,6 +1668,11 @@ const columns = [
                 { onClick: () => createTargetAudience(row.original) },
                 "Criar Publico Alvo",
               ),
+          h(
+            DropdownMenuItem,
+            { onClick: () => openTagsManager(row.original) },
+            "Gerenciar Tags",
+          ),
           h(
             DropdownMenuItem,
             {

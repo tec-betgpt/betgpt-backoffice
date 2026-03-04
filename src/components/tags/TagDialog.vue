@@ -8,108 +8,137 @@
         </DialogDescription>
       </DialogHeader>
 
-      <form @submit.prevent="onSubmit" class="space-y-4 py-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div class="space-y-2">
-            <Label for="name">Nome *</Label>
-            <Input id="name" v-model="form.name" @input="onNameInput" placeholder="Ex: VIP Gold" required />
-          </div>
-          <div class="space-y-2">
-            <Label for="slug">Slug *</Label>
-            <Input id="slug" v-model="form.slug" placeholder="ex-vip-gold" required />
-          </div>
-        </div>
+      <Tabs default-value="general" class="w-full">
+        <TabsList class="grid w-full grid-cols-2">
+          <TabsTrigger value="general">Geral</TabsTrigger>
+          <TabsTrigger value="triggers">Gatilhos</TabsTrigger>
+        </TabsList>
 
-        <div class="space-y-2">
-          <Label for="description">Descrição</Label>
-          <Textarea id="description" v-model="form.description" placeholder="Descreva o propósito desta tag..." />
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div class="space-y-2">
-            <Label for="color">Cor (Hex)</Label>
-            <div class="flex gap-2">
-              <Input id="color" v-model="form.color" placeholder="#FF5733" class="flex-1" />
-              <div class="w-10 h-10 rounded border" :style="{ backgroundColor: form.color || '#e2e8f0' }"></div>
+        <form @submit.prevent="onSubmit">
+          <TabsContent value="general" class="space-y-4 py-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <Label for="name">Nome *</Label>
+                <Input id="name" v-model="form.name" @input="onNameInput" placeholder="Ex: VIP Gold" required />
+              </div>
+              <div class="space-y-2">
+                <Label for="slug">Slug *</Label>
+                <Input id="slug" v-model="form.slug" placeholder="ex-vip-gold" required />
+              </div>
             </div>
-          </div>
-          <div class="space-y-2">
-            <Label for="parent_id">Tag Pai</Label>
-            <Popover v-model:open="openParent">
-              <PopoverTrigger as-child>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  :aria-expanded="openParent"
-                  class="w-full justify-between"
-                >
-                  {{ selectedParentName || "Nenhuma (Tag Raiz)" }}
-                  <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent class="w-full p-0">
-                <Command :filter-results="false">
-                  <CommandInput placeholder="Buscar tag pai..." @input="onSearchParent" />
-                  <CommandEmpty v-if="!isLoadingParents && !parentTags.length">Nenhuma tag encontrada.</CommandEmpty>
-                  <CommandGroup>
-                    <CommandList>
-                      <CommandItem
-                        value=""
-                        @select="() => {
-                          form.parent_id = null
-                          openParent = false
-                        }"
-                      >
-                        <Check :class="cn('mr-2 h-4 w-4', !form.parent_id ? 'opacity-100' : 'opacity-0')" />
-                        Nenhuma (Tag Raiz)
-                      </CommandItem>
-                      <CommandItem
-                        v-for="tag in parentTags"
-                        :key="tag.id"
-                        :value="tag.name"
-                        @select="() => {
-                          form.parent_id = tag.id
-                          openParent = false
-                        }"
-                      >
-                        <Check :class="cn('mr-2 h-4 w-4', form.parent_id === tag.id ? 'opacity-100' : 'opacity-0')" />
-                        {{ tag.name }}
-                      </CommandItem>
-                    </CommandList>
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <div class="flex items-center space-x-2">
-            <Switch id="is_active" v-model="form.is_active" />
-            <Label for="is_active">Tag Ativa</Label>
-          </div>
-        </div>
+            <div class="space-y-2">
+              <Label for="description">Descrição</Label>
+              <Textarea id="description" v-model="form.description" placeholder="Descreva o propósito desta tag..." />
+            </div>
 
-        <Separator />
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <Label for="color">Cor (Hex)</Label>
+                <div class="flex gap-2">
+                  <Input id="color" v-model="form.color" placeholder="#FF5733" class="flex-1" />
+                  <div class="w-10 h-10 rounded border" :style="{ backgroundColor: form.color || '#e2e8f0' }"></div>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <Label for="parent_id">Tag Pai</Label>
+                <Popover v-model:open="openParent">
+                  <PopoverTrigger as-child>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      :aria-expanded="openParent"
+                      class="w-full justify-between"
+                    >
+                      {{ selectedParentName || "Nenhuma (Tag Raiz)" }}
+                      <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent class="w-full p-0">
+                    <Command :filter-results="false">
+                      <CommandInput placeholder="Buscar tag pai..." @input="onSearchParent" />
+                      <CommandEmpty v-if="!isLoadingParents && !parentTags.length">Nenhuma tag encontrada.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandList>
+                          <CommandItem
+                            value=""
+                            @select="() => {
+                              form.parent_id = null
+                              openParent = false
+                            }"
+                          >
+                            <Check :class="cn('mr-2 h-4 w-4', !form.parent_id ? 'opacity-100' : 'opacity-0')" />
+                            Nenhuma (Tag Raiz)
+                          </CommandItem>
+                          <CommandItem
+                            v-for="tag in parentTags"
+                            :key="tag.id"
+                            :value="tag.name"
+                            @select="() => {
+                              form.parent_id = tag.id
+                              openParent = false
+                            }"
+                          >
+                            <Check :class="cn('mr-2 h-4 w-4', form.parent_id === tag.id ? 'opacity-100' : 'opacity-0')" />
+                            {{ tag.name }}
+                          </CommandItem>
+                        </CommandList>
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
 
-        <div class="space-y-2">
-          <div class="flex items-center space-x-2">
-            <Switch id="has_webhook" v-model="form.has_webhook" />
-            <Label for="has_webhook" class="font-medium">Habilitar Webhook</Label>
-          </div>
-          <p class="text-xs text-muted-foreground ml-9">
-            Será usado o webhook cadastrado na conta.
-          </p>
-        </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center space-x-2">
+                <Switch id="is_active" v-model="form.is_active" />
+                <Label for="is_active">Tag Ativa</Label>
+              </div>
+            </div>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" @click="isOpen = false" :disabled="isLoading">Cancelar</Button>
-          <Button type="submit" :disabled="isLoading">
-            <Spinner v-if="isLoading" class="mr-2 h-4 w-4" />
-            {{ isEdit ? 'Salvar Alterações' : 'Criar Tag' }}
-          </Button>
-        </DialogFooter>
-      </form>
+            <Separator />
+
+            <div class="space-y-2">
+              <div class="flex items-center space-x-2">
+                <Switch id="has_webhook" v-model="form.has_webhook" />
+                <Label for="has_webhook" class="font-medium">Habilitar Webhook</Label>
+              </div>
+              <p class="text-xs text-muted-foreground ml-9">
+                Será usado o webhook cadastrado na conta.
+              </p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="triggers" class="space-y-4 py-4">
+            <div class="space-y-4">
+              <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                <Checkbox
+                  id="sync_with_segments"
+                  :checked="form.metadata.triggers.includes('sync_with_segments')"
+                  @update:checked="(checked) => onTriggerChange('sync_with_segments', checked)"
+                />
+                <div class="grid gap-1.5 leading-none">
+                  <Label for="sync_with_segments" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Sincronizar com Segmentos
+                  </Label>
+                  <p class="text-xs text-muted-foreground">
+                    Ao vincular esta tag a um jogador, ele será automaticamente sincronizado com os segmentos que contem essa tag.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <DialogFooter class="mt-4">
+            <Button type="button" variant="outline" @click="isOpen = false" :disabled="isLoading">Cancelar</Button>
+            <Button type="submit" :disabled="isLoading">
+              <Spinner v-if="isLoading" class="mr-2 h-4 w-4" />
+              {{ isEdit ? 'Salvar Alterações' : 'Criar Tag' }}
+            </Button>
+          </DialogFooter>
+        </form>
+      </Tabs>
     </DialogContent>
   </Dialog>
 </template>
@@ -132,6 +161,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import {
   Command,
   CommandEmpty,
@@ -171,6 +207,9 @@ const form = ref({
   parent_id: null as number | null,
   is_active: true,
   has_webhook: false,
+  metadata: {
+    triggers: [] as string[]
+  }
 });
 const workspace = useWorkspaceStore()
 const parentTags = ref<Tag[]>([]);
@@ -199,6 +238,9 @@ watch(() => props.open, (newVal) => {
         is_active: props.tag.is_active,
         //@ts-ignore
         has_webhook: props.tag.has_webhook || false,
+        metadata: {
+          triggers: props.tag.metadata?.triggers || []
+        }
       };
     } else {
       form.value = {
@@ -209,6 +251,9 @@ watch(() => props.open, (newVal) => {
         parent_id: null,
         is_active: true,
         has_webhook: false,
+        metadata: {
+          triggers: []
+        }
       };
     }
     fetchParentTags();
@@ -223,6 +268,16 @@ const onNameInput = () => {
       .replace(/[^\w\s-]/g, '')
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '');
+  }
+};
+
+const onTriggerChange = (trigger: string, checked: boolean) => {
+  if (checked) {
+    if (!form.value.metadata.triggers.includes(trigger)) {
+      form.value.metadata.triggers.push(trigger);
+    }
+  } else {
+    form.value.metadata.triggers = form.value.metadata.triggers.filter(t => t !== trigger);
   }
 };
 
@@ -259,6 +314,7 @@ const onSubmit = async () => {
       parent_id: form.value.parent_id,
       is_active: form.value.is_active,
       has_webhook: form.value.has_webhook,
+      metadata: form.value.metadata,
     };
 
     if (isEdit.value && props.tag) {
