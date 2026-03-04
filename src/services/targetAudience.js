@@ -71,6 +71,10 @@ export default {
   async getAvailableConditions () {
     const { data } = await api.get('/target-audiences/conditions')
     return data.data
+  },
+
+  async reload (params = {}) {
+    const { data } = await api.get('/target-audiences/reload/' + params.id)
   }
 }
   
