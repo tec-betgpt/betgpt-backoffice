@@ -18,6 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import TagsService from '@/services/tags';
 import {Tag} from '@/contracts/tag';
 import {useWorkspaceStore} from "@/stores/workspace";
+import TagDialog from '@/components/tags/TagDialog.vue';
 
 const props = defineProps<{
   playerId: string | number;
@@ -40,9 +41,36 @@ let searchTimeout: any = null;
 const isViewOpen = ref(false);
 const selectedTag = ref<Tag | null>(null);
 
+// Estados para Criação de Tag
+const isCreateDialogOpen = ref(false);
+const tagToCreate = ref<Tag | null>(null);
+
 const handleViewTag = (tag: Tag) => {
   selectedTag.value = tag;
   isViewOpen.value = true;
+};
+
+const openCreateDialog = () => {
+  tagToCreate.value = {
+    name: searchQuery.value,
+    slug: '',
+    description: '',
+    color: '#3b82f6',
+    is_active: true,
+    //@ts-ignore
+    has_webhook: false,
+    metadata: { triggers: [] }
+  } as unknown as Tag;
+  isCreateDialogOpen.value = true;
+};
+
+const handleTagCreated = async () => {
+  await fetchAvailableTags(searchQuery.value);
+  // Optional: Automatically attach the newly created tag if it matches the name
+  const newTag = availableTags.value.find(t => t.name.toLowerCase() === searchQuery.value.toLowerCase());
+  if (newTag) {
+    await handleAttach(newTag);
+  }
 };
 
 const fetchPlayerTags = async () => {
@@ -128,6 +156,7 @@ const handleDetach = async (tag: Tag) => {
 
 const onSearch = (e: any) => {
   const query = e.target.value;
+  searchQuery.value = query;
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
     fetchAvailableTags(query);
@@ -159,7 +188,18 @@ onMounted(() => {
           <Command :filter-results="false">
             <CommandInput placeholder="Buscar tag..." @input="onSearch" />
             <CommandEmpty v-if="!isSearching && availableTags.length === 0">
-              Nenhuma tag encontrada.
+              <div class="flex flex-col items-center gap-2 py-4">
+                <p class="text-sm text-muted-foreground">Nenhuma tag encontrada.</p>
+                <Button 
+                  v-if="searchQuery" 
+                  variant="secondary" 
+                  size="sm" 
+                  class="h-7 text-xs"
+                  @click="openCreateDialog"
+                >
+                  Criar tag "{{ searchQuery }}"
+                </Button>
+              </div>
             </CommandEmpty>
             <div v-if="isSearching" class="flex items-center justify-center p-4">
               <Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
@@ -289,6 +329,13 @@ onMounted(() => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <!-- Dialog de Criação -->
+    <TagDialog
+      v-model:open="isCreateDialogOpen"
+      :tag="tagToCreate"
+      @saved="handleTagCreated"
+    />
   </div>
 </template>
 
