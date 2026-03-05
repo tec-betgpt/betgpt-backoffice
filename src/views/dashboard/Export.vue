@@ -144,11 +144,11 @@ const loadExportsHistory = async () => {
     per_page: perPage.value,
   });
 
-  history.value = response.data.history;
+  history.value = response.data.data;
   pages.value = {
-    current: response.data.pagination.current_page + 1,
-    total: response.data.pagination.total,
-    last: response.data.pagination.last_page,
+    current: response.data.current_page,
+    total: response.data.total,
+    last: response.data.last_page,
   };
   isLoading.value = false;
 };
@@ -160,98 +160,6 @@ const selectPage = async (value) => {
   paginate.value = value;
   await loadExportsHistory();
 };
-const segmentColumnHelper = createColumnHelper<SegmentData>();
-const columns = [
-  segmentColumnHelper.accessor("name", {
-    header({ column }) {
-      return createHeaderButton(
-        "Nome",
-        "name",
-        orderId.value,
-        order.value,
-        handlerOrder()
-      );
-    },
-    cell: ({ row }) => {
-      return h("div", { class: "flex flex-col" }, [
-        h("div", { class: "capitalize" }, row.getValue("name")),
-        h(
-          "div",
-          {
-            class: "text-xs text-muted-foreground mt-1 line-clamp-2",
-            title: row.original.description,
-          },
-          row.original.description || "Sem descrição"
-        ),
-      ]);
-    },
-  }),
-  {
-    accessorKey: "total_contacts",
-    header: "Total de Contatos",
-    cell: ({ row }) => {
-      const total = row.original.total_contacts;
-      const hasContacts = total > 0;
-      const lastExecuted = row.original.last_job_execute_at;
-
-      return h(
-        "div",
-        {
-          class: "flex items-center gap-2",
-          onClick: hasContacts
-            ? () => openContactsDialog(row.original.id)
-            : undefined,
-          style: {
-            cursor: hasContacts ? "pointer" : "default",
-            textDecoration: hasContacts ? "underline" : "none",
-            opacity: hasContacts ? 1 : 0.5,
-          },
-        },
-        [
-          h("span", total || "0"),
-          !lastExecuted &&
-            h(
-              "span",
-              { class: "text-muted-foreground text-xs" },
-              "(não executado)"
-            ),
-        ]
-      );
-    },
-  },
-  ,
-  {
-    accessorKey: "last_job_execute_at",
-    header: "Última Atualização",
-    cell: ({ row }) => {
-      const date = row.original.last_job_execute_at;
-      return h("div", { class: "flex items-center gap-2" }, [
-        h("div", date ? formatDate(date) : "-"),
-        h(
-          Button,
-          {
-            variant: "ghost",
-            size: "icon",
-            class: "h-8 w-8",
-            onClick: (e) => {
-              e.stopPropagation();
-              forceSegmentUpdate(row.original.id);
-            },
-            disabled: isUpdating.value === row.original.id,
-          },
-          [
-            h(RefreshCcw, {
-              class: "h-4 w-4",
-              class: {
-                "animate-spin": isUpdating.value === row.original.id,
-              },
-            }),
-          ]
-        ),
-      ]);
-    },
-  },
-];
 const values = ref<Array<any>>([]);
 const isLoadingSeg = ref(true);
 const isExporting = ref(false);
@@ -309,7 +217,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
   }
 };
 const columnsHistory = [
-  historyColumnHelper.accessor("type", {
+  historyColumnHelper.accessor("history.type", {
     header: "Tipo",
     cell: ({ row }) => {
       let label = "";

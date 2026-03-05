@@ -603,7 +603,10 @@ const save = async () => {
         };
 
         if (!payload.name) throw new Error('O nome do público alvo é obrigatório.');
-        if (payload.condition_groups.length === 0) throw new Error("Defina pelo menos uma condição válida.");
+        if (!segmentId.value){
+          if (payload.condition_groups.length === 0) throw new Error("Defina pelo menos uma condição válida.");
+
+        }
 
         if (isEditing.value) {
             await TargetAudience.update(form.value.id, payload);
