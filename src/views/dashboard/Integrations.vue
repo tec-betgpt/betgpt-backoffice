@@ -32,11 +32,11 @@
           </div>
         </div>
         <div
-          v-if="data.slug === 'google-analytics' &&  propetyList.length > 0"
+          v-if="data.slug === 'google-analytics' && propetyList.length > 0"
           class="mt-4"
         >
           <Label for="property" class="mb-1">Propriedade do Projeto</Label>
-          <Select id="property" v-model="propetySelect"  class="my-1">
+          <Select id="property" v-model="propetySelect" class="my-1">
             <SelectTrigger>
               <SelectValue placeholder="Selecione a propriedade" />
             </SelectTrigger>
@@ -46,14 +46,14 @@
                 :key="property.id"
                 :value="property.id"
               >
-                {{ property.name }}/{{ property.id.replace('properties/', '') }}
+                {{ property.name }}/{{ property.id.replace("properties/", "") }}
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div
-            v-if="data.slug === 'meta' &&  adAccountMeta.length > 0"
-            class="mt-4"
+          v-if="data.slug === 'meta' && adAccountMeta.length > 0"
+          class="mt-4"
         >
           <Label for="property" class="mb-1">Propriedade do Projeto</Label>
           <Select id="property" v-model="adAccountSelect" class="my-1">
@@ -62,10 +62,10 @@
             </SelectTrigger>
             <SelectContent>
               <SelectItem
-                  v-if="data.slug === 'meta'"
-                  v-for="account in adAccountMeta"
-                  :key="account.id"
-                  :value="account.id"
+                v-if="data.slug === 'meta'"
+                v-for="account in adAccountMeta"
+                :key="account.id"
+                :value="account.id"
               >
                 {{ account.name }}/{{ account.id }}
               </SelectItem>
@@ -86,15 +86,13 @@
           </span>
         </div>
         <div
-            class="mt-4 text-sm"
-            v-if="data.slug === 'meta' && data.config?.ad_account"
+          class="mt-4 text-sm"
+          v-if="data.slug === 'meta' && data.config?.ad_account"
         >
           <span>
             Propriedade vinculada:
             {{
-              data.config?.ad_account
-                  ? data.config.ad_account
-                  : "Não conectado"
+              data.config?.ad_account ? data.config.ad_account : "Não conectado"
             }}
           </span>
         </div>
@@ -114,7 +112,7 @@
               @click="
                 data.config?.email
                   ? confirmLogout(data.integration.integration_id)
-                  : initOAuth2(field.description,data.id)
+                  : initOAuth2(field.description, data.id)
               "
             >
               <div
@@ -145,17 +143,26 @@
       </Button>
     </div>
 
-    <AlertDialog :open="isLogoutDialogOpen" @update:open="isLogoutDialogOpen = $event">
+    <AlertDialog
+      :open="isLogoutDialogOpen"
+      @update:open="isLogoutDialogOpen = $event"
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Deseja realmente desconectar?</AlertDialogTitle>
           <AlertDialogDescription>
-            Ao desconectar esta integração, o acesso aos dados será interrompido até que um novo login seja realizado.
+            Ao desconectar esta integração, o acesso aos dados será interrompido
+            até que um novo login seja realizado.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel @click="isLogoutDialogOpen = false">Cancelar</AlertDialogCancel>
-          <AlertDialogAction @click="handleLogoutConfirm" class="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          <AlertDialogCancel @click="isLogoutDialogOpen = false"
+            >Cancelar</AlertDialogCancel
+          >
+          <AlertDialogAction
+            @click="handleLogoutConfirm"
+            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
             Confirmar Desconexão
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -206,8 +213,8 @@ const integrations = ref<Array<any>>([]);
 const activeGroupProject = workspaceStore.activeGroupProject;
 const popUp = ref<Window | null>(null);
 const propetyList = ref<Array<{ id: string; name: string }>>([]);
-const propetySelect = ref('')
-const adAccountSelect = ref('')
+const propetySelect = ref("");
+const adAccountSelect = ref("");
 const adAccountMeta = ref<Array<{ id: string; name: string }>>([]);
 const disableBt = ref(false);
 
@@ -233,7 +240,7 @@ async function fetchIntegrations() {
   try {
     if (activeGroupProject.type == "group") {
       throw new Error(
-        "Para acessar as fontes de dados é necessário que a workspace seja um projeto."
+        "Para acessar as fontes de dados é necessário que a workspace seja um projeto.",
       );
     }
 
@@ -242,19 +249,18 @@ async function fetchIntegrations() {
     integrations.value = data.map((integration: any) => {
       const rawConfig = integration.integration?.config;
 
-      const configFixed = (Array.isArray(rawConfig) || !rawConfig) ? {} : rawConfig;
+      const configFixed =
+        Array.isArray(rawConfig) || !rawConfig ? {} : rawConfig;
 
       return {
         ...integration,
-        config: configFixed
+        config: configFixed,
       };
     });
     const google = integrations.value.find(
-      (value) => value.slug === "google-analytics"
+      (value) => value.slug === "google-analytics",
     );
-    const meta = integrations.value.find(
-        (value) => value.slug === "meta"
-    );
+    const meta = integrations.value.find((value) => value.slug === "meta");
     if (google) {
       if (google.config !== null) {
         if (google.config.property_id == "") {
@@ -262,13 +268,13 @@ async function fetchIntegrations() {
         }
       }
     }
-  if (meta) {
-    if (meta.config) {
-      if (meta.config.ad_account == "") {
-        await getAccountIdMeta();
+    if (meta) {
+      if (meta.config) {
+        if (meta.config.ad_account == "") {
+          await getAccountIdMeta();
+        }
       }
     }
-  }
   } catch (error) {
     console.log(error);
     toast({
@@ -281,19 +287,19 @@ async function fetchIntegrations() {
   loading.value = false;
 }
 
-async function initOAuth2(url: string,id:number) {
+async function initOAuth2(url: string, id: number) {
   //window.open(url, "_blank", "width=500,height=600");
   disableBt.value = true;
   const response = await api.get(url, {
     params: {
       project_id: activeGroupProject.project_id,
-      integration_id: id
+      integration_id: id,
     },
   });
   popUp.value = window.open(
     response.data.data.url,
     "_blank",
-    "width=500,height=600,scrollbars=yes"
+    "width=500,height=600,scrollbars=yes",
   );
   const timer = setInterval(async () => {
     if (popUp.value.closed) {
@@ -309,17 +315,16 @@ async function getProperty() {
   propetyList.value = await Projects.property({
     project_id: activeGroupProject.project_id,
     integration_id: integrations.value.find(
-      (value) => value.slug === "google-analytics"
+      (value) => value.slug === "google-analytics",
     ).id,
   });
 }
 
-async function getAccountIdMeta(){
+async function getAccountIdMeta() {
   adAccountMeta.value = await Projects.adAccount({
     project_id: activeGroupProject.project_id,
-    integration_id: integrations.value.find(
-        (value) => value.slug === "meta"
-    ).id,
+    integration_id: integrations.value.find((value) => value.slug === "meta")
+      .id,
   });
 }
 
@@ -354,7 +359,7 @@ function getApplicationDetail(name: string) {
       return {
         logo: "/third-party/meta.png",
         brief:
-            "Ferramenta para analise de desempenho de sites e apps da Meta, otimizando o marketing e a experiência do usuário.",
+          "Ferramenta para analise de desempenho de sites e apps da Meta, otimizando o marketing e a experiência do usuário.",
       };
 
     case "SMS Funnel":
@@ -362,6 +367,13 @@ function getApplicationDetail(name: string) {
         logo: "/third-party/sms-funnel.png",
         brief:
           "E-mail marketing, automação de marketing, vendas e funcionalidade de CRM.",
+      };
+
+    case "Call4U":
+      return {
+        logo: "/third-party/call4u.png",
+        brief:
+          "Solução de telefonia para automação de ligações, atendimento e engajamento com clientes.",
       };
 
     default:
@@ -378,16 +390,16 @@ async function saveAllIntegrations() {
   if (propetySelect.value) {
     integrations.value[1].config.property_id = propetySelect.value;
     integrations.value[1].config.property_name = propetyList.value.find(
-        (property) => property.id === propetySelect.value
-    ).name
+      (property) => property.id === propetySelect.value,
+    ).name;
   }
-  if (adAccountSelect.value){
-    integrations.value[3].config.ad_account = adAccountSelect.value
+  if (adAccountSelect.value) {
+    integrations.value[3].config.ad_account = adAccountSelect.value;
   }
   try {
     await Projects.bulkUpdate(
       activeGroupProject.project_id,
-        integrations.value,
+      integrations.value,
     );
 
     toast({
@@ -406,7 +418,6 @@ async function saveAllIntegrations() {
 
   saving.value = false;
   await fetchIntegrations();
-
 }
 
 onMounted(async () => {
