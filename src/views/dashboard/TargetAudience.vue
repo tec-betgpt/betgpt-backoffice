@@ -18,7 +18,7 @@
 
     <Card>
       <CardHeader>
-        <CardTitle>Públicos Alvo</CardTitle>
+        <CardTitle>Públicos Alvo Elevate</CardTitle>
       </CardHeader>
       <CardContent class="py-4">
         <CustomDataTable
@@ -33,11 +33,31 @@
           :select-page="fetchAudiences"
           :pages="pages"
           :per_pages="perPage"
-          @update:perPages="args => perPage = args"
+          @update:perPages="args => (perPage = args)"
         />
       </CardContent>
-    </Card>
 
+    </Card>
+    <Card>
+      <CardHeader>
+        <CardTitle>Publico Alvo Meta Ads</CardTitle>
+      </CardHeader>
+      <CardContent class="py-4">
+        <CustomDataTable
+            :loading="isLoadingMeta"
+            :data="metaAudiences"
+            :columns="metaColumns"
+            :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
+        />
+        <CustomPagination :select-page="fetchMetaAudiences"
+                          @update:per-pages="args => {perPageMeta = args
+                            fetchMetaAudiences()
+                          }"
+                          :per_pages="perPageMeta"
+                          :pages="pageMeta"/>
+
+      </CardContent>
+    </Card>
     <TargetAudienceDialog ref="targetAudienceDialogRef" @saved="fetchAudiences" />
 
     <AlertDialog v-model:open="showDeleteDialog">
@@ -109,11 +129,48 @@ const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const audiences = ref<Array<any>>([]);
 const perPage = ref(10);
 
+const isLoadingMeta = ref(false);
+const metaAudiences = ref<Array<any>>([]);
+const pageMeta = ref({
+  current: 1,
+  total: 0,
+  last:0
+});
+const perPageMeta = ref(10);
 const pages = ref({
   current: 1,
   total: 0,
   last: 0,
 });
+
+
+const fetchMetaAudiences = async (page:number = 1) => {
+  if (!activeGroupProjectId) return;
+  isLoadingMeta.value = true;
+  try {
+    const params: any = {
+      filter_id: activeGroupProjectId,
+      page: page,
+      per_page:perPageMeta.value
+    };
+
+    const response = await TargetAudience.metaList(params);
+    metaAudiences.value = response.data || [];
+    pageMeta.value.current = response.current_page;
+    pageMeta.value.total = response.total;
+    pageMeta.value.last = response.last_page;
+    perPage.value = response.per_page;
+  } catch (error) {
+    console.error("Error loading Meta audiences:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar os públicos do Meta Ads.",
+      variant: "destructive",
+    });
+  } finally {
+    isLoadingMeta.value = false;
+  }
+};
 
 const fetchAudiences = async (current = pages.value.current) => {
   if (!activeGroupProjectId) return;
@@ -164,7 +221,7 @@ const reloadTargetAudience = async (id: number) => {
     console.error(error);
     toast({
       title: "Erro",
-      description: "Falha ao recarregar o Publico alvo",
+      description: "Falha ao recarregar o Publicdo alvo",
     })
   }
 
@@ -254,8 +311,38 @@ const columns = [
   },
 ];
 
+const metaColumnHelper = createColumnHelper<any>();
+const metaColumns = [
+  metaColumnHelper.accessor("name", {
+    header: "Nome",
+    cell: ({ row }) => h("div", { class: "capitalize" }, row.getValue("name")),
+  }),
+  metaColumnHelper.accessor("description", {
+    header: "Descrição",
+    cell: ({ row }) => h("div", {}, row.getValue("description") || "-"),
+  }),
+  metaColumnHelper.accessor("approximate_count_lower_bound", {
+    header: "Estimativa",
+    cell: ({ row }) => {
+      const lower = row.original.approximate_count_lower_bound;
+      const upper = row.original.approximate_count_upper_bound;
+      return h("div", {}, `(${lower}-${upper})`);
+    },
+  }),
+  metaColumnHelper.accessor("time_created", {
+    header: "Criado em",
+    cell: ({ row }) => {
+      const time = row.getValue("time_created");
+      return h("div", {}, time ? new Date(time * 1000).toLocaleDateString("pt-BR") : "-");
+    },
+  }),
+];
+
 onMounted(async () => {
-  await fetchAudiences();
+  await Promise.all([
+    fetchAudiences(),
+    fetchMetaAudiences()
+  ]);
   
   const audienceIdToOpen = route.query.openAudienceId;
   if (audienceIdToOpen) {

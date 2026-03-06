@@ -75,6 +75,19 @@ export default {
 
   async reload (params = {}) {
     const { data } = await api.get('/target-audiences/reload/' + params.id)
+  },
+
+
+  /**
+   * GET /v1/target-audiences/projects/{projectId}/providers/meta/list
+   * @param {object} params
+   * @param {string|number} params.filter_id
+   * @param {string|number} params.page
+   * @param {number} params.per_page
+   */
+  async metaList (params = {}) {
+    const { data } = await api.get(`/target-audiences/synced`, { params: params })
+    return data.data
   }
 }
   
