@@ -424,6 +424,12 @@ const navMenu = computed(() => {
           show: canAccess("view-segments"),
         },
         {
+          name: "Tags",
+          url: { name: "tags" },
+          icon: Tag,
+          show: canAccess("access-to-tags"),
+        },
+        {
           name: "Atribuições",
           url: { name: "attributions" },
           icon: ExternalLink,
@@ -563,12 +569,6 @@ const navMenu = computed(() => {
           url: { name: "permissions" },
           icon: LucideShieldUser,
           show: canAccess("access-to-permissions"),
-        },
-        {
-          name: "Tags",
-          url: { name: "tags" },
-          icon: Tag,
-          show: canAccess("access-to-tags"),
         },
         {
           name: "Assinantes",
