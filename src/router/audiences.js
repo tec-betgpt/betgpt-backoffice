@@ -4,6 +4,7 @@ import TargetAudience from "@/views/dashboard/TargetAudience.vue";
 import Players from "@/views/dashboard/Players.vue";
 import UtmTracks from "@/views/dashboard/UtmTracks.vue";
 import Export from "@/views/dashboard/Export.vue";
+import Tags from "@/views/dashboard/Tags.vue";
 
 export default [
   {
@@ -16,6 +17,18 @@ export default [
       permissions: "access-to-management",
     },
     children: [
+      {
+        path: "tags",
+        name: "tags",
+        component: Tags,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "access-to-tags",
+          title: "Tags",
+        },
+      },
       {
         path: "segments",
         name: "segments",
