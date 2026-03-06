@@ -14,13 +14,29 @@
         <CardTitle>
           {{ title }}
         </CardTitle>
-        <GlossaryTooltipComponent v-if="glossary" :description="glossary"/>
+        <div class="flex items-center gap-2">
+          <GlossaryTooltipComponent v-if="glossary" :description="glossary"/>
+          <Popover v-if="chartName">
+            <PopoverTrigger as-child>
+              <Button variant="ghost" size="icon" class="h-8 w-8">
+                <MessageSquare class="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent class="w-80 max-w-[400px]">
+              <AnnotationList
+                ref="annotationListRef"
+                :chart-name="chartName"
+                :project-id="workspaceStore.activeGroupProject?.id"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
     </CardHeader>
 
     <Separator />
 
-    <CardContent class="px-0">
+    <CardContent>
       <div :class="`gap-2 md:grid-cols-1 sm:grid-cols-1 grid mb-10 w-2/3 mx-auto`">
         <div v-for="(p, index) in period" :key="p.name" class="mx-auto mt-5 md:text-left sm:text-center">
           <div class="flex sm:flex-row flex-col items-center justify-center w-full gap-2">
@@ -62,41 +78,77 @@
         :show-legend="false"
         :categories="categories"
         :y-formatter="yFormatter"
-        :custom-tooltip="tooltip"
+        :annotations="annotations"
+        @point-click="handlePointClick"
+        @selection="handleSelection"
       />
+
+      <div class="text-xs text-right text-muted-foreground">
+        Clique no gráfico para adicionar uma anotação
+      </div>
     </CardContent>
   </Card>
+
+  <AnnotationDialog
+    v-if="chartName"
+    v-model:open="dialogOpen"
+    :date="selectedDate"
+    :end-date="selectedEndDate"
+    :chart-name="chartName"
+    @saved="onAnnotationSaved"
+  />
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref, onMounted, watch } from 'vue'
 import { formatLargeNumber } from "@/filters/formatLargeNumber";
-import CustomChartTooltip from "@/components/custom/CustomChartTooltip.vue";
-import CustomChartTooltipPercent from "@/components/custom/CustomChartTooltipPercent.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
-import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
+import { LineChart } from "@/components/ui/chart-line";
+import { MessageSquare } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import AnnotationList from '@/components/project_annotations/AnnotationList.vue';
+import AnnotationDialog from '@/components/project_annotations/AnnotationDialog.vue';
+import ProjectAnnotations from '@/services/projectAnnotations';
+import { useWorkspaceStore } from '@/stores/workspace';
+import moment from 'moment';
 
 export default defineComponent({
   components: {
     GlossaryTooltipComponent,
-    CustomChartTooltip
+    LineChart,
+    MessageSquare,
+    Button,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+    AnnotationList,
+    AnnotationDialog
+  },
+
+  setup() {
+    const workspaceStore = useWorkspaceStore()
+    const dialogOpen = ref(false)
+    const selectedDate = ref('')
+    const selectedEndDate = ref('')
+    const annotations = ref<any[]>([])
+    const annotationListRef = ref<any>(null)
+
+    return {
+      workspaceStore,
+      dialogOpen,
+      selectedDate,
+      selectedEndDate,
+      annotations,
+      annotationListRef
+    }
   },
 
   computed: {
-    CustomChartTooltipPercent() {
-      return CustomChartTooltipPercent
-    },
-    CustomChartTooltip() {
-      return CustomChartTooltip
-    },
-    CustomChartTooltipPrice() {
-      return CustomChartTooltipPrice
-    },
     categories(): string[] {
       return this.period.map(p => p.name)
    },
     chartData(): any[] {
-      // 1. Verificação de segurança para evitar erros de undefined/null
       if (!this.period || !this.period.length || !this.period[0]?.value) {
         return [];
       }
@@ -105,54 +157,39 @@ export default defineComponent({
 
       if (this.type === 'currency') {
         return rawData.map((item: any) => {
-
           return Object.keys(item).reduce((novoObjeto: any, key) => {
-
             if (key === 'date') {
               novoObjeto[key] = item[key];
             }
             else {
               const rawValue = Number(item[key]);
-
               if (!isNaN(rawValue)) {
                 novoObjeto[key] = Number((rawValue / 100).toFixed(2));
               } else {
                 novoObjeto[key] = item[key];
               }
             }
-
             return novoObjeto;
           }, {});
         });
       }
-
       return rawData;
     },
-    tooltip(){
-      if (this.type === 'percent') return this.CustomChartTooltipPercent
-      if (this.type === 'currency') return this.CustomChartTooltipPrice
-      return this.CustomChartTooltip
-    },
     yFormatter(): (tick: number) => string {
-    if (this.type === 'percent') {
-      return (tick: number) => `${(tick).toFixed(2)}%`
-
-
-    }
-    if (this.type ==='currency'){
-      return (tick:number) =>
-        `R$ ${new Intl.NumberFormat('pt-BR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-                  .format(tick )
-                  .toString()}`
-
-    }
-    return (tick: number) => new Intl.NumberFormat('pt-BR').format(tick)
-
-  },
-
+      if (this.type === 'percent') {
+        return (tick: number) => `${(tick).toFixed(2)}%`
+      }
+      if (this.type ==='currency'){
+        return (tick:number) =>
+          `R$ ${new Intl.NumberFormat('pt-BR', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+                    .format(tick )
+                    .toString()}`
+      }
+      return (tick: number) => new Intl.NumberFormat('pt-BR').format(tick)
+    },
   },
 
   data: () => ({
@@ -161,9 +198,6 @@ export default defineComponent({
   }),
 
   methods:{
-    getVarName(obj: Record<string, any>): string {
-      return Object.keys(obj)[0];
-    },
     calculateStats(key, data) {
       if (!data.length) return {}
       const values = data.map(item => item[key])
@@ -186,6 +220,43 @@ export default defineComponent({
           avg: formatLargeNumber(parseFloat(avg).toFixed(2)).content + formatLargeNumber(parseFloat(avg).toFixed(2)).separator }
       }
       return { max, min, avg: parseFloat(avg).toFixed(2) }
+    },
+    async fetchAnnotations() {
+      if (!this.chartName || !this.workspaceStore.activeGroupProject?.id) return
+      try {
+        const response = await ProjectAnnotations.index({
+          filter_id: this.workspaceStore.activeGroupProject.id,
+          chart_name: this.chartName,
+          perPage: 100
+        })
+        this.annotations = response || []
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    handlePointClick(data: any) {
+      if (!this.chartName) return
+      this.selectedDate = data.date
+      this.selectedEndDate = ''
+      this.dialogOpen = true
+    },
+    handleSelection({ start, end }: { start: number, end: number }) {
+      if (!this.chartName) return
+      // ApexCharts selection returns timestamps or values.
+      // Since we use 'category', we need to map back or use the values.
+      // For simplicity, let's assume the user wants to annotate the start of the selection.
+      // In a more advanced version, we could find the dates in chartData.
+
+      // If categories are dates, we can format them.
+      this.selectedDate = moment(start).format('YYYY-MM-DD')
+      this.selectedEndDate = moment(end).format('YYYY-MM-DD')
+      this.dialogOpen = true
+    },
+    onAnnotationSaved() {
+      this.fetchAnnotations()
+      if (this.annotationListRef) {
+        this.annotationListRef.refresh()
+      }
     }
   },
 
@@ -213,7 +284,20 @@ export default defineComponent({
     isGroup:{
       type:Boolean,
       required:false
+    },
+    chartName: {
+      type: String,
+      required: false
     }
+  },
+
+  mounted() {
+    this.fetchAnnotations()
+  },
+
+  watch: {
+    chartName: 'fetchAnnotations',
+    'workspaceStore.activeGroupProject.id': 'fetchAnnotations'
   }
 })
 </script>
