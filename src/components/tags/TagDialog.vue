@@ -197,7 +197,7 @@ const isOpen = computed({
   set: (val) => emit('update:open', val)
 });
 
-const isEdit = computed(() => !!props.tag);
+const isEdit = computed(() => !!(props.tag && props.tag.id));
 
 const form = ref({
   name: '',
