@@ -3,17 +3,18 @@ import type { ListboxRootEmits, ListboxRootProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ListboxRoot, useFilter, useForwardPropsEmits } from "reka-ui"
-import { reactive, ref, watch } from "vue"
+import { reactive, ref, watch, toRef } from "vue"
 import { cn } from "@/lib/utils"
 import { provideCommandContext } from "."
 
-const props = withDefaults(defineProps<ListboxRootProps & { class?: HTMLAttributes["class"] }>(), {
+const props = withDefaults(defineProps<ListboxRootProps & { class?: HTMLAttributes["class"], filterResults?: boolean }>(), {
   modelValue: "",
+  filterResults: true,
 })
 
 const emits = defineEmits<ListboxRootEmits>()
 
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "filterResults")
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 
@@ -34,9 +35,16 @@ const filterState = reactive({
 })
 
 function filterItems() {
-  if (!filterState.search) {
+  const search = filterState.search
+  const filterEnabled = props.filterResults
+
+  if (!search || !filterEnabled) {
     filterState.filtered.count = allItems.value.size
-    // Do nothing, each item will know to show itself because search is empty
+    filterState.filtered.items.clear()
+    for (const [id] of allItems.value) {
+      filterState.filtered.items.set(id, 1)
+    }
+    filterState.filtered.groups = new Set(allGroups.value.keys())
     return
   }
 
@@ -46,7 +54,7 @@ function filterItems() {
 
   // Check which items should be included
   for (const [id, value] of allItems.value) {
-    const score = contains(value, filterState.search)
+    const score = contains(value, search)
     filterState.filtered.items.set(id, score ? 1 : 0)
     if (score)
       itemCount++
@@ -65,7 +73,7 @@ function filterItems() {
   filterState.filtered.count = itemCount
 }
 
-watch(() => filterState.search, () => {
+watch(() => [filterState.search, props.filterResults], () => {
   filterItems()
 })
 
@@ -73,6 +81,25 @@ provideCommandContext({
   allItems,
   allGroups,
   filterState,
+  filterResults: toRef(props, "filterResults"),
+  registerItem: (id: string, value: string) => {
+    allItems.value.set(id, value)
+    filterItems()
+  },
+  unregisterItem: (id: string) => {
+    allItems.value.delete(id)
+    filterItems()
+  },
+  registerGroup: (id: string) => {
+    if (!allGroups.value.has(id)) {
+      allGroups.value.set(id, new Set())
+      filterItems()
+    }
+  },
+  unregisterGroup: (id: string) => {
+    allGroups.value.delete(id)
+    filterItems()
+  },
 })
 </script>
 

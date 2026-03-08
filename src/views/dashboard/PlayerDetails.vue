@@ -68,9 +68,14 @@
           </div>
 
           <Separator class="my-4" />
+          <h3 class="text-sm font-semibold flex items-center gap-2">
+            <Tag class="h-4 w-4" />
+            Tags do Jogador
+          </h3>
 
-          <PlayerTagManager 
-            :player-id="player.id" 
+          <TagManager
+              model-type="player"
+            :model-id="player.id"
             :project-id="activeGroupProjectId" 
           />
         </CardContent>
@@ -261,13 +266,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
-import { ChevronLeft, Code } from "lucide-vue-next";
+import { ChevronLeft, Code, Tag } from "lucide-vue-next";
 import Players from "@/services/players";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import PlayerTagManager from "@/components/players/PlayerTagManager.vue";
+import TagManager from "@/components/custom/TagManager.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import {
   Dialog,

@@ -30,6 +30,10 @@ const { filterState } = useCommand()
       v-model="filterState.search"
       auto-focus
       :class="cn('flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50', props.class)"
+      @input="(e: Event) => {
+        const target = e.target as HTMLInputElement
+        $emit('input', target.value)
+      }"
     />
   </div>
 </template>
