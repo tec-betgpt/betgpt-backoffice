@@ -1190,9 +1190,9 @@ const saveSegment = async () => {
     }));
 
     if (isEditing.value && form.value[0].id) {
-      //await Segments.update(form.value[0].id, payload);
+      await Segments.update(form.value[0].id, payload);
     } else {
-    //  await Segments.create(payload);
+      await Segments.create(payload);
     }
 
     await fetchSegments();
