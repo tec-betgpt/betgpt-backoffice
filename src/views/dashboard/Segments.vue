@@ -195,7 +195,7 @@
                       v-model.number="condition.value"
                       placeholder="Número"
                       type="number"
-                      class="flex-1"
+                      class="flex-1 min-w-[120px]"
                     />
 
                     <div
@@ -860,16 +860,6 @@ const addCondition = (groupIndex: number, formIndex: number) => {
     modifier: "exact",
   });
 };
-const updateSyncProviders = (checked, providerId) => {
-  const providers = targetAudienceForm.value.sync_providers;
-  const index = providers.indexOf(providerId);
-
-  if (checked && index === -1) {
-    providers.push(providerId);
-  } else if (!checked && index !== -1) {
-    providers.splice(index, 1);
-  }
-};
 const removeCondition = (
   groupIndex: number,
   conditionIndex: number,
@@ -1126,26 +1116,46 @@ const saveSegment = async () => {
   isProcessing.value = true;
 
   try {
-    if (!form.value.filter((f) => f.name)) {
+    if (form.value.some((f) => !f.name)) {
       throw new Error("O nome do segmento é obrigatório");
     }
 
-    const hasValidConditions = form.value
-      .map((seg) => seg.conditionGroups)
-      .some((group) =>
-        group.map((value) =>
-          value.conditions.some(
-            (condition) =>
-              condition.field &&
-              condition.operator &&
-              (["empty", "not_empty"].includes(condition.operator) ||
-                condition.value !== undefined),
-          ),
-        ),
-      );
+    const hasValidConditions = form.value.every((seg, formIndex) =>
+      seg.conditionGroups.every((group, groupIndex) =>
+        group.conditions.every((condition) => {
+          if (!condition.field || !condition.operator) return false;
+          if (["empty", "not_empty"].includes(condition.operator)) return true;
+
+          const field = getField(condition, groupIndex, formIndex);
+          if (field?.data_type === "date") {
+            if (condition.dateType === "custom_date") {
+              return !!condition.value;
+            }
+            if (condition.dateType === "actual_date") {
+              if (["plus", "minus"].includes(condition.dateModifier)) {
+                return (
+                  condition.daysOffset !== undefined &&
+                  condition.daysOffset !== null
+                );
+              }
+              return !!condition.dateModifier;
+            }
+            return false;
+          }
+
+          return (
+            condition.value !== undefined &&
+            condition.value !== null &&
+            condition.value !== ""
+          );
+        }),
+      ),
+    );
 
     if (!hasValidConditions) {
-      throw new Error("Defina pelo menos uma condição válida");
+      throw new Error(
+        "Defina todas as condições corretamente. Campos de valor e data devem estar preenchidos.",
+      );
     }
 
     const payload = form.value.map((seg, index) => ({
@@ -1180,9 +1190,9 @@ const saveSegment = async () => {
     }));
 
     if (isEditing.value && form.value[0].id) {
-      await Segments.update(form.value[0].id, payload);
+      //await Segments.update(form.value[0].id, payload);
     } else {
-      await Segments.create(payload);
+    //  await Segments.create(payload);
     }
 
     await fetchSegments();
