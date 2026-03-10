@@ -210,6 +210,7 @@
         <PeriodComponent
           :period="sms"
           title="SMS Enviados"
+          chart-name="smsfunnel-sent"
           :is-loading="loading"
           :glossary="meta['sms.sent'] || 'Dados de SMS Enviados'"
         />
@@ -217,6 +218,7 @@
           v-if="hasMemberAccess"
           :period="clicks"
           title="Cliques"
+          chart-name="smsfunnel-clicks"
           :is-loading="loading"
           :glossary="meta['clicks'] || 'Dados de Cliques'"
         />

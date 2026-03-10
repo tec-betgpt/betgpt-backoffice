@@ -41,7 +41,6 @@ const emit = defineEmits(['pointClick', 'selection'])
 const chartRef = ref(null)
 const mode = useColorMode()
 
-// 1. DADO ORDENADO: Garantimos que o array está em ordem cronológica (do mais antigo para o mais novo)
 const sortedData = computed(() => {
   return [...props.data].sort((a, b) => {
     const timeA = moment(a[props.index], 'DD/MM/YYYY').valueOf()
@@ -53,7 +52,7 @@ const sortedData = computed(() => {
 const series = computed(() => {
   return props.categories.map(cat => ({
     name: cat,
-    // Usamos o sortedData aqui para evitar que a linha "dobre" ou volte para trás
+    // Nota: sortedData para evitar que a linha "dobre"
     data: sortedData.value.map(d => ({
       x: moment(d[props.index], 'DD/MM/YYYY').valueOf(),
       y: d[cat]
@@ -72,20 +71,14 @@ const chartOptions = computed(() => {
       fontFamily: 'inherit',
       events: {
         markerClick: (event, chartContext, { seriesIndex, dataPointIndex, config }) => {
-          // Alterado para buscar do array ordenado
           const dataPoint = sortedData.value[dataPointIndex]
           emit('pointClick', dataPoint)
         },
         selection: (chartContext, { xaxis }) => {
           if (xaxis) {
-            // 2. SELEÇÃO CORRIGIDA: No 'datetime', xaxis.min e max são TIMESTAMPS, não mais índices (0, 1, 2)
             const minTime = xaxis.min
             const maxTime = xaxis.max
-
-            // Encontramos o primeiro dado que seja maior ou igual ao tempo mínimo selecionado
             const startData = sortedData.value.find(d => moment(d[props.index], 'DD/MM/YYYY').valueOf() >= minTime)
-
-            // Encontramos o último dado que seja menor ou igual ao tempo máximo (usamos reverse para achar o mais próximo do final)
             const endData = [...sortedData.value].reverse().find(d => moment(d[props.index], 'DD/MM/YYYY').valueOf() <= maxTime)
 
             if (startData && endData) {
@@ -129,13 +122,12 @@ const chartOptions = computed(() => {
       }
     },
     xaxis: {
-      type: 'datetime', // Mantido como datetime
+      type: 'datetime',
       labels: { show: false },
       axisBorder: { show: false },
       axisTicks: { show: false },
       tooltip: { enabled: false },
       crosshairs: { show: true }
-      // Removida a propriedade 'categories' que estava aqui
     },
     yaxis: {
       labels: {

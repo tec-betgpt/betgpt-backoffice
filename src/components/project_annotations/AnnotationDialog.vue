@@ -94,8 +94,6 @@ async function save() {
   loading.value = true
 
   try {
-    // Se for um range, podemos concatenar no texto ou se o back suportar, enviar campos extras.
-    // Como a estrutura informada só tem 'date', usaremos a data inicial.
     const annotationText = isRange.value
       ? `[Período: ${props.date} a ${props.endDate}] ${form.value.annotation}`
       : form.value.annotation

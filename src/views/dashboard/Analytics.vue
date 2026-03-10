@@ -14,24 +14,124 @@
       </div>
     </div>
     <div class="grid xl:grid-cols-2 grid-cols-1 gap-4" >
-      <PeriodComponent :period="usersPeriod" title="Usuários" :isLoading="isLoading" :glossary="meta['users_period'] || 'Dados de Usuários registrados e ativos'"/>
-      <PeriodComponent :period="loginsDays" title="Logins diários" :isLoading="isLoading" :glossary="meta['player_logins_period'] || 'Dados de Logins diários'"/>
-      <PeriodComponent :period="uniquePlayerLoginsPeriod" title="Logins únicos" :isLoading="isLoading" :glossary="meta['unique_player_logins_period'] || 'Usuários únicos que entraram no sistema por dia'"/>
-      <PeriodComponent :period="depositsPeriod" title="Entrada por periodo" :isLoading="isLoading" :glossary="meta['deposits_period'] || 'Dados de entrada por período, com diferença de 7D, 14D e 28D'"/>
-      <PeriodComponent :period="percentNetDepositsPeriod" title="Percentual de entradas líquidas por período" type="percent" class="xl:col-span-2" :isLoading="isLoading" :glossary="meta['percent_net_deposits_period'] || 'Percentual de entradas líquidas em relação ao total por período'"/>
-      <PeriodComponent :period="netDepositsPeriod" title="Entradas Líquidas por período" :isLoading="isLoading" :glossary="meta['net_deposits_period'] || 'Valor líquido das entradas realizadas em cada período'"/>
-      <PeriodComponent :period="activeUsersPeriod" title="Usuários Ativos por período" :isLoading="isLoading" :glossary="meta['active_users_period'] || 'Quantidade de usuários ativos em cada período'"/>
-      <PeriodComponent :period="percentFtdDayPeriod" title="Percentual FTD por dia" type="percent" :isLoading="isLoading" :glossary="meta['percent_ftd_day_period'] || 'Percentual de First Time Deposits (FTD) por dia'"/>
-      <PeriodComponent :period="valueNetDepositsPeriod" title="Valor de Entradas Líquidas por período" :isLoading="isLoading" :glossary="meta['value_net_deposits_period'] || 'Valor total das entradas líquidas por período'"/>
-      <PeriodComponent :period="valueDepositsPeriod" title="Valor de Entradas por período" :isLoading="isLoading" :glossary="meta['value_deposits_period'] || 'Valor total das entradas realizadas por período'"/>
-      <PeriodComponent :period="valueWithdrawsPeriod" title="Valor de Saídas por período" :isLoading="isLoading" :glossary="meta['value_withdraws_period'] || 'Valor total das saídas realizadas por período'"/>
-      <PeriodComponent :period="registrationDepositRatePeriod" title="Taxa de Registro/Entrada por período" type="percent" :isLoading="isLoading" :glossary="meta['registration_deposit_rate_period'] || 'Percentual de usuários registrados que realizaram entrada por período'"/>
-      <PeriodComponent :period="depositConversionRatePeriod" title="Taxa de Conversão de Entrada por período" type="percent" :isLoading="isLoading" :glossary="meta['deposit_conversion_rate_period'] || 'Percentual de conversão de entradas pagas por período'"/>    </div>
+      <PeriodComponent
+        chart-name="users"
+        :period="usersPeriod"
+        title="Usuários"
+        :isLoading="isLoading"
+        :glossary="meta['users_period'] || 'Dados de Usuários registrados e ativos'"
+      />
+
+      <PeriodComponent
+        chart-name="logins_days"
+        :period="loginsDays"
+        title="Logins diários"
+        :isLoading="isLoading"
+        :glossary="meta['player_logins_period'] || 'Dados de Logins diários'"
+      />
+
+      <PeriodComponent
+        chart-name="unique_logins"
+        :period="uniquePlayerLoginsPeriod"
+        title="Logins únicos"
+        :isLoading="isLoading"
+        :glossary="meta['unique_player_logins_period'] || 'Usuários únicos que entraram no sistema por dia'"
+      />
+
+      <PeriodComponent
+        chart-name="deposits"
+        type="currency"
+        :period="depositsPeriod"
+        title="Entrada por periodo"
+        :isLoading="isLoading"
+        :glossary="meta['deposits_period'] || 'Dados de entrada por período, com diferença de 7D, 14D e 28D'"
+      />
+
+      <PeriodComponent
+        chart-name="percent_net_deposits"
+        :period="percentNetDepositsPeriod"
+        title="Percentual de entradas líquidas por período"
+        type="percent" class="xl:col-span-2"
+        :isLoading="isLoading"
+        :glossary="meta['percent_net_deposits_period'] || 'Percentual de entradas líquidas em relação ao total por período'"
+      />
+
+      <PeriodComponent
+        chart-name="net_deposits"
+        type="currency"
+        :period="netDepositsPeriod"
+        title="Entradas Líquidas por período"
+        :isLoading="isLoading"
+        :glossary="meta['net_deposits_period'] || 'Valor líquido das entradas realizadas em cada período'"
+      />
+
+      <PeriodComponent
+        chart-name="active_users"
+        :period="activeUsersPeriod"
+        title="Usuários Ativos por período"
+        :isLoading="isLoading"
+        :glossary="meta['active_users_period'] || 'Quantidade de usuários ativos em cada período'"
+      />
+
+      <PeriodComponent
+        chart-name="percent_ftd"
+        :period="percentFtdDayPeriod"
+        title="Percentual FTD por dia"
+        type="percent"
+        :isLoading="isLoading"
+        :glossary="meta['percent_ftd_day_period'] || 'Percentual de First Time Deposits (FTD) por dia'"
+      />
+
+      <PeriodComponent
+        chart-name="value_net_deposits"
+        type="currency"
+        :period="valueNetDepositsPeriod"
+        title="Valor de Entradas Líquidas por período"
+        :isLoading="isLoading"
+        :glossary="meta['value_net_deposits_period'] || 'Valor total das entradas líquidas por período'"
+      />
+
+      <PeriodComponent
+        chart-name="value_deposits"
+        type="currency"
+        :period="valueDepositsPeriod"
+        title="Valor de Entradas por período"
+        :isLoading="isLoading"
+        :glossary="meta['value_deposits_period'] || 'Valor total das entradas realizadas por período'"
+      />
+
+      <PeriodComponent
+        chart-name="value_withdraws"
+        type="currency"
+        :period="valueWithdrawsPeriod"
+        title="Valor de Saídas por período"
+        :isLoading="isLoading"
+        :glossary="meta['value_withdraws_period'] || 'Valor total das saídas realizadas por período'"
+      />
+
+      <PeriodComponent
+        chart-name="reg_dep_rate"
+        :period="registrationDepositRatePeriod"
+        title="Taxa de Registro/Entrada por período"
+        type="percent"
+        :isLoading="isLoading"
+        :glossary="meta['registration_deposit_rate_period'] || 'Percentual de usuários registrados que realizaram entrada por período'"
+      />
+
+      <PeriodComponent
+        chart-name="dep_conv_rate"
+        :period="depositConversionRatePeriod"
+        title="Taxa de Conversão de Entrada por período"
+        type="percent"
+        :isLoading="isLoading"
+        :glossary="meta['deposit_conversion_rate_period'] || 'Percentual de conversão de entradas pagas por período'"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, onMounted } from "vue";
 import {  getLocalTimeZone, today } from "@internationalized/date";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -88,7 +188,7 @@ const applyFilter = async () => {
     let registration_deposit = data.registration_deposit_rate_period.map(deposit => {
       return {date:deposit.date,["% Entrada"]:deposit["% Entrada"]/100}  })
     let deposit_conversion = data.deposit_conversion_rate_period.map(deposit => {
-      return {date:deposit.date,["% Saída"]:deposit["% Saída"]/100}  })
+      return {date:deposit.date,["% Conversão"]:deposit["% Conversão"]/100}  })
     let ftd = data.percent_ftd_day_period.map(deposit => {
       return {date:deposit.date,["FTD/Dia"]:deposit["FTD/Dia"]/100}  })
     let unique_logins = data.unique_player_logins_period.map(login => {
@@ -100,11 +200,11 @@ const applyFilter = async () => {
     netDepositsPeriod.value = [{name:"7 Dias",value:data.net_deposits_period},{name:"14 Dias",value:data.net_deposits_period}, {name:"28 Dias",value:data.net_deposits_period}];
     activeUsersPeriod.value = [{name:"7 Dias",value:data.active_users_period},{name:"14 Dias",value:data.active_users_period}, {name:"28 Dias",value:data.active_users_period}];
     percentFtdDayPeriod.value = [{name:"FTD/Dia",value:ftd}];
-    valueNetDepositsPeriod.value = [{name:"Entradas",value:data.value_net_deposits_period}];
-    valueDepositsPeriod.value = [{name:"Entradas",value:data.value_deposits_period}];
+    valueNetDepositsPeriod.value = [{name:"Líquido",value:data.value_net_deposits_period}];
+    valueDepositsPeriod.value = [{name:"Total Entradas",value:data.value_deposits_period}];
     valueWithdrawsPeriod.value = [{name:"Saídas",value:data.value_withdraws_period}];
     registrationDepositRatePeriod.value = [{name:"% Entrada",value:registration_deposit}];
-    depositConversionRatePeriod.value = [{name:"% Saída",value:deposit_conversion}];
+    depositConversionRatePeriod.value = [{name:"% Conversão",value:deposit_conversion}];
     loginsDays.value = [{name:"Logins",value:data.player_logins_period}];
     uniquePlayerLoginsPeriod.value = [{name:"Logins únicos",value:unique_logins}];
   } catch (error) {
@@ -118,7 +218,11 @@ const applyFilter = async () => {
   isLoading.value = false;
 };
 
-watch(selectedRange,() => {
+watch(selectedRange, () => {
+  applyFilter()
+}, { deep: true })
+
+onMounted(() => {
   applyFilter()
 })
 

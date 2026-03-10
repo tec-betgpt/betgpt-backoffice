@@ -83,7 +83,7 @@
         @selection="handleSelection"
       />
 
-      <div class="text-xs text-right text-muted-foreground">
+      <div v-if="chartName" class="text-xs text-right text-muted-foreground">
         Clique no gráfico para adicionar uma anotação
       </div>
     </CardContent>
@@ -157,19 +157,19 @@ export default defineComponent({
 
       if (this.type === 'currency') {
         return rawData.map((item: any) => {
-          return Object.keys(item).reduce((novoObjeto: any, key) => {
+          return Object.keys(item).reduce((newObject: any, key) => {
             if (key === 'date') {
-              novoObjeto[key] = item[key];
+              newObject[key] = item[key];
             }
             else {
               const rawValue = Number(item[key]);
               if (!isNaN(rawValue)) {
-                novoObjeto[key] = Number((rawValue / 100).toFixed(2));
+                newObject[key] = Number((rawValue / 100).toFixed(2));
               } else {
-                novoObjeto[key] = item[key];
+                newObject[key] = item[key];
               }
             }
-            return novoObjeto;
+            return newObject;
           }, {});
         });
       }
@@ -181,12 +181,9 @@ export default defineComponent({
       }
       if (this.type ==='currency'){
         return (tick:number) =>
-          `R$ ${new Intl.NumberFormat('pt-BR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })
-                    .format(tick )
-                    .toString()}`
+          `R$ ${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            .format(tick )
+            .toString()}`
       }
       return (tick: number) => new Intl.NumberFormat('pt-BR').format(tick)
     },
@@ -194,11 +191,11 @@ export default defineComponent({
 
   data: () => ({
     windowWidth: window.innerWidth,
-    colors: ['#947c2c','#f4a261','#c3c3c3']
+    colors: ['#947c2c', '#f4a261', '#c3c3c3', '#2a9d8f']
   }),
 
   methods:{
-    calculateStats(key, data) {
+    calculateStats(key: any, data: any) {
       if (!data.length) return {}
       const values = data.map(item => item[key])
       let max = Math.max(...values)
@@ -217,9 +214,9 @@ export default defineComponent({
       if (this.windowWidth < 640) {
         return { max: formatLargeNumber(max).content + formatLargeNumber(max).separator  ,
           min: formatLargeNumber(min).content + formatLargeNumber(min).separator,
-          avg: formatLargeNumber(parseFloat(avg).toFixed(2)).content + formatLargeNumber(parseFloat(avg).toFixed(2)).separator }
+          avg: formatLargeNumber(parseFloat(String(avg)).toFixed(2)).content + formatLargeNumber(parseFloat(String(avg)).toFixed(2)).separator }
       }
-      return { max, min, avg: parseFloat(avg).toFixed(2) }
+      return { max, min, avg: parseFloat(String(avg)).toFixed(2) }
     },
     async fetchAnnotations() {
       if (!this.chartName || !this.workspaceStore.activeGroupProject?.id) return
@@ -242,12 +239,7 @@ export default defineComponent({
     },
     handleSelection({ start, end }: { start: number, end: number }) {
       if (!this.chartName) return
-      // ApexCharts selection returns timestamps or values.
-      // Since we use 'category', we need to map back or use the values.
-      // For simplicity, let's assume the user wants to annotate the start of the selection.
-      // In a more advanced version, we could find the dates in chartData.
-
-      // If categories are dates, we can format them.
+      
       this.selectedDate = moment(start).format('YYYY-MM-DD')
       this.selectedEndDate = moment(end).format('YYYY-MM-DD')
       this.dialogOpen = true

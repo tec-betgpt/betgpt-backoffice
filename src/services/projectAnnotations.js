@@ -3,12 +3,9 @@ import api from "./base.js";
 export default {
     /**
      * @param {object|any} params
-     * @param {number} params.size
-     * @param {number} params.page
-     * @param {number} params.perPage
-     * @param {Array<string>} params.search
-     * @param {string} params.orderBy
-     * @param {string} params.orderDirection
+     * @param {string|null} params.end_date
+     * @param {string|null} params.start_date
+     * @param {string|null} params.chart_name
      * @param {string} params.filter_id
      */
     async index (params = {}) {
