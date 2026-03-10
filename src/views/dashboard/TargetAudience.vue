@@ -47,6 +47,8 @@
             :loading="isLoadingMeta"
             :data="metaAudiences"
             :columns="metaColumns"
+            :find="fetchMetaAudiences"
+            :update-text="handleMetaName"
             :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
         />
         <CustomPagination :select-page="fetchMetaAudiences"
@@ -131,6 +133,7 @@ const perPage = ref(10);
 
 const isLoadingMeta = ref(false);
 const metaAudiences = ref<Array<any>>([]);
+const metaNameSearch = ref("");
 const pageMeta = ref({
   current: 1,
   total: 0,
@@ -143,6 +146,9 @@ const pages = ref({
   last: 0,
 });
 
+const handleMetaName = (text: string) => {
+  metaNameSearch.value = text;
+};
 
 const fetchMetaAudiences = async (page:number = 1) => {
   if (!activeGroupProjectId) return;
@@ -151,7 +157,8 @@ const fetchMetaAudiences = async (page:number = 1) => {
     const params: any = {
       filter_id: activeGroupProjectId,
       page: page,
-      per_page:perPageMeta.value
+      per_page: perPageMeta.value,
+      name: metaNameSearch.value
     };
 
     const response = await TargetAudience.metaList(params);
@@ -159,7 +166,7 @@ const fetchMetaAudiences = async (page:number = 1) => {
     pageMeta.value.current = response.current_page;
     pageMeta.value.total = response.total;
     pageMeta.value.last = response.last_page;
-    perPage.value = response.per_page;
+    perPageMeta.value = response.per_page;
   } catch (error) {
     console.error("Error loading Meta audiences:", error);
     toast({

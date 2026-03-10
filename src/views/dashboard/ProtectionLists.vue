@@ -152,6 +152,13 @@
                       <DropdownMenuLabel>Ações</DropdownMenuLabel>
                       <DropdownMenuSeparator />
 
+                      <DropdownMenuItem
+                        @click="$router.push({ name: 'clients.show', params: { id: row.player?.id } })"
+                      >
+                        <Eye class="mr-2 h-4 w-4" />
+                        Ver Jogador
+                      </DropdownMenuItem>
+
                       <DropdownMenuItem @click.prevent="openEdit(row)">
                         <Pencil class="mr-2 h-4 w-4" />
                         Editar
@@ -261,6 +268,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Eye,
 } from "lucide-vue-next";
 
 const { toast } = useToast();

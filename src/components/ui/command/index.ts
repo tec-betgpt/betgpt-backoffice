@@ -18,6 +18,11 @@ export const [useCommand, provideCommandContext] = createContext<{
     search: string
     filtered: { count: number, items: Map<string, number>, groups: Set<string> }
   }
+  registerItem: (id: string, value: string) => void
+  unregisterItem: (id: string) => void
+  registerGroup: (id: string) => void
+  unregisterGroup: (id: string) => void
+  filterResults: Ref<boolean>
 }>("Command")
 
 export const [useCommandGroup, provideCommandGroupContext] = createContext<{

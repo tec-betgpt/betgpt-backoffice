@@ -23,18 +23,6 @@ export default [
     },
     children: [
       {
-        path: "tags",
-        name: "tags",
-        component: Tags,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          roles: "member",
-          permissions: "access-to-tags",
-          title: "Tags",
-        },
-      },
-      {
         path: "texts",
         name: "texts",
         component: Insights,

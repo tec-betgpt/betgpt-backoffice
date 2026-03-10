@@ -15,11 +15,11 @@ const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 
 const id = useId()
-const { filterState, allItems, allGroups } = useCommand()
+const { filterState, allItems, allGroups, registerItem, unregisterItem, filterResults } = useCommand()
 const groupContext = useCommandGroup()
 
 const isRender = computed(() => {
-  if (!filterState.search) {
+  if (!filterState.search || !filterResults.value) {
     return true
   }
   else {
@@ -42,7 +42,8 @@ onMounted(() => {
     return
 
   // textValue to perform filter
-  allItems.value.set(id, currentElement.value.textContent ?? props?.value!.toString())
+  const value = currentElement.value.textContent ?? props?.value!.toString()
+  registerItem(id, value)
 
   const groupId = groupContext?.id
   if (groupId) {
@@ -55,7 +56,7 @@ onMounted(() => {
   }
 })
 onUnmounted(() => {
-  allItems.value.delete(id)
+  unregisterItem(id)
 })
 </script>
 

@@ -197,13 +197,13 @@ const isOpen = computed({
   set: (val) => emit('update:open', val)
 });
 
-const isEdit = computed(() => !!props.tag);
+const isEdit = computed(() => !!props.tag?.id);
 
 const form = ref({
   name: '',
   slug: '',
   description: '',
-  color: '',
+  color: '#3b82f6',
   parent_id: null as number | null,
   is_active: true,
   has_webhook: false,
@@ -211,6 +211,7 @@ const form = ref({
     triggers: [] as string[]
   }
 });
+
 const workspace = useWorkspaceStore()
 const parentTags = ref<Tag[]>([]);
 const isLoadingParents = ref(false);
@@ -230,18 +231,22 @@ watch(() => props.open, (newVal) => {
   if (newVal) {
     if (props.tag) {
       form.value = {
-        name: props.tag.name,
-        slug: props.tag.slug,
+        name: props.tag.name || '',
+        slug: props.tag.slug || '',
         description: props.tag.description || '',
-        color: props.tag.color || '',
-        parent_id: props.tag.parent_id,
-        is_active: props.tag.is_active,
+        color: props.tag.color || '#3b82f6',
+        parent_id: props.tag.parent_id || null,
+        is_active: props.tag.is_active ?? true,
         //@ts-ignore
         has_webhook: props.tag.has_webhook || false,
         metadata: {
           triggers: props.tag.metadata?.triggers || []
         }
       };
+      
+      if (!isEdit.value && form.value.name && !form.value.slug) {
+        onNameInput();
+      }
     } else {
       form.value = {
         name: '',
