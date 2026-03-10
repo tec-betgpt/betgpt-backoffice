@@ -337,7 +337,7 @@
                   >
                   <ToggleGroupItem value="OR" class="h-8 px-3"
                     >OU</ToggleGroupItem
-                >
+                  >
                 </ToggleGroup>
               </div>
             </div>
@@ -498,7 +498,10 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <TargetAudienceDialog ref="targetAudienceDialogRef" @saved="fetchSegments" />
+    <TargetAudienceDialog
+      ref="targetAudienceDialogRef"
+      @saved="fetchSegments"
+    />
 
     <Dialog v-model:open="showTagsDialog">
       <DialogContent class="sm:max-w-md">
@@ -516,7 +519,9 @@
           />
         </div>
         <DialogFooter>
-          <Button variant="secondary" @click="showTagsDialog = false">Fechar</Button>
+          <Button variant="secondary" @click="showTagsDialog = false"
+            >Fechar</Button
+          >
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -671,9 +676,7 @@ const operatorMap = {
   ],
   boolean: ["is", "is_not", "empty", "not_empty"],
 };
-const availableProviders = [
-  { id: "meta", label: "Meta Ads" },
-];
+const availableProviders = [{ id: "meta", label: "Meta Ads" }];
 
 const exportSeg = ref([]);
 const selectProjects = ref([]);
@@ -893,21 +896,18 @@ const loadSavedSegment = async (segmentId: number, formIndex: number) => {
     }
 
     const parseConditionValue = (condition: any) => {
-      try {
-        if (typeof condition.value === "object") {
-          return condition.value.value ? condition.value : condition;
-        }
-        const parsed = JSON.parse(condition.value);
-        return parsed.value ? parsed : parsed;
-      } catch {
-        return {
-          value: condition.value,
-          type: "custom_date",
-          dateModifier: "exact",
-          dateFilter: "full_date",
-          daysOffset: 0,
-        };
+      if (typeof condition.value === "object" && condition.value !== null) {
+        return condition.value;
       }
+      if (typeof condition.value === "string") {
+        try {
+          return JSON.parse(condition.value);
+        } catch {
+          return { value: condition.value };
+        }
+      }
+
+      return { value: condition.value };
     };
 
     const newConditionGroups = segment.condition_groups.map((group) => {
@@ -1512,12 +1512,6 @@ const forceSegmentUpdate = async (segmentId: number) => {
   }
 };
 
-
-
-
-
-
-
 function viewTargetAudience(segment) {
   if (segment.audiences && segment.audiences.length > 0) {
     const audienceId = segment.audiences[0].id;
@@ -1812,6 +1806,4 @@ watch(
   },
   { deep: true },
 );
-
-
 </script>
