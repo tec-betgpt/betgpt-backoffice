@@ -249,7 +249,7 @@
     <!-- Modal de Calls da Campanha -->
     <Dialog v-model:open="showCallsModal">
       <DialogContent
-        class="sm:max-w-[900px] max-h-[90vh] grid-rows-[auto_minmax(0,1fr)_auto] p-0"
+        class="sm:max-w-[95vw] xl:max-w-[1200px] max-h-[90vh] grid-rows-[auto_minmax(0,1fr)_auto] p-0"
       >
         <DialogHeader class="p-6 pb-2">
           <DialogTitle>Ligações — {{ selectedCampaign?.name }}</DialogTitle>
@@ -322,7 +322,7 @@
           </div>
 
           <!-- Tabela de calls -->
-          <div class="relative">
+          <div class="relative overflow-x-auto">
             <div
               v-if="loadingCalls"
               class="absolute inset-0 flex items-center justify-center bg-background/70 z-10 rounded"
@@ -333,8 +333,8 @@
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Número</TableHead>
+                  <TableHead class="whitespace-nowrap">Cliente</TableHead>
+                  <TableHead class="whitespace-nowrap">Número</TableHead>
                   <TableHead>
                     <Button
                       variant="ghost"
@@ -344,7 +344,7 @@
                       Status <CaretSortIcon class="ml-1" />
                     </Button>
                   </TableHead>
-                  <TableHead class="text-right">
+                  <TableHead class="text-right whitespace-nowrap">
                     <Button
                       variant="ghost"
                       class="h-fit p-0 text-xs"
@@ -353,7 +353,7 @@
                       % Ouvido <CaretSortIcon class="ml-1" />
                     </Button>
                   </TableHead>
-                  <TableHead class="text-right">
+                  <TableHead class="text-right whitespace-nowrap">
                     <Button
                       variant="ghost"
                       class="h-fit p-0 text-xs"
@@ -362,8 +362,8 @@
                       Duração <CaretSortIcon class="ml-1" />
                     </Button>
                   </TableHead>
-                  <TableHead class="text-center">Tentativa</TableHead>
-                  <TableHead class="text-right">
+                  <TableHead class="text-center whitespace-nowrap">Tentativa</TableHead>
+                  <TableHead class="text-right whitespace-nowrap">
                     <Button
                       variant="ghost"
                       class="h-fit p-0 text-xs"
@@ -386,28 +386,28 @@
                   </TableRow>
                 </template>
                 <TableRow v-for="call in calls" :key="call.call_id">
-                  <TableCell>{{ call.client_name || "—" }}</TableCell>
-                  <TableCell>{{ call.phone_number }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ call.client_name || "—" }}</TableCell>
+                  <TableCell class="whitespace-nowrap">{{ call.phone_number }}</TableCell>
                   <TableCell>
                     <span
                       :class="statusClass(call.status)"
-                      class="text-xs px-2 py-0.5 rounded-full font-medium"
+                      class="text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
                     >
                       {{ call.status }}
                     </span>
                   </TableCell>
-                  <TableCell class="text-right"
+                  <TableCell class="text-right whitespace-nowrap"
                     >{{ call.percentage_heard.toFixed(2) }}%</TableCell
                   >
-                  <TableCell class="text-right">{{
+                  <TableCell class="text-right whitespace-nowrap">{{
                     formatDuration(call.seconds_duration)
                   }}</TableCell>
-                  <TableCell class="text-center"
+                  <TableCell class="text-center whitespace-nowrap"
                     >{{ call.actual_attempt }}/{{
                       call.configured_attempts
                     }}</TableCell
                   >
-                  <TableCell class="text-right text-xs">
+                  <TableCell class="text-right text-xs whitespace-nowrap">
                     {{
                       call.tried_at
                         ? $moment(call.tried_at).format("DD/MM/YYYY HH:mm:ss")
