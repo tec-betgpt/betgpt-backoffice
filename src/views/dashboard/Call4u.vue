@@ -80,7 +80,7 @@
                 <PhoneCall class="text-muted-foreground" />
               </Avatar>
               <CardTitle class="text-sm font-medium"
-                >Ligações Enviadas</CardTitle
+                >Ligações Atendidas</CardTitle
               >
             </div>
             <GlossaryTooltipComponent
@@ -125,7 +125,7 @@
       <div class="grid gap-4 md:grid-cols-1 sm:grid-cols-1 mt-4">
         <PeriodComponent
           :period="callsChart"
-          title="Ligações Enviadas"
+          title="Ligações Atendidas"
           :is-loading="loading"
           glossary="Quantidade de ligações realizadas por dia no período selecionado."
         />
@@ -648,7 +648,7 @@ const loadData = async () => {
     recharges.value = data.recharges ?? [];
 
     callsChart.value = [
-      { name: "Total Ligações Enviadas", value: data.daily?.calls ?? [] },
+      { name: "Total Ligações Atendidas", value: data.daily?.calls ?? [] },
     ];
 
     if (data.campaigns) {
