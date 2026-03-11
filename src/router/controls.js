@@ -3,6 +3,7 @@ import DefaultLayout from "@/layouts/default.vue";
 import GoogleAnalytics from "@/views/dashboard/GoogleAnalytics.vue";
 import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import SmsFunnel from "@/views/dashboard/SmsFunnel.vue";
+import Call4u from "@/views/dashboard/Call4u.vue";
 import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
 
 export default [
@@ -65,6 +66,18 @@ export default [
         },
       },
       {
+        path: "calls",
+        name: "calls",
+        component: Call4u,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Ligações",
+          roles: "member|client",
+          permissions: "access-to-reports",
+        },
+      },
+      {
         path: "elevate-api",
         name: "elevate-api",
         component: PostbackLogs,
@@ -78,4 +91,4 @@ export default [
       },
     ],
   },
-]
+];

@@ -652,6 +652,7 @@ const operatorMap = {
     "starts_with",
     "not_starts_with",
     "ends_with",
+    "not_ends_with",
     "empty",
     "not_empty",
   ],

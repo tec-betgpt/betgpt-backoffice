@@ -333,6 +333,7 @@ import {
   Tag,
   LayoutDashboard,
   Target,
+  PhoneCall,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -444,32 +445,6 @@ const navMenu = computed(() => {
       ],
     },
     {
-      name: "Conversões",
-      icon: ChartArea,
-      type: "conversions",
-      show: canAccess("view-events"),
-      children: [
-        {
-          name: "Definições",
-          url: { name: "definitions" },
-          icon: ChartArea,
-          show: canAccess("view-events"),
-        },
-        {
-          name: "Relatórios",
-          url: { name: "reports" },
-          icon: ChartArea,
-          show: canAccess("view-events"),
-        },
-        {
-          name: "Resultados",
-          url: { name: "ConversionAnalytics" },
-          icon: Goal,
-          show: canAccess("view-events"),
-        },
-      ],
-    },
-    {
       name: "Controles",
       icon: SlidersHorizontal,
       type: "controls",
@@ -500,10 +475,42 @@ const navMenu = computed(() => {
           show: canAccess("access-to-reports"),
         },
         {
+          name: "Ligações",
+          url: { name: "calls" },
+          icon: PhoneCall,
+          show: canAccess("access-to-reports"),
+        },
+        {
           name: "Elevate API",
           url: { name: "elevate-api" },
           icon: Logs,
           show: canAccess("access-to-postback-logs"),
+        },
+      ],
+    },
+    {
+      name: "Conversões",
+      icon: ChartArea,
+      type: "conversions",
+      show: canAccess("view-events"),
+      children: [
+        {
+          name: "Definições",
+          url: { name: "definitions" },
+          icon: ChartArea,
+          show: canAccess("view-events"),
+        },
+        {
+          name: "Relatórios",
+          url: { name: "reports" },
+          icon: ChartArea,
+          show: canAccess("view-events"),
+        },
+        {
+          name: "Resultados",
+          url: { name: "ConversionAnalytics" },
+          icon: Goal,
+          show: canAccess("view-events"),
         },
       ],
     },
