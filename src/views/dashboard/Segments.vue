@@ -195,7 +195,7 @@
                       v-model.number="condition.value"
                       placeholder="Número"
                       type="number"
-                      class="flex-1"
+                      class="flex-1 min-w-[120px]"
                     />
 
                     <div
@@ -337,7 +337,7 @@
                   >
                   <ToggleGroupItem value="OR" class="h-8 px-3"
                     >OU</ToggleGroupItem
-                >
+                  >
                 </ToggleGroup>
               </div>
             </div>
@@ -498,7 +498,10 @@
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <TargetAudienceDialog ref="targetAudienceDialogRef" @saved="fetchSegments" />
+    <TargetAudienceDialog
+      ref="targetAudienceDialogRef"
+      @saved="fetchSegments"
+    />
 
     <Dialog v-model:open="showTagsDialog">
       <DialogContent class="sm:max-w-md">
@@ -516,7 +519,9 @@
           />
         </div>
         <DialogFooter>
-          <Button variant="secondary" @click="showTagsDialog = false">Fechar</Button>
+          <Button variant="secondary" @click="showTagsDialog = false"
+            >Fechar</Button
+          >
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -647,6 +652,7 @@ const operatorMap = {
     "starts_with",
     "not_starts_with",
     "ends_with",
+    "not_ends_with",
     "empty",
     "not_empty",
   ],
@@ -671,9 +677,7 @@ const operatorMap = {
   ],
   boolean: ["is", "is_not", "empty", "not_empty"],
 };
-const availableProviders = [
-  { id: "meta", label: "Meta Ads" },
-];
+const availableProviders = [{ id: "meta", label: "Meta Ads" }];
 
 const exportSeg = ref([]);
 const selectProjects = ref([]);
@@ -860,16 +864,6 @@ const addCondition = (groupIndex: number, formIndex: number) => {
     modifier: "exact",
   });
 };
-const updateSyncProviders = (checked, providerId) => {
-  const providers = targetAudienceForm.value.sync_providers;
-  const index = providers.indexOf(providerId);
-
-  if (checked && index === -1) {
-    providers.push(providerId);
-  } else if (!checked && index !== -1) {
-    providers.splice(index, 1);
-  }
-};
 const removeCondition = (
   groupIndex: number,
   conditionIndex: number,
@@ -903,21 +897,18 @@ const loadSavedSegment = async (segmentId: number, formIndex: number) => {
     }
 
     const parseConditionValue = (condition: any) => {
-      try {
-        if (typeof condition.value === "object") {
-          return condition.value.value ? condition.value : condition;
-        }
-        const parsed = JSON.parse(condition.value);
-        return parsed.value ? parsed : parsed;
-      } catch {
-        return {
-          value: condition.value,
-          type: "custom_date",
-          dateModifier: "exact",
-          dateFilter: "full_date",
-          daysOffset: 0,
-        };
+      if (typeof condition.value === "object" && condition.value !== null) {
+        return condition.value;
       }
+      if (typeof condition.value === "string") {
+        try {
+          return JSON.parse(condition.value);
+        } catch {
+          return { value: condition.value };
+        }
+      }
+
+      return { value: condition.value };
     };
 
     const newConditionGroups = segment.condition_groups.map((group) => {
@@ -1126,26 +1117,46 @@ const saveSegment = async () => {
   isProcessing.value = true;
 
   try {
-    if (!form.value.filter((f) => f.name)) {
+    if (form.value.some((f) => !f.name)) {
       throw new Error("O nome do segmento é obrigatório");
     }
 
-    const hasValidConditions = form.value
-      .map((seg) => seg.conditionGroups)
-      .some((group) =>
-        group.map((value) =>
-          value.conditions.some(
-            (condition) =>
-              condition.field &&
-              condition.operator &&
-              (["empty", "not_empty"].includes(condition.operator) ||
-                condition.value !== undefined),
-          ),
-        ),
-      );
+    const hasValidConditions = form.value.every((seg, formIndex) =>
+      seg.conditionGroups.every((group, groupIndex) =>
+        group.conditions.every((condition) => {
+          if (!condition.field || !condition.operator) return false;
+          if (["empty", "not_empty"].includes(condition.operator)) return true;
+
+          const field = getField(condition, groupIndex, formIndex);
+          if (field?.data_type === "date") {
+            if (condition.dateType === "custom_date") {
+              return !!condition.value;
+            }
+            if (condition.dateType === "actual_date") {
+              if (["plus", "minus"].includes(condition.dateModifier)) {
+                return (
+                  condition.daysOffset !== undefined &&
+                  condition.daysOffset !== null
+                );
+              }
+              return !!condition.dateModifier;
+            }
+            return false;
+          }
+
+          return (
+            condition.value !== undefined &&
+            condition.value !== null &&
+            condition.value !== ""
+          );
+        }),
+      ),
+    );
 
     if (!hasValidConditions) {
-      throw new Error("Defina pelo menos uma condição válida");
+      throw new Error(
+        "Defina todas as condições corretamente. Campos de valor e data devem estar preenchidos.",
+      );
     }
 
     const payload = form.value.map((seg, index) => ({
@@ -1502,12 +1513,6 @@ const forceSegmentUpdate = async (segmentId: number) => {
   }
 };
 
-
-
-
-
-
-
 function viewTargetAudience(segment) {
   if (segment.audiences && segment.audiences.length > 0) {
     const audienceId = segment.audiences[0].id;
@@ -1802,6 +1807,4 @@ watch(
   },
   { deep: true },
 );
-
-
 </script>

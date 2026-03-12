@@ -213,6 +213,11 @@ const openCreateSheet = () => {
 };
 
 const openEditSheet = (audience) => {
+
+  if (audience.segments.length > 0) {
+    targetAudienceDialogRef.value.openWithSegment(audience.segments[0].id,audience.id);
+    return;
+  }
   targetAudienceDialogRef.value.open(audience.id);
 };
 

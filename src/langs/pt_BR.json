@@ -164,6 +164,7 @@
   "starts_with": "Começa com",
   "not_starts_with": "Não começa com",
   "ends_with": "Termina com",
+  "not_ends_with": "Não termina com",
   "greater_than": "Maior que",
   "less_than": "Menor que",
   "greater_or_equal": "Maior ou igual a",
