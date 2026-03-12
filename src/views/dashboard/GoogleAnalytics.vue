@@ -889,6 +889,7 @@ const selectedRange = ref({
   end: currentDate,
 });
 
+const LOCAL_STORAGE_KEY = "ga_group_by_preference";
 const loading = ref(false);
 const usersPeriod = ref<{ name: string; value: number[] }[]>([]);
 const totalUsersPeriod = ref<{ name: string; value: number[] }[]>([]);
@@ -914,7 +915,13 @@ const orderId = ref("sessions");
 const order = ref(false);
 const groupSessionsData = ref<GroupSession[]>([]);
 const isFirstLoad = ref(true);
-const searchValues = ref<Record<string, string>>({ "search[1][channel]": "" });
+const savedGroupBy =
+  localStorage.getItem(LOCAL_STORAGE_KEY) || "sessionDefaultChannelGroup";
+
+const searchValues = ref<Record<string, string>>({
+  "search[0][group_by]": savedGroupBy,
+  "search[1][channel]": "",
+});
 const backendTotals = ref();
 const variationTotal = ref(0);
 const variationTotalRevenue = ref(0);
@@ -1270,13 +1277,19 @@ watch(perPages, (newPages) => {
 watch(
   () => searchValues.value["search[0][group_by]"],
   (newVal) => {
-    if (newVal) selectedGroupBy.value = newVal;
+    if (newVal) {
+      selectedGroupBy.value = newVal;
+      localStorage.setItem(LOCAL_STORAGE_KEY, newVal);
+    }
   },
 );
 
 onMounted(() => {
+  const savedGroupBy =
+    localStorage.getItem(LOCAL_STORAGE_KEY) || "sessionDefaultChannelGroup";
+
   searchValues.value = {
-    "search[0][group_by]": "sessionDefaultChannelGroup",
+    "search[0][group_by]": savedGroupBy,
     "search[1][channel]": "",
   };
 
