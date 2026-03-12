@@ -423,10 +423,26 @@ const fetchFields = async () => {
     console.error("Error loading audience fields:", error);
   }
 };
-const openWithSegment = async (segment) => {
+const openWithSegment = async (segment,audienceId=null) => {
   resetForm();
   await fetchFields();
   segmentId.value = segment;
+  if (audienceId) {
+    isEditing.value = true;
+    try {
+      isProcessing.value = true;
+      const data = await TargetAudience.show({ id: audienceId });
+      parseDataToForm(data);
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Não foi possível carregar os dados.', variant: 'destructive' });
+      return;
+    } finally {
+      isProcessing.value = false;
+    }
+  } else {
+    isEditing.value = false;
+  }
+
   isOpen.value = true;
 };
 const open = async (audienceId = null) => {
