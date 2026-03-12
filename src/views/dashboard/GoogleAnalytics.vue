@@ -774,14 +774,14 @@
         :is-loading="loading"
         :period="usersPeriod"
         title="Usuários"
-        chart-name="ga_users"
+        chart-name="activeUsers"
         :glossary="meta['users_period'] || 'Dados de Usuários novos e ativo'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="payingActivePeriod"
         title="Usuários Ativos Pagantes por período"
-        chart-name="ga_paying_active"
+        chart-name="activePurchasers"
         :glossary="
           meta['paying_active_period'] ||
           'Dados de Pagantes Ativos por período, com diferença de 7D, 14D e 28D'
@@ -791,21 +791,21 @@
         :is-loading="loading"
         :period="totalUsersPeriod"
         title="Total de Usuários"
-        chart-name="ga_total_users"
+        chart-name="totalUsers"
         :glossary="meta['total_users_period'] || 'Dados de total de usuários'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="returningUsersPeriod"
         title="Usuários Recorrentes"
-        chart-name="ga_returning_users"
+        chart-name="returningUsers"
         :glossary="meta['returning_users_period'] || 'Dados de Usuários Recorrentes por período'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="firstTimePurchasersPeriod"
         title="Total de Primeiros Compradores"
-        chart-name="ga_first_time_purchasers"
+        chart-name="firstTimePurchasers"
         :glossary="meta['first_time_purchasers_period'] || 'Dados de Primeiros Compradores por período'"
       />
       <PeriodComponent
@@ -813,7 +813,7 @@
         :period="engagementRatePeriod"
         title="Taxa de Engajamento por período"
         type="percent"
-        chart-name="ga_engagement_rate"
+        chart-name="engagementRate"
         :glossary="meta['engagement_rate_period'] || 'Percentual de usuários engajados por período'"
       />
       <PeriodComponent
@@ -821,7 +821,7 @@
         :period="bounceRatePeriod"
         title="Taxa de Rejeição"
         type="percent"
-        chart-name="ga_bounce_rate"
+        chart-name="bounceRate"
         :glossary="meta['bounce_rate_period'] || 'Percentual de usuários que saíram do site sem interagir'"
       />
       <PeriodComponent
@@ -829,7 +829,7 @@
         :period="arpuPeriod"
         title="ARPU"
         type="currency"
-        chart-name="ga_arpu"
+        chart-name="averageRevenuePerUser"
         :glossary="meta['arpu'] || 'Receita média por usuário ativo por período'"
       />
       <PeriodComponent
@@ -837,7 +837,7 @@
         :period="arppuPeriod"
         title="ARPPU"
         type="currency"
-        chart-name="ga_arppu"
+        chart-name="averageRevenuePerPayingUser"
         :glossary="meta['arppu'] || 'Receita média por usuário pagante por período'"
       />
     </div>
