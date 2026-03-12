@@ -60,8 +60,8 @@
     </Card>
 
     <Dialog :open="showModal">
-      <DialogContent class="sm:max-w-[425px] grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90dvh]">
-        <DialogHeader class="p-6 pb-2">
+      <DialogContent class="sm:max-w-[425px]">
+        <DialogHeader>
           <DialogTitle>
             {{ isEditing ? "Editar Projeto" : "Novo Projeto" }}
           </DialogTitle>
@@ -70,7 +70,7 @@
           </DialogDescription>
         </DialogHeader>
         <form @submit.prevent="isEditing ? updateProject() : createProject()">
-          <div class="grid gap-4 p-5">
+          <div class="grid gap-4 py-4">
             <div class="grid grid-cols-4 items-center gap-4">
               <Label for="name">Nome do Projeto</Label>
               <Input
@@ -95,9 +95,13 @@
             />
             <Label id="webhook">WebHook</Label>
             <Input  id="webhook" v-model="form.webhook_url"/>
+            <div class="flex items-center space-x-2">
+              <Checkbox id="sync_ga" v-model:checked="form.is_sync_google_analytics" />
+              <Label for="sync_ga">Sincronizar anotações do Google Analytics</Label>
+            </div>
           </div>
 
-          <DialogFooter class="p-6 pt-0">
+          <DialogFooter>
             <Button variant="link" @click="cancel">
               Cancelar
             </Button>
@@ -157,6 +161,7 @@ import {Dialog} from "@/components/ui/dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 const imagePreview = ref();
 const errorMessage = ref("");
 
@@ -182,7 +187,8 @@ const form = ref({
   id: null,
   name: "",
   image: "",
-  webhook_url:""
+  webhook_url: "",
+  is_sync_google_analytics: false
 })
 const order = ref();
 const direction = ref(false);
@@ -244,7 +250,7 @@ const cancel = (e: Event) => {
   e.preventDefault();
   showModal.value = false;
   isEditing.value = false;
-  form.value = { id: null, name: "", image: "", webhook_url: "" };
+  form.value = { id: null, name: "", image: "", webhook_url: "", is_sync_google_analytics: false };
   imagePreview.value = "";
   errorMessage.value = "";
 }
@@ -318,14 +324,21 @@ const toggleStatus = async (project) => {
 };
 
 const openEditModal = (project) => {
-  form.value = { id: project.id, name: project.name, image: project.logo_url, webhook_url: project.webhook_url };
+  form.value = {
+    id: project.id,
+    name: project.name,
+    image: project.logo_url,
+    webhook_url: project.webhook_url,
+    is_sync_google_analytics: Boolean(project.is_sync_google_analytics)
+  };
+
   imagePreview.value = project.logo_url;
   isEditing.value = true;
   showModal.value = true;
 };
 
 const openCreateModal = () => {
-  form.value = { id: null, name: "",webhook_url: "", image: "" };
+  form.value = { id: null, name: "",webhook_url: "", image: "", is_sync_google_analytics: false };
   isEditing.value = false;
   showModal.value = true;
 };
@@ -334,7 +347,10 @@ const createProject = async () => {
   isProcessing.value = true;
 
   try {
-    const data = await Projects.store(form.value)
+    const data = await Projects.store({
+      ...form.value,
+      is_sync_google_analytics: form.value.is_sync_google_analytics ? 1 : 0
+    })
 
     projects.value.push(data.data);
     toast({
@@ -357,7 +373,10 @@ const createProject = async () => {
 const updateProject = async () => {
   isProcessing.value = true;
   try {
-    const data = await Projects.update(form.value.id, form.value)
+    const data = await Projects.update(form.value.id, {
+      ...form.value,
+      is_sync_google_analytics: form.value.is_sync_google_analytics ? 1 : 0
+    })
 
     const projectIndex = projects.value.findIndex(
       (p) => p.id === form.value.id
@@ -379,7 +398,7 @@ const updateProject = async () => {
   }
 
   isProcessing.value = false;
-  form.value = { id: null, name: "", image: "" };
+  form.value = { id: null, name: "", image: "", webhook_url: "", is_sync_google_analytics: false };
 };
 
 const columnHelper = createColumnHelper<Project>();
@@ -573,6 +592,7 @@ type Project = {
   statuses: ProjectStatus[];
   users_count: number;
   webhook_url: string;
+  is_sync_google_analytics: boolean;
   last_postback_log:{
     id: number;
     project_id: number;

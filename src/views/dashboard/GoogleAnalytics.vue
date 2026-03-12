@@ -774,12 +774,14 @@
         :is-loading="loading"
         :period="usersPeriod"
         title="Usuários"
+        chart-name="activeUsers"
         :glossary="meta['users_period'] || 'Dados de Usuários novos e ativo'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="payingActivePeriod"
         title="Usuários Ativos Pagantes por período"
+        chart-name="activePurchasers"
         :glossary="
           meta['paying_active_period'] ||
           'Dados de Pagantes Ativos por período, com diferença de 7D, 14D e 28D'
@@ -789,63 +791,54 @@
         :is-loading="loading"
         :period="totalUsersPeriod"
         title="Total de Usuários"
+        chart-name="totalUsers"
         :glossary="meta['total_users_period'] || 'Dados de total de usuários'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="returningUsersPeriod"
         title="Usuários Recorrentes"
-        :glossary="
-          meta['returning_users_period'] ||
-          'Dados de Usuários Recorrentes por período'
-        "
+        chart-name="returningUsers"
+        :glossary="meta['returning_users_period'] || 'Dados de Usuários Recorrentes por período'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="firstTimePurchasersPeriod"
         title="Total de Primeiros Compradores"
-        :glossary="
-          meta['first_time_purchasers_period'] ||
-          'Dados de Primeiros Compradores por período'
-        "
+        chart-name="firstTimePurchasers"
+        :glossary="meta['first_time_purchasers_period'] || 'Dados de Primeiros Compradores por período'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="engagementRatePeriod"
         title="Taxa de Engajamento por período"
         type="percent"
-        :glossary="
-          meta['engagement_rate_period'] ||
-          'Percentual de usuários engajados por período'
-        "
+        chart-name="engagementRate"
+        :glossary="meta['engagement_rate_period'] || 'Percentual de usuários engajados por período'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="bounceRatePeriod"
         title="Taxa de Rejeição"
         type="percent"
-        :glossary="
-          meta['bounce_rate_period'] ||
-          'Percentual de usuários que saíram do site sem interagir'
-        "
+        chart-name="bounceRate"
+        :glossary="meta['bounce_rate_period'] || 'Percentual de usuários que saíram do site sem interagir'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="arpuPeriod"
         title="ARPU"
         type="currency"
-        :glossary="
-          meta['arpu'] || 'Receita média por usuário ativo por período'
-        "
+        chart-name="averageRevenuePerUser"
+        :glossary="meta['arpu'] || 'Receita média por usuário ativo por período'"
       />
       <PeriodComponent
         :is-loading="loading"
         :period="arppuPeriod"
         title="ARPPU"
         type="currency"
-        :glossary="
-          meta['arppu'] || 'Receita média por usuário pagante por período'
-        "
+        chart-name="averageRevenuePerPayingUser"
+        :glossary="meta['arppu'] || 'Receita média por usuário pagante por período'"
       />
     </div>
   </div>
@@ -889,7 +882,6 @@ const selectedRange = ref({
   end: currentDate,
 });
 
-const LOCAL_STORAGE_KEY = "ga_group_by_preference";
 const loading = ref(false);
 const usersPeriod = ref<{ name: string; value: number[] }[]>([]);
 const totalUsersPeriod = ref<{ name: string; value: number[] }[]>([]);
