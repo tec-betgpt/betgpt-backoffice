@@ -131,7 +131,8 @@
               <DialogDescription>
                 Visualização do conteúdo do SMS: {{ selectedSmsCampaign?.name }}
                 <span class="text-sm text-muted-foreground ml-2">
-                  ({{ currentSmsIndex + 1 }} de {{ campaigns.length }})
+                  ({{ currentSmsIndex + 1 }} de
+                  {{ currentTemplateItems.length }})
                 </span>
               </DialogDescription>
             </DialogHeader>
@@ -494,16 +495,24 @@ const showSmsTemplateModal = ref(false);
 const selectedSmsCampaign = ref<any>(null);
 const currentSmsIndex = ref(0);
 const loadingSmsTemplate = ref(false);
+const currentTemplateItems = ref<any[]>([]);
+const currentTemplateSource = ref<"campaigns" | "broadcasts" | null>(null);
 
-const openSmsTemplate = (campaign: any) => {
-  const index = campaigns.value.findIndex((c) => c.id === campaign.id);
+const openSmsTemplate = (item: any, source: "campaigns" | "broadcasts") => {
+  const items = source === "campaigns" ? campaigns.value : broadcasts.value;
+  const index = items.findIndex((row) => row.id === item.id);
+
+  currentTemplateSource.value = source;
+  currentTemplateItems.value = items;
+
   if (index !== -1) {
     currentSmsIndex.value = index;
-    selectedSmsCampaign.value = campaign;
+    selectedSmsCampaign.value = items[index];
   } else {
-    selectedSmsCampaign.value = campaign;
     currentSmsIndex.value = 0;
+    selectedSmsCampaign.value = item;
   }
+
   showSmsTemplateModal.value = true;
 };
 
@@ -511,23 +520,20 @@ const navigateSms = async (direction: "prev" | "next") => {
   if (loadingSmsTemplate.value) return;
 
   let newIndex = currentSmsIndex.value;
+
   if (direction === "prev" && currentSmsIndex.value > 0) {
     newIndex--;
   } else if (
     direction === "next" &&
-    currentSmsIndex.value < campaigns.value.length - 1
+    currentSmsIndex.value < currentTemplateItems.value.length - 1
   ) {
     newIndex++;
   } else {
     return;
   }
 
-  // Se futuramente houver necessidade de buscar mais dados, ative o loading.
-  // loadingSmsTemplate.value = true;
-  // try { ... } finally { loadingSmsTemplate.value = false; }
-
   currentSmsIndex.value = newIndex;
-  selectedSmsCampaign.value = campaigns.value[newIndex];
+  selectedSmsCampaign.value = currentTemplateItems.value[newIndex];
 };
 
 const campaignOrderId = ref();
@@ -778,41 +784,40 @@ const formatters = {
 
 const columnHelper = createColumnHelper<any>();
 
-const actionsCampaignColumn = columnHelper.accessor("id", {
-  header: () => "Ações",
-  cell: ({ row }) => {
-    const campaign = row.original;
+const createActionsColumn = (source: "campaigns" | "broadcasts") =>
+  columnHelper.accessor("id", {
+    header: () => "Ações",
+    cell: ({ row }) => {
+      const item = row.original;
 
-    return h(DropdownMenu, {}, [
-      h(
-        DropdownMenuTrigger,
-        { asChild: true },
-        h(Button, { size: "icon", variant: "ghost" }, [
-          h(MoreHorizontal, { class: "h-4 w-4" }),
-          h("span", { class: "sr-only" }, "Ações"),
-        ]),
-      ),
-      h(
-        DropdownMenuContent,
-        { align: "end" },
-        [
+      return h(DropdownMenu, {}, [
+        h(
+          DropdownMenuTrigger,
+          { asChild: true },
+          h(Button, { size: "icon", variant: "ghost" }, [
+            h(MoreHorizontal, { class: "h-4 w-4" }),
+            h("span", { class: "sr-only" }, "Ações"),
+          ]),
+        ),
+        h(DropdownMenuContent, { align: "end" }, [
           h(DropdownMenuLabel, {}, "Ações"),
           h(DropdownMenuSeparator, {}),
-
           h(
             DropdownMenuItem,
             {
               onClick: () => {
-                openSmsTemplate(campaign);
+                openSmsTemplate(item, source);
               },
             },
-            [h("div", {}), "Ver Template"],
+            ["Ver Template"],
           ),
-        ].filter(Boolean),
-      ),
-    ]);
-  },
-});
+        ]),
+      ]);
+    },
+  });
+
+const actionsCampaignColumn = createActionsColumn("campaigns");
+const actionsBroadcastColumn = createActionsColumn("broadcasts");
 
 const baseCampaignColumns = [
   columnHelper.accessor("name", {
@@ -904,10 +909,10 @@ const filteredBroadcastColumns = computed(() => {
       ...baseBroadcastColumns,
       clicksBroadcastColumn,
       ctrBroadcastColumn,
-      actionsCampaignColumn,
+      actionsBroadcastColumn,
     ];
   }
-  return [...baseBroadcastColumns, actionsCampaignColumn];
+  return [...baseBroadcastColumns, actionsBroadcastColumn];
 });
 
 watch(campaignPerPage, () => {
