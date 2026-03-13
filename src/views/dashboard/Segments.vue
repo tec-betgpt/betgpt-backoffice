@@ -52,454 +52,13 @@
       </CardContent>
     </Card>
 
-    <Dialog v-model:open="showModal">
-      <DialogContent class="sm:max-w-4xl max-h-[90dvh] overflow-y-scroll">
-        <DialogHeader>
-          <DialogTitle>
-            {{ isEditing ? "Editar Segmento" : "Criar Novo Segmento" }}
-          </DialogTitle>
-          <DialogDescription>
-            Defina as regras para seu segmento dinâmico
-          </DialogDescription>
-        </DialogHeader>
-
-        <Card class="grid gap-4 p-4" v-for="(formItem, formIndex) in form">
-          <div class="grid grid-cols-4 items-center gap-4">
-            <Label for="name" class="text-right">Nome do Segmento</Label>
-            <Input
-              id="name"
-              v-model="formItem.name"
-              placeholder="Ex: Clientes VIP"
-              class="col-span-3"
-              required
-            />
-          </div>
-
-          <div class="grid grid-cols-4 items-start gap-4">
-            <Label for="description" class="text-right mt-2">Descrição</Label>
-            <Textarea
-              id="description"
-              v-model="formItem.description"
-              placeholder="Descrição opcional do segmento"
-              class="col-span-3"
-              rows="2"
-            />
-          </div>
-
-          <Separator class="my-4" />
-
-          <div class="space-y-6">
-            <div
-              v-for="(group, groupIndex) in formItem.conditionGroups"
-              :key="groupIndex"
-              class="space-y-4"
-            >
-              <div class="flex items-center justify-between">
-                <Label>Grupo de Condições {{ groupIndex + 1 }}</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  @click="removeConditionGroup(groupIndex, formIndex)"
-                  class="text-destructive"
-                >
-                  <Trash2Icon class="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div class="space-y-1 pl-6 border-l-2 border-muted">
-                <template
-                  v-for="(condition, conditionIndex) in group.conditions"
-                  :key="conditionIndex"
-                >
-                  <div
-                    v-if="conditionIndex > 0"
-                    class="flex justify-center h-8"
-                  >
-                    <ToggleGroup
-                      v-model="condition.conditionOperator"
-                      type="single"
-                      variant="outline"
-                      class="h-8"
-                    >
-                      <ToggleGroupItem value="AND" class="h-8 px-3"
-                        >E</ToggleGroupItem
-                      >
-                      <ToggleGroupItem value="OR" class="h-8 px-3"
-                        >OU</ToggleGroupItem
-                      >
-                    </ToggleGroup>
-                  </div>
-
-                  <div class="flex items-center gap-2 py-1">
-                    <Select
-                      v-model="condition.field"
-                      class="flex-1 min-w-[120px]"
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um campo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>{{ $t(group.name) }}</SelectLabel>
-                          <SelectItem
-                            v-for="field in group.fields"
-                            :key="field.field_key"
-                            :value="field.field_key"
-                          >
-                            {{ $t(field.label) }}
-                          </SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-
-                    <Select
-                      v-model="condition.operator"
-                      class="flex-1 min-w-[120px]"
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Operador" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Operadores</SelectLabel>
-                          <SelectItem
-                            v-for="op in getOperators(
-                              condition,
-                              groupIndex,
-                              formIndex,
-                            )"
-                            :key="op"
-                            :value="op"
-                          >
-                            {{ $t(op) }}
-                          </SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-
-                    <Input
-                      v-if="
-                        showTextInput(condition, groupIndex, formIndex) &&
-                        !['empty', 'not_empty'].includes(condition.operator)
-                      "
-                      v-model="condition.value"
-                      placeholder="Valor"
-                      class="flex-1 min-w-[240px]"
-                    />
-
-                    <Input
-                      v-else-if="
-                        showNumberInput(condition, groupIndex, formIndex) &&
-                        !['empty', 'not_empty'].includes(condition.operator)
-                      "
-                      v-model.number="condition.value"
-                      placeholder="Número"
-                      type="number"
-                      class="flex-1 min-w-[120px]"
-                    />
-
-                    <div
-                      v-else-if="
-                        showDateInput(condition, groupIndex, formIndex) &&
-                        !['empty', 'not_empty'].includes(condition.operator)
-                      "
-                      class="flex items-center gap-2 flex-1"
-                    >
-                      <Select v-model="condition.dateType" class="flex-1">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Tipo</SelectLabel>
-                            <SelectItem value="actual_date"
-                              >Data Atual</SelectItem
-                            >
-                            <SelectItem value="custom_date"
-                              >Escolher Data</SelectItem
-                            >
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-
-                      <template v-if="condition.dateType === 'custom_date'">
-                        <Popover>
-                          <PopoverTrigger as-child>
-                            <Button variant="outline" class="flex-1">
-                              {{ condition.value || "Selecione" }}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent class="w-auto p-0">
-                            <Calendar v-model="condition.value" />
-                          </PopoverContent>
-                        </Popover>
-                      </template>
-
-                      <template v-else>
-                        <Select v-model="condition.dateModifier">
-                          <SelectTrigger>
-                            <SelectValue placeholder="Precisão" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel>Precisão</SelectLabel>
-                              <SelectItem value="exact">Exatamente</SelectItem>
-                              <SelectItem value="plus">Mais</SelectItem>
-                              <SelectItem value="minus">Menos</SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-
-                        <Input
-                          v-if="
-                            ['plus', 'minus'].includes(condition.dateModifier)
-                          "
-                          v-model.number="condition.daysOffset"
-                          type="number"
-                          placeholder="Dias"
-                          class="w-20"
-                          min="0"
-                          max="365"
-                        />
-                      </template>
-
-                      <Select v-model="condition.dateFilter" class="flex-1">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Filtrar por" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Filtrar por</SelectLabel>
-                            <SelectItem value="full_date"
-                              >Data Completa</SelectItem
-                            >
-                            <SelectItem value="m-d">Mês e Dia</SelectItem>
-                            <SelectItem value="m">Mês</SelectItem>
-                            <SelectItem value="d">Dia</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Select
-                      v-else-if="
-                        showBooleanInput(condition, groupIndex, formIndex)
-                      "
-                      v-model="condition.value"
-                      class="flex-1"
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">Sim</SelectItem>
-                        <SelectItem value="false">Não</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Button
-                      v-if="group.conditions.length > 1"
-                      variant="ghost"
-                      size="sm"
-                      @click="
-                        removeCondition(groupIndex, conditionIndex, formIndex)
-                      "
-                      class="text-destructive"
-                    >
-                      <Trash2Icon class="h-4 w-4" />
-                    </Button>
-                  </div>
-                </template>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  @click="addCondition(groupIndex, formIndex)"
-                  class="mt-2"
-                >
-                  <PlusIcon class="mr-2 h-4 w-4" />
-                  Adicionar Condição
-                </Button>
-              </div>
-
-              <div
-                v-if="groupIndex < formItem.conditionGroups.length - 1"
-                class="flex justify-center"
-              >
-                <ToggleGroup
-                  v-model="group.groupOperator"
-                  type="single"
-                  variant="outline"
-                  class="h-8"
-                >
-                  <ToggleGroupItem value="AND" class="h-8 px-3"
-                    >E</ToggleGroupItem
-                  >
-                  <ToggleGroupItem value="OR" class="h-8 px-3"
-                    >OU</ToggleGroupItem
-                  >
-                </ToggleGroup>
-              </div>
-            </div>
-
-            <Button variant="outline" @click="addConditionGroup(formIndex)">
-              <PlusIcon class="mr-2 h-4 w-4" />
-              Adicionar Grupo de Condições
-            </Button>
-          </div>
-
-          <Separator class="my-4" />
-
-          <div class="grid grid-cols-4 items-start gap-4">
-            <Label class="text-right mt-2">Segmentos Salvos</Label>
-            <div class="col-span-3 space-y-2">
-              <Select
-                v-model="selectedSavedSegment"
-                @update:model-value="
-                  (value) => {
-                    loadSavedSegment(value, formIndex);
-                  }
-                "
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Carregar segmento salvo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Segmentos</SelectLabel>
-                    <SelectItem
-                      v-for="segment in savedSegments"
-                      :key="segment.id"
-                      :value="segment.id"
-                    >
-                      {{ segment.name }} ({{
-                        segment.condition_groups.reduce(
-                          (acc, g) => acc + g.conditions.length,
-                          0,
-                        )
-                      }}
-                      condições)
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-
-              <div class="flex gap-2">
-                <Button
-                  variant="outline"
-                  @click="clearSelectedSegment"
-                  :disabled="!selectedSavedSegment"
-                >
-                  <XIcon class="mr-2 h-4 w-4" />
-                  Limpar Seleção
-                </Button>
-                <Button variant="outline" @click="clearAllConditions">
-                  <Trash2Icon class="mr-2 h-4 w-4" />
-                  Limpar Todas as Condições
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <DialogFooter>
-          <Button variant="outline" @click="showModal = false">
-            Cancelar
-          </Button>
-          <Button type="submit" @click="saveSegment" :disabled="isProcessing">
-            <Loader2Icon
-              v-if="isProcessing"
-              class="mr-2 h-4 w-4 animate-spin"
-            />
-            {{ isEditing ? "Salvar Alterações" : "Criar Segmento" }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-
-    <Dialog v-model:open="showContactsDialog">
-      <DialogContent class="sm:max-w-6xl h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>Contatos do Segmento</DialogTitle>
-          <DialogDescription>
-            Lista de contatos que atendem às condições do segmento
-            <span v-if="contacts.length" class="text-foreground">
-              ({{ contacts.length }} de
-              {{
-                segments.find((s) => s.id === currentSegmentId)
-                  ?.total_contacts || 0
-              }})
-            </span>
-          </DialogDescription>
-        </DialogHeader>
-
-        <div class="h-full overflow-auto">
-          <CustomDataInfinite
-            :loading="isLoadingContacts"
-            :columns="contactsColumns"
-            :data="contacts"
-            :update-text="setSearch"
-            :find="fetchContacts"
-            :has-more="hasMoreContacts"
-            :current-page="currentContactsPage"
-            :search-fields="[
-              {
-                key: 'all_fields',
-                placeholder: 'Buscar por nome ou e-mail...',
-              },
-            ]"
-            @load-more="loadMoreContacts"
-            @reset="resetContactsData"
-            :exportable="true"
-            @export="handleExportContacts"
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
-
-    <Dialog v-model:open="showExport">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Exportar Segmentos</DialogTitle>
-        </DialogHeader>
-        <DialogDescription>
-          Selecione os projetos que irão receber os segmentos selecionados.
-        </DialogDescription>
-        <div class="flex flex-col gap-2">
-          <div
-            v-for="project in listGroupProject"
-            class="flex items-center gap-2"
-          >
-            <Checkbox
-              :class="{ hidden: activeGroupProjectId === project.id }"
-              :checked="selectProjects.includes(project.id)"
-              :id="project.id"
-              @update:checked="
-                (value) =>
-                  value
-                    ? selectProjects.push(project.id)
-                    : selectProjects.splice(
-                        selectProjects.indexOf(project.id),
-                        1,
-                      )
-              "
-            />
-            <label
-              :for="project.id"
-              class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              :class="{ hidden: activeGroupProjectId === project.id }"
-            >
-              {{ project.name }}
-            </label>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button @click="exportSegment">Exportar</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
     <TargetAudienceDialog
       ref="targetAudienceDialogRef"
+      @saved="fetchSegments"
+    />
+
+    <SegmentDialog
+      ref="segmentDialogRef"
       @saved="fetchSegments"
     />
 
@@ -608,6 +167,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import TargetAudienceDialog from "@/components/target_audience/TargetAudienceDialog.vue";
+import SegmentDialog from "@/components/segments/SegmentDialog.vue";
 import TagManager from "@/components/custom/TagManager.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createColumnHelper } from "@tanstack/vue-table";
@@ -620,14 +180,10 @@ const { t } = useI18n();
 const { toast } = useToast();
 const router = useRouter();
 const isLoading = ref(false);
-const isProcessing = ref(false);
-const showModal = ref(false);
 const currentSegment = ref(null);
 const showExport = ref(false);
-const isEditing = ref(false);
 const showTagsDialog = ref(false);
 const segmentForTags = ref<any>(null);
-const selectedSavedSegment = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const listGroupProject = workspaceStore.group_projects.filter(
@@ -642,78 +198,12 @@ const contacts = ref<any[]>([]);
 const currentSegmentId = ref<number | null>(null);
 
 const targetAudienceDialogRef = ref();
-
-const operatorMap = {
-  string: [
-    "equals",
-    "not_equals",
-    "contains",
-    "not_contains",
-    "starts_with",
-    "not_starts_with",
-    "ends_with",
-    "not_ends_with",
-    "empty",
-    "not_empty",
-  ],
-  number: [
-    "equals",
-    "not_equals",
-    "greater_than",
-    "less_than",
-    "greater_or_equal",
-    "less_or_equal",
-    "empty",
-    "not_empty",
-  ],
-  date: [
-    "equals",
-    "before",
-    "after",
-    "on_or_before",
-    "on_or_after",
-    "empty",
-    "not_empty",
-  ],
-  boolean: ["is", "is_not", "empty", "not_empty"],
-};
-const availableProviders = [{ id: "meta", label: "Meta Ads" }];
+const segmentDialogRef = ref();
 
 const exportSeg = ref([]);
 const selectProjects = ref([]);
-const form = ref([
-  {
-    id: null as number | null,
-    name: "",
-    description: "",
-    globalOperator: "AND" as "AND" | "OR",
-    conditionGroups: [] as Array<{
-      name: string;
-      groupOperator: "AND" | "OR";
-      fields: Array<{
-        field_key: string;
-        label: string;
-        data_type: string;
-        [key: string]: any;
-      }>;
-      conditions: Array<{
-        conditionOperator: "AND" | "OR";
-        field: string;
-        operator: string;
-        value: any;
-        modifier?: string;
-        dateType?: "actual_date" | "custom_date";
-        dateModifier?: string;
-        dateFilter?: string;
-        daysOffset?: number;
-      }>;
-    }>,
-  },
-]);
 
 const segments = ref<Array<any>>([]);
-const savedSegments = ref<Array<any>>([]);
-const allFields = ref<Array<any>>([]);
 const nameSegment = ref();
 const orderId = ref("");
 const order = ref(false);
@@ -727,311 +217,9 @@ interface SegmentData {
 const onSelectedChanged = (value) => {
   exportSeg.value = value.map((v) => v.id);
 };
-const getField = (condition: any, groupIndex: number, formIndex: number) => {
-  const group = form.value[formIndex].conditionGroups[groupIndex];
-  return condition?.field
-    ? group.fields.find((f) => f.field_key === condition.field)
-    : null;
-};
-
-const getOperators = (
-  condition: any,
-  groupIndex: number,
-  formIndex: number,
-) => {
-  const field = getField(condition, groupIndex, formIndex);
-  return field
-    ? operatorMap[field.data_type as keyof typeof operatorMap] || []
-    : [];
-};
-
-const showTextInput = (condition: any, groupIndex: number, formIndex: number) =>
-  getField(condition, groupIndex, formIndex)?.data_type === "string";
-
-const showNumberInput = (
-  condition: any,
-  groupIndex: number,
-  formIndex: number,
-) => getField(condition, groupIndex, formIndex)?.data_type === "number";
-
-const showDateInput = (condition: any, groupIndex: number, formIndex: number) =>
-  getField(condition, groupIndex, formIndex)?.data_type === "date";
-
-const showBooleanInput = (
-  condition: any,
-  groupIndex: number,
-  formIndex: number,
-) => getField(condition, groupIndex, formIndex)?.data_type === "boolean";
-
-const fetchSegmentFields = async () => {
-  try {
-    const response = await Segments.groups();
-    if (Array.isArray(response.data)) {
-      allFields.value = response.data.map((group) => ({
-        name: group.name,
-        fields: group.fields.map((field) => ({
-          ...field,
-          field_key: field.field_key || `field_${field.id}`,
-        })),
-      }));
-      return true;
-    }
-    throw new Error("Estrutura de dados inesperada");
-  } catch (error) {
-    console.error("Erro ao carregar campos:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os campos de condição",
-      variant: "destructive",
-    });
-    return false;
-  }
-};
 
 const openCreateModal = () => {
-  resetForm();
-  isEditing.value = false;
-  showModal.value = true;
-};
-
-const resetForm = () => {
-  form.value = [
-    {
-      id: null,
-      name: "",
-      description: "",
-      globalOperator: "AND",
-      conditionGroups: allFields.value.map((group) => ({
-        name: group.name,
-        groupOperator: "AND",
-        fields: [...group.fields],
-        conditions: [
-          {
-            conditionOperator: "AND",
-            field: "",
-            operator: "",
-            value: "",
-            modifier: "exact",
-          },
-        ],
-      })),
-    },
-  ];
-  selectedSavedSegment.value = null;
-};
-
-const updateFormFields = (formIndex: number) => {
-  form.value[formIndex].conditionGroups.forEach((group) => {
-    group.fields = [...allFields.value.flatMap((g) => g.fields)];
-  });
-};
-
-const addConditionGroup = (index: number) => {
-  form.value[index].conditionGroups.push({
-    name: allFields.value[0]?.name || "Novo Grupo",
-    groupOperator: "AND",
-    fields: [...(allFields.value[0]?.fields || [])],
-    conditions: [
-      {
-        conditionOperator: "AND",
-        field: "",
-        operator: "",
-        value: "",
-        modifier: "exact",
-      },
-    ],
-  });
-};
-
-const removeConditionGroup = (groupIndex: number, formIndex: number) => {
-  if (form.value[formIndex].conditionGroups.length > 1) {
-    form.value[formIndex].conditionGroups.splice(groupIndex, 1);
-  } else {
-    toast({
-      title: "Aviso",
-      description: "Você deve ter pelo menos um grupo de condições",
-      variant: "destructive",
-    });
-  }
-};
-
-const addCondition = (groupIndex: number, formIndex: number) => {
-  form.value[formIndex].conditionGroups[groupIndex].conditions.push({
-    conditionOperator: "AND",
-    field: "",
-    operator: "",
-    value: "",
-    modifier: "exact",
-  });
-};
-const removeCondition = (
-  groupIndex: number,
-  conditionIndex: number,
-  formIndex: number,
-) => {
-  if (form.value[formIndex].conditionGroups[groupIndex].conditions.length > 1) {
-    form.value[formIndex].conditionGroups[groupIndex].conditions.splice(
-      conditionIndex,
-      1,
-    );
-  } else {
-    toast({
-      title: "Aviso",
-      description: "Você deve ter pelo menos uma condição no grupo",
-      variant: "destructive",
-    });
-  }
-};
-
-const loadSavedSegment = async (segmentId: number, formIndex: number) => {
-  try {
-    isLoading.value = true;
-    const segment = savedSegments.value.find((s) => s.id === segmentId);
-    if (!segment) {
-      toast({
-        title: "Aviso",
-        description: "Segmento não encontrado",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const parseConditionValue = (condition: any) => {
-      if (typeof condition.value === "object" && condition.value !== null) {
-        return condition.value;
-      }
-      if (typeof condition.value === "string") {
-        try {
-          return JSON.parse(condition.value);
-        } catch {
-          return { value: condition.value };
-        }
-      }
-
-      return { value: condition.value };
-    };
-
-    const newConditionGroups = segment.condition_groups.map((group) => {
-      return {
-        name: "Grupo de Condições",
-        groupOperator: group.logic_operator,
-        fields: [...allFields.value.flatMap((g) => g.fields)],
-        conditions: group.conditions.map((condition) => {
-          const valueData = parseConditionValue(condition);
-          const fieldType = condition.field?.data_type;
-
-          const baseCondition = {
-            conditionOperator: condition.logic_operator,
-            field: condition.field?.field_key || "",
-            operator: condition.operator,
-            value: valueData.value?.value || valueData.value,
-            modifier: condition.modifier || "exact",
-          };
-
-          if (fieldType === "date") {
-            return {
-              ...baseCondition,
-              dateType:
-                valueData.type || valueData.value?.type || "custom_date",
-              dateModifier:
-                valueData.dateModifier ||
-                valueData.value?.dateModifier ||
-                "exact",
-              dateFilter:
-                valueData.dateFilter ||
-                valueData.value?.dateFilter ||
-                "full_date",
-              daysOffset:
-                valueData.daysOffset || valueData.value?.daysOffset || 0,
-              value:
-                valueData.type === "custom_date" ||
-                valueData.value?.type === "custom_date"
-                  ? valueData.value?.value || valueData.value
-                  : new Date().toISOString().split("T")[0],
-            };
-          }
-
-          if (fieldType === "boolean") {
-            return {
-              ...baseCondition,
-              value: String(valueData.value),
-            };
-          }
-
-          return baseCondition;
-        }),
-      };
-    });
-
-    form.value = [
-      {
-        ...form.value[formIndex],
-        conditionGroups:
-          newConditionGroups.length > 0
-            ? newConditionGroups
-            : [
-                {
-                  name: "Novo Grupo",
-                  groupOperator: "AND",
-                  fields: [...allFields.value.flatMap((g) => g.fields)],
-                  conditions: [
-                    {
-                      conditionOperator: "AND",
-                      field: "",
-                      operator: "",
-                      value: "",
-                      modifier: "exact",
-                    },
-                  ],
-                },
-              ],
-      },
-    ];
-
-    form.value[formIndex].conditionGroups.forEach((group, groupIndex) => {
-      group.conditions.forEach((condition) => {
-        if (condition.field) {
-          const validOperators = getOperators(condition, groupIndex, formIndex);
-          if (validOperators && !validOperators.includes(condition.operator)) {
-            condition.operator = "";
-          }
-        }
-      });
-    });
-  } catch (error) {
-    console.error("Error loading segment:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar o segmento",
-      variant: "destructive",
-    });
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const clearSelectedSegment = () => {
-  selectedSavedSegment.value = null;
-  resetForm();
-};
-
-const clearAllConditions = (formIndex: number) => {
-  form.value[formIndex].conditionGroups = [
-    {
-      name: "Novo Grupo",
-      groupOperator: "AND",
-      fields: [...allFields.value.flatMap((g) => g.fields)],
-      conditions: [
-        {
-          conditionOperator: "AND",
-          field: "",
-          operator: "",
-          value: "",
-          modifier: "exact",
-        },
-      ],
-    },
-  ];
+  segmentDialogRef.value.open(null, segments.value);
 };
 
 const handleName = (text: string) => {
@@ -1064,8 +252,6 @@ const fetchSegments = async (current: number = pages.value.current) => {
       last: response.data.pagination.last_page,
       total: response.data.pagination.total,
     };
-
-    savedSegments.value = [...segments.value];
   } catch (error) {
     console.error("Error loading segments:", error);
     toast({
@@ -1078,144 +264,6 @@ const fetchSegments = async (current: number = pages.value.current) => {
   }
 };
 watch(perPage, () => fetchSegments(1));
-const prepareConditionValue = (
-  condition: any,
-  groupIndex: number,
-  formIndex: number,
-) => {
-  const field = getField(condition, groupIndex, formIndex);
-  if (!field) return condition.value;
-
-  if (["empty", "not_empty"].includes(condition.operator)) {
-    return null;
-  }
-
-  if (field.data_type === "date") {
-    if (condition.dateType === "custom_date") {
-      return {
-        type: "custom_date",
-        value: condition.value,
-        dateModifier: null,
-        dateFilter: "full_date",
-        daysOffset: 0,
-      };
-    } else {
-      return {
-        type: "actual_date",
-        value: "actual_date",
-        dateModifier: condition.dateModifier,
-        dateFilter: condition.dateFilter,
-        daysOffset: condition.daysOffset || 0,
-      };
-    }
-  }
-
-  return condition.value;
-};
-
-const saveSegment = async () => {
-  isProcessing.value = true;
-
-  try {
-    if (form.value.some((f) => !f.name)) {
-      throw new Error("O nome do segmento é obrigatório");
-    }
-
-    const hasValidConditions = form.value.every((seg, formIndex) =>
-      seg.conditionGroups.every((group, groupIndex) =>
-        group.conditions.every((condition) => {
-          if (!condition.field || !condition.operator) return false;
-          if (["empty", "not_empty"].includes(condition.operator)) return true;
-
-          const field = getField(condition, groupIndex, formIndex);
-          if (field?.data_type === "date") {
-            if (condition.dateType === "custom_date") {
-              return !!condition.value;
-            }
-            if (condition.dateType === "actual_date") {
-              if (["plus", "minus"].includes(condition.dateModifier)) {
-                return (
-                  condition.daysOffset !== undefined &&
-                  condition.daysOffset !== null
-                );
-              }
-              return !!condition.dateModifier;
-            }
-            return false;
-          }
-
-          return (
-            condition.value !== undefined &&
-            condition.value !== null &&
-            condition.value !== ""
-          );
-        }),
-      ),
-    );
-
-    if (!hasValidConditions) {
-      throw new Error(
-        "Defina todas as condições corretamente. Campos de valor e data devem estar preenchidos.",
-      );
-    }
-
-    const payload = form.value.map((seg, index) => ({
-      name: seg.name,
-      description: seg.description,
-      filter_id: activeGroupProjectId,
-      conditions: {
-        global_operator: seg.globalOperator,
-        groups: seg.conditionGroups.map((group, groupIndex) => ({
-          group_operator: group.groupOperator,
-          conditions: group.conditions.map((condition) => {
-            const field = getField(condition, groupIndex, index);
-
-            const value = ["empty", "not_empty"].includes(condition.operator)
-              ? ""
-              : prepareConditionValue(condition, groupIndex, index);
-
-            return {
-              field: condition.field,
-              operator: condition.operator,
-              value: value,
-              condition_operator: condition.conditionOperator,
-              modifier: condition.modifier,
-              dateType: condition.dateType,
-              dateModifier: condition.dateModifier,
-              dateFilter: condition.dateFilter,
-              daysOffset: condition.daysOffset,
-            };
-          }),
-        })),
-      },
-    }));
-
-    if (isEditing.value && form.value[0].id) {
-      await Segments.update(form.value[0].id, payload);
-    } else {
-      await Segments.create(payload);
-    }
-
-    await fetchSegments();
-    selectedSavedSegment.value = null;
-    showModal.value = false;
-    toast({
-      title: "Sucesso",
-      description: isEditing.value
-        ? "Segmento atualizado com sucesso"
-        : "Segmento criado com sucesso",
-      variant: "default",
-    });
-  } catch (error) {
-    toast({
-      title: "Erro",
-      description: error.message || "Ocorreu um erro ao salvar o segmento",
-      variant: "destructive",
-    });
-  } finally {
-    isProcessing.value = false;
-  }
-};
 
 const deleteSegment = async (segmentId: number) => {
   try {
@@ -1254,15 +302,7 @@ const handleExportContacts = async () => {
 };
 
 const handleEdit = (segment: any) => {
-  resetForm();
-  isEditing.value = true;
-  form.value[0].id = segment.id;
-  form.value[0].name = segment.name;
-  form.value[0].description = segment.description;
-  form.value[0].globalOperator = "AND";
-  selectedSavedSegment.value = segment.id;
-  loadSavedSegment(segment.id, 0);
-  showModal.value = true;
+  segmentDialogRef.value.open(segment, segments.value);
 };
 
 const formatDate = (dateString: string) => {
@@ -1354,7 +394,7 @@ const importSegment = async (event: Event) => {
         f.push(json);
       }
     }
-    form.value = f.map((segmentData) => ({
+    const importedForms = f.map((segmentData) => ({
       id: null,
       name: segmentData.name + " (Importado)",
       description: segmentData.description,
@@ -1362,7 +402,7 @@ const importSegment = async (event: Event) => {
       conditionGroups: segmentData.conditions.groups.map((group: any) => ({
         name: "Grupo Importado",
         groupOperator: group.group_operator,
-        fields: [...allFields.value.flatMap((g) => g.fields)],
+        fields: [], // Será preenchido pelo diálogo ao abrir
         conditions: group.conditions.map((condition: any) => ({
           conditionOperator: condition.condition_operator,
           field: condition.field,
@@ -1376,14 +416,7 @@ const importSegment = async (event: Event) => {
         })),
       })),
     }));
-    showModal.value = true;
-    isEditing.value = false;
-    toast({
-      title: "Sucesso",
-      description:
-        "Segmento importado com sucesso. Revise as condições antes de salvar.",
-      variant: "default",
-    });
+    segmentDialogRef.value.importData(importedForms);
   } catch (error) {
     console.error("Error importing segment:", error);
     toast({
@@ -1412,7 +445,7 @@ function createHeaderButton(label: string, columnKey: string) {
       onClick: () => {
         orderContacts.value = columnKey;
         directionContacts.value = !directionContacts.value;
-        fetchContacts();
+        fetchContacts(1);
       },
       class: "h-fit text-pretty my-1",
     },
@@ -1745,9 +778,7 @@ const pages = ref({
 onMounted(async () => {
   isLoading.value = true;
   try {
-    await fetchSegmentFields();
     await fetchSegments();
-    resetForm();
   } catch (error) {
     console.error("Error loading data:", error);
   } finally {
@@ -1755,56 +786,7 @@ onMounted(async () => {
   }
 });
 
-watch(selectedSavedSegment, (newValue) => {
-  if (!newValue && showModal.value) {
-    resetForm();
-  }
-});
 
-watch(
-  () => form.value.map((f) => f.conditionGroups),
-  (allGroups) => {
-    allGroups.forEach((groups, formIndex) => {
-      groups?.forEach((group, groupIndex) => {
-        group?.conditions?.forEach((condition) => {
-          if (condition.field && condition.operator) {
-            const field = getField(condition, groupIndex, formIndex);
-            if (field) {
-              if (["empty", "not_empty"].includes(condition.operator)) {
-                condition.value = "";
-                condition.dateType = undefined;
-                condition.dateModifier = undefined;
-                condition.daysOffset = undefined;
-              }
 
-              if (
-                field.data_type === "date" &&
-                !showDateInput(condition, groupIndex, formIndex)
-              ) {
-                condition.dateType = undefined;
-                condition.dateModifier = undefined;
-                condition.daysOffset = undefined;
-              }
-            }
-          }
 
-          if (condition?.field && condition?.operator) {
-            const validOperators = getOperators(
-              condition,
-              groupIndex,
-              formIndex,
-            );
-            if (
-              validOperators &&
-              !validOperators.includes(condition.operator)
-            ) {
-              condition.operator = "";
-            }
-          }
-        });
-      });
-    });
-  },
-  { deep: true },
-);
 </script>
