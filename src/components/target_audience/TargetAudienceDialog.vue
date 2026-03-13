@@ -269,15 +269,18 @@
                                                 :aria-expanded="condition.tagOpen"
                                                 class="flex-1 min-w-[240px] justify-between text-left font-normal"
                                             >
-                                                {{ condition.value || 'Selecione uma tag' }}
+                                                {{ availableTags.find((t)=> t.id == condition.value).name || "Selecione uma Tag"}}
                                                 <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent class="w-[300px] p-0" align="start">
-                                            <Command>
-                                                <CommandInput placeholder="Buscar tag..." />
-                                                <CommandEmpty>Nenhuma tag encontrada.</CommandEmpty>
-                                                <CommandList>
+                                            <Command :filter-results="false">
+                                                <CommandInput placeholder="Buscar tag..." @input="onSearchTags" />
+                                                <CommandEmpty v-if="!isSearchingTags && availableTags.length === 0">Nenhuma tag encontrada.</CommandEmpty>
+                                                <div v-if="isSearchingTags" class="flex items-center justify-center p-4">
+                                                    <Loader2Icon class="h-4 w-4 animate-spin text-muted-foreground" />
+                                                </div>
+                                                <CommandList v-else>
                                                     <CommandGroup>
                                                         <CommandItem
                                                             v-for="tag in availableTags"
@@ -291,7 +294,7 @@
                                                             <CheckIcon
                                                                 :class="[
                                                                     'mr-2 h-4 w-4',
-                                                                    condition.value === tag.name ? 'opacity-100' : 'opacity-0',
+                                                                    condition.value === tag.id ? 'opacity-100' : 'opacity-0',
                                                                 ]"
                                                             />
                                                             {{ tag.name }}
@@ -433,6 +436,8 @@ const isProcessing = ref(false);
 const fields = ref([]);
 const responseFieldsFlat = ref([]);
 const availableTags = ref([]);
+const isSearchingTags = ref(false);
+let searchTagsTimeout: any = null;
 const segmentId = ref()
 const form = ref({
   id: null,
@@ -471,13 +476,28 @@ const resetForm = () => {
   };
 };
 
-const fetchTags = async () => {
+const fetchTags = async (search = '') => {
+  isSearchingTags.value = true;
   try {
-    const response = await Tags.index({ per_page: 500 });
+    const response = await Tags.index({ 
+        search, 
+        per_page: 20, 
+        filter_id: workspaceStore.activeGroupProject?.id 
+    });
     availableTags.value = response.data || [];
   } catch (error) {
     console.error("Error loading tags:", error);
+  } finally {
+    isSearchingTags.value = false;
   }
+};
+
+const onSearchTags = (e: any) => {
+  const query = e.target.value;
+  clearTimeout(searchTagsTimeout);
+  searchTagsTimeout = setTimeout(() => {
+    fetchTags(query);
+  }, 400);
 };
 
 const fetchFields = async () => {
