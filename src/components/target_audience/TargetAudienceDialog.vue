@@ -231,6 +231,77 @@
                                         </SelectContent>
                                     </Select>
 
+                                    <Select
+                                        v-else-if="getField(condition)?.field_key === 'protection_list_type'"
+                                        v-model="condition.value"
+                                        class="flex-1 min-w-[240px]"
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="forced">Forçada</SelectItem>
+                                            <SelectItem value="exclusion">Exclusão</SelectItem>
+                                            <SelectItem value=" temp_suspension">Suspensão Temporária</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <Select
+                                        v-else-if="getField(condition)?.field_key === 'protection_list'"
+                                        v-model="condition.value"
+                                        class="flex-1 min-w-[240px]"
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="LP_ENTERED">Entrada</SelectItem>
+                                            <SelectItem value="LP_EXiTED">Saída</SelectItem>
+                                            <SelectItem value="LP_UPDATED">Atualizar</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <Popover v-else-if="getField(condition)?.field_key === 'tag'" v-model:open="condition.tagOpen">
+                                        <PopoverTrigger as-child>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                :aria-expanded="condition.tagOpen"
+                                                class="flex-1 min-w-[240px] justify-between text-left font-normal"
+                                            >
+                                                {{ condition.value || 'Selecione uma tag' }}
+                                                <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent class="w-[300px] p-0" align="start">
+                                            <Command>
+                                                <CommandInput placeholder="Buscar tag..." />
+                                                <CommandEmpty>Nenhuma tag encontrada.</CommandEmpty>
+                                                <CommandList>
+                                                    <CommandGroup>
+                                                        <CommandItem
+                                                            v-for="tag in availableTags"
+                                                            :key="tag.id"
+                                                            :value="tag.id"
+                                                            @select="() => {
+                                                                condition.value = tag.id;
+                                                                condition.tagOpen = false;
+                                                            }"
+                                                        >
+                                                            <CheckIcon
+                                                                :class="[
+                                                                    'mr-2 h-4 w-4',
+                                                                    condition.value === tag.name ? 'opacity-100' : 'opacity-0',
+                                                                ]"
+                                                            />
+                                                            {{ tag.name }}
+                                                        </CommandItem>
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+
                                     <Input
                                         v-else-if="showTextInput(condition)"
                                         v-model="condition.value"
@@ -301,6 +372,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import TargetAudience from "@/services/targetAudience";
+import Tags from "@/services/tags";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -360,6 +432,7 @@ const isEditing = ref(false);
 const isProcessing = ref(false);
 const fields = ref([]);
 const responseFieldsFlat = ref([]);
+const availableTags = ref([]);
 const segmentId = ref()
 const form = ref({
   id: null,
@@ -391,11 +464,20 @@ const resetForm = () => {
     condition_groups: [
       {
         logic_operator: "AND",
-        conditions: [{ field: "", operator: "", value: "", open: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0 }],
+        conditions: [{ field: "", operator: "", value: "", open: false, tagOpen: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0 }],
       },
     ],
     sync_providers: [],
   };
+};
+
+const fetchTags = async () => {
+  try {
+    const response = await Tags.index({ per_page: 500 });
+    availableTags.value = response.data || [];
+  } catch (error) {
+    console.error("Error loading tags:", error);
+  }
 };
 
 const fetchFields = async () => {
@@ -510,6 +592,7 @@ const parseDataToForm = (data) => {
                     operator: c.operator,
                     value: value,
                     open: false,
+                    tagOpen: false,
                     dateValueType,
                     dateModifier,
                     daysOffset
@@ -566,7 +649,7 @@ const removeConditionGroup = (index) => {
 
 const addCondition = (groupIndex) => {
   form.value.condition_groups[groupIndex].conditions.push({
-    field: "", operator: "", value: "", open: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0
+    field: "", operator: "", value: "", open: false, tagOpen: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0
   });
 };
 
@@ -639,6 +722,10 @@ const save = async () => {
         isProcessing.value = false;
     }
 };
+
+onMounted(async () => {
+  fetchTags();
+});
 
 defineExpose({ open,openWithSegment });
 </script>
