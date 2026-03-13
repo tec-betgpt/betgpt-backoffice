@@ -799,14 +799,20 @@
         :period="returningUsersPeriod"
         title="Usuários Recorrentes"
         chart-name="returningUsers"
-        :glossary="meta['returning_users_period'] || 'Dados de Usuários Recorrentes por período'"
+        :glossary="
+          meta['returning_users_period'] ||
+          'Dados de Usuários Recorrentes por período'
+        "
       />
       <PeriodComponent
         :is-loading="loading"
         :period="firstTimePurchasersPeriod"
         title="Total de Primeiros Compradores"
         chart-name="firstTimePurchasers"
-        :glossary="meta['first_time_purchasers_period'] || 'Dados de Primeiros Compradores por período'"
+        :glossary="
+          meta['first_time_purchasers_period'] ||
+          'Dados de Primeiros Compradores por período'
+        "
       />
       <PeriodComponent
         :is-loading="loading"
@@ -814,7 +820,10 @@
         title="Taxa de Engajamento por período"
         type="percent"
         chart-name="engagementRate"
-        :glossary="meta['engagement_rate_period'] || 'Percentual de usuários engajados por período'"
+        :glossary="
+          meta['engagement_rate_period'] ||
+          'Percentual de usuários engajados por período'
+        "
       />
       <PeriodComponent
         :is-loading="loading"
@@ -822,7 +831,10 @@
         title="Taxa de Rejeição"
         type="percent"
         chart-name="bounceRate"
-        :glossary="meta['bounce_rate_period'] || 'Percentual de usuários que saíram do site sem interagir'"
+        :glossary="
+          meta['bounce_rate_period'] ||
+          'Percentual de usuários que saíram do site sem interagir'
+        "
       />
       <PeriodComponent
         :is-loading="loading"
@@ -830,7 +842,9 @@
         title="ARPU"
         type="currency"
         chart-name="averageRevenuePerUser"
-        :glossary="meta['arpu'] || 'Receita média por usuário ativo por período'"
+        :glossary="
+          meta['arpu'] || 'Receita média por usuário ativo por período'
+        "
       />
       <PeriodComponent
         :is-loading="loading"
@@ -838,7 +852,9 @@
         title="ARPPU"
         type="currency"
         chart-name="averageRevenuePerPayingUser"
-        :glossary="meta['arppu'] || 'Receita média por usuário pagante por período'"
+        :glossary="
+          meta['arppu'] || 'Receita média por usuário pagante por período'
+        "
       />
     </div>
   </div>
@@ -882,6 +898,7 @@ const selectedRange = ref({
   end: currentDate,
 });
 
+const gaTypeGroupStorageKey = "sessionDefaultChannelGroup";
 const loading = ref(false);
 const usersPeriod = ref<{ name: string; value: number[] }[]>([]);
 const totalUsersPeriod = ref<{ name: string; value: number[] }[]>([]);
@@ -908,7 +925,7 @@ const order = ref(false);
 const groupSessionsData = ref<GroupSession[]>([]);
 const isFirstLoad = ref(true);
 const savedGroupBy =
-  localStorage.getItem(LOCAL_STORAGE_KEY) || "sessionDefaultChannelGroup";
+  localStorage.getItem(gaTypeGroupStorageKey) || "sessionDefaultChannelGroup";
 
 const searchValues = ref<Record<string, string>>({
   "search[0][group_by]": savedGroupBy,
@@ -1271,17 +1288,16 @@ watch(
   (newVal) => {
     if (newVal) {
       selectedGroupBy.value = newVal;
-      localStorage.setItem(LOCAL_STORAGE_KEY, newVal);
+      localStorage.setItem(gaTypeGroupStorageKey, newVal);
     }
   },
 );
 
 onMounted(() => {
-  const savedGroupBy =
-    localStorage.getItem(LOCAL_STORAGE_KEY) || "sessionDefaultChannelGroup";
-
   searchValues.value = {
-    "search[0][group_by]": savedGroupBy,
+    "search[0][group_by]":
+      localStorage.getItem(gaTypeGroupStorageKey) ||
+      "sessionDefaultChannelGroup",
     "search[1][channel]": "",
   };
 
