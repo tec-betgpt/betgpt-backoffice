@@ -898,7 +898,7 @@ const selectedRange = ref({
   end: currentDate,
 });
 
-const gaTypeGroupStorageKey = "sessionDefaultChannelGroup";
+const gaTypeGroupStorageKey = "gaGroupByPreference";
 const loading = ref(false);
 const usersPeriod = ref<{ name: string; value: number[] }[]>([]);
 const totalUsersPeriod = ref<{ name: string; value: number[] }[]>([]);
