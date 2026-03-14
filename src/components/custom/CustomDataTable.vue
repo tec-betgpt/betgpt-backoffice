@@ -116,7 +116,7 @@
           </TableCell>
         </TableRow>
       </template>
-      <TableRow v-else v-for="row in table.getRowModel().rows" :key="row.id">
+      <TableRow v-else v-for="row in table.getRowModel().rows" :key="row.id" @click="$emit('row-click', row.original)" class="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
         <TableCell v-if="props.select">
           <input
             type="checkbox"

@@ -88,6 +88,16 @@ export default {
   async metaList (params = {}) {
     const { data } = await api.get(`/target-audiences/synced`, { params: params })
     return data.data
+  },
+
+  async metaShow (params = {}) {
+    const { data } = await api.get(`/target-audiences/synced/${params.id}`, { params: params })
+    return data
+  },
+
+  async dashboardStats (params = {}) {
+    const { data } = await api.get(`/target-audiences/dashboard-stats`, { params: params })
+    return data
   }
 }
   
