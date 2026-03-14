@@ -39,6 +39,14 @@
       />
 
       <PeriodComponent
+        chart-name="unique_logins_moving_average"
+        :period="uniquePlayerLoginsMovingAveragePeriod"
+        title="Média móvel - Logins únicos"
+        :isLoading="isLoading"
+        :glossary="meta['unique_player_logins_moving_average_period'] || 'Média móvel de logins únicos em janelas de 7, 14 e 28 dias'"
+      />
+
+      <PeriodComponent
         chart-name="deposits"
         type="currency"
         :period="depositsPeriod"
@@ -145,6 +153,7 @@ const { toast } = useToast();
 const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
 const startDate = currentDate.subtract({ days: 28 });
 const uniquePlayerLoginsPeriod = ref<{ name: string; value: number[] }[]>([]);
+const uniquePlayerLoginsMovingAveragePeriod = ref<{ name: string; value: number[] }[]>([]);
 const selectedRange = ref({ start: startDate, end: currentDate });
 const depositsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const loginsDays = ref<{ name: string; value: number[] }[]>([]);
@@ -187,12 +196,20 @@ const applyFilter = async () => {
     })
     let registration_deposit = data.registration_deposit_rate_period.map(deposit => {
       return {date:deposit.date,["% Entrada"]:deposit["% Entrada"]/100}  })
-    let deposit_conversion = data.deposit_conversion_rate_period.map(deposit => {
-      return {date:deposit.date,["% Conversão"]:deposit["% Conversão"]/100}  })
+    let deposit_conversion = data.deposit_conversion_rate_period.map((deposit: any) => {
+      return {date:deposit.date,["% Conversão"]:deposit["% Saída"]/100}  })
     let ftd = data.percent_ftd_day_period.map(deposit => {
       return {date:deposit.date,["FTD/Dia"]:deposit["FTD/Dia"]/100}  })
     let unique_logins = data.unique_player_logins_period.map(login => {
       return {date:login.date,["Logins únicos"]:login["Logins"]}
+    })
+    let unique_logins_moving_average = (data.unique_player_logins_moving_average_period || []).map((login: any) => {
+      return {
+        date: login.date,
+        ["7 Dias"]: login["7 Dias"],
+        ["14 Dias"]: login["14 Dias"],
+        ["28 Dias"]: login["28 Dias"],
+      }
     })
     depositsPeriod.value = [{name:"7 Dias",value:data.deposits_period},{name:"14 Dias",value:data.deposits_period}, {name:"28 Dias",value:data.deposits_period}];
     usersPeriod.value = [{name:"Registrados",value:data.users_period}, {name:"Ativos",value:data.users_period}];
@@ -200,13 +217,26 @@ const applyFilter = async () => {
     netDepositsPeriod.value = [{name:"7 Dias",value:data.net_deposits_period},{name:"14 Dias",value:data.net_deposits_period}, {name:"28 Dias",value:data.net_deposits_period}];
     activeUsersPeriod.value = [{name:"7 Dias",value:data.active_users_period},{name:"14 Dias",value:data.active_users_period}, {name:"28 Dias",value:data.active_users_period}];
     percentFtdDayPeriod.value = [{name:"FTD/Dia",value:ftd}];
-    valueNetDepositsPeriod.value = [{name:"Líquido",value:data.value_net_deposits_period}];
-    valueDepositsPeriod.value = [{name:"Total Entradas",value:data.value_deposits_period}];
+    const value_net = data.value_net_deposits_period.map((item: any) => ({
+      date: item.date,
+      ["Líquido"]: item["Entradas"],
+    }));
+    valueNetDepositsPeriod.value = [{name:"Líquido",value:value_net}];
+    const value_deposits = data.value_deposits_period.map((item: any) => ({
+      date: item.date,
+      ["Total Entradas"]: item["Entradas"],
+    }));
+    valueDepositsPeriod.value = [{name:"Total Entradas",value:value_deposits}];
     valueWithdrawsPeriod.value = [{name:"Saídas",value:data.value_withdraws_period}];
     registrationDepositRatePeriod.value = [{name:"% Entrada",value:registration_deposit}];
     depositConversionRatePeriod.value = [{name:"% Conversão",value:deposit_conversion}];
     loginsDays.value = [{name:"Logins",value:data.player_logins_period}];
     uniquePlayerLoginsPeriod.value = [{name:"Logins únicos",value:unique_logins}];
+    uniquePlayerLoginsMovingAveragePeriod.value = [
+      {name:"7 Dias",value:unique_logins_moving_average},
+      {name:"14 Dias",value:unique_logins_moving_average},
+      {name:"28 Dias",value:unique_logins_moving_average},
+    ];
   } catch (error) {
     toast({
       title: "Erro ao carregar dados",
