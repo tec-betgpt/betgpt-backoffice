@@ -647,8 +647,14 @@ const loadData = async () => {
     last.value = data.last ?? {};
     recharges.value = data.recharges ?? [];
 
+    const dailyCalls =
+      (data.daily?.calls ?? []).map((item: any) => ({
+        date: item.date,
+        ["Total Ligações Atendidas"]: item["Total Ligações Enviadas"],
+      })) || [];
+
     callsChart.value = [
-      { name: "Total Ligações Atendidas", value: data.daily?.calls ?? [] },
+      { name: "Total Ligações Atendidas", value: dailyCalls },
     ];
 
     if (data.campaigns) {
