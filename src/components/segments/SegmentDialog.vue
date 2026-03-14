@@ -523,9 +523,19 @@ const getField = (condition: any, groupIndex: number, formIndex: number) => {
 
 const getOperators = (condition: any, groupIndex: number, formIndex: number) => {
   const field = getField(condition, groupIndex, formIndex);
-  return field
-    ? operatorMap[field.data_type as keyof typeof operatorMap] || []
-    : [];
+  if (!field) return [];
+
+  if (field.field_key === "tag") {
+    return ["equals", "not_equals", "empty", "not_empty"];
+  }
+
+  if (
+    ["protection_list", "protection_list_type"].includes(field.field_key)
+  ) {
+    return ["equals", "not_equals"];
+  }
+
+  return operatorMap[field.data_type as keyof typeof operatorMap] || [];
 };
 
 const showTextInput = (condition: any, groupIndex: number, formIndex: number) =>
