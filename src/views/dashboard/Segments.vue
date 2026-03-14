@@ -16,7 +16,7 @@
           Novo Segmento
         </Button>
         <Button
-          @click="showExport = true"
+          @click="openExportModal"
           :disabled="!exportSeg.length"
           class="max-sm:w-full"
         >
@@ -61,6 +61,11 @@
       ref="segmentDialogRef"
       @saved="fetchSegments"
     />
+    <SegmentContactsDialog ref="contactsDialogRef" />
+    <SegmentExportDialog
+      ref="segmentExportDialogRef"
+      :segment-ids="exportSeg"
+    />
 
     <Dialog v-model:open="showTagsDialog">
       <DialogContent class="sm:max-w-md">
@@ -88,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, onMounted, watch } from "vue";
+import { h, ref, onMounted, watch, computed } from "vue";
 import Segments from "@/services/segments";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -168,6 +173,7 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import TargetAudienceDialog from "@/components/target_audience/TargetAudienceDialog.vue";
 import SegmentDialog from "@/components/segments/SegmentDialog.vue";
+import SegmentExportDialog from "@/components/segments/SegmentExportDialog.vue";
 import TagManager from "@/components/custom/TagManager.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createColumnHelper } from "@tanstack/vue-table";
@@ -175,19 +181,21 @@ import { useI18n } from "vue-i18n";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "vue-router";
 import { RouterLink } from "vue-router";
+import SegmentContactsDialog from "@/components/segments/SegmentContactsDialog.vue";
 
 const { t } = useI18n();
 const { toast } = useToast();
 const router = useRouter();
 const isLoading = ref(false);
 const currentSegment = ref(null);
-const showExport = ref(false);
 const showTagsDialog = ref(false);
 const segmentForTags = ref<any>(null);
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
-const listGroupProject = workspaceStore.group_projects.filter(
-  (value) => value.id !== activeGroupProjectId,
+const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id ?? null);
+const listGroupProject = computed(() =>
+  workspaceStore.group_projects.filter(
+    (value) => value.id !== activeGroupProjectId.value,
+  ),
 );
 
 const showContactsDialog = ref(false);
@@ -199,10 +207,10 @@ const currentSegmentId = ref<number | null>(null);
 
 const targetAudienceDialogRef = ref();
 const segmentDialogRef = ref();
+const segmentExportDialogRef = ref();
 
 const exportSeg = ref([]);
-const selectProjects = ref([]);
-
+const contactsDialogRef = ref();
 const segments = ref<Array<any>>([]);
 const nameSegment = ref();
 const orderId = ref("");
@@ -222,6 +230,13 @@ const openCreateModal = () => {
   segmentDialogRef.value.open(null, segments.value);
 };
 
+const openExportModal = () => {
+  segmentExportDialogRef.value.open();
+};
+
+const openShowModal = () => {
+  contactsDialogRef.value.open()
+}
 const handleName = (text: string) => {
   nameSegment.value = text;
 };
@@ -239,7 +254,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
     isLoading.value = true;
     const params = {
       page: current,
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       find_name: nameSegment.value,
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
@@ -264,6 +279,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
   }
 };
 watch(perPage, () => fetchSegments(1));
+watch(activeGroupProjectId, () => fetchSegments(1));
 
 const deleteSegment = async (segmentId: number) => {
   try {
@@ -337,7 +353,7 @@ const openContactsDialog = (segmentId: number) => {
 
   currentSegmentId.value = segmentId;
   showContactsDialog.value = true;
-
+  contactsDialogRef.value.open(segmentId)
   contacts.value = segment.initial_contacts || [];
   currentContactsPage.value = 1;
   hasMoreContacts.value = segment.total_contacts > contacts.value.length;
@@ -347,35 +363,6 @@ const resetContactsData = () => {
   contacts.value = [];
   currentContactsPage.value = 1;
   hasMoreContacts.value = false;
-};
-
-const exportSegment = async () => {
-  try {
-    await Segments.export({
-      project_id: activeGroupProjectId,
-      segment_ids: exportSeg.value,
-      target_project_ids: selectProjects.value,
-    });
-    toast({
-      title: "Exportação iniciada",
-      description: "Exportação do Segmento em andamento...",
-      variant: "default",
-    });
-
-    showExport.value = false;
-    toast({
-      title: "Sucesso",
-      description: "Segmento exportado com sucesso",
-      variant: "default",
-    });
-  } catch (error) {
-    console.error("Error exporting segment:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível exportar o segmento",
-      variant: "destructive",
-    });
-  }
 };
 
 const importSegment = async (event: Event) => {
