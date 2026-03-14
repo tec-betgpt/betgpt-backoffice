@@ -117,7 +117,7 @@
         </TableRow>
       </template>
       <TableRow v-else v-for="row in table.getRowModel().rows" :key="row.id" 
-        @click="isClickable ? $emit('row-click', row.original) : null" 
+        @click="handleRowClick(row.original)" 
         :class="[
           'transition-colors',
           isClickable ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50' : ''
@@ -243,9 +243,18 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:selected", "row-click"]);
+const emit = defineEmits(["update:selected"]);
 const attrs = useAttrs();
 const isClickable = computed(() => !!attrs['onRow-click'] || !!attrs['onRowClick']);
+
+function handleRowClick(row) {
+  if (!isClickable.value) return;
+  
+  const callback = attrs['onRow-click'] || attrs.onRowClick;
+  if (typeof callback === 'function') {
+    callback(row);
+  }
+}
 
 const dataTable = ref([...props.data]);
 const searchValues = ref<Record<string, string>>({});
