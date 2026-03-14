@@ -10,7 +10,7 @@ import {
   DialogPortal,
   useForwardPropsEmits,
 } from "radix-vue";
-import { computed, type HTMLAttributes } from "vue";
+import { computed, onUnmounted, type HTMLAttributes } from "vue";
 
 const props = defineProps<
   DialogContentProps & { class?: HTMLAttributes["class"] }
@@ -24,6 +24,10 @@ const delegatedProps = computed(() => {
 });
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+onUnmounted(() => {
+  document.body.style.pointerEvents = 'auto'
+})
 </script>
 
 <template>

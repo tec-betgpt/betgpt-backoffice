@@ -190,11 +190,10 @@ import {Separator} from "@/components/ui/separator";
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
 
-const currentDate = today(getLocalTimeZone());
-const startDate = currentDate.subtract({ days: 28 });
+
 const selectedRange = ref({
-  start: startDate,
-  end: currentDate,
+  start: null,
+  end: null,
 });
 
 const loading = ref(true);
@@ -271,9 +270,10 @@ const applyFilter = async () => {
   loading.value = true;
 
   try {
+
     const startDateFormatted = formatDateForAPI(selectedRange.value.start);
     const endDateFormatted =formatDateForAPI(selectedRange.value.end);
-
+    console.log(startDateFormatted, endDateFormatted);
     const params: any = {
       start_date: startDateFormatted,
       end_date: endDateFormatted,
@@ -307,33 +307,24 @@ const applyFilter = async () => {
   }
 };
 
-const yesterdayDate = currentDate.subtract({ days: 1 });
 
-const showDateRangeWarning = computed(() => {
-  const start = selectedRange.value.start;
-  const end = selectedRange.value.end;
-
-  if (!start || !end) {
-    return false;
-  }
-
-  const isEndDateTodayOrYesterday = end == currentDate || end == yesterdayDate;
-  const isRangeTooShort = (start.add({ days: 2 })).compare(end) > 0;
-
-  return isEndDateTodayOrYesterday && isRangeTooShort;
-});
 
 watch(selectedRange, () => {
   if (!isFirstLoad.value) {
+    console.log("teste 3")
+
     applyFilter();
   }
 }, { deep: true });
 
 watch(() => workspaceStore.activeGroupProject, () => {
+  console.log("teste 1")
   applyFilter();
 });
 
 onMounted(() => {
+  console.log("teste 2")
+
   applyFilter();
 });
 </script>

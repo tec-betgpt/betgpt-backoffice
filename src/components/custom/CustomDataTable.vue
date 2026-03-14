@@ -116,7 +116,13 @@
           </TableCell>
         </TableRow>
       </template>
-      <TableRow v-else v-for="row in table.getRowModel().rows" :key="row.id" @click="$emit('row-click', row.original)" class="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+      <TableRow v-else v-for="row in table.getRowModel().rows" :key="row.id" 
+        @click="isClickable ? $emit('row-click', row.original) : null" 
+        :class="[
+          'transition-colors',
+          isClickable ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50' : ''
+        ]"
+      >
         <TableCell v-if="props.select">
           <input
             type="checkbox"
@@ -157,7 +163,7 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, ref, watch, computed } from "vue";
+import { PropType, ref, watch, computed, useAttrs } from "vue";
 import {
   Table,
   TableBody,
@@ -237,7 +243,10 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:selected"]);
+const emit = defineEmits(["update:selected", "row-click"]);
+const attrs = useAttrs();
+const isClickable = computed(() => !!attrs['onRow-click'] || !!attrs['onRowClick']);
+
 const dataTable = ref([...props.data]);
 const searchValues = ref<Record<string, string>>({});
 const table = ref(

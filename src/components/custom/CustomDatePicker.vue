@@ -101,7 +101,6 @@ const applyPreset = (preset: string) => {
 };
 
 const triggerSelection = (preset: string) => {
-  selectedPreset.value = "";
   selectedPreset.value = preset;
   localStorage.setItem(STORAGE_KEY, preset);
 
@@ -126,11 +125,19 @@ const triggerSelection = (preset: string) => {
   popoverOpen.value = false;
 };
 
-onMounted(() => {
-  const savedPreset = localStorage.getItem(STORAGE_KEY) || "today";
-  selectedPreset.value = savedPreset;
+const getDaysDiff = (start: any, end: any) => {
+  if (!start || !end) return -1;
+  const startDate = new Date(start.year, start.month - 1, start.day);
+  const endDate = new Date(end.year, end.month - 1, end.day);
+  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+  return Math.round(diffTime / (1000 * 60 * 60 * 24));
+};
 
+onMounted(() => {
+  const savedPreset = localStorage.getItem(STORAGE_KEY);
+  
   if (savedPreset === "custom") {
+    selectedPreset.value = "custom";
     const saved = localStorage.getItem(RANGE_KEY);
     if (saved) {
       try {
@@ -139,11 +146,34 @@ onMounted(() => {
         const end = new CalendarDate(e.year, e.month, e.day);
         value.value = { start, end };
         calendarRef.value = { start, end };
-      } catch {}
+      } catch {
+        if (props.modelValue) value.value = props.modelValue;
+      }
     }
-  } else {
+  } else if (savedPreset) {
+    selectedPreset.value = savedPreset;
     applyPreset(savedPreset);
+  } else {
+    // Se não houver nada salvo, detectamos pelo modelValue inicial
+    if (props.modelValue && props.modelValue.start && props.modelValue.end) {
+      const diff = getDaysDiff(props.modelValue.start, props.modelValue.end);
+      
+      if (diff === 0) selectedPreset.value = "today";
+      else if (diff === 1) selectedPreset.value = "yesterday";
+      else if (diff >= 6 && diff <= 8) selectedPreset.value = "7days";
+      else if (diff >= 13 && diff <= 15) selectedPreset.value = "14days";
+      else if (diff >= 27 && diff <= 30) selectedPreset.value = "28days";
+      else selectedPreset.value = "custom";
+      
+      value.value = props.modelValue;
+    } else {
+      selectedPreset.value = "today";
+      applyPreset("today");
+    }
   }
+
+  // Emitir valor inicial para garantir que o pai tenha o range correto sincronizado com o rótulo
+  emit("update:modelValue", value.value);
 });
 const openS = ref();
 watch(openS, (newV) => {

@@ -395,6 +395,16 @@ watch(activeGroupProjectId, () => {
   startRefreshInterval();
 });
 
+watch([showDeleteDialog, showSyncConfirmDialog], ([newDelete, newSync]) => {
+  if (!newDelete && !newSync) {
+    // Pequeno delay para garantir que o Radix terminou a animação de fechamento
+    setTimeout(() => {
+      document.body.style.pointerEvents = 'auto';
+      document.body.style.overflow = 'auto';
+    }, 100);
+  }
+});
+
 const openCreateSheet = () => {
   targetAudienceDialogRef.value.open();
 };

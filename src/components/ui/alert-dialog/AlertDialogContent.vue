@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AlertDialogContentEmits, AlertDialogContentProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import { onUnmounted, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import {
   AlertDialogContent,
@@ -17,6 +17,10 @@ const emits = defineEmits<AlertDialogContentEmits>()
 const delegatedProps = reactiveOmit(props, "class")
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
+
+onUnmounted(() => {
+  document.body.style.pointerEvents = 'auto'
+})
 </script>
 
 <template>

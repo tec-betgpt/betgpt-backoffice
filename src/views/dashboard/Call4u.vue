@@ -516,9 +516,8 @@ const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
 
 // ── Date range ─────────────────────────────────────────────────────────────────
-const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
-const startDate = currentDate.subtract({ days: 28 });
-const selectedRange = ref({ start: startDate, end: currentDate });
+
+const selectedRange = ref({ start: null, end: null });
 
 // ── Page state ─────────────────────────────────────────────────────────────────
 const loading = ref(true);
@@ -914,5 +913,4 @@ watch(selectedRange, () => {
   loadData();
 });
 
-loadData();
 </script>

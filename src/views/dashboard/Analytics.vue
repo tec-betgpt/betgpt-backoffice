@@ -150,11 +150,9 @@ import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
 
-const currentDate = today(getLocalTimeZone()).subtract({ days: 1 });
-const startDate = currentDate.subtract({ days: 28 });
 const uniquePlayerLoginsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const uniquePlayerLoginsMovingAveragePeriod = ref<{ name: string; value: number[] }[]>([]);
-const selectedRange = ref({ start: startDate, end: currentDate });
+const selectedRange = ref({ start: null, end: null });
 const depositsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const loginsDays = ref<{ name: string; value: number[] }[]>([]);
 const usersPeriod = ref<{ name: string; value: number[] }[]>([]);
@@ -252,8 +250,6 @@ watch(selectedRange, () => {
   applyFilter()
 }, { deep: true })
 
-onMounted(() => {
-  applyFilter()
-})
+
 
 </script>

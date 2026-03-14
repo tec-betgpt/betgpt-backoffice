@@ -476,9 +476,7 @@ const hasMemberAccess = computed(() => {
 const responsiveClass =
   "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-3 mb-3";
 
-const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
-const startDate = currentDate.subtract({ days: 28 });
-const selectedRange = ref({ start: startDate, end: currentDate });
+const selectedRange = ref({ start: null, end: null });
 const { toast } = useToast();
 
 const workspaceStore = useWorkspaceStore();
@@ -933,5 +931,4 @@ watch(selectedRange, () => {
   loadData();
 });
 
-loadData();
 </script>
