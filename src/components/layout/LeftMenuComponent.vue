@@ -445,19 +445,19 @@ const navMenu = computed(() => {
       ],
     },
     {
-      name: "Controles",
-      icon: SlidersHorizontal,
-      type: "controls",
+      name: "Performances",
+      icon: LineChart,
+      type: "perfomances",
       show: canAccess("access-to-reports"),
       children: [
         {
-          name: "Performance",
-          url: { name: "performances" },
-          icon: LineChart,
+          name: "Controles",
+          url: { name: "controls" },
+          icon: SlidersHorizontal,
           show: canAccess("access-to-reports"),
         },
         {
-          name: "Tráfego",
+          name: "Tráfegos",
           url: { name: "traffics" },
           icon: ChartNoAxesCombined,
           show: canAccess("access-to-reports"),

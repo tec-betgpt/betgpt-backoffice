@@ -8,8 +8,8 @@ import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
 
 export default [
   {
-    path: "/controls",
-    name: "controls",
+    path: "/perfomances",
+    name: "perfomances",
     meta: {
       requiresAuth: true,
       title: "Relatórios",
@@ -18,13 +18,13 @@ export default [
     },
     children: [
       {
-        path: "performances",
-        name: "performances",
+        path: "controls",
+        name: "controls",
         component: Analytics,
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
-          title: "Performance",
+          title: "Controles",
           roles: "member|client",
           permissions: "access-to-reports",
         },

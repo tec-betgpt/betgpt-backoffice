@@ -2,9 +2,9 @@
   <div class="google-analytics-page p-10 max-[450px]:p-0 pb-16 w-full">
     <div class="grid min-[900px]:grid-cols-2 gap-4 pb-10">
       <div>
-        <h2 class="text-2xl font-bold tracking-tight">Performance</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Controles</h2>
         <p class="text-muted-foreground">
-          Relatórios de performance de um período específico.
+          Relatórios de controles de um período específico.
         </p>
       </div>
       <div class="flex items-center justify-start w-full">

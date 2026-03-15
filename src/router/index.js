@@ -8,7 +8,7 @@ import Home from "@/views/dashboard/Home.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
 import configurations from "@/router/configurations.js";
 import elevate_ia from "@/router/elevate_ia.js";
-import controls from "@/router/controls.js";
+import perfomances from "@/router/perfomances.js";
 import audiences from "@/router/audiences.js";
 import manage from "@/router/manage.js";
 import governance from "@/router/governance.js";
@@ -55,7 +55,7 @@ const routes = [
   },
   ...configurations,
   ...elevate_ia,
-  ...controls,
+  ...perfomances,
   ...audiences,
   ...manage,
   ...governance,
