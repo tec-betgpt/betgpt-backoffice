@@ -3,10 +3,10 @@
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
       <div class="space-y-0.5">
         <h2 class="text-2xl font-bold tracking-tight">
-          Gerenciar Definições de Conversão
+          Gerenciar Conversões
         </h2>
         <p class="text-muted-foreground">
-          Crie e gerencie definições de conversão com regras personalizadas.
+          Crie e gerencie as conversões com regras personalizadas.
         </p>
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">

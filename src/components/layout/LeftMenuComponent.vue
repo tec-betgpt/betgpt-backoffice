@@ -325,6 +325,8 @@ import {
   LucideLockOpen,
   LucideUserCheck,
   ChartArea,
+  ChartBarBig,
+  ChartNoAxesColumnIncreasing,
   Goal,
   ShieldAlert,
   FileText,
@@ -445,9 +447,9 @@ const navMenu = computed(() => {
       ],
     },
     {
-      name: "Performances",
+      name: "Performance",
       icon: LineChart,
-      type: "perfomances",
+      type: "perfomance",
       show: canAccess("access-to-reports"),
       children: [
         {
@@ -489,15 +491,15 @@ const navMenu = computed(() => {
       ],
     },
     {
-      name: "Conversões",
-      icon: ChartArea,
-      type: "conversions",
+      name: "Desempenho",
+      icon: ChartNoAxesColumnIncreasing,
+      type: "efficiency",
       show: canAccess("view-events"),
       children: [
         {
-          name: "Definições",
-          url: { name: "definitions" },
-          icon: ChartArea,
+          name: "Conversões",
+          url: { name: "conversions" },
+          icon: ChartBarBig,
           show: canAccess("view-events"),
         },
         {

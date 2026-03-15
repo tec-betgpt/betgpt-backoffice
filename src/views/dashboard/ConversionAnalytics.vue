@@ -2,7 +2,7 @@
   <div class="conversion-analytics-page space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
       <div class="space-y-0.5">
-        <h2 class="text-2xl font-bold tracking-tight">Análise de Conversão</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Resultados</h2>
         <p class="text-muted-foreground">
           Relatórios de eventos de conversão e receita.
         </p>
@@ -295,10 +295,10 @@ const applyFilter = async () => {
     performanceTotal.value = data.channel_performance.reduce((acc, p) => acc + p.totalRevenue, 0);
     channelGroups.value = data.channel_groups
   } catch (error) {
-    console.error("Erro ao carregar dados de análise de conversão:", error);
+    console.error("Erro ao carregar dados de resultados:", error);
     toast({
       title: "Erro ao carregar dados",
-      description: "Não foi possível buscar os dados de análise de conversão.",
+      description: "Não foi possível buscar os dados de resultados.",
       variant: "destructive",
     });
   } finally {

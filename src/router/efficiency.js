@@ -5,24 +5,24 @@ import ConversionAnalytics from "@/views/dashboard/ConversionAnalytics.vue";
 
 export default [
   {
-    path: "/conversions",
-    name: "conversions",
+    path: "/efficiency",
+    name: "efficiency",
     meta: {
       requiresAuth: true,
-      title: "Conversões", // Parent title
+      title: "Desempenho", // Parent title
       roles: "member|client",
       permissions: "view-events",
     },
     children: [
       {
-        path: "definitions", // Default child route for /conversions
-        name: "definitions", // More specific name
+        path: "conversions", // Default child route for /conversions
+        name: "conversions", // More specific name
         component: ConversionDefinitions,
         meta: {
           layout: DefaultLayout,
 
           roles: "member|client",
-          title: "Definições de Conversão",
+          title: "Conversões",
           permissions: "view-events",
 
         },
@@ -45,7 +45,7 @@ export default [
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
-          title: "Análise de Conversão",
+          title: "Resultados",
           roles: "member|client",
           permissions: "view-events",
         },

@@ -8,8 +8,8 @@ import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
 
 export default [
   {
-    path: "/perfomances",
-    name: "perfomances",
+    path: "/perfomance",
+    name: "perfomance",
     meta: {
       requiresAuth: true,
       title: "Relatórios",
