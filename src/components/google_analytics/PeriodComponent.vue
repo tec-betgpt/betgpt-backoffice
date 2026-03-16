@@ -160,11 +160,10 @@ export default defineComponent({
           return Object.keys(item).reduce((newObject: any, key) => {
             if (key === 'date') {
               newObject[key] = item[key];
-            }
-            else {
+            } else {
               const rawValue = Number(item[key]);
               if (!isNaN(rawValue)) {
-                newObject[key] = Number((rawValue / 100).toFixed(2));
+                newObject[key] = Number(rawValue.toFixed(2));
               } else {
                 newObject[key] = item[key];
               }
@@ -209,7 +208,7 @@ export default defineComponent({
       }
       if (this.type =="currency")
       {
-        return {max: (max / 100).toFixed(2), min: (min / 100).toFixed(2), avg: (avg / 100).toFixed(2)}
+        return {max: max.toFixed(2), min: min.toFixed(2), avg: avg.toFixed(2)}
       }
       if (this.windowWidth < 640) {
         return { max: formatLargeNumber(max).content + formatLargeNumber(max).separator  ,
