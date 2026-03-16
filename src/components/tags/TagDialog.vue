@@ -127,6 +127,21 @@
                   </p>
                 </div>
               </div>
+              <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                <Checkbox
+                  id="sync_with_crms"
+                  :checked="form.metadata.triggers.includes('sync_with_crms')"
+                  @update:checked="(checked) => onTriggerChange('sync_with_crms', checked)"
+                />
+                <div class="grid gap-1.5 leading-none">
+                  <Label for="sync_with_crms" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Sincronizar com CRMs
+                  </Label>
+                  <p class="text-xs text-muted-foreground">
+                    Os CRMs integrados nas fontes de dados com a sincronização ativa receberão automaticamente as informações, que serão sincronizadas com o perfil do usuário.
+                  </p>
+                </div>
+              </div>
             </div>
           </TabsContent>
 

@@ -97,37 +97,67 @@
           </span>
         </div>
         <div class="mt-4 space-y-4">
-          <div v-for="field in data.fields" :key="field.key" class="space-y-2">
-            <Label :for="`${data.slug}-${data.key}`">{{ field.title }}</Label>
-            <Input
-              v-if="field.type === 'string'"
-              :id="`${data.slug}-${field.key}`"
-              v-model="data.config[field.key]"
-              :placeholder="field.description"
-            />
-            <Button
-              :id="`${data.slug}-${field.key}`"
-              v-if="field.type === 'url'"
-              :disabled="disableBt"
-              @click="
-                data.config?.email
-                  ? confirmLogout(data.integration.integration_id)
-                  : initOAuth2(field.description, data.id)
-              "
-            >
-              <div
-                v-if="data.config?.email"
-                class="flex items-center justify-between"
+          <template v-for="field in data.fields" :key="field.key">
+          <div
+            v-if="shouldShowField(field, data)"
+            class="space-y-2"
+          >
+            <template v-if="field.type === 'string'">
+              <Label :for="`${data.slug}-${field.key}`">{{ field.title }}</Label>
+              <Input
+                :id="`${data.slug}-${field.key}`"
+                v-model="data.config[field.key]"
+                :placeholder="field.description"
+              />
+            </template>
+
+            <template v-else-if="field.type === 'boolean'">
+              <div class="flex flex-col space-y-1">
+                <div class="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    :id="`${data.slug}-${field.key}`"
+                    v-model="data.config[field.key]"
+                  />
+                  <span class="text-sm font-medium">
+                    {{ field.title || "Sincronizar usuários" }}
+                  </span>
+                </div>
+                <p
+                  v-if="field.description"
+                  class="text-xs text-muted-foreground ml-6"
+                >
+                  {{ field.description }}
+                </p>
+              </div>
+            </template>
+
+            <template v-else-if="field.type === 'url'">
+              <Label :for="`${data.slug}-${field.key}`">{{ field.title }}</Label>
+              <Button
+                :id="`${data.slug}-${field.key}`"
+                :disabled="disableBt"
+                @click="
+                  data.config?.email
+                    ? confirmLogout(data.integration.integration_id)
+                    : initOAuth2(field.description, data.id)
+                "
               >
-                <LogOut class="mr-2 h-4 w-4" />
-                Desconectar
-              </div>
-              <div v-else class="flex items-center justify-between">
-                <ExternalLink class="mr-2 h-4 w-4" />
-                Conectar
-              </div>
-            </Button>
+                <div
+                  v-if="data.config?.email"
+                  class="flex items-center justify-between"
+                >
+                  <LogOut class="mr-2 h-4 w-4" />
+                  Desconectar
+                </div>
+                <div v-else class="flex items-center justify-between">
+                  <ExternalLink class="mr-2 h-4 w-4" />
+                  Conectar
+                </div>
+              </Button>
+            </template>
           </div>
+        </template>
         </div>
       </Card>
     </div>
@@ -337,6 +367,28 @@ async function logoutOAuth2(id) {
   });
   await fetchIntegrations();
   disableBt.value = false;
+}
+
+function shouldShowField(field: any, integration: any) {
+  if (!field.depends_on) {
+    return true;
+  }
+
+  const dependsValue = integration?.config?.[field.depends_on];
+
+  if (dependsValue === null || dependsValue === undefined) {
+    return false;
+  }
+
+  if (typeof dependsValue === "string") {
+    return dependsValue.trim() !== "";
+  }
+
+  if (Array.isArray(dependsValue)) {
+    return dependsValue.length > 0;
+  }
+
+  return Boolean(dependsValue);
 }
 
 function getApplicationDetail(name: string) {
