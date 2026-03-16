@@ -376,6 +376,13 @@ function getApplicationDetail(name: string) {
           "Solução de telefonia para automação de ligações, atendimento e engajamento com clientes.",
       };
 
+    case "Smartico":
+      return {
+        logo: "/third-party/smartico.png",
+        brief:
+          "Plataforma de CRM e automação de marketing.",
+      };
+
     default:
       return {
         logo: "/third-party/unknown-app.png",
