@@ -26,6 +26,7 @@
               <AnnotationList
                 ref="annotationListRef"
                 :chart-name="chartName"
+                :chart-resource="chartResource"
                 :project-id="workspaceStore.activeGroupProject?.id"
               />
             </PopoverContent>
@@ -95,12 +96,13 @@
     :date="selectedDate"
     :end-date="selectedEndDate"
     :chart-name="chartName"
+    :chart-resource="chartResource"
     @saved="onAnnotationSaved"
   />
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { formatLargeNumber } from "@/filters/formatLargeNumber";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { LineChart } from "@/components/ui/chart-line";
@@ -217,12 +219,15 @@ export default defineComponent({
       }
       return { max, min, avg: parseFloat(String(avg)).toFixed(2) }
     },
+
     async fetchAnnotations() {
       if (!this.chartName || !this.workspaceStore.activeGroupProject?.id) return
+
       try {
         const response = await ProjectAnnotations.index({
           filter_id: this.workspaceStore.activeGroupProject.id,
           chart_name: this.chartName,
+          resource: this.chartResource,
           perPage: 100
         })
         this.annotations = response || []
@@ -230,12 +235,14 @@ export default defineComponent({
         console.error(error)
       }
     },
+
     handlePointClick(data: any) {
       if (!this.chartName) return
       this.selectedDate = data.date
       this.selectedEndDate = ''
       this.dialogOpen = true
     },
+
     handleSelection({ start, end }: { start: number, end: number }) {
       if (!this.chartName) return
       
@@ -243,6 +250,7 @@ export default defineComponent({
       this.selectedEndDate = moment(end).format('YYYY-MM-DD')
       this.dialogOpen = true
     },
+
     onAnnotationSaved() {
       this.fetchAnnotations()
       if (this.annotationListRef) {
@@ -277,6 +285,10 @@ export default defineComponent({
       required:false
     },
     chartName: {
+      type: String,
+      required: false
+    },
+    chartResource: {
       type: String,
       required: false
     }

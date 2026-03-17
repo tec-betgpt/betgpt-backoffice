@@ -212,6 +212,7 @@
           :period="sms"
           title="SMS Enviados"
           chart-name="smsfunnel-sent"
+          chart-resource="SmsFunnel"
           :is-loading="loading"
           :glossary="meta['sms.sent'] || 'Dados de SMS Enviados'"
         />
@@ -220,6 +221,7 @@
           :period="clicks"
           title="Cliques"
           chart-name="smsfunnel-clicks"
+          chart-resource="SmsFunnel"
           :is-loading="loading"
           :glossary="meta['clicks'] || 'Dados de Cliques'"
         />
@@ -930,5 +932,4 @@ watch(selectedRange, () => {
   broadcastPages.value.current = 1;
   loadData();
 });
-
 </script>

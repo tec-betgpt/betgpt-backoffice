@@ -30,6 +30,12 @@
             />
           </div>
         </div>
+        <div class="flex items-center space-x-2">
+          <Checkbox id="is_global" :checked="form.is_global" @update:checked="form.is_global = $event" />
+          <Label for="is_global" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Tornar anotação global
+          </Label>
+        </div>
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" @click="$emit('update:open', false)">
@@ -49,7 +55,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import projectAnnotations from '@/services/projectAnnotations'
+import { Checkbox } from '@/components/ui/checkbox'
+import ProjectAnnotations from '@/services/projectAnnotations'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { useToast } from '@/components/ui/toast/use-toast'
 import moment from "moment";
@@ -59,6 +66,7 @@ const props = defineProps<{
   date: string
   endDate?: string
   chartName: string
+  chartResource?: string
 }>()
 
 const emit = defineEmits(['update:open', 'saved'])
@@ -70,7 +78,8 @@ const loading = ref(false)
 const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#6b7280']
 const form = ref({
   annotation: '',
-  color: colors[0]
+  color: colors[0],
+  is_global: false
 })
 
 const isRange = computed(() => !!props.endDate && props.endDate !== props.date)
@@ -78,6 +87,7 @@ const isRange = computed(() => !!props.endDate && props.endDate !== props.date)
 watch(() => props.open, (newVal) => {
   if (newVal) {
     form.value.annotation = ''
+    form.value.is_global = false
   }
 })
 
@@ -98,12 +108,13 @@ async function save() {
       ? `[Período: ${props.date} a ${props.endDate}] ${form.value.annotation}`
       : form.value.annotation
 
-    await projectAnnotations.store({
+    await ProjectAnnotations.store({
       project_id: workspaceStore.activeGroupProject?.id,
-      chart_name: props.chartName,
+      chart_name: form.value.is_global ? null : props.chartName,
       annotation: annotationText,
       color: form.value.color,
-      date: moment(props.date, 'DD/MM/YYYY').format('YYYY-MM-DD')
+      date: moment(props.date, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+      resource: props.chartResource ?? null
     })
     toast({
       title: 'Sucesso',

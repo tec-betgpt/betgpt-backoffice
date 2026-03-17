@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import projectAnnotations from '@/services/projectAnnotations'
+import ProjectAnnotations from '@/services/projectAnnotations'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Trash2 } from 'lucide-vue-next'
@@ -45,6 +45,7 @@ import moment from 'moment'
 
 const props = defineProps<{
   chartName: string
+  chartResource?: string
   projectId: string
 }>()
 
@@ -58,9 +59,10 @@ async function fetchAnnotations() {
   loading.value = true
 
   try {
-    const response = await projectAnnotations.index({
+    const response = await ProjectAnnotations.index({
       filter_id: props.projectId,
       chart_name: props.chartName,
+      resource: props.chartResource,
       perPage: 100
     })
     annotations.value = response || []
@@ -73,12 +75,13 @@ async function fetchAnnotations() {
 
 async function deleteAnnotation(id: number) {
   try {
-    await projectAnnotations.destroy(id)
+    await ProjectAnnotations.destroy(id)
     toast({
       title: 'Sucesso',
       description: 'Anotação removida com sucesso.'
     })
-    fetchAnnotations()
+
+    await fetchAnnotations()
   } catch (error) {
     toast({
       title: 'Erro',

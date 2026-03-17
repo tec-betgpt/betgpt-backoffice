@@ -775,6 +775,7 @@
         :period="usersPeriod"
         title="Usuários"
         chart-name="activeUsers"
+        chart-resource="GoogleAnalytics"
         :glossary="meta['users_period'] || 'Dados de Usuários novos e ativo'"
       />
       <PeriodComponent
@@ -782,6 +783,7 @@
         :period="payingActivePeriod"
         title="Usuários Ativos Pagantes por período"
         chart-name="activePurchasers"
+        chart-resource="GoogleAnalytics"
         :glossary="
           meta['paying_active_period'] ||
           'Dados de Pagantes Ativos por período, com diferença de 7D, 14D e 28D'
@@ -792,6 +794,7 @@
         :period="totalUsersPeriod"
         title="Total de Usuários"
         chart-name="totalUsers"
+        chart-resource="GoogleAnalytics"
         :glossary="meta['total_users_period'] || 'Dados de total de usuários'"
       />
       <PeriodComponent
@@ -799,6 +802,7 @@
         :period="returningUsersPeriod"
         title="Usuários Recorrentes"
         chart-name="returningUsers"
+        chart-resource="GoogleAnalytics"
         :glossary="
           meta['returning_users_period'] ||
           'Dados de Usuários Recorrentes por período'
@@ -809,6 +813,7 @@
         :period="firstTimePurchasersPeriod"
         title="Total de Primeiros Compradores"
         chart-name="firstTimePurchasers"
+        chart-resource="GoogleAnalytics"
         :glossary="
           meta['first_time_purchasers_period'] ||
           'Dados de Primeiros Compradores por período'
@@ -820,6 +825,7 @@
         title="Taxa de Engajamento por período"
         type="percent"
         chart-name="engagementRate"
+        chart-resource="GoogleAnalytics"
         :glossary="
           meta['engagement_rate_period'] ||
           'Percentual de usuários engajados por período'
@@ -831,6 +837,7 @@
         title="Taxa de Rejeição"
         type="percent"
         chart-name="bounceRate"
+        chart-resource="GoogleAnalytics"
         :glossary="
           meta['bounce_rate_period'] ||
           'Percentual de usuários que saíram do site sem interagir'
@@ -842,6 +849,7 @@
         title="ARPU"
         type="currency"
         chart-name="averageRevenuePerUser"
+        chart-resource="GoogleAnalytics"
         :glossary="
           meta['arpu'] || 'Receita média por usuário ativo por período'
         "
@@ -852,6 +860,7 @@
         title="ARPPU"
         type="currency"
         chart-name="averageRevenuePerPayingUser"
+        chart-resource="GoogleAnalytics"
         :glossary="
           meta['arppu'] || 'Receita média por usuário pagante por período'
         "
