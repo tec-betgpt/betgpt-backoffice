@@ -6,6 +6,7 @@ export default {
      * @param {string|null} params.end_date
      * @param {string|null} params.start_date
      * @param {string|null} params.chart_name
+     * @param {string|null} params.resource
      * @param {string} params.filter_id
      */
     async index (params = {}) {
@@ -15,9 +16,11 @@ export default {
 
     /**
      * @param {object} body
+     * @param {string|null} body.resource
      * @param {number} body.project_id
-     * @param {string} body.chart_name
+     * @param {string|null} body.chart_name
      * @param {string} body.annotation
+     * @param {string} body.date
      * @param {string} body.color
      */
     async store (body = {}) {
@@ -36,7 +39,6 @@ export default {
     /**
      * @param {number} id
      * @param {object} body
-     * @param {string} body.chart_name
      * @param {string} body.annotation
      * @param {string} body.color
      */

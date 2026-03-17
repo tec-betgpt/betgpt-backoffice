@@ -24,6 +24,7 @@
 
       <PeriodComponent
         chart-name="logins_days"
+        chart-resource="Controls"
         :period="loginsDays"
         title="Logins diários"
         :isLoading="isLoading"
@@ -32,6 +33,7 @@
 
       <PeriodComponent
         chart-name="unique_logins"
+        chart-resource="Controls"
         :period="uniquePlayerLoginsPeriod"
         title="Logins únicos"
         :isLoading="isLoading"
@@ -40,6 +42,7 @@
 
       <PeriodComponent
         chart-name="unique_logins_moving_average"
+        chart-resource="Controls"
         :period="uniquePlayerLoginsMovingAveragePeriod"
         title="Média móvel - Logins únicos"
         :isLoading="isLoading"
@@ -48,6 +51,7 @@
 
       <PeriodComponent
         chart-name="deposits"
+        chart-resource="Controls"
         type="currency"
         :period="depositsPeriod"
         title="Entrada por periodo"
@@ -57,6 +61,7 @@
 
       <PeriodComponent
         chart-name="percent_net_deposits"
+        chart-resource="Controls"
         :period="percentNetDepositsPeriod"
         title="Percentual de entradas líquidas por período"
         type="percent" class="xl:col-span-2"
@@ -66,6 +71,7 @@
 
       <PeriodComponent
         chart-name="net_deposits"
+        chart-resource="Controls"
         type="currency"
         :period="netDepositsPeriod"
         title="Entradas Líquidas por período"
@@ -75,6 +81,7 @@
 
       <PeriodComponent
         chart-name="active_users"
+        chart-resource="Controls"
         :period="activeUsersPeriod"
         title="Usuários Ativos por período"
         :isLoading="isLoading"
@@ -83,6 +90,7 @@
 
       <PeriodComponent
         chart-name="percent_ftd"
+        chart-resource="Controls"
         :period="percentFtdDayPeriod"
         title="Percentual FTD por dia"
         type="percent"
@@ -92,6 +100,7 @@
 
       <PeriodComponent
         chart-name="value_net_deposits"
+        chart-resource="Controls"
         type="currency"
         :period="valueNetDepositsPeriod"
         title="Valor de Entradas Líquidas por período"
@@ -101,6 +110,7 @@
 
       <PeriodComponent
         chart-name="value_deposits"
+        chart-resource="Controls"
         type="currency"
         :period="valueDepositsPeriod"
         title="Valor de Entradas por período"
@@ -110,6 +120,7 @@
 
       <PeriodComponent
         chart-name="value_withdraws"
+        chart-resource="Controls"
         type="currency"
         :period="valueWithdrawsPeriod"
         title="Valor de Saídas por período"
@@ -119,6 +130,7 @@
 
       <PeriodComponent
         chart-name="reg_dep_rate"
+        chart-resource="Controls"
         :period="registrationDepositRatePeriod"
         title="Taxa de Registro/Entrada por período"
         type="percent"
@@ -128,6 +140,7 @@
 
       <PeriodComponent
         chart-name="dep_conv_rate"
+        chart-resource="Controls"
         :period="depositConversionRatePeriod"
         title="Taxa de Conversão de Entrada por período"
         type="percent"
@@ -249,7 +262,4 @@ const applyFilter = async () => {
 watch(selectedRange, () => {
   applyFilter()
 }, { deep: true })
-
-
-
 </script>
