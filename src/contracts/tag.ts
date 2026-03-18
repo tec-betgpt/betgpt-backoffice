@@ -16,8 +16,7 @@ export interface Tag {
 
 export interface TagMetadata {
   triggers?: {
-    on_attach?: TriggerAction[];
-    on_detach?: TriggerAction[];
+
   };
   [key: string]: any; // Extensível para parâmetros dinâmicos
 }

@@ -117,6 +117,7 @@
                   id="sync_with_segments"
                   :checked="form.metadata.triggers.includes('sync_with_segments')"
                   @update:checked="(checked) => onTriggerChange('sync_with_segments', checked)"
+                  :disabled="isSegmentsTriggerRequired"
                 />
                 <div class="grid gap-1.5 leading-none">
                   <Label for="sync_with_segments" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -140,6 +141,38 @@
                   <p class="text-xs text-muted-foreground">
                     Os CRMs integrados nas fontes de dados com a sincronização ativa receberão automaticamente as informações, que serão sincronizadas com o perfil do usuário.
                   </p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                <Checkbox
+                  id="sync_with_protection_list"
+                  :checked="form.metadata.triggers.includes('sync_with_protection_list')"
+                  @update:checked="(checked) => onTriggerChange('sync_with_protection_list', checked)"
+                />
+                <div class="grid gap-1.5 leading-none w-full">
+                  <Label for="sync_with_protection_list" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Sincronizar com Lista de Proteção
+                  </Label>
+                  <p class="text-xs text-muted-foreground">
+                    Ao vincular esta tag a um jogador, ele será automaticamente sincronizado com a lista de proteção selecionada.
+                  </p>
+
+                  <div v-if="form.metadata.triggers.includes('sync_with_protection_list')" class="mt-4 space-y-4 border-t pt-4">
+                    <div class="space-y-2">
+                      <Label for="protection_list_channel">Canal</Label>
+                      <Select v-model="form.metadata.protection_list_channel">
+                        <SelectTrigger id="protection_list_channel">
+                          <SelectValue placeholder="Selecione o canal..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem v-for="lp in tagConditions" :key="lp.id" :value="lp.id.toString()">
+                            {{ lp.name }}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -192,6 +225,13 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import TagsService from '@/services/tags';
@@ -223,7 +263,9 @@ const form = ref({
   is_active: true,
   has_webhook: false,
   metadata: {
-    triggers: [] as string[]
+    triggers: [] as string[],
+    protection_list_channel: '',
+    protection_list_sync_with_segments: false,
   }
 });
 
@@ -232,6 +274,7 @@ const parentTags = ref<Tag[]>([]);
 const isLoadingParents = ref(false);
 const openParent = ref(false);
 const searchParentQuery = ref('');
+const tagConditions = ref<any[]>([]);
 let searchTimeout: any = null;
 
 const selectedParentName = computed(() => {
@@ -255,7 +298,8 @@ watch(() => props.open, (newVal) => {
         //@ts-ignore
         has_webhook: props.tag.has_webhook || false,
         metadata: {
-          triggers: props.tag.metadata?.triggers || []
+          triggers: props.tag.metadata?.triggers || [],
+          protection_list_channel: props.tag.metadata?.protection_list_channel || '',
         }
       };
       
@@ -272,14 +316,26 @@ watch(() => props.open, (newVal) => {
         is_active: true,
         has_webhook: false,
         metadata: {
-          triggers: []
+          triggers: [],
+          protection_list_channel: '',
+          protection_list_sync_with_segments: false,
         }
       };
     }
     fetchParentTags();
+    fetchConditions();
   }
 });
 
+const fetchConditions = async () => {
+  try {
+    const response = await TagsService.getConditions();
+    const data = response.data;
+    tagConditions.value = data.lp || [];
+  } catch (error) {
+    console.error("Erro ao buscar condições:", error);
+  }
+}
 const onNameInput = () => {
   if (!isEdit.value) {
     form.value.slug = form.value.name
@@ -291,10 +347,20 @@ const onNameInput = () => {
   }
 };
 
+const isSegmentsTriggerRequired = computed(() => {
+  return form.value.metadata.triggers.includes('sync_with_protection_list');
+});
+
 const onTriggerChange = (trigger: string, checked: boolean) => {
   if (checked) {
     if (!form.value.metadata.triggers.includes(trigger)) {
       form.value.metadata.triggers.push(trigger);
+    }
+    if (trigger === 'sync_with_protection_list') {
+      if (!form.value.metadata.triggers.includes('sync_with_segments')) {
+        form.value.metadata.triggers.push('sync_with_segments');
+      }
+      form.value.metadata.protection_list_sync_with_segments = true;
     }
   } else {
     form.value.metadata.triggers = form.value.metadata.triggers.filter(t => t !== trigger);

@@ -163,8 +163,14 @@ const fetchContacts = async (page: number) => {
       orderDirection: orderDirection.value ? "asc" : "desc",
     });
 
-    if (page === 1) contacts.value = response.data.players;
-    else contacts.value.push(...response.data.players);
+    const newPlayers = response.data.players || [];
+    
+    if (page === 1) {
+      contacts.value = [...newPlayers];
+    } else {
+      // Anexa os novos resultados ao final da lista existente
+      contacts.value = [...contacts.value, ...newPlayers];
+    }
 
     hasMore.value = response.data.hasMore;
     currentPage.value = page;
@@ -181,13 +187,13 @@ const loadMore = () => {
   }
 };
 
-const open = (id: number, initialData?: any[]) => {
+const open = (id: number, initialData?: any[], total?: number) => {
   segmentId.value = id;
   isOpen.value = true;
   if (initialData && initialData.length > 0) {
-    contacts.value = initialData;
+    contacts.value = [...initialData];
     currentPage.value = 1;
-    hasMore.value = true;
+    hasMore.value = total ? total > initialData.length : true;
   } else {
     fetchContacts(1);
   }

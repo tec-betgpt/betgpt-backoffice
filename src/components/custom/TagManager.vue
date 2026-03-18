@@ -44,7 +44,6 @@ const selectedTag = ref<Tag | null>(null);
 // Estados para Criação de Tag
 const isCreateDialogOpen = ref(false);
 const tagToCreate = ref<Tag | null>(null);
-
 const handleViewTag = (tag: Tag) => {
   selectedTag.value = tag;
   isViewOpen.value = true;

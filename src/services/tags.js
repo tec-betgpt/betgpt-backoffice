@@ -84,4 +84,9 @@ export default {
     });
     return res.data;
   },
+
+
+  async getConditions(){
+    return await api.get(`/tags/conditions`);
+  }
 };
