@@ -190,6 +190,28 @@
                     </PopoverContent>
                   </Popover>
 
+                  <Select
+                    v-else-if="(getField(condition, groupIndex, formIndex)?.field_key === 'call4u_linked_status' || getField(condition, groupIndex, formIndex)?.table === 'call4u_linked_status') && !['empty', 'not_empty'].includes(condition.operator)"
+                    v-model="condition.value"
+                    class="flex-1 min-w-[240px]"
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Atendida com digitação">Atendida com digitação</SelectItem>
+                      <SelectItem value="Atendida e desconectada">Atendida e desconectada</SelectItem>
+                      <SelectItem value="Atendida e ouviu até o final">Atendida e ouviu até o final</SelectItem>
+                      <SelectItem value="Cancelado pelo Horário 23:00 às 07:30">Cancelado pelo Horário 23:00 às 07:30</SelectItem>
+                      <SelectItem value="Em andamento">Em andamento</SelectItem>
+                      <SelectItem value="Número está na Blacklist">Número está na Blacklist</SelectItem>
+                      <SelectItem value="Número inválido">Número inválido</SelectItem>
+                      <SelectItem value="Pendente">Pendente</SelectItem>
+                      <SelectItem value="Preparando para discagem">Preparando para discagem</SelectItem>
+                      <SelectItem value="Recusada">Recusada</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   <Input
                     v-else-if="
                       showTextInput(condition, groupIndex, formIndex) &&
@@ -530,7 +552,8 @@ const getOperators = (condition: any, groupIndex: number, formIndex: number) => 
   }
 
   if (
-    ["protection_list", "protection_list_type"].includes(field.field_key)
+    ["protection_list", "protection_list_type", "call4u_linked_status"].includes(field.field_key) ||
+    field.table === "call4u_linked_status"
   ) {
     return ["equals", "not_equals"];
   }

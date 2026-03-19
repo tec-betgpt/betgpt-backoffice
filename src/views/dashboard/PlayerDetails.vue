@@ -30,17 +30,80 @@
       <!-- KPIs Financeiros -->
       <PlayerFinancialStats :stats="financialStats" />
 
-      <!-- Conteúdo em Abas -->
-      <Tabs v-model="activeTab" class="w-full">
-        <TabsList class="flex w-full overflow-x-auto justify-start md:grid md:grid-cols-3 md:max-w-[450px] mb-4 bg-transparent md:bg-muted p-0 md:p-1 h-auto gap-2 md:gap-0">
-          <TabsTrigger value="activity" class="flex-1 py-2 text-xs md:text-sm border md:border-none rounded-md">Atividade</TabsTrigger>
-          <TabsTrigger value="profile" class="flex-1 py-2 text-xs md:text-sm border md:border-none rounded-md">Perfil</TabsTrigger>
-          <TabsTrigger value="tags" class="flex-1 py-2 text-xs md:text-sm border md:border-none rounded-md">Tags</TabsTrigger>
-        </TabsList>
-
-        <!-- Aba de Atividade (Timeline) -->
-        <TabsContent value="activity" class="mt-0">
+      <!-- Conteúdo em Grade -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Coluna Esquerda: Perfil e Tags -->
+        <div class="lg:col-span-4 space-y-6">
+          <!-- Informações Pessoais -->
           <Card class="shadow-sm border-none md:border">
+            <CardHeader>
+              <CardTitle class="text-lg">Informações Pessoais</CardTitle>
+            </CardHeader>
+            <CardContent class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 md:gap-y-6 gap-x-4">
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Data de Nascimento</p>
+                <p class="text-sm font-medium">{{ formatDate(player.birthday) }} ({{ getAge(player.birthday) }} anos)</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Membro desde</p>
+                <p class="text-sm font-medium">{{ formatDate(player.created_at) }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">CPF / Documento</p>
+                <p class="text-sm font-medium">{{ player.document || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Gênero</p>
+                <p class="text-sm font-medium capitalize">{{ player.gender || 'Não informado' }}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Conectividade -->
+          <Card class="shadow-sm border-none md:border">
+            <CardHeader>
+              <CardTitle class="text-lg">Conectividade</CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-3 md:space-y-4">
+              <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                <MapPinIcon class="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
+                <div>
+                  <p class="text-[10px] text-slate-500 uppercase font-bold">Último IP</p>
+                  <p class="text-xs md:text-sm font-mono">{{ player.last_ip || '---.---.---.---' }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                <SmartphoneIcon class="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
+                <div>
+                  <p class="text-[10px] text-slate-500 uppercase font-bold">Dispositivo</p>
+                  <p class="text-xs md:text-sm font-medium">{{ player.last_device || 'Desconhecido' }}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Tags -->
+          <Card class="shadow-sm border-none md:border">
+            <CardHeader>
+              <CardTitle class="flex items-center gap-2 text-lg">
+                <TagIcon class="h-5 w-5 text-slate-400" />
+                Tags do Jogador
+              </CardTitle>
+              <CardDescription class="text-xs">Gerencie rótulos para segmentação e automação.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TagManager
+                model-type="player"
+                :model-id="player.id"
+                :project-id="activeGroupProjectId" 
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        <!-- Coluna Direita: Histórico (Linha do Tempo) -->
+        <div class="lg:col-span-8">
+          <Card class="shadow-sm border-none md:border h-full">
             <CardHeader class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
               <div>
                 <CardTitle class="text-lg md:text-xl">Linha do Tempo</CardTitle>
@@ -61,7 +124,7 @@
               </div>
             </CardHeader>
             <CardContent class="p-2 md:p-6">
-              <div ref="timelineContainer" @scroll="handleScroll" class="max-h-[60vh] md:max-h-[600px] overflow-y-auto px-2 md:px-4">
+              <div ref="timelineContainer" @scroll="handleScroll" class="max-h-[70vh] md:max-h-[800px] overflow-y-auto px-2 md:px-4">
                 <PlayerTimeline :history="filteredHistory" @view-details="showHistoryEventDetails" />
                 
                 <div v-if="isHistoryLoading" class="flex justify-center py-6">
@@ -76,79 +139,8 @@
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <!-- Aba de Perfil Detalhado -->
-        <TabsContent value="profile" class="mt-0 space-y-4">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-            <Card class="lg:col-span-2 shadow-sm border-none md:border">
-              <CardHeader>
-                <CardTitle class="text-lg">Informações Pessoais</CardTitle>
-              </CardHeader>
-              <CardContent class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 md:gap-y-6 gap-x-4">
-                <div class="space-y-1">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Data de Nascimento</p>
-                  <p class="text-sm font-medium">{{ formatDate(player.birthday) }} ({{ getAge(player.birthday) }} anos)</p>
-                </div>
-                <div class="space-y-1">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Membro desde</p>
-                  <p class="text-sm font-medium">{{ formatDate(player.created_at) }}</p>
-                </div>
-                <div class="space-y-1">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">CPF / Documento</p>
-                  <p class="text-sm font-medium">{{ player.document || 'Não informado' }}</p>
-                </div>
-                <div class="space-y-1">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Gênero</p>
-                  <p class="text-sm font-medium capitalize">{{ player.gender || 'Não informado' }}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card class="shadow-sm border-none md:border">
-              <CardHeader>
-                <CardTitle class="text-lg">Conectividade</CardTitle>
-              </CardHeader>
-              <CardContent class="space-y-3 md:space-y-4">
-                <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                  <MapPinIcon class="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
-                  <div>
-                    <p class="text-[10px] text-slate-500 uppercase font-bold">Último IP</p>
-                    <p class="text-xs md:text-sm font-mono">{{ player.last_ip || '---.---.---.---' }}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                  <SmartphoneIcon class="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
-                  <div>
-                    <p class="text-[10px] text-slate-500 uppercase font-bold">Dispositivo</p>
-                    <p class="text-xs md:text-sm font-medium">{{ player.last_device || 'Desconhecido' }}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <!-- Aba de Tags -->
-        <TabsContent value="tags" class="mt-0">
-          <Card class="shadow-sm border-none md:border">
-            <CardHeader>
-              <CardTitle class="flex items-center gap-2 text-lg">
-                <TagIcon class="h-5 w-5 text-slate-400" />
-                Tags do Jogador
-              </CardTitle>
-              <CardDescription class="text-xs">Gerencie rótulos para segmentação e automação.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TagManager
-                model-type="player"
-                :model-id="player.id"
-                :project-id="activeGroupProjectId" 
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
 
     <!-- Dialog de Detalhes do Evento (Responsivo) -->
