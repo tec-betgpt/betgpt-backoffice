@@ -235,6 +235,19 @@ const columnsHistory = [
     },
   }),
 
+  historyColumnHelper.accessor("user", {
+    header: "Usuário",
+    cell: ({ row }) => {
+      const user = row.original.user;
+      const fullName = [user?.first_name, user?.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+      return h("span", {}, fullName || "-");
+    },
+  }),
+
   historyColumnHelper.accessor("status", {
     header: "Status",
     cell: ({ row }) => {
@@ -380,6 +393,11 @@ interface HistoryData {
   status: string;
   filter: Array<string>;
   user_id: number;
+  user?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  } | null;
   created_at: string;
   target_title: string;
 }
