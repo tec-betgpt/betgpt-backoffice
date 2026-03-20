@@ -111,7 +111,7 @@
                 </div>
               </div>
             </div>
-            <div class="space-y-4" v-else>
+            <div class="space-y-4 max-h-52" v-else>
               <div v-for="tool in mcpTools" :key="tool.name" 
                 class="flex items-start space-x-3 p-3 rounded-xl border transition-all hover:bg-slate-50 dark:hover:bg-slate-900/50 cursor-pointer"
                 :class="config.enabled_tools.includes(String(tool.name)) ? 'border-indigo-200 bg-indigo-50/30 dark:border-indigo-900/30' : 'border-transparent bg-slate-50/50 dark:bg-slate-900/20'"
