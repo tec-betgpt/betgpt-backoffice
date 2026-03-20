@@ -121,5 +121,39 @@ export default {
     async index(params={}){
         const { data } = await api.get(`ia/index`,{params:params});
         return data;
+    },
+
+    /**
+     * GET /available-tools
+     *
+     * Retorna as ferramentas MCP disponíveis no backend.
+     * @returns {Promise<Array>}
+     */
+    async getAvailableTools() {
+        const { data } = await api.get(`ia/available-tools`);
+        return data.data;
+    },
+
+    /**
+     * GET /ia-settings
+     *
+     * Retorna as configurações atuais da IA.
+     * @returns {Promise<Object>}
+     */
+    async getAiSettings() {
+        const { data } = await api.get(`ia/ia-settings`);
+        return data.data;
+    },
+
+    /**
+     * POST /ia-settings
+     *
+     * Salva as novas configurações da IA.
+     * @param {Object} settings
+     * @returns {Promise<any>}
+     */
+    async saveAiSettings(settings) {
+        const { data } = await api.post(`ia/ia-settings`, settings);
+        return data;
     }
 }

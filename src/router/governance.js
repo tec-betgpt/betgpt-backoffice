@@ -7,6 +7,7 @@ import Subscribers from "@/views/dashboard/Subscribers.vue";
 import Users from "@/views/dashboard/Users.vue";
 import UserLogins from "@/views/dashboard/UserLogins.vue";
 import InsightIA from "@/views/dashboard/InsightIA.vue";
+import AIController from "@/views/dashboard/AIController.vue";
 import WebhookLogs from "@/views/dashboard/WebhookLogs.vue";
 
 import Tags from "@/views/dashboard/Tags.vue";
@@ -118,6 +119,18 @@ export default [
                 roles: "member",
                 permissions: "access-to-ai",
             },
+        },
+        {
+          path: "ai-controller",
+          name: "ai-controller",
+          component: AIController,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Controlador IA",
+            roles: "member",
+            permissions: "access-to-ai",
+          },
         },
         {
           path: "webhook-logs",

@@ -619,6 +619,12 @@ const navMenu = computed(() => {
           show: hasRole("member-proprietor"),
         },
         {
+          name: "Controlador IA",
+          url: { name: "ai-controller" },
+          icon: SlidersHorizontal,
+          show: hasRole("member-proprietor"),
+        },
+        {
           name: "Webhook Logs",
           url: { name: "webhook-logs" },
           icon: Webhook,
