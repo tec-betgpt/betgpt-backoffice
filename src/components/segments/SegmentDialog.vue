@@ -199,6 +199,7 @@
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Atendida">Atendida</SelectItem>
                       <SelectItem value="Atendida com digitação">Atendida com digitação</SelectItem>
                       <SelectItem value="Atendida e desconectada">Atendida e desconectada</SelectItem>
                       <SelectItem value="Atendida e ouviu até o final">Atendida e ouviu até o final</SelectItem>
