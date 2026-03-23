@@ -159,6 +159,7 @@ const chartOptions = computed(() => {
       xaxis: props.annotations.map(ann => {
         return {
           x: moment(ann.date, ['DD/MM/YYYY', 'YYYY-MM-DD']).valueOf(),
+          x2: ann.date_end ? moment(ann.date_end, ['DD/MM/YYYY', 'YYYY-MM-DD']).valueOf() : undefined,
           strokeDashArray: 0,
           borderColor: ann.color || '#775DD0',
           label: {
@@ -167,7 +168,7 @@ const chartOptions = computed(() => {
               color: '#fff',
               background: ann.color || '#775DD0',
             },
-            text: ann.annotation,
+            text: ann.title,
           }
         }
       })

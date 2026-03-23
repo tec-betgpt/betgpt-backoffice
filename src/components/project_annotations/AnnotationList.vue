@@ -17,7 +17,12 @@
       >
         <div class="flex-1">
           <div class="flex justify-between items-center mb-1">
-            <span class="font-semibold">{{ formatDate(annotation.date) }}</span>
+            <span class="font-semibold">
+              {{ formatDate(annotation.date) }}
+              <template v-if="annotation.date_end">
+                - {{ formatDate(annotation.date_end) }}
+              </template>
+            </span>
             <Button
               variant="ghost"
               size="icon"
@@ -27,7 +32,8 @@
               <Trash2 class="h-3 w-3" />
             </Button>
           </div>
-          <p class="text-muted-foreground">{{ annotation.annotation }}</p>
+          <p class="font-medium">{{ annotation.title }}</p>
+          <p v-if="annotation.annotation" class="text-muted-foreground">{{ annotation.annotation }}</p>
         </div>
       </div>
     </div>
@@ -41,6 +47,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Trash2 } from 'lucide-vue-next'
 import { useToast } from '@/components/ui/toast/use-toast'
+import { useWorkspaceStore } from '@/stores/workspace'
 import moment from 'moment'
 
 const props = defineProps<{
@@ -52,6 +59,7 @@ const props = defineProps<{
 const annotations = ref<any[]>([])
 const loading = ref(false)
 const { toast } = useToast()
+const workspaceStore = useWorkspaceStore()
 
 async function fetchAnnotations() {
   if (!props.projectId || !props.chartName) return
@@ -82,6 +90,7 @@ async function deleteAnnotation(id: number) {
     })
 
     await fetchAnnotations()
+    workspaceStore.notifyAnnotationUpdate()
   } catch (error) {
     toast({
       title: 'Erro',
@@ -97,6 +106,7 @@ function formatDate(date: string) {
 
 watch(() => props.chartName, fetchAnnotations)
 watch(() => props.projectId, fetchAnnotations)
+watch(() => workspaceStore.lastAnnotationUpdate, fetchAnnotations)
 
 onMounted(fetchAnnotations)
 

@@ -5,8 +5,12 @@ export const useWorkspaceStore = defineStore("workspace", {
   state: () => ({
     activeGroupProject: null,
     group_projects: [],
+    lastAnnotationUpdate: null,
   }),
   actions: {
+    notifyAnnotationUpdate() {
+      this.lastAnnotationUpdate = Date.now();
+    },
     async setProjects(newGroupProjects) {
       this.group_projects = newGroupProjects;
     },
