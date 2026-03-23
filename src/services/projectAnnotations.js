@@ -19,7 +19,8 @@ export default {
      * @param {string|null} body.resource
      * @param {number} body.project_id
      * @param {string|null} body.chart_name
-     * @param {string} body.annotation
+     * @param {string} body.title
+     * @param {string|null} body.annotation
      * @param {string} body.date
      * @param {string} body.color
      */
@@ -39,7 +40,8 @@ export default {
     /**
      * @param {number} id
      * @param {object} body
-     * @param {string} body.annotation
+     * @param {string} body.title
+     * @param {string|null} body.annotation
      * @param {string} body.color
      */
     async update(id, body = {}) {

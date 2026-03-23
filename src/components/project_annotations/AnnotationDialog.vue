@@ -9,7 +9,15 @@
       </DialogHeader>
       <div class="grid gap-4 py-4">
         <div class="grid gap-2">
-          <Label for="annotation">Anotação</Label>
+          <Label for="title">Título</Label>
+          <Input
+            id="title"
+            v-model="form.title"
+            placeholder="Digite o título da anotação..."
+          />
+        </div>
+        <div class="grid gap-2">
+          <Label for="annotation">Anotação (Opcional)</Label>
           <Textarea
             id="annotation"
             v-model="form.annotation"
@@ -54,6 +62,7 @@ import { ref, watch, computed } from 'vue'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import ProjectAnnotations from '@/services/projectAnnotations'
@@ -77,6 +86,7 @@ const { toast } = useToast()
 const loading = ref(false)
 const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#6b7280']
 const form = ref({
+  title: '',
   annotation: '',
   color: colors[0],
   is_global: false
@@ -86,16 +96,17 @@ const isRange = computed(() => !!props.endDate && props.endDate !== props.date)
 
 watch(() => props.open, (newVal) => {
   if (newVal) {
+    form.value.title = ''
     form.value.annotation = ''
     form.value.is_global = false
   }
 })
 
 async function save() {
-  if (!form.value.annotation) {
+  if (!form.value.title) {
     toast({
       title: 'Erro',
-      description: 'A anotação não pode estar vazia.',
+      description: 'O título é obrigatório.',
       variant: 'destructive'
     })
     return
@@ -104,16 +115,14 @@ async function save() {
   loading.value = true
 
   try {
-    const annotationText = isRange.value
-      ? `[Período: ${props.date} a ${props.endDate}] ${form.value.annotation}`
-      : form.value.annotation
-
     await ProjectAnnotations.store({
       project_id: workspaceStore.activeGroupProject?.id,
       chart_name: form.value.is_global ? null : props.chartName,
-      annotation: annotationText,
+      title: form.value.title,
+      annotation: form.value.annotation || null,
       color: form.value.color,
       date: moment(props.date, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+      date_end: isRange.value ? moment(props.endDate, 'DD/MM/YYYY').format('YYYY-MM-DD') : null,
       resource: props.chartResource ?? null
     })
     toast({

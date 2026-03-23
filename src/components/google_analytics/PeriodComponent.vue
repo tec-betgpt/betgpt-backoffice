@@ -38,7 +38,7 @@
     <Separator />
 
     <CardContent>
-      <div :class="`gap-2 md:grid-cols-1 sm:grid-cols-1 grid mb-10 w-2/3 mx-auto`">
+      <div :class="`gap-2 md:grid-cols-1 sm:grid-cols-1 grid mb-10 mx-auto`">
         <div v-for="(p, index) in period" :key="p.name" class="mx-auto mt-5 md:text-left sm:text-center">
           <div class="flex sm:flex-row flex-col items-center justify-center w-full gap-2">
             <div class="text-sm text-gray-400 flex items-center justify-center w-full">
@@ -256,6 +256,7 @@ export default defineComponent({
       if (this.annotationListRef) {
         this.annotationListRef.refresh()
       }
+      useWorkspaceStore().notifyAnnotationUpdate()
     }
   },
 
@@ -300,7 +301,8 @@ export default defineComponent({
 
   watch: {
     chartName: 'fetchAnnotations',
-    'workspaceStore.activeGroupProject.id': 'fetchAnnotations'
+    'workspaceStore.activeGroupProject.id': 'fetchAnnotations',
+    'workspaceStore.lastAnnotationUpdate': 'fetchAnnotations'
   }
 })
 </script>
