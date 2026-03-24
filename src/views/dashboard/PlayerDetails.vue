@@ -56,6 +56,30 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Gênero</p>
                 <p class="text-sm font-medium capitalize">{{ player.gender || 'Não informado' }}</p>
               </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">CEP</p>
+                <p class="text-sm font-medium">{{ player.zip_code || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Rua</p>
+                <p class="text-sm font-medium">{{ player.street || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Número</p>
+                <p class="text-sm font-medium">{{ player.address_number || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Bairro</p>
+                <p class="text-sm font-medium">{{ player.neighborhood || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Cidade</p>
+                <p class="text-sm font-medium">{{ player.city || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Estado</p>
+                <p class="text-sm font-medium">{{ player.state || 'Não informado' }}</p>
+              </div>
             </CardContent>
           </Card>
 
