@@ -37,55 +37,53 @@
 
     <Separator />
 
-    <CardContent>
-      <div :class="`gap-2 md:grid-cols-1 sm:grid-cols-1 grid mb-10 mx-auto`">
-        <div v-for="(p, index) in period" :key="p.name" class="mx-auto mt-5 md:text-left sm:text-center">
-          <div class="flex sm:flex-row flex-col items-center justify-center w-full gap-2">
-            <div class="text-sm text-gray-400 flex items-center justify-center w-full">
-              <div :style="`background: ${colors[index]}`" class="rounded-full w-3 h-3 inline-block mr-1 text-nowrap"></div>
-              {{ p.name }}
-            </div>
-            <div class="flex justify-between flex-nowrap gap-5">
-              <Badge
-                  :title="`Mínimo: ${calculateStats(p.name, p.value).min}`"
-                  class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center">
-                <img src="/svg/down.svg" class="w-4 h-4 mr-1" alt="down" />
-                {{ calculateStats(p.name, p.value).min }}
-              </Badge>
-              <Badge
-                  :title="`Média: ${calculateStats(p.name, p.value).avg}`"
-                  class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center"
-              >
-                <img src="/svg/middle.svg" class="w-4 h-4 mr-1" alt="middle" />
-                {{ calculateStats(p.name, p.value).avg }}
-              </Badge>
-              <Badge
-                :title="`Máximo: ${calculateStats(p.name, p.value).max}`"
-                class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center"
-              >
-                <img src="/svg/up.svg" class="w-4 h-4 mr-1" alt="up" />
-                {{ calculateStats(p.name, p.value).max }}
-              </Badge>
+    <CardContent class="h-[480px]">
+      <div class="flex flex-col justify-between h-full">
+        <div class="gap-2 md:grid-cols-1 sm:grid-cols-1 grid mb-10 mx-auto">
+          <div v-for="(p, index) in period" :key="p.name" class="mx-auto mt-5 md:text-left sm:text-center">
+            <div class="flex sm:flex-row flex-col items-center justify-center w-full gap-2">
+              <div class="text-sm text-gray-400 flex items-center justify-center w-full">
+                <div :style="`background: ${colors[index]}`" class="rounded-full w-3 h-3 inline-block mr-1 text-nowrap"></div>
+                {{ p.name }}
+              </div>
+              <div class="flex justify-between flex-nowrap gap-5">
+                <Badge
+                    :title="`Mínimo: ${calculateStats(p.name, p.value).min}`"
+                    class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex text-nowrap">
+                  <img src="/svg/down.svg" class="w-4 h-4 mr-1" alt="down" />
+                  {{ calculateStats(p.name, p.value).min }}
+                </Badge>
+                <Badge
+                    :title="`Média: ${calculateStats(p.name, p.value).avg}`"
+                    class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex text-nowrap"
+                >
+                  <img src="/svg/middle.svg" class="w-4 h-4 mr-1" alt="middle" />
+                  {{ calculateStats(p.name, p.value).avg }}
+                </Badge>
+                <Badge
+                  :title="`Máximo: ${calculateStats(p.name, p.value).max}`"
+                  class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex text-nowrap"
+                >
+                  <img src="/svg/up.svg" class="w-4 h-4 mr-1" alt="up" />
+                  {{ calculateStats(p.name, p.value).max }}
+                </Badge>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <LineChart
-        :colors="colors"
-        v-if="categories.length > 0"
-        :data="chartData"
-        index="date"
-        :show-legend="false"
-        :categories="categories"
-        :y-formatter="yFormatter"
-        :annotations="annotations"
-        @point-click="handlePointClick"
-        @selection="handleSelection"
-      />
-
-      <div v-if="chartName" class="text-xs text-right text-muted-foreground">
-        Clique no gráfico para adicionar uma anotação
+        <LineChart
+          :colors="colors"
+          v-if="categories.length > 0"
+          :data="chartData"
+          index="date"
+          :show-legend="false"
+          :categories="categories"
+          :y-formatter="yFormatter"
+          :annotations="annotations"
+          @point-click="handlePointClick"
+          @selection="handleSelection"
+        />
       </div>
     </CardContent>
   </Card>
@@ -104,6 +102,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import { formatLargeNumber } from "@/filters/formatLargeNumber";
+import { formatMinifiedNumber, formatMinifiedCurrency } from "@/filters/formatNumbers";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { LineChart } from "@/components/ui/chart-line";
 import { MessageSquare } from 'lucide-vue-next';
@@ -178,15 +177,12 @@ export default defineComponent({
     },
     yFormatter(): (tick: number) => string {
       if (this.type === 'percent') {
-        return (tick: number) => `${(tick).toFixed(2)}%`
+        return (tick: number) => `${(tick).toFixed(0)}%`
       }
       if (this.type ==='currency'){
-        return (tick:number) =>
-          `R$ ${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-            .format(tick )
-            .toString()}`
+        return (tick:number) => formatMinifiedCurrency(tick)
       }
-      return (tick: number) => new Intl.NumberFormat('pt-BR').format(tick)
+      return (tick: number) => formatMinifiedNumber(tick)
     },
   },
 
@@ -206,11 +202,11 @@ export default defineComponent({
       }, 0) / values.length
       if(this.type == "percent")
       {
-        return {max: (max ).toFixed(2), min: (min ).toFixed(2), avg: (avg).toFixed(2)}
+        return {max: (max ).toFixed(0), min: (min ).toFixed(0), avg: (avg).toFixed(0)}
       }
       if (this.type =="currency")
       {
-        return {max: max.toFixed(2), min: min.toFixed(2), avg: avg.toFixed(2)}
+        return {max: formatMinifiedCurrency(max), min: formatMinifiedCurrency(min), avg: formatMinifiedCurrency(avg)}
       }
       if (this.windowWidth < 640) {
         return { max: formatLargeNumber(max).content + formatLargeNumber(max).separator  ,
