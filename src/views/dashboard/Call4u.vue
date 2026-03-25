@@ -127,6 +127,8 @@
           :period="callsChart"
           title="Ligações Atendidas"
           :is-loading="loading"
+          chart-name="callsChart"
+          chart-resource="Calls4u"
           glossary="Quantidade de ligações realizadas por dia no período selecionado."
         />
       </div>
