@@ -104,6 +104,21 @@
     </SidebarInset>
 
     <RightMenuComponent v-model:sidebarAi="sidebarAi" />
+
+    <div
+      v-if="isImpersonating"
+      class="fixed bottom-6 right-6 z-[200] pointer-events-none"
+    >
+      <Button
+        type="button"
+        variant="destructive"
+        class="pointer-events-auto shadow-lg"
+        @click="exitImpersonation"
+      >
+        <LogOut class="mr-2 h-4 w-4" />
+        Sair da simulação
+      </Button>
+    </div>
   </SidebarProvider>
 </template>
 
@@ -122,7 +137,8 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
-import { EyeClosed, Eye } from "lucide-vue-next";
+import { EyeClosed, Eye, LogOut } from "lucide-vue-next";
+import { Button } from "@/components/ui/button";
 import { useColorMode } from "@vueuse/core";
 import CustomLoading from "@/components/custom/CustomLoading.vue";
 import { useConfigStore } from "@/stores/config";
@@ -131,8 +147,10 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
 import { computed, onMounted, onUnmounted, ref } from "vue";
+import { storeToRefs } from "pinia";
 import { toast } from "@/components/ui/toast";
 import Projects from "@/services/projects";
+import Auth from "@/services/auth";
 import LeftMenuComponent from "@/components/layout/LeftMenuComponent.vue";
 import RightMenuComponent from "@/components/layout/RightMenuComponent.vue";
 
@@ -158,9 +176,38 @@ const sidebarAi = ref(false);
 const mode: any = useColorMode();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
+const { isImpersonating } = storeToRefs(authStore);
 const configStore = useConfigStore();
 const route = useRoute();
 const router = useRouter();
+
+const exitImpersonation = async () => {
+  try {
+    await Auth.logout();
+  } catch (_) {
+    /* token may already be invalid */
+  }
+  const restored = authStore.restoreAdminSessionFromBackup();
+  if (!restored) {
+    authStore.clearUserData();
+  } else {
+    try {
+      await authStore.fetchUser();
+      const u = authStore.user;
+      if (u) {
+        await workspaceStore.loadInitialData(u.preferences, u.group_projects);
+      }
+    } catch (_) {
+      //
+    }
+  }
+  window.close();
+  setTimeout(() => {
+    if (!restored) {
+      router.push({ name: "login" });
+    }
+  }, 250);
+};
 
 const isShowValues = ref(false);
 

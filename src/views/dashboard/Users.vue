@@ -290,6 +290,8 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useAuthStore } from "@/stores/auth";
+import { useRouter } from "vue-router";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import moment from "moment";
 
@@ -322,6 +324,13 @@ const pages = ref({
 });
 const perPage = ref(10);
 const workspaceStore = useWorkspaceStore();
+const authStore = useAuthStore();
+const router = useRouter();
+const hasProprietorRole = computed(
+  () =>
+    authStore.user?.roles?.some((r: { name: string }) => r.name === "member-proprietor") ??
+    false,
+);
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
 if (activeGroupProjectId) {
@@ -630,6 +639,39 @@ const getStatus = (user) => {
   return user.statuses?.[0]?.name || "inactive";
 };
 
+const simulateClient = async (user) => {
+  processingAction.value = `impersonate-${user.id}`;
+  try {
+    const res = await Users.impersonate(user.id);
+    const inner = res.data;
+    if (inner?.token && inner?.user) {
+      authStore.saveAdminSessionBackup();
+      localStorage.setItem(
+        "impersonation_handoff",
+        JSON.stringify({ token: inner.token, user: inner.user }),
+      );
+      window.open(
+        router.resolve({ name: "home" }).href,
+        "_blank",
+        "noopener,noreferrer",
+      );
+      toast({
+        title: "Simulação iniciada",
+        description: "Uma nova aba foi aberta com o acesso deste usuário.",
+        variant: "success",
+      });
+    }
+  } catch {
+    toast({
+      title: "Erro",
+      description: "Não foi possível simular o acesso deste usuário.",
+      variant: "destructive",
+    });
+  } finally {
+    processingAction.value = null;
+  }
+};
+
 onMounted(fetchUsersAndProjects);
 
 const searchValues = ref<Record<string, string>>({});
@@ -809,6 +851,26 @@ const columns = [
             },
             "Editar",
           ),
+          ...(hasProprietorRole.value && row.original.access_type === "client"
+            ? [
+                h(
+                  DropdownMenuItem,
+                  {
+                    onClick: () => simulateClient(row.original),
+                    disabled:
+                      processingAction.value === `impersonate-${row.original.id}`,
+                  },
+                  processingAction.value === `impersonate-${row.original.id}`
+                    ? h("div", { class: "flex items-center" }, [
+                        h(LucideSpinner, {
+                          class: "mr-2 h-4 w-4 animate-spin",
+                        }),
+                        "Abrindo acesso...",
+                      ])
+                    : "Simular acesso",
+                ),
+              ]
+            : []),
           h(
             DropdownMenuItem,
             {

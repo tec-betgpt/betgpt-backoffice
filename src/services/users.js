@@ -156,6 +156,17 @@ export default {
   },
 
   /**
+   * POST /v1/users/{id}/impersonate
+   * Simula login como outro usuário (reservado a proprietário).
+   *
+   * @param {number} id
+   */
+  async impersonate (id) {
+    const { data } = await api.post(`/users/${id}/impersonate`)
+    return data
+  },
+
+  /**
    * PATCH /v1/users/{id}/toggle
    *
    * @param {number} id
