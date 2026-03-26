@@ -14,7 +14,7 @@
 
     <div v-if="loading">
       <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
-        <Card v-for="n in 3" :key="n">
+        <Card v-for="n in hasMemberAccess ? 5 : 3" :key="n">
           <div class="p-4 rounded shadow">
             <div class="flex justify-between items-center mb-2">
               <Skeleton class="h-4 w-1/3" />
@@ -120,6 +120,56 @@
             </div>
           </CardContent>
         </Card>
+
+        <template v-if="hasMemberAccess">
+          <Card>
+            <CardHeader
+              class="flex flex-row items-center justify-between space-y-0 pb-2"
+            >
+              <div class="flex justify-between items-center">
+                <Avatar
+                  class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
+                  shape="square"
+                >
+                  <ExternalLink class="text-muted-foreground" />
+                </Avatar>
+                <CardTitle class="text-sm font-medium">Total de Cliques</CardTitle>
+              </div>
+              <GlossaryTooltipComponent
+                description="Quantidade total de cliques no período selecionado."
+              />
+            </CardHeader>
+            <CardContent>
+              <div class="text-2xl font-bold">
+                +{{ formatNumber(totals.clicks_total ?? 0) }}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader
+              class="flex flex-row items-center justify-between space-y-0 pb-2"
+            >
+              <div class="flex justify-between items-center">
+                <Avatar
+                  class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
+                  shape="square"
+                >
+                  <CirclePercent class="text-muted-foreground" />
+                </Avatar>
+                <CardTitle class="text-sm font-medium">CTR Total</CardTitle>
+              </div>
+              <GlossaryTooltipComponent
+                description="Taxa de cliques (cliques / SMS enviados) no período selecionado."
+              />
+            </CardHeader>
+            <CardContent>
+              <div class="text-2xl font-bold">
+                {{ formatPercentage(totals.ctr_total ?? 0) }}
+              </div>
+            </CardContent>
+          </Card>
+        </template>
 
         <!-- Modal de Preview do SMS com Navegação -->
         <Dialog v-model:open="showSmsTemplateModal">
@@ -433,6 +483,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ExternalLink,
+  CirclePercent,
   Eye,
   MoreHorizontal,
   Loader2 as LucideSpinner,
@@ -493,6 +544,10 @@ const canViewRecharges = ref(false);
 const campaigns = ref([]);
 const broadcasts = ref([]);
 const meta = ref<Record<string, string>>({});
+const totals = ref<{ clicks_total: number; ctr_total: number }>({
+  clicks_total: 0,
+  ctr_total: 0,
+});
 
 const showSmsTemplateModal = ref(false);
 const selectedSmsCampaign = ref<any>(null);
@@ -686,6 +741,10 @@ const loadData = async () => {
     canViewRecharges.value = Boolean(data.permissions?.view_recharges);
     recharges.value = canViewRecharges.value ? data.recharges ?? [] : [];
     meta.value = data.meta || {};
+    totals.value = data.totals ?? {
+      clicks_total: 0,
+      ctr_total: 0,
+    };
 
     if (data.campaigns) {
       campaigns.value = data.campaigns.data.map((c: any) => ({
