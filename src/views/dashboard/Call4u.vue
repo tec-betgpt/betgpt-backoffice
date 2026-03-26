@@ -132,7 +132,7 @@
                 <Clock3 class="text-muted-foreground" />
               </Avatar>
               <CardTitle class="text-sm font-medium"
-                >Tempo total atendido</CardTitle
+                >Tempo Total Atendido</CardTitle
               >
             </div>
             <GlossaryTooltipComponent
