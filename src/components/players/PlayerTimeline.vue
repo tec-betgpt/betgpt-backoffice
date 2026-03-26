@@ -6,10 +6,11 @@
         <component :is="getEventConfig(event.type).icon" class="h-4 w-4" :class="getEventConfig(event.type).iconColor" />
       </div>
 
-      <div class="flex-1 ml-12 pb-6 border-b border-slate-100 dark:border-slate-800 last:border-0">
+      <div class="flex-1 ml-12 pb-6 border-b border-slate-100 dark:border-slate-800 last:border-0 pl-4 border-l-4" :class="event.title?.toLowerCase().includes('atendida') ? 'border-l-green-500 bg-green-50/50 dark:bg-green-900/10' : ''">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 mb-1">
-          <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm">
+          <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
             {{ event.title }}
+            <CheckCircleIcon v-if="event.title?.toLowerCase().includes('atendida')" class="h-4 w-4 text-green-500" />
           </h4>
           <time class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">
             {{ formatDate(event.date) }}
@@ -47,7 +48,7 @@
 import { 
   ArrowDownCircleIcon, ArrowUpCircleIcon, LogInIcon, 
   UserCircleIcon, FilterIcon, HistoryIcon, CodeIcon,
-  CircleIcon
+  CircleIcon, PhoneIncomingIcon, CheckCircleIcon
 } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,7 @@ const getEventConfig = (type: string) => {
     profile_update: { icon: UserCircleIcon, bgColor: 'bg-amber-100 dark:bg-amber-900/30', iconColor: 'text-amber-600 dark:text-amber-400' },
     segment: { icon: FilterIcon, bgColor: 'bg-purple-100 dark:bg-purple-900/30', iconColor: 'text-purple-600 dark:text-purple-400' },
     status_change: { icon: HistoryIcon, bgColor: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-600 dark:text-slate-400' },
+    call: { icon: PhoneIncomingIcon, bgColor: 'bg-cyan-100 dark:bg-cyan-900/30', iconColor: 'text-cyan-600 dark:text-cyan-400' },
   };  return configs[type] || { icon: CircleIcon, bgColor: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-500' };
 };
 </script>
