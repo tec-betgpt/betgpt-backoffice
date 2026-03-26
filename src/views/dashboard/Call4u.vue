@@ -617,6 +617,12 @@ const formatNumber = (v: number) =>
 const formatDuration = (seconds: number) => {
   const s = Math.round(seconds ?? 0);
   if (s < 60) return `${s}s`;
+  if (s >= 3600) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const rem = s % 60;
+    return `${h}h ${m}m ${rem}s`;
+  }
   const m = Math.floor(s / 60);
   const rem = s % 60;
   return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
