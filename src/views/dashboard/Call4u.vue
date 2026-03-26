@@ -906,7 +906,7 @@ const campaignColumns = computed(() => [
       ),
   }),
   columnHelper.accessor("total_seconds_duration", {
-    header: () => createSortButton("Duração Total", "total_seconds_duration"),
+    header: () => createSortButton("Tempo Atendido", "total_seconds_duration"),
     footer: "sum",
     cell: ({ row }) =>
       h(
