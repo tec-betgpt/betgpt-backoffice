@@ -403,6 +403,20 @@ const navMenu = computed(() => {
       show: canAccess("access-to-ai"),
     },
     {
+      name: "Atualizações",
+      icon: BadgeCheck,
+      type: "updates",
+      show: canAccess("access-to-dashboard"),
+      children: [
+        {
+          name: "Marcos",
+          url: { name: "annotations" },
+          icon: PencilLine,
+          show: canAccess("access-to-dashboard"),
+        },
+      ]
+    },
+    {
       name: "Audiências",
       icon: View,
       type: "audiences",
@@ -672,20 +686,6 @@ const navMenu = computed(() => {
             canAccess("protection-list-report-view"),
         },
       ],
-    },
-    {
-      name: "Atualizações",
-      icon: BadgeCheck,
-      type: "updates",
-      show: canAccess("access-to-dashboard"),
-      children: [
-        {
-          name: "Marcos",
-          url: { name: "annotations" },
-          icon: PencilLine,
-          show: canAccess("access-to-dashboard"),
-        },
-      ]
     },
     {
       name: "Financeiro",
