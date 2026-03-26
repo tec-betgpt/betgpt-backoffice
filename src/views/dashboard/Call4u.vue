@@ -160,7 +160,7 @@
       </div>
 
       <!-- Tabela de Campanhas -->
-      <Card v-if="canViewRecharges" class="w-full mt-4">
+      <Card class="w-full mt-4">
         <CardHeader>
           <CardTitle>Campanhas</CardTitle>
         </CardHeader>
@@ -199,7 +199,7 @@
       </Card>
 
       <!-- Tabela de Recargas -->
-      <Card class="w-full mt-4">
+      <Card v-if="canViewRecharges" class="w-full mt-4">
         <CardHeader>
           <CardTitle>Recargas</CardTitle>
         </CardHeader>
