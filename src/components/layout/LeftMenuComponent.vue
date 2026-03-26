@@ -335,7 +335,7 @@ import {
   Tag,
   LayoutDashboard,
   Target,
-  PhoneCall,
+  PhoneCall, PencilLine, BadgeCheck,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -672,6 +672,20 @@ const navMenu = computed(() => {
             canAccess("protection-list-report-view"),
         },
       ],
+    },
+    {
+      name: "Atualizações",
+      icon: BadgeCheck,
+      type: "updates",
+      show: canAccess("access-to-dashboard"),
+      children: [
+        {
+          name: "Marcos",
+          url: { name: "annotations" },
+          icon: PencilLine,
+          show: canAccess("access-to-dashboard"),
+        },
+      ]
     },
     {
       name: "Financeiro",

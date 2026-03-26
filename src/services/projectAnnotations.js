@@ -63,5 +63,20 @@ export default {
     async chartName(chartName) {
         const { data } = await api.delete(`/project-annotations/chart-name/${chartName}`)
         return data
+    },
+
+    /**
+     * @param {object|any} params
+     * @param {string|null} params.end_date
+     * @param {string|null} params.start_date
+     * @param {string|null} params.chart_name
+     * @param {string|null} params.resource
+     * @param {string} params.filter_id
+     * @param {number} params.page
+     * @param {number} params.limit
+     */
+    async all(params = {}) {
+        const { data } = await api.get('/project-annotations/all', { params })
+        return data
     }
 }
