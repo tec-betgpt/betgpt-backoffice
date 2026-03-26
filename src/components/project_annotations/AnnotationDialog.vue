@@ -8,6 +8,24 @@
         </DialogDescription>
       </DialogHeader>
       <div class="grid gap-4 py-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="grid gap-2">
+            <Label for="date">Data Início</Label>
+            <Input
+              id="date"
+              v-model="form.date"
+              type="date"
+            />
+          </div>
+          <div class="grid gap-2">
+            <Label for="date_end">Data Fim (Opcional)</Label>
+            <Input
+              id="date_end"
+              v-model="form.date_end"
+              type="date"
+            />
+          </div>
+        </div>
         <div class="grid gap-2">
           <Label for="title">Título</Label>
           <Input
@@ -89,16 +107,20 @@ const form = ref({
   title: '',
   annotation: '',
   color: colors[0],
-  is_global: false
+  is_global: false,
+  date: '',
+  date_end: ''
 })
 
-const isRange = computed(() => !!props.endDate && props.endDate !== props.date)
+const isRange = computed(() => !!form.value.date_end && form.value.date_end !== form.value.date)
 
 watch(() => props.open, (newVal) => {
   if (newVal) {
     form.value.title = ''
     form.value.annotation = ''
     form.value.is_global = false
+    form.value.date = props.date ? moment(props.date, 'DD/MM/YYYY').format('YYYY-MM-DD') : ''
+    form.value.date_end = props.endDate ? moment(props.endDate, 'DD/MM/YYYY').format('YYYY-MM-DD') : ''
   }
 })
 
@@ -107,6 +129,15 @@ async function save() {
     toast({
       title: 'Erro',
       description: 'O título é obrigatório.',
+      variant: 'destructive'
+    })
+    return
+  }
+
+  if (!form.value.date) {
+    toast({
+      title: 'Erro',
+      description: 'A data de início é obrigatória.',
       variant: 'destructive'
     })
     return
@@ -121,8 +152,8 @@ async function save() {
       title: form.value.title,
       annotation: form.value.annotation || null,
       color: form.value.color,
-      date: moment(props.date, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-      date_end: isRange.value ? moment(props.endDate, 'DD/MM/YYYY').format('YYYY-MM-DD') : null,
+      date: form.value.date,
+      date_end: form.value.date_end || null,
       resource: props.chartResource ?? null
     })
     toast({
