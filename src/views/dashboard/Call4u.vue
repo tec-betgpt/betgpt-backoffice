@@ -596,12 +596,14 @@ const campaignsStats = computed(() => {
     message: "Total",
     total_sent: 0,
     total_answered: 0,
+    total_unique_attempts: 0,
     total_seconds_duration: 0,
     answer_rate: "0.00",
   };
   campaigns.value.forEach((c: any) => {
     s.total_sent += c.total_sent ?? 0;
     s.total_answered += c.total_answered ?? 0;
+    s.total_unique_attempts += c.total_unique_attempts ?? 0;
     s.total_seconds_duration += Number(c.total_seconds_duration) || 0;
   });
   s.answer_rate =
@@ -652,6 +654,7 @@ const statusClass = (status: string) => {
 const formatters = {
   total_sent: formatNumber,
   total_answered: formatNumber,
+  total_unique_attempts: formatNumber,
   answered_with_typing: formatNumber,
   answered_and_listened_to_the_end: formatNumber,
   total_seconds_duration: formatDuration,
@@ -902,6 +905,16 @@ const campaignColumns = computed(() => [
         "div",
         { class: "text-right" },
         formatNumber(row.getValue("answered_and_listened_to_the_end") || 0),
+      ),
+  }),
+  columnHelper.accessor("total_unique_attempts", {
+    header: () => createSortButton("Tentativas Únicas", "total_unique_attempts"),
+    footer: "sum",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatNumber(row.getValue("total_unique_attempts") || 0),
       ),
   }),
   columnHelper.accessor("answer_rate", {
