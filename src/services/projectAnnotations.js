@@ -22,6 +22,7 @@ export default {
      * @param {string} body.title
      * @param {string|null} body.annotation
      * @param {string} body.date
+     * @param {string} body.date_end
      * @param {string} body.color
      */
     async store (body = {}) {
@@ -43,6 +44,9 @@ export default {
      * @param {string} body.title
      * @param {string|null} body.annotation
      * @param {string} body.color
+     * @param {string|null} body.date
+     * @param {string|null} body.date_end
+     * @param {string|null} body.chart_name
      */
     async update(id, body = {}) {
         const { data } = await api.put(`/project-annotations/${id}`, body)

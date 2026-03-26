@@ -8,6 +8,24 @@
         </DialogDescription>
       </DialogHeader>
       <div class="grid gap-4 py-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="grid gap-2">
+            <Label for="date">Data Início</Label>
+            <Input
+              id="date"
+              v-model="form.date"
+              type="date"
+            />
+          </div>
+          <div class="grid gap-2">
+            <Label for="date_end">Data Fim (Opcional)</Label>
+            <Input
+              id="date_end"
+              v-model="form.date_end"
+              type="date"
+            />
+          </div>
+        </div>
         <div class="grid gap-2">
           <Label for="title">Título</Label>
           <Input
@@ -67,6 +85,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import ProjectAnnotations from '@/services/projectAnnotations'
 import { useToast } from '@/components/ui/toast/use-toast'
+import moment from 'moment'
 
 const props = defineProps<{
   open: boolean
@@ -83,7 +102,9 @@ const form = ref({
   title: '',
   annotation: '',
   color: colors[0],
-  is_global: false
+  is_global: false,
+  date: '',
+  date_end: ''
 })
 
 watch(() => props.open, (newVal) => {
@@ -92,6 +113,8 @@ watch(() => props.open, (newVal) => {
     form.value.annotation = props.annotation.annotation || ''
     form.value.color = props.annotation.color || colors[0]
     form.value.is_global = !props.annotation.chart_name
+    form.value.date = props.annotation.date ? moment(props.annotation.date).format('YYYY-MM-DD') : ''
+    form.value.date_end = props.annotation.date_end ? moment(props.annotation.date_end).format('YYYY-MM-DD') : ''
   }
 })
 
@@ -105,6 +128,15 @@ async function save() {
     return
   }
 
+  if (!form.value.date) {
+    toast({
+      title: 'Erro',
+      description: 'A data de início é obrigatória.',
+      variant: 'destructive'
+    })
+    return
+  }
+
   loading.value = true
 
   try {
@@ -112,6 +144,8 @@ async function save() {
       title: form.value.title,
       annotation: form.value.annotation || null,
       color: form.value.color,
+      date: form.value.date,
+      date_end: form.value.date_end || null,
       chart_name: form.value.is_global ? null : props.annotation.chart_name,
     })
     
