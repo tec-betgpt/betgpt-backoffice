@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import { defaultColors } from '@/components/ui/chart'
 import { useColorMode } from '@vueuse/core'
 import moment from 'moment'
+import { formatMinifiedNumber } from '@/filters/formatNumbers'
 
 const props = withDefaults(defineProps<{
   data: T[]
@@ -66,6 +67,12 @@ const chartOptions = computed(() => {
       id: 'chart-annotations',
       toolbar: {
         show: false
+      },
+      zoom: {
+        enabled: false
+      },
+      pan: {
+        enabled: false
       },
       background: 'transparent',
       fontFamily: 'inherit',
@@ -131,7 +138,12 @@ const chartOptions = computed(() => {
     },
     yaxis: {
       labels: {
-        formatter: props.yFormatter,
+        formatter: (val: number) => {
+          if (props.yFormatter) {
+            return props.yFormatter(val)
+          }
+          return formatMinifiedNumber(val)
+        },
         style: {
           colors: mode.value === 'dark' ? '#94a3b8' : '#64748b'
         }
@@ -152,7 +164,12 @@ const chartOptions = computed(() => {
         format: 'dd/MM/yyyy'
       },
       y: {
-        formatter: props.yFormatter
+        formatter: (val: number) => {
+          if (props.yFormatter) {
+            return props.yFormatter(val)
+          }
+          return formatMinifiedNumber(val)
+        }
       }
     },
     annotations: {

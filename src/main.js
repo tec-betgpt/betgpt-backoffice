@@ -8,6 +8,7 @@ import toCurrency from "@/filters/currencyFilter";
 import toK from "@/filters/numberFilter";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
+import { useWorkspaceStore } from "@/stores/workspace";
 import moment from "moment";
 import "moment/dist/locale/pt-br";
 import globalComponents from "@/boot/components";
@@ -41,10 +42,34 @@ for (const [path, component] of Object.entries(globalComponents)) {
   app.component(componentName, (component).default);
 }
 
-const authStore = useAuthStore();
-authStore.restoreSession();
+async function bootstrap() {
+  const authStore = useAuthStore();
+  authStore.restoreSession();
 
-const configStore = useConfigStore();
-configStore.fetchConfigs();
+  const handoffRaw = localStorage.getItem("impersonation_handoff");
+  if (handoffRaw) {
+    try {
+      const payload = JSON.parse(handoffRaw);
+      localStorage.removeItem("impersonation_handoff");
+      if (payload?.token && payload?.user) {
+        authStore.setUserData(payload.user, payload.token, {
+          impersonating: true,
+        });
+        const workspaceStore = useWorkspaceStore();
+        await workspaceStore.loadInitialData(
+          payload.user?.preferences,
+          payload.user?.group_projects,
+        );
+      }
+    } catch (e) {
+      console.error("impersonation_handoff:", e);
+    }
+  }
 
-app.mount("#app");
+  const configStore = useConfigStore();
+  configStore.fetchConfigs();
+
+  app.mount("#app");
+}
+
+bootstrap();

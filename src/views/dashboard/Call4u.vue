@@ -127,6 +127,8 @@
           :period="callsChart"
           title="Ligações Atendidas"
           :is-loading="loading"
+          chart-name="callsChart"
+          chart-resource="Calls4u"
           glossary="Quantidade de ligações realizadas por dia no período selecionado."
         />
       </div>
@@ -566,11 +568,13 @@ const campaignsStats = computed(() => {
     message: "Total",
     total_sent: 0,
     total_answered: 0,
+    total_seconds_duration: 0,
     answer_rate: "0.00",
   };
   campaigns.value.forEach((c: any) => {
     s.total_sent += c.total_sent ?? 0;
     s.total_answered += c.total_answered ?? 0;
+    s.total_seconds_duration += Number(c.total_seconds_duration) || 0;
   });
   s.answer_rate =
     s.total_sent > 0
@@ -608,6 +612,7 @@ const formatters = {
   total_answered: formatNumber,
   answered_with_typing: formatNumber,
   answered_and_listened_to_the_end: formatNumber,
+  total_seconds_duration: formatDuration,
 };
 
 const redirectToInvoiceUrl = (url: string) => window.open(url, "_blank");
@@ -863,6 +868,16 @@ const campaignColumns = computed(() => [
         "div",
         { class: "text-right" },
         formatPercentage(row.getValue("answer_rate")),
+      ),
+  }),
+  columnHelper.accessor("total_seconds_duration", {
+    header: () => createSortButton("Duração Total", "total_seconds_duration"),
+    footer: "sum",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatDuration(row.getValue("total_seconds_duration") ?? 0),
       ),
   }),
   columnHelper.accessor("avg_answered_duration_seconds", {

@@ -181,16 +181,46 @@
                   <CardContent v-else-if="subItem.layout === 'list'">
                     <div class="space-y-8 w-full">
                       <div
-                        v-for="deposit in deposits.lasts"
+                        v-for="deposit in sortedLastDeposits"
                         :key="deposit.id"
-                        class="flex items-center w-full gap-2"
+                        class="flex items-center w-full gap-2 min-w-0"
                       >
-                        <div class="flex-1 min-w-0 space-y-1">
-                          <p class="text-sm font-medium leading-none truncate">
-                            {{ deposit.player.name }}
+                        <div class="flex-1 min-w-0 space-y-1 overflow-hidden">
+                          <template
+                            v-if="
+                              depositorNamePreview(deposit.player?.name).tooltip
+                            "
+                          >
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger as-child>
+                                  <p
+                                    class="text-sm font-medium leading-none cursor-default"
+                                  >
+                                    {{
+                                      depositorNamePreview(deposit.player?.name)
+                                        .text
+                                    }}
+                                  </p>
+                                </TooltipTrigger>
+                                <TooltipContent class="max-w-[min(90vw,20rem)]">
+                                  <p class="break-words text-sm">
+                                    {{ deposit.player?.name }}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </template>
+                          <p
+                            v-else
+                            class="text-sm font-medium leading-none truncate"
+                          >
+                            {{
+                              depositorNamePreview(deposit.player?.name).text
+                            }}
                           </p>
                           <p class="text-xs text-muted-foreground truncate">
-                            {{ deposit.player.email }}
+                            {{ deposit.player?.email }}
                           </p>
                         </div>
 
@@ -468,6 +498,17 @@ export default {
     iconColor() {
       return this.color == "dark" ? "white" : "black";
     },
+
+    sortedLastDeposits() {
+      const raw = this.deposits?.lasts;
+      if (!Array.isArray(raw) || raw.length === 0) {
+        return [];
+      }
+      return [...raw].sort(
+        (a, b) =>
+          new Date(b.created_at).valueOf() - new Date(a.created_at).valueOf(),
+      );
+    },
   },
 
   components: {
@@ -525,7 +566,7 @@ export default {
     deposits: {
       total: 0,
       percentage: 0,
-      last6: [],
+      lasts: [],
       monthly_counts: [],
       average_ticket: 0,
       conversion_rate: 0,
@@ -580,6 +621,7 @@ export default {
   }),
 
   beforeUnmount() {
+    window.removeEventListener("resize", this.handleResize);
     Object.values(this.resizeObservers).forEach((obs) => obs.disconnect());
     Object.values(this.debounceTimers).forEach((timerId) =>
       clearTimeout(timerId),
@@ -592,6 +634,22 @@ export default {
         clearTimeout(this.debounceTimers[key]);
       }
       this.debounceTimers[key] = setTimeout(func, delay);
+    },
+
+    /** Nome curto + reticências no mobile; tooltip com nome completo quando truncado. */
+    depositorNamePreview(name: string | null | undefined): {
+      text: string;
+      tooltip: boolean;
+    } {
+      const s = (name ?? "").trim();
+      if (!s) {
+        return { text: "—", tooltip: false };
+      }
+      const max = this.windowWidth < 640 ? 22 : 42;
+      if (s.length <= max) {
+        return { text: s, tooltip: false };
+      }
+      return { text: `${s.slice(0, max).trimEnd()}…`, tooltip: true };
     },
 
     setRowRef(el, index) {
@@ -1285,6 +1343,7 @@ export default {
 
   mounted() {
     this._user();
+    window.addEventListener("resize", this.handleResize, { passive: true });
   },
 
   props: {

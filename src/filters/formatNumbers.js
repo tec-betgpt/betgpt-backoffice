@@ -2,18 +2,38 @@ export function getMs (num) {
   return (num / 10).toFixed(1) + "s";
 }
 
-export function formatMinifiedNumber (value) {
-  if (value >= 1000000000) {
-    return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2,roundingMode: "trunc" }).format(value / 1000000000)} bi`;
+export function formatMinifiedCurrency (value) {
+  const absValue = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+
+  if (absValue >= 1000000000) {
+    return `${sign}R$ ${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2, roundingMode: "trunc" }).format(absValue / 1000000000)} bi`;
   }
-  if (value >= 1000000) {
-    return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2,roundingMode: "trunc"}).format(value / 1000000)} mi`;
+  if (absValue >= 1000000) {
+    return `${sign}R$ ${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2, roundingMode: "trunc" }).format(absValue / 1000000)} mi`;
   }
-  if (value >= 1000) {
-    return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2,roundingMode: "trunc" }).format(value / 1000)} mil`;
+  if (absValue >= 1000) {
+    return `${sign}R$ ${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2, roundingMode: "trunc" }).format(absValue / 1000)} mil`;
   }
 
-  return new Intl.NumberFormat("pt-BR").format(value);
+  return `${sign}R$ ${new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(absValue)}`;
+}
+
+export function formatMinifiedNumber (value) {
+  const absValue = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+
+  if (absValue >= 1000000000) {
+    return `${sign}${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2, roundingMode: "trunc" }).format(absValue / 1000000000)} bi`;
+  }
+  if (absValue >= 1000000) {
+    return `${sign}${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2, roundingMode: "trunc" }).format(absValue / 1000000)} mi`;
+  }
+  if (absValue >= 1000) {
+    return `${sign}${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2, roundingMode: "trunc" }).format(absValue / 1000)} mil`;
+  }
+
+  return `${sign}${new Intl.NumberFormat("pt-BR").format(absValue)}`;
 }
 
 export function numberLocale (value, locale = "pt-BR") {

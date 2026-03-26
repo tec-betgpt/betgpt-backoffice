@@ -11,6 +11,7 @@ export const useWorkspaceStore = defineStore("workspace", {
     notifyAnnotationUpdate() {
       this.lastAnnotationUpdate = Date.now();
     },
+
     async setProjects(newGroupProjects) {
       this.group_projects = newGroupProjects;
     },

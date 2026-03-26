@@ -142,11 +142,11 @@
               <CardTitle class="text-lg">Conectividade</CardTitle>
             </CardHeader>
             <CardContent class="space-y-3 md:space-y-4">
-              <div class="flex items-center overflow-hidden gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+              <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
                 <MapPinIcon class="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
                 <div>
                   <p class="text-[10px] text-slate-500 uppercase font-bold">Último IP</p>
-                  <p class="text-xs md:text-sm font-mono text-ellipsis">{{ player.last_ip || '---.---.---.---' }}</p>
+                  <p class="text-xs md:text-sm font-mono">{{ player.last_ip || '---.---.---.---' }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
