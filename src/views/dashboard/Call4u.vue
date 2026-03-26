@@ -15,8 +15,8 @@
 
     <!-- Skeleton loading -->
     <div v-if="loading">
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
-        <Card v-for="n in 3" :key="n">
+      <div class="grid gap-4 md:grid-cols-4 sm:grid-cols-1">
+        <Card v-for="n in 4" :key="n">
           <div class="p-4 rounded shadow">
             <div class="flex justify-between items-center mb-2">
               <Skeleton class="h-4 w-1/3" />
@@ -41,7 +41,7 @@
 
     <div v-else>
       <!-- Cards de créditos -->
-      <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+      <div class="grid gap-4 md:grid-cols-4 sm:grid-cols-1">
         <Card>
           <CardHeader
             class="flex flex-row items-center justify-between space-y-0 pb-2"
@@ -116,6 +116,32 @@
           <CardContent>
             <div class="text-2xl font-bold">
               +{{ formatNumber(last?.calls?.available ?? 0) }}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <div class="flex justify-between items-center">
+              <Avatar
+                class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
+                shape="square"
+              >
+                <Clock3 class="text-muted-foreground" />
+              </Avatar>
+              <CardTitle class="text-sm font-medium"
+                >Tempo total atendido</CardTitle
+              >
+            </div>
+            <GlossaryTooltipComponent
+              description="Soma total da duração das ligações atendidas no período selecionado."
+            />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">
+              {{ formatDurationHms(last?.calls?.total_answered_duration_seconds ?? 0) }}
             </div>
           </CardContent>
         </Card>
@@ -466,6 +492,7 @@ import {
   Phone,
   PhoneCall,
   PhoneMissed,
+  Clock3,
   Download,
   ArrowDown,
   ArrowUp,
@@ -593,6 +620,14 @@ const formatDuration = (seconds: number) => {
   const m = Math.floor(s / 60);
   const rem = s % 60;
   return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
+};
+
+const formatDurationHms = (seconds: number) => {
+  const s = Math.max(0, Math.round(seconds ?? 0));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m ${String(sec).padStart(2, "0")}s`;
 };
 
 const formatPercentage = (v: any) => `${parseFloat(v ?? 0).toFixed(2)}%`;
