@@ -160,7 +160,7 @@
       </div>
 
       <!-- Tabela de Campanhas -->
-      <Card class="w-full mt-4">
+      <Card v-if="canViewRecharges" class="w-full mt-4">
         <CardHeader>
           <CardTitle>Campanhas</CardTitle>
         </CardHeader>
@@ -552,6 +552,7 @@ const selectedRange = ref({ start: null, end: null });
 const loading = ref(true);
 const last = ref<any>({});
 const recharges = ref<any[]>([]);
+const canViewRecharges = ref(false);
 const callsChart = ref<{ name: string; value: any[] }[]>([]);
 
 // Campaigns table
@@ -690,7 +691,8 @@ const loadData = async () => {
     const { data } = await Call4u.index(params);
 
     last.value = data.last ?? {};
-    recharges.value = data.recharges ?? [];
+    canViewRecharges.value = Boolean(data.permissions?.view_recharges);
+    recharges.value = canViewRecharges.value ? data.recharges ?? [] : [];
 
     const dailyCalls =
       (data.daily?.calls ?? []).map((item: any) => ({

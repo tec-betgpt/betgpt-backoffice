@@ -228,7 +228,7 @@
       </div>
 
       <!-- Tabela de Campanhas -->
-      <Card class="w-full mt-4">
+      <Card v-if="canViewRecharges" class="w-full mt-4">
         <CardHeader>
           <CardTitle>Campanhas</CardTitle>
         </CardHeader>
@@ -489,6 +489,7 @@ const daily = ref<any>([]);
 const sms = ref<{ name: string; value: number[] }[]>([]);
 const clicks = ref<{ name: string; value: number[] }[]>([]);
 const recharges = ref([]);
+const canViewRecharges = ref(false);
 const campaigns = ref([]);
 const broadcasts = ref([]);
 const meta = ref<Record<string, string>>({});
@@ -682,7 +683,8 @@ const loadData = async () => {
     daily.value = data.daily;
     sms.value = [{ name: "Total SMS Enviado", value: data.daily.sms }];
     clicks.value = [{ name: "Total Cliques", value: data.daily.clicks }];
-    recharges.value = data.recharges;
+    canViewRecharges.value = Boolean(data.permissions?.view_recharges);
+    recharges.value = canViewRecharges.value ? data.recharges ?? [] : [];
     meta.value = data.meta || {};
 
     if (data.campaigns) {
