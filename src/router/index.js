@@ -15,6 +15,7 @@ import governance from "@/router/governance.js";
 import protection from "@/router/protection.js";
 import financial from "@/router/financial.js";
 import efficiency from "@/router/efficiency.js";
+import updates from "@/router/updates.js";
 
 const routes = [
   {
@@ -62,6 +63,7 @@ const routes = [
   ...protection,
   ...financial,
   ...efficiency,
+  ...updates,
 ];
 
 const router = createRouter({

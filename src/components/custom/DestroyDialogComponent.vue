@@ -1,6 +1,6 @@
 <template>
   <AlertDialog v-model:open="isDialog">
-    <AlertDialogTrigger v-if="$slots.default" as-child>
+    <AlertDialogTrigger as-child>
       <slot :open="openDialog">
         <Button size="icon" variant="ghost" class="text-red-400 hover:text-white hover:bg-red-400">
           <Trash />
