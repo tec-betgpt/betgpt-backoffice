@@ -50,11 +50,88 @@
               </div>
               <div class="space-y-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">CPF / Documento</p>
-                <p class="text-sm font-medium">{{ player.document || 'Não informado' }}</p>
+                <p class="text-sm font-medium">{{ player.document || player.cpf || 'Não informado' }}</p>
               </div>
               <div class="space-y-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Gênero</p>
                 <p class="text-sm font-medium capitalize">{{ player.gender || 'Não informado' }}</p>
+              </div>
+              <div class="flex flex-col space-y-6">
+                <div class="space-y-1">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">UserID (Cometa)</p>
+                  <p class="text-sm font-medium">{{ player.external_id || 'Não informado' }}</p>
+                </div>
+                <div class="space-y-1">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">REFERRER_ID</p>
+                  <p class="text-sm font-medium">{{ player.referrer_id || 'Não informado' }}</p>
+                </div>
+              </div>
+
+            </CardContent>
+          </Card>
+
+          <!-- Endereço -->
+          <Card class="shadow-sm border-none md:border">
+            <CardHeader>
+              <CardTitle class="text-lg">Endereço</CardTitle>
+            </CardHeader>
+            <CardContent class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 md:gap-y-6 gap-x-4">
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">CEP</p>
+                <p class="text-sm font-medium">{{ player.zip || player.cep || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Rua</p>
+                <p class="text-sm font-medium">{{ player.address || player.street || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Número</p>
+                <p class="text-sm font-medium">{{ player.number || '---' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Bairro</p>
+                <p class="text-sm font-medium">{{ player.neighborhood || player.district || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Cidade</p>
+                <p class="text-sm font-medium">{{ player.city || 'Não informado' }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Estado</p>
+                <p class="text-sm font-medium">{{ player.state || '---' }}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Atividade e FTD -->
+          <Card class="shadow-sm border-none md:border">
+            <CardHeader>
+              <CardTitle class="text-lg">Atividade e FTD</CardTitle>
+            </CardHeader>
+            <CardContent class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 md:gap-y-6 gap-x-4">
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total Logins</p>
+                <p class="text-sm font-medium">{{ player.total_logins || 0 }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Último Login</p>
+                <p class="text-sm font-medium">{{ formatDateTime(player.last_login_at) }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Data FTD</p>
+                <p class="text-sm font-medium">{{ formatDate(player.first_deposit_at) }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Valor FTD</p>
+                <p class="text-sm font-medium text-emerald-600 dark:text-emerald-400">{{ formatCurrency(player.first_deposit_value) }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Último Depósito</p>
+                <p class="text-sm font-medium">{{ formatDateTime(player.last_deposit_at) }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Último Saque</p>
+                <p class="text-sm font-medium">{{ formatDateTime(player.last_withdrawal_at) }}</p>
               </div>
             </CardContent>
           </Card>
@@ -65,11 +142,11 @@
               <CardTitle class="text-lg">Conectividade</CardTitle>
             </CardHeader>
             <CardContent class="space-y-3 md:space-y-4">
-              <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+              <div class="flex items-center overflow-hidden gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
                 <MapPinIcon class="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
                 <div>
                   <p class="text-[10px] text-slate-500 uppercase font-bold">Último IP</p>
-                  <p class="text-xs md:text-sm font-mono">{{ player.last_ip || '---.---.---.---' }}</p>
+                  <p class="text-xs md:text-sm font-mono text-ellipsis">{{ player.last_ip || '---.---.---.---' }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50">
@@ -145,7 +222,7 @@
 
     <!-- Dialog de Detalhes do Evento (Responsivo) -->
     <Dialog :open="isHistoryDetailDialogOpen" @update:open="isHistoryDetailDialogOpen = false">
-      <DialogContent v-if="selectedHistoryEvent" class="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
+      <DialogContent v-if="selectedHistoryEvent" class="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
         <DialogHeader>
           <DialogTitle class="text-lg md:text-xl">{{ selectedHistoryEvent.title }}</DialogTitle>
           <DialogDescription class="text-xs">
@@ -172,7 +249,7 @@
                 Copiar
               </Button>
             </div>
-            <pre class="bg-slate-950 text-slate-100 p-3 md:p-4 rounded-xl text-[10px] md:text-xs overflow-auto max-h-48 md:max-h-64 border border-slate-800 shadow-inner"><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
+            <pre class="bg-slate-950 text-slate-100 p-3 md:p-4 rounded-xl text-[10px] md:text-xs overflow-x-hidden overflow-y-auto whitespace-pre-wrap break-words max-h-96 md:max-h-[500px] border border-slate-800 shadow-inner"><code>{{ JSON.stringify(selectedHistoryEvent.payload, null, 2) }}</code></pre>
           </div>
         </div>
 
@@ -328,6 +405,14 @@ const formatDate = (date: any) => {
 const formatDateTime = (date: any) => {
   if (!date) return '---';
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(date));
+};
+
+const formatCurrency = (value: any) => {
+  if (value === null || value === undefined) return 'R$ 0,00';
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(Number(value));
 };
 
 const copyPayload = () => {

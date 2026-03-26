@@ -72,7 +72,7 @@ const getEventConfig = (type: string) => {
     login: { icon: LogInIcon, bgColor: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600 dark:text-blue-400' },
     profile_update: { icon: UserCircleIcon, bgColor: 'bg-amber-100 dark:bg-amber-900/30', iconColor: 'text-amber-600 dark:text-amber-400' },
     segment: { icon: FilterIcon, bgColor: 'bg-purple-100 dark:bg-purple-900/30', iconColor: 'text-purple-600 dark:text-purple-400' },
-  };
-  return configs[type] || { icon: CircleIcon, bgColor: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-500' };
+    status_change: { icon: HistoryIcon, bgColor: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-600 dark:text-slate-400' },
+  };  return configs[type] || { icon: CircleIcon, bgColor: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-500' };
 };
 </script>
