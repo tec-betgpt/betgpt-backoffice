@@ -21,7 +21,7 @@
             <Input
               id="title"
               v-model="form.title"
-              placeholder="Opcional — em branco usa o nome traduzido no sistema (slug do perfil)"
+              placeholder="Opcional — em branco usa o nome traduzido"
               class="col-span-3"
             />
           </div>
