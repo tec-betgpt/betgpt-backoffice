@@ -34,9 +34,13 @@
             >
               <TableRow v-for="(row, index) in roles" :key="row.id" :style="`--delay: ${getMs(index)}`">
                 <TableCell>
-                  {{ row.title
-                  ? row.title
-                  : $t("role-" + row.name) }}
+                  {{
+                    row.title &&
+                    String(row.title).trim() !== "" &&
+                    String(row.title).trim() !== String(row.name)
+                      ? row.title
+                      : $t("role-" + row.name)
+                  }}
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary">

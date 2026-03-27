@@ -21,7 +21,7 @@
             <Input
               id="title"
               v-model="form.title"
-              placeholder="Digite o título do perfil"
+              placeholder="Opcional — em branco usa o nome traduzido no sistema (slug do perfil)"
               class="col-span-3"
             />
           </div>
@@ -122,6 +122,15 @@ const togglePermission = (permissionId, checked) => {
   }
 };
 
+/** Título personalizado só se existir e for diferente do slug (name); senão o front usa i18n `role-{name}`. */
+const customRoleTitleForForm = (row: any) => {
+  const raw = row?.title;
+  const slug = row?.name;
+  if (raw == null || String(raw).trim() === "") return "";
+  if (slug != null && String(raw).trim() === String(slug)) return "";
+  return String(raw).trim();
+};
+
 const fetchPermissions = async (params = {}) => {
   isLoading.value = true;
 
@@ -142,7 +151,7 @@ const openDialog = async () => {
   await fetchPermissions()
   form.value = {
     ...props.row,
-    title: props.row.title ?? props.row.name,
+    title: customRoleTitleForForm(props.row),
     permissions: props.row.permissions.map((p) => p.id),
   };
   showModal.value = true;
@@ -152,8 +161,15 @@ const onSubmit = async () => {
   isProcessing.value = true;
 
   try {
-    const data = await Roles.update(props.row.id, form.value);
+    const titleTrimmed = (form.value.title ?? "").trim();
+    const payload = {
+      title: titleTrimmed === "" ? null : titleTrimmed,
+      permissions: form.value.permissions,
+      filter_id: form.value.filter_id ?? activeGroupProjectId,
+    };
+    await Roles.update(props.row.id, payload);
     await props.reload()
+
     toast({
       title: "Sucesso",
       description: "Perfil atualizado com sucesso.",
