@@ -505,6 +505,34 @@ const columns = [
     accessorKey: "actions",
     header: "Ações",
     cell: ({ row }) => {
+      const menuItems: any[] = [];
+      if (canEditSegment.value) {
+        menuItems.push(
+          h(DropdownMenuItem, { onClick: () => handleEdit(row.original) }, "Editar"),
+        );
+      }
+      if (row.original.audiences && row.original.audiences.length > 0) {
+        menuItems.push(
+          h(DropdownMenuItem, { onClick: () => viewTargetAudience(row.original) }, "Ver Publico Alvo"),
+        );
+      } else if (canEditSegment.value) {
+        menuItems.push(
+          h(DropdownMenuItem, { onClick: () => createTargetAudience(row.original) }, "Criar Publico Alvo"),
+        );
+      }
+      if (canEditSegment.value) {
+        menuItems.push(
+          h(DropdownMenuItem, { onClick: () => openTagsManager(row.original) }, "Gerenciar Tags"),
+          h(
+            DropdownMenuItem,
+            { onClick: () => deleteSegment(row.original.id) },
+            h("div", { class: "flex items-center text-destructive" }, "Remover"),
+          ),
+        );
+      }
+      if (menuItems.length === 0) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "—");
+      }
       return h(DropdownMenu, {}, [
         h(
           DropdownMenuTrigger,
@@ -526,41 +554,7 @@ const columns = [
         h(DropdownMenuContent, { align: "end" }, [
           h(DropdownMenuLabel, {}, "Ações"),
           h(DropdownMenuSeparator, {}),
-          h(
-            DropdownMenuItem,
-            {
-              disabled: !canEditSegment.value,
-              onClick: () => handleEdit(row.original),
-            },
-            "Editar",
-          ),
-          row.original.audiences && row.original.audiences.length > 0
-            ? h(
-                DropdownMenuItem,
-                { onClick: () => viewTargetAudience(row.original) },
-                "Ver Publico Alvo",
-              )
-            : h(
-                DropdownMenuItem,
-                { onClick: () => createTargetAudience(row.original) },
-                "Criar Publico Alvo",
-              ),
-          h(
-            DropdownMenuItem,
-            { onClick: () => openTagsManager(row.original) },
-            "Gerenciar Tags",
-          ),
-          h(
-            DropdownMenuItem,
-            {
-              onClick: () => deleteSegment(row.original.id),
-            },
-            h(
-              "div",
-              { class: "flex items-center text-destructive" },
-              "Remover",
-            ),
-          ),
+          ...menuItems,
         ]),
       ]);
     },

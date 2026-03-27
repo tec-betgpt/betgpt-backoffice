@@ -515,14 +515,19 @@ const columns = [
   {
     accessorKey: "actions",
     header: "",
-    cell: ({ row }) => h(DropdownMenu, {}, [
-      h(DropdownMenuTrigger, { asChild: true }, h(Button, { onClick: (e) => e.stopPropagation(), size: "icon", variant: "ghost", class: "h-8 w-8" }, [h(MoreHorizontalIcon, { class: "h-4 w-4" }), h("span", { class: "sr-only" }, "Ações")])),
-      h(DropdownMenuContent, { align: "end" }, [
-        h(DropdownMenuLabel, {}, "Ações"),
-        h(DropdownMenuItem, { onClick: () => openEditSheet(row.original), disabled: !canEditSegment.value }, "Editar Público"),
-        h(DropdownMenuItem, { onClick: () => { audienceToDelete.value = row.original.id; showDeleteDialog.value = true; }, class: "text-destructive", disabled: !canEditSegment.value }, "Excluir Definitivamente"),
-      ]),
-    ]),
+    cell: ({ row }) => {
+      if (!canEditSegment.value) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "—");
+      }
+      return h(DropdownMenu, {}, [
+        h(DropdownMenuTrigger, { asChild: true }, h(Button, { onClick: (e) => e.stopPropagation(), size: "icon", variant: "ghost", class: "h-8 w-8" }, [h(MoreHorizontalIcon, { class: "h-4 w-4" }), h("span", { class: "sr-only" }, "Ações")])),
+        h(DropdownMenuContent, { align: "end" }, [
+          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuItem, { onClick: () => openEditSheet(row.original) }, "Editar Público"),
+          h(DropdownMenuItem, { onClick: () => { audienceToDelete.value = row.original.id; showDeleteDialog.value = true; }, class: "text-destructive" }, "Excluir Definitivamente"),
+        ]),
+      ]);
+    },
   },
 ];
 
