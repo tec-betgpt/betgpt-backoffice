@@ -868,7 +868,7 @@ const columns = [
                         }),
                         "Abrindo acesso...",
                       ])
-                    : "Simular acesso",
+                    : "Simular Acesso",
                 ),
               ]
             : []),

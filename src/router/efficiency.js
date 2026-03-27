@@ -11,7 +11,7 @@ export default [
       requiresAuth: true,
       title: "Desempenho", // Parent title
       roles: "member|client",
-      permissions: "view-events",
+      permissions: "view-efficiency",
     },
     children: [
       {
@@ -23,7 +23,7 @@ export default [
 
           roles: "member|client",
           title: "Conversões",
-          permissions: "view-events",
+          permissions: "view-efficiency",
 
         },
       },
@@ -34,7 +34,7 @@ export default [
         meta: {
           layout: DefaultLayout,
           roles: "member|client",
-          permissions: "view-events",
+          permissions: "view-efficiency",
           title: "Relatórios",
         },
       },
@@ -47,7 +47,7 @@ export default [
           requiresAuth: true,
           title: "Resultados",
           roles: "member|client",
-          permissions: "view-events",
+          permissions: "view-efficiency",
         },
       },
     ],
