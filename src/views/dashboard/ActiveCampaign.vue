@@ -184,7 +184,7 @@
           </div>
 
           <Button
-            v-if="emailHtml"
+            v-if="emailHtml && hasMemberAccess"
             variant="secondary"
             @click="editTemplateModal(selectedCampaign)"
           >
@@ -372,6 +372,19 @@ const campaignsStats = computed(() => {
 const hasMemberAccess = computed(() => {
   return authStore.user?.access_type === "member";
 });
+
+const hasPermission = (permissionName: string) =>
+  Boolean(
+    (authStore.user as any)?.roles?.some((role: any) =>
+      role.permissions?.some(
+        (permission: any) => permission.name === permissionName,
+      ),
+    ),
+  );
+
+const canViewEmailTemplates = computed(() =>
+  hasPermission("view-emails-templates"),
+);
 
 const filteredCampaigns = computed(() => {
   return campaignsData.value;
@@ -591,6 +604,38 @@ const actionColumn = columnHelper.accessor("id", {
     const campaign = row.original;
     const automationLink = getAutomationLink(campaign);
 
+    const menuItems: any[] = [];
+    if (canViewEmailTemplates.value) {
+      menuItems.push(
+        h(
+          DropdownMenuItem,
+          {
+            onClick: () => {
+              openEmailPreview(campaign);
+            },
+          },
+          [h("div", {}), "Ver Template"],
+        ),
+      );
+    }
+    if (automationLink && hasMemberAccess.value) {
+      menuItems.push(
+        h(
+          DropdownMenuItem,
+          {
+            onClick: () => {
+              window.open(automationLink, "_blank");
+            },
+          },
+          [h("div", {}), "Ver Automação"],
+        ),
+      );
+    }
+
+    if (menuItems.length === 0) {
+      return h("span", { class: "text-muted-foreground text-sm" }, "—");
+    }
+
     return h(DropdownMenu, {}, [
       h(
         DropdownMenuTrigger,
@@ -600,36 +645,11 @@ const actionColumn = columnHelper.accessor("id", {
           h("span", { class: "sr-only" }, "Ações"),
         ]),
       ),
-      h(
-        DropdownMenuContent,
-        { align: "end" },
-        [
-          h(DropdownMenuLabel, {}, "Ações"),
-          h(DropdownMenuSeparator, {}),
-
-          h(
-            DropdownMenuItem,
-            {
-              onClick: () => {
-                openEmailPreview(campaign);
-              },
-            },
-            [h("div", {}), "Ver Template"],
-          ),
-
-          automationLink
-            ? h(
-                DropdownMenuItem,
-                {
-                  onClick: () => {
-                    window.open(automationLink, "_blank");
-                  },
-                },
-                [h("div", {}), "Ver Automação"],
-              )
-            : null,
-        ].filter(Boolean),
-      ),
+      h(DropdownMenuContent, { align: "end" }, [
+        h(DropdownMenuLabel, {}, "Ações"),
+        h(DropdownMenuSeparator, {}),
+        ...menuItems,
+      ]),
     ]);
   },
 });
@@ -769,7 +789,9 @@ const columns = computed(() => [
       ),
   }),
 
-  ...(hasMemberAccess.value ? [actionColumn] : []),
+  ...(canViewEmailTemplates.value || hasMemberAccess.value
+    ? [actionColumn]
+    : []),
 ]);
 
 function createHeaderButton(label: string, columnKey: string) {

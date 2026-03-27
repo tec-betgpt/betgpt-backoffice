@@ -529,6 +529,19 @@ const hasMemberAccess = computed(() => {
   return authStore.user?.access_type === "member";
 });
 
+const hasPermission = (permissionName: string) =>
+  Boolean(
+    (authStore.user as any)?.roles?.some((role: any) =>
+      role.permissions?.some(
+        (permission: any) => permission.name === permissionName,
+      ),
+    ),
+  );
+
+const canViewSmsTemplates = computed(() =>
+  hasPermission("view-sms-templates"),
+);
+
 const responsiveClass =
   "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-3 mb-3";
 
@@ -922,15 +935,14 @@ const ctrCampaignColumn = columnHelper.accessor("ctr", {
 });
 
 const filteredCampaignColumns = computed(() => {
+  const cols = [...baseCampaignColumns];
   if (hasMemberAccess.value) {
-    return [
-      ...baseCampaignColumns,
-      clicksCampaignColumn,
-      ctrCampaignColumn,
-      actionsCampaignColumn,
-    ];
+    cols.push(clicksCampaignColumn, ctrCampaignColumn);
   }
-  return [...baseCampaignColumns, actionsCampaignColumn];
+  if (canViewSmsTemplates.value) {
+    cols.push(actionsCampaignColumn);
+  }
+  return cols;
 });
 
 const baseBroadcastColumns = [
@@ -970,15 +982,14 @@ const ctrBroadcastColumn = columnHelper.accessor("ctr", {
 });
 
 const filteredBroadcastColumns = computed(() => {
+  const cols = [...baseBroadcastColumns];
   if (hasMemberAccess.value) {
-    return [
-      ...baseBroadcastColumns,
-      clicksBroadcastColumn,
-      ctrBroadcastColumn,
-      actionsBroadcastColumn,
-    ];
+    cols.push(clicksBroadcastColumn, ctrBroadcastColumn);
   }
-  return [...baseBroadcastColumns, actionsBroadcastColumn];
+  if (canViewSmsTemplates.value) {
+    cols.push(actionsBroadcastColumn);
+  }
+  return cols;
 });
 
 watch(campaignPerPage, () => {
