@@ -138,7 +138,7 @@ const openDialog = () => {
   };
   showModal.value = true;
 
-  if (activeGroupProjectId) {
+  if (activeGroupProjectId != null) {
     form.value.filter_id = activeGroupProjectId;
   }
 }
@@ -146,10 +146,26 @@ const openDialog = () => {
 const onSubmit = async () => {
   isProcessing.value = true;
 
+  const titleTrimmed = (form.value.title ?? "").trim();
+  if (!titleTrimmed) {
+    toast({
+      title: "Validação",
+      description: "Informe o título do perfil.",
+      variant: "destructive",
+    });
+    isProcessing.value = false;
+    return;
+  }
+
   try {
+    const filterId = form.value.filter_id ?? activeGroupProjectId;
     const data = await Roles.store({
-      ...form.value,
-      filter_id: form.value.filter_id?.split('_')[1],
+      title: titleTrimmed,
+      permissions: form.value.permissions,
+      scope_default: form.value.scope_default,
+      ...(filterId != null && filterId !== ""
+        ? { filter_id: filterId }
+        : {}),
     });
     await props.reload();
     showModal.value = false;

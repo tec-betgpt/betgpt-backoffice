@@ -108,7 +108,7 @@ const form = ref({
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
-if (activeGroupProjectId) {
+if (activeGroupProjectId != null) {
   form.value.filter_id = activeGroupProjectId;
 }
 
@@ -147,12 +147,18 @@ const fetchPermissions = async (params = {}) => {
   isLoading.value = false;
 }
 
+const clientFilterIdForRole = () =>
+  props.row.project_id != null && props.row.project_id !== ""
+    ? `project_${props.row.project_id}`
+    : activeGroupProjectId;
+
 const openDialog = async () => {
   await fetchPermissions()
   form.value = {
     ...props.row,
     title: customRoleTitleForForm(props.row),
     permissions: props.row.permissions.map((p) => p.id),
+    filter_id: clientFilterIdForRole(),
   };
   showModal.value = true;
 }
@@ -162,10 +168,13 @@ const onSubmit = async () => {
 
   try {
     const titleTrimmed = (form.value.title ?? "").trim();
+    const filterId = form.value.filter_id ?? clientFilterIdForRole();
     const payload = {
       title: titleTrimmed === "" ? null : titleTrimmed,
       permissions: form.value.permissions,
-      filter_id: form.value.filter_id ?? activeGroupProjectId,
+      ...(filterId != null && filterId !== ""
+        ? { filter_id: filterId }
+        : {}),
     };
     await Roles.update(props.row.id, payload);
     await props.reload()
