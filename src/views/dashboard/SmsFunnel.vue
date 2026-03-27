@@ -257,7 +257,10 @@
         </Dialog>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mt-4">
+      <div
+        class="grid gap-4 sm:grid-cols-1 mt-4"
+        :class="hasMemberAccess ? 'md:grid-cols-2' : 'md:grid-cols-1'"
+      >
         <PeriodComponent
           :period="sms"
           title="SMS Enviados"

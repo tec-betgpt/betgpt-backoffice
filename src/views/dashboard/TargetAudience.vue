@@ -10,7 +10,7 @@
       </div>
 
       <div class="w-full sm:w-auto flex justify-end">
-        <Button @click="openCreateSheet" class="max-sm:w-full shadow-sm">
+        <Button v-if="canEditSegment" @click="openCreateSheet" class="max-sm:w-full shadow-sm">
           <PlusIcon class="mr-2 h-4 w-4" />
           Novo Público Alvo
         </Button>
@@ -182,9 +182,11 @@ import MetaAudienceDetailsDialog from "@/components/target_audience/MetaAudience
 import { useWorkspaceStore } from "@/stores/workspace";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
+import { useAuthStore } from "@/stores/auth";
 
 const { t } = useI18n();
 const route = useRoute();
+const authStore = useAuthStore();
 const { toast } = useToast();
 const isLoading = ref(false);
 const targetAudienceDialogRef = ref();
@@ -198,6 +200,13 @@ const audienceToDelete = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id ?? null);
 let refreshInterval: any = null;
+const hasPermission = (permissionName: string) =>
+  Boolean((authStore.user as any)?.roles?.some((role: any) =>
+    role.permissions?.some((permission: any) => permission.name === permissionName),
+  ));
+const canEditSegment = computed(() => {
+  return hasPermission("edit-segment");
+});
 
 const handleSyncClick = (row: any) => {
   const syncs = row.syncs || [];
@@ -510,8 +519,8 @@ const columns = [
       h(DropdownMenuTrigger, { asChild: true }, h(Button, { onClick: (e) => e.stopPropagation(), size: "icon", variant: "ghost", class: "h-8 w-8" }, [h(MoreHorizontalIcon, { class: "h-4 w-4" }), h("span", { class: "sr-only" }, "Ações")])),
       h(DropdownMenuContent, { align: "end" }, [
         h(DropdownMenuLabel, {}, "Ações"),
-        h(DropdownMenuItem, { onClick: () => openEditSheet(row.original) }, "Editar Público"),
-        h(DropdownMenuItem, { onClick: () => { audienceToDelete.value = row.original.id; showDeleteDialog.value = true; }, class: "text-destructive" }, "Excluir Definitivamente"),
+        h(DropdownMenuItem, { onClick: () => openEditSheet(row.original), disabled: !canEditSegment.value }, "Editar Público"),
+        h(DropdownMenuItem, { onClick: () => { audienceToDelete.value = row.original.id; showDeleteDialog.value = true; }, class: "text-destructive", disabled: !canEditSegment.value }, "Excluir Definitivamente"),
       ]),
     ]),
   },

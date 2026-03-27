@@ -851,7 +851,8 @@ const columns = [
             },
             "Editar",
           ),
-          ...(hasProprietorRole.value && row.original.access_type === "client"
+          ...(hasProprietorRole.value &&
+          ["client", "member"].includes(row.original.access_type)
             ? [
                 h(
                   DropdownMenuItem,

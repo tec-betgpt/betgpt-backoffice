@@ -70,7 +70,12 @@
                 </TableCell>
                 <TableCell class="text-right">
                   <div class="gap-1 flex flex-nowrap justify-end">
-                    <Button size="icon" variant="ghost" @click="showPlayer(row.id)">
+                    <Button
+                      v-if="canAccessClientManagement"
+                      size="icon"
+                      variant="ghost"
+                      @click="showPlayer(row.id)"
+                    >
                       <Eye class="h-4 w-4" />
                     </Button>
                     <EditDialogComponent :row="row" :reload="fetchPlayers" :filter-id="activeGroupProjectId" />
@@ -123,9 +128,15 @@ import CustomSimplePagination from "@/components/custom/CustomSimplePagination.v
 import { useRouter } from "vue-router";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { useAuthStore } from "@/stores/auth";
 
 const { toast } = useToast();
 const router = useRouter();
+const authStore = useAuthStore();
+const hasPermission = (permissionName: string) =>
+  Boolean((authStore.user as any)?.roles?.some((role: any) =>
+    role.permissions?.some((permission: any) => permission.name === permissionName),
+  ));
 
 type Player = {
   id: string;
@@ -135,8 +146,12 @@ type Player = {
 };
 
 const showPlayer = (id: string) => {
+  if (!canAccessClientManagement.value) return;
   router.push({ name: 'clients.show', params: { id } });
 };
+const canAccessClientManagement = ref(
+  hasPermission("access-to-client-management"),
+);
 
 const players = ref<Player[]>([]);
 const tags = ref<Tag[]>([]);

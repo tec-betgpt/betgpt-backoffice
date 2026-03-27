@@ -153,6 +153,7 @@
                       <DropdownMenuSeparator />
 
                       <DropdownMenuItem
+                        v-if="canAccessClientManagement"
                         @click="$router.push({ name: 'clients.show', params: { id: row.player?.id } })"
                       >
                         <Eye class="mr-2 h-4 w-4" />
@@ -226,6 +227,7 @@ import { ref, onMounted, reactive, watch, nextTick } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useAuthStore } from "@/stores/auth";
 import ProtectionLists from "@/services/protectionLists";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/protection-lists/CreateDialogComponent.vue";
@@ -274,6 +276,14 @@ import {
 const { toast } = useToast();
 
 const workspaceStore = useWorkspaceStore();
+const authStore = useAuthStore();
+const hasPermission = (permissionName: string) =>
+  Boolean((authStore.user as any)?.roles?.some((role: any) =>
+    role.permissions?.some((permission: any) => permission.name === permissionName),
+  ));
+const canAccessClientManagement = ref(
+  hasPermission("access-to-client-management"),
+);
 const protectionLists = ref([]);
 const isLoading = ref(true);
 const perPage = ref(15);

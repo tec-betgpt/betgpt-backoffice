@@ -68,6 +68,7 @@
     </div>
 
     <div
+      v-if="canViewStatus"
       :class="[
         'grid gap-3 sm:grid-cols-1',
         {
@@ -286,6 +287,7 @@ const limitsCards = ref<
     qt_mail_exceeded: number;
   }[]
 >([]);
+const canViewStatus = ref(false);
 const backendCampaignTotals = ref();
 const campaignsData = ref<CampaignMetrics[]>([]);
 
@@ -535,7 +537,8 @@ const applyFilter = async (current = pages.value.current) => {
     campaignsData.value = data.campaigns.data;
     backendCampaignTotals.value = data.campaigns.total;
     integrations.value = data.integrations;
-    limitsCards.value = data.status;
+    canViewStatus.value = Boolean(data.permissions?.view_status);
+    limitsCards.value = canViewStatus.value ? data.status : [];
     meta.value = data.meta || {};
     pages.value = {
       current: data.campaigns.pagination.current_page,

@@ -77,8 +77,10 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import Segments from "@/services/segments";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useRouter, RouterLink } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
 const router = useRouter();
+const authStore = useAuthStore();
 const isOpen = ref(false);
 const isLoading = ref(false);
 const segmentId = ref<number | null>(null);
@@ -88,6 +90,13 @@ const currentPage = ref(1);
 const searchValues = ref<Record<string, string>>({});
 const orderField = ref('id');
 const orderDirection = ref(false);
+const hasPermission = (permissionName: string) =>
+  Boolean((authStore.user as any)?.roles?.some((role: any) =>
+    role.permissions?.some((permission: any) => permission.name === permissionName),
+  ));
+const canAccessClientManagement = computed(() =>
+  hasPermission("access-to-client-management"),
+);
 
 const columnHelper = createColumnHelper<any>();
 
@@ -107,16 +116,19 @@ const columns = [
   columnHelper.display({
     id: "actions",
     header: "Ações",
-    cell: ({ row }) => h(
-      RouterLink,
-      {
-        to: { name: "clients.show", params: { id: row.original.id } },
-        target: "_blank",
-        class: "inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors",
-        title: "Ver detalhes do cliente",
-      },
-      { default: () => h(Eye, { class: "h-4 w-4" }) }
-    ),
+    cell: ({ row }) =>
+      canAccessClientManagement.value
+        ? h(
+            RouterLink,
+            {
+              to: { name: "clients.show", params: { id: row.original.id } },
+              target: "_blank",
+              class: "inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent transition-colors",
+              title: "Ver detalhes do cliente",
+            },
+            { default: () => h(Eye, { class: "h-4 w-4" }) },
+          )
+        : h("span", { class: "text-muted-foreground" }, "-"),
   }),
 ];
 

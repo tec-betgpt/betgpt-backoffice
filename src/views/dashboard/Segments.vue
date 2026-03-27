@@ -11,7 +11,7 @@
       <div
         class="w-full flex max-sm:justify-center justify-end max-sm:flex-col gap-2 max-sm:mt-3 items-center"
       >
-        <Button @click="openCreateModal" class="max-sm:w-full">
+        <Button v-if="canEditSegment" @click="openCreateModal" class="max-sm:w-full">
           <PlusIcon class="mr-2 h-4 w-4" />
           Novo Segmento
         </Button>
@@ -136,6 +136,7 @@ import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import SegmentContactsDialog from "@/components/segments/SegmentContactsDialog.vue";
+import { useAuthStore } from "@/stores/auth";
 
 const { t } = useI18n();
 const { toast } = useToast();
@@ -144,7 +145,15 @@ const isLoading = ref(false);
 const showTagsDialog = ref(false);
 const segmentForTags = ref<any>(null);
 const workspaceStore = useWorkspaceStore();
+const authStore = useAuthStore();
 const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id ?? null);
+const hasPermission = (permissionName: string) =>
+  Boolean((authStore.user as any)?.roles?.some((role: any) =>
+    role.permissions?.some((permission: any) => permission.name === permissionName),
+  ));
+const canEditSegment = computed(() => {
+  return hasPermission("edit-segment");
+});
 
 const targetAudienceDialogRef = ref();
 const segmentDialogRef = ref();
@@ -520,6 +529,7 @@ const columns = [
           h(
             DropdownMenuItem,
             {
+              disabled: !canEditSegment.value,
               onClick: () => handleEdit(row.original),
             },
             "Editar",

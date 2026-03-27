@@ -253,6 +253,7 @@
 
                         <div class="flex-shrink-0" v-if="isShowValues">
                           <router-link
+                            v-if="canAccess('access-to-client-management')"
                             :to="{
                               name: 'clients.show',
                               params: { id: deposit.player.id },
@@ -629,6 +630,13 @@ export default {
   },
 
   methods: {
+    canAccess(permissionName: string) {
+      const hasPermission = (this.userStore.user as any)?.roles?.some((role: any) =>
+        role.permissions?.some((permission: any) => permission.name === permissionName),
+      );
+      return Boolean(hasPermission);
+    },
+
     debounce(func, delay, key) {
       if (this.debounceTimers[key]) {
         clearTimeout(this.debounceTimers[key]);
