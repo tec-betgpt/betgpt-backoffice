@@ -24,6 +24,27 @@
             />
           </div>
 
+          <div
+            v-if="isCreatorMember"
+            class="grid grid-cols-4 items-center gap-4"
+          >
+            <Label for="scope_access">Tipo de perfil</Label>
+            <div class="col-span-3">
+              <Select v-model="form.scope_access">
+                <SelectTrigger id="scope_access">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="member">Membro (Elevate)</SelectItem>
+                  <SelectItem value="client">Cliente</SelectItem>
+                </SelectContent>
+              </Select>
+              <p class="text-xs text-muted-foreground mt-1.5">
+                Perfis de cliente ficam vinculados ao projeto do workspace atual.
+              </p>
+            </div>
+          </div>
+
           <div class="grid grid-cols-4 items-start gap-4">
             <Label>Permissões</Label>
             <div class="space-y-2 col-span-3">
@@ -77,12 +98,20 @@
   </Dialog>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, defineProps } from "vue";
+import { ref, onMounted, defineProps, computed } from "vue";
 import { watchDebounced } from "@vueuse/core";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Plus, Search } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useAuthStore } from "@/stores/auth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Roles from '@/services/roles'
 import Permissions from '@/services/permissions'
 
@@ -92,7 +121,12 @@ const props = defineProps<{
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
+const authStore = useAuthStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+
+const isCreatorMember = computed(
+  () => authStore.user?.access_type === "member",
+);
 
 const search = ref("");
 const permissions = ref([]);
@@ -103,7 +137,7 @@ const form = ref({
   title: "",
   permissions: [],
   filter_id: null,
-  scope_default: 1
+  scope_access: "member" as "member" | "client",
 });
 
 const togglePermission = (permissionId, checked) => {
@@ -134,7 +168,7 @@ const openDialog = () => {
     title: "",
     permissions: [],
     filter_id: null,
-    scope_default: 1
+    scope_access: "member",
   };
   showModal.value = true;
 
@@ -158,15 +192,35 @@ const onSubmit = async () => {
   }
 
   try {
+    const wantsClientScope =
+      !isCreatorMember.value || form.value.scope_access === "client";
     const filterId = form.value.filter_id ?? activeGroupProjectId;
-    const data = await Roles.store({
+
+    if (wantsClientScope && (filterId == null || filterId === "")) {
+      toast({
+        title: "Validação",
+        description:
+          "Selecione um projeto no workspace ou vincule o perfil a um projeto.",
+        variant: "destructive",
+      });
+      isProcessing.value = false;
+      return;
+    }
+
+    const payload: Record<string, unknown> = {
       title: titleTrimmed,
       permissions: form.value.permissions,
-      scope_default: form.value.scope_default,
-      ...(filterId != null && filterId !== ""
-        ? { filter_id: filterId }
-        : {}),
-    });
+    };
+
+    if (isCreatorMember.value) {
+      payload.scope_access = form.value.scope_access;
+    }
+
+    if (wantsClientScope && filterId != null && filterId !== "") {
+      payload.filter_id = filterId;
+    }
+
+    const data = await Roles.store(payload);
     await props.reload();
     showModal.value = false;
     toast({
