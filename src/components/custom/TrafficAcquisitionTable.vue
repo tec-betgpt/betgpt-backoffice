@@ -86,13 +86,6 @@
                 </slot>
               </TableCell>
             </TableRow>
-            <TableRow v-if="grandTotal" class="bg-gray-50/10">
-              <TableCell v-for="column in columns.filter(c => columnVisibility[c.id])" :key="column.id" :class="column.class" class="font-bold">
-                 <slot :name="`grand-total-cell-${column.id}`" :total="grandTotal">
-                    {{ column.formatter ? column.formatter(grandTotal[column.id]) : grandTotal[column.id] }}
-                  </slot>
-              </TableCell>
-            </TableRow>
           </TableFooter>
         </Table>
       </div>
@@ -148,15 +141,13 @@ type Column = {
   label: string;
   tooltip?: string;
   class?: string;
-  formatter?: (value: any) => string;
-  type?: 'text' | 'numeric' | 'currency';
+  formatter?: (value: number) => string;
 };
 
 const props = defineProps<{
   title: string;
   loading: boolean;
   data: Array<Record<string, any>>;
-  grandTotal: Record<string, any> | null;
   pageTotal: Record<string, any>;
   pages: {
     current: number;

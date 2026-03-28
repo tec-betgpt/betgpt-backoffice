@@ -8,7 +8,6 @@ import {
 import { RangeCalendar } from "@/components/ui/range-calendar";
 import {
   DateFormatter,
-  getLocalTimeZone,
   today,
   CalendarDate,
 } from "@internationalized/date";
@@ -32,7 +31,9 @@ import { Button } from "@/components/ui/button";
 const props = defineProps<{ modelValue: DateRange }>();
 const emit = defineEmits(["update:modelValue"]);
 
-const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+// Configurações de Localização e Fuso
+const TIMEZONE = "America/Sao_Paulo";
+const locale = Intl.DateTimeFormat().resolvedOptions().locale || "pt-BR";
 const df = new DateFormatter(locale, { dateStyle: "short" });
 
 const STORAGE_KEY = "user_date_range_preset";
@@ -44,6 +45,11 @@ const calendarRef = ref<DateRange | undefined>();
 const value = ref<DateRange>(props.modelValue);
 const width = ref(window.innerWidth);
 
+// Atualiza o tamanho da tela para o modo responsivo do calendário
+function updateSize() {
+  width.value = window.innerWidth;
+}
+
 watch(value, (newVal) => emit("update:modelValue", newVal));
 
 const handleCalendar = () => {
@@ -53,48 +59,46 @@ const handleCalendar = () => {
   localStorage.setItem(STORAGE_KEY, "custom");
 
   const { start, end } = calendarRef.value;
-  localStorage.setItem(
-    RANGE_KEY,
-    JSON.stringify({
-      start: { year: start.year, month: start.month, day: start.day },
-      end: { year: end.year, month: end.month, day: end.day },
-    })
-  );
+  if (start && end) {
+    localStorage.setItem(
+        RANGE_KEY,
+        JSON.stringify({
+          start: { year: start.year, month: start.month, day: start.day },
+          end: { year: end.year, month: end.month, day: end.day },
+        })
+    );
+  }
 
   popoverOpen.value = false;
 };
-function updateSize() {
-  width.value = window.innerWidth;
-}
-
-
 
 const applyPreset = (preset: string) => {
-  const todayDate = today(getLocalTimeZone());
-  let end = today(getLocalTimeZone());
-  let start = end;
+  const brToday = today(TIMEZONE);
+  let start = brToday;
+  let end = brToday;
+
   switch (preset) {
     case "today":
-      start = end;
+      start = end = brToday;
       break;
     case "yesterday":
-      start = end = todayDate.subtract({ days: 1 });
+      start = end = brToday.subtract({ days: 1 });
       break;
     case "7days":
-      start = end.subtract({ days: 8 });
-      end = todayDate.subtract({days: 1});
+      start = brToday.subtract({ days: 6 });
+      end = brToday;
       break;
     case "14days":
-      start = end.subtract({ days: 15 });
-      end = todayDate.subtract({days: 1});
+      start = brToday.subtract({ days: 13 });
+      end = brToday;
       break;
     case "28days":
-      start = end.subtract({ days: 29 });
-      end = todayDate.subtract({days: 1});
+      start = brToday.subtract({ days: 27 });
+      end = brToday;
       break;
     case "month":
-      start = todayDate.set({ day: 1 });
-      end = todayDate.subtract({days: 1});
+      start = brToday.set({ day: 1 });
+      end = brToday;
       break;
   }
   value.value = { start, end };
@@ -114,9 +118,10 @@ const triggerSelection = (preset: string) => {
         const end = new CalendarDate(e.year, e.month, e.day);
         value.value = { start, end };
         calendarRef.value = { start, end };
-      } catch {}
+      } catch (err) {
+        console.error("Erro ao carregar range customizado", err);
+      }
     }
-
     return;
   }
 
@@ -127,15 +132,15 @@ const triggerSelection = (preset: string) => {
 
 const getDaysDiff = (start: any, end: any) => {
   if (!start || !end) return -1;
-  const startDate = new Date(start.year, start.month - 1, start.day);
-  const endDate = new Date(end.year, end.month - 1, end.day);
-  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-  return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  const s = new CalendarDate(start.year, start.month, start.day);
+  const e = new CalendarDate(end.year, end.month, end.day);
+  return Math.abs(e.compare(s));
 };
 
 onMounted(() => {
+  window.addEventListener("resize", updateSize);
   const savedPreset = localStorage.getItem(STORAGE_KEY);
-  
+
   if (savedPreset === "custom") {
     selectedPreset.value = "custom";
     const saved = localStorage.getItem(RANGE_KEY);
@@ -154,17 +159,15 @@ onMounted(() => {
     selectedPreset.value = savedPreset;
     applyPreset(savedPreset);
   } else {
-    // Se não houver nada salvo, detectamos pelo modelValue inicial
-    if (props.modelValue && props.modelValue.start && props.modelValue.end) {
+    if (props.modelValue?.start && props.modelValue?.end) {
       const diff = getDaysDiff(props.modelValue.start, props.modelValue.end);
-      
+
       if (diff === 0) selectedPreset.value = "today";
-      else if (diff === 1) selectedPreset.value = "yesterday";
-      else if (diff >= 6 && diff <= 8) selectedPreset.value = "7days";
-      else if (diff >= 13 && diff <= 15) selectedPreset.value = "14days";
-      else if (diff >= 27 && diff <= 30) selectedPreset.value = "28days";
+      else if (diff === 6) selectedPreset.value = "7days";
+      else if (diff === 13) selectedPreset.value = "14days";
+      else if (diff === 27) selectedPreset.value = "28days";
       else selectedPreset.value = "custom";
-      
+
       value.value = props.modelValue;
     } else {
       selectedPreset.value = "today";
@@ -172,10 +175,14 @@ onMounted(() => {
     }
   }
 
-  // Emitir valor inicial para garantir que o pai tenha o range correto sincronizado com o rótulo
   emit("update:modelValue", value.value);
 });
-const openS = ref();
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateSize);
+});
+
+const openS = ref(false);
 watch(openS, (newV) => {
   if (newV && popoverOpen.value) {
     popoverOpen.value = false;
@@ -187,30 +194,30 @@ watch(openS, (newV) => {
   <Popover v-model:open="popoverOpen">
     <PopoverAnchor as-child>
       <Select
-        v-model:open="openS"
-        :modelValue="selectedPreset"
-        @update:modelValue="triggerSelection"
+          v-model:open="openS"
+          :modelValue="selectedPreset"
+          @update:modelValue="triggerSelection"
       >
         <SelectTrigger class="md:w-96 w-full">
           <CalendarIcon class="mr-2 h-4 w-4" />
           <template v-if="selectedPreset !== 'custom'">
             {{
               selectedPreset === "today"
-                ? "Hoje"
-                : selectedPreset === "yesterday"
-                ? "Ontem"
-                : selectedPreset === "month"
-                ? "Este mês"
-                : `Últimos ${selectedPreset.replace("days", "")} dias`
+                  ? "Hoje"
+                  : selectedPreset === "yesterday"
+                      ? "Ontem"
+                      : selectedPreset === "month"
+                          ? "Este mês"
+                          : `Últimos ${selectedPreset.replace("days", "")} dias`
             }}
           </template>
           <template v-else-if="value.start">
             <template v-if="value.end">
-              {{ df.format(value.start.toDate(getLocalTimeZone())) }} –
-              {{ df.format(value.end.toDate(getLocalTimeZone())) }}
+              {{ df.format(value.start.toDate(TIMEZONE)) }} –
+              {{ df.format(value.end.toDate(TIMEZONE)) }}
             </template>
             <template v-else>
-              {{ df.format(value.start.toDate(getLocalTimeZone())) }}
+              {{ df.format(value.start.toDate(TIMEZONE)) }}
             </template>
           </template>
         </SelectTrigger>
@@ -228,12 +235,12 @@ watch(openS, (newV) => {
 
     <PopoverContent class="w-full p-4" align="center">
       <RangeCalendar
-        v-model="calendarRef"
-        weekday-format="short"
-        :locale="locale"
-        initial-focus
-        :number-of-months="width > 600 ? 2 : 1"
-        :placeholder="value.start"
+          v-model="calendarRef"
+          weekday-format="short"
+          :locale="locale"
+          initial-focus
+          :number-of-months="width > 768 ? 2 : 1"
+          :placeholder="value.start"
       />
       <Button class="w-full mt-2" @click="handleCalendar"> Aplicar </Button>
     </PopoverContent>
