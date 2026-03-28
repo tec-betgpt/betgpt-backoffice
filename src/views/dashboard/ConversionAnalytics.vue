@@ -193,6 +193,18 @@ const selectedRange = ref({
   end: null,
 });
 
+const showDateRangeWarning = computed(() => {
+  if (!selectedRange.value.start || !selectedRange.value.end) return false;
+  
+  const start = new Date(selectedRange.value.start.year, selectedRange.value.start.month - 1, selectedRange.value.start.day);
+  const end = new Date(selectedRange.value.end.year, selectedRange.value.end.month - 1, selectedRange.value.end.day);
+  
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays < 2;
+});
+
 const loading = ref(true);
 const pieChartCounts = ref({ series: [], labels: [] });
 const pieChartValues = ref({ series: [], labels: [] });

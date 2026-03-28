@@ -18,8 +18,15 @@ const ReportsService = {
   },
 
   download: async (url) => {
-    const response = await axios.get(url);
-    return response.data;
+    const fullUrl = url.startsWith('http') ? url : `${import.meta.env.VITE_API_URL}${url}`;
+    
+    const link = document.createElement('a');
+    link.href = fullUrl;
+    link.download = '';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   },
 
   projectReturnReports: async (params) => {
