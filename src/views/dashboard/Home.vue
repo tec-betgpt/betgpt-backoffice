@@ -1,45 +1,33 @@
 <template>
   <div class="view-home pb-16 w-full">
-    <div class="relative py-4 xl:py-8 rounded-lg overflow-hidden">
-      <div class="relative z-20">
-        <div class="px-5 grid md:grid-cols-2 xs:grid-cols-1 gap-2 w-full">
-          <div>
-            <div class="text-xl font-semibold text-white">
-              {{ greeting() }} {{ user ? user.first_name : "" }}.
-            </div>
-            <div class="text-xs text-white">
-              Confira as principais atualizações
-            </div>
-            <div
-              class="xs:text-xs md:text-sm text-white"
-              v-if="executionInfo && isToday()"
-            >
-              Última atualização:
-              {{ formatUpdatedAt(executionInfo.updated_at) }} em
-              {{ formatExecutionTime(executionInfo.seconds) }}
-              <RefreshCcw
-                class="h-4 w-4 ml-1 inline cursor-pointer hover:text-blue-300"
-                :class="{ 'animate-spin': isRefreshing }"
-                @click="refreshMetrics"
-              />
-            </div>
-          </div>
-
-          <div class="flex justify-end items-center w-full flex-nowrap">
-            <div class="rounded bg-card w-full md:w-auto">
-              <CustomDatePicker v-model="selectedRange" />
-            </div>
-          </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full mt-5">
+      <div>
+        <div class="text-md">
+          {{ greeting() }}
+        </div>
+        <div class="text-xl md:text-2xl lg:text-3xl font-semibold">
+          {{ user ? user.first_name : "" }}
+        </div>
+        <div
+          class="xs:text-xs md:text-sm"
+          v-if="executionInfo && isToday()"
+        >
+          Última atualização:
+          {{ formatUpdatedAt(executionInfo.updated_at) }} em
+          {{ formatExecutionTime(executionInfo.seconds) }}
+          <RefreshCcw
+            class="h-4 w-4 ml-1 inline cursor-pointer hover:text-blue-300"
+            :class="{ 'animate-spin': isRefreshing }"
+            @click="refreshMetrics"
+          />
         </div>
       </div>
 
-      <div
-        class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-[rgba(0,0,0,0.71)] to-[rgba(255,210,64,0.63)] z-10"
-      ></div>
-      <img
-        src="/dashboard.jpg"
-        class="absolute top-0 left-0 w-full h-full object-cover"
-      />
+      <div class="flex justify-end items-center w-full flex-nowrap">
+        <div class="rounded bg-card w-full md:w-auto">
+          <CustomDatePicker v-model="selectedRange" />
+        </div>
+      </div>
     </div>
 
     <div v-if="loading" class="pt-4">
@@ -83,7 +71,7 @@
         >
           <div class="pb-5 pt-10 flex justify-between items-center">
             <div>
-              <div class="text-xl">{{ item.title }}</div>
+              <div class="text-md font-semibold md:text-xl">{{ item.title }}</div>
               <div class="text-sm text-muted-foreground">
                 {{ item.subtitle }}
               </div>
@@ -115,54 +103,41 @@
                     hidden: subItem.isConditional,
                   }"
                   :draggable="item.edit"
-                  class="flex-1 item"
+                  class="flex-1 item shadow-lg"
                   @dragstart.stop="onDragStart($event, subItem)"
                   @dragover.prevent
                   @dragenter="onDragEnter(subItem)"
                   @dragleave="onDragLeave"
                   @drop="onDropSub($event, subItem, item.id)"
                 >
-                  <CardHeader class="pb-2">
-                    <CardTitle
-                      class="flex-row flex justify-between items-center"
-                    >
-                      <div class="flex justify-between items-center">
+                  <CardHeader>
+                    <CardTitle class="flex-row flex justify-between items-start gap-4">
+                      <div class="flex justify-start w-full items-center">
                         <Avatar
                           v-if="subItem.icon"
-                          class="wrapper-avatar mr-3 text-white border-gray-900 h-9 w-9 p-2"
+                          class="mr-3 bg-gradient-to-br from-[#F6CE4C] to-[#FF9F00] h-11 w-11 p-2"
                           shape="square"
                         >
-                          <Component :is="subItem.icon" :color="iconColor" />
+                          <Component :is="subItem.icon" class="h-full w-full dark:text-black" />
                         </Avatar>
-                        <span
-                          class="font-medium"
-                          :class="{ 'text-xs': !subItem.layout }"
-                        >
+
+                        <div class="font-semibold text-md max-w-[150px]">
                           {{ subItem.title }}
-                        </span>
+                        </div>
                       </div>
 
-                      <GlossaryTooltipComponent
-                        :description="subItem.tooltip"
-                      />
+                      <GlossaryTooltipComponent :description="subItem.tooltip" />
                     </CardTitle>
-                    <CardDescription
-                      v-if="subItem.layout === 'list'"
-                      class="pb-5"
-                    >
+                    <CardDescription v-if="subItem.layout === 'list'">
                       <span v-if="isShowValues">
-                        Tiveram {{ deposits.count30days }} entradas nos últimos
-                        30 dias.
+                        Tiveram {{ deposits.count30days }} entradas nos últimos 30 dias.
                       </span>
                       <skeleton-custom v-else />
                     </CardDescription>
                   </CardHeader>
 
                   <!-- LAYOUT TIPO GRÁFICO -->
-                  <CardContent
-                    v-if="subItem.layout === 'card'"
-                    class="max-sm:p-3"
-                  >
+                  <CardContent v-if="subItem.layout === 'card'" class="max-sm:p-3">
                     <BarChart
                       class="w-full"
                       :data="deposits.monthly_counts"
@@ -186,21 +161,12 @@
                         class="flex items-center w-full gap-2 min-w-0"
                       >
                         <div class="flex-1 min-w-0 space-y-1 overflow-hidden">
-                          <template
-                            v-if="
-                              depositorNamePreview(deposit.player?.name).tooltip
-                            "
-                          >
+                          <template v-if="depositorNamePreview(deposit.player?.name).tooltip">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger as-child>
-                                  <p
-                                    class="text-sm font-medium leading-none cursor-default"
-                                  >
-                                    {{
-                                      depositorNamePreview(deposit.player?.name)
-                                        .text
-                                    }}
+                                  <p class="text-sm font-medium leading-none cursor-default">
+                                    {{ depositorNamePreview(deposit.player?.name).text }}
                                   </p>
                                 </TooltipTrigger>
                                 <TooltipContent class="max-w-[min(90vw,20rem)]">
@@ -211,13 +177,8 @@
                               </Tooltip>
                             </TooltipProvider>
                           </template>
-                          <p
-                            v-else
-                            class="text-sm font-medium leading-none truncate"
-                          >
-                            {{
-                              depositorNamePreview(deposit.player?.name).text
-                            }}
+                          <p v-else class="text-sm font-medium leading-none truncate">
+                            {{ depositorNamePreview(deposit.player?.name).text }}
                           </p>
                           <p class="text-xs text-muted-foreground truncate">
                             {{ deposit.player?.email }}
@@ -225,24 +186,18 @@
                         </div>
 
                         <div class="text-right" v-if="isShowValues">
-                          <span class="font-medium"
-                            >+{{ $toCurrency(deposit.value / 100) }}</span
-                          >
+                          <span class="font-medium">
+                            +{{ $toCurrency(deposit.value / 100) }}
+                          </span>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <p
-                                  class="text-xs text-muted-foreground text-right"
-                                >
+                                <p class="text-xs text-muted-foreground text-right">
                                   {{ $moment(deposit.created_at).fromNow() }}
                                 </p>
                               </TooltipTrigger>
                               <TooltipContent>
-                                {{
-                                  $moment(deposit.created_at).format(
-                                    "DD/MM/YYYY HH:mm:ss",
-                                  )
-                                }}
+                                {{ $moment(deposit.created_at).format("DD/MM/YYYY HH:mm:ss") }}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -273,24 +228,25 @@
                   </CardContent>
 
                   <!-- LAYOUT TIPO QUANTIDADE -->
-                  <CardContent v-else-if="subItem.quantity">
-                    <div class="number" v-if="isShowValues">
-                      +{{ subItem.quantity }}
+                  <CardContent v-else-if="subItem.quantity" class="flex-col">
+                    <div class="flex flex-col my-4">
+                      <div class="text-lg md:text-2xl font-semibold" v-if="isShowValues">
+                        +{{ subItem.quantity }}
+                      </div>
+                      <SkeletonCustom v-else class="h-6 w-40 mt-5" />
+                      <small class="text-xs text-muted-foreground uppercase tracking-wider">Quantidade</small>
                     </div>
-                    <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
-                    <small class="text-xs">Quantidade</small>
 
-                    <div class="number mt-5" v-if="isShowValues">
-                      {{ $toCurrency(subItem.value) }}
+                    <div class="flex flex-col">
+                      <div class="text-lg md:text-2xl font-semibold" v-if="isShowValues">
+                        {{ $toCurrency(subItem.value) }}
+                      </div>
+                      <SkeletonCustom v-else class="my-5 h-6 w-40 mt-5" />
+                      <small class="text-xs text-muted-foreground uppercase tracking-wider">Total</small>
                     </div>
-                    <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
-                    <small class="text-xs">Total</small>
 
                     <div v-if="isShowValues">
-                      <div
-                        v-if="subItem.variation"
-                        class="mt-3 inline-block flex text-xs"
-                      >
+                      <div v-if="subItem.variation" class="mt-3 inline-block flex text-xs">
                         <div
                           v-if="subItem.variation > 0"
                           class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-green-700 text-green-200"
@@ -311,13 +267,13 @@
                   </CardContent>
 
                   <CardContent
-                    v-else-if="
-                      subItem.count !== undefined && subItem.count !== null
-                    "
+                    v-else-if="subItem.count !== undefined && subItem.count !== null"
+                    class="max-sm:flex max-sm:flex-col"
                   >
-                    <div class="number" v-if="isShowValues">
-                      {{ subItem.count }}
+                    <div class="text-lg md:text-2xl font-semibold" v-if="isShowValues">
+                      {{ subItem.prefix }}{{ subItem.count }}{{ subItem.suffix }}
                     </div>
+
                     <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
 
                     <div v-if="isShowValues">
@@ -342,25 +298,18 @@
                   </CardContent>
 
                   <!-- LAYOUT PADRÃO -->
-                  <CardContent v-else>
+                  <CardContent v-else class="max-sm:flex max-sm:flex-col">
                     <div
                       v-if="isShowValues"
                       :title="subItem.value"
-                      class="number"
+                      class="text-lg md:text-2xl font-semibold"
                     >
-                      {{
-                        subItem.suffix
-                          ? subItem.value
-                          : $toCurrency(subItem.value)
-                      }}{{ subItem.suffix }}
+                      {{ subItem.prefix }}{{ subItem.suffix ? subItem.value : $toCurrency(subItem.value) }}{{ subItem.suffix }}
                     </div>
                     <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
 
                     <div v-if="isShowValues">
-                      <div
-                        v-if="subItem.variation"
-                        class="mt-3 flex items-center text-xs"
-                      >
+                      <div v-if="subItem.variation" class="mt-3 flex items-center text-xs">
                         <div
                           v-if="subItem.variation > 0"
                           class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-green-700 text-green-200"
@@ -416,7 +365,6 @@
 
 <script lang="ts">
 import Home from "@/services/home";
-import Auth from "@/services/auth";
 import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import {
@@ -1405,12 +1353,5 @@ export default {
   to {
     transform: rotate(360deg);
   }
-}
-
-.icon-link {
-  transition: color 0.2s ease;
-}
-.icon-link:hover {
-  color: var(--primary);
 }
 </style>

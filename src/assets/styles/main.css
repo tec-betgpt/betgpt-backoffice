@@ -165,7 +165,10 @@
 @layer base {
   * {
     @apply border-border;
+    --font-sans: 'Red Hat Display', sans-serif;
+    --font-display: 'Red Hat Display', sans-serif;
   }
+
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;

@@ -198,7 +198,7 @@ watch(openS, (newV) => {
           :modelValue="selectedPreset"
           @update:modelValue="triggerSelection"
       >
-        <SelectTrigger class="md:w-96 w-full">
+        <SelectTrigger class="md:w-60 w-full">
           <CalendarIcon class="mr-2 h-4 w-4" />
           <template v-if="selectedPreset !== 'custom'">
             {{

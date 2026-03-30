@@ -22,6 +22,10 @@ module.exports = {
   		}
   	},
   	extend: {
+		fontFamily: {
+			sans: ['Red Hat Display', 'sans-serif'],
+			display: ['Red Hat Display', 'sans-serif'],
+		},
   		colors: {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
