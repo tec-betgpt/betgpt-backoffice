@@ -399,12 +399,14 @@ const getAge = (value: string) => {
 
 const formatDate = (date: any) => {
   if (!date) return '---';
-  return new Intl.DateTimeFormat('pt-BR').format(new Date(date));
-};
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'UTC'
+  }).format(new Date(date));};
 
 const formatDateTime = (date: any) => {
   if (!date) return '---';
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(date));
+  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'medium',timeZone: 'UTC' }).format(new Date(date));
 };
 
 const formatCurrency = (value: any) => {
