@@ -1,8 +1,7 @@
 <template>
   <SidebarProvider :defaultOpen="false">
-    <LeftMenuComponent
-      v-model:sidebarExpanded="sidebarExpanded"
-    />
+    <LeftMenuComponent v-model:sidebarExpanded="sidebarExpanded" />
+
     <SidebarInset>
       <header
         class="flex sticky z-30 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4"
