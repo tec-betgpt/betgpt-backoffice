@@ -507,8 +507,12 @@ export default {
       percentage: 0,
       ftd_general_percent: 0,
       ftd_registered_users_count: 0,
+      ftd_registered_users_amount: 0,
       ftd_registered_users_percent: 0,
       registered_users_day: 0,
+      ftd_post_d0_count: 0,
+      ftd_post_d0_amount: 0,
+      ftd_post_d0_percent: 0,
     },
     dragOverNewRow: null,
     activeNow: { count: 0, change: 0 },
@@ -526,8 +530,19 @@ export default {
       total_net_deposits: 0,
       total_paid_deposits: 0,
       total_pending_deposits: 0,
+      performance_return_hidden: true,
+      performance_return_total: null as number | null,
     },
-    withdraws: { total: 0, percentage: 0 },
+    withdraws: {
+      total: 0,
+      percentage: 0,
+      average_ticket: 0,
+      conversion_rate: 0,
+      generated_withdraws: 0,
+      paid_withdraws: 0,
+      total_pending_withdraws: 0,
+      total_paid_withdraws: 0,
+    },
     projects: [],
     user: null,
     loading: true,
@@ -864,7 +879,7 @@ export default {
             },
             {
               id: "players",
-              title: "Visão Geral dos Jogadores",
+              title: "Visão Geral dos Clientes",
               subtitle: "Confira os últimos indicadores",
               content: this.buildCardsPlayers(),
               edit: false,
@@ -915,7 +930,7 @@ export default {
         },
         {
           id: "players",
-          title: "Visão Geral dos Jogadores",
+          title: "Visão Geral dos Clientes",
           subtitle: "Confira os últimos indicadores",
           content: this.buildCardsPlayers(),
           edit: false,
@@ -968,6 +983,29 @@ export default {
           return { ...groupData, content: newContent };
         })
         .filter(Boolean);
+
+      this.mergeMissingDashboardCards();
+    },
+
+    mergeMissingDashboardCards() {
+      const specs = [
+        { id: "depositors", build: () => this.buildCardsDeposits() },
+        { id: "players", build: () => this.buildCardsPlayers() },
+        { id: "withdraws", build: () => this.buildCardsWithdraws() },
+        { id: "retention", build: () => this.buildCardsRetention() },
+        { id: "history", build: () => this.buildCardsHistory() },
+      ];
+      for (const { id, build } of specs) {
+        const group = this.cards.find((g) => g.id === id);
+        if (!group) continue;
+        const defaultRows = build();
+        const present = new Set(group.content.flat().map((c) => c.id));
+        const missing = defaultRows.flat().filter((c) => !present.has(c.id));
+        if (!missing.length) continue;
+        if (!group.content.length) group.content = [[]];
+        const last = group.content[group.content.length - 1];
+        last.push(...missing);
+      }
     },
 
     buildCardsDeposits() {
@@ -983,12 +1021,21 @@ export default {
         },
         {
           id: "volume-liquido-entradas",
-          title: "Volume Líquido de Entradas",
+          title: "Retorno Bruto",
           tooltip:
             "Valor total líquido de entradas financeiras na plataforma (ex: depósitos, pagamentos ou compras).",
           value: this.deposits.total_net_deposits / 100,
           icon: "Banknote",
           isConditional: false,
+        },
+        {
+          id: "retorno-performance",
+          title: "Retorno de Performance",
+          tooltip:
+            "Receita total do relatório de conversões (soma Elevate + Outros), igual ao card Total na página de conversões. Indisponível para o dia atual ou o dia anterior em visão de um único dia.",
+          value: this.deposits.performance_return_total ?? 0,
+          icon: "ChartCandlestick",
+          isConditional: this.deposits.performance_return_hidden,
         },
         {
           id: "ticket-medio-entradas",
@@ -1031,9 +1078,9 @@ export default {
         },
         {
           id: "primeiras-entradas",
-          title: "Primeiras Entradas",
+          title: "Cadastros Convertidos em Clientes",
           tooltip:
-            "Total de entradas financeiras geradas por usuários que realizaram sua primeira transação",
+            "Total de primeiras entradas (FTD) no período — cadastros que se converteram em clientes pagantes.",
           quantity: this.deposits.total_ftd_count,
           value: this.deposits.total_ftd_amount / 100,
           icon: "ListCheck",
@@ -1041,15 +1088,16 @@ export default {
         },
       ];
 
-      return [allCards.slice(0, 4), allCards.slice(4, 7)];
+      return [allCards.slice(0, 4), allCards.slice(4, 8)];
     },
 
     buildCardsPlayers() {
       const allCards = [
         {
           id: "total-registros",
-          title: "Total de Registros",
-          tooltip: "Total de usuários registrados na base da Elevate",
+          title: "Total de Cadastros",
+          tooltip:
+            "Total de cadastros vinculados ao(s) projeto(s) filtrado(s) (contagem distinta na base da Elevate).",
           count: this.players.count,
           variation: this.players.change,
           icon: "Users",
@@ -1057,9 +1105,9 @@ export default {
         },
         {
           id: "usuarios-ativos",
-          title: "Usuários Ativos",
+          title: "Clientes Ativos",
           tooltip:
-            "Total de usuários ativos com pelo menos um pagamento nos últimos 30 dias",
+            "Total de clientes ativos com pelo menos um pagamento nos últimos 30 dias",
           count: this.activeNow.count,
           variation: this.activeNow.change,
           icon: "UserRound",
@@ -1067,9 +1115,9 @@ export default {
         },
         {
           id: "novos-registros",
-          title: "Novos Registros",
+          title: "Novos Cadastros",
           tooltip:
-            "Total de usuários que completaram o cadastro no sistema no periodo especifico",
+            "Total de cadastros completos no sistema no período selecionado",
           value: this.players.registered_users_day,
           icon: "UserRoundPlus",
         },
@@ -1077,33 +1125,53 @@ export default {
           id: "taxa-conversao-geral",
           title: "Taxa de Conversão Geral",
           tooltip:
-            "Percentual de usuários cadastrados que realizaram uma primeira transação validada.",
+            "Percentual de cadastros do período que realizaram uma primeira transação validada (FTD).",
           value: (this.players.ftd_general_percent / 100).toFixed(2),
           suffix: "%",
           icon: "CirclePercent",
         },
         {
           id: "primeiros-depositantes",
-          title: "Primeiros Entrantes",
+          title: "Cadastros convertidos em Clientes em D0",
           tooltip:
-            "Usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro.",
-          value: this.players.ftd_registered_users_count,
+            "Cadastros cuja primeira transação (FTD) ocorreu no mesmo dia do cadastro.",
+          quantity: this.players.ftd_registered_users_count,
+          value: this.players.ftd_registered_users_amount / 100,
           icon: "Wallet",
         },
         {
           id: "taxa-conversao-d0",
           title: "Taxa de Conversão em D0",
           tooltip:
-            "Percentual de usuários que realizaram sua primeira transação (compra, depósito ou equivalente) no mesmo dia do cadastro.",
+            "Percentual de cadastros do período que realizaram a primeira transação no mesmo dia do cadastro.",
           value: (this.players.ftd_registered_users_percent / 100).toFixed(2),
+          suffix: "%",
+          icon: "CirclePercent",
+        },
+        {
+          id: "convertidos-pos-d0",
+          title: "Convertidos pós D0",
+          tooltip:
+            "Primeiras entradas no período menos conversões em D0 (FTD após o dia do cadastro).",
+          quantity: this.players.ftd_post_d0_count,
+          value: this.players.ftd_post_d0_amount / 100,
+          icon: "CalendarCheck2",
+        },
+        {
+          id: "percentual-convertidos-pos-d0",
+          title: "% Clientes Convertidos pós D0",
+          tooltip:
+            "(Primeiras entradas − convertidos em D0) ÷ primeiras entradas, no período.",
+          value: Number(this.players.ftd_post_d0_percent ?? 0).toFixed(2),
           suffix: "%",
           icon: "CirclePercent",
         },
       ];
 
       return [
-        allCards.slice(0, 3), // Primeira linha
-        allCards.slice(3, 6), // Segunda linha
+        allCards.slice(0, 3),
+        allCards.slice(3, 6),
+        allCards.slice(6, 8),
       ];
     },
 
@@ -1121,7 +1189,7 @@ export default {
         {
           id: "ticket-medio-saida",
           title: "Ticket Médio de Saída",
-          tooltip: "Valor médio por transação de saída processada.",
+          tooltip: "Valor médio por transação de saída confirmada.",
           value: this.withdraws.average_ticket / 100,
           icon: "ChartNoAxesColumn",
         },
@@ -1129,7 +1197,7 @@ export default {
           id: "taxa-aprovacao-saques",
           title: "Taxa de Aprovação",
           tooltip:
-            "Taxa de aprovação de saídas solicitadas e saídas processadas",
+            "Taxa de aprovação de saídas solicitadas e saídas confirmadas",
           value: this.withdraws.conversion_rate,
           suffix: "%",
           icon: "BadgeCheck",
@@ -1145,9 +1213,9 @@ export default {
         },
         {
           id: "saidas-processadas",
-          title: "Saídas Processadas",
+          title: "Saídas Confirmadas",
           tooltip:
-            "Valor total de saídas que foram processadas e pagas com sucesso.",
+            "Valor total de saídas confirmadas e pagas com sucesso.",
           quantity: this.withdraws.paid_withdraws,
           value: this.withdraws.total_paid_withdraws / 100,
           icon: "BanknoteArrowUp",
@@ -1166,7 +1234,7 @@ export default {
           id: "tempo-medio-retencao",
           title: "Tempo Médio de Retenção",
           tooltip:
-            "Tempo médio entre a primeira transação do usuário e sua última transação.",
+            "Média consolidada em project_metrics (jobs de métricas): dias entre primeira e última entrada, apenas perfis com FTD e última entrada na Elevate.",
           value: this.retention.time,
           icon: "Hourglass",
         },
@@ -1181,7 +1249,7 @@ export default {
           id: "ticket-medio-pos-ativacao",
           title: "Ticket Médio Pós-Ativação",
           tooltip:
-            "Valor médio transacionado por usuários desde a primeira transação.",
+            "Média de retention_rate consolidada em project_metrics (CalculateRetentionAvgJob + métricas diárias/horárias), entre perfis com valor calculado.",
           value: this.retention.ticket_avg / 100,
           icon: "ChartNoAxesColumn",
         },
