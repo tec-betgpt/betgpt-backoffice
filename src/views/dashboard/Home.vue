@@ -1032,7 +1032,7 @@ export default {
           id: "retorno-performance",
           title: "Retorno de Performance",
           tooltip:
-            "Receita total do relatório de conversões (soma Elevate + Outros), igual ao card Total na página de conversões. Indisponível para o dia atual ou o dia anterior em visão de um único dia.",
+            "Receita total do relatório de conversões.",
           value: this.deposits.performance_return_total ?? 0,
           icon: "ChartCandlestick",
           isConditional: this.deposits.performance_return_hidden,
