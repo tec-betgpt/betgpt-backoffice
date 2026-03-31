@@ -87,6 +87,59 @@
             </template>
           </CardContent>
         </Card>
+
+        <!-- Perguntas Padrão -->
+        <Card class="shadow-sm border-none md:border">
+          <CardHeader>
+            <div class="flex items-center gap-2">
+              <Plus class="h-5 w-5 text-green-500" />
+              <CardTitle class="text-lg">Perguntas Padrão</CardTitle>
+            </div>
+            <CardDescription>
+              Configure perguntas frequentes que podem ser rapidamente selecionadas e usadas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="flex gap-2">
+              <Input 
+                v-model="newQuestion" 
+                placeholder="Digite uma pergunta padrão..." 
+                @keyup.enter="addQuestion"
+                class="bg-slate-50/50 dark:bg-slate-900/20"
+              />
+              <Button @click="addQuestion" :disabled="!newQuestion">
+                <Loader2 v-if="isAddingQuestion" class="h-4 w-4 animate-spin" />
+                <Plus v-else class="h-4 w-4" />
+              </Button>
+            </div>
+            <div class="space-y-2 max-h-48 overflow-y-auto">
+              <div 
+                v-for="q in savedQuestions" 
+                :key="q.id"
+                class="group flex items-center justify-between p-3 rounded-lg border bg-slate-50/50 dark:bg-slate-900/20 hover:bg-slate-100 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+              >
+                <span 
+                  class="text-sm text-foreground flex-1 line-clamp-2"
+                  @click="selectQuestion(q.text)"
+                  :title="q.text"
+                >
+                  {{ q.text }}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  class="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                  @click.stop="removeQuestion(q.id)"
+                >
+                  <X class="h-3 w-3" />
+                </Button>
+              </div>
+              <p v-if="savedQuestions.length === 0" class="text-sm text-muted-foreground text-center py-4">
+                Nenhuma pergunta padrão salva.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <!-- Coluna Direita: MCP Tools -->
@@ -153,7 +206,7 @@
 import { ref, onMounted } from "vue";
 import { 
   Terminal, Save, RotateCcw, 
-  Loader2, Wrench, Settings2 
+  Loader2, Wrench, Settings2, X, Plus
 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -161,6 +214,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast/use-toast";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 
@@ -176,6 +230,9 @@ const config = ref({
 });
 
 const mcpTools = ref([] as any[]);
+const savedQuestions = ref([] as any[]);
+const newQuestion = ref("");
+const isAddingQuestion = ref(false);
 
 const fetchSettings = async () => {
   isLoading.value = true;
@@ -212,7 +269,51 @@ const fetchSettings = async () => {
     }
     };
 
-    onMounted(fetchSettings);
+    onMounted(async () => {
+      await fetchSettings();
+      await fetchQuestions();
+    });
+
+    const fetchQuestions = async () => {
+      try {
+        const questions = await IntelligenceArtificial.getQuestions();
+        savedQuestions.value = questions.data.data || [];
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const addQuestion = async () => {
+      if (!newQuestion.value.trim()) return;
+      isAddingQuestion.value = true;
+      try {
+        await IntelligenceArtificial.createQuestion({ text: newQuestion.value.trim() });
+        newQuestion.value = "";
+        await fetchQuestions();
+        toast({ title: "Pergunta salva", description: "Nova pergunta padrão adicionada com sucesso." });
+      } catch (error) {
+        console.error(error);
+        toast({ title: "Erro", description: "Não foi possível salvar a pergunta.", variant: "destructive" });
+      } finally {
+        isAddingQuestion.value = false;
+      }
+    };
+
+    const removeQuestion = async (id: number) => {
+      try {
+        await IntelligenceArtificial.deleteQuestion(id);
+        await fetchQuestions();
+        toast({ title: "Removido", description: "Pergunta removida com sucesso." });
+      } catch (error) {
+        console.error(error);
+        toast({ title: "Erro", description: "Não foi possível remover a pergunta.", variant: "destructive" });
+      }
+    };
+
+    const selectQuestion = (question: string) => {
+      navigator.clipboard.writeText(question);
+      toast({ title: "Copiado", description: "Pergunta copiada para a área de transferência." });
+    };
 
     const toggleTool = (name: any) => {
     const toolName = String(name);

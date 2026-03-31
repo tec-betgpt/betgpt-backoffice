@@ -155,5 +155,41 @@ export default {
     async saveAiSettings(settings) {
         const { data } = await api.post(`ia/ia-settings`, settings);
         return data;
+    },
+
+    /**
+     * GET /api/v1/ai/questions
+     *
+     * Retorna as perguntas salvas.
+     * @returns {Promise<Array>}
+     */
+    async getQuestions() {
+        const { data } = await api.get(`ia/questions`);
+        return data;
+    },
+
+    /**
+     * POST /api/v1/ai/questions
+     *
+     * Cria uma nova pergunta salva.
+     * @param {Object} params
+     * @param {string} params.text
+     * @returns {Promise<any>}
+     */
+    async createQuestion(params) {
+        const { data } = await api.post(`ia/questions`, params);
+        return data;
+    },
+
+    /**
+     * DELETE /api/v1/ai/questions/{id}
+     *
+     * Deleta uma pergunta salva.
+     * @param {number} id
+     * @returns {Promise<any>}
+     */
+    async deleteQuestion(id) {
+        const { data } = await api.delete(`ia/questions`,{params: {id:id}});
+        return data;
     }
 }
