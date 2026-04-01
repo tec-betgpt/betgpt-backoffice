@@ -1,22 +1,31 @@
 import { defineStore } from "pinia";
 import UserProjectGroup from "@/services/userProjectGroup";
 
+interface ActiveGroupProject {
+  id: string
+  is_selected: boolean
+  label: string
+  logo: string | null
+  name: string
+  type: "group" | "project"
+}
+
 export const useWorkspaceStore = defineStore("workspace", {
   state: () => ({
-    activeGroupProject: null,
+    activeGroupProject: null as ActiveGroupProject | null,
     group_projects: [],
-    lastAnnotationUpdate: null,
+    lastAnnotationUpdate: null as number | null,
   }),
   actions: {
     notifyAnnotationUpdate() {
       this.lastAnnotationUpdate = Date.now();
     },
 
-    async setProjects(newGroupProjects) {
+    async setProjects(newGroupProjects: any) {
       this.group_projects = newGroupProjects;
     },
 
-    async setActiveGroupProject(project) {
+    async setActiveGroupProject(project: any) {
       if (!project) return;
 
       this.activeGroupProject = project;
@@ -30,7 +39,7 @@ export const useWorkspaceStore = defineStore("workspace", {
       }
     },
 
-    async loadInitialData(preferences, newGroupProjects) {
+    async loadInitialData(preferences: any, newGroupProjects: any) {
       await this.setProjects(newGroupProjects);
 
       if (
@@ -41,7 +50,7 @@ export const useWorkspaceStore = defineStore("workspace", {
       }
 
       const favoriteProject = newGroupProjects.find(
-        (project) => project.id === preferences.selected_group_project
+        (project: any) => project.id === preferences.selected_group_project
       );
 
       if (favoriteProject) {
