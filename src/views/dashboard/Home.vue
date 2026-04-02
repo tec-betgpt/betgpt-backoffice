@@ -1,6 +1,6 @@
 <template>
   <div class="view-home pb-16 w-full">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full mt-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 w-full mt-5">
       <div>
         <div class="text-md">
           {{ greeting() }}
@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <div v-if="loading" class="pt-4">
+    <div v-if="loading" class="pt-2">
       <Card class="w-full">
         <div class="p-4 rounded shadow">
           <div class="flex justify-between items-center mb-2">
@@ -69,7 +69,7 @@
           @dragleave="onDragLeave"
           @drop="onDrop($event, item)"
         >
-          <div class="pb-5 pt-10 flex justify-between items-center">
+          <div class="py-4 md:py-8 flex justify-between items-center">
             <div>
               <div class="text-md font-semibold md:text-xl">{{ item.title }}</div>
               <div class="text-sm text-muted-foreground">
@@ -82,16 +82,15 @@
             </div>
           </div>
 
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-2">
             <TransitionGroup
               v-for="(row, rowIndex) in item.content"
               :key="rowIndex"
               name="card-animation"
               tag="div"
-              class="flex gap-4"
             >
               <div
-                class="flex gap-4 w-full"
+                class="flex gap-2 w-full"
                 :key="rowIndex + 1"
                 :ref="(el) => setRowRef(el, rowIndex)"
               >
@@ -110,18 +109,18 @@
                   @dragleave="onDragLeave"
                   @drop="onDropSub($event, subItem, item.id)"
                 >
-                  <CardHeader>
-                    <CardTitle class="flex-row flex justify-between items-start gap-4">
+                  <CardHeader class="pb-2 md:pb-4">
+                    <CardTitle class="flex-row flex justify-between items-start gap-1">
                       <div class="flex justify-start w-full items-center">
                         <Avatar
                           v-if="subItem.icon"
-                          class="mr-3 bg-gradient-to-br from-[#F6CE4C] to-[#FF9F00] h-11 w-11 p-2"
+                          class="mr-3 bg-gradient-to-br from-[#F6CE4C] to-[#FF9F00] h-8 w-8 md:h-11 md:w-11 p-2"
                           shape="square"
                         >
                           <Component :is="subItem.icon" class="h-full w-full dark:text-black" />
                         </Avatar>
 
-                        <div class="font-semibold text-md max-w-[150px]">
+                        <div class="font-semibold text-sm md:text-md">
                           {{ subItem.title }}
                         </div>
                       </div>
@@ -137,7 +136,7 @@
                   </CardHeader>
 
                   <!-- LAYOUT TIPO GRÁFICO -->
-                  <CardContent v-if="subItem.layout === 'card'" class="max-sm:p-3">
+                  <CardContent v-if="subItem.layout === 'card'" class="max-sm:px-3 h-60 md:h-auto pb-12">
                     <BarChart
                       class="w-full"
                       :data="deposits.monthly_counts"
@@ -229,24 +228,24 @@
 
                   <!-- LAYOUT TIPO QUANTIDADE -->
                   <CardContent v-else-if="subItem.quantity" class="flex-col">
-                    <div class="flex flex-col my-4">
+                    <div class="flex flex-col">
                       <div class="text-lg md:text-2xl font-semibold" v-if="isShowValues">
                         +{{ subItem.quantity }}
                       </div>
-                      <SkeletonCustom v-else class="h-6 w-40 mt-5" />
-                      <small class="text-xs text-muted-foreground uppercase tracking-wider">Quantidade</small>
+                      <SkeletonCustom v-else class="h-7 w-40" />
+                      <div class="text-xs text-muted-foreground uppercase">Quantidade</div>
                     </div>
 
-                    <div class="flex flex-col">
+                    <div class="flex flex-col mt-2">
                       <div class="text-lg md:text-2xl font-semibold" v-if="isShowValues">
                         {{ $toCurrency(subItem.value) }}
                       </div>
-                      <SkeletonCustom v-else class="my-5 h-6 w-40 mt-5" />
-                      <small class="text-xs text-muted-foreground uppercase tracking-wider">Total</small>
+                      <SkeletonCustom v-else class="h-7 w-40" />
+                      <div class="text-xs text-muted-foreground uppercase">Total</div>
                     </div>
 
                     <div v-if="isShowValues">
-                      <div v-if="subItem.variation" class="mt-3 inline-block flex text-xs">
+                      <div v-if="subItem.variation" class="inline-block flex text-xs">
                         <div
                           v-if="subItem.variation > 0"
                           class="flex align-baseline rounded-md p-1 text-xs mr-1 justify-start items-center bg-green-700 text-green-200"
@@ -306,7 +305,7 @@
                     >
                       {{ subItem.prefix }}{{ subItem.suffix ? subItem.value : $toCurrency(subItem.value) }}{{ subItem.suffix }}
                     </div>
-                    <SkeletonCustom v-else mt-5 class="h-6 w-40 mt-5" />
+                    <SkeletonCustom v-else mt-5 class="h-7 w-40 mt-5" />
 
                     <div v-if="isShowValues">
                       <div v-if="subItem.variation" class="mt-3 flex items-center text-xs">

@@ -106,16 +106,19 @@
     </TableHeader>
 
     <TableBody>
+
       <template v-if="loading">
-        <TableRow
-          v-for="headerGroup in table.getHeaderGroups()"
-          :key="`loading-${headerGroup.index}`"
-        >
+        <TableRow v-for="(headerGroup, headerIndex) in table.getHeaderGroups()" :key="headerIndex">
           <TableCell v-for="header in headerGroup.headers" :key="header.index">
-            <Skeleton v-for="index in 5" class="h-4 w-full bg-gray-300 my-4" />
+            <Skeleton v-for="index in headerGroup.headers.length" class="h-4 w-full bg-gray-300 my-4" />
+          </TableCell>
+
+          <TableCell v-if="props.select">
+            <Skeleton v-for="index in headerGroup.headers.length" class="h-4 w-full bg-gray-300 my-4" />
           </TableCell>
         </TableRow>
       </template>
+
       <TableRow v-else v-for="row in table.getRowModel().rows" :key="row.id" 
         @click="handleRowClick(row.original)" 
         :class="[

@@ -15,6 +15,7 @@
           <TableHeader>
             <TableRow>
               <TableHead>Título</TableHead>
+              <TableHead v-if="activeGroupProjectType == 'group'">Projeto</TableHead>
               <TableHead>Recurso</TableHead>
               <TableHead>Gráfico</TableHead>
               <TableHead>Cor</TableHead>
@@ -32,13 +33,15 @@
             <template v-else>
               <TableRow v-for="annotation in projectAnnotations" :key="annotation.id">
                 <TableCell class="font-medium">{{ annotation.title }}</TableCell>
+                <TableCell>{{ annotation.project.name }}</TableCell>
                 <TableCell>{{ annotation.resource || "N/A" }}</TableCell>
                 <TableCell>{{ annotation.chart_name || "Global" }}</TableCell>
                 <TableCell>
                   <div
+                    v-if="annotation.color"
                     class="w-4 h-4 rounded-full border"
-                    :style="{ backgroundColor: annotation.color }"
-                  />
+                    :style="{ backgroundColor: annotation.color }">
+                  </div>
                 </TableCell>
                 <TableCell>{{ formatDate(annotation.date) }}</TableCell>
                 <TableCell>{{ formatDate(annotation.date_end) }}</TableCell>
@@ -101,7 +104,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
-import { getLocalTimeZone } from "@internationalized/date";
 import { useToast } from "@/components/ui/toast/use-toast";
 import ProjectAnnotations from "@/services/projectAnnotations";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -122,10 +124,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Eye, Pencil } from "lucide-vue-next";
 import moment from "moment";
+import { ProjectAnnotation } from "@/contracts/projectAnnotation";
 
 const { toast } = useToast();
 const isLoading = ref(true);
-const projectAnnotations = ref([]);
+const projectAnnotations = ref<ProjectAnnotation[]>([]);
 const pages = ref({
   current: 1,
   last: 0,
@@ -135,7 +138,7 @@ const selectedRange = ref();
 const perPage = ref(15);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject!.id;
-
+const activeGroupProjectType = workspaceStore.activeGroupProject!.type;
 const isDetailsOpen = ref(false);
 const isEditOpen = ref(false);
 const selectedAnnotation = ref(null);
@@ -150,13 +153,13 @@ const fetchProjectAnnotations = async (current = 1) => {
       per_page: perPage.value,
     };
 
-    const data = await ProjectAnnotations.all(params);
+    const response = await ProjectAnnotations.all(params);
 
-    projectAnnotations.value = data.data;
+    projectAnnotations.value = response.data;
     pages.value = {
-      current: data.current_page,
-      last: data.last_page,
-      total: data.total,
+      current: response.current_page,
+      last: response.last_page,
+      total: response.total,
     };
   } catch (error) {
     toast({
@@ -196,7 +199,7 @@ const editAnnotation = (annotation: any) => {
   isEditOpen.value = true;
 };
 
-const formatDate = (date: string) => {
+const formatDate = (date: string | null) => {
   if (!date) return "N/A";
   return moment(date).format("DD/MM/YYYY");
 };

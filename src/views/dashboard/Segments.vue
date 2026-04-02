@@ -159,7 +159,13 @@ const nameSegment = ref();
 const orderId = ref("");
 const order = ref(false);
 const segmentColumnHelper = createColumnHelper<SegmentData>();
-const perPage = ref(10);
+const isUpdating = ref<number | null>(null);
+const perPage = ref(15);
+const pages = ref({
+  current: 1,
+  total: 0,
+  last: 0,
+});
 
 interface SegmentData {
   id: number;
@@ -197,8 +203,9 @@ function handlerOrder(column: string, direction: boolean) {
 }
 
 const fetchSegments = async (current: number = pages.value.current) => {
+  isLoading.value = true;
+
   try {
-    isLoading.value = true;
     const params = {
       is_segment: true,
       page: current,
@@ -208,12 +215,15 @@ const fetchSegments = async (current: number = pages.value.current) => {
       type_order: order.value ? "asc" : "desc",
       per_page: perPage.value,
     };
+
     const response = await TargetAudience.index(params);
     segments.value = response.target_audiences || [];
+
+    segments.value = response.data.target_audiences || [];
     pages.value = {
-      current: response.pagination.current_page,
-      last: response.pagination.last_page,
-      total: response.pagination.total,
+      current: response.data.pagination.current_page,
+      last: response.data.pagination.last_page,
+      total: response.data.pagination.total,
     };
   } catch (error) {
     console.error("Error loading segments:", error);
@@ -222,13 +232,10 @@ const fetchSegments = async (current: number = pages.value.current) => {
       description: "Não foi possível carregar os segmentos",
       variant: "destructive",
     });
-  } finally {
-    isLoading.value = false;
   }
-};
 
-watch(perPage, () => fetchSegments(1));
-watch(activeGroupProjectId, () => fetchSegments(1));
+  isLoading.value = false;
+};
 
 const deleteSegment = async (segmentId: number) => {
   try {
@@ -355,8 +362,6 @@ function createHeaderButton(label: string, columnKey: string, activeId: string, 
     ],
   );
 }
-
-const isUpdating = ref<number | null>(null);
 
 const forceSegmentUpdate = async (segmentId: number) => {
   isUpdating.value = segmentId;
@@ -547,20 +552,8 @@ const columns = [
   },
 ];
 
-const pages = ref({
-  current: 1,
-  total: 0,
-  last: 0,
-});
+onMounted(async () => await fetchSegments());
 
-onMounted(async () => {
-  isLoading.value = true;
-  try {
-    await fetchSegments();
-  } catch (error) {
-    console.error("Error loading data:", error);
-  } finally {
-    isLoading.value = false;
-  }
-});
+watch(perPage, () => fetchSegments(1));
+watch(activeGroupProjectId, () => fetchSegments(1));
 </script>

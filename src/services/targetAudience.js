@@ -17,7 +17,7 @@ export default {
    */
   async index (params = {}) {
     const { data } = await api.get('/target-audiences', { params })
-    return data.data
+    return data
   },
 
   /**
