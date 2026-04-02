@@ -87,7 +87,7 @@ const goToNext = () => {
     </Pagination>
 
     <Select v-model="localPerPage">
-      <SelectTrigger class="w-fit">
+      <SelectTrigger class="w-fit text-nowrap">
         <span>{{ perPage }} por página</span>
       </SelectTrigger>
       <SelectContent>
