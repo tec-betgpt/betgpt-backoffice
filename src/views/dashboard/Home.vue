@@ -1234,7 +1234,7 @@ export default {
           id: "tempo-medio-retencao",
           title: "Tempo Médio de Retenção",
           tooltip:
-            "Média consolidada em project_metrics (jobs de métricas): dias entre primeira e última entrada, apenas perfis com FTD e última entrada na Elevate.",
+            "Tempo médio consolidada: dias entre primeira e última entrada, apenas perfis com FTD e última entrada.",
           value: this.retention.time,
           icon: "Hourglass",
         },
@@ -1249,7 +1249,7 @@ export default {
           id: "ticket-medio-pos-ativacao",
           title: "Ticket Médio Pós-Ativação",
           tooltip:
-            "Média de retention_rate consolidada em project_metrics (CalculateRetentionAvgJob + métricas diárias/horárias), entre perfis com valor calculado.",
+            "Média da taxa de retenção consolidada, entre perfis com valor calculado.",
           value: this.retention.ticket_avg / 100,
           icon: "ChartNoAxesColumn",
         },
