@@ -79,7 +79,7 @@
           <TagManager
             v-if="segmentForTags"
             :model-id="segmentForTags.id"
-            model-type="segment"
+            model-type="targetAudience"
           />
         </div>
         <DialogFooter>
@@ -94,7 +94,6 @@
 
 <script setup lang="ts">
 import { h, ref, onMounted, watch, computed } from "vue";
-import Segments from "@/services/segments";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -137,6 +136,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import SegmentContactsDialog from "@/components/segments/SegmentContactsDialog.vue";
 import { useAuthStore } from "@/stores/auth";
+import TargetAudience from "@/services/targetAudience";
 
 const { t } = useI18n();
 const { toast } = useToast();
@@ -207,19 +207,20 @@ const fetchSegments = async (current: number = pages.value.current) => {
   try {
     isLoading.value = true;
     const params = {
+      is_segment: true,
       page: current,
       filter_id: activeGroupProjectId.value,
-      find_name: nameSegment.value,
-      sort_by: orderId.value,
-      sort_order: order.value ? "asc" : "desc",
+      search: nameSegment.value,
+      order_by: orderId.value,
+      type_order: order.value ? "asc" : "desc",
       per_page: perPage.value,
     };
-    const response = await Segments.index(params);
-    segments.value = response.data.segments || [];
+    const response = await TargetAudience.index(params);
+    segments.value = response.data || [];
     pages.value = {
-      current: response.data.pagination.current_page,
-      last: response.data.pagination.last_page,
-      total: response.data.pagination.total,
+      current: response.current_page,
+      last: response.last_page,
+      total: response.total,
     };
   } catch (error) {
     console.error("Error loading segments:", error);
@@ -239,7 +240,7 @@ watch(activeGroupProjectId, () => fetchSegments(1));
 const deleteSegment = async (segmentId: number) => {
   try {
     isLoading.value = true;
-    await Segments.delete(segmentId);
+    await TargetAudience.destroy(segmentId);
     await fetchSegments();
     toast({
       title: "Sucesso",
@@ -372,7 +373,7 @@ const forceSegmentUpdate = async (segmentId: number) => {
       description: "Atualização do segmento iniciada...",
       variant: "default",
     });
-    await Segments.forceUpdate(segmentId);
+    await TargetAudience.reload({ id: segmentId });
   } catch (error) {
     toast({
       title: "Erro",
@@ -430,10 +431,10 @@ const columns = [
     },
   }),
   {
-    accessorKey: "total_contacts",
+    accessorKey: "players",
     header: "Total de Contatos",
     cell: ({ row }) => {
-      const total = row.original.total_contacts;
+      const total = row.original.players;
       const hasContacts = total > 0;
       const lastExecuted = row.original.last_job_execute_at;
 

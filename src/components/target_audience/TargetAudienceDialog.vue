@@ -26,7 +26,7 @@
                     <TooltipTrigger>
                       <InfoIcon class="h-4 w-4 text-muted-foreground" />
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent align="center">
                       <p>Número de dias que um contato permanecerá no público.<br>Deixe em branco para adesão permanente.</p>
                     </TooltipContent>
                   </Tooltip>
@@ -724,7 +724,6 @@ const save = async () => {
         if (!payload.name) throw new Error('O nome do público alvo é obrigatório.');
         if (!segmentId.value){
           if (payload.condition_groups.length === 0) throw new Error("Defina pelo menos uma condição válida.");
-
         }
 
         if (isEditing.value) {

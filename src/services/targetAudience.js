@@ -13,6 +13,7 @@ export default {
    * @param {string} params.type_order
    * @param {number} params.per_page
    * @param {number} params.page
+   * @param {boolean} params.is_segment
    */
   async index (params = {}) {
     const { data } = await api.get('/target-audiences', { params })
@@ -97,6 +98,27 @@ export default {
 
   async dashboardStats (params = {}) {
     const { data } = await api.get(`/target-audiences/dashboard-stats`, { params: params })
+    return data
+  },
+  /**
+   *
+   * @param params
+   * @param params.audience_id
+   * @returns {Promise<any>}
+   */
+  async getPlayersResult(params = {}) {
+    const { data } = await api.get(`/target-audiences/players-results`,{params:params})
+    return data
+  },
+  /**
+   * @param params
+   * @param params.project_id
+   * @param params.target_audience_ids
+   * @param params.target_project_ids
+   * @returns {Promise<any>}
+   */
+  async export(params = {}) {
+    const { data } = await api.get('/target-audiences/export', { params: params })
     return data
   }
 }

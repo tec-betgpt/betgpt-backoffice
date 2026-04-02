@@ -78,6 +78,7 @@ import Segments from "@/services/segments";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useRouter, RouterLink } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import TargetAudience from "@/services/targetAudience";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -167,12 +168,13 @@ const fetchContacts = async (page: number) => {
       return acc;
     }, {} as any);
 
-    const response = await Segments.contacts(segmentId.value, {
-      page,
+    const response = await TargetAudience.getPlayersResult({
+      audience_id: segmentId.value,
+  /**    page,
       perPage: 20,
       ...searchParams,
       orderBy: orderField.value,
-      orderDirection: orderDirection.value ? "asc" : "desc",
+      orderDirection: orderDirection.value ? "asc" : "desc",*/
     });
 
     const newPlayers = response.data.players || [];

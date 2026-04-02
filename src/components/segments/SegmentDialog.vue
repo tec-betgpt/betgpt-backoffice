@@ -37,332 +37,337 @@
 
         <div class="space-y-6">
           <div
-            v-for="(group, groupIndex) in formItem.conditionGroups"
+            v-for="(group, groupIndex) in formItem.condition_groups"
             :key="groupIndex"
             class="space-y-4"
           >
-            <div class="flex items-center justify-between">
-              <Label>Grupo de Condições {{ groupIndex + 1 }}</Label>
-              <Button
-                variant="ghost"
-                size="sm"
-                @click="removeConditionGroup(groupIndex, formIndex)"
-                class="text-destructive"
-              >
-                <Trash2Icon class="h-4 w-4" />
-              </Button>
+            <div v-if="groupIndex > 0" class="relative flex justify-center">
+              <div class="absolute inset-0 flex items-center">
+                <span class="w-full border-t"></span>
+              </div>
+              <div class="relative flex justify-center text-xs uppercase">
+                <span class="bg-background px-2 text-muted-foreground font-semibold">E</span>
+              </div>
             </div>
 
-            <div class="space-y-1 pl-6 border-l-2 border-muted">
-              <template
-                v-for="(condition, conditionIndex) in group.conditions"
-                :key="conditionIndex"
-              >
-                <div
-                  v-if="conditionIndex > 0"
-                  class="flex justify-center h-8"
-                >
-                  <ToggleGroup
-                    v-model="condition.conditionOperator"
-                    type="single"
-                    variant="outline"
-                    class="h-8"
-                  >
-                    <ToggleGroupItem value="AND" class="h-8 px-3">E</ToggleGroupItem>
-                    <ToggleGroupItem value="OR" class="h-8 px-3">OU</ToggleGroupItem>
-                  </ToggleGroup>
+            <div class="space-y-4 p-4 border rounded-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <Label>Grupo de Condições {{ groupIndex + 1 }}</Label>
+                  <div class="flex items-center gap-2">
+                    <Label class="text-sm text-muted-foreground">Lógica interna:</Label>
+                    <ToggleGroup
+                      v-model="group.logic_operator"
+                      type="single"
+                      variant="outline"
+                      class="h-8"
+                    >
+                      <ToggleGroupItem value="AND" class="h-8 px-3">E</ToggleGroupItem>
+                      <ToggleGroupItem value="OR" class="h-8 px-3">OU</ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
                 </div>
+                <Button
+                  v-if="formItem.condition_groups.length > 1"
+                  variant="ghost"
+                  size="sm"
+                  @click="removeConditionGroup(groupIndex, formIndex)"
+                  class="text-destructive"
+                >
+                  <Trash2Icon class="h-4 w-4" />
+                </Button>
+              </div>
 
-                <div class="flex items-center gap-2 py-1">
-                  <Select
-                    v-model="condition.field"
-                    class="flex-1 min-w-[120px]"
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um campo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>{{ $t(group.name) }}</SelectLabel>
-                        <SelectItem
-                          v-for="field in group.fields"
-                          :key="field.field_key"
-                          :value="field.field_key"
-                        >
-                          {{ $t(field.label) }}
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    v-model="condition.operator"
-                    class="flex-1 min-w-[120px]"
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Operador" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Operadores</SelectLabel>
-                        <SelectItem
-                          v-for="op in getOperators(condition, groupIndex, formIndex)"
-                          :key="op"
-                          :value="op"
-                        >
-                          {{ $t(op) }}
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    v-if="getField(condition, groupIndex, formIndex)?.field_key === 'protection_list_type' && !['empty', 'not_empty'].includes(condition.operator)"
-                    v-model="condition.value"
-                    class="flex-1 min-w-[240px]"
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="forced">Forçada</SelectItem>
-                      <SelectItem value="exclusion">Exclusão</SelectItem>
-                      <SelectItem value="suspensão temporaria">Suspensão Temporária</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    v-else-if="getField(condition, groupIndex, formIndex)?.field_key === 'protection_list' && !['empty', 'not_empty'].includes(condition.operator)"
-                    v-model="condition.value"
-                    class="flex-1 min-w-[240px]"
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Entrada">Entrada</SelectItem>
-                      <SelectItem value="Saida">Saída</SelectItem>
-                      <SelectItem value="Atualizar">Atualizar</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Popover v-else-if="getField(condition, groupIndex, formIndex)?.field_key === 'tag' && !['empty', 'not_empty'].includes(condition.operator)" v-model:open="condition.tagOpen">
-                    <PopoverTrigger as-child>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        :aria-expanded="condition.tagOpen"
-                        class="flex-1 min-w-[240px] justify-between text-left font-normal"
-                      >
-                        {{ availableTags.find(t => t.id === condition.value)?.name || condition.value || 'Selecione uma tag' }}
-                        <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent class="w-[300px] p-0" align="start">
-                      <Command :filter-results="false">
-                        <CommandInput placeholder="Buscar tag..." @input="onSearchTags" />
-                        <CommandEmpty v-if="!isSearchingTags && availableTags.length === 0">Nenhuma tag encontrada.</CommandEmpty>
-                        <div v-if="isSearchingTags" class="flex items-center justify-center p-4">
-                          <Loader2Icon class="h-4 w-4 animate-spin text-muted-foreground" />
-                        </div>
-                        <CommandList v-else>
-                          <CommandGroup>
-                            <CommandItem
-                              v-for="tag in availableTags"
-                              :key="tag.id"
-                              :value="tag.id"
-                              @select="() => {
-                                condition.value = tag.id;
-                                condition.tagOpen = false;
-                              }"
-                            >
-                              <CheckIcon
-                                :class="[
-                                  'mr-2 h-4 w-4',
-                                  condition.value === tag.id ? 'opacity-100' : 'opacity-0',
-                                ]"
-                              />
-                              {{ tag.name }}
-                            </CommandItem>
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-
-                  <Select
-                    v-else-if="(getField(condition, groupIndex, formIndex)?.field_key === 'call4u_linked_status' || getField(condition, groupIndex, formIndex)?.table === 'call4u_linked_status') && !['empty', 'not_empty'].includes(condition.operator)"
-                    v-model="condition.value"
-                    class="flex-1 min-w-[240px]"
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Atendida">Atendida</SelectItem>
-                      <SelectItem value="Atendida com digitação">Atendida com digitação</SelectItem>
-                      <SelectItem value="Atendida e desconectada">Atendida e desconectada</SelectItem>
-                      <SelectItem value="Atendida e ouviu até o final">Atendida e ouviu até o final</SelectItem>
-                      <SelectItem value="Cancelado pelo Horário 23:00 às 07:30">Cancelado pelo Horário 23:00 às 07:30</SelectItem>
-                      <SelectItem value="Em andamento">Em andamento</SelectItem>
-                      <SelectItem value="Número está na Blacklist">Número está na Blacklist</SelectItem>
-                      <SelectItem value="Número inválido">Número inválido</SelectItem>
-                      <SelectItem value="Pendente">Pendente</SelectItem>
-                      <SelectItem value="Preparando para discagem">Preparando para discagem</SelectItem>
-                      <SelectItem value="Recusada">Recusada</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Input
-                    v-else-if="
-                      showTextInput(condition, groupIndex, formIndex) &&
-                      !['empty', 'not_empty'].includes(condition.operator)
-                    "
-                    v-model="condition.value"
-                    placeholder="Valor"
-                    class="flex-1 min-w-[240px]"
-                  />
-
-                  <Input
-                    v-else-if="showNumberInput(condition, groupIndex, formIndex) && !['empty', 'not_empty'].includes(condition.operator)"
-                    v-model.number="condition.value"
-                    placeholder="Número"
-                    type="number"
-                    class="flex-1 min-w-[120px]"
-                  />
-
+              <div class="space-y-3">
+                <template
+                  v-for="(condition, conditionIndex) in group.conditions"
+                  :key="conditionIndex"
+                >
                   <div
-                    v-else-if="showDateInput(condition, groupIndex, formIndex) && !['empty', 'not_empty'].includes(condition.operator)"
-                    class="flex items-center gap-2 flex-1"
+                    v-if="conditionIndex > 0"
+                    class="flex justify-center items-center text-sm font-bold text-muted-foreground pt-2"
                   >
-                    <Select v-model="condition.dateType" class="flex-1">
+                    {{ group.logic_operator === 'AND' ? 'E' : 'OU' }}
+                  </div>
+
+                  <div class="flex items-center gap-2 py-1">
+                    <Popover v-model:open="condition.open">
+                      <PopoverTrigger as-child>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          :aria-expanded="condition.open"
+                          class="flex-1 min-w-[200px] justify-between text-left font-normal"
+                        >
+                          {{ condition.field 
+                              ? $t(fields.flatMap(g => g.fields).find(f => `${f.source}:${f.field_key}` === condition.field)?.label || 'Selecione um campo')
+                              : 'Selecione um campo' 
+                          }}
+                          <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent class="w-[300px] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Buscar campo..." />
+                          <CommandEmpty>Nenhum campo encontrado.</CommandEmpty>
+                          <CommandList>
+                            <CommandGroup v-for="fieldGroup in fields" :key="fieldGroup.name" :heading="$t(fieldGroup.name)">
+                              <CommandItem
+                                v-for="field in fieldGroup.fields"
+                                :key="`${field.source}:${field.field_key}`"
+                                :value="`${field.source}:${field.field_key}`"
+                                @select="() => {
+                                  condition.field = `${field.source}:${field.field_key}`;
+                                  condition.open = false;
+                                  condition.operator = '';
+                                  condition.value = '';
+                                }"
+                              >
+                                <CheckIcon
+                                  :class="[
+                                    'mr-2 h-4 w-4',
+                                    condition.field === `${field.source}:${field.field_key}` ? 'opacity-100' : 'opacity-0',
+                                  ]"
+                                />
+                                {{ $t(field.label) }}
+                              </CommandItem>
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+
+                    <Select
+                      v-model="condition.operator"
+                      class="flex-1 min-w-[120px]"
+                    >
                       <SelectTrigger>
-                        <SelectValue placeholder="Tipo" />
+                        <SelectValue placeholder="Operador" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectLabel>Tipo</SelectLabel>
-                          <SelectItem value="actual_date">Data Atual</SelectItem>
-                          <SelectItem value="custom_date">Escolher Data</SelectItem>
+                          <SelectLabel>Operadores</SelectLabel>
+                          <SelectItem
+                            v-for="op in getOperators(condition, groupIndex, formIndex)"
+                            :key="op"
+                            :value="op"
+                          >
+                            {{ $t(op) }}
+                          </SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
 
-                    <template v-if="condition.dateType === 'custom_date'">
-                      <Popover>
-                        <PopoverTrigger as-child>
-                          <Button variant="outline" class="flex-1">
-                            {{ condition.value || "Selecione" }}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent class="w-auto p-0">
-                          <Calendar v-model="condition.value" />
-                        </PopoverContent>
-                      </Popover>
-                    </template>
-
-                    <template v-else>
-                      <Select v-model="condition.dateModifier">
+                    <template v-if="!['empty', 'not_empty'].includes(condition.operator)">
+                      <Select
+                        v-if="getField(condition, groupIndex, formIndex)?.options"
+                        v-model="condition.value"
+                        class="flex-1 min-w-[240px]"
+                      >
                         <SelectTrigger>
-                          <SelectValue placeholder="Precisão" />
+                          <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Precisão</SelectLabel>
-                            <SelectItem value="exact">Exatamente</SelectItem>
-                            <SelectItem value="plus">Mais</SelectItem>
-                            <SelectItem value="minus">Menos</SelectItem>
-                          </SelectGroup>
+                          <SelectItem v-for="option in getField(condition, groupIndex, formIndex).options" :key="option.value || option.id" :value="String(option.value || option.id)">
+                            {{ option.label || option.name }}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
 
+                      <Select
+                        v-else-if="getField(condition, groupIndex, formIndex)?.field_key === 'protection_list_type'"
+                        v-model="condition.value"
+                        class="flex-1 min-w-[240px]"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="forced">Forçada</SelectItem>
+                          <SelectItem value="exclusion">Exclusão</SelectItem>
+                          <SelectItem value=" temp_suspension">Suspensão Temporária</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        v-else-if="getField(condition, groupIndex, formIndex)?.field_key === 'protection_list'"
+                        v-model="condition.value"
+                        class="flex-1 min-w-[240px]"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="LP_ENTERED">Entrada</SelectItem>
+                          <SelectItem value="LP_EXiTED">Saída</SelectItem>
+                          <SelectItem value="LP_UPDATED">Atualizar</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Popover v-else-if="getField(condition, groupIndex, formIndex)?.field_key === 'tag'" v-model:open="condition.tagOpen">
+                        <PopoverTrigger as-child>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            :aria-expanded="condition.tagOpen"
+                            class="flex-1 min-w-[240px] justify-between text-left font-normal"
+                          >
+                            {{ availableTags.find(t => t.id == condition.value)?.name || 'Selecione uma Tag' }}
+                            <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent class="w-[300px] p-0" align="start">
+                          <Command :filter-results="false">
+                            <CommandInput placeholder="Buscar tag..." @input="onSearchTags" />
+                            <CommandEmpty v-if="!isSearchingTags && availableTags.length === 0">Nenhuma tag encontrada.</CommandEmpty>
+                            <div v-if="isSearchingTags" class="flex items-center justify-center p-4">
+                              <Loader2Icon class="h-4 w-4 animate-spin text-muted-foreground" />
+                            </div>
+                            <CommandList v-else>
+                              <CommandGroup>
+                                <CommandItem
+                                  v-for="tag in availableTags"
+                                  :key="tag.id"
+                                  :value="tag.id"
+                                  @select="() => {
+                                    condition.value = tag.id;
+                                    condition.tagOpen = false;
+                                  }"
+                                >
+                                  <CheckIcon
+                                    :class="[
+                                      'mr-2 h-4 w-4',
+                                      condition.value === tag.id ? 'opacity-100' : 'opacity-0',
+                                    ]"
+                                  />
+                                  {{ tag.name }}
+                                </CommandItem>
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+
                       <Input
-                        v-if="['plus', 'minus'].includes(condition.dateModifier)"
-                        v-model.number="condition.daysOffset"
-                        type="number"
-                        placeholder="Dias"
-                        class="w-20"
-                        min="0"
-                        max="365"
+                        v-else-if="showTextInput(condition, groupIndex, formIndex)"
+                        v-model="condition.value"
+                        placeholder="Valor"
+                        class="flex-1 min-w-[240px]"
                       />
+
+                      <Input
+                        v-else-if="showNumberInput(condition, groupIndex, formIndex)"
+                        v-model.number="condition.value"
+                        placeholder="Número"
+                        type="number"
+                        class="flex-1 min-w-[120px]"
+                      />
+
+                      <template v-if="['date', 'datetime', 'date_md'].includes(getField(condition, groupIndex, formIndex)?.data_type)">
+                        <Select v-model="condition.dateValueType" class="w-40">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Tipo de Data" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="relative">Data Atual</SelectItem>
+                            <SelectItem value="fixed">Selecionar Data</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        <div v-if="condition.dateValueType === 'relative'" class="flex gap-2 flex-1 min-w-[240px]">
+                          <Select v-model="condition.dateModifier" class="flex-1">
+                            <SelectTrigger>
+                              <SelectValue placeholder="Modificador" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="exact">Exatamente</SelectItem>
+                              <SelectItem value="plus">Mais</SelectItem>
+                              <SelectItem value="minus">Menos</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input 
+                            v-if="condition.dateModifier !== 'exact'"
+                            v-model.number="condition.daysOffset"
+                            type="number"
+                            placeholder="Dias"
+                            class="w-24"
+                          />
+                        </div>
+
+                        <template v-else>
+                          <Input
+                            v-if="showDateInput(condition, groupIndex, formIndex)"
+                            v-model="condition.value"
+                            :type="getField(condition, groupIndex, formIndex)?.data_type === 'datetime' ? 'datetime-local' : 'date'"
+                            class="flex-1 min-w-[240px]"
+                          />
+                          <div v-else-if="showDayMonthInput(condition, groupIndex, formIndex)" class="flex gap-2 flex-1 min-w-[240px]">
+                            <Select :model-value="getMonthValue(condition.value)" @update:model-value="v => updateDayMonthValue(condition, 'month', v)">
+                              <SelectTrigger class="flex-1">
+                                <SelectValue placeholder="Mês" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem v-for="m in months" :key="m.value" :value="m.value">{{ m.label }}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Select :model-value="getDayValue(condition.value)" @update:model-value="v => updateDayMonthValue(condition, 'day', v)">
+                              <SelectTrigger class="flex-1">
+                                <SelectValue placeholder="Dia" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem v-for="d in days" :key="d.value" :value="d.value">{{ d.label }}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </template>
+                      </template>
+
+                      <Select
+                        v-else-if="showBooleanInput(condition, groupIndex, formIndex)"
+                        v-model="condition.value"
+                        class="flex-1"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="true">Sim</SelectItem>
+                          <SelectItem value="false">Não</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </template>
 
-                    <Select v-model="condition.dateFilter" class="flex-1">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Filtrar por" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Filtrar por</SelectLabel>
-                          <SelectItem value="full_date">Data Completa</SelectItem>
-                          <SelectItem value="m-d">Mês e Dia</SelectItem>
-                          <SelectItem value="m">Mês</SelectItem>
-                          <SelectItem value="d">Dia</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <Button
+                      v-if="group.conditions.length > 1"
+                      variant="ghost"
+                      size="sm"
+                      @click="removeCondition(groupIndex, conditionIndex, formIndex)"
+                      class="text-destructive"
+                    >
+                      <Trash2Icon class="h-4 w-4" />
+                    </Button>
                   </div>
+                </template>
 
-                  <Select
-                    v-else-if="showBooleanInput(condition, groupIndex, formIndex)"
-                    v-model="condition.value"
-                    class="flex-1"
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Sim</SelectItem>
-                      <SelectItem value="false">Não</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  @click="addCondition(groupIndex, formIndex)"
+                  class="mt-2"
+                >
+                  <PlusIcon class="mr-2 h-4 w-4" />
+                  Adicionar Condição
+                </Button>
+              </div>
 
-                  <Button
-                    v-if="group.conditions.length > 1"
-                    variant="ghost"
-                    size="sm"
-                    @click="removeCondition(groupIndex, conditionIndex, formIndex)"
-                    class="text-destructive"
-                  >
-                    <Trash2Icon class="h-4 w-4" />
-                  </Button>
-                </div>
-              </template>
-
-              <Button
-                variant="outline"
-                size="sm"
-                @click="addCondition(groupIndex, formIndex)"
-                class="mt-2"
-              >
+              <Button variant="outline" @click="addConditionGroup(formIndex)">
                 <PlusIcon class="mr-2 h-4 w-4" />
-                Adicionar Condição
+                Adicionar Grupo de Condições
               </Button>
-            </div>
-
-            <div
-              v-if="groupIndex < formItem.conditionGroups.length - 1"
-              class="flex justify-center"
-            >
-              <ToggleGroup
-                v-model="group.groupOperator"
-                type="single"
-                variant="outline"
-                class="h-8"
-              >
-                <ToggleGroupItem value="AND" class="h-8 px-3">E</ToggleGroupItem>
-                <ToggleGroupItem value="OR" class="h-8 px-3">OU</ToggleGroupItem>
-              </ToggleGroup>
             </div>
           </div>
 
-          <Button variant="outline" @click="addConditionGroup(formIndex)">
-            <PlusIcon class="mr-2 h-4 w-4" />
-            Adicionar Grupo de Condições
-          </Button>
-        </div>
-
-        <Separator class="my-4" />
+          <Separator class="my-4" />
 
         <div class="grid grid-cols-4 items-start gap-4">
           <Label class="text-right mt-2">Segmentos Salvos</Label>
@@ -382,13 +387,8 @@
                     :key="segment.id"
                     :value="segment.id"
                   >
-                    {{ segment.name }} ({{
-                      segment.condition_groups.reduce(
-                        (acc, g) => acc + g.conditions.length,
-                        0,
-                      )
-                    }}
-                    condições)
+                    {{ segment.name }}
+               
                   </SelectItem>
                 </SelectGroup>
               </SelectContent>
@@ -410,6 +410,9 @@
             </div>
           </div>
         </div>
+
+
+        </div>
       </Card>
 
       <DialogFooter>
@@ -430,7 +433,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import Segments from "@/services/segments";
+import TargetAudience from "@/services/targetAudience";
 import Tags from "@/services/tags";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
@@ -457,7 +460,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
@@ -486,90 +488,59 @@ const isOpen = ref(false);
 const isEditing = ref(false);
 const isProcessing = ref(false);
 const selectedSavedSegment = ref<number | null>(null);
-const allFields = ref<Array<any>>([]);
 const savedSegments = ref<Array<any>>([]);
 const availableTags = ref([]);
 const isSearchingTags = ref(false);
+const fields = ref([]);
+const responseFieldsFlat = ref([]);
 let searchTagsTimeout: any = null;
 
-const operatorMap = {
-  string: [
-    "equals",
-    "not_equals",
-    "contains",
-    "not_contains",
-    "starts_with",
-    "not_starts_with",
-    "ends_with",
-    "not_ends_with",
-    "empty",
-    "not_empty",
-  ],
-  number: [
-    "equals",
-    "not_equals",
-    "greater_than",
-    "less_than",
-    "greater_or_equal",
-    "less_or_equal",
-    "empty",
-    "not_empty",
-  ],
-  date: [
-    "equals",
-    "before",
-    "after",
-    "on_or_before",
-    "on_or_after",
-    "empty",
-    "not_empty",
-  ],
-  boolean: ["is", "is_not", "empty", "not_empty"],
-};
+const days = Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1) }));
+const months = [
+  { value: '01', label: 'Janeiro' }, { value: '02', label: 'Fevereiro' }, { value: '03', label: 'Março' },
+  { value: '04', label: 'Abril' }, { value: '05', label: 'Maio' }, { value: '06', label: 'Junho' },
+  { value: '07', label: 'Julho' }, { value: '08', label: 'Agosto' }, { value: '09', label: 'Setembro' },
+  { value: '10', label: 'Outubro' }, { value: '11', label: 'Novembro' }, { value: '12', label: 'Dezembro' }
+];
 
 const form = ref([
   {
     id: null as number | null,
     name: "",
     description: "",
-    globalOperator: "AND" as "AND" | "OR",
-    conditionGroups: [] as Array<any>,
+    condition_groups: [
+      {
+        logic_operator: "AND",
+        conditions: [{ field: "", operator: "", value: "", open: false, tagOpen: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0 }],
+      },
+    ],
   },
 ]);
 
 const getField = (condition: any, groupIndex: number, formIndex: number) => {
-  const group = form.value[formIndex].conditionGroups[groupIndex];
-  return condition?.field
-    ? group.fields.find((f: any) => f.field_key === condition.field)
-    : null;
+  const group = form.value[formIndex].condition_groups[groupIndex];
+  if (!condition?.field) return null;
+  const [source, fieldKey] = condition.field.split(':');
+  const fieldGroup = fields.value.find(g => g.name === source);
+  return fieldGroup ? fieldGroup.fields.find((f: any) => f.field_key === fieldKey) : null;
 };
 
 const getOperators = (condition: any, groupIndex: number, formIndex: number) => {
   const field = getField(condition, groupIndex, formIndex);
-  if (!field) return [];
-
-  if (field.field_key === "tag") {
-    return ["equals", "not_equals", "empty", "not_empty"];
-  }
-
-  if (
-    ["protection_list", "protection_list_type", "call4u_linked_status"].includes(field.field_key) ||
-    field.table === "call4u_linked_status"
-  ) {
-    return ["equals", "not_equals"];
-  }
-
-  return operatorMap[field.data_type as keyof typeof operatorMap] || [];
+  return field ? field.operators || [] : [];
 };
 
 const showTextInput = (condition: any, groupIndex: number, formIndex: number) =>
   getField(condition, groupIndex, formIndex)?.data_type === "string";
 
 const showNumberInput = (condition: any, groupIndex: number, formIndex: number) =>
-  getField(condition, groupIndex, formIndex)?.data_type === "number";
+  ['number', 'integer', 'float', 'numeric'].includes(getField(condition, groupIndex, formIndex)?.data_type);
 
 const showDateInput = (condition: any, groupIndex: number, formIndex: number) =>
-  getField(condition, groupIndex, formIndex)?.data_type === "date";
+  ['date', 'datetime'].includes(getField(condition, groupIndex, formIndex)?.data_type);
+
+const showDayMonthInput = (condition: any, groupIndex: number, formIndex: number) =>
+  getField(condition, groupIndex, formIndex)?.data_type === "date_md";
 
 const showBooleanInput = (condition: any, groupIndex: number, formIndex: number) =>
   getField(condition, groupIndex, formIndex)?.data_type === "boolean";
@@ -598,74 +569,42 @@ const onSearchTags = (e: any) => {
   }, 400);
 };
 
-const resetForm = () => {
-  form.value = [
-    {
-      id: null,
-      name: "",
-      description: "",
-      globalOperator: "AND",
-      conditionGroups: allFields.value.map((group) => ({
-        name: group.name,
-        groupOperator: "AND",
-        fields: [...group.fields],
-        conditions: [
-          {
-            conditionOperator: "AND",
-            field: "",
-            operator: "",
-            value: "",
-            modifier: "exact",
-            tagOpen: false,
-          },
-        ],
-      })),
-    },
-  ];
-  selectedSavedSegment.value = null;
-};
-
-const fetchSegmentFields = async () => {
+const fetchFields = async () => {
   try {
-    const response = await Segments.groups();
-    if (Array.isArray(response.data)) {
-      allFields.value = response.data.map((group: any) => ({
-        name: group.name,
-        fields: group.fields.map((field: any) => ({
-          ...field,
-          field_key: field.field_key || `field_${field.id}`,
-        })),
-      }));
-      return true;
+    const response = await TargetAudience.getAvailableConditions();
+    if (Array.isArray(response)) {
+      responseFieldsFlat.value = response;
+      const groups = response.reduce((acc: any, field: any) => {
+        if (!acc[field.source]) {
+          acc[field.source] = { name: field.source, fields: [] };
+        }
+        acc[field.source].fields.push({
+          field_key: field.property,
+          label: field.label,
+          data_type: field.type,
+          operators: field.operators,
+          source: field.source,
+          options: field.options,
+        });
+        return acc;
+      }, {});
+      fields.value = Object.values(groups);
     }
-    return false;
   } catch (error) {
     console.error("Erro ao carregar campos:", error);
-    return false;
   }
 };
 
 const addConditionGroup = (index: number) => {
-  form.value[index].conditionGroups.push({
-    name: allFields.value[0]?.name || "Novo Grupo",
-    groupOperator: "AND",
-    fields: [...allFields.value.flatMap((g) => g.fields)],
-    conditions: [
-      {
-        conditionOperator: "AND",
-        field: "",
-        operator: "",
-        value: "",
-        modifier: "exact",
-        tagOpen: false,
-      },
-    ],
+  form.value[index].condition_groups.push({
+    logic_operator: "AND",
+    conditions: [{ field: "", operator: "", value: "", open: false, tagOpen: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0 }],
   });
 };
 
 const removeConditionGroup = (groupIndex: number, formIndex: number) => {
-  if (form.value[formIndex].conditionGroups.length > 1) {
-    form.value[formIndex].conditionGroups.splice(groupIndex, 1);
+  if (form.value[formIndex].condition_groups.length > 1) {
+    form.value[formIndex].condition_groups.splice(groupIndex, 1);
   } else {
     toast({
       title: "Aviso",
@@ -676,19 +615,14 @@ const removeConditionGroup = (groupIndex: number, formIndex: number) => {
 };
 
 const addCondition = (groupIndex: number, formIndex: number) => {
-  form.value[formIndex].conditionGroups[groupIndex].conditions.push({
-    conditionOperator: "AND",
-    field: "",
-    operator: "",
-    value: "",
-    modifier: "exact",
-    tagOpen: false,
+  form.value[formIndex].condition_groups[groupIndex].conditions.push({
+    field: "", operator: "", value: "", open: false, tagOpen: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0
   });
 };
 
 const removeCondition = (groupIndex: number, conditionIndex: number, formIndex: number) => {
-  if (form.value[formIndex].conditionGroups[groupIndex].conditions.length > 1) {
-    form.value[formIndex].conditionGroups[groupIndex].conditions.splice(conditionIndex, 1);
+  if (form.value[formIndex].condition_groups[groupIndex].conditions.length > 1) {
+    form.value[formIndex].condition_groups[groupIndex].conditions.splice(conditionIndex, 1);
   } else {
     toast({
       title: "Aviso",
@@ -698,61 +632,101 @@ const removeCondition = (groupIndex: number, conditionIndex: number, formIndex: 
   }
 };
 
+const parseDataToForm = (data: any, formIndex: number) => {
+
+  if (data.condition_groups && data.condition_groups.length > 0) {
+    console.log('Processing condition_groups...');
+    
+    form.value[formIndex].condition_groups = data.condition_groups.map((group: any) => ({
+      logic_operator: group.logic_operator || 'AND',
+      conditions: group.conditions.map((c: any) => {
+        console.log('Condition:', c);
+        
+        let dateValueType = "fixed";
+        let dateModifier = "exact";
+        let daysOffset = 0;
+        let value = c.value;
+
+        const field = responseFieldsFlat.value.find((f: any) => f.source === c.source && f.property === c.property);
+        const isDateField = field && ['date', 'datetime', 'date_md'].includes(field.type);
+        
+        console.log('Field found:', field?.field_key, 'isDateField:', isDateField);
+        console.log('c.value:', c.value, 'typeof:', typeof c.value);
+
+        if (isDateField) {
+          console.log('Is date field, checking value...');
+          if (c.value === 'today' || !isNaN(Number(c.value))) {
+            console.log('Setting relative date');
+            dateValueType = "relative";
+            if (c.value === 'today' || Number(c.value) === 0) {
+              dateModifier = "exact";
+            } else {
+              const numValue = Number(c.value);
+              if (numValue > 0) {
+                dateModifier = "plus";
+                daysOffset = numValue;
+              } else {
+                dateModifier = "minus";
+                daysOffset = Math.abs(numValue);
+              }
+            }
+          } else {
+            console.log('Value is not today or number, checking if JSON...');
+            if (typeof c.value === 'string' && c.value.startsWith('{')) {
+              try {
+                const parsedValue = JSON.parse(c.value);
+                console.log('Parsed JSON value:', parsedValue);
+                if (parsedValue.dateFilter === 'full_date' || parsedValue.dateModifier) {
+                  dateValueType = "relative";
+                  dateModifier = parsedValue.dateModifier || "exact";
+                  daysOffset = parsedValue.daysOffset || 0;
+                  value = '';
+                  console.log('Set from JSON - dateModifier:', dateModifier, 'daysOffset:', daysOffset);
+                }
+              } catch (e) {
+                console.log('Failed to parse JSON:', e);
+              }
+            }
+          }
+        }
+
+        const result = {
+          field: `${c.source}:${c.property}`,
+          operator: c.operator,
+          value: value,
+          open: false,
+          tagOpen: false,
+          dateValueType,
+          dateModifier,
+          daysOffset
+        };
+        console.log('Condition result:', result);
+        return result;
+      })
+    }));
+  } else {
+    console.log('No condition_groups or empty, resetting...');
+    form.value[formIndex].condition_groups = [{
+      logic_operator: "AND",
+      conditions: [{ field: "", operator: "", value: "", open: false, tagOpen: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0 }],
+    }];
+  }
+  
+  console.log('Final condition_groups:', form.value[formIndex].condition_groups);
+  console.log('=== END parseDataToForm DEBUG ===');
+};
+
 const loadSavedSegment = async (segmentId: number, formIndex: number) => {
   try {
-    const segment = savedSegments.value.find((s) => s.id === segmentId);
-    if (!segment) return;
-
-    const parseConditionValue = (condition: any) => {
-      if (typeof condition.value === "object" && condition.value !== null) return condition.value;
-      if (typeof condition.value === "string") {
-        try {
-          return JSON.parse(condition.value);
-        } catch {
-          return { value: condition.value };
-        }
-      }
-      return { value: condition.value };
-    };
-
-    const newConditionGroups = segment.condition_groups.map((group: any) => ({
-      name: "Grupo de Condições",
-      groupOperator: group.logic_operator,
-      fields: [...allFields.value.flatMap((g) => g.fields)],
-      conditions: group.conditions.map((condition: any) => {
-        const valueData = parseConditionValue(condition);
-        const fieldType = condition.field?.data_type;
-        const baseCondition = {
-          conditionOperator: condition.logic_operator,
-          field: condition.field?.field_key || "",
-          operator: condition.operator,
-          value: valueData.value?.value || valueData.value,
-          modifier: condition.modifier || "exact",
-          tagOpen: false,
-        };
-
-        if (fieldType === "date") {
-          return {
-            ...baseCondition,
-            dateType: valueData.type || valueData.value?.type || "custom_date",
-            dateModifier: valueData.dateModifier || valueData.value?.dateModifier || "exact",
-            dateFilter: valueData.dateFilter || valueData.value?.dateFilter || "full_date",
-            daysOffset: valueData.daysOffset || valueData.value?.daysOffset || 0,
-            value:
-              valueData.type === "custom_date" || valueData.value?.type === "custom_date"
-                ? valueData.value?.value || valueData.value
-                : new Date().toISOString().split("T")[0],
-          };
-        }
-        if (fieldType === "boolean") return { ...baseCondition, value: String(valueData.value) };
-        return baseCondition;
-      }),
-    }));
-
-    form.value[formIndex].conditionGroups =
-      newConditionGroups.length > 0 ? newConditionGroups : form.value[formIndex].conditionGroups;
+    const data = await TargetAudience.show({ id: segmentId });
+    parseDataToForm(data, formIndex);
   } catch (error) {
     console.error("Error loading segment:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar o segmento salvo",
+      variant: "destructive",
+    });
   }
 };
 
@@ -762,47 +736,21 @@ const clearSelectedSegment = () => {
 };
 
 const clearAllConditions = (formIndex: number) => {
-  form.value[formIndex].conditionGroups = [
+  form.value[formIndex].condition_groups = [
     {
-      name: "Novo Grupo",
-      groupOperator: "AND",
-      fields: [...allFields.value.flatMap((g) => g.fields)],
-      conditions: [
-        {
-          conditionOperator: "AND",
-          field: "",
-          operator: "",
-          value: "",
-          modifier: "exact",
-          tagOpen: false,
-        },
-      ],
+      logic_operator: "AND",
+      conditions: [{ field: "", operator: "", value: "", open: false, tagOpen: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0 }],
     },
   ];
 };
 
-const prepareConditionValue = (condition: any, groupIndex: number, formIndex: number) => {
-  const field = getField(condition, groupIndex, formIndex);
-  if (!field || ["empty", "not_empty"].includes(condition.operator)) return null;
-
-  if (field.data_type === "date") {
-    return condition.dateType === "custom_date"
-      ? {
-          type: "custom_date",
-          value: condition.value,
-          dateModifier: null,
-          dateFilter: "full_date",
-          daysOffset: 0,
-        }
-      : {
-          type: "actual_date",
-          value: "actual_date",
-          dateModifier: condition.dateModifier,
-          dateFilter: condition.dateFilter,
-          daysOffset: condition.daysOffset || 0,
-        };
-  }
-  return condition.value;
+const getDayValue = (value: string) => value?.split('-')[1] || '';
+const getMonthValue = (value: string) => value?.split('-')[0] || '';
+const updateDayMonthValue = (condition: any, type: string, val: string) => {
+  let [m, d] = (condition.value || '-').split('-');
+  if (type === 'month') m = val;
+  if (type === 'day') d = val;
+  condition.value = `${m || '01'}-${d || '01'}`;
 };
 
 const saveSegment = async () => {
@@ -811,35 +759,48 @@ const saveSegment = async () => {
     const activeGroupProjectId = workspaceStore.activeGroupProject?.id;
     if (form.value.some((f) => !f.name)) throw new Error("O nome do segmento é obrigatório");
 
-    const payload = form.value.map((seg, index) => ({
+    const payload = form.value.map((seg) => ({
       name: seg.name,
       description: seg.description,
-      filter_id: activeGroupProjectId,
-      conditions: {
-        global_operator: seg.globalOperator,
-        groups: seg.conditionGroups.map((group, groupIndex) => ({
-          group_operator: group.groupOperator,
-          conditions: group.conditions.map((condition: any) => ({
-            field: condition.field,
-            operator: condition.operator,
-            value: ["empty", "not_empty"].includes(condition.operator)
-              ? ""
-              : prepareConditionValue(condition, groupIndex, index),
-            condition_operator: condition.conditionOperator,
-            modifier: condition.modifier,
-            dateType: condition.dateType,
-            dateModifier: condition.dateModifier,
-            dateFilter: condition.dateFilter,
-            daysOffset: condition.daysOffset,
-          })),
-        })),
-      },
+      project_id: workspaceStore.activeGroupProject.project_id,
+      condition_groups: seg.condition_groups.map(group => ({
+        logic_operator: group.logic_operator,
+        conditions: group.conditions.map((c: any) => {
+          const field = getField(c, 0, 0);
+          if (!field || !c.operator) return null;
+          
+          let finalValue = c.value;
+          const isDateField = ['date', 'datetime', 'date_md'].includes(field.data_type);
+
+          if (isDateField && c.dateValueType === 'relative') {
+            if (c.dateModifier === 'exact') finalValue = 'today';
+            else {
+              const offset = c.daysOffset || 0;
+              finalValue = c.dateModifier === 'minus' ? -offset : offset;
+            }
+          } else if (c.value === '' && !['empty', 'not_empty'].includes(c.operator)) {
+            return null;
+          }
+
+          return {
+            source: field.source,
+            property: field.field_key,
+            operator: c.operator,
+            value: finalValue,
+          };
+        }).filter(Boolean)
+      })).filter(g => g.conditions.length > 0)
     }));
 
+    const hasValidConditions = payload[0].condition_groups.length > 0;
+    if (!hasValidConditions) {
+      throw new Error("Defina pelo menos uma condição válida.");
+    }
+
     if (isEditing.value && form.value[0].id) {
-      await Segments.update(form.value[0].id, payload);
+      await TargetAudience.update(form.value[0].id, payload);
     } else {
-      await Segments.create(payload);
+      await TargetAudience.store(payload);
     }
 
     toast({
@@ -859,8 +820,25 @@ const saveSegment = async () => {
   }
 };
 
+const resetForm = () => {
+  form.value = [
+    {
+      id: null,
+      name: "",
+      description: "",
+      condition_groups: [
+        {
+          logic_operator: "AND",
+          conditions: [{ field: "", operator: "", value: "", open: false, tagOpen: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0 }],
+        },
+      ],
+    },
+  ];
+  selectedSavedSegment.value = null;
+};
+
 const open = async (segment: any = null, allSegments: any[] = []) => {
-  await fetchSegmentFields();
+  await fetchFields();
   await fetchTags();
   savedSegments.value = allSegments;
   
@@ -871,12 +849,24 @@ const open = async (segment: any = null, allSegments: any[] = []) => {
         id: segment.id,
         name: segment.name,
         description: segment.description,
-        globalOperator: "AND",
-        conditionGroups: [],
+        condition_groups: [],
       },
     ];
-    selectedSavedSegment.value = segment.id;
-    await loadSavedSegment(segment.id, 0);
+    try {
+      isProcessing.value = true;
+      const data = await TargetAudience.show({ id: segment.id });
+      parseDataToForm(data, 0);
+    } catch (error) {
+      console.error("Error loading segment:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os dados do segmento",
+        variant: "destructive",
+      });
+      return;
+    } finally {
+      isProcessing.value = false;
+    }
   } else {
     isEditing.value = false;
     resetForm();
@@ -894,7 +884,7 @@ watch(
   () => form.value,
   (newForm) => {
     newForm.forEach((seg, formIndex) => {
-      seg.conditionGroups.forEach((group, groupIndex) => {
+      seg.condition_groups.forEach((group, groupIndex) => {
         group.conditions.forEach((condition: any) => {
           if (condition.field && condition.operator) {
             const field = getField(condition, groupIndex, formIndex);
