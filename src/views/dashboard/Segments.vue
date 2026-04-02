@@ -52,11 +52,6 @@
       </CardContent>
     </Card>
 
-    <TargetAudienceDialog
-      ref="targetAudienceDialogRef"
-      @saved="fetchSegments"
-    />
-
     <SegmentDialog
       ref="segmentDialogRef"
       @saved="fetchSegments"
@@ -126,7 +121,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import TargetAudienceDialog from "@/components/target_audience/TargetAudienceDialog.vue";
 import SegmentDialog from "@/components/segments/SegmentDialog.vue";
 import SegmentExportDialog from "@/components/segments/SegmentExportDialog.vue";
 import TagManager from "@/components/custom/TagManager.vue";
@@ -141,7 +135,7 @@ import TargetAudience from "@/services/targetAudience";
 const { t } = useI18n();
 const { toast } = useToast();
 const router = useRouter();
-const isLoading = ref(true);
+const isLoading = ref(false);
 const showTagsDialog = ref(false);
 const segmentForTags = ref<any>(null);
 const workspaceStore = useWorkspaceStore();
@@ -155,7 +149,6 @@ const canEditSegment = computed(() => {
   return hasPermission("edit-segment");
 });
 
-const targetAudienceDialogRef = ref();
 const segmentDialogRef = ref();
 const segmentExportDialogRef = ref();
 const contactsDialogRef = ref();
@@ -224,6 +217,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
     };
 
     const response = await TargetAudience.index(params);
+    segments.value = response.target_audiences || [];
 
     segments.value = response.data.target_audiences || [];
     pages.value = {
@@ -405,10 +399,6 @@ function openTagsManager(segment) {
   showTagsDialog.value = true;
 }
 
-function createTargetAudience(segment) {
-  targetAudienceDialogRef.value.openWithSegment(segment.id);
-}
-
 const columns = [
   segmentColumnHelper.accessor("name", {
     header({ column }) {
@@ -519,10 +509,6 @@ const columns = [
       if (row.original.audiences && row.original.audiences.length > 0) {
         menuItems.push(
           h(DropdownMenuItem, { onClick: () => viewTargetAudience(row.original) }, "Ver Publico Alvo"),
-        );
-      } else if (canEditSegment.value) {
-        menuItems.push(
-          h(DropdownMenuItem, { onClick: () => createTargetAudience(row.original) }, "Criar Publico Alvo"),
         );
       }
       if (canEditSegment.value) {
