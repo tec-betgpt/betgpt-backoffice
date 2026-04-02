@@ -363,8 +363,8 @@ const fetchAudiences = async (current = pages.value.current, showLoading = true)
   try {
     const params = { page: current, per_page: perPage.value, filter_id: activeGroupProjectId.value };
     const response = await TargetAudience.index(params);
-    audiences.value = response.data || [];
-    pages.value = { current: response.current_page, last: response.last_page, total: response.total };
+    audiences.value = response.target_audiences || [];
+    pages.value = { current: response.pagination.current_page, last: response.pagination.last_page, total: response.pagination.total };
   } catch (error) {
     console.error("Error loading target audiences:", error);
     if (showLoading) {

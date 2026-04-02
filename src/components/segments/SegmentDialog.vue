@@ -759,11 +759,12 @@ const saveSegment = async () => {
     const activeGroupProjectId = workspaceStore.activeGroupProject?.id;
     if (form.value.some((f) => !f.name)) throw new Error("O nome do segmento é obrigatório");
 
-    const payload = form.value.map((seg) => ({
-      name: seg.name,
-      description: seg.description,
+    const payload = {
+      is_segment: true,
+      name: form.value[0].name,
+      description: form.value[0].description,
       project_id: workspaceStore.activeGroupProject.project_id,
-      condition_groups: seg.condition_groups.map(group => ({
+      condition_groups: form.value[0].condition_groups.map(group => ({
         logic_operator: group.logic_operator,
         conditions: group.conditions.map((c: any) => {
           const field = getField(c, 0, 0);
@@ -790,9 +791,9 @@ const saveSegment = async () => {
           };
         }).filter(Boolean)
       })).filter(g => g.conditions.length > 0)
-    }));
+    };
 
-    const hasValidConditions = payload[0].condition_groups.length > 0;
+    const hasValidConditions = payload.condition_groups.length > 0;
     if (!hasValidConditions) {
       throw new Error("Defina pelo menos uma condição válida.");
     }
