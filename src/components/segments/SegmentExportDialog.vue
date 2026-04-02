@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useToast } from "@/components/ui/toast/use-toast";
-import Segments from "@/services/segments";
+import TargetAudience from "@/services/targetAudience";
 import {
   Dialog,
   DialogContent,
@@ -47,9 +47,9 @@ const exportSegment = async () => {
 
   try {
     isExporting.value = true;
-    await Segments.export({
+    await TargetAudience.export({
       project_id: activeGroupProjectId.value,
-      segment_ids: props.segmentIds,
+      target_audience_ids: props.segmentIds,
       target_project_ids: selectProjects.value,
     });
 
