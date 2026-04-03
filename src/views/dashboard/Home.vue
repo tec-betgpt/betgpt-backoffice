@@ -384,6 +384,7 @@ import {
   Hourglass,
   SquareActivity,
   ListCheck,
+  LogIn,
   UserRound,
   UserRoundPlus,
   Users,
@@ -486,6 +487,7 @@ export default {
     Hourglass,
     SquareActivity,
     ListCheck,
+    LogIn,
     UserRound,
     UserRoundPlus,
     Users,
@@ -512,6 +514,7 @@ export default {
       ftd_post_d0_count: 0,
       ftd_post_d0_amount: 0,
       ftd_post_d0_percent: 0,
+      player_logins: 0,
     },
     dragOverNewRow: null,
     activeNow: { count: 0, change: 0 },
@@ -871,8 +874,8 @@ export default {
           this.cards = [
             {
               id: "depositors",
-              title: "Visão Geral das Entradas",
-              subtitle: "Confira os últimos indicadores",
+              title: "Visão Geral de Receita",
+              subtitle: "Entradas, saídas e indicadores financeiros",
               content: this.buildCardsDeposits(),
               edit: false,
             },
@@ -882,14 +885,6 @@ export default {
               subtitle: "Confira os últimos indicadores",
               content: this.buildCardsPlayers(),
               edit: false,
-            },
-            {
-              id: "withdraws",
-              title: "Visão Geral das Saídas",
-              subtitle: "Confira os últimos indicadores",
-              content: this.buildCardsWithdraws(),
-              edit: false,
-              layout: "",
             },
             {
               id: "retention",
@@ -919,11 +914,29 @@ export default {
     },
 
     applySavedOrder(savedOrder) {
+      const withdrawsSaved = savedOrder.find((g: { id: string }) => g.id === "withdraws");
+      let orderForLayout = savedOrder.filter((g: { id: string }) => g.id !== "withdraws");
+      if (withdrawsSaved) {
+        const dIx = orderForLayout.findIndex((g: { id: string }) => g.id === "depositors");
+        if (dIx !== -1) {
+          orderForLayout = orderForLayout.map((g: { id: string; content: string[][] }, i: number) =>
+            i === dIx
+              ? { ...g, content: [...g.content, ...withdrawsSaved.content] }
+              : g,
+          );
+        } else {
+          orderForLayout = [
+            { id: "depositors", content: withdrawsSaved.content },
+            ...orderForLayout,
+          ];
+        }
+      }
+
       const allGroupsDefault = [
         {
           id: "depositors",
-          title: "Visão Geral das Entradas",
-          subtitle: "Confira os últimos indicadores",
+          title: "Visão Geral de Receita",
+          subtitle: "Entradas, saídas e indicadores financeiros",
           content: this.buildCardsDeposits(),
           edit: false,
         },
@@ -932,13 +945,6 @@ export default {
           title: "Visão Geral dos Clientes",
           subtitle: "Confira os últimos indicadores",
           content: this.buildCardsPlayers(),
-          edit: false,
-        },
-        {
-          id: "withdraws",
-          title: "Visão Geral das Saídas",
-          subtitle: "Confira os últimos indicadores",
-          content: this.buildCardsWithdraws(),
           edit: false,
         },
         {
@@ -967,8 +973,8 @@ export default {
       });
       const defaultGroupsMap = new Map(allGroupsDefault.map((g) => [g.id, g]));
 
-      this.cards = savedOrder
-        .map((savedGroup) => {
+      this.cards = orderForLayout
+        .map((savedGroup: { id: string; content: string[][] }) => {
           const groupData = defaultGroupsMap.get(savedGroup.id);
           if (!groupData) return null;
 
@@ -990,7 +996,6 @@ export default {
       const specs = [
         { id: "depositors", build: () => this.buildCardsDeposits() },
         { id: "players", build: () => this.buildCardsPlayers() },
-        { id: "withdraws", build: () => this.buildCardsWithdraws() },
         { id: "retention", build: () => this.buildCardsRetention() },
         { id: "history", build: () => this.buildCardsHistory() },
       ];
@@ -1007,8 +1012,56 @@ export default {
       }
     },
 
+    revenueWithdrawCards() {
+      return [
+        {
+          id: "saques-7d",
+          title: "Saídas 7D",
+          tooltip: null,
+          value: this.withdraws.total / 100,
+          variation: this.withdraws.percentage,
+          icon: "CalendarArrowUp",
+          isConditional: !this.hideMetricsDaily,
+        },
+        {
+          id: "ticket-medio-saida",
+          title: "Ticket Médio de Saída",
+          tooltip: "Valor médio por transação de saída confirmada.",
+          value: this.withdraws.average_ticket / 100,
+          icon: "ChartNoAxesColumn",
+        },
+        {
+          id: "taxa-aprovacao-saques",
+          title: "Taxa de Aprovação (Saídas)",
+          tooltip:
+            "Taxa de aprovação de saídas solicitadas e saídas confirmadas",
+          value: this.withdraws.conversion_rate,
+          suffix: "%",
+          icon: "BadgeCheck",
+        },
+        {
+          id: "saidas-solicitadas",
+          title: "Saídas Solicitadas",
+          tooltip:
+            "Valor total de solicitações de retirada feitas pelos usuários.",
+          quantity: this.withdraws.generated_withdraws,
+          value: this.withdraws.total_pending_withdraws / 100,
+          icon: "Check",
+        },
+        {
+          id: "saidas-processadas",
+          title: "Saídas Confirmadas",
+          tooltip:
+            "Valor total de saídas confirmadas e pagas com sucesso.",
+          quantity: this.withdraws.paid_withdraws,
+          value: this.withdraws.total_paid_withdraws / 100,
+          icon: "BanknoteArrowUp",
+        },
+      ];
+    },
+
     buildCardsDeposits() {
-      const allCards = [
+      const depositCards = [
         {
           id: "total-entradas-7d",
           title: "Total de Entradas 7D",
@@ -1075,19 +1128,14 @@ export default {
           icon: "DollarSign",
           isConditional: false,
         },
-        {
-          id: "primeiras-entradas",
-          title: "Cadastros Convertidos em Clientes",
-          tooltip:
-            "Total de primeiras entradas (FTD) no período — cadastros que se converteram em clientes pagantes.",
-          quantity: this.deposits.total_ftd_count,
-          value: this.deposits.total_ftd_amount / 100,
-          icon: "ListCheck",
-          isConditional: false,
-        },
       ];
 
-      return [allCards.slice(0, 4), allCards.slice(4, 8)];
+      const allCards = [...depositCards, ...this.revenueWithdrawCards()];
+      return [
+        allCards.slice(0, 4),
+        allCards.slice(4, 8),
+        allCards.slice(8, 12),
+      ];
     },
 
     buildCardsPlayers() {
@@ -1119,6 +1167,23 @@ export default {
             "Total de cadastros completos no sistema no período selecionado",
           value: this.players.registered_users_day,
           icon: "UserRoundPlus",
+        },
+        {
+          id: "primeiras-entradas",
+          title: "Cadastros Convertidos em Clientes",
+          tooltip:
+            "Total de primeiras entradas (FTD) no período — cadastros que se converteram em clientes pagantes.",
+          quantity: this.deposits.total_ftd_count,
+          value: this.deposits.total_ftd_amount / 100,
+          icon: "ListCheck",
+        },
+        {
+          id: "quantidade-logins",
+          title: "Quantidade de Logins",
+          tooltip:
+            "Soma de logins registrados em project_metrics (player_logins) no período filtrado.",
+          value: this.players.player_logins,
+          icon: LogIn,
         },
         {
           id: "taxa-conversao-geral",
@@ -1168,62 +1233,9 @@ export default {
       ];
 
       return [
-        allCards.slice(0, 3),
-        allCards.slice(3, 6),
-        allCards.slice(6, 8),
-      ];
-    },
-
-    buildCardsWithdraws() {
-      const allCards = [
-        {
-          id: "saques-7d",
-          title: "Saídas 7D",
-          tooltip: null,
-          value: this.withdraws.total / 100,
-          variation: this.withdraws.percentage,
-          icon: "CalendarArrowUp",
-          isConditional: !this.hideMetricsDaily,
-        },
-        {
-          id: "ticket-medio-saida",
-          title: "Ticket Médio de Saída",
-          tooltip: "Valor médio por transação de saída confirmada.",
-          value: this.withdraws.average_ticket / 100,
-          icon: "ChartNoAxesColumn",
-        },
-        {
-          id: "taxa-aprovacao-saques",
-          title: "Taxa de Aprovação",
-          tooltip:
-            "Taxa de aprovação de saídas solicitadas e saídas confirmadas",
-          value: this.withdraws.conversion_rate,
-          suffix: "%",
-          icon: "BadgeCheck",
-        },
-        {
-          id: "saidas-solicitadas",
-          title: "Saídas Solicitadas",
-          tooltip:
-            "Valor total de solicitações de retirada feitas pelos usuários.",
-          quantity: this.withdraws.generated_withdraws,
-          value: this.withdraws.total_pending_withdraws / 100,
-          icon: "Check",
-        },
-        {
-          id: "saidas-processadas",
-          title: "Saídas Confirmadas",
-          tooltip:
-            "Valor total de saídas confirmadas e pagas com sucesso.",
-          quantity: this.withdraws.paid_withdraws,
-          value: this.withdraws.total_paid_withdraws / 100,
-          icon: "BanknoteArrowUp",
-        },
-      ];
-
-      return [
-        allCards.slice(0, 3), // Primeira linha
-        allCards.slice(3, 5), // Segunda linha
+        allCards.slice(0, 4),
+        allCards.slice(4, 8),
+        allCards.slice(8, 10),
       ];
     },
 
