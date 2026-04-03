@@ -1182,7 +1182,7 @@ export default {
           title: "Quantidade de Logins",
           tooltip:
             "Total de logins de clientes no período selecionado",
-          quantity: this.players.player_logins,
+          count: Number(this.players.player_logins ?? 0),
           icon: LogIn,
         },
         {
