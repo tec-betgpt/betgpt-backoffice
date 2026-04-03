@@ -1181,8 +1181,8 @@ export default {
           id: "quantidade-logins",
           title: "Quantidade de Logins",
           tooltip:
-            "Soma de logins registrados em project_metrics (player_logins) no período filtrado.",
-          value: this.players.player_logins,
+            "Total de logins de clientes no período selecionado",
+          count: Number(this.players.player_logins ?? 0),
           icon: LogIn,
         },
         {
