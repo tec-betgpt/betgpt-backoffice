@@ -517,8 +517,7 @@ const form = ref([
   },
 ]);
 
-const getField = (condition: any, groupIndex: number, formIndex: number) => {
-  const group = form.value[formIndex].condition_groups[groupIndex];
+const getField = (condition: any) => {
   if (!condition?.field) return null;
   const [source, fieldKey] = condition.field.split(':');
   const fieldGroup = fields.value.find(g => g.name === source);
@@ -579,6 +578,7 @@ const fetchFields = async () => {
           acc[field.source] = { name: field.source, fields: [] };
         }
         acc[field.source].fields.push({
+          id: field.id,
           field_key: field.property,
           label: field.label,
           data_type: field.type,
@@ -635,28 +635,18 @@ const removeCondition = (groupIndex: number, conditionIndex: number, formIndex: 
 const parseDataToForm = (data: any, formIndex: number) => {
 
   if (data.condition_groups && data.condition_groups.length > 0) {
-    console.log('Processing condition_groups...');
-    
+
     form.value[formIndex].condition_groups = data.condition_groups.map((group: any) => ({
       logic_operator: group.logic_operator || 'AND',
       conditions: group.conditions.map((c: any) => {
-        console.log('Condition:', c);
-        
         let dateValueType = "fixed";
         let dateModifier = "exact";
         let daysOffset = 0;
         let value = c.value;
-
-        const field = responseFieldsFlat.value.find((f: any) => f.source === c.source && f.property === c.property);
+        const field = responseFieldsFlat.value.find((f: any) => f.id === c.target_audience_condition_field_id);
         const isDateField = field && ['date', 'datetime', 'date_md'].includes(field.type);
-        
-        console.log('Field found:', field?.field_key, 'isDateField:', isDateField);
-        console.log('c.value:', c.value, 'typeof:', typeof c.value);
-
         if (isDateField) {
-          console.log('Is date field, checking value...');
           if (c.value === 'today' || !isNaN(Number(c.value))) {
-            console.log('Setting relative date');
             dateValueType = "relative";
             if (c.value === 'today' || Number(c.value) === 0) {
               dateModifier = "exact";
@@ -671,17 +661,14 @@ const parseDataToForm = (data: any, formIndex: number) => {
               }
             }
           } else {
-            console.log('Value is not today or number, checking if JSON...');
             if (typeof c.value === 'string' && c.value.startsWith('{')) {
               try {
                 const parsedValue = JSON.parse(c.value);
-                console.log('Parsed JSON value:', parsedValue);
                 if (parsedValue.dateFilter === 'full_date' || parsedValue.dateModifier) {
                   dateValueType = "relative";
                   dateModifier = parsedValue.dateModifier || "exact";
                   daysOffset = parsedValue.daysOffset || 0;
                   value = '';
-                  console.log('Set from JSON - dateModifier:', dateModifier, 'daysOffset:', daysOffset);
                 }
               } catch (e) {
                 console.log('Failed to parse JSON:', e);
@@ -690,8 +677,8 @@ const parseDataToForm = (data: any, formIndex: number) => {
           }
         }
 
-        const result = {
-          field: `${c.source}:${c.property}`,
+        return {
+          field: `${field?.source}:${field?.property}`,
           operator: c.operator,
           value: value,
           open: false,
@@ -700,20 +687,14 @@ const parseDataToForm = (data: any, formIndex: number) => {
           dateModifier,
           daysOffset
         };
-        console.log('Condition result:', result);
-        return result;
       })
     }));
   } else {
-    console.log('No condition_groups or empty, resetting...');
     form.value[formIndex].condition_groups = [{
       logic_operator: "AND",
       conditions: [{ field: "", operator: "", value: "", open: false, tagOpen: false, dateValueType: "fixed", dateModifier: "exact", daysOffset: 0 }],
     }];
   }
-  
-  console.log('Final condition_groups:', form.value[formIndex].condition_groups);
-  console.log('=== END parseDataToForm DEBUG ===');
 };
 
 const loadSavedSegment = async (segmentId: number, formIndex: number) => {
@@ -767,9 +748,8 @@ const saveSegment = async () => {
       condition_groups: form.value[0].condition_groups.map(group => ({
         logic_operator: group.logic_operator,
         conditions: group.conditions.map((c: any) => {
-          const field = getField(c, 0, 0);
+          const field = getField(c);
           if (!field || !c.operator) return null;
-          
           let finalValue = c.value;
           const isDateField = ['date', 'datetime', 'date_md'].includes(field.data_type);
 
@@ -782,17 +762,14 @@ const saveSegment = async () => {
           } else if (c.value === '' && !['empty', 'not_empty'].includes(c.operator)) {
             return null;
           }
-
           return {
-            source: field.source,
-            property: field.field_key,
+            target_audience_condition_field_id:field.id,
             operator: c.operator,
             value: finalValue,
           };
         }).filter(Boolean)
       })).filter(g => g.conditions.length > 0)
     };
-
     const hasValidConditions = payload.condition_groups.length > 0;
     if (!hasValidConditions) {
       throw new Error("Defina pelo menos uma condição válida.");
@@ -839,8 +816,10 @@ const resetForm = () => {
 };
 
 const open = async (segment: any = null, allSegments: any[] = []) => {
-  await fetchFields();
-  await fetchTags();
+  isOpen.value = true;
+
+   Promise.all([fetchFields(),
+  fetchTags()])
   savedSegments.value = allSegments;
   
   if (segment) {
@@ -872,7 +851,6 @@ const open = async (segment: any = null, allSegments: any[] = []) => {
     isEditing.value = false;
     resetForm();
   }
-  isOpen.value = true;
 };
 
 const importData = (importedForms: any[]) => {
