@@ -1097,7 +1097,7 @@ export default {
           id: "margem-bruta",
           title: "Margem Bruta",
           tooltip:
-            "Margem bruta (%) = ((entradas confirmadas − saídas confirmadas) ÷ entradas confirmadas) × 100 no período — equivalente a (retorno bruto ÷ entradas) × 100, com retorno bruto = entradas − saídas.",
+            "Percentual de (entradas − saídas) sobre as entradas confirmadas no período.",
           value: this.grossMarginPercentFormatted(),
           suffix: "%",
           icon: "CirclePercent",
