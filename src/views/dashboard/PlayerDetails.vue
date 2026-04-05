@@ -274,7 +274,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute } from "vue-router";
 import { 
@@ -406,7 +406,25 @@ const handleScroll = () => {
   }
 };
 
-onMounted(() => fetchHistory(1));
+function resetProfileStateForNewClient() {
+  currentPage.value = 1;
+  lastPage.value = 1;
+  history.value = [];
+  player.value = undefined;
+  selectedEventType.value = "all";
+  isHistoryDetailDialogOpen.value = false;
+  selectedHistoryEvent.value = null;
+}
+
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId === undefined || newId === "") return;
+    resetProfileStateForNewClient();
+    fetchHistory(1);
+  },
+  { immediate: true },
+);
 
 const getAge = (value: string) => {
   if (!value) return 0;
