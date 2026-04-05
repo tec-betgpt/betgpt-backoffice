@@ -155,7 +155,7 @@ const contactsDialogRef = ref();
 
 const exportSeg = ref([]);
 const segments = ref<Array<any>>([]);
-const nameSegment = ref();
+const nameSegment = ref<Record<string, string>>({});
 const orderId = ref("");
 const order = ref(false);
 const segmentColumnHelper = createColumnHelper<SegmentData>();
@@ -190,8 +190,8 @@ const openExportModal = () => {
   segmentExportDialogRef.value.open();
 };
 
-const handleName = (text: string) => {
-  nameSegment.value = text;
+const handleName = (values: Record<string, string>) => {
+  nameSegment.value = values;
 };
 
 function handlerOrder(column: string, direction: boolean) {
@@ -206,11 +206,18 @@ const fetchSegments = async (current: number = pages.value.current) => {
   isLoading.value = true;
 
   try {
+    const searchParams = Object.keys(nameSegment.value).reduce(
+        (acc, key) => {
+          acc[key] = nameSegment.value[key];
+          return acc;
+        },
+        {} as Record<string, string>,
+    );
     const params = {
       is_segment: true,
       page: current,
       filter_id: activeGroupProjectId.value,
-      search: nameSegment.value,
+      ...searchParams,
       order_by: orderId.value,
       type_order: order.value ? "asc" : "desc",
       per_page: perPage.value,

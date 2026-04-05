@@ -367,8 +367,7 @@ const fetchAudiences = async (current = pages.value.current, showLoading = true)
     pages.value = { current: response.data.pagination.current_page,
       last: response.data.pagination.last_page,
       total: response.data.pagination.total };
-    console.log(audiences.value)
-  } catch (error) {
+ } catch (error) {
     console.error("Error loading target audiences:", error);
     if (showLoading) {
       toast({ title: "Erro", description: "Não foi possível carregar os públicos alvo.", variant: "destructive" });
