@@ -63,7 +63,19 @@
                 </div>
                 <div class="space-y-1">
                   <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">REFERRER_ID</p>
-                  <p class="text-sm font-medium">{{ player.referrer_id || 'Não informado' }}</p>
+                  <p class="text-sm font-medium">
+                    <template v-if="player.referrer_id">
+                      <router-link
+                        v-if="canAccessClientManagement && player.referrer_player"
+                        :to="{ name: 'clients.show', params: { id: String(player.referrer_player.id) } }"
+                        class="text-primary hover:underline"
+                      >
+                        {{ player.referrer_id }}
+                      </router-link>
+                      <span v-else>{{ player.referrer_id }}</span>
+                    </template>
+                    <span v-else>Não informado</span>
+                  </p>
                 </div>
               </div>
 
@@ -263,6 +275,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
 import { useRoute } from "vue-router";
 import { 
   ChevronLeft, Loader2Icon, MapPinIcon, 
@@ -292,6 +305,14 @@ import {
 
 const route = useRoute();
 const { toast } = useToast();
+const authStore = useAuthStore();
+const hasPermission = (permissionName: string) =>
+  Boolean((authStore.user as any)?.roles?.some((role: any) =>
+    role.permissions?.some((permission: any) => permission.name === permissionName),
+  ));
+const canAccessClientManagement = computed(() =>
+  hasPermission("access-to-client-management"),
+);
 const player = ref();
 const history = ref([]);
 const isLoading = ref(true);
