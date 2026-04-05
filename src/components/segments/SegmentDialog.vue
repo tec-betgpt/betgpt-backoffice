@@ -188,7 +188,27 @@
                           <SelectItem value=" temp_suspension">Suspensão Temporária</SelectItem>
                         </SelectContent>
                       </Select>
-
+                      <Select
+                          v-else-if="(getField(condition, groupIndex, formIndex)?.field_key === 'call4u_linked_status' || getField(condition, groupIndex, formIndex)?.table === 'call4u_linked_status') && !['empty', 'not_empty'].includes(condition.operator)"
+                          v-model="condition.value"
+                          class="flex-1 min-w-[240px]"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Atendida com digitação">Atendida com digitação</SelectItem>
+                          <SelectItem value="Atendida e desconectada">Atendida e desconectada</SelectItem>
+                          <SelectItem value="Atendida e ouviu até o final">Atendida e ouviu até o final</SelectItem>
+                          <SelectItem value="Cancelado pelo Horário 23:00 às 07:30">Cancelado pelo Horário 23:00 às 07:30</SelectItem>
+                          <SelectItem value="Em andamento">Em andamento</SelectItem>
+                          <SelectItem value="Número está na Blacklist">Número está na Blacklist</SelectItem>
+                          <SelectItem value="Número inválido">Número inválido</SelectItem>
+                          <SelectItem value="Pendente">Pendente</SelectItem>
+                          <SelectItem value="Preparando para discagem">Preparando para discagem</SelectItem>
+                          <SelectItem value="Recusada">Recusada</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <Select
                         v-else-if="getField(condition, groupIndex, formIndex)?.field_key === 'protection_list'"
                         v-model="condition.value"
@@ -517,7 +537,7 @@ const form = ref([
   },
 ]);
 
-const getField = (condition: any) => {
+const getField = (condition: any, groupIndex?: number, formIndex?: number) => {
   if (!condition?.field) return null;
   const [source, fieldKey] = condition.field.split(':');
   const fieldGroup = fields.value.find(g => g.name === source);
@@ -525,7 +545,7 @@ const getField = (condition: any) => {
 };
 
 const getOperators = (condition: any, groupIndex: number, formIndex: number) => {
-  const field = getField(condition, groupIndex, formIndex);
+  const field = getField(condition);
   return field ? field.operators || [] : [];
 };
 
@@ -818,8 +838,7 @@ const resetForm = () => {
 const open = async (segment: any = null, allSegments: any[] = []) => {
   isOpen.value = true;
 
-   Promise.all([fetchFields(),
-  fetchTags()])
+
   savedSegments.value = allSegments;
   
   if (segment) {
@@ -836,6 +855,8 @@ const open = async (segment: any = null, allSegments: any[] = []) => {
       isProcessing.value = true;
       const data = await TargetAudience.show({ id: segment.id });
       parseDataToForm(data, 0);
+     await Promise.all([fetchFields(),
+        fetchTags()])
     } catch (error) {
       console.error("Error loading segment:", error);
       toast({

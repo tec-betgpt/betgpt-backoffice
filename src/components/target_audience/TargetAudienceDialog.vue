@@ -510,6 +510,7 @@ const fetchFields = async () => {
           acc[field.source] = { name: field.source, fields: [] };
         }
         acc[field.source].fields.push({
+          id: field.id,
           field_key: field.property,
           label: field.label,
           data_type: field.type,
@@ -549,7 +550,7 @@ const openWithSegment = async (segment,audienceId=null) => {
 };
 const open = async (audienceId = null) => {
   resetForm();
-  await fetchFields();
+  fetchFields();
   
   if (audienceId) {
     isEditing.value = true;
@@ -586,7 +587,7 @@ const parseDataToForm = (data) => {
                 let daysOffset = 0;
                 let value = c.value;
 
-                const field = responseFieldsFlat.value.find(f => f.source === c.source && f.property === c.property);
+                const field = responseFieldsFlat.value.find(f => f.id === c.target_audience_condition_field_id);
                 const isDateField = field && ['date', 'datetime', 'date_md'].includes(field.type);
 
                 if (isDateField) {
@@ -604,11 +605,25 @@ const parseDataToForm = (data) => {
                                 daysOffset = Math.abs(numValue);
                             }
                         }
+                    } else {
+                      if (typeof c.value === 'string' && c.value.startsWith('{')) {
+                        try {
+                          const parsedValue = JSON.parse(c.value);
+                          if (parsedValue.dateFilter === 'full_date' || parsedValue.dateModifier) {
+                            dateValueType = "relative";
+                            dateModifier = parsedValue.dateModifier || "exact";
+                            daysOffset = parsedValue.daysOffset || 0;
+                            value = '';
+                          }
+                        } catch (e) {
+                          console.log('Failed to parse JSON:', e);
+                        }
+                      }
                     }
                 }
 
                 return {
-                    field: `${c.source}:${c.property}`,
+                    field: `${field?.source}:${field?.property}`,
                     operator: c.operator,
                     value: value,
                     open: false,
@@ -710,10 +725,8 @@ const save = async () => {
                     } else if (c.value === '' && !['empty', 'not_empty'].includes(c.operator)) {
                         return null;
                     }
-
                     return {
-                        source: field.source,
-                        property: field.field_key,
+                        target_audience_condition_field_id:field.id,
                         operator: c.operator,
                         value: finalValue,
                     };
