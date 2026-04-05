@@ -1012,6 +1012,19 @@ export default {
       }
     },
 
+    /**
+     * Margem bruta (%) = ((entradas − saídas) / entradas) × 100
+     * (entradas/saídas = valores confirmados no período, mesma base do dashboard)
+     */
+    grossMarginPercentFormatted() {
+      const entradas = Number(this.deposits.total_paid_deposits ?? 0);
+      const saidas = Number(this.withdraws.total_paid_withdraws ?? 0);
+      if (entradas <= 0) {
+        return "0.00";
+      }
+      return (((entradas - saidas) / entradas) * 100).toFixed(2);
+    },
+
     revenueWithdrawCards() {
       return [
         {
@@ -1063,15 +1076,6 @@ export default {
     buildCardsDeposits() {
       const depositCards = [
         {
-          id: "total-entradas-7d",
-          title: "Total de Entradas 7D",
-          tooltip: "Total de entradas dos últimos 7 dias.",
-          value: this.deposits.total / 100,
-          variation: this.deposits.percentage,
-          icon: CalendarCheck2,
-          isConditional: !this.hideMetricsDaily,
-        },
-        {
           id: "volume-liquido-entradas",
           title: "Retorno Bruto",
           tooltip:
@@ -1090,13 +1094,23 @@ export default {
           isConditional: this.deposits.performance_return_hidden,
         },
         {
-          id: "ticket-medio-entradas",
-          title: "Ticket Médio de Entradas",
+          id: "margem-bruta",
+          title: "Margem Bruta",
           tooltip:
-            "Valor médio por transação de entrada confirmadas realizada pelos usuários",
-          value: this.deposits.average_ticket / 100,
-          icon: "ChartCandlestick",
+            "Margem bruta (%) = ((entradas confirmadas − saídas confirmadas) ÷ entradas confirmadas) × 100 no período — equivalente a (retorno bruto ÷ entradas) × 100, com retorno bruto = entradas − saídas.",
+          value: this.grossMarginPercentFormatted(),
+          suffix: "%",
+          icon: "CirclePercent",
           isConditional: false,
+        },
+        {
+          id: "total-entradas-7d",
+          title: "Total de Entradas 7D",
+          tooltip: "Total de entradas dos últimos 7 dias.",
+          value: this.deposits.total / 100,
+          variation: this.deposits.percentage,
+          icon: CalendarCheck2,
+          isConditional: !this.hideMetricsDaily,
         },
         {
           id: "taxa-aprovacao-depositos",
@@ -1106,6 +1120,15 @@ export default {
           value: this.deposits.conversion_rate,
           suffix: "%",
           icon: "CirclePercent",
+          isConditional: false,
+        },
+        {
+          id: "ticket-medio-entradas",
+          title: "Ticket Médio de Entradas",
+          tooltip:
+            "Valor médio por transação de entrada confirmadas realizada pelos usuários",
+          value: this.deposits.average_ticket / 100,
+          icon: "ChartCandlestick",
           isConditional: false,
         },
         {
@@ -1130,12 +1153,14 @@ export default {
         },
       ];
 
-      const allCards = [...depositCards, ...this.revenueWithdrawCards()];
-      return [
-        allCards.slice(0, 4),
-        allCards.slice(4, 8),
-        allCards.slice(8, 12),
-      ];
+      const withdrawCards = this.revenueWithdrawCards();
+      const firstRow = depositCards.slice(0, 3);
+      const rest = [...depositCards.slice(3), ...withdrawCards];
+      const rows = [firstRow];
+      for (let i = 0; i < rest.length; i += 4) {
+        rows.push(rest.slice(i, i + 4));
+      }
+      return rows;
     },
 
     buildCardsPlayers() {
@@ -1167,15 +1192,6 @@ export default {
             "Total de cadastros completos no sistema no período selecionado",
           value: this.players.registered_users_day,
           icon: "UserRoundPlus",
-        },
-        {
-          id: "primeiras-entradas",
-          title: "Cadastros Convertidos em Clientes",
-          tooltip:
-            "Total de primeiras entradas (FTD) no período — cadastros que se converteram em clientes pagantes.",
-          quantity: this.deposits.total_ftd_count,
-          value: this.deposits.total_ftd_amount / 100,
-          icon: "ListCheck",
         },
         {
           id: "quantidade-logins",
@@ -1229,6 +1245,15 @@ export default {
           value: Number(this.players.ftd_post_d0_percent ?? 0).toFixed(2),
           suffix: "%",
           icon: "CirclePercent",
+        },
+        {
+          id: "primeiras-entradas",
+          title: "Cadastros Convertidos em Clientes",
+          tooltip:
+            "Total de primeiras entradas (FTD) no período — cadastros que se converteram em clientes pagantes.",
+          quantity: this.deposits.total_ftd_count,
+          value: this.deposits.total_ftd_amount / 100,
+          icon: "ListCheck",
         },
       ];
 
