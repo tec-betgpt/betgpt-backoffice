@@ -143,7 +143,6 @@
                   </p>
                 </div>
               </div>
-
               <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
                 <Checkbox
                   id="sync_with_protection_list"
@@ -175,6 +174,156 @@
                   </div>
                 </div>
               </div>
+              <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                <Checkbox
+                  id="sync_remove_add_tag"
+                  :checked="form.metadata.triggers.includes('sync_remove_add_tag')"
+                  @update:checked="(checked) => onTriggerChange('sync_remove_add_tag', checked)"
+                />
+                <div class="grid gap-1.5 leading-none w-full">
+                  <Label for="sync_remove_add_tag" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Adicionar Tag ao ser removido
+                  </Label>
+                  <p class="text-xs text-muted-foreground">
+                    Quando esta tag for removida de um jogador, as tags selecionadas serão automaticamente adicionadas.
+                  </p>
+
+                  <div v-if="form.metadata.triggers.includes('sync_remove_add_tag')" class="mt-4 space-y-4 border-t pt-4">
+                    <div class="space-y-2">
+                      <Label>Selecione as tags</Label>
+                      <div class="flex flex-wrap gap-2">
+                        <Badge
+                          v-for="tag in selectedTagsRemoveAdd"
+                          :key="tag.id"
+                          variant="secondary"
+                          class="pl-2 pr-1 py-0.5 flex items-center gap-1"
+                          :style="{ 
+                            backgroundColor: tag.color ? `${tag.color}20` : undefined,
+                            color: tag.color || undefined,
+                            borderColor: tag.color ? `${tag.color}40` : undefined
+                          }"
+                        >
+                          {{ tag.name }}
+                          <button 
+                            @click.stop="onRemoveTagFromSyncRemoveAdd(tag.id)" 
+                            class="ml-1 rounded-full hover:bg-black/10 p-0.5 transition-colors"
+                          >
+                            <X class="h-3 w-3" />
+                          </button>
+                        </Badge>
+                        <Popover>
+                          <PopoverTrigger as-child>
+                            <Button variant="outline" size="sm" class="h-7">
+                              <Plus class="h-3 w-3 mr-1" />
+                              Adicionar
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent class="w-[250px] p-0" align="start">
+                            <Command :filter-results="false">
+                              <CommandInput placeholder="Buscar tag..." @input="onSearchTagSelector" />
+                              <CommandList>
+                                <div v-if="isLoadingAvailableTags" class="flex items-center justify-center p-4">
+                                  <Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
+                                </div>
+                                <template v-else>
+                                  <CommandEmpty>Nenhuma tag encontrada.</CommandEmpty>
+                                  <CommandGroup v-if="availableTags.length > 0">
+                                    <CommandItem
+                                      v-for="tag in availableTags"
+                                      :key="tag.id"
+                                      :value="tag.name"
+                                      @select="() => onAddTagToSyncRemoveAdd(tag)"
+                                      class="flex items-center gap-2"
+                                    >
+                                      <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: tag.color || '#e2e8f0' }"></div>
+                                      <span>{{ tag.name }}</span>
+                                    </CommandItem>
+                                  </CommandGroup>
+                                </template>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                <Checkbox
+                  id="sync_add_remove_tag"
+                  :checked="form.metadata.triggers.includes('sync_add_remove_tag')"
+                  @update:checked="(checked) => onTriggerChange('sync_add_remove_tag', checked)"
+                />
+                <div class="grid gap-1.5 leading-none w-full">
+                  <Label for="sync_add_remove_tag" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Remover Tag ao ser adicionado
+                  </Label>
+                  <p class="text-xs text-muted-foreground">
+                    Quando esta tag for adicionada a um jogador, as tags selecionadas serão automaticamente removidas.
+                  </p>
+
+                  <div v-if="form.metadata.triggers.includes('sync_add_remove_tag')" class="mt-4 space-y-4 border-t pt-4">
+                    <div class="space-y-2">
+                      <Label>Selecione as tags</Label>
+                      <div class="flex flex-wrap gap-2">
+                        <Badge
+                          v-for="tag in selectedTagsAddRemove"
+                          :key="tag.id"
+                          variant="secondary"
+                          class="pl-2 pr-1 py-0.5 flex items-center gap-1"
+                          :style="{ 
+                            backgroundColor: tag.color ? `${tag.color}20` : undefined,
+                            color: tag.color || undefined,
+                            borderColor: tag.color ? `${tag.color}40` : undefined
+                          }"
+                        >
+                          {{ tag.name }}
+                          <button 
+                            @click.stop="onRemoveTagFromSyncAddRemove(tag.id)" 
+                            class="ml-1 rounded-full hover:bg-black/10 p-0.5 transition-colors"
+                          >
+                            <X class="h-3 w-3" />
+                          </button>
+                        </Badge>
+                        <Popover>
+                          <PopoverTrigger as-child>
+                            <Button variant="outline" size="sm" class="h-7">
+                              <Plus class="h-3 w-3 mr-1" />
+                              Adicionar
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent class="w-[250px] p-0" align="start">
+                            <Command :filter-results="false">
+                              <CommandInput placeholder="Buscar tag..." @input="onSearchTagSelector" />
+                              <CommandList>
+                                <div v-if="isLoadingAvailableTags" class="flex items-center justify-center p-4">
+                                  <Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
+                                </div>
+                                <template v-else>
+                                  <CommandEmpty>Nenhuma tag encontrada.</CommandEmpty>
+                                  <CommandGroup v-if="availableTags.length > 0">
+                                    <CommandItem
+                                      v-for="tag in availableTags"
+                                      :key="tag.id"
+                                      :value="tag.name"
+                                      @select="() => onAddTagToSyncAddRemove(tag)"
+                                      class="flex items-center gap-2"
+                                    >
+                                      <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: tag.color || '#e2e8f0' }"></div>
+                                      <span>{{ tag.name }}</span>
+                                    </CommandItem>
+                                  </CommandGroup>
+                                </template>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </TabsContent>
 
@@ -193,7 +342,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { Check, ChevronsUpDown } from 'lucide-vue-next';
+import { Check, ChevronsUpDown, X, Plus, Loader2 } from 'lucide-vue-next';
 import { useToast } from '@/components/ui/toast/use-toast';
 import {
   Dialog,
@@ -234,6 +383,7 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import TagsService from '@/services/tags';
 import { Tag } from '@/contracts/tag';
 import {useWorkspaceStore} from "@/stores/workspace";
@@ -266,6 +416,8 @@ const form = ref({
     triggers: [] as string[],
     protection_list_channel: '',
     protection_list_sync_with_segments: false,
+    sync_remove_add_tag: [] as number[],
+    sync_add_remove_tag: [] as number[],
   }
 });
 
@@ -275,6 +427,10 @@ const isLoadingParents = ref(false);
 const openParent = ref(false);
 const searchParentQuery = ref('');
 const tagConditions = ref<any[]>([]);
+const availableTags = ref<Tag[]>([]);
+const isLoadingAvailableTags = ref(false);
+const selectedTagsRemoveAdd = ref<Tag[]>([]);
+const selectedTagsAddRemove = ref<Tag[]>([]);
 let searchTimeout: any = null;
 
 const selectedParentName = computed(() => {
@@ -300,6 +456,8 @@ watch(() => props.open, (newVal) => {
         metadata: {
           triggers: props.tag.metadata?.triggers || [],
           protection_list_channel: props.tag.metadata?.protection_list_channel || '',
+          sync_remove_add_tag: props.tag.metadata?.sync_remove_add_tag || [],
+          sync_add_remove_tag: props.tag.metadata?.sync_add_remove_tag || [],
         }
       };
       
@@ -319,11 +477,14 @@ watch(() => props.open, (newVal) => {
           triggers: [],
           protection_list_channel: '',
           protection_list_sync_with_segments: false,
+          sync_remove_add_tag: [],
+          sync_add_remove_tag: [],
         }
       };
     }
     fetchParentTags();
     fetchConditions();
+    fetchAvailableTags();
   }
 });
 
@@ -336,6 +497,83 @@ const fetchConditions = async () => {
     console.error("Erro ao buscar condições:", error);
   }
 }
+
+const fetchAvailableTags = async () => {
+  isLoadingAvailableTags.value = true;
+  try {
+    const response = await TagsService.index({
+      filter_id: workspace.activeGroupProject.id,
+      per_page: 100
+    });
+    const allTags = Array.isArray(response) ? response : (response.data || []);
+    availableTags.value = allTags.filter((t: Tag) => t.id !== props.tag?.id);
+    
+    selectedTagsRemoveAdd.value = allTags.filter((t: Tag) => 
+      form.value.metadata.sync_remove_add_tag.includes(t.id)
+    );
+    selectedTagsAddRemove.value = allTags.filter((t: Tag) => 
+      form.value.metadata.sync_add_remove_tag.includes(t.id)
+    );
+  } catch (error) {
+    console.error("Erro ao buscar tags disponíveis:", error);
+  } finally {
+    isLoadingAvailableTags.value = false;
+  }
+}
+
+const onRemoveTagFromSyncRemoveAdd = (tagId: number) => {
+  form.value.metadata.sync_remove_add_tag = form.value.metadata.sync_remove_add_tag.filter(id => id !== tagId);
+  selectedTagsRemoveAdd.value = selectedTagsRemoveAdd.value.filter(t => t.id !== tagId);
+};
+
+const onRemoveTagFromSyncAddRemove = (tagId: number) => {
+  form.value.metadata.sync_add_remove_tag = form.value.metadata.sync_add_remove_tag.filter(id => id !== tagId);
+  selectedTagsAddRemove.value = selectedTagsAddRemove.value.filter(t => t.id !== tagId);
+};
+
+const onAddTagToSyncRemoveAdd = (tag: Tag) => {
+  if (!form.value.metadata.sync_remove_add_tag.includes(tag.id)) {
+    form.value.metadata.sync_remove_add_tag.push(tag.id);
+    selectedTagsRemoveAdd.value.push(tag);
+  }
+};
+
+const onAddTagToSyncAddRemove = (tag: Tag) => {
+  if (!form.value.metadata.sync_add_remove_tag.includes(tag.id)) {
+    form.value.metadata.sync_add_remove_tag.push(tag.id);
+    selectedTagsAddRemove.value.push(tag);
+  }
+};
+
+let searchTagTimeout: any = null;
+const onSearchTagSelector = (e: any) => {
+  const query = e.target.value;
+  clearTimeout(searchTagTimeout);
+  searchTagTimeout = setTimeout(() => {
+    searchAvailableTags(query);
+  }, 400);
+};
+
+const searchAvailableTags = async (search = '') => {
+  isLoadingAvailableTags.value = true;
+  try {
+    const response = await TagsService.index({
+      search,
+      filter_id: workspace.activeGroupProject.id,
+      per_page: 20
+    });
+    const allTags = Array.isArray(response) ? response : (response.data || []);
+    availableTags.value = allTags.filter((t: Tag) => 
+      t.id !== props.tag?.id &&
+      !form.value.metadata.sync_remove_add_tag.includes(t.id) &&
+      !form.value.metadata.sync_add_remove_tag.includes(t.id)
+    );
+  } catch (error) {
+    console.error("Erro ao buscar tags:", error);
+  } finally {
+    isLoadingAvailableTags.value = false;
+  }
+};
 const onNameInput = () => {
   if (!isEdit.value) {
     form.value.slug = form.value.name
@@ -391,6 +629,15 @@ const onSearchParent = (e: any) => {
 const onSubmit = async () => {
   isLoading.value = true;
   try {
+    if (form.value.metadata.sync_remove_add_tag.length > 0 && 
+        !form.value.metadata.triggers.includes('sync_remove_add_tag')) {
+      form.value.metadata.triggers.push('sync_remove_add_tag');
+    }
+    if (form.value.metadata.sync_add_remove_tag.length > 0 && 
+        !form.value.metadata.triggers.includes('sync_add_remove_tag')) {
+      form.value.metadata.triggers.push('sync_add_remove_tag');
+    }
+
     const payload: any = {
       name: form.value.name,
       slug: form.value.slug,

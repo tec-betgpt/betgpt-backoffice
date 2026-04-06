@@ -180,9 +180,10 @@
               </div>
 
                <!-- Avatar User -->
-               <Avatar v-if="message.role === 'user'" class="h-8 w-8 mt-1 border">
-                <AvatarFallback>{{ authStore.user?.initials || 'U' }}</AvatarFallback>
-              </Avatar>
+                <Avatar v-if="message.role === 'user'" class="h-8 w-8 mt-1 border">
+                  <AvatarImage v-if="authStore.user?.icon" :src="authStore.user?.icon" />
+                  <AvatarFallback>{{ authStore.user?.initials || 'U' }}</AvatarFallback>
+                </Avatar>
             </div>
 
             <!-- Loading Indicator for new message -->
