@@ -45,6 +45,7 @@
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>E-mail</TableHead>
+              <TableHead>Referrer ID</TableHead>
               <TableHead class="text-right">
                 <Button class="p-0" variant="ghost" @click="handleSort('created_at')">
                   Criado em
@@ -64,6 +65,19 @@
                 </TableCell>
                 <TableCell>
                   {{ row.email }}
+                </TableCell>
+                <TableCell>
+                  <template v-if="row.referrer_id">
+                    <router-link
+                      v-if="canAccessClientManagement && row.referrer_player"
+                      :to="{ name: 'clients.show', params: { id: String(row.referrer_player.id) } }"
+                      class="text-primary hover:underline"
+                    >
+                      {{ row.referrer_id }}
+                    </router-link>
+                    <span v-else>{{ row.referrer_id }}</span>
+                  </template>
+                  <span v-else class="text-muted-foreground">—</span>
                 </TableCell>
                 <TableCell class="text-right text-nowrap">
                   {{ $moment(row.created_at).format('DD/MM/YYYY') }}
@@ -86,7 +100,7 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in perPage" :key="i">
-                <TableCell v-for="j in 4" :key="i">
+                <TableCell v-for="j in 5" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
@@ -94,7 +108,7 @@
 
             <template v-if="!isLoading && (!players || !players.length)">
               <TableRow>
-                <TableCell :colspan="4" class="text-center py-5">
+                <TableCell :colspan="5" class="text-center py-5">
                   Nenhum cliente encontrado.
                 </TableCell>
               </TableRow>
@@ -118,7 +132,7 @@ import { ref, onMounted, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { getMs } from "@/filters/formatNumbers";
-import { ArrowDown, ArrowUp, Eye, Check, ChevronsUpDown } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, Eye, ChevronsUpDown } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import Players from "@/services/players";
 import TagsService from "@/services/tags";
@@ -126,7 +140,6 @@ import { Tag } from "@/contracts/tag";
 import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 import { useRouter } from "vue-router";
-import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
 
@@ -138,11 +151,21 @@ const hasPermission = (permissionName: string) =>
     role.permissions?.some((permission: any) => permission.name === permissionName),
   ));
 
+type ReferrerPlayerSnippet = {
+  id: number;
+  name: string | null;
+  email: string;
+  external_id: string | null;
+};
+
 type Player = {
   id: string;
   name: string;
   email: string;
   created_at: string;
+  referrer_id?: string | null;
+  external_id?: string | null;
+  referrer_player?: ReferrerPlayerSnippet | null;
 };
 
 const showPlayer = (id: string) => {

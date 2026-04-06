@@ -16,6 +16,12 @@ export interface Player {
   cpf: string | null
   external_id: string | null
   referrer_id: string | null
+  referrer_player?: {
+    id: number
+    name: string | null
+    email: string
+    external_id: string | null
+  } | null
   gender: string | null
   birthday: string | null
   phone: string | null
