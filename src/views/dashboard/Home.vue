@@ -9,7 +9,7 @@
           {{ user ? user.first_name : "" }}
         </div>
         <div
-          class="xs:text-xs md:text-sm"
+          class="text-xs md:text-sm"
           v-if="executionInfo && isToday()"
         >
           Última atualização:
@@ -72,7 +72,7 @@
           <div class="py-4 md:py-8 flex justify-between items-center">
             <div>
               <div class="text-md font-semibold md:text-xl">{{ item.title }}</div>
-              <div class="text-sm text-muted-foreground">
+              <div class="text-xs md:text-sm text-muted-foreground">
                 {{ item.subtitle }}
               </div>
             </div>
@@ -109,18 +109,18 @@
                   @dragleave="onDragLeave"
                   @drop="onDropSub($event, subItem, item.id)"
                 >
-                  <CardHeader class="pb-2 md:pb-4">
+                  <CardHeader class="p-2 md:p-6 pb-2 md:pb-4">
                     <CardTitle class="flex-row flex justify-between items-start gap-1">
                       <div class="flex justify-start w-full items-center">
                         <Avatar
                           v-if="subItem.icon"
-                          class="mr-3 bg-gradient-to-br from-[#F6CE4C] to-[#FF9F00] h-8 w-8 md:h-11 md:w-11 p-2"
+                          class="mr-1.5 md:mr-3 bg-gradient-to-br from-[#F6CE4C] to-[#FF9F00] h-6 w-6 md:h-11 md:w-11 p-1 md:p-2"
                           shape="square"
                         >
                           <Component :is="subItem.icon" class="h-full w-full dark:text-black" />
                         </Avatar>
 
-                        <div class="font-semibold text-sm md:text-md">
+                        <div class="font-semibold text-xs md:text-md">
                           {{ subItem.title }}
                         </div>
                       </div>
@@ -136,7 +136,7 @@
                   </CardHeader>
 
                   <!-- LAYOUT TIPO GRÁFICO -->
-                  <CardContent v-if="subItem.layout === 'card'" class="max-sm:px-3 h-60 md:h-auto pb-12">
+                  <CardContent v-if="subItem.layout === 'card'" class="px-2 md:px-6 h-60 md:h-auto pb-12">
                     <BarChart
                       class="w-full"
                       :data="deposits.monthly_counts"
@@ -227,17 +227,17 @@
                   </CardContent>
 
                   <!-- LAYOUT TIPO QUANTIDADE -->
-                  <CardContent v-else-if="subItem.quantity" class="flex-col">
+                  <CardContent v-else-if="subItem.quantity" class="flex-col p-2 md:p-6 pt-0 md:pt-0">
                     <div class="flex flex-col">
-                      <div class="text-lg md:text-2xl font-semibold" v-if="isShowValues">
+                      <div class="text-sm md:text-2xl font-semibold" v-if="isShowValues">
                         +{{ subItem.quantity }}
                       </div>
                       <SkeletonCustom v-else class="h-7 w-40" />
                       <div class="text-xs text-muted-foreground uppercase">Quantidade</div>
                     </div>
 
-                    <div class="flex flex-col mt-2">
-                      <div class="text-lg md:text-2xl font-semibold" v-if="isShowValues">
+                    <div class="flex flex-col mt-1 md:mt-2">
+                      <div class="text-sm md:text-2xl font-semibold" v-if="isShowValues">
                         {{ $toCurrency(subItem.value) }}
                       </div>
                       <SkeletonCustom v-else class="h-7 w-40" />
@@ -267,9 +267,9 @@
 
                   <CardContent
                     v-else-if="subItem.count !== undefined && subItem.count !== null"
-                    class="max-sm:flex max-sm:flex-col"
+                    class="max-sm:flex max-sm:flex-col p-2 md:p-6 pt-0 md:pt-0"
                   >
-                    <div class="text-lg md:text-2xl font-semibold" v-if="isShowValues">
+                    <div class="text-sm md:text-2xl font-semibold" v-if="isShowValues">
                       {{ subItem.prefix }}{{ subItem.count }}{{ subItem.suffix }}
                     </div>
 
@@ -297,11 +297,11 @@
                   </CardContent>
 
                   <!-- LAYOUT PADRÃO -->
-                  <CardContent v-else class="max-sm:flex max-sm:flex-col">
+                  <CardContent v-else class="max-sm:flex max-sm:flex-col p-2 md:p-6 pt-0 md:pt-0">
                     <div
                       v-if="isShowValues"
                       :title="subItem.value"
-                      class="text-lg md:text-2xl font-semibold"
+                      class="text-sm md:text-2xl font-semibold"
                     >
                       {{ subItem.prefix }}{{ subItem.suffix ? subItem.value : $toCurrency(subItem.value) }}{{ subItem.suffix }}
                     </div>
@@ -414,12 +414,15 @@ export default {
     },
 
     processedCards() {
-      const limits = { mobile: 1, tablet: 2, desktop: 5 };
+      const limits = { mobile: 2, tablet: 2, desktop: 5 };
       return this.cards.map((group, groupIndex) => {
         const rowWidth = this.rowWidths[groupIndex] || window.innerWidth;
         let limit;
+        let isMobile = false;
+
         if (rowWidth < 500) {
           limit = limits.mobile;
+          isMobile = true;
         } else if (rowWidth < 900) {
           limit = limits.tablet;
         } else {
@@ -431,10 +434,23 @@ export default {
         const visibleContent = group.content
           .map((row) => row.filter((card) => !card.isConditional))
           .filter((row) => row.length > 0);
+
         visibleContent.forEach((originalRow) => {
-          if (originalRow.length > limit) {
-            for (let i = 0; i < originalRow.length; i += limit) {
-              newContent.push(originalRow.slice(i, i + limit));
+          let currentLimit = limit;
+          
+          if (isMobile) {
+            // Se algum item da linha for gráfico ou lista, o limite daquela linha inteira no mobile deve ser 1.
+            const hasFullWidthItem = originalRow.some(
+              (card) => card.layout === "card" || card.layout === "list"
+            );
+            if (hasFullWidthItem) {
+              currentLimit = 1;
+            }
+          }
+
+          if (originalRow.length > currentLimit) {
+            for (let i = 0; i < originalRow.length; i += currentLimit) {
+              newContent.push(originalRow.slice(i, i + currentLimit));
             }
           } else {
             newContent.push(originalRow);
