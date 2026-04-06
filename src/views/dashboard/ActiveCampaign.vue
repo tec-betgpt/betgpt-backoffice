@@ -8,6 +8,16 @@
         </p>
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+        <Button
+          variant="outline"
+          @click="
+            isLegacy = !isLegacy;
+            applyFilter(1);
+          "
+          :class="{ 'bg-primary text-primary-foreground hover:bg-primary/90': isLegacy }"
+        >
+          {{ isLegacy ? "Ver Versão Atual" : "Ver Versão Antiga" }}
+        </Button>
         <CustomDatePicker v-model="selectedRange" />
       </div>
     </div>
@@ -260,6 +270,7 @@ const authStore = useAuthStore();
 const orderId = ref();
 const order = ref(false);
 const loading = ref(true);
+const isLegacy = ref(false);
 const campaigns = ref<CampaignMetrics[]>([]);
 const integrations = ref<Record<number, Integration>>({});
 const pages = ref({
@@ -535,7 +546,11 @@ const applyFilter = async (current = pages.value.current) => {
       {} as Record<string, string>,
     );
 
-    const { data } = await ActiveCampaign.index({
+    const apiMethod = isLegacy.value
+      ? ActiveCampaign.legacy
+      : ActiveCampaign.index;
+
+    const { data } = await apiMethod({
       page: current,
       ...searchParams,
       start_date: selectedRange.value.start?.toString(),
