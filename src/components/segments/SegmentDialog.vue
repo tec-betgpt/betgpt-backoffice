@@ -99,18 +99,26 @@
                           :aria-expanded="condition.open"
                           class="flex-1 min-w-[200px] justify-between text-left font-normal"
                         >
-                          {{ condition.field 
-                              ? $t(fields.flatMap(g => g.fields).find(f => `${f.source}:${f.field_key}` === condition.field)?.label || 'Selecione um campo')
-                              : 'Selecione um campo' 
-                          }}
+                          <Skeleton v-if="isLoadingFields" class="h-4 w-32" />
+                          <template v-else>
+                            {{ condition.field 
+                                ? $t(fields.flatMap(g => g.fields).find(f => `${f.source}:${f.field_key}` === condition.field)?.label || 'Selecione um campo')
+                                : 'Selecione um campo' 
+                            }}
+                          </template>
                           <ChevronsUpDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent class="w-[300px] p-0" align="start">
                         <Command>
                           <CommandInput placeholder="Buscar campo..." />
-                          <CommandEmpty>Nenhum campo encontrado.</CommandEmpty>
-                          <CommandList>
+                          <CommandEmpty v-if="!isLoadingFields">Nenhum campo encontrado.</CommandEmpty>
+                          <div v-if="isLoadingFields" class="p-4 space-y-2">
+                            <Skeleton class="h-8 w-full" />
+                            <Skeleton class="h-8 w-full" />
+                            <Skeleton class="h-8 w-full" />
+                          </div>
+                          <CommandList v-else>
                             <CommandGroup v-for="fieldGroup in fields" :key="fieldGroup.name" :heading="$t(fieldGroup.name)">
                               <CommandItem
                                 v-for="field in fieldGroup.fields"
@@ -142,7 +150,8 @@
                       class="flex-1 min-w-[120px]"
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Operador" />
+                        <Skeleton v-if="isLoadingFields" class="h-4 w-20" />
+                        <SelectValue v-else placeholder="Operador" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
@@ -158,9 +167,10 @@
                       </SelectContent>
                     </Select>
 
-                    <template v-if="!['empty', 'not_empty'].includes(condition.operator)">
-                      <Select
-                        v-if="getField(condition, groupIndex, formIndex)?.options"
+                    <template v-if="!isLoadingFields">
+                      <template v-if="!['empty', 'not_empty'].includes(condition.operator)">
+                        <Select
+                          v-if="getField(condition, groupIndex, formIndex)?.options"
                         v-model="condition.value"
                         class="flex-1 min-w-[240px]"
                       >
@@ -356,6 +366,13 @@
                         </SelectContent>
                       </Select>
                     </template>
+                    </template>
+
+                    <div v-if="isLoadingFields" class="flex gap-2 flex-1 min-w-[240px]">
+                      <Skeleton class="h-10 w-full" />
+                      <Skeleton class="h-10 w-24" />
+                      <Skeleton class="h-10 w-20" />
+                    </div>
 
                     <Button
                       v-if="group.conditions.length > 1"
@@ -498,6 +515,7 @@ import {
   ChevronsUpDownIcon,
 } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const emit = defineEmits(["saved"]);
 
@@ -511,6 +529,7 @@ const selectedSavedSegment = ref<number | null>(null);
 const savedSegments = ref<Array<any>>([]);
 const availableTags = ref([]);
 const isSearchingTags = ref(false);
+const isLoadingFields = ref(false);
 const fields = ref([]);
 const responseFieldsFlat = ref([]);
 let searchTagsTimeout: any = null;
@@ -589,6 +608,7 @@ const onSearchTags = (e: any) => {
 };
 
 const fetchFields = async () => {
+  isLoadingFields.value = true;
   try {
     const response = await TargetAudience.getAvailableConditions();
     if (Array.isArray(response)) {
@@ -612,6 +632,8 @@ const fetchFields = async () => {
     }
   } catch (error) {
     console.error("Erro ao carregar campos:", error);
+  } finally {
+    isLoadingFields.value = false;
   }
 };
 
@@ -838,7 +860,8 @@ const resetForm = () => {
 const open = async (segment: any = null, allSegments: any[] = []) => {
   isOpen.value = true;
 
-
+   Promise.all([fetchFields(),
+    fetchTags()])
   savedSegments.value = allSegments;
   
   if (segment) {
@@ -855,8 +878,7 @@ const open = async (segment: any = null, allSegments: any[] = []) => {
       isProcessing.value = true;
       const data = await TargetAudience.show({ id: segment.id });
       parseDataToForm(data, 0);
-     await Promise.all([fetchFields(),
-        fetchTags()])
+
     } catch (error) {
       console.error("Error loading segment:", error);
       toast({
