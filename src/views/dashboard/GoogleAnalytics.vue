@@ -54,25 +54,9 @@
                   <SelectValue placeholder="Selecione o agrupamento..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sessionDefaultChannelGroup">
-                    Grupo de canais padrão da sessão
-                  </SelectItem>
-                  <SelectItem value="sessionPrimaryChannelGroup">
-                    Grupo principal de canais da sessão (BGPT)
-                  </SelectItem>
-                  <SelectItem value="sessionSourceMedium">
-                    Origem / mídia da sessão
-                  </SelectItem>
-                  <SelectItem value="sessionMedium"> Sessão/média </SelectItem>
-                  <SelectItem value="sessionSource">
-                    Origem da sessão
-                  </SelectItem>
-                  <SelectItem value="sessionTrafficOrigin">
-                    Plataforma de origem da sessão
-                  </SelectItem>
-                  <SelectItem value="sessionCampaignName">
-                    Campanha da sessão
-                  </SelectItem>
+                  <SelectItem v-for="options in groupOptions" :value="options">
+                      {{ getGroupByLabel(options) }}
+                    </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -896,6 +880,7 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import SessionChannelPieChart from "@/components/google_analytics/SessionChannelPieChart.vue";
 import TotalRevenuePieChart from "@/components/google_analytics/TotalRevenuePieChart.vue";
 import currencyFilter from "@/filters/currencyFilter";
+import {Card} from "@/components/ui/card";
 
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
@@ -931,6 +916,21 @@ const pages = ref({
 const perPages = ref(20);
 const orderId = ref("sessions");
 const order = ref(false);
+const groupOptions = ref<string[]>([]);
+
+const groupByLabelMap: Record<string, string> = {
+  sessionDefaultChannelGroup: "Grupo de canais padrão da sessão",
+  sessionPrimaryChannelGroup: "Grupo principal de canais da sessão (BGPT)",
+  sessionSourceMedium: "Origem / mídia da sessão",
+  sessionMedium: "Sessão/média",
+  sessionSource: "Origem da sessão",
+  sessionTrafficOrigin: "Plataforma de origem da sessão",
+  sessionCampaignName: "Campanha da sessão",
+};
+
+const getGroupByLabel = (value: string): string => {
+  return groupByLabelMap[value] || value;
+};
 const groupSessionsData = ref<GroupSession[]>([]);
 const isFirstLoad = ref(true);
 const savedGroupBy =
@@ -1094,7 +1094,7 @@ const applyFilter = async (current = pages.value.current) => {
     }
 
     const { data } = await GoogleAnalytics.index(params);
-
+    groupOptions.value = data.group_sessions?.group_by_options ?? [];
     groupSessionsData.value = data.group_sessions?.data || [];
     backendTotals.value = data.group_sessions?.total || {};
     variationTotal.value = data.group_sessions?.variation_total || 0;
