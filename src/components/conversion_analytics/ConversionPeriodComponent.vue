@@ -21,44 +21,48 @@
     <Separator />
 
     <CardContent>
-      <div :class="`gap-2 md:grid-cols-1 sm:grid-cols-1 grid mb-10 w-2/3 mx-auto`">
-        <div v-for="(p, index) in period" :key="p.name" class="mx-auto mt-5 md:text-left sm:text-center">
-          <div class="flex sm:flex-row flex-col items-center justify-center w-full gap-2">
-            <div class="text-sm text-gray-400 flex items-center justify-center w-full">
-              <div :style="`background: ${colors[index]}`" class="rounded-full w-3 h-3 inline-block mr-1 text-nowrap"></div>
-              {{ p.name }}
-            </div>
-            <div class="flex justify-between flex-nowrap gap-5">
-              <Badge
-                  :title="`Mínimo: ${calculateStats(p.name, p.value).min}`"
-                  class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center">
-                <img src="/svg/down.svg" class="w-4 h-4 mr-1" alt="down" />
-                {{ calculateStats(p.name, p.value).min }}
-              </Badge>
-              <Badge
-                  :title="`Média: ${calculateStats(p.name, p.value).avg}`"
-                  class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center"
-              >
-                <img src="/svg/middle.svg" class="w-4 h-4 mr-1" alt="middle" />
-                {{ calculateStats(p.name, p.value).avg }}
-              </Badge>
-              <Badge
-                :title="`Máximo: ${calculateStats(p.name, p.value).max}`"
-                class="shadow-none w-fit bg-transparent hover:bg-transparent text-primary/70 p-0 flex max-sm:items-center max-sm:justify-center"
-              >
-                <img src="/svg/up.svg" class="w-4 h-4 mr-1" alt="up" />
-                {{ calculateStats(p.name, p.value).max }}
-              </Badge>
-            </div>
-          </div>
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-6">
+        <div 
+          v-for="(name, index) in names" 
+          :key="name"
+          class="flex items-center gap-2"
+        >
+          <div 
+            :style="`background: ${colors[index % colors.length]}`" 
+            class="rounded-full w-3 h-3"
+          ></div>
+          <span class="text-sm text-gray-400">{{ name }}</span>
         </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-5 mb-10 mt-5">
+        <Badge
+            :title="`Mínimo`"
+            class="shadow-none bg-transparent hover:bg-transparent text-primary/70 p-0 flex items-center gap-1">
+          <img src="/svg/down.svg" class="w-4 h-4" alt="down" />
+          {{ formatStatValue(globalStats.min) }}
+        </Badge>
+        <Badge
+            :title="`Média`"
+            class="shadow-none bg-transparent hover:bg-transparent text-primary/70 p-0 flex items-center gap-1"
+        >
+          <img src="/svg/middle.svg" class="w-4 h-4" alt="middle" />
+          {{ formatStatValue(globalStats.avg) }}
+        </Badge>
+        <Badge
+          :title="`Máximo`"
+          class="shadow-none bg-transparent hover:bg-transparent text-primary/70 p-0 flex items-center gap-1"
+        >
+          <img src="/svg/up.svg" class="w-4 h-4" alt="up" />
+          {{ formatStatValue(globalStats.max) }}
+        </Badge>
       </div>
 
       <LineChart
         :colors="colors"
         v-if="categories.length > 0"
         :data="chartData"
-        index="date"
+        index="channel_name"
         :show-legend="false"
         :categories="categories"
         :y-formatter="yFormatter"
@@ -77,6 +81,7 @@ import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipCompone
 import CustomChartTooltipPrice from "@/components/custom/CustomChartTooltipPrice.vue";
 import {Badge} from "@/components/ui/badge";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Separator} from "@/components/ui/separator";
 import {Skeleton} from "@/components/ui/skeleton";
 import {LineChart} from "@/components/ui/chart-line";
 
@@ -89,6 +94,7 @@ export default defineComponent({
     CardTitle,
     CardContent,
     Badge,
+    Separator,
     GlossaryTooltipComponent,
     CustomChartTooltip
   },
@@ -103,41 +109,46 @@ export default defineComponent({
     CustomChartTooltipPrice() {
       return CustomChartTooltipPrice
     },
+    names(): string[] {
+      return [...new Set(this.period.map(p => p.name))]
+    },
+    globalStats(): { max: number; min: number; avg: number } {
+      const values = this.period
+        .map((p: any) => Number(p.value))
+        .filter((v: number) => !isNaN(v));
+
+      if (!values.length) return { max: 0, min: 0, avg: 0 };
+
+      return {
+        max: Math.max(...values),
+        min: Math.min(...values),
+        avg: values.reduce((a, b) => a + b, 0) / values.length
+      };
+    },
     categories(): string[] {
-      return this.period.map(p => p.name)
-   },
+      return this.names
+    },
     chartData(): any[] {
-      // 1. Verificação de segurança para evitar erros de undefined/null
-      if (!this.period || !this.period.length || !this.period[0]?.value) {
+      if (!this.period || !this.period.length) {
         return [];
       }
 
-      const rawData = this.period[0].value;
+      const groupedByDate: Record<string, any> = {};
 
-      if (this.type === 'currency') {
-        return rawData.map((item: any) => {
+      this.period.forEach((item: any) => {
+        const date = item.date;
+        if (!groupedByDate[date]) {
+          groupedByDate[date] = { channel_name: date };
+        }
+        const rawValue = Number(item.value);
+        groupedByDate[date][item.name] = !isNaN(rawValue) ? Number(rawValue.toFixed(2)) : item.value;
+      });
 
-          return Object.keys(item).reduce((novoObjeto: any, key) => {
-
-            if (key === 'date') {
-              novoObjeto[key] = item[key];
-            }
-            else {
-              const rawValue = Number(item[key]);
-
-              if (!isNaN(rawValue)) {
-                novoObjeto[key] = Number((rawValue).toFixed(2));
-              } else {
-                novoObjeto[key] = item[key];
-              }
-            }
-
-            return novoObjeto;
-          }, {});
-        });
-      }
-
-      return rawData;
+      return Object.values(groupedByDate).sort((a: any, b: any) => {
+        const dateA = this.parseDate(a.channel_name);
+        const dateB = this.parseDate(b.channel_name);
+        return dateA.getTime() - dateB.getTime();
+      });
     },
     tooltip(){
       if (this.type === 'percent') return this.CustomChartTooltipPercent
@@ -172,37 +183,33 @@ export default defineComponent({
   }),
 
   methods:{
-    getVarName(obj: Record<string, any>): string {
-      return Object.keys(obj)[0];
+    parseDate(dateStr: string): Date {
+      const [day, month, year] = dateStr.split('/').map(Number);
+      return new Date(year, month - 1, day);
     },
-    calculateStats(key, data) {
-      if (!data.length) return {}
-      const values = data.map(item => item[key])
-      let max = Math.max(...values)
-      let min = Math.min(...values)
-      let avg = values.reduce((acc, val) => {
-       return Number.parseInt(acc) + Number.parseInt(val)
-      }, 0) / values.length
-      if(this.type == "percent")
-      {
-        return {max: (max ).toFixed(2), min: (min ).toFixed(2), avg: (avg).toFixed(2)}
+    formatStatValue(value: number): string {
+      if (this.type === 'percent') {
+        return `${value.toFixed(2)}%`;
       }
-      if (this.type =="currency")
-      {
-        return {max: (max).toFixed(2), min: (min).toFixed(2), avg: (avg).toFixed(2)}
+      if (this.type === 'currency') {
+        return `R$ ${new Intl.NumberFormat('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(value)}`;
       }
       if (this.windowWidth < 640) {
-        return { max: formatLargeNumber(max).content + formatLargeNumber(max).separator  ,
-          min: formatLargeNumber(min).content + formatLargeNumber(min).separator,
-          avg: formatLargeNumber(parseFloat(avg).toFixed(2)).content + formatLargeNumber(parseFloat(avg).toFixed(2)).separator }
+        return formatLargeNumber(value).content + formatLargeNumber(value).separator;
       }
-      return { max, min, avg: parseFloat(avg).toFixed(2) }
+      return new Intl.NumberFormat('pt-BR').format(value);
+    },
+    getVarName(obj: Record<string, any>): string {
+      return Object.keys(obj)[0];
     }
   },
 
   props: {
     period: {
-      type: Array as () => Array<{ name: string; value: number[] }>,
+      type: Array as () => Array<{ name: string; value: string | number; date: string }>,
       required: true
     },
     title: {

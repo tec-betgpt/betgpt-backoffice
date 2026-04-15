@@ -145,12 +145,12 @@
           type="currency"
           :glossary="meta['data_by_period'] || 'Dados de receita registrada'"
       />
-      <PeriodComponent
+      <ConversionPeriodComponent
           :is-loading="loading"
           title="Eventos por canal"
           :period="eventsPeriod"
           type="numeric"
-          :glossary="meta['data_by_event']"
+          :glossary="meta['data_by_event'] || 'Dados de eventos registrados'"
       />
     </div>
 
@@ -165,11 +165,9 @@
 import {ref, watch, onMounted, computed} from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { getLocalTimeZone, today } from "@internationalized/date";
 import "moment/dist/locale/pt-br";
 import ConversionAnalyticsService from "@/services/conversionAnalytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
-import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 import ConversionPeriodComponent from "@/components/conversion_analytics/ConversionPeriodComponent.vue";
 import TrafficAcquisitionTable from "@/components/custom/TrafficAcquisitionTable.vue";
 import ConversionDefinitionPieChart from "@/components/conversion_analytics/ConversionDefinitionPieChart.vue";
@@ -305,8 +303,22 @@ const applyFilter = async () => {
     const { data } = response;
     meta.value = response.meta || {};
 
-    revenuePeriod.value = [{name:"Receita Total",value:data.data_by_period}]
-    eventsPeriod.value = [{name:"Eventos",value:data.data_by_event}]
+    revenuePeriod.value = data.data_by_period.map(period => {
+      return {
+        name: period.name,
+        value: period[period.name],
+        date: period.date,
+      }
+    })
+    console.log(revenuePeriod.value);
+       // [{name:"Receita Total",value:data.data_by_period}]
+     eventsPeriod.value = data.data_by_event.map(event => {
+      return {
+        name: event.name,
+        value: event[event.name],
+        date: event.date,
+      }
+    })
     pieChartCounts.value = data.pie_chart_counts
     pieChartValues.value = data.pie_chart_values
     averageTicket.value = data.average_ticket
