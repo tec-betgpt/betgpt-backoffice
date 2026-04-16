@@ -37,6 +37,7 @@ export default {
      * @param {string} params.project_id
      * @param {string} params.message - Texto da mensagem
      * @param {File} [params.file] - Arquivo opcional a ser enviado (imagem, PDF, etc)
+     * @param {Object} params.context
      * @returns {Promise<message:string>} - Resposta da API
      */
     async sendMessage(params = {}) {
@@ -44,7 +45,9 @@ export default {
         formData.append('chat_id', params.chat_id);
         formData.append('message', params.message);
         formData.append('project_id',params.project_id)
-
+        formData.append('date_start',params.context.date.start)
+        formData.append('date_end',params.context.date.end)
+        formData.append('url', params.context.url)
         if (params.file) {
             formData.append('file', params.file);
         }

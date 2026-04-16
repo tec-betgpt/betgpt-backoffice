@@ -380,7 +380,7 @@ import { useAuthStore } from "@/stores/auth";
 import { Label } from "@/components/ui/label";
 import { marked } from "marked";
 import { computed, nextTick, onMounted, ref, toRefs } from "vue";
-import { useRouter } from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -405,10 +405,10 @@ interface Message {
 const props = defineProps({
   sidebarAi: Boolean,
   logoCustomAi: String,
+
 });
 
 const emit = defineEmits(["update:sidebarAi"]);
-
 const { sidebarAi } = toRefs(props);
 
 const DARK_LOGOS = {
@@ -650,7 +650,7 @@ const loadMessages = async () => {
     loading.value = false;
   }
 };
-
+const route = useRoute();
 const sendMessage = async () => {
   if (!newMessage.value.message) {
     toast({
@@ -668,8 +668,12 @@ const sendMessage = async () => {
       message: newMessage.value.message,
       file: newMessage.value.file,
       project_id: activeGroupProject.value?.id,
+      context:{
+        url:route.path,
+        date: workspaceStore.date
+      }
     };
-
+    console.log(workspaceStore.date);
     loading.value = true;
     newMessage.value.id = messages.value.length;
     try {

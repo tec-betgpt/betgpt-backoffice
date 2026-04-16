@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import UserProjectGroup from "@/services/userProjectGroup";
+import type { DateRange } from "radix-vue";
 
 interface ActiveGroupProject {
   id: string
@@ -15,6 +16,7 @@ export const useWorkspaceStore = defineStore("workspace", {
     activeGroupProject: null as ActiveGroupProject | null,
     group_projects: [],
     lastAnnotationUpdate: null as number | null,
+    date:null as DateRange|null,
   }),
   actions: {
     notifyAnnotationUpdate() {
@@ -64,5 +66,9 @@ export const useWorkspaceStore = defineStore("workspace", {
         this.activeGroupProject = newGroupProjects[0];
       }
     },
+
+    async setDate(date: DateRange) {
+      this.date = date;
+    }
   },
 });

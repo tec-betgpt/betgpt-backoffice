@@ -420,8 +420,12 @@ const onSubmit = async () => {
     const category = form.value.conversion_category?.toLowerCase();
 
     if (category === 'elevate') {
+      console.log(form.value.conditions.filter(c => c.conditionable_id))
       payload.is_primary = form.value.is_primary;
-      payload.conditions = form.value.conditions.filter(c => c.conditionable_id);
+      payload.conditions = form.value.conditions.map(c => ({
+        conditionable_type: 'segment',
+        conditionable_id: c.conditionable_id
+      }));
       payload.is_return_report = form.value.is_return_report;
       payload.conversion_category = "Elevate";
       payload.conversion_value_field = form.value.conversion_value_field;

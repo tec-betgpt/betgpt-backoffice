@@ -365,7 +365,6 @@
 <script lang="ts">
 import Home from "@/services/home";
 import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
-import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 import {
   ArrowDown,
   ArrowUp,
@@ -495,7 +494,6 @@ export default {
     CirclePercent,
     CustomChartTooltipRealPrice,
     CustomDatePicker,
-    DateRangePicker,
     DollarSign,
     Eye,
     EyeClosed,

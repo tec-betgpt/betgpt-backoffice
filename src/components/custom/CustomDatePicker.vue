@@ -27,6 +27,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {useWorkspaceStore} from "@/stores/workspace";
 
 const props = defineProps<{ modelValue: DateRange }>();
 const emit = defineEmits(["update:modelValue"]);
@@ -39,6 +40,7 @@ const df = new DateFormatter(locale, { dateStyle: "short" });
 const STORAGE_KEY = "user_date_range_preset";
 const RANGE_KEY = "user_date_range_custom_range";
 
+const workspace = useWorkspaceStore();
 const popoverOpen = ref(false);
 const selectedPreset = ref("today");
 const calendarRef = ref<DateRange | undefined>();
@@ -50,7 +52,10 @@ function updateSize() {
   width.value = window.innerWidth;
 }
 
-watch(value, (newVal) => emit("update:modelValue", newVal));
+watch(value, (newVal) => {
+  workspace.setDate(newVal)
+  emit("update:modelValue", newVal)
+});
 
 const handleCalendar = () => {
   if (!calendarRef.value) return;
@@ -162,7 +167,7 @@ onMounted(() => {
     if (props.modelValue?.start && props.modelValue?.end) {
       const diff = getDaysDiff(props.modelValue.start, props.modelValue.end);
 
-      if (diff === 0) selectedPreset.value = "today";
+      if (diff === 0) selectedPreset.value = "custom";
       else if (diff === 6) selectedPreset.value = "7days";
       else if (diff === 13) selectedPreset.value = "14days";
       else if (diff === 27) selectedPreset.value = "28days";
@@ -212,7 +217,7 @@ watch(openS, (newV) => {
             }}
           </template>
           <template v-else-if="value.start">
-            <template v-if="value.end">
+            <template v-if="value.end && value.start.toDate(TIMEZONE).getTime() !== value.end.toDate(TIMEZONE).getTime()">
               {{ df.format(value.start.toDate(TIMEZONE)) }} –
               {{ df.format(value.end.toDate(TIMEZONE)) }}
             </template>
