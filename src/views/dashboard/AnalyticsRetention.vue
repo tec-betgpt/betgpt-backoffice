@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import Analytics from "@/services/analytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import { formatMinifiedNumber, numberLocale } from "@/filters/formatNumbers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,12 +58,31 @@ const donutOptions = computed(() => ({
     show: false
   },
   dataLabels: {
-    enabled: false
+    enabled: true,
+    formatter: function (val, opts) {
+        return formatMinifiedNumber(opts.w.globals.series[opts.seriesIndex]);
+    }
+  },
+  tooltip: {
+    y: {
+      formatter: (val) => numberLocale(val)
+    }
   },
   plotOptions: {
     pie: {
       donut: {
         size: '70%',
+        labels: {
+            show: true,
+            total: {
+                show: true,
+                label: 'Total Ativos',
+                formatter: (w) => {
+                    const totalAtivos = w.globals.series[0] + w.globals.series[1] + w.globals.series[2];
+                    return formatMinifiedNumber(totalAtivos);
+                }
+            }
+        }
       }
     }
   }
@@ -233,12 +253,12 @@ onMounted(() => {
               <TableBody>
                 <TableRow v-for="(row, index) in retentionData" :key="index">
                   <TableCell class="font-medium text-nowrap">{{ row.date }}</TableCell>
-                  <TableCell class="text-right">{{ row['Total Ativos'] }}</TableCell>
-                  <TableCell class="text-right">{{ row['Novos Clientes'] }}</TableCell>
-                  <TableCell class="text-right">{{ row['Clientes Recuperados'] }}</TableCell>
-                  <TableCell class="text-right">{{ row['Clientes Retidos'] }}</TableCell>
-                  <TableCell class="text-right">{{ row['Churn'] }}</TableCell>
-                  <TableCell class="text-right">{{ row['Inativos'] }}</TableCell>
+                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Total Ativos']) }}</TableCell>
+                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Novos Clientes']) }}</TableCell>
+                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Clientes Recuperados']) }}</TableCell>
+                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Clientes Retidos']) }}</TableCell>
+                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Churn']) }}</TableCell>
+                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Inativos']) }}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
