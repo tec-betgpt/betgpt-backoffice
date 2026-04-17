@@ -320,7 +320,6 @@ import {
   Download,
   History,
   LucideShieldUser,
-  SquarePen,
   Square,
   LucideLockOpen,
   LucideUserCheck,
@@ -335,7 +334,10 @@ import {
   Tag,
   LayoutDashboard,
   Target,
-  PhoneCall, PencilLine, BadgeCheck,
+  PhoneCall,
+  PencilLine,
+  BadgeCheck,
+  LucideUserRoundCog
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -463,7 +465,7 @@ const navMenu = computed(() => {
     {
       name: "Performance",
       icon: LineChart,
-      type: "perfomance",
+      type: "performance",
       show: canAccess("access-to-reports"),
       children: [
         {
@@ -476,6 +478,12 @@ const navMenu = computed(() => {
           name: "Tráfegos",
           url: { name: "traffics" },
           icon: ChartNoAxesCombined,
+          show: canAccess("access-to-reports"),
+        },
+        {
+          name: "Retenção",
+          url: { name: "retention" },
+          icon: LucideUserRoundCog,
           show: canAccess("access-to-reports"),
         },
         {

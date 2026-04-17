@@ -5,11 +5,12 @@ import ActiveCampaign from "@/views/dashboard/ActiveCampaign.vue";
 import SmsFunnel from "@/views/dashboard/SmsFunnel.vue";
 import Call4u from "@/views/dashboard/Call4u.vue";
 import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
+import AnalyticsRetention from "@/views/dashboard/AnalyticsRetention.vue";
 
 export default [
   {
-    path: "/perfomance",
-    name: "perfomance",
+    path: "/performance",
+    name: "performance",
     meta: {
       requiresAuth: true,
       title: "Relatórios",
@@ -25,6 +26,18 @@ export default [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Controles",
+          roles: "member|client",
+          permissions: "access-to-reports",
+        },
+      },
+      {
+        path: "retention",
+        name: "retention",
+        component: AnalyticsRetention,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Análise de Retenção",
           roles: "member|client",
           permissions: "access-to-reports",
         },
