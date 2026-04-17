@@ -1,0 +1,253 @@
+<script setup lang="ts">
+import {ref, watch, onMounted, computed} from "vue";
+import { useToast } from "@/components/ui/toast/use-toast";
+import { useWorkspaceStore } from "@/stores/workspace";
+import Analytics from "@/services/analytics";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
+import RetentionBarLineChart from "@/components/ui/chart-bar/RetentionBarLineChart.vue";
+import VueApexCharts from "vue3-apexcharts";
+
+const workspaceStore = useWorkspaceStore();
+const { toast } = useToast();
+
+const selectedRange = ref({ start: null, end: null });
+const isLoading = ref(true);
+const retentionData = ref<any[]>([]);
+
+const categories = ["Novos Clientes", "Clientes Recuperados", "Clientes Retidos"];
+const colors = ["#f4a261", "#2a9d8f", "#457b9d", "#e63946", "#a8dadc"];
+
+const totals = computed(() => {
+  const sum = {
+    "Novos Clientes": 0,
+    "Clientes Recuperados": 0,
+    "Clientes Retidos": 0,
+    "Churn": 0,
+    "Inativos": 0,
+  };
+
+  retentionData.value.forEach((row) => {
+    sum["Novos Clientes"] += Number(row["Novos Clientes"]) || 0;
+    sum["Clientes Recuperados"] += Number(row["Clientes Recuperados"]) || 0;
+    sum["Clientes Retidos"] += Number(row["Clientes Retidos"]) || 0;
+    sum["Churn"] += Number(row["Churn"]) || 0;
+    sum["Inativos"] += Number(row["Inativos"]) || 0;
+  });
+
+  return sum;
+});
+
+const donutOptions = computed(() => ({
+  chart: {
+    type: 'donut',
+    background: 'transparent',
+    toolbar: { show: false }
+  },
+  labels: ['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Inativos'],
+  colors: ['#f4a261', '#2a9d8f', '#457b9d', '#e63946', '#22577a'],
+  legend: {
+    position: 'bottom'
+  },
+  stroke: {
+    show: false
+  },
+  dataLabels: {
+    enabled: false
+  },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '70%',
+      }
+    }
+  }
+}));
+
+const donutSeries = computed(() => [
+  totals.value['Novos Clientes'],
+  totals.value['Clientes Recuperados'],
+  totals.value['Clientes Retidos'],
+  totals.value['Churn'],
+  totals.value['Inativos']
+]);
+
+const applyFilter = async () => {
+  isLoading.value = true;
+
+  if (!workspaceStore.activeGroupProject?.id) {
+    toast({
+      title: "Erro",
+      description: "Selecione um grupo ou projeto antes de filtrar.",
+      variant: "destructive",
+    });
+
+    isLoading.value = false;
+    return;
+  }
+
+  try {
+    const { data } = await Analytics.index({
+      start_date: selectedRange.value.start?.toString(),
+      end_date: selectedRange.value.end?.toString(),
+      filter_id: workspaceStore.activeGroupProject.id,
+    });
+
+    retentionData.value = data.client_classification_period || [];
+  } catch (error) {
+    toast({
+      title: "Erro ao carregar dados",
+      description: "Não foi possível aplicar o filtro selecionado.",
+      variant: "destructive",
+    });
+  }
+
+  isLoading.value = false;
+};
+
+watch(selectedRange, () => {
+  applyFilter();
+}, { deep: true });
+
+onMounted(() => {
+    if (workspaceStore.activeGroupProject?.id) {
+        applyFilter();
+    }
+});
+</script>
+
+<template>
+  <div class="google-analytics-page p-10 max-[450px]:p-0 pb-16 w-full">
+    <div class="grid min-[900px]:grid-cols-2 gap-4 pb-10">
+      <div>
+        <h2 class="text-2xl font-bold tracking-tight">Análise de Retenção</h2>
+        <p class="text-muted-foreground">
+          Classificação de players com base em seus depósitos e atividade.
+        </p>
+      </div>
+      <div class="flex items-center justify-start w-full">
+        <div class="flex flex-col items-center justify-end sm:flex-row gap-2 w-full">
+          <CustomDatePicker v-model="selectedRange" />
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4">
+      <Card v-if="isLoading">
+        <CardHeader>
+          <Skeleton class="h-6 w-full" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton class="h-80 w-full" />
+        </CardContent>
+      </Card>
+
+      <Card v-else>
+        <CardHeader class="py-4">
+          <div class="flex justify-between items-center align-middle">
+            <CardTitle>Composição de Clientes Ativos</CardTitle>
+            <div class="flex items-center gap-2">
+               <GlossaryTooltipComponent description="Visão mensal da composição de clientes ativos (Novos + Recuperados + Retidos) e métricas de perda." />
+            </div>
+          </div>
+        </CardHeader>
+        <Separator />
+        <CardContent class="h-[550px] pt-6">
+           <RetentionBarLineChart
+            :data="retentionData"
+            index="date"
+            :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Inativos']"
+            :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
+            :line-categories="['Churn', 'Inativos']"
+            :colors="['#f4a261', '#2a9d8f', '#457b9d', '#e63946', '#22577a']"
+            :show-legend="true"
+          />
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
+              <div class="flex items-start gap-2">
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #e63946"></div>
+                  <span><strong>Churn:</strong> Depositavam no mês anterior E NÃO depositaram no mês atual</span>
+              </div>
+              <div class="flex items-start gap-2">
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #22577a"></div>
+                  <span><strong>Inativos:</strong> Clientes que não realizam depósitos há mais de um mês</span>
+              </div>
+               <div class="flex items-start gap-2">
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #f4a261"></div>
+                  <span><strong>Novos Clientes:</strong> Realizaram seu primeiro depósito no mês atual</span>
+              </div>
+              <div class="flex items-start gap-2">
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #2a9d8f"></div>
+                  <span><strong>Clientes Recuperados:</strong> Voltaram a depositar após pelo menos um mês sem depósitos</span>
+              </div>
+              <div class="flex items-start gap-2">
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #457b9d"></div>
+                  <span><strong>Clientes Retidos:</strong> Depositaram no mês anterior e continuaram depositando no mês atual</span>
+              </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <!-- Nova Seção: Resumo em Donut e Tabela com Scroll -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4" v-if="!isLoading && retentionData.length > 0">
+      <!-- Gráfico de Donut -->
+      <Card>
+        <CardHeader class="py-4">
+          <CardTitle>Composição do Período</CardTitle>
+        </CardHeader>
+        <Separator />
+        <CardContent class="pt-6 flex justify-center items-center h-[350px]">
+          <VueApexCharts
+              type="donut"
+              width="100%"
+              height="300"
+              :options="donutOptions"
+              :series="donutSeries"
+          />
+        </CardContent>
+      </Card>
+
+      <Card class="lg:col-span-2 overflow-hidden flex flex-col">
+        <CardHeader class="py-4 shrink-0">
+          <CardTitle>Detalhamento Diário</CardTitle>
+        </CardHeader>
+        <Separator class="shrink-0" />
+        <CardContent class="p-0 flex-1 max-h-[350px]">
+          <div class="overflow-x-auto overflow-y-auto h-full p-6 pt-0 custom-scrollbar">
+            <Table>
+              <TableHeader class="sticky top-0 bg-background z-10 shadow-sm">
+                <TableRow>
+                  <TableHead class="font-bold text-nowrap">Data</TableHead>
+                  <TableHead class="text-right font-bold text-nowrap">Total Ativos</TableHead>
+                  <TableHead class="text-right font-bold text-[#f4a261] text-nowrap">Novos</TableHead>
+                  <TableHead class="text-right font-bold text-[#2a9d8f] text-nowrap">Recuperados</TableHead>
+                  <TableHead class="text-right font-bold text-[#457b9d] text-nowrap">Retidos</TableHead>
+                  <TableHead class="text-right font-bold text-[#e63946] text-nowrap">Churn</TableHead>
+                  <TableHead class="text-right font-bold text-[#22577a] text-nowrap">Inativos</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-for="(row, index) in retentionData" :key="index">
+                  <TableCell class="font-medium text-nowrap">{{ row.date }}</TableCell>
+                  <TableCell class="text-right">{{ row['Total Ativos'] }}</TableCell>
+                  <TableCell class="text-right">{{ row['Novos Clientes'] }}</TableCell>
+                  <TableCell class="text-right">{{ row['Clientes Recuperados'] }}</TableCell>
+                  <TableCell class="text-right">{{ row['Clientes Retidos'] }}</TableCell>
+                  <TableCell class="text-right">{{ row['Churn'] }}</TableCell>
+                  <TableCell class="text-right">{{ row['Inativos'] }}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+</style>

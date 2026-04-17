@@ -152,8 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
-import {  getLocalTimeZone, today } from "@internationalized/date";
+import { ref, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import Analytics from "@/services/analytics";
