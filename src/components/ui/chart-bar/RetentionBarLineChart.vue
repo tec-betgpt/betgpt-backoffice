@@ -7,6 +7,8 @@ import { Axis, StackedBar, Line } from '@unovis/ts'
 import { VisAxis, VisStackedBar, VisLine, VisXYContainer, VisScatter } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
 import { type Component, computed, ref } from 'vue'
+import { formatMinifiedNumber } from '@/filters/formatNumbers'
+import RetentionChartTooltip from './RetentionChartTooltip.vue'
 
 const props = withDefaults(defineProps<BaseChartProps<T> & {
   customTooltip?: Component
@@ -22,6 +24,8 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
   showTooltip: true,
   showLegend: true,
   showGridLine: true,
+  yFormatter: (tick: number) => formatMinifiedNumber(tick),
+  customTooltip: RetentionChartTooltip,
 })
 
 type KeyOfT = Extract<keyof T, string>
