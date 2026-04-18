@@ -176,7 +176,7 @@ onMounted(() => {
           </div>
         </CardHeader>
         <Separator />
-        <CardContent class="h-[550px] pt-6">
+        <CardContent class="md:h-[550px] pt-6">
            <RetentionBarLineChart
             :data="retentionData"
             index="date"
@@ -188,33 +188,31 @@ onMounted(() => {
           />
           <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
               <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #e63946"></div>
-                  <span><strong>Churn:</strong> Depositavam no mês anterior E NÃO depositaram no mês atual</span>
-              </div>
-              <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #22577a"></div>
-                  <span><strong>Inativos:</strong> Clientes que não realizam depósitos há mais de um mês</span>
-              </div>
-               <div class="flex items-start gap-2">
                   <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #f4a261"></div>
-                  <span><strong>Novos Clientes:</strong> Realizaram seu primeiro depósito no mês atual</span>
+                  <span><strong>Novos Clientes:</strong> Primeiro depósito realizado no mês atual.</span>
               </div>
               <div class="flex items-start gap-2">
                   <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #2a9d8f"></div>
-                  <span><strong>Clientes Recuperados:</strong> Voltaram a depositar após pelo menos um mês sem depósitos</span>
+                  <span><strong>Clientes Recuperados:</strong> Voltaram a depositar após um mês ou mais.</span>
               </div>
               <div class="flex items-start gap-2">
                   <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #457b9d"></div>
-                  <span><strong>Clientes Retidos:</strong> Depositaram no mês anterior e continuaram depositando no mês atual</span>
+                  <span><strong>Clientes Retidos:</strong> Mantiveram depósitos no mês atual e anterior.</span>
+              </div>
+              <div class="flex items-start gap-2">
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #e63946"></div>
+                  <span><strong>Churn:</strong> Deixaram de depositar no mês atual, mas depositaram no anterior.</span>
+              </div>
+              <div class="flex items-start gap-2">
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #22577a"></div>
+                  <span><strong>Inativos:</strong> Sem depósitos no mês atual e no anterior.</span>
               </div>
           </div>
         </CardContent>
       </Card>
     </div>
 
-    <!-- Nova Seção: Resumo em Donut e Tabela com Scroll -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4" v-if="!isLoading && retentionData.length > 0">
-      <!-- Gráfico de Donut -->
       <Card>
         <CardHeader class="py-4">
           <CardTitle>Composição do Período</CardTitle>
@@ -268,6 +266,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-</style>
