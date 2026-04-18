@@ -24,6 +24,8 @@ const chartRetentionData = computed(() =>
   retentionData.value.map((row) => ({
     date: row.date,
     'Novos Clientes': Number(row['Novos Clientes']) || 0,
+    'Novos Clientes D0': Number(row['Novos Clientes D0']) || 0,
+    'Novos Clientes Pós D0': Number(row['Novos Clientes Pós D0']) || 0,
     'Clientes Recuperados': Number(row['Clientes Recuperados']) || 0,
     'Clientes Retidos': Number(row['Clientes Retidos']) || 0,
     Churn: Number(row['Churn']) || 0,
@@ -185,10 +187,18 @@ onMounted(() => {
            <RetentionBarLineChart
             :data="chartRetentionData"
             index="date"
-            :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Total Ativos']"
+            :categories="[
+              'Novos Clientes',
+              'Novos Clientes D0',
+              'Novos Clientes Pós D0',
+              'Clientes Recuperados',
+              'Clientes Retidos',
+              'Churn',
+              'Total Ativos',
+            ]"
             :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
             :line-categories="['Churn', 'Total Ativos']"
-            :colors="['#f4a261', '#2a9d8f', '#457b9d', '#e63946', '#1d3557']"
+            :colors="['#f4a261', '#e9c46a', '#dda15e', '#2a9d8f', '#457b9d', '#e63946', '#1d3557']"
             :show-legend="true"
             lines-only
           />
@@ -199,7 +209,11 @@ onMounted(() => {
               </div>
               <div class="flex items-start gap-2">
                   <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #e9c46a"></div>
-                  <span><strong>Novos D0 / Pós D0 (tabela):</strong> FTD no mesmo dia do cadastro do perfil no projeto (D0) ou em dia posterior (Pós D0).</span>
+                  <span><strong>Novos Clientes D0:</strong> FTD no mesmo dia do cadastro no projeto.</span>
+              </div>
+              <div class="flex items-start gap-2">
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #dda15e"></div>
+                  <span><strong>Novos Clientes Pós D0:</strong> FTD em dia posterior ao cadastro do perfil no projeto.</span>
               </div>
               <div class="flex items-start gap-2">
                   <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #2a9d8f"></div>
