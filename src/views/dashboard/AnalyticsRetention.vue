@@ -190,11 +190,16 @@ onMounted(() => {
             :line-categories="['Churn', 'Total Ativos']"
             :colors="['#f4a261', '#2a9d8f', '#457b9d', '#e63946', '#1d3557']"
             :show-legend="true"
+            lines-only
           />
           <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
               <div class="flex items-start gap-2">
                   <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #f4a261"></div>
-                  <span><strong>Novos Clientes:</strong> Primeiro depósito realizado no mês atual.</span>
+                  <span><strong>Novos Clientes:</strong> data do primeiro depósito (FTD) na janela móvel de 30 dias do relatório.</span>
+              </div>
+              <div class="flex items-start gap-2">
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #e9c46a"></div>
+                  <span><strong>Novos D0 / Pós D0 (tabela):</strong> FTD no mesmo dia do cadastro do perfil no projeto (D0) ou em dia posterior (Pós D0).</span>
               </div>
               <div class="flex items-start gap-2">
                   <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #2a9d8f"></div>
@@ -247,6 +252,8 @@ onMounted(() => {
                   <TableHead class="font-bold text-nowrap">Data</TableHead>
                   <TableHead class="text-right font-bold text-nowrap">Total Ativos</TableHead>
                   <TableHead class="text-right font-bold text-[#f4a261] text-nowrap">Novos</TableHead>
+                  <TableHead class="text-right font-bold text-[#e9c46a] text-nowrap">Novos D0</TableHead>
+                  <TableHead class="text-right font-bold text-[#dda15e] text-nowrap">Novos Pós D0</TableHead>
                   <TableHead class="text-right font-bold text-[#2a9d8f] text-nowrap">Recuperados</TableHead>
                   <TableHead class="text-right font-bold text-[#457b9d] text-nowrap">Retidos</TableHead>
                   <TableHead class="text-right font-bold text-[#e63946] text-nowrap">Churn</TableHead>
@@ -258,6 +265,8 @@ onMounted(() => {
                   <TableCell class="font-medium text-nowrap">{{ row.date }}</TableCell>
                   <TableCell class="text-right">{{ formatMinifiedNumber(row['Total Ativos']) }}</TableCell>
                   <TableCell class="text-right">{{ formatMinifiedNumber(row['Novos Clientes']) }}</TableCell>
+                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Novos Clientes D0']) }}</TableCell>
+                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Novos Clientes Pós D0']) }}</TableCell>
                   <TableCell class="text-right">{{ formatMinifiedNumber(row['Clientes Recuperados']) }}</TableCell>
                   <TableCell class="text-right">{{ formatMinifiedNumber(row['Clientes Retidos']) }}</TableCell>
                   <TableCell class="text-right">{{ formatMinifiedNumber(row['Churn']) }}</TableCell>

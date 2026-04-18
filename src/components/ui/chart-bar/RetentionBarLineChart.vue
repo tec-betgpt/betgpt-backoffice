@@ -3,8 +3,8 @@ import type { BulletLegendItemInterface } from '@unovis/ts'
 import type { BaseChartProps } from './index'
 import { ChartCrosshair, ChartLegend } from '@/components/ui/chart'
 import { cn } from '@/lib/utils'
-import { Axis, GroupedBar } from '@unovis/ts'
-import { VisAxis, VisGroupedBar, VisLine, VisXYContainer, VisScatter } from '@unovis/vue'
+import { Axis, StackedBar, Line } from '@unovis/ts'
+import { VisAxis, VisStackedBar, VisLine, VisXYContainer, VisScatter } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
 import { type Component, computed, ref, watch } from 'vue'
 import { formatMinifiedNumber } from '@/filters/formatNumbers'
@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
   barCategories: string[]
   lineCategories: string[]
   roundedCorners?: number
+  linesOnly?: boolean
 }>(), {
   margin: () => ({ top: 20, bottom: 20, left: 20, right: 20 }),
   filterOpacity: 0.2,
@@ -24,6 +25,7 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
   showTooltip: true,
   showLegend: true,
   showGridLine: true,
+  linesOnly: false,
   yFormatter: (tick: number) => formatMinifiedNumber(tick),
   customTooltip: RetentionChartTooltip,
 })
@@ -33,6 +35,11 @@ type Data = typeof props.data[number]
 
 const index = computed(() => props.index as KeyOfT)
 const colors = computed(() => props.colors || [])
+
+/** Séries desenhadas como linha: no modo padrão só `lineCategories`; com `linesOnly`, todas as `categories`. */
+const lineSeriesCategories = computed(() =>
+  props.linesOnly ? props.categories : props.lineCategories,
+)
 
 const legendItems = ref<BulletLegendItemInterface[]>([])
 
@@ -76,25 +83,16 @@ function handleLegendItemClick(d: BulletLegendItemInterface, i: number) {
         :index="index" 
       />
 
-      <VisGroupedBar
+      <VisStackedBar
+        v-if="!linesOnly"
         :x="(d: Data, i: number) => i"
         :y="barCategories.map(cat => (d: Data) => d[cat])"
         :color="barCategories.map(cat => colors[categories.indexOf(cat)])"
         :rounded-corners="roundedCorners"
         :bar-padding="0.1"
-        :attributes="{
-          [GroupedBar.selectors.bar]: {
-            opacity: (d: Data, i:number) => {
-              const pos = i % barCategories.length
-              const category = barCategories[pos]
-              const legendIndex = categories.indexOf(category)
-              return legendItems[legendIndex]?.inactive ? filterOpacity : 1
-            },
-          },
-        }"
       />
 
-      <template v-for="cat in lineCategories" :key="cat">
+      <template v-for="cat in lineSeriesCategories" :key="cat">
         <VisLine
           :x="(d: Data, i: number) => i"
           :y="(d: Data) => d[cat]"
