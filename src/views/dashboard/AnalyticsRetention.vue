@@ -21,6 +21,9 @@ const selectedRange = ref({ start: null, end: null });
 const isLoading = ref(true);
 const retentionData = ref<any[]>([]);
 
+/** Temporário: donut "Composição do Período". Mudar para `true` para exibir de novo. */
+const showPeriodCompositionDonut = false;
+
 const chartRetentionData = computed(() =>
   retentionData.value.map((row) => ({
     date: row.date,
@@ -257,7 +260,7 @@ onMounted(() => {
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4" v-if="!isLoading && retentionData.length > 0">
-      <Card>
+      <Card v-if="showPeriodCompositionDonut">
         <CardHeader class="py-4">
           <CardTitle>Composição do Período</CardTitle>
         </CardHeader>
@@ -273,7 +276,10 @@ onMounted(() => {
         </CardContent>
       </Card>
 
-      <Card class="lg:col-span-2 overflow-hidden flex flex-col">
+      <Card
+        class="overflow-hidden flex flex-col"
+        :class="showPeriodCompositionDonut ? 'lg:col-span-2' : 'lg:col-span-3'"
+      >
         <CardHeader class="py-4 shrink-0">
           <CardTitle>Detalhamento Diário</CardTitle>
         </CardHeader>
