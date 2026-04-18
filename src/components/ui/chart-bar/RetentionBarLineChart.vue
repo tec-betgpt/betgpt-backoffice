@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { Axis, StackedBar, Line } from '@unovis/ts'
 import { VisAxis, VisStackedBar, VisLine, VisXYContainer, VisScatter } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
-import { type Component, computed, ref } from 'vue'
+import { type Component, computed, ref, watch } from 'vue'
 import { formatMinifiedNumber } from '@/filters/formatNumbers'
 import RetentionChartTooltip from './RetentionChartTooltip.vue'
 
@@ -34,11 +34,22 @@ type Data = typeof props.data[number]
 const index = computed(() => props.index as KeyOfT)
 const colors = computed(() => props.colors || [])
 
-const legendItems = ref<BulletLegendItemInterface[]>(props.categories.map((category, i) => ({
-  name: category,
-  color: colors.value[i],
-  inactive: false,
-})))
+const legendItems = ref<BulletLegendItemInterface[]>([])
+
+function syncLegendFromProps() {
+  legendItems.value = props.categories.map((category, i) => ({
+    name: category,
+    color: colors.value[i] ?? 'transparent',
+    inactive: false,
+  }))
+}
+
+syncLegendFromProps()
+watch(
+  () => [props.categories, props.colors] as const,
+  () => syncLegendFromProps(),
+  { deep: true },
+)
 
 const isMounted = useMounted()
 
