@@ -15,6 +15,21 @@ export default {
   },
 
   /**
+   * GET /v1/analytics/client-classification
+   *
+   * Classificação de clientes (retenção) — apenas dados usados na tela Análise de Retenção.
+   *
+   * @param {object} params
+   * @param {string} params.filter_id
+   * @param {string} params.start_date
+   * @param {string} params.end_date
+   */
+  async clientClassification (params = {}) {
+    const { data } = await api.get('/analytics/client-classification', { params })
+    return data
+  },
+
+  /**
    * GET /v1/analytics/return-general
    *
    * @param {object} params

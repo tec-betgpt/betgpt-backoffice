@@ -116,7 +116,7 @@ const applyFilter = async () => {
   }
 
   try {
-    const { data } = await Analytics.index({
+    const { data } = await Analytics.clientClassification({
       start_date: selectedRange.value.start?.toString(),
       end_date: selectedRange.value.end?.toString(),
       filter_id: workspaceStore.activeGroupProject.id,
@@ -183,7 +183,7 @@ onMounted(() => {
         <Separator />
         <CardContent class="md:h-[550px] pt-6">
            <RetentionBarLineChart
-            :data="retentionData"
+            :data="chartRetentionData"
             index="date"
             :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Total Ativos']"
             :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
