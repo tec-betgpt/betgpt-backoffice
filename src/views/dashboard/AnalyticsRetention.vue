@@ -180,10 +180,10 @@ onMounted(() => {
            <RetentionBarLineChart
             :data="retentionData"
             index="date"
-            :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Inativos']"
+            :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn']"
             :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
-            :line-categories="['Churn', 'Inativos']"
-            :colors="['#f4a261', '#2a9d8f', '#457b9d', '#e63946', '#22577a']"
+            :line-categories="['Churn']"
+            :colors="['#f4a261', '#2a9d8f', '#457b9d', '#e63946']"
             :show-legend="true"
           />
           <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
@@ -202,10 +202,6 @@ onMounted(() => {
               <div class="flex items-start gap-2">
                   <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #e63946"></div>
                   <span><strong>Churn:</strong> Deixaram de depositar no mês atual, mas depositaram no anterior.</span>
-              </div>
-              <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #22577a"></div>
-                  <span><strong>Inativos:</strong> Sem depósitos no mês atual e no anterior.</span>
               </div>
           </div>
         </CardContent>
