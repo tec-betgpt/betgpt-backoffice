@@ -13,7 +13,7 @@ export default [
     name: "performance",
     meta: {
       requiresAuth: true,
-      title: "Relatórios",
+      title: "Performance",
       roles: "member|client",
       permissions: "access-to-reports",
     },
