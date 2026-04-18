@@ -181,8 +181,8 @@ onMounted(() => {
             :data="retentionData"
             index="date"
             :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Inativos']"
-            :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
-            :line-categories="['Churn', 'Inativos']"
+            :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Inativos']"
+            :line-categories="[]"
             :colors="['#f4a261', '#2a9d8f', '#457b9d', '#e63946', '#22577a']"
             :show-legend="true"
           />
