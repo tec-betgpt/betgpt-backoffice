@@ -103,6 +103,9 @@ const donutSeries = computed(() => [
   totals.value['Churn'],
 ]);
 
+/** Nenhuma linha no gráfico só-barras (evita `line-categories="[]"` virar string no template). */
+const retentionBarOnlyLineCategories: string[] = [];
+
 const applyFilter = async () => {
   isLoading.value = true;
 
@@ -183,7 +186,7 @@ onMounted(() => {
           </div>
         </CardHeader>
         <Separator />
-        <CardContent class="md:h-[550px] pt-6">
+        <CardContent class="pt-6">
            <RetentionBarLineChart
             :data="chartRetentionData"
             index="date"
@@ -202,7 +205,23 @@ onMounted(() => {
             :show-legend="true"
             lines-only
           />
-          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
+
+          <Separator class="my-8" />
+          <h3 class="text-sm font-semibold text-foreground mb-4">
+            Clientes por Atividades
+          </h3>
+          <RetentionBarLineChart
+            class="md:h-[380px]"
+            :data="chartRetentionData"
+            index="date"
+            :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
+            :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
+            :line-categories="[]"
+            :colors="['#f4a261', '#2a9d8f', '#457b9d']"
+            :show-legend="true"
+          />
+
+          <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
               <div class="flex items-start gap-2">
                   <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #f4a261"></div>
                   <span><strong>Novos Clientes:</strong> data do primeiro depósito (FTD) na janela móvel de 30 dias do relatório.</span>
