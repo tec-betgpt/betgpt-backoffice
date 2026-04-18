@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import RetentionBarLineChart from "@/components/ui/chart-bar/RetentionBarLineChart.vue";
+import { BarChart } from "@/components/ui/chart-bar";
 import VueApexCharts from "vue3-apexcharts";
 
 const workspaceStore = useWorkspaceStore();
@@ -208,16 +209,16 @@ onMounted(() => {
 
           <Separator class="my-8" />
           <h3 class="text-sm font-semibold text-foreground mb-4">
-            Clientes por Atividades
+            Novos, recuperados e retidos <span class="font-normal text-muted-foreground">(barras agrupadas por dia)</span>
           </h3>
-          <RetentionBarLineChart
+          <BarChart
             class="md:h-[380px]"
+            type="grouped"
             :data="chartRetentionData"
             index="date"
             :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
-            :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
-            :line-categories="[]"
             :colors="['#f4a261', '#2a9d8f', '#457b9d']"
+            :y-formatter="(tick) => (typeof tick === 'number' ? formatMinifiedNumber(tick) : '')"
             :show-legend="true"
           />
 
