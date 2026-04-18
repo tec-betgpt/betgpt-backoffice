@@ -250,6 +250,7 @@ onMounted(() => {
                   <TableHead class="text-right font-bold text-[#2a9d8f] text-nowrap">Recuperados</TableHead>
                   <TableHead class="text-right font-bold text-[#457b9d] text-nowrap">Retidos</TableHead>
                   <TableHead class="text-right font-bold text-[#e63946] text-nowrap">Churn</TableHead>
+                  <TableHead class="text-right font-bold text-[#22577a] text-nowrap">Inativos</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -260,6 +261,7 @@ onMounted(() => {
                   <TableCell class="text-right">{{ formatMinifiedNumber(row['Clientes Recuperados']) }}</TableCell>
                   <TableCell class="text-right">{{ formatMinifiedNumber(row['Clientes Retidos']) }}</TableCell>
                   <TableCell class="text-right">{{ formatMinifiedNumber(row['Churn']) }}</TableCell>
+                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Inativos']) }}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
