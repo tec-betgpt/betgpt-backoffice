@@ -20,8 +20,16 @@ const selectedRange = ref({ start: null, end: null });
 const isLoading = ref(true);
 const retentionData = ref<any[]>([]);
 
-const categories = ["Novos Clientes", "Clientes Recuperados", "Clientes Retidos"];
-const colors = ["#f4a261", "#2a9d8f", "#457b9d", "#e63946", "#a8dadc"];
+const chartRetentionData = computed(() =>
+  retentionData.value.map((row) => ({
+    date: row.date,
+    'Novos Clientes': Number(row['Novos Clientes']) || 0,
+    'Clientes Recuperados': Number(row['Clientes Recuperados']) || 0,
+    'Clientes Retidos': Number(row['Clientes Retidos']) || 0,
+    Churn: Number(row['Churn']) || 0,
+    'Total Ativos': Number(row['Total Ativos']) || 0,
+  })),
+);
 
 const totals = computed(() => {
   const sum = {
@@ -29,7 +37,6 @@ const totals = computed(() => {
     "Clientes Recuperados": 0,
     "Clientes Retidos": 0,
     "Churn": 0,
-    "Inativos": 0,
   };
 
   retentionData.value.forEach((row) => {
@@ -37,7 +44,6 @@ const totals = computed(() => {
     sum["Clientes Recuperados"] += Number(row["Clientes Recuperados"]) || 0;
     sum["Clientes Retidos"] += Number(row["Clientes Retidos"]) || 0;
     sum["Churn"] += Number(row["Churn"]) || 0;
-    sum["Inativos"] += Number(row["Inativos"]) || 0;
   });
 
   return sum;
@@ -49,8 +55,8 @@ const donutOptions = computed(() => ({
     background: 'transparent',
     toolbar: { show: false }
   },
-  labels: ['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Inativos'],
-  colors: ['#f4a261', '#2a9d8f', '#457b9d', '#e63946', '#22577a'],
+  labels: ['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn'],
+  colors: ['#f4a261', '#2a9d8f', '#457b9d', '#e63946'],
   legend: {
     position: 'bottom'
   },
@@ -93,7 +99,6 @@ const donutSeries = computed(() => [
   totals.value['Clientes Recuperados'],
   totals.value['Clientes Retidos'],
   totals.value['Churn'],
-  totals.value['Inativos']
 ]);
 
 const applyFilter = async () => {
@@ -180,10 +185,10 @@ onMounted(() => {
            <RetentionBarLineChart
             :data="retentionData"
             index="date"
-            :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Inativos']"
-            :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Inativos']"
-            :line-categories="[]"
-            :colors="['#f4a261', '#2a9d8f', '#457b9d', '#e63946', '#22577a']"
+            :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Total Ativos']"
+            :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
+            :line-categories="['Churn', 'Total Ativos']"
+            :colors="['#f4a261', '#2a9d8f', '#457b9d', '#e63946', '#1d3557']"
             :show-legend="true"
           />
           <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
@@ -204,8 +209,8 @@ onMounted(() => {
                   <span><strong>Churn:</strong> Deixaram de depositar no mês atual, mas depositaram no anterior.</span>
               </div>
               <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #22577a"></div>
-                  <span><strong>Inativos:</strong> Sem depósitos no mês atual e no anterior.</span>
+                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #1d3557"></div>
+                  <span><strong>Total Ativos:</strong> Jogadores com depósito no mês atual (Novos + Recuperados + Retidos).</span>
               </div>
           </div>
         </CardContent>
