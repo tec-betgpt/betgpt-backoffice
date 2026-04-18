@@ -183,7 +183,7 @@ onMounted(() => {
         <Separator />
         <CardContent class="md:h-[550px] pt-6">
            <RetentionBarLineChart
-            :data="chartRetentionData"
+            :data="retentionData"
             index="date"
             :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn', 'Total Ativos']"
             :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"

@@ -3,8 +3,8 @@ import type { BulletLegendItemInterface } from '@unovis/ts'
 import type { BaseChartProps } from './index'
 import { ChartCrosshair, ChartLegend } from '@/components/ui/chart'
 import { cn } from '@/lib/utils'
-import { Axis, StackedBar, Line } from '@unovis/ts'
-import { VisAxis, VisStackedBar, VisLine, VisXYContainer, VisScatter } from '@unovis/vue'
+import { Axis, GroupedBar } from '@unovis/ts'
+import { VisAxis, VisGroupedBar, VisLine, VisXYContainer, VisScatter } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
 import { type Component, computed, ref, watch } from 'vue'
 import { formatMinifiedNumber } from '@/filters/formatNumbers'
@@ -76,12 +76,22 @@ function handleLegendItemClick(d: BulletLegendItemInterface, i: number) {
         :index="index" 
       />
 
-      <VisStackedBar
+      <VisGroupedBar
         :x="(d: Data, i: number) => i"
         :y="barCategories.map(cat => (d: Data) => d[cat])"
         :color="barCategories.map(cat => colors[categories.indexOf(cat)])"
         :rounded-corners="roundedCorners"
         :bar-padding="0.1"
+        :attributes="{
+          [GroupedBar.selectors.bar]: {
+            opacity: (d: Data, i:number) => {
+              const pos = i % barCategories.length
+              const category = barCategories[pos]
+              const legendIndex = categories.indexOf(category)
+              return legendItems[legendIndex]?.inactive ? filterOpacity : 1
+            },
+          },
+        }"
       />
 
       <template v-for="cat in lineCategories" :key="cat">
