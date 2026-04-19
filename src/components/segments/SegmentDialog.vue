@@ -32,7 +32,14 @@
             rows="2"
           />
         </div>
-
+        <div class="grid grid-cols-4 items-center gap-4">
+          <Label for="dynamic" class="text-right mt-2">Dinâmico</Label>
+          <Checkbox id="dynamic"  v-model="formItem.dynamic"
+                    @update:checked="(checked) => {
+                      formItem.dynamic = checked;
+                    }"
+                    :checked="formItem.dynamic" />
+        </div>
         <Separator class="my-4" />
 
         <div class="space-y-6">
@@ -516,6 +523,7 @@ import {
 } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { Skeleton } from "@/components/ui/skeleton";
+import {Checkbox} from "@/components/ui/checkbox";
 
 const emit = defineEmits(["saved"]);
 
@@ -547,6 +555,7 @@ const form = ref([
     id: null as number | null,
     name: "",
     description: "",
+    dynamic:false,
     condition_groups: [
       {
         logic_operator: "AND",
@@ -786,6 +795,7 @@ const saveSegment = async () => {
       is_segment: true,
       name: form.value[0].name,
       description: form.value[0].description,
+      dynamic: form.value[0].dynamic,
       project_id: workspaceStore.activeGroupProject.project_id,
       condition_groups: form.value[0].condition_groups.map(group => ({
         logic_operator: group.logic_operator,
@@ -846,6 +856,7 @@ const resetForm = () => {
       id: null,
       name: "",
       description: "",
+      dynamic: false,
       condition_groups: [
         {
           logic_operator: "AND",
@@ -860,18 +871,21 @@ const resetForm = () => {
 const open = async (segment: any = null, allSegments: any[] = []) => {
   isOpen.value = true;
 
-   Promise.all([fetchFields(),
+ await  Promise.all([fetchFields(),
     fetchTags()])
   savedSegments.value = allSegments;
   
   if (segment) {
     isEditing.value = true;
+    console.log(segment);
     form.value = [
       {
         id: segment.id,
         name: segment.name,
         description: segment.description,
         condition_groups: [],
+        dynamic: segment.dynamic,
+
       },
     ];
     try {
