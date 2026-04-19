@@ -3,15 +3,27 @@ import ProjectAnnotations from "@/views/dashboard/ProjectAnnotations.vue";
 
 export default [
   {
-    path: "/annotations",
-    name: "annotations",
-    component: ProjectAnnotations,
+    path: "/updates",
+    name: "updates",
     meta: {
-      layout: DefaultLayout,
       requiresAuth: true,
-      roles: "member",
-      title: "Marcos",
+      title: "Atualizações",
+      roles: "member|client",
       permissions: "access-to-dashboard",
     },
-  },
+    children: [
+      {
+        path: "/annotations",
+        name: "annotations",
+        component: ProjectAnnotations,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          title: "Marcos",
+          permissions: "access-to-dashboard",
+        },
+      }
+    ]
+  }
 ]
