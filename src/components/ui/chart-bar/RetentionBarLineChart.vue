@@ -4,11 +4,12 @@ import type { BaseChartProps } from './index'
 import { ChartCrosshair, ChartLegend } from '@/components/ui/chart'
 import { cn } from '@/lib/utils'
 import { Axis, StackedBar, Line } from '@unovis/ts'
-import { VisAxis, VisStackedBar, VisLine, VisXYContainer, VisScatter } from '@unovis/vue'
+import { VisAxis, VisStackedBar, VisLine, VisXYContainer, VisScatter, VisAnnotations } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
 import { type Component, computed, ref, watch } from 'vue'
 import { formatMinifiedNumber } from '@/filters/formatNumbers'
 import RetentionChartTooltip from './RetentionChartTooltip.vue'
+import { Annotation } from '@unovis/ts'
 
 const props = withDefaults(defineProps<BaseChartProps<T> & {
   customTooltip?: Component
@@ -16,6 +17,7 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
   lineCategories: string[]
   roundedCorners?: number
   linesOnly?: boolean
+  annotations?: any[]
 }>(), {
   margin: () => ({ top: 20, bottom: 20, left: 20, right: 20 }),
   filterOpacity: 0.2,
@@ -28,7 +30,10 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
   linesOnly: false,
   yFormatter: (tick: number) => formatMinifiedNumber(tick),
   customTooltip: RetentionChartTooltip,
+  annotations: () => []
 })
+
+const emits = defineEmits(['pointClick'])
 
 type KeyOfT = Extract<keyof T, string>
 type Data = typeof props.data[number]
@@ -64,6 +69,19 @@ function handleLegendItemClick(d: BulletLegendItemInterface, i: number) {
   // Simple toggle logic for demo/basic use
   legendItems.value[i].inactive = !legendItems.value[i].inactive
 }
+
+const unovisAnnotations = computed(() => {
+  return props.annotations.map(ann => ({
+    x: props.data.findIndex(d => d[props.index] === ann.date),
+    content: {
+      text: ann.title,
+      color: ann.color || '#775DD0',
+    },
+    subject: {
+      x: props.data.findIndex(d => d[props.index] === ann.date),
+    }
+  })).filter(a => a.x !== -1)
+})
 </script>
 
 <template>
@@ -98,14 +116,30 @@ function handleLegendItemClick(d: BulletLegendItemInterface, i: number) {
           :y="(d: Data) => d[cat]"
           :color="colors[categories.indexOf(cat)]"
           :line-width="3"
+          :attributes="{
+            [Line.selectors.line]: {
+              cursor: 'pointer'
+            }
+          }"
+          @click="(d: Data) => emits('pointClick', d)"
         />
         <VisScatter
           :x="(d: Data, i: number) => i"
           :y="(d: Data) => d[cat]"
           :color="colors[categories.indexOf(cat)]"
           :size="6"
+          :attributes="{
+            [Line.selectors.line]: {
+              cursor: 'pointer'
+            }
+          }"
+          @click="(d: Data) => emits('pointClick', d)"
         />
       </template>
+
+      <VisAnnotations
+        :items="unovisAnnotations"
+      />
 
       <VisAxis
         v-if="showXAxis"

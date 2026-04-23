@@ -4,7 +4,7 @@ import type { BaseChartProps } from '.'
 import { ChartCrosshair, ChartLegend, defaultColors } from '@/components/ui/chart'
 import { cn } from '@/lib/utils'
 import { Axis, GroupedBar, StackedBar } from '@unovis/ts'
-import { VisAxis, VisGroupedBar, VisStackedBar, VisXYContainer } from '@unovis/vue'
+import { VisAxis, VisGroupedBar, VisStackedBar, VisXYContainer, VisAnnotations } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
 import {type Component, computed, ref, watch} from 'vue'
 
@@ -23,6 +23,7 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
    * @default 0
    */
   roundedCorners?: number
+  annotations?: any[]
 }>(), {
   type: 'grouped',
   margin: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -33,9 +34,11 @@ const props = withDefaults(defineProps<BaseChartProps<T> & {
   showTooltip: true,
   showLegend: true,
   showGridLine: true,
+  annotations: () => []
 })
 const emits = defineEmits<{
   legendItemClick: [d: BulletLegendItemInterface, i: number]
+  pointClick: [data: T]
 }>()
 
 type KeyOfT = Extract<keyof T, string>
@@ -64,6 +67,19 @@ function handleLegendItemClick(d: BulletLegendItemInterface, i: number) {
 
 const VisBarComponent = computed(() => props.type === 'grouped' ? VisGroupedBar : VisStackedBar)
 const selectorsBar = computed(() => props.type === 'grouped' ? GroupedBar.selectors.bar : StackedBar.selectors.bar)
+
+const unovisAnnotations = computed(() => {
+  return props.annotations.map(ann => ({
+    x: props.data.findIndex(d => d[props.index] === ann.date),
+    content: {
+      text: ann.title,
+      color: ann.color || '#775DD0',
+    },
+    subject: {
+      x: props.data.findIndex(d => d[props.index] === ann.date),
+    }
+  })).filter(a => a.x !== -1)
+})
 </script>
 
 <template>
@@ -91,8 +107,14 @@ const selectorsBar = computed(() => props.type === 'grouped' ? GroupedBar.select
               const pos = i % categories.length
               return legendItems[pos]?.inactive ? filterOpacity : 1
             },
+            cursor: 'pointer'
           },
         }"
+        @click="(d: Data) => emits('pointClick', d)"
+      />
+
+      <VisAnnotations
+        :items="unovisAnnotations"
       />
 
       <VisAxis
