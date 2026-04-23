@@ -7,12 +7,9 @@ import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import { formatMinifiedNumber, numberLocale } from "@/filters/formatNumbers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
-import RetentionBarLineChart from "@/components/ui/chart-bar/RetentionBarLineChart.vue";
-import { BarChart } from "@/components/ui/chart-bar";
-import VueApexCharts from "vue3-apexcharts";
+import CompositionActiveClientsChart from "@/components/analytics_retention/CompositionActiveClientsChart.vue";
+import NewRecoveredRetainedChart from "@/components/analytics_retention/NewRecoveredRetainedChart.vue";
 
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
@@ -20,9 +17,6 @@ const { toast } = useToast();
 const selectedRange = ref({ start: null, end: null });
 const isLoading = ref(true);
 const retentionData = ref<any[]>([]);
-
-/** Temporário: donut "Composição do Período". Mudar para `true` para exibir de novo. */
-const showPeriodCompositionDonut = false;
 
 const chartRetentionData = computed(() =>
   retentionData.value.map((row) => ({
@@ -55,60 +49,12 @@ const totals = computed(() => {
   return sum;
 });
 
-const donutOptions = computed(() => ({
-  chart: {
-    type: 'donut',
-    background: 'transparent',
-    toolbar: { show: false }
-  },
-  labels: ['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos', 'Churn'],
-  colors: ['#f4a261', '#2a9d8f', '#457b9d', '#e63946'],
-  legend: {
-    position: 'bottom'
-  },
-  stroke: {
-    show: false
-  },
-  dataLabels: {
-    enabled: true,
-    formatter: function (val, opts) {
-        return formatMinifiedNumber(opts.w.globals.series[opts.seriesIndex]);
-    }
-  },
-  tooltip: {
-    y: {
-      formatter: (val) => numberLocale(val)
-    }
-  },
-  plotOptions: {
-    pie: {
-      donut: {
-        size: '70%',
-        labels: {
-            show: true,
-            total: {
-                show: true,
-                label: 'Total Ativos',
-                formatter: (w) => {
-                    const totalAtivos = w.globals.series[0] + w.globals.series[1] + w.globals.series[2];
-                    return formatMinifiedNumber(totalAtivos);
-                }
-            }
-        }
-      }
-    }
-  }
-}));
-
-const donutSeries = computed(() => [
+computed(() => [
   totals.value['Novos Clientes'],
   totals.value['Clientes Recuperados'],
   totals.value['Clientes Retidos'],
   totals.value['Churn'],
 ]);
-
-/** Nenhuma linha no gráfico só-barras (evita `line-categories="[]"` virar string no template). */
-const retentionBarOnlyLineCategories: string[] = [];
 
 const applyFilter = async () => {
   isLoading.value = true;
@@ -171,118 +117,15 @@ onMounted(() => {
     </div>
 
     <div class="grid grid-cols-1 gap-4">
-      <Card v-if="isLoading">
-        <CardHeader>
-          <Skeleton class="h-6 w-full" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton class="h-80 w-full" />
-        </CardContent>
-      </Card>
-
-      <Card v-else>
-        <CardHeader class="py-4">
-          <div class="flex justify-between items-center align-middle">
-            <CardTitle>Composição de Clientes Ativos</CardTitle>
-            <div class="flex items-center gap-2">
-               <GlossaryTooltipComponent description="Visão mensal da composição de clientes ativos (Novos + Recuperados + Retidos) e métricas de perda." />
-            </div>
-          </div>
-        </CardHeader>
-        <Separator />
-        <CardContent class="pt-6">
-           <RetentionBarLineChart
-            :data="chartRetentionData"
-            index="date"
-            :categories="[
-              'Novos Clientes',
-              'Novos Clientes D0',
-              'Novos Clientes Pós D0',
-              'Clientes Recuperados',
-              'Clientes Retidos',
-              'Churn',
-              'Total Ativos',
-            ]"
-            :bar-categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
-            :line-categories="['Churn', 'Total Ativos']"
-            :colors="['#f4a261', '#e9c46a', '#dda15e', '#2a9d8f', '#457b9d', '#e63946', '#1d3557']"
-            :show-legend="true"
-            lines-only
-          />
-
-          <Separator class="my-8" />
-          <h3 class="text-sm font-semibold text-foreground mb-4">
-            Novos, recuperados e retidos <span class="font-normal text-muted-foreground">(barras agrupadas por dia)</span>
-          </h3>
-          <BarChart
-            class="md:h-[380px]"
-            type="grouped"
-            :data="chartRetentionData"
-            index="date"
-            :categories="['Novos Clientes', 'Clientes Recuperados', 'Clientes Retidos']"
-            :colors="['#f4a261', '#2a9d8f', '#457b9d']"
-            :y-formatter="(tick) => (typeof tick === 'number' ? formatMinifiedNumber(tick) : '')"
-            :show-legend="true"
-          />
-
-          <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
-              <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #f4a261"></div>
-                  <span><strong>Novos Clientes:</strong> data do primeiro depósito (FTD) na janela móvel de 30 dias do relatório.</span>
-              </div>
-              <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #e9c46a"></div>
-                  <span><strong>Novos Clientes D0:</strong> FTD no mesmo dia do cadastro no projeto.</span>
-              </div>
-              <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #dda15e"></div>
-                  <span><strong>Novos Clientes Pós D0:</strong> FTD em dia posterior ao cadastro do perfil no projeto.</span>
-              </div>
-              <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #2a9d8f"></div>
-                  <span><strong>Clientes Recuperados:</strong> Voltaram a depositar após um mês ou mais.</span>
-              </div>
-              <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #457b9d"></div>
-                  <span><strong>Clientes Retidos:</strong> Mantiveram depósitos no mês atual e anterior.</span>
-              </div>
-              <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #e63946"></div>
-                  <span><strong>Churn:</strong> Deixaram de depositar no mês atual, mas depositaram no anterior.</span>
-              </div>
-              <div class="flex items-start gap-2">
-                  <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #1d3557"></div>
-                  <span><strong>Total Ativos:</strong> Jogadores com depósito no mês atual (Novos + Recuperados + Retidos).</span>
-              </div>
-          </div>
-        </CardContent>
-      </Card>
+      <CompositionActiveClientsChart :data="chartRetentionData" :is-loading="isLoading" />
+      <NewRecoveredRetainedChart :data="chartRetentionData" :is-loading="isLoading" />
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4" v-if="!isLoading && retentionData.length > 0">
-      <Card v-if="showPeriodCompositionDonut">
-        <CardHeader class="py-4">
-          <CardTitle>Composição do Período</CardTitle>
-        </CardHeader>
-        <Separator />
-        <CardContent class="pt-6 flex justify-center items-center h-[350px]">
-          <VueApexCharts
-              type="donut"
-              width="100%"
-              height="300"
-              :options="donutOptions"
-              :series="donutSeries"
-          />
-        </CardContent>
-      </Card>
-
-      <Card
-        class="overflow-hidden flex flex-col"
-        :class="showPeriodCompositionDonut ? 'lg:col-span-2' : 'lg:col-span-3'"
-      >
+      <Card class="overflow-hidden flex flex-col lg:col-span-3">
         <CardHeader class="py-4 shrink-0">
           <CardTitle>Detalhamento Diário</CardTitle>
-        </CardHeader>
+        </CardHeader>z
         <Separator class="shrink-0" />
         <CardContent class="p-0 flex-1 max-h-[350px]">
           <div class="overflow-x-auto overflow-y-auto h-full p-6 pt-0 custom-scrollbar">
