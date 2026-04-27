@@ -307,7 +307,6 @@ async function fetchIntegrations() {
       }
     }
   } catch (error) {
-    console.log(error);
     toast({
       title: "Erro",
       description: "Erro ao carregar as fontes de dados.",

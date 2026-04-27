@@ -507,7 +507,6 @@ const openEditModal = (user: any) => {
         .filter((p) => p.id === project.id || project.access_type === "client")
         .flatMap((p) => p.roles),
     }));
-  console.log(projectsWithRoles);
   form.value = {
     ...user,
     access_type: user.access_type,

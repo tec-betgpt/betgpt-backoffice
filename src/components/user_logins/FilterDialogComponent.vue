@@ -68,7 +68,6 @@ const limit = ref(6);
 
 // hooks
 onMounted(() => {
-  console.log("FilterDialogComponent mounted");
   _users();
 })
 

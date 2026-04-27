@@ -603,7 +603,7 @@ const getSuggestions = async () => {
     const suggestions = await IntelligenceArtificial.getSuggestions();
     suggestionList.value = suggestions.data;
   } catch (e) {
-    console.log(e);
+    // 
   }
 };
 
@@ -696,7 +696,7 @@ const sendMessage = async () => {
       loading.value = false;
       isAnimating.value = true;
     } catch (error) {
-      console.error("Erro ao enviar mensagem:", error);
+      console.error("Erro ao enviar mensagem: "+error);
       loading.value = false;
       isAnimating.value = false;
     }

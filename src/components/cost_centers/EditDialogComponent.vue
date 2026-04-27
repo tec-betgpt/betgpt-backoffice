@@ -112,7 +112,6 @@ const openDialog = async () => {
     user_id: null,
     ...props.row,
   };
-  console.log(props.row)
   isDialog.value = true;
   isLoading.value = false;
 };
