@@ -16,6 +16,15 @@
         </CardTitle>
         <div class="flex items-center gap-2">
           <GlossaryTooltipComponent v-if="glossary" :description="glossary"/>
+          <Button
+            v-if="chartName"
+            variant="ghost"
+            size="icon"
+            class="h-8 w-8"
+            @click="openDialog"
+          >
+            <Plus class="h-4 w-4" />
+          </Button>
           <Popover v-if="chartName">
             <PopoverTrigger as-child>
               <Button variant="ghost" size="icon" class="h-8 w-8">
@@ -81,8 +90,6 @@
           :categories="categories"
           :y-formatter="yFormatter"
           :annotations="annotations"
-          @point-click="handlePointClick"
-          @selection="handleSelection"
         />
       </div>
     </CardContent>
@@ -105,7 +112,7 @@ import { formatLargeNumber } from "@/filters/formatLargeNumber";
 import { formatMinifiedNumber, formatMinifiedCurrency } from "@/filters/formatNumbers";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { LineChart } from "@/components/ui/chart-line";
-import { MessageSquare } from 'lucide-vue-next';
+import { MessageSquare, Plus } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import AnnotationList from '@/components/project_annotations/AnnotationList.vue';
@@ -119,6 +126,7 @@ export default defineComponent({
     GlossaryTooltipComponent,
     LineChart,
     MessageSquare,
+    Plus,
     Button,
     Popover,
     PopoverContent,
@@ -232,18 +240,10 @@ export default defineComponent({
       }
     },
 
-    handlePointClick(data: any) {
+    openDialog() {
       if (!this.chartName) return
-      this.selectedDate = data.date
+      this.selectedDate = moment().format('DD/MM/YYYY')
       this.selectedEndDate = ''
-      this.dialogOpen = true
-    },
-
-    handleSelection({ start, end }: { start: number, end: number }) {
-      if (!this.chartName) return
-      
-      this.selectedDate = moment(start).format('YYYY-MM-DD')
-      this.selectedEndDate = moment(end).format('YYYY-MM-DD')
       this.dialogOpen = true
     },
 

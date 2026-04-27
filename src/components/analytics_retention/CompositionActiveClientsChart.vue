@@ -14,6 +14,14 @@
         <CardTitle>Composição de Clientes Ativos</CardTitle>
         <div class="flex items-center gap-2">
           <GlossaryTooltipComponent description="Visão mensal da composição de clientes ativos (Novos + Recuperados + Retidos) e métricas de perda." />
+          <Button
+              variant="ghost"
+              size="icon"
+              class="h-4 w-4"
+              @click="handlePointClick()"
+          >
+            <Plus class="h-3 w-3" />
+          </Button>
           <Popover v-if="chartName">
             <PopoverTrigger as-child>
               <Button variant="ghost" size="icon" class="h-8 w-8">
@@ -65,7 +73,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { MessageSquare } from 'lucide-vue-next'
+import {MessageSquare, Plus} from 'lucide-vue-next'
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue"
 import AnnotationList from '@/components/project_annotations/AnnotationList.vue'
 import AnnotationDialog from '@/components/project_annotations/AnnotationDialog.vue'
@@ -110,9 +118,9 @@ async function fetchAnnotations() {
   }
 }
 
-function handlePointClick(data: any) {
+function handlePointClick() {
   if (!chartName) return
-  selectedDate.value = data.date
+  selectedDate.value = moment().format('DD/MM/YYYY')
   selectedEndDate.value = ''
   dialogOpen.value = true
 }
@@ -155,12 +163,6 @@ const chartOptions = computed(() => {
       background: 'transparent',
       fontFamily: 'inherit',
       events: {
-        markerClick: (event: any, chartContext: any, { seriesIndex, dataPointIndex, config }: any) => {
-          const dataPoint = sortedData.value[dataPointIndex]
-          if (dataPoint) {
-            handlePointClick(dataPoint)
-          }
-        },
         selection: (chartContext: any, { xaxis }: any) => {
           if (xaxis) {
             const minTime = xaxis.min
