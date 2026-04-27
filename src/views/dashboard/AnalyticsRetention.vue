@@ -94,11 +94,6 @@ watch(selectedRange, () => {
   applyFilter();
 }, { deep: true });
 
-onMounted(() => {
-    if (workspaceStore.activeGroupProject?.id) {
-        applyFilter();
-    }
-});
 useScreenContext(
     "Tela de retenção de analytics - Exibe métricas de retenção de clientes",
     () => ({
