@@ -101,6 +101,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
 import { Search } from "lucide-vue-next";
@@ -163,6 +164,9 @@ const destroy = async (id: number) => {
     });
   }
 }
+
+// Screen Context
+useScreenContext("Permissões", () => ({}));
 
 onMounted(async () => {
   isLoading.value = true;

@@ -104,6 +104,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { useToast } from "@/components/ui/toast/use-toast";
 import ProjectAnnotations from "@/services/projectAnnotations";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -171,6 +172,9 @@ const fetchProjectAnnotations = async (current = 1) => {
 
   isLoading.value = false;
 };
+
+// Screen Context
+useScreenContext("Marcos", () => ({}));
 
 const deleteAnnotation = async (id: number) => {
   try {

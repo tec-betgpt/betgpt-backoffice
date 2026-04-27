@@ -106,6 +106,7 @@
 
 <script setup lang="ts">
 import {ref, onMounted} from "vue";
+import { useScreenContext } from "@/composables/useScreenContext";
 import FilterDialogComponent from "@/components/user_logins/FilterDialogComponent.vue";
 import UserLogins from '@/services/userLogins';
 import { getMs } from "@/filters/formatNumbers";
@@ -172,6 +173,9 @@ const setFilters = async (params: any) => {
   await fetchUserLogins(1);
   isLoading.value = false;
 };
+
+// Screen Context
+useScreenContext("Histórico de Logins", () => ({}));
 
 onMounted(async () => {
   isLoading.value = true;

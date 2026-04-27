@@ -332,6 +332,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
+import { useScreenContext } from "@/composables/useScreenContext";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { marked } from "marked";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -413,6 +414,12 @@ let analyser: AnalyserNode | null = null;
 let animationFrame: number | null = null;
 let recognition: any = null;
 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+// Screen Context
+useScreenContext("Chat IA", () => ({
+  chat_id: selectedChatId.value,
+  chat_title: chats.value.find(c => c.id === selectedChatId.value)?.title || 'Novo Chat'
+}));
 
 // Audio Recording Methods
 const toggleRecording = async () => {
@@ -671,7 +678,12 @@ const sendMessage = async () => {
       chat_id: chatId,
       project_id: activeGroupProject.value?.id,
       message: content,
-      file: file
+      file: file,
+      context:{
+        url:route.path,
+        date: workspaceStore.date,
+        context: workspaceStore.context,
+      }
     });
 
     const parsedResponse = await marked.parse(response.data.message);

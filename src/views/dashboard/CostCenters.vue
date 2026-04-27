@@ -77,6 +77,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { toast } from "@/components/ui/toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { getMs } from "@/filters/formatNumbers";
@@ -159,6 +160,9 @@ const remove = async (id: number) => {
     });
   }
 }
+
+// Screen Context
+useScreenContext("Gerenciamento de Custos", () => ({}));
 
 onMounted(async () => {
   isLoading.value = true;

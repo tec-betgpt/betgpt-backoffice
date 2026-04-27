@@ -364,6 +364,7 @@
 
 <script lang="ts">
 import Home from "@/services/home";
+import { useScreenContext } from "@/composables/useScreenContext";
 import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
 import {
   ArrowDown,
@@ -1436,6 +1437,10 @@ export default {
         this.applyFilter();
       },
     },
+  },
+
+  setup() {
+    useScreenContext("Dashboard Principal", () => ({}));
   },
 };
 </script>

@@ -145,6 +145,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useScreenContext } from "@/composables/useScreenContext";
 import {
   Plus,
   Search,
@@ -294,6 +295,9 @@ const handleDelete = async () => {
 const formatDate = (date: string) => {
   return moment(date).format('DD/MM/YYYY HH:mm');
 };
+
+// Screen Context
+useScreenContext("Gerenciamento de Tags", () => ({}));
 
 onMounted(() => {
   fetchTags();

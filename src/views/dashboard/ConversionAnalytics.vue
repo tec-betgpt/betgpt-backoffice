@@ -164,6 +164,7 @@
 <script setup lang="ts">
 import {ref, watch, onMounted, computed} from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { useWorkspaceStore } from "@/stores/workspace";
 import "moment/dist/locale/pt-br";
 import ConversionAnalyticsService from "@/services/conversionAnalytics";
@@ -346,6 +347,9 @@ watch(selectedRange, () => {
 watch(() => workspaceStore.activeGroupProject, () => {
   applyFilter();
 });
+
+// Screen Context
+useScreenContext("Resultados", () => ({}));
 
 onMounted(() => {
   applyFilter();

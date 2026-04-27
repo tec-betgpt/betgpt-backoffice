@@ -45,10 +45,10 @@ export default {
         formData.append('chat_id', params.chat_id);
         formData.append('message', params.message);
         formData.append('project_id',params.project_id)
-        formData.append('date_start',params?.context.date.start)
-        formData.append('date_end',params?.context.date.end)
-        formData.append('url', params?.context.url)
-        formData.append('context', params?.context.context)
+        formData.append('date_start',params.context?.date?.start ?? null)
+        formData.append('date_end',params.context?.date?.end ?? null)
+        formData.append('url', params.context?.url ?? null)
+        formData.append('context', params.context?.context ?? null)
         if (params.file) {
             formData.append('file', params.file);
         }

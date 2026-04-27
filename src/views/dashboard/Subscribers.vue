@@ -74,6 +74,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { getMs } from "@/filters/formatNumbers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
@@ -122,6 +123,9 @@ const fetchUsers = async (params = {}) => {
     console.error(e)
   }
 }
+
+// Screen Context
+useScreenContext("Usuários Assinantes", () => ({}));
 
 onMounted(async () => {
   isLoading.value = true

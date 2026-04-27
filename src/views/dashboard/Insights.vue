@@ -82,6 +82,7 @@
 
 <script setup lang="ts">
 import {h, onMounted, ref, watch} from "vue";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { Button } from "@/components/ui/button";
 import Insights from "@/services/insights";
 import { X } from "lucide-vue-next";
@@ -164,6 +165,9 @@ function clearSearch (e: Event) {
   search.value = null;
   fetchMessages();
 }
+
+// Screen Context
+useScreenContext("MyElevate Insights", () => ({}));
 
 onMounted(() => fetchMessages());
 </script>

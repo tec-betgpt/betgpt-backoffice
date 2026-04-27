@@ -276,6 +276,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { useRoute } from "vue-router";
 import { 
   ChevronLeft, Loader2Icon, MapPinIcon, 
@@ -324,6 +325,12 @@ const activeTab = ref('activity');
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+
+// Screen Context
+useScreenContext("Perfil do Cliente", () => ({
+  player_id: player.value?.id,
+  player_name: player.value ? `${player.value.first_name} ${player.value.last_name}` : ''
+}));
 
 // KPIs financeiros (Idealmente viriam do backend, senão calculamos do histórico se houver tudo lá)
 const financialStats = computed(() => {

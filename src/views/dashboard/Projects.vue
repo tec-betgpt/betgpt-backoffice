@@ -133,6 +133,7 @@
 <script setup lang="ts">
 import { ref, onMounted, h, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -193,6 +194,13 @@ const form = ref({
 const order = ref();
 const direction = ref(false);
 const searchValues = ref<Record<string, string>>({});
+
+// Screen Context
+useScreenContext("Projetos", () => ({
+  project_id: form.value.id,
+  project_name: form.value.name
+}));
+
 const handleFileChange = (event) => {
   const file = event.target.files[0];
 

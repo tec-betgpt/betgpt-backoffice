@@ -203,18 +203,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { 
-  Terminal, Save, RotateCcw, 
-  Loader2, Wrench, Settings2, X, Plus
-} from "lucide-vue-next";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
+import { ref, onMounted, computed, watch } from "vue";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { useToast } from "@/components/ui/toast/use-toast";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 

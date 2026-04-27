@@ -87,6 +87,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { Trash } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { getMs } from "@/filters/formatNumbers";
@@ -137,6 +138,12 @@ const deleteGroup = async (groupId: number) => {
     });
   }
 };
+
+// Screen Context
+useScreenContext("Grupos de Projetos", () => ({
+  group_id: null,
+  group_name: ''
+}));
 
 onMounted(fetchUserProjectGroups);
 </script>

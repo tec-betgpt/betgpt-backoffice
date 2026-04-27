@@ -205,6 +205,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Loader2, ChevronDown, Star , Power,Settings2} from "lucide-vue-next";
 import moment from "moment";
@@ -246,6 +247,10 @@ const pendingFeedback = ref(false);
 const activeGroupProject = workspaceStore.activeGroupProject;
 const botStatusActive = ref(false);
 const openDialog = ref(false);
+
+// Screen Context
+useScreenContext("Jarbas BOT", () => ({}));
+
 const form = ref({
   whatsapp_number: "",
   bot_active: false,

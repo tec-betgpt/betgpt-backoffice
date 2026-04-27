@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { useScreenContext } from "@/composables/useScreenContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart } from '@/components/ui/chart-line';
@@ -34,6 +35,9 @@ const fetchDashboardData = async () => {
     loading.value = false;
   }
 };
+
+// Screen Context
+useScreenContext("Dashboard de Proteção", () => ({}));
 
 onMounted(() => {
   fetchDashboardData();
