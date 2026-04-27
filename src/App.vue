@@ -20,6 +20,8 @@ import { useRoute } from "vue-router";
 import DefaultLayout from "@/layouts/default.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
+import { useInternetConnection } from "@/composables/useInternetConnection";
+import { useErrorTracker } from "@/composables/useErrorTracker";
 import { storeToRefs } from "pinia";
 import { Toaster } from "@/components/ui/toast";
 
@@ -28,6 +30,9 @@ const authStore = useAuthStore();
 const configStore = useConfigStore();
 const { loading } = storeToRefs(authStore);
 const layout = computed(() => route.meta.layout);
+
+useInternetConnection(5000);
+useErrorTracker();
 
 onMounted(() => {});
 </script>

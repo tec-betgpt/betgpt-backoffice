@@ -349,7 +349,6 @@ const handleFileChange = (event) => {
 const updateImage = async () => {
   if (!form.value.image) {
     error.value = "Nenhum arquivo selecionado.";
-    console.log(form.value);
     return;
   }
 

@@ -175,7 +175,6 @@ const register = async () => {
     await Tokens.send(formStep1.value)
     setStep(2);
   } catch (error) {
-    console.log(error);
   } finally {
     loading.value = false;
   }
@@ -212,7 +211,6 @@ const finishRegister = async () => {
         router.push("/login");
       }
     } catch (error) {
-      console.log(error);
     }
   }
 };

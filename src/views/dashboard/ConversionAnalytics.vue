@@ -291,7 +291,6 @@ const applyFilter = async () => {
 
     const startDateFormatted = formatDateForAPI(selectedRange.value.start);
     const endDateFormatted =formatDateForAPI(selectedRange.value.end);
-    console.log(startDateFormatted, endDateFormatted);
     const params: any = {
       start_date: startDateFormatted,
       end_date: endDateFormatted,
@@ -310,8 +309,6 @@ const applyFilter = async () => {
         date: period.date,
       }
     })
-    console.log(revenuePeriod.value);
-       // [{name:"Receita Total",value:data.data_by_period}]
      eventsPeriod.value = data.data_by_event.map(event => {
       return {
         name: event.name,
@@ -342,20 +339,15 @@ const applyFilter = async () => {
 
 watch(selectedRange, () => {
   if (!isFirstLoad.value) {
-    console.log("teste 3")
-
     applyFilter();
   }
 }, { deep: true });
 
 watch(() => workspaceStore.activeGroupProject, () => {
-  console.log("teste 1")
   applyFilter();
 });
 
 onMounted(() => {
-  console.log("teste 2")
-
   applyFilter();
 });
 </script>

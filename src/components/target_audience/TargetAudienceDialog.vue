@@ -616,7 +616,6 @@ const parseDataToForm = (data) => {
                             value = '';
                           }
                         } catch (e) {
-                          console.log('Failed to parse JSON:', e);
                         }
                       }
                     }

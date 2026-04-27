@@ -211,7 +211,6 @@ const canEditSegment = computed(() => {
 
 const handleSyncClick = (row: any) => {
   const syncs = row.syncs || [];
-  console.log(syncs);
   if (Array.isArray(syncs) && syncs.length > 0) {
     audienceToSync.value = row.id;
     showSyncConfirmDialog.value = true;

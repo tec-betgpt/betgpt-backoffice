@@ -253,7 +253,6 @@ const recover = async () => {
       title:"Falha na solicitação",
       description: error.message,
     })
-    console.log(error);
   } finally {
     loading.value = false;
   }
@@ -296,7 +295,6 @@ const confirmNewPassword = async () => {
       title:"Falha na solicitação",
       description: error.response.data.message,
     })
-    console.log(error);
   } finally {
     loading.value = false;
   }

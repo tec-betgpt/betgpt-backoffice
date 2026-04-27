@@ -722,7 +722,6 @@ const parseDataToForm = (data: any, formIndex: number) => {
                   value = '';
                 }
               } catch (e) {
-                console.log('Failed to parse JSON:', e);
               }
             }
           }
@@ -877,7 +876,6 @@ const open = async (segment: any = null, allSegments: any[] = []) => {
   
   if (segment) {
     isEditing.value = true;
-    console.log(segment);
     form.value = [
       {
         id: segment.id,
