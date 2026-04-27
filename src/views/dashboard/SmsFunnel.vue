@@ -476,6 +476,7 @@ import { createColumnHelper } from "@tanstack/vue-table";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import {
   Mail,
   MailCheck,
@@ -1007,4 +1008,14 @@ watch(selectedRange, () => {
   broadcastPages.value.current = 1;
   loadData();
 });
+
+useScreenContext(
+  "Tela de funil de SMS - Gerencia campanhas e broadcasts de SMS",
+  () => ({
+    "Aba ativa": activeTab.value,
+    "Página de campanhas": campaignPages.value.current,
+    "Total de campanhas": campaignPages.value.last,
+    "Itens por página": campaignPerPage.value,
+  })
+);
 </script>

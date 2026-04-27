@@ -2,6 +2,7 @@
 import {ref, watch, onMounted, computed} from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import Analytics from "@/services/analytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import { formatMinifiedNumber, numberLocale } from "@/filters/formatNumbers";
@@ -98,6 +99,14 @@ onMounted(() => {
         applyFilter();
     }
 });
+useScreenContext(
+    "Tela de retenção de analytics - Exibe métricas de retenção de clientes",
+    () => ({
+      "Período": selectedRange.value.start && selectedRange.value.end
+          ? `${selectedRange.value.start} até ${selectedRange.value.end}`
+          : "Não selecionado",
+    })
+);
 </script>
 
 <template>

@@ -102,6 +102,7 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
 import ProtectionListReports from "@/services/protectionListReports";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import { Badge } from "@/components/ui/badge";
@@ -191,4 +192,13 @@ const formatStatus = (status: string) => {
 onMounted(async () => {
   await fetchReports();
 });
+
+useScreenContext(
+  "Tela de relatórios de lista de proteção - Exibe relatórios de listas de proteção",
+  () => ({
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
+);
 </script>

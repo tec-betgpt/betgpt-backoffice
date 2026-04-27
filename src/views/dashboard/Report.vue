@@ -163,6 +163,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 
@@ -520,6 +521,14 @@ watch(selectedRange, () => {
 
 }, { deep: true });
 
+useScreenContext(
+  "Tela de relatórios - Exibe relatórios gerados",
+  () => ({
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPages.value,
+  })
+);
 
 </script>
 

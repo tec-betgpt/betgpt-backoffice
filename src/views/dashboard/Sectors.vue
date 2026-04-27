@@ -97,6 +97,7 @@ import { toast } from "@/components/ui/toast";
 import { X } from "lucide-vue-next";
 import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import Sector from "@/services/sector"
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
@@ -172,6 +173,15 @@ onMounted(async () => {
   await fetchSectors()
   isLoading.value = false;
 });
+
+useScreenContext(
+  "Tela de setores - Gerencia setores do sistema",
+  () => ({
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
+);
 
 watch(perPage,() => fetchSectors(1));
 </script>

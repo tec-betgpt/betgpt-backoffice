@@ -881,6 +881,7 @@ import SessionChannelPieChart from "@/components/google_analytics/SessionChannel
 import TotalRevenuePieChart from "@/components/google_analytics/TotalRevenuePieChart.vue";
 import currencyFilter from "@/filters/currencyFilter";
 import {Card} from "@/components/ui/card";
+import { useScreenContext } from "@/composables/useScreenContext";
 
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
@@ -1314,4 +1315,20 @@ onMounted(() => {
     applyFilter(1);
   }, 100);
 });
+
+useScreenContext(
+  "Tela de relatório de tráfego - Exibe dados de aquisição de tráfego por canal",
+  () => ({
+    "Período": selectedRange.value.start && selectedRange.value.end
+      ? `${formatDateForAPI(selectedRange.value.start)} até ${formatDateForAPI(selectedRange.value.end)}`
+      : "Não selecionado",
+    "Grupo": getGroupByLabel(searchValues.value["search[0][group_by]"] || ""),
+    "Canal": searchValues.value["search[1][channel]"] || "Todos",
+    "Ordenação": orderId.value,
+    "Direção": order.value ? "Crescente" : "Decrescente",
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPages.value,
+  })
+);
 </script>

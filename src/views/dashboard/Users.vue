@@ -290,6 +290,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -672,7 +673,11 @@ const simulateClient = async (user) => {
   }
 };
 
-onMounted(fetchUsersAndProjects);
+onMounted(() => {
+  fetchUsersAndProjects();
+});
+
+
 
 const searchValues = ref<Record<string, string>>({});
 const setSearch = (values: Record<string, string>) => {
@@ -918,7 +923,18 @@ const columns = [
     },
   }),
 ];
-
+useScreenContext(
+    "Tela de usuários - Lista todos os usuários do sistema",
+    () => ({
+      "Tipo de acesso": accessFilter.value?.join(", ") || "Todos",
+      "Status": statusFilter.value?.join(", ") || "Todos",
+      "Ordenação": order.value || "Padrão",
+      "Direção": direction.value ? "Crescente" : "Decrescente",
+      "Página atual": pages.value.current,
+      "Total de páginas": pages.value.last,
+      "Itens por página": perPage.value,
+    })
+);
 interface Status {
   id: string; // ID do status
   name: string; // Nome do status (ex: 'Ativo', 'Inativo')

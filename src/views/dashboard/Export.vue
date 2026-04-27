@@ -94,6 +94,7 @@ import { Separator } from "@/components/ui/separator";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { Button } from "@/components/ui/button";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import Export from "@/services/export";
 import { Accordion } from "@/components/ui/accordion";
 import { RefreshCcw } from "lucide-vue-next";
@@ -121,6 +122,16 @@ const route = useRoute();
 watch(perPage, () => {
   loadExportsHistory()
 })
+
+useScreenContext(
+  "Tela de exports - Gerencia exportação de dados",
+  () => ({
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
+);
+
 onMounted(async () => {
   await loadExportsHistory();
 

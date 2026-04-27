@@ -186,6 +186,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import {ArrowDown, ArrowUp, Check, Hourglass, Mail, Search, CircleX } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { getMs } from "@/filters/formatNumbers";
@@ -318,6 +319,15 @@ watch(selectedRange, (value) => {
     fetchPostbackLogs(1);
   }
 });
+
+useScreenContext(
+  "Tela de logs de postback - Exibe histórico de postbacks",
+  () => ({
+    "Tipo": selectedType.value,
+    "Página": currentPage.value,
+    "Itens por página": perPage.value,
+  })
+);
 
 type PostbackLog = {
   id: number;

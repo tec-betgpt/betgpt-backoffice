@@ -159,6 +159,7 @@ import {createColumnHelper} from "@tanstack/vue-table";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import {CaretSortIcon} from "@radix-icons/vue";
 import {useWorkspaceStore} from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import moment from "moment";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import ChartBarComponent from "@/components/utm_tracks/ChartBarComponent.vue";
@@ -307,6 +308,16 @@ onMounted(async () => {
 const setSearch = (values: Record<string, string>) => {
   searchValues.value = values
 };
+
+useScreenContext(
+  "Tela de UTMs - Gerencia parâmetros UTM",
+  () => ({
+    "Filtro por tipo": typeFilter.value?.join(", ") || "Todos",
+    "Ordenação": order.value || "Padrão",
+    "Direção": direction.value ? "Crescente" : "Decrescente",
+    "Itens por página": 100,
+  })
+);
 
 const order = ref();
 const direction = ref(false);

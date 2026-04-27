@@ -242,6 +242,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useScreenContext } from "@/composables/useScreenContext";
 
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
 const startDate = currentDate.subtract({ days: 28 });
@@ -845,6 +846,15 @@ watch(selectedRange, () => {
   applyFilter(1);
 });
 
+const formatDateForAPI = (date: any): string => {
+  if (!date) return "";
+  if (typeof date === "string") return date;
+  if (date && typeof date === "object" && "year" in date && "month" in date && "day" in date) {
+    return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+  }
+  return "";
+};
+
 type CampaignMetrics = {
   id: string;
   project_id: number;
@@ -869,4 +879,23 @@ type Integration = {
   integration_id: number;
   account_name: string;
 };
+
+onMounted(() => {
+  applyFilter(1);
+});
+
+useScreenContext(
+  "Tela de campanhas de e-mail - Exibe métricas de campanhas de e-mail enviadas",
+  () => ({
+    "Período": selectedRange.value.start && selectedRange.value.end
+      ? `${formatDateForAPI(selectedRange.value.start)} até ${formatDateForAPI(selectedRange.value.end)}`
+      : "Não selecionado",
+    "Versão": isLegacy.value ? "Legada" : "Atual",
+    "Ordenação": orderId.value || "Padrão",
+    "Direção": order.value ? "Crescente" : "Decrescente",
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPages.value,
+  })
+);
 </script>

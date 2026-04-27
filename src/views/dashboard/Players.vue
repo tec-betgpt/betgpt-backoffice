@@ -131,6 +131,7 @@
 import { ref, onMounted, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { getMs } from "@/filters/formatNumbers";
 import { ArrowDown, ArrowUp, Eye, ChevronsUpDown } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
@@ -265,4 +266,15 @@ onMounted(async () => {
   ]);
   isLoading.value = false
 });
+
+useScreenContext(
+  "Tela de jogadores - Lista todos os jogadores do sistema",
+  () => ({
+    "Tag": selectedTagName.value,
+    "Página": currentPage.value,
+    "Itens por página": perPage.value,
+    "Ordenação": order.value,
+    "Direção": direction.value ? "Crescente" : "Decrescente",
+  })
+);
 </script>

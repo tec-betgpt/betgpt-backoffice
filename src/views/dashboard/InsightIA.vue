@@ -14,6 +14,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import CustomStarScore from "@/components/custom/CustomStarScore.vue";
 import {useWorkspaceStore} from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 
 const loading = ref(true);
 const insightsData = ref([]);
@@ -97,6 +98,13 @@ const updatePerPage = (value: string) => {
 onMounted(() => {
   fetchInsight();
 });
+
+useScreenContext(
+  "Tela de insights da IA - Exibe insights e análises gerados pela IA",
+  () => ({
+    "Per page": perPage.value,
+  })
+);
 </script>
 
 <template>

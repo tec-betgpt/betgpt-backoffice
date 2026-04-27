@@ -134,6 +134,7 @@ import { ref, onMounted, reactive, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import WebhookLogs from "@/services/webhooks";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { Badge } from "@/components/ui/badge";
@@ -235,4 +236,15 @@ onMounted(async () => {
         await fetchLogs();
     }
 });
+
+useScreenContext(
+    "Tela de logs de webhooks - Exibe histórico de webhooks disparados",
+    () => ({
+        "Status": filters.status,
+        "Ordenação": filters.order,
+        "Página atual": pages.value.current,
+        "Total de páginas": pages.value.last,
+        "Itens por página": perPage.value,
+    })
+);
 </script>

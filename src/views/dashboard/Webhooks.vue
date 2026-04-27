@@ -88,6 +88,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Webhooks from "@/services/webhooks";
 import {useWorkspaceStore} from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 
 const { toast } = useToast();
 const loading = ref(false);
@@ -139,6 +140,10 @@ async function saveWebhookUrl(webhook:any) {
 }
 
 onMounted(async () => {
-  await fetchWebhooks();
+  await fetchWebhooks()
 });
+useScreenContext(
+  "Tela de webhooks - Gerencia webhooks do sistema",
+  () => ({})
+);
 </script>

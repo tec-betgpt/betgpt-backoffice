@@ -148,6 +148,7 @@ import { toast } from "@/components/ui/toast";
 import toCurrency from "@/filters/currencyFilter";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import CostCenter from "@/services/costCenters";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Skeleton} from "@/components/ui/skeleton";
@@ -273,6 +274,18 @@ onMounted(async () => {
 
   loading.value = false;
 });
+
+useScreenContext(
+  "Tela financeiro - Gerencia informações financeiras",
+  () => ({
+    "Período": search.value || "Não selecionado",
+    "Ordenação": orderId.value || "Padrão",
+    "Direção": order.value ? "Crescente" : "Decrescente",
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
+);
 
 watch(perPage,() => {
   fetchFinancials(1);

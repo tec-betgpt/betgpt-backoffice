@@ -55,6 +55,7 @@
 import { ref, onMounted, h, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
+  import { useScreenContext } from "@/composables/useScreenContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -321,4 +322,16 @@ const columns = [
 onMounted(() => {
   fetchConversionDefinitions(1);
 });
+
+useScreenContext(
+  "Tela de definições de conversão - Gerencia definições de conversão do sistema",
+  () => ({
+    "Tipo de conversão": conversionType.value === "primary" ? "Primária" : "Secundária",
+    "Ordenação": order.value || "Padrão",
+    "Direção": direction.value ? "Crescente" : "Decrescente",
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
+);
 </script>

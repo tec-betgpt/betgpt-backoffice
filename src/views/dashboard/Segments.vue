@@ -125,6 +125,7 @@ import SegmentDialog from "@/components/segments/SegmentDialog.vue";
 import SegmentExportDialog from "@/components/segments/SegmentExportDialog.vue";
 import TagManager from "@/components/custom/TagManager.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -560,6 +561,15 @@ const columns = [
 ];
 
 onMounted(async () => await fetchSegments());
+
+useScreenContext(
+  "Tela de segmentos - Gerencia segmentos de audiência",
+  () => ({
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
+);
 
 watch(perPage, () => fetchSegments(1));
 watch(activeGroupProjectId, () => fetchSegments(1));

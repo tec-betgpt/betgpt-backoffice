@@ -48,6 +48,7 @@ export default {
         formData.append('date_start',params.context.date.start)
         formData.append('date_end',params.context.date.end)
         formData.append('url', params.context.url)
+        formData.append('context', params.context.context)
         if (params.file) {
             formData.append('file', params.file);
         }

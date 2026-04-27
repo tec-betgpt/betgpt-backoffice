@@ -488,6 +488,7 @@ import { createColumnHelper } from "@tanstack/vue-table";
 import { CaretSortIcon } from "@radix-icons/vue";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import {
   Phone,
   PhoneCall,
@@ -983,5 +984,14 @@ watch(selectedRange, () => {
   campaignPages.value.current = 1;
   loadData();
 });
+
+useScreenContext(
+  "Tela de Call4u - Gerencia chamadas telefônicas",
+  () => ({
+    "Aba ativa": activeTab.value,
+    "Página de campanhas": campaignPages.value.current,
+    "Itens por página": campaignPerPage.value,
+  })
+);
 
 </script>

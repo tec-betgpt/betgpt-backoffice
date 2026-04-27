@@ -227,6 +227,7 @@ import { ref, onMounted, reactive, watch, nextTick } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { useAuthStore } from "@/stores/auth";
 import ProtectionLists from "@/services/protectionLists";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -414,4 +415,13 @@ watch(selectedRange, () => {
 onMounted(async () => {
   await fetchProtectionLists();
 });
+
+useScreenContext(
+  "Tela de listas de proteção - Gerencia listas de proteção",
+  () => ({
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
+);
 </script>

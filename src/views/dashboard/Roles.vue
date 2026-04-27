@@ -95,6 +95,7 @@ import { ref, onMounted, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import Roles from '@/services/roles'
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/roles/CreateDialogComponent.vue";
@@ -140,5 +141,15 @@ onMounted(() => {
   fetchRoles()
   isLoading.value = false;
 });
+
+useScreenContext(
+  "Tela de papéis - Gerencia papéis e permissões",
+  () => ({
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
+);
+
 watch(perPage,()=>fetchRoles(1));
 </script>

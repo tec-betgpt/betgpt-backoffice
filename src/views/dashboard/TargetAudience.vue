@@ -180,6 +180,7 @@ import TargetAudienceCharts from "@/components/target_audience/TargetAudienceCha
 import TargetAudienceDetailsDialog from "@/components/target_audience/TargetAudienceDetailsDialog.vue";
 import MetaAudienceDetailsDialog from "@/components/target_audience/MetaAudienceDetailsDialog.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
@@ -568,4 +569,14 @@ onMounted(async () => {
 onUnmounted(() => {
   stopRefreshInterval();
 });
+
+useScreenContext(
+  "Tela de audiência alvo - Gerencia audiências do Meta",
+  () => ({
+    "Aba": activeTab.value,
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
+);
 </script>

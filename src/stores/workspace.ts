@@ -17,6 +17,7 @@ export const useWorkspaceStore = defineStore("workspace", {
     group_projects: [],
     lastAnnotationUpdate: null as number | null,
     date:null as DateRange|null,
+    context: null as Array<string> | null,
   }),
   actions: {
     notifyAnnotationUpdate() {
@@ -69,6 +70,10 @@ export const useWorkspaceStore = defineStore("workspace", {
 
     async setDate(date: DateRange) {
       this.date = date;
+    },
+
+    async setContext(context: Array<string>) {
+      this.context = context
     }
   },
 });

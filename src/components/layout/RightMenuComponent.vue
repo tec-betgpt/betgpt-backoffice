@@ -651,6 +651,7 @@ const loadMessages = async () => {
   }
 };
 const route = useRoute();
+
 const sendMessage = async () => {
   if (!newMessage.value.message) {
     toast({
@@ -670,10 +671,10 @@ const sendMessage = async () => {
       project_id: activeGroupProject.value?.id,
       context:{
         url:route.path,
-        date: workspaceStore.date
+        date: workspaceStore.date,
+        context: workspaceStore.context,
       }
     };
-    console.log(workspaceStore.date);
     loading.value = true;
     newMessage.value.id = messages.value.length;
     try {
@@ -681,7 +682,6 @@ const sendMessage = async () => {
       scrollToBottom();
 
       newMessage.value = { id: 0, role: "user", message: "", file: null };
-
       const response = await IntelligenceArtificial.sendMessage(userMessage);
       file.value = undefined;
       const assistantMessage: Message = {

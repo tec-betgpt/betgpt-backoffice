@@ -204,6 +204,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import { useToast } from "@/components/ui/toast/use-toast";
 import {
   Loader2 as LucideSpinner,
@@ -482,4 +483,12 @@ async function saveAllIntegrations() {
 onMounted(async () => {
   await fetchIntegrations();
 });
+
+useScreenContext(
+  "Tela de integrações - Gerencia integrações com serviços externos",
+  () => ({
+    "Propriedade GA4": propetySelect.value || "Não selecionada",
+    "Conta Meta": adAccountSelect.value || "Não selecionada",
+  })
+);
 </script>

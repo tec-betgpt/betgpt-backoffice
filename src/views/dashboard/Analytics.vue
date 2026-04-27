@@ -155,6 +155,7 @@
 import { ref, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import Analytics from "@/services/analytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
@@ -261,4 +262,13 @@ const applyFilter = async () => {
 watch(selectedRange, () => {
   applyFilter()
 }, { deep: true })
+
+useScreenContext(
+  "Tela de controles - Exibe métricas de controles do sistema",
+  () => ({
+    "Período": selectedRange.value.start && selectedRange.value.end
+      ? `${selectedRange.value.start} até ${selectedRange.value.end}`
+      : "Não selecionado",
+  })
+)
 </script>
