@@ -880,10 +880,6 @@ type Integration = {
   account_name: string;
 };
 
-onMounted(() => {
-  applyFilter(1);
-});
-
 useScreenContext(
   "Tela de campanhas de e-mail - Exibe métricas de campanhas de e-mail enviadas",
   () => ({

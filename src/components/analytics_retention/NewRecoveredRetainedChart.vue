@@ -15,6 +15,14 @@
           Novos, recuperados e retidos <span class="font-normal text-muted-foreground">(barras agrupadas por dia)</span>
         </CardTitle>
         <div class="flex items-center gap-2">
+          <Button
+              variant="ghost"
+              size="icon"
+              class="h-4 w-4"
+              @click="handlePointClick()"
+          >
+            <Plus class="h-3 w-3" />
+          </Button>
           <Popover v-if="chartName">
             <PopoverTrigger as-child>
               <Button variant="ghost" size="icon" class="h-8 w-8">
@@ -97,7 +105,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { MessageSquare } from 'lucide-vue-next'
+import { MessageSquare, Plus } from 'lucide-vue-next'
 import AnnotationList from '@/components/project_annotations/AnnotationList.vue'
 import AnnotationDialog from '@/components/project_annotations/AnnotationDialog.vue'
 import ProjectAnnotations from '@/services/projectAnnotations'
@@ -141,9 +149,9 @@ async function fetchAnnotations() {
   }
 }
 
-function handlePointClick(data: any) {
+function handlePointClick() {
   if (!chartName) return
-  selectedDate.value = data.date
+  selectedDate.value = moment().format('DD/MM/YYYY')
   selectedEndDate.value = ''
   dialogOpen.value = true
 }
@@ -178,12 +186,6 @@ const chartOptions = computed(() => {
       background: 'transparent',
       fontFamily: 'inherit',
       events: {
-        dataPointSelection: (event: any, chartContext: any, config: any) => {
-          const dataPoint = sortedData.value[config.dataPointIndex]
-          if (dataPoint) {
-            handlePointClick(dataPoint)
-          }
-        },
         selection: (chartContext: any, { xaxis }: any) => {
           if (xaxis) {
             const minTime = xaxis.min

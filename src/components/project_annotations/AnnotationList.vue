@@ -1,6 +1,13 @@
 <template>
-  <div class="mt-4 space-y-2">
-    <h4 class="text-sm font-medium">Anotações</h4>
+  <div class="mt-4 space-y-4">
+    <div class="flex items-center justify-between">
+      <h4 class="text-md font-medium">Anotações</h4>
+      <Button variant="outline" @click="openDialog" class="text-sm">
+        Adicionar
+        <Plus class="h-4 w-4" />
+      </Button>
+    </div>
+
     <div v-if="loading" class="space-y-2">
       <Skeleton class="h-10 w-full" />
       <Skeleton class="h-10 w-full" />
@@ -37,15 +44,26 @@
         </div>
       </div>
     </div>
+
+    <AnnotationDialog
+      v-if="props.chartName"
+      v-model:open="dialogOpen"
+      :date="selectedDate"
+      :end-date="selectedEndDate"
+      :chart-name="props.chartName"
+      :chart-resource="props.chartResource"
+      @saved="onAnnotationSaved"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import AnnotationDialog from '@/components/project_annotations/AnnotationDialog.vue'
 import ProjectAnnotations from '@/services/projectAnnotations'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Trash2 } from 'lucide-vue-next'
+import { Trash2, Plus } from 'lucide-vue-next'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { useWorkspaceStore } from '@/stores/workspace'
 import moment from 'moment'
@@ -60,6 +78,21 @@ const annotations = ref<any[]>([])
 const loading = ref(false)
 const { toast } = useToast()
 const workspaceStore = useWorkspaceStore()
+
+const dialogOpen = ref(false)
+const selectedDate = ref('')
+const selectedEndDate = ref('')
+
+function openDialog() {
+  selectedDate.value = moment().format('DD/MM/YYYY')
+  selectedEndDate.value = ''
+  dialogOpen.value = true
+}
+
+function onAnnotationSaved() {
+  fetchAnnotations()
+  workspaceStore.notifyAnnotationUpdate()
+}
 
 async function fetchAnnotations() {
   if (!props.projectId || !props.chartName) return
