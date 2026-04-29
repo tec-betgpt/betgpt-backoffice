@@ -31,7 +31,7 @@
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome/Apelido</TableHead>
+              <TableHead>Nome</TableHead>
               <TableHead>Guarda</TableHead>
               <TableHead>Escopo/Acesso</TableHead>
               <TableHead>Escopo/Ordem</TableHead>
@@ -44,7 +44,7 @@
             <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
               <TableRow v-for="(row, index) in permissions" :key="row.id" :style="`--delay: ${getMs(index)}`">
                 <TableCell>
-                  {{ row.name }}
+                  {{ te(row.name) ? t(row.name) : row.name }}
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline">
@@ -101,6 +101,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getMs } from "@/filters/formatNumbers";
@@ -113,6 +114,7 @@ import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.v
 import {Card} from "@/components/ui/card";
 
 const { toast } = useToast();
+const { t, te } = useI18n();
 
 const permissions = ref();
 const isLoading = ref(true);

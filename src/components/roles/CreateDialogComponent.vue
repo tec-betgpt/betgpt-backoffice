@@ -70,7 +70,7 @@
                     class="ml-2 font-normal"
                     :for="'permission-' + permission.id"
                   >
-                    {{ permission.name }}
+                    {{ permissionLabel(permission.name) }}
                   </Label>
                 </div>
               </div>
@@ -105,6 +105,7 @@ import { Plus, Search } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
+import { usePermissionLabel } from "@/composables/usePermissionLabel";
 import {
   Select,
   SelectContent,
@@ -120,6 +121,7 @@ const props = defineProps<{
 }>()
 
 const { toast } = useToast();
+const { permissionLabel } = usePermissionLabel();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
