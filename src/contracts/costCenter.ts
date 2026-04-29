@@ -5,12 +5,13 @@ import {FinancialTransaction} from "@/contracts/financialTransaction";
 export interface CostCenter {
   id: number
   name: string
-  sector_id: number
+  project_id: number
+  sector_id: number | null
   user_id: number
   deleted_at: string | null
   created_at: string | null
   updated_at: string | null
-  sector: Sector
+  sector: Sector | null
   user: User
   financialTransactions: FinancialTransaction[]
 }

@@ -40,16 +40,21 @@
           </div>
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="sector_id">Setor</Label>
-            <Select v-model="costForm.sector_id">
-              <SelectTrigger class="col-span-3">
-                <SelectValue placeholder="Selecione um setor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="sector in sectors" :key="sector.id" :value="sector.id">
-                  {{ sector.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <div class="col-span-3 flex flex-col gap-2">
+              <Select v-model="costForm.sector_id">
+                <SelectTrigger id="sector_id">
+                  <SelectValue placeholder="Opcional — selecione um setor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="sector in sectors" :key="sector.id" :value="sector.id">
+                    {{ sector.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="button" variant="outline" size="sm" class="self-end" @click="costForm.sector_id = null">
+                Sem setor
+              </Button>
+            </div>
           </div>
         </div>
         <DialogFooter>

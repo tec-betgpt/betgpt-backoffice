@@ -32,7 +32,8 @@ export default {
    * @param {object} body
    * @param {string} body.name
    * @param {string} body.otherName
-   * @param {number} body.sector_id
+   * @param {number} body.project_id
+   * @param {number|null} [body.sector_id]
    */
   async store (body) {
     const { data } = await api.post('/cost-centers', body)
@@ -55,7 +56,7 @@ export default {
    * @param {number} id
    * @param {object} body
    * @param {string} body.name
-   * @param {number} body.sector_id
+   * @param {number|null} [body.sector_id]
    * @param {string} body.otherName
    * @param {number} body.user_id
    */

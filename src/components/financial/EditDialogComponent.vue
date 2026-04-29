@@ -32,16 +32,24 @@
 
           <div class="grid items-center gap-1.5">
             <Label for="sector_id">Setor</Label>
-            <Select v-model="sectorId">
-              <SelectTrigger id="sector_id">
-                <SelectValue placeholder="Setor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="s in props.sectors" :key="s.id" :value="s.id">
-                  {{ s.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <div class="flex flex-col gap-2">
+              <Select v-model="sectorId">
+                <SelectTrigger id="sector_id">
+                  <SelectValue placeholder="Opcional" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="s in props.sectors" :key="s.id" :value="s.id">
+                    {{ s.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="button" variant="outline" size="sm" class="self-end" @click="sectorId = null">
+                Limpar setor
+              </Button>
+              <p class="text-xs text-muted-foreground">
+                Opcional.
+              </p>
+            </div>
           </div>
 
           <div class="grid items-center gap-1.5">
@@ -131,7 +139,7 @@
 import { ref, watch } from "vue";
 import { Pencil } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import FinancialTransaction from "@/services/financialTransactions";
+import financialTransactionsApi from "@/services/financialTransactions";
 import DatePicker from "@/components/custom/DatePicker.vue";
 import { toast } from "@/components/ui/toast";
 
@@ -155,7 +163,7 @@ const props = defineProps<{
     id: number,
     name: string,
     sector: string,
-    sector_id: number,
+    sector_id: number | null,
   }>,
   sectors: Array<{ id: number; name: string }>,
 }>();
@@ -174,7 +182,7 @@ watch(
     }
     const cost = props.costs.find((c) => c.id === id);
     if (cost) {
-      sectorId.value = cost.sector_id;
+      sectorId.value = cost.sector_id ?? null;
     }
   }
 );
@@ -203,17 +211,22 @@ const onSubmit = async () => {
     });
     return;
   }
-  if (sectorId.value != null && cost.sector_id !== sectorId.value) {
-    loading.value = false;
-    toast({
-      title: "Setor incompatível",
-      description: "O setor selecionado não corresponde ao centro de custo.",
-      variant: "destructive",
-    });
-    return;
+  if (sectorId.value != null) {
+    if (cost.sector_id == null || cost.sector_id !== sectorId.value) {
+      loading.value = false;
+      toast({
+        title: "Setor incompatível",
+        description:
+          cost.sector_id == null
+            ? "Este centro de custo não possui setor; deixe o setor em branco."
+            : "O setor selecionado não corresponde ao centro de custo.",
+        variant: "destructive",
+      });
+      return;
+    }
   }
   try {
-    await FinancialTransaction.update(financialForm.value.id, {
+    await financialTransactionsApi.update(financialForm.value.id, {
       cost_center_id: financialForm.value.cost_center_id,
       sector_id: sectorId.value,
       type: financialForm.value.type,

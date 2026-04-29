@@ -155,7 +155,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import FinancialTransaction from "@/services/financialTransactions";
+import financialTransactionsApi from "@/services/financialTransactions";
 import { toast } from "@/components/ui/toast";
 import toCurrency from "@/filters/currencyFilter";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -208,7 +208,7 @@ const pages = ref({
 // methods
 const deleteFinancial = async (id: number) => {
   try {
-    await FinancialTransaction.destroy(id)
+    await financialTransactionsApi.destroy(id)
     await fetchFinancials();
 
     toast({
@@ -226,7 +226,7 @@ const deleteFinancial = async (id: number) => {
 
 const fetchFinancials = async (current = pages.value.current) => {
   try {
-    const { data } = await FinancialTransaction.index({
+    const { data } = await financialTransactionsApi.index({
       page: current,
       filter_id: activeGroupProjectId,
       name: search.value,

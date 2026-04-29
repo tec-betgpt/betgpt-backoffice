@@ -49,7 +49,7 @@
                   {{ row.name }}
                 </TableCell>
                 <TableCell>
-                  {{ row.sector?.name }}
+                  {{ row.sector?.name ?? "—" }}
                 </TableCell>
                 <TableCell>
                   <div class="flex flex-nowrap justify-end">
