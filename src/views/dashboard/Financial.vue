@@ -240,12 +240,12 @@ const fetchFinancials = async (current = pages.value.current) => {
       const createdByName = u
         ? [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || "—"
         : "—";
-      const sector = financial.cost_center?.sector;
+      const sector = financial.sector ?? financial.cost_center?.sector;
       return {
         id: financial.id,
         costCenter: financial.cost_center?.name ?? "—",
         cost_center_id: financial.cost_center_id,
-        sectorId: sector?.id ?? null,
+        sectorId: sector?.id ?? financial.sector_id ?? null,
         sectorName: sector?.name ?? "—",
         category_type: financial.category_type,
         amount: financial.amount,

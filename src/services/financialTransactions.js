@@ -21,6 +21,7 @@ export default {
    *
    * @param {object} body
    * @param {number|null} body.cost_center_id
+   * @param {number|null} body.sector_id
    * @param {string} body.type
    * @param {string} body.category_type
    * @param {number|null} body.percentage
@@ -49,6 +50,8 @@ export default {
    *
    * @param {number} id
    * @param {object} body
+   * @param {number|null} [body.cost_center_id]
+   * @param {number|null} [body.sector_id]
    * @param {string} body.type
    * @param {string} body.category_type
    * @param {number} body.percentage

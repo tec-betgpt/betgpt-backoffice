@@ -47,7 +47,7 @@
               </SelectContent>
             </Select>
             <p class="text-xs text-right text-muted-foreground">
-              Obrigatório. Ao alterar o setor, o centro de custo é limpo se não pertencer a ele.
+              Obrigatório.
             </p>
           </div>
 
@@ -250,6 +250,7 @@ const onSubmit = async () => {
   try {
     await FinancialTransaction.store({
       ...financialForm.value,
+      sector_id: sectorId.value,
       project_id: activeGroupProjectId,
     });
 

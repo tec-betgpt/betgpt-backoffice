@@ -215,6 +215,7 @@ const onSubmit = async () => {
   try {
     await FinancialTransaction.update(financialForm.value.id, {
       cost_center_id: financialForm.value.cost_center_id,
+      sector_id: sectorId.value,
       type: financialForm.value.type,
       category_type: financialForm.value.category_type,
       percentage: financialForm.value.percentage,
