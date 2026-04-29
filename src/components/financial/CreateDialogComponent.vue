@@ -50,9 +50,6 @@
               <Button type="button" variant="outline" size="sm" class="self-end" @click="sectorId = null">
                 Limpar setor
               </Button>
-              <p class="text-xs text-right text-muted-foreground">
-                Opcional. Se o centro tiver setor, você pode conferir ou ajustar aqui.
-              </p>
             </div>
           </div>
 
