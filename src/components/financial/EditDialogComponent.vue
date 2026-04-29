@@ -19,12 +19,26 @@
           <div class="grid items-center gap-1.5">
             <Label for="cost_center_id">Centro de Custo</Label>
             <Select v-model="financialForm.cost_center_id">
-              <SelectTrigger>
+              <SelectTrigger id="cost_center_id">
                 <SelectValue placeholder="Selecione um centro de custo" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="(cost, index) in props.costs" :key="index" :value="cost.id">
                   {{ cost.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div class="grid items-center gap-1.5">
+            <Label for="sector_id">Setor</Label>
+            <Select v-model="sectorId">
+              <SelectTrigger id="sector_id">
+                <SelectValue placeholder="Setor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="s in props.sectors" :key="s.id" :value="s.id">
+                  {{ s.name }}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -114,17 +128,18 @@
   </Dialog>
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref, watch } from "vue";
 import { Pencil } from "lucide-vue-next";
-import { useWorkspaceStore } from "@/stores/workspace";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import FinancialTransaction from "@/services/financialTransactions";
 import DatePicker from "@/components/custom/DatePicker.vue";
+import { toast } from "@/components/ui/toast";
 
 interface FinancialData {
   id: number;
   costCenter: string;
-  cost_center_id: number;
+  cost_center_id: number | null;
+  sectorId: number | null;
   category_type: string;
   amount: string;
   date: string;
@@ -140,20 +155,73 @@ const props = defineProps<{
     id: number,
     name: string,
     sector: string,
-  }>
+    sector_id: number,
+  }>,
+  sectors: Array<{ id: number; name: string }>,
 }>();
 
-const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
-const financialForm = ref<FinancialData>(props.row);
-const showModal = ref(false);
+const financialForm = ref<FinancialData>({ ...props.row });
 const isDialog = ref(false);
 const loading = ref(false);
 const date = ref(new Date());
+const sectorId = ref<number | null>(props.row.sectorId ?? null);
+
+watch(
+  () => financialForm.value.cost_center_id,
+  (id) => {
+    if (id == null) {
+      return;
+    }
+    const cost = props.costs.find((c) => c.id === id);
+    if (cost) {
+      sectorId.value = cost.sector_id;
+    }
+  }
+);
+
+watch(sectorId, (sid) => {
+  const ccid = financialForm.value.cost_center_id;
+  if (ccid == null || sid == null) {
+    return;
+  }
+  const cost = props.costs.find((c) => c.id === ccid);
+  if (cost && cost.sector_id !== sid) {
+    financialForm.value.cost_center_id = null;
+  }
+});
+
 const onSubmit = async () => {
   loading.value = true;
   financialForm.value.date = date.value.toLocaleDateString();
+  const cost = props.costs.find((c) => c.id === financialForm.value.cost_center_id);
+  if (!cost) {
+    loading.value = false;
+    toast({
+      title: "Centro de custo obrigatório",
+      description: "Selecione um centro de custo.",
+      variant: "destructive",
+    });
+    return;
+  }
+  if (sectorId.value != null && cost.sector_id !== sectorId.value) {
+    loading.value = false;
+    toast({
+      title: "Setor incompatível",
+      description: "O setor selecionado não corresponde ao centro de custo.",
+      variant: "destructive",
+    });
+    return;
+  }
   try {
-    await FinancialTransaction.update(financialForm.value.id, financialForm.value)
+    await FinancialTransaction.update(financialForm.value.id, {
+      cost_center_id: financialForm.value.cost_center_id,
+      type: financialForm.value.type,
+      category_type: financialForm.value.category_type,
+      percentage: financialForm.value.percentage,
+      amount: financialForm.value.amount,
+      date: financialForm.value.date,
+      description: financialForm.value.description,
+    });
     isDialog.value = false;
 
     await props.reload();
@@ -162,9 +230,14 @@ const onSubmit = async () => {
   }
 
   loading.value = false;
-}
+};
 
-onMounted(() => {
-  financialForm.value = props.row
-})
+watch(isDialog, (open) => {
+  if (!open) {
+    return;
+  }
+  financialForm.value = { ...props.row };
+  sectorId.value = props.row.sectorId ?? null;
+  date.value = props.row.date ? new Date(props.row.date) : new Date();
+});
 </script>

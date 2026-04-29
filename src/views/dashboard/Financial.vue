@@ -10,7 +10,7 @@
       </div>
       <div class="flex items-center justify-start w-full">
         <div class="flex flex-col items-center justify-end sm:flex-row gap-2 w-full">
-          <CreateDialogComponent :costs="costs" :reload="fetchFinancials" />
+          <CreateDialogComponent :costs="costs" :sectors="sectors" :reload="fetchFinancials" />
         </div>
       </div>
     </div>
@@ -32,6 +32,9 @@
               <TableRow>
                 <TableHead>
                   Centro de Custo
+                </TableHead>
+                <TableHead>
+                  Setor
                 </TableHead>
                 <TableHead>
                   Categoria
@@ -74,6 +77,9 @@
                   Tipo
                 </TableHead>
                 <TableHead class="text-right">
+                  Cadastrado por
+                </TableHead>
+                <TableHead class="text-right">
                   Ações
                 </TableHead>
               </TableRow>
@@ -81,7 +87,7 @@
 
             <TableBody>
               <TableRow v-if="loading" v-for="row in 7" :key="row">
-                <TableCell v-for="col in 8" :key="col">
+                <TableCell v-for="col in 10" :key="col">
                   <Skeleton class="h-4 w-full bg-gray-300 my-4" />
                 </TableCell>
               </TableRow>
@@ -96,6 +102,9 @@
                 <TableRow v-for="(row, index) in financial" :key="row.id" :style="`--delay: ${getMs(index)}`">
                   <TableCell>
                     {{ row.costCenter }}
+                  </TableCell>
+                  <TableCell>
+                    {{ row.sectorName }}
                   </TableCell>
                   <TableCell>
                     {{ row.category_type === "fixed" ? "Fixa" : "Variavel" }}
@@ -117,8 +126,11 @@
                     <Badge v-else variant="outline" class="bg-red-500 text-white">Custo</Badge>
                   </TableCell>
                   <TableCell class="text-right">
+                    {{ row.createdByName }}
+                  </TableCell>
+                  <TableCell class="text-right">
                     <div class="flex gap-2 flex-nowrap">
-                      <EditDialogComponent :reload="fetchFinancials" :row="row" :costs="costs" />
+                      <EditDialogComponent :reload="fetchFinancials" :row="row" :costs="costs" :sectors="sectors" />
                       <DestroyDialogComponent :reload="fetchFinancials" :row="row" :destroy="deleteFinancial" />
                     </div>
                   </TableCell>
@@ -150,6 +162,7 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CostCenter from "@/services/costCenters";
+import Sector from "@/services/sector";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Card, CardContent} from "@/components/ui/card";
@@ -163,12 +176,15 @@ interface FinancialData {
   id: number;
   costCenter: string;
   cost_center_id: number;
+  sectorId: number | null;
+  sectorName: string;
   category_type: string;
   amount: string;
   date: string;
   description: string;
   percentage: string;
   type: string;
+  createdByName: string;
 }
 
 // data
@@ -177,7 +193,10 @@ const search = ref(null);
 const orderId = ref("name");
 const order = ref(false);
 const perPage = ref("10");
-const costs = ref([]);
+const costs = ref<
+  { id: number; name: string; sector: string; sector_id: number }[]
+>([]);
+const sectors = ref<{ id: number; name: string }[]>([]);
 const financial = ref<FinancialData[]>([]);
 const loading = ref(true);
 const pages = ref({
@@ -216,17 +235,27 @@ const fetchFinancials = async (current = pages.value.current) => {
       per_page:perPage.value,
     })
 
-    financial.value = data.data.map((financial) => ({
-      id: financial.id,
-      costCenter: financial.cost_center.name,
-      cost_center_id: financial.cost_center_id,
-      category_type: financial.category_type,
-      amount: financial.amount,
-      date: financial.date,
-      description: financial.description,
-      percentage: financial.percentage,
-      type: financial.type,
-    }));
+    financial.value = data.data.map((financial) => {
+      const u = financial.user;
+      const createdByName = u
+        ? [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || "—"
+        : "—";
+      const sector = financial.cost_center?.sector;
+      return {
+        id: financial.id,
+        costCenter: financial.cost_center?.name ?? "—",
+        cost_center_id: financial.cost_center_id,
+        sectorId: sector?.id ?? null,
+        sectorName: sector?.name ?? "—",
+        category_type: financial.category_type,
+        amount: financial.amount,
+        date: financial.date,
+        description: financial.description,
+        percentage: financial.percentage,
+        type: financial.type,
+        createdByName,
+      };
+    });
 
     pages.value = {
       current: data.current_page,
@@ -240,17 +269,40 @@ const fetchFinancials = async (current = pages.value.current) => {
 
 const getCosts = async () => {
   try {
-    const { data } = await CostCenter.index({ filter_id: activeGroupProjectId })
+    const { data } = await CostCenter.index({
+      filter_id: activeGroupProjectId,
+      per_page: 500,
+      sort_by: "name",
+      sort_order: "asc",
+    });
 
     costs.value = data.data.map((cost: any) => ({
       id: cost.id,
       name: cost.name,
-      sector: cost.sector.name,
+      sector: cost.sector?.name ?? "",
+      sector_id: cost.sector_id ?? cost.sector?.id,
     }));
   } catch (error) {
     console.error("Erro ao buscar centros de custo:", error);
   }
 }
+
+const getSectors = async () => {
+  try {
+    const { data } = await Sector.index({
+      filter_id: activeGroupProjectId,
+      per_page: 500,
+      sort_by: "name",
+      sort_order: "asc",
+    });
+    sectors.value = (data.data ?? []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+    }));
+  } catch (error) {
+    console.error("Erro ao buscar setores:", error);
+  }
+};
 
 const getMs = (num: number): string => {
   return (num / 10).toFixed(1) + "s";
@@ -270,6 +322,7 @@ onMounted(async () => {
   loading.value = true;
 
   await getCosts();
+  await getSectors();
   await fetchFinancials();
 
   loading.value = false;

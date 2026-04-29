@@ -16,7 +16,7 @@ export interface FinancialTransaction {
   created_at: string
   updated_at: string
   deleted_at: string | null
-  user: User
+  user?: User | null
   costCenter: CostCenter
   deposits: Deposit[]
   withdraws: Withdraw[]
