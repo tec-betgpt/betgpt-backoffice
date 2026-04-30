@@ -108,6 +108,8 @@ import { Search } from "lucide-vue-next";
 import Permissions from "@/services/permissions";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/permissions/CreateDialogComponent.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/permissions/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import {Card} from "@/components/ui/card";
@@ -166,7 +168,11 @@ const destroy = async (id: number) => {
 }
 
 // Screen Context
-useScreenContext("Permissões", () => ({}));
+useScreenContext("Permissões", () => ({
+  "page": currentPage.value,
+  "per_page": 15,
+  "search": search.value,
+}));
 
 onMounted(async () => {
   isLoading.value = true;

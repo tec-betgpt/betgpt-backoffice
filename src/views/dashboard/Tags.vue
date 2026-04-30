@@ -157,6 +157,8 @@ import {
 } from 'lucide-vue-next';
 import { useToast } from '@/components/ui/toast/use-toast';
 import { Button } from '@/components/ui/button';
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -297,7 +299,12 @@ const formatDate = (date: string) => {
 };
 
 // Screen Context
-useScreenContext("Gerenciamento de Tags", () => ({}));
+useScreenContext("Gerenciamento de Tags", () => ({
+  "search": searchQuery.value,
+  "page": pagination.value.current_page,
+  "per_page": pagination.value.per_page,
+  "filter_id": workspace.activeGroupProject.id,
+}));
 
 onMounted(() => {
   fetchTags();

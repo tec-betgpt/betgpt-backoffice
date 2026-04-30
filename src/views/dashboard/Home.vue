@@ -364,6 +364,7 @@
 
 <script lang="ts">
 import Home from "@/services/home";
+import type { DateRange } from "radix-vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
 import {
@@ -563,7 +564,7 @@ export default {
     projects: [],
     user: null,
     loading: true,
-    selectedRange: {},
+    selectedRange: {} as DateRange,
     hideMetricsDaily: false,
     monthlyCountsChart: {},
     retention: {
@@ -1439,9 +1440,7 @@ export default {
     },
   },
 
-  setup() {
-    useScreenContext("Dashboard Principal", () => ({}));
-  },
+  
 };
 </script>
 

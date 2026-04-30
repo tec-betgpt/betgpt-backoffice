@@ -11,6 +11,7 @@
 
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CreateDialogComponent :reload="fetchCosts" />
+        <IAAnaliseButton />
       </div>
     </div>
     <Card>
@@ -84,6 +85,8 @@ import { getMs } from "@/filters/formatNumbers";
 import CostCenter from "@/services/costCenters";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/cost_centers/CreateDialogComponent.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/cost_centers/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 
@@ -162,7 +165,14 @@ const remove = async (id: number) => {
 }
 
 // Screen Context
-useScreenContext("Gerenciamento de Custos", () => ({}));
+useScreenContext("Gerenciamento de Custos", () => ({
+  "filter_id": activeGroupProjectId,
+  "find_name": nameCost.value,
+  "sort_by": "id",
+  "sort_order": "desc",
+  "per_page": perPages.value,
+  "page": pages.value.current,
+}));
 
 onMounted(async () => {
   isLoading.value = true;

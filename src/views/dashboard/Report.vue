@@ -165,6 +165,8 @@ import { Badge } from "@/components/ui/badge";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 
 const { toast } = useToast();
@@ -524,9 +526,9 @@ watch(selectedRange, () => {
 useScreenContext(
   "Tela de relatórios - Exibe relatórios gerados",
   () => ({
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPages.value,
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_pages": perPages.value,
   })
 );
 

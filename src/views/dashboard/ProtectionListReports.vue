@@ -108,6 +108,8 @@ import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.v
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, FileChartColumn } from "lucide-vue-next";
@@ -196,9 +198,9 @@ onMounted(async () => {
 useScreenContext(
   "Tela de relatórios de lista de proteção - Exibe relatórios de listas de proteção",
   () => ({
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPage.value,
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
   })
 );
 </script>

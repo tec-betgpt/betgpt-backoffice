@@ -11,6 +11,7 @@
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CustomDatePicker v-model="selectedRange" />
+        <IAAnaliseButton />
       </div>
     </div>
 
@@ -881,8 +882,10 @@ import SessionChannelPieChart from "@/components/google_analytics/SessionChannel
 import TotalRevenuePieChart from "@/components/google_analytics/TotalRevenuePieChart.vue";
 import currencyFilter from "@/filters/currencyFilter";
 import {Card} from "@/components/ui/card";
+
 import { useScreenContext } from "@/composables/useScreenContext";
 
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
 
@@ -1319,16 +1322,19 @@ onMounted(() => {
 useScreenContext(
   "Tela de relatório de tráfego - Exibe dados de aquisição de tráfego por canal",
   () => ({
-    "Período": selectedRange.value.start && selectedRange.value.end
-      ? `${formatDateForAPI(selectedRange.value.start)} até ${formatDateForAPI(selectedRange.value.end)}`
-      : "Não selecionado",
-    "Grupo": getGroupByLabel(searchValues.value["search[0][group_by]"] || ""),
-    "Canal": searchValues.value["search[1][channel]"] || "Todos",
-    "Ordenação": orderId.value,
-    "Direção": order.value ? "Crescente" : "Decrescente",
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPages.value,
+    "start_date": selectedRange.value.start && selectedRange.value.end
+      ? formatDateForAPI(selectedRange.value.start)
+      : "",
+    "end_date": selectedRange.value.start && selectedRange.value.end
+      ? formatDateForAPI(selectedRange.value.end)
+      : "",
+    "group_by": getGroupByLabel(searchValues.value["search[0][group_by]"] || ""),
+    "search": searchValues.value["search[1][channel]"] || "Todos",
+    "order_by": orderId.value,
+    "type_order": order.value ? "asc" : "desc",
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_pages": perPages.value,
   })
 );
 </script>

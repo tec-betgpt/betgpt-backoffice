@@ -11,6 +11,7 @@
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CreateDialogComponent :reload="fetchConversionDefinitions" />
+        <IAAnaliseButton />
       </div>
     </div>
 
@@ -78,6 +79,8 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import CreateDialogComponent from "@/components/conversion_definitions/CreateDialogComponent.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/conversion_definitions/EditDialogComponent.vue";
 import ConversionDefinitions from "@/services/conversionDefinitions";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
@@ -326,12 +329,11 @@ onMounted(() => {
 useScreenContext(
   "Tela de definições de conversão - Gerencia definições de conversão do sistema",
   () => ({
-    "Tipo de conversão": conversionType.value === "primary" ? "Primária" : "Secundária",
-    "Ordenação": order.value || "Padrão",
-    "Direção": direction.value ? "Crescente" : "Decrescente",
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPage.value,
+    "orderBy": order.value || "Padrão",
+    "orderDirection": direction.value ? "asc" : "desc",
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
   })
 );
 </script>

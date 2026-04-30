@@ -99,6 +99,8 @@ import { useScreenContext } from "@/composables/useScreenContext";
 import Roles from '@/services/roles'
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/roles/CreateDialogComponent.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/roles/EditDialogComponent.vue";
 import {Card, CardContent} from "@/components/ui/card";
 
@@ -145,9 +147,9 @@ onMounted(() => {
 useScreenContext(
   "Tela de papéis - Gerencia papéis e permissões",
   () => ({
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPage.value,
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
   })
 );
 

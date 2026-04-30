@@ -37,7 +37,9 @@ const fetchDashboardData = async () => {
 };
 
 // Screen Context
-useScreenContext("Dashboard de Proteção", () => ({}));
+useScreenContext("Dashboard de Proteção", () => ({
+  "project_id": workspaceStore.activeGroupProject?.id,
+}));
 
 onMounted(() => {
   fetchDashboardData();

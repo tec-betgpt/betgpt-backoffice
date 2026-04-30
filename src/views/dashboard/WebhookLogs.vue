@@ -139,6 +139,8 @@ import WebhookLogs from "@/services/webhooks";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -240,11 +242,11 @@ onMounted(async () => {
 useScreenContext(
     "Tela de logs de webhooks - Exibe histórico de webhooks disparados",
     () => ({
-        "Status": filters.status,
-        "Ordenação": filters.order,
-        "Página atual": pages.value.current,
-        "Total de páginas": pages.value.last,
-        "Itens por página": perPage.value,
+        "status": filters.status,
+        "order": filters.order,
+        "page": pages.value.current,
+        "last_page": pages.value.last,
+        "per_page": perPage.value,
     })
 );
 </script>

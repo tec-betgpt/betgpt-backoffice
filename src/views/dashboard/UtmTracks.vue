@@ -6,6 +6,7 @@
         Os rastreamentos UTM de todos os segmentos.
       </p>
     </div>
+    <IAAnaliseButton />
 
     <div v-if="isLoading">
       <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
@@ -165,6 +166,8 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import ChartBarComponent from "@/components/utm_tracks/ChartBarComponent.vue";
 import {Skeleton} from "@/components/ui/skeleton";
 
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
+
 type UtmTrack = {
   id: number
   name: string
@@ -309,15 +312,7 @@ const setSearch = (values: Record<string, string>) => {
   searchValues.value = values
 };
 
-useScreenContext(
-  "Tela de UTMs - Gerencia parâmetros UTM",
-  () => ({
-    "Filtro por tipo": typeFilter.value?.join(", ") || "Todos",
-    "Ordenação": order.value || "Padrão",
-    "Direção": direction.value ? "Crescente" : "Decrescente",
-    "Itens por página": 100,
-  })
-);
+
 
 const order = ref();
 const direction = ref(false);
@@ -415,4 +410,13 @@ const columns = [
         ]),
   }),
 ]
+useScreenContext(
+    "Tela de UTMs - Gerencia parâmetros UTM",
+    () => ({
+      "type": typeFilter.value?.join(", ") || "Todos",
+      "orderBy": order.value || "Padrão",
+      "orderDirection": direction.value ? "asc" : "desc",
+      "perPage": 100,
+    })
+);
 </script>

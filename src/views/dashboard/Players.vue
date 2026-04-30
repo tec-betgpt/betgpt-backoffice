@@ -144,6 +144,8 @@ import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
 
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
+
 const { toast } = useToast();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -270,11 +272,11 @@ onMounted(async () => {
 useScreenContext(
   "Tela de jogadores - Lista todos os jogadores do sistema",
   () => ({
-    "Tag": selectedTagName.value,
-    "Página": currentPage.value,
-    "Itens por página": perPage.value,
-    "Ordenação": order.value,
-    "Direção": direction.value ? "Crescente" : "Decrescente",
+    "tag_name": selectedTagName.value,
+    "page": currentPage.value,
+    "per_page": perPage.value,
+    "orderBy": order.value,
+    "orderDirection": direction.value ? "asc" : "desc",
   })
 );
 </script>

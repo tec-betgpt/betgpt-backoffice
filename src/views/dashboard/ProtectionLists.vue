@@ -8,6 +8,7 @@
 
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CreateDialogComponent :reload="fetchProtectionLists" />
+        <IAAnaliseButton />
       </div>
     </div>
 
@@ -232,6 +233,8 @@ import { useAuthStore } from "@/stores/auth";
 import ProtectionLists from "@/services/protectionLists";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/protection-lists/CreateDialogComponent.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/protection-lists/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
@@ -419,9 +422,9 @@ onMounted(async () => {
 useScreenContext(
   "Tela de listas de proteção - Gerencia listas de proteção",
   () => ({
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPage.value,
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
   })
 );
 </script>

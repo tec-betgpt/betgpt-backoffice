@@ -136,6 +136,8 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

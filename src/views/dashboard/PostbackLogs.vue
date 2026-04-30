@@ -193,6 +193,8 @@ import { getMs } from "@/filters/formatNumbers";
 import { Spinner } from "@/components/ui/spinner";
 import "moment/dist/locale/pt-br";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import PostbackLogService from "@/services/postbackLog";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 import ShowDialogComponent from "@/components/postback_logs/ShowDialogComponent.vue";
@@ -323,9 +325,9 @@ watch(selectedRange, (value) => {
 useScreenContext(
   "Tela de logs de postback - Exibe histórico de postbacks",
   () => ({
-    "Tipo": selectedType.value,
-    "Página": currentPage.value,
-    "Itens por página": perPage.value,
+    "type": selectedType.value,
+    "page": currentPage.value,
+    "per_page": perPage.value,
   })
 );
 

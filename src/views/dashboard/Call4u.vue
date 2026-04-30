@@ -10,6 +10,7 @@
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CustomDatePicker v-model="selectedRange" />
+        <IAAnaliseButton />
       </div>
     </div>
 
@@ -537,6 +538,8 @@ import Call4u from "@/services/call4u.js";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 
@@ -988,9 +991,8 @@ watch(selectedRange, () => {
 useScreenContext(
   "Tela de Call4u - Gerencia chamadas telefônicas",
   () => ({
-    "Aba ativa": activeTab.value,
-    "Página de campanhas": campaignPages.value.current,
-    "Itens por página": campaignPerPage.value,
+    "campaign_page": campaignPages.value.current,
+    "campaign_per_page": campaignPerPage.value,
   })
 );
 

@@ -19,6 +19,7 @@
           {{ isLegacy ? "Ver Versão Atual" : "Ver Versão Antiga" }}
         </Button>
         <CustomDatePicker v-model="selectedRange" />
+        <IAAnaliseButton />
       </div>
     </div>
 
@@ -252,6 +253,8 @@ const { toast } = useToast();
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 
 import {
   DropdownMenu,
@@ -883,15 +886,13 @@ type Integration = {
 useScreenContext(
   "Tela de campanhas de e-mail - Exibe métricas de campanhas de e-mail enviadas",
   () => ({
-    "Período": selectedRange.value.start && selectedRange.value.end
-      ? `${formatDateForAPI(selectedRange.value.start)} até ${formatDateForAPI(selectedRange.value.end)}`
-      : "Não selecionado",
-    "Versão": isLegacy.value ? "Legada" : "Atual",
-    "Ordenação": orderId.value || "Padrão",
-    "Direção": order.value ? "Crescente" : "Decrescente",
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPages.value,
+    "start_date": selectedRange.value.start ? selectedRange.value.start.toString() : "",
+    "end_date": selectedRange.value.end ? selectedRange.value.end.toString() : "",
+    "order_by": orderId.value || "Padrão",
+    "type_order": order.value ? "asc" : "desc",
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_pages": perPages.value,
   })
 );
 </script>

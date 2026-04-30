@@ -4,6 +4,8 @@ import CustomAccordionDataTable from "@/components/custom/CustomAccordionDataTab
 import { Badge } from "@/components/ui/badge";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { Button } from "@/components/ui/button";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import {
   Dialog,
   DialogContent,
@@ -102,7 +104,7 @@ onMounted(() => {
 useScreenContext(
   "Tela de insights da IA - Exibe insights e análises gerados pela IA",
   () => ({
-    "Per page": perPage.value,
+    "per_page": perPage.value,
   })
 );
 </script>
@@ -116,6 +118,7 @@ useScreenContext(
           Veja os insights e planeje novos passos.
         </p>
       </div>
+
     </div>
     <div>
       <CustomAccordionDataTable

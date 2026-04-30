@@ -236,6 +236,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
+
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 const loading = ref(false);
@@ -486,8 +488,8 @@ onMounted(async () => {
 useScreenContext(
   "Tela de integrações - Gerencia integrações com serviços externos",
   () => ({
-    "Propriedade GA4": propetySelect.value || "Não selecionada",
-    "Conta Meta": adAccountSelect.value || "Não selecionada",
+    "property_id": propetySelect.value || "Não selecionada",
+    "ad_account": adAccountSelect.value || "Não selecionada",
   })
 );
 </script>

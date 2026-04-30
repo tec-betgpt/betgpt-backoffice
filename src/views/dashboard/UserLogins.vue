@@ -123,6 +123,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
+
 const isLoading = ref(true);
 const perPage = ref(15);
 const currentPage = ref(1);
@@ -175,7 +177,13 @@ const setFilters = async (params: any) => {
 };
 
 // Screen Context
-useScreenContext("Histórico de Logins", () => ({}));
+useScreenContext("Histórico de Logins", () => ({
+  "type": selectedType.value,
+  "orderBy": order.value,
+  "perPage": perPage.value,
+  "page": currentPage.value,
+  "orderDirection": direction.value ? "asc" : "desc",
+}));
 
 onMounted(async () => {
   isLoading.value = true;

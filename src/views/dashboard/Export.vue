@@ -126,9 +126,9 @@ watch(perPage, () => {
 useScreenContext(
   "Tela de exports - Gerencia exportação de dados",
   () => ({
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPage.value,
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
   })
 );
 

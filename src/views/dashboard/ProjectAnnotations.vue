@@ -174,7 +174,11 @@ const fetchProjectAnnotations = async (current = 1) => {
 };
 
 // Screen Context
-useScreenContext("Marcos", () => ({}));
+useScreenContext("Marcos", () => ({
+  "page": pages.value.current,
+  "filter_id": activeGroupProjectId,
+  "per_page": perPage.value,
+}));
 
 const deleteAnnotation = async (id: number) => {
   try {

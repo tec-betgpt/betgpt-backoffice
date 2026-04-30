@@ -227,6 +227,8 @@ import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import {Checkbox} from "@/components/ui/checkbox";
 
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
+
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 const step = ref(1);
@@ -249,7 +251,9 @@ const botStatusActive = ref(false);
 const openDialog = ref(false);
 
 // Screen Context
-useScreenContext("Jarbas BOT", () => ({}));
+useScreenContext("Jarbas BOT", () => ({
+  "filter_id": activeGroupProject.id,
+}));
 
 const form = ref({
   whatsapp_number: "",

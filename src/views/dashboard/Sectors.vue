@@ -13,7 +13,9 @@
 
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CreateDialogComponent :reload="fetchSectors" />
+        <IAAnaliseButton />
       </div>
+
     </div>
 
     <Card>
@@ -103,6 +105,8 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import EditDialogComponent from "@/components/sectors/EditDialogComponent.vue";
 import CreateDialogComponent from "@/components/sectors/CreateDialogComponent.vue";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import {TableCell, TableRow} from "@/components/ui/table";
 import {Skeleton} from "@/components/ui/skeleton";
 
@@ -177,9 +181,9 @@ onMounted(async () => {
 useScreenContext(
   "Tela de setores - Gerencia setores do sistema",
   () => ({
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPage.value,
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
   })
 );
 

@@ -84,6 +84,8 @@ import ServiceDialogComponent from "@/components/subscribers/ServiceDialogCompon
 import SettingsDialogComponent from "@/components/subscribers/SettingsDialogComponent.vue";
 import ToggleAvailableComponent from "@/components/subscribers/ToggleAvailableComponent.vue";
 
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
+
 type User = {
   id: string;
   service_id: number | null
@@ -125,7 +127,10 @@ const fetchUsers = async (params = {}) => {
 }
 
 // Screen Context
-useScreenContext("Usuários Assinantes", () => ({}));
+useScreenContext("Usuários Assinantes", () => ({
+  "page": pages.value.current,
+  "per_page": perPage.value,
+}));
 
 onMounted(async () => {
   isLoading.value = true

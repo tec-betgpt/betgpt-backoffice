@@ -285,6 +285,8 @@ import {
 import Players from "@/services/players";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";

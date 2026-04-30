@@ -278,12 +278,12 @@ onMounted(async () => {
 useScreenContext(
   "Tela financeiro - Gerencia informações financeiras",
   () => ({
-    "Período": search.value || "Não selecionado",
-    "Ordenação": orderId.value || "Padrão",
-    "Direção": order.value ? "Crescente" : "Decrescente",
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPage.value,
+    "name": search.value || "Não selecionado",
+    "sort_by": orderId.value || "Padrão",
+    "sort_order": order.value ? "asc" : "desc",
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
   })
 );
 

@@ -10,6 +10,7 @@
       </div>
 
       <div class="w-full sm:w-auto flex justify-end">
+        <IAAnaliseButton />
         <Button v-if="canEditSegment" @click="openCreateSheet" class="max-sm:w-full shadow-sm">
           <PlusIcon class="mr-2 h-4 w-4" />
           Novo Público Alvo
@@ -143,6 +144,8 @@ import { useRoute } from 'vue-router';
 import TargetAudience from "@/services/targetAudience";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -572,10 +575,9 @@ onUnmounted(() => {
 useScreenContext(
   "Tela de audiência alvo - Gerencia audiências do Meta",
   () => ({
-    "Aba": activeTab.value,
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPage.value,
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
   })
 );
 </script>

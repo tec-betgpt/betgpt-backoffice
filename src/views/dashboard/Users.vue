@@ -8,6 +8,7 @@
         </p>
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+        <IAAnaliseButton />
         <Button class="bg-yellow-400" @click="openCreateModal">
           <Plus />
           Novo Usuário
@@ -266,6 +267,8 @@ import { ref, onMounted, h, watch, computed } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -925,13 +928,13 @@ const columns = [
 useScreenContext(
     "Tela de usuários - Lista todos os usuários do sistema",
     () => ({
-      "Tipo de acesso": accessFilter.value?.join(", ") || "Todos",
-      "Status": statusFilter.value?.join(", ") || "Todos",
-      "Ordenação": order.value || "Padrão",
-      "Direção": direction.value ? "Crescente" : "Decrescente",
-      "Página atual": pages.value.current,
-      "Total de páginas": pages.value.last,
-      "Itens por página": perPage.value,
+      "access": accessFilter.value?.join(", ") || "Todos",
+      "status": statusFilter.value?.join(", ") || "Todos",
+      "orderBy": order.value || "Padrão",
+      "orderDirection": direction.value ? "asc" : "desc",
+      "page": pages.value.current,
+      "last_page": pages.value.last,
+      "per_page": perPage.value,
     })
 );
 interface Status {
