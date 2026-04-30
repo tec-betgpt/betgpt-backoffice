@@ -1,5 +1,5 @@
 <template>
-  <Button variant="ghost" size="icon" @click="openDialog()">
+  <Button v-if="!hideTrigger" variant="ghost" size="icon" @click="openDialog()">
     <Spinner v-if="isLoading" class="mr-2 h-4 w-4" />
     <PenLine v-else />
   </Button>
@@ -79,7 +79,10 @@ import {Spinner} from "@/components/ui/spinner";
 
 const { toast } = useToast();
 
-const props = defineProps<{ reload: () => Promise<void>, row: any }>();
+const props = withDefaults(
+  defineProps<{ reload: () => Promise<void>; row: any; hideTrigger?: boolean }>(),
+  { hideTrigger: false },
+);
 const sectors = ref([]);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
@@ -137,4 +140,6 @@ const fetchSectors = async () => {
 
   loadingSectors.value = false;
 }
+
+defineExpose({ openDialog });
 </script>

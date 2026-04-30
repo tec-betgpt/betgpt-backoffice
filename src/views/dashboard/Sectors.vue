@@ -71,10 +71,44 @@
                 <TableCell>
                   {{ row.project?.name }}
                 </TableCell>
-                <TableCell>
-                  <div class="flex flex-nowrap justify-end">
-                    <EditDialogComponent :row="row" :reload="fetchSectors" />
-                    <DestroyDialogComponent :reload="fetchSectors" :destroy="remove" :row="row" />
+                <TableCell class="text-right">
+                  <div class="flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger as-child>
+                        <Button size="icon" variant="ghost">
+                          <MoreHorizontal class="h-4 w-4" />
+                          <span class="sr-only">Ações</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem @click="sectorEditRefs[row.id]?.openDialog()">
+                          <Pencil class="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          class="text-destructive focus:text-destructive"
+                          @click="sectorDestroyRefs[row.id]?.openDialog()"
+                        >
+                          <Trash2 class="mr-2 h-4 w-4" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <EditDialogComponent
+                      :ref="(el) => setSectorEditRef(row.id, el)"
+                      :hide-trigger="true"
+                      :row="row"
+                      :reload="fetchSectors"
+                    />
+                    <DestroyDialogComponent
+                      :ref="(el) => setSectorDestroyRef(row.id, el)"
+                      triggerless
+                      :reload="fetchSectors"
+                      :destroy="remove"
+                      :row="row"
+                    />
                   </div>
                 </TableCell>
               </TableRow>
@@ -96,7 +130,16 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { toast } from "@/components/ui/toast";
-import { X } from "lucide-vue-next";
+import { MoreHorizontal, Pencil, Trash2, X } from "lucide-vue-next";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
@@ -126,6 +169,32 @@ const pages = ref({
   total: 0,
   last: 0,
 });
+
+type RowActionRef = { openDialog: () => void };
+const sectorEditRefs = ref<Record<number, RowActionRef>>({});
+const sectorDestroyRefs = ref<Record<number, RowActionRef>>({});
+
+const setSectorEditRef = (id: number, el: unknown) => {
+  const c = el as { openDialog?: () => void } | null;
+  if (c && typeof c.openDialog === "function") {
+    sectorEditRefs.value = { ...sectorEditRefs.value, [id]: c as RowActionRef };
+  } else {
+    const next = { ...sectorEditRefs.value };
+    delete next[id];
+    sectorEditRefs.value = next;
+  }
+};
+
+const setSectorDestroyRef = (id: number, el: unknown) => {
+  const c = el as { openDialog?: () => void } | null;
+  if (c && typeof c.openDialog === "function") {
+    sectorDestroyRefs.value = { ...sectorDestroyRefs.value, [id]: c as RowActionRef };
+  } else {
+    const next = { ...sectorDestroyRefs.value };
+    delete next[id];
+    sectorDestroyRefs.value = next;
+  }
+};
 
 const clearSearch = () => {
   search.value = null;

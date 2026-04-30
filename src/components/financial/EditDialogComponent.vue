@@ -1,5 +1,11 @@
 <template>
-  <Button size="icon" variant="ghost" class="dark:bg-yellow-400" @click="isDialog = true">
+  <Button
+    v-if="!hideTrigger"
+    size="icon"
+    variant="ghost"
+    class="dark:bg-yellow-400"
+    @click="openDialog"
+  >
     <Pencil />
   </Button>
 
@@ -156,23 +162,38 @@ interface FinancialData {
   type: string;
 }
 
-const props = defineProps<{
-  reload: () => void,
-  row: FinancialData,
-  costs: Array<{
-    id: number,
-    name: string,
-    sector: string,
-    sector_id: number | null,
-  }>,
-  sectors: Array<{ id: number; name: string }>,
-}>();
+const props = withDefaults(
+  defineProps<{
+    reload: () => void;
+    row: FinancialData;
+    costs: Array<{
+      id: number;
+      name: string;
+      sector: string;
+      sector_id: number | null;
+    }>;
+    sectors: Array<{ id: number; name: string }>;
+    hideTrigger?: boolean;
+  }>(),
+  { hideTrigger: false },
+);
 
 const financialForm = ref<FinancialData>({ ...props.row });
 const isDialog = ref(false);
 const loading = ref(false);
 const date = ref(new Date());
 const sectorId = ref<number | null>(props.row.sectorId ?? null);
+
+const formatDateForApi = (value: Date) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const openDialog = () => {
+  isDialog.value = true;
+};
 
 watch(
   () => financialForm.value.cost_center_id,
@@ -200,7 +221,7 @@ watch(sectorId, (sid) => {
 
 const onSubmit = async () => {
   loading.value = true;
-  financialForm.value.date = date.value.toLocaleDateString();
+  financialForm.value.date = formatDateForApi(date.value);
   const cost = props.costs.find((c) => c.id === financialForm.value.cost_center_id);
   if (!cost) {
     loading.value = false;
@@ -254,4 +275,6 @@ watch(isDialog, (open) => {
   sectorId.value = props.row.sectorId ?? null;
   date.value = props.row.date ? new Date(props.row.date) : new Date();
 });
+
+defineExpose({ openDialog });
 </script>

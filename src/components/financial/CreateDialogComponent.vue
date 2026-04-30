@@ -197,6 +197,13 @@ const financialForm = ref({
 });
 const date = ref<Date>(new Date());
 
+const formatDateForApi = (value: Date) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 watch(
   () => financialForm.value.cost_center_id,
   (id) => {
@@ -229,7 +236,7 @@ watch(isDialog, (open) => {
 
 const onSubmit = async () => {
   loading.value = true;
-  financialForm.value.date = date.value.toLocaleDateString();
+  financialForm.value.date = formatDateForApi(date.value);
   const cost = props.costs.find((c) => c.id === financialForm.value.cost_center_id);
   if (!cost) {
     loading.value = false;
