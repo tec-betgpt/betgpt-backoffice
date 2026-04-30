@@ -18,7 +18,6 @@ const segments = computed(() => props.player?.segments || []);
 
       v-for="segment in segments"
       :key="segment.id || segment.name"
-      v-if="segment.name !== null"
       variant="outline"
       class="pl-2 pr-1 py-1 flex items-center gap-1 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800"
     >
