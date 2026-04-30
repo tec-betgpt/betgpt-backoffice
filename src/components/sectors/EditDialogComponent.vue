@@ -1,5 +1,5 @@
 <template>
-  <Button variant="ghost" size="icon" @click="openDialog()">
+  <Button v-if="!hideTrigger" variant="ghost" size="icon" @click="openDialog()">
     <PenLine />
   </Button>
 
@@ -44,7 +44,10 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import Sector from "@/services/sector"
 import i18n from "@/i18n";
 
-const props = defineProps<{ reload: () => void, row: any }>();
+const props = withDefaults(
+  defineProps<{ reload: () => void; row: any; hideTrigger?: boolean }>(),
+  { hideTrigger: false },
+);
 const { toast } = useToast();
 const dialog = ref(false);
 const workspaceStore = useWorkspaceStore();
@@ -85,4 +88,6 @@ const submitSector = async () => {
   props.reload();
   isLoading.value = false;
 }
+
+defineExpose({ openDialog });
 </script>

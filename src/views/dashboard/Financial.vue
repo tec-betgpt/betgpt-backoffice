@@ -10,7 +10,7 @@
       </div>
       <div class="flex items-center justify-start w-full">
         <div class="flex flex-col items-center justify-end sm:flex-row gap-2 w-full">
-          <CreateDialogComponent :costs="costs" :sectors="sectors" :reload="fetchFinancials" />
+          <CreateDialogComponent :costs="costs" :sectors="sectors" :reload="reloadFinancialsAfterMutation" />
         </div>
       </div>
     </div>
@@ -129,9 +129,45 @@
                     {{ row.createdByName }}
                   </TableCell>
                   <TableCell class="text-right">
-                    <div class="flex gap-2 flex-nowrap">
-                      <EditDialogComponent :reload="fetchFinancials" :row="row" :costs="costs" :sectors="sectors" />
-                      <DestroyDialogComponent :reload="fetchFinancials" :row="row" :destroy="deleteFinancial" />
+                    <div class="flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                          <Button size="icon" variant="ghost">
+                            <MoreHorizontal class="h-4 w-4" />
+                            <span class="sr-only">Ações</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <DropdownMenuItem @click="financialEditRefs[row.id]?.openDialog()">
+                            <Pencil class="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            class="text-destructive focus:text-destructive"
+                            @click="financialDestroyRefs[row.id]?.openDialog()"
+                          >
+                            <Trash2 class="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <EditDialogComponent
+                        :ref="(el) => setFinancialEditRef(row.id, el)"
+                        :hide-trigger="true"
+                        :reload="reloadFinancialsAfterMutation"
+                        :row="row"
+                        :costs="costs"
+                        :sectors="sectors"
+                      />
+                      <DestroyDialogComponent
+                        :ref="(el) => setFinancialDestroyRef(row.id, el)"
+                        triggerless
+                        :reload="reloadFinancialsAfterMutation"
+                        :row="row"
+                        :destroy="deleteFinancial"
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -163,6 +199,16 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CostCenter from "@/services/costCenters";
 import Sector from "@/services/sector";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Card, CardContent} from "@/components/ui/card";
@@ -205,11 +251,40 @@ const pages = ref({
   last: 0,
 });
 
+type RowActionRef = { openDialog: () => void };
+const financialEditRefs = ref<Record<number, RowActionRef>>({});
+const financialDestroyRefs = ref<Record<number, RowActionRef>>({});
+
+const setFinancialEditRef = (id: number, el: unknown) => {
+  const c = el as { openDialog?: () => void } | null;
+  if (c && typeof c.openDialog === "function") {
+    financialEditRefs.value = { ...financialEditRefs.value, [id]: c as RowActionRef };
+  } else {
+    const next = { ...financialEditRefs.value };
+    delete next[id];
+    financialEditRefs.value = next;
+  }
+};
+
+const setFinancialDestroyRef = (id: number, el: unknown) => {
+  const c = el as { openDialog?: () => void } | null;
+  if (c && typeof c.openDialog === "function") {
+    financialDestroyRefs.value = { ...financialDestroyRefs.value, [id]: c as RowActionRef };
+  } else {
+    const next = { ...financialDestroyRefs.value };
+    delete next[id];
+    financialDestroyRefs.value = next;
+  }
+};
+
+const reloadFinancialsAfterMutation = () =>
+  fetchFinancials(pages.value.current, { refresh: true });
+
 // methods
 const deleteFinancial = async (id: number) => {
   try {
-    await financialTransactionsApi.destroy(id)
-    await fetchFinancials();
+    await financialTransactionsApi.destroy(id);
+    await fetchFinancials(pages.value.current, { refresh: true });
 
     toast({
       title: "Removido com sucesso!",
@@ -224,7 +299,10 @@ const deleteFinancial = async (id: number) => {
   }
 }
 
-const fetchFinancials = async (current = pages.value.current) => {
+const fetchFinancials = async (
+  current = pages.value.current,
+  opts?: { refresh?: boolean },
+) => {
   try {
     const { data } = await financialTransactionsApi.index({
       page: current,
@@ -232,8 +310,9 @@ const fetchFinancials = async (current = pages.value.current) => {
       name: search.value,
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
-      per_page:perPage.value,
-    })
+      per_page: perPage.value,
+      ...(opts?.refresh ? { refresh: 1 } : {}),
+    });
 
     financial.value = data.data.map((financial) => {
       const u = financial.user;
@@ -331,14 +410,13 @@ onMounted(async () => {
 useScreenContext(
   "Tela financeiro - Gerencia informações financeiras",
   () => ({
-    "name": search.value || "Não selecionado",
-    "sort_by": orderId.value || "Padrão",
-    "sort_order": order.value ? "asc" : "desc",
-    "page": pages.value.current,
-    "last_page": pages.value.last,
-    "per_page": perPage.value,
-  }),
-  "/v1/financial-transactions"
+    "Período": search.value || "Não selecionado",
+    "Ordenação": orderId.value || "Padrão",
+    "Direção": order.value ? "Crescente" : "Decrescente",
+    "Página atual": pages.value.current,
+    "Total de páginas": pages.value.last,
+    "Itens por página": perPage.value,
+  })
 );
 
 watch(perPage,() => {

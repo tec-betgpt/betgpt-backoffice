@@ -11,7 +11,6 @@
 
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CreateDialogComponent :reload="fetchCosts" />
-        <IAAnaliseButton />
       </div>
     </div>
     <Card>
@@ -52,10 +51,44 @@
                 <TableCell>
                   {{ row.sector?.name ?? "—" }}
                 </TableCell>
-                <TableCell>
-                  <div class="flex flex-nowrap justify-end">
-                    <EditDialogComponent :row="row" :reload="fetchCosts" />
-                    <DestroyDialogComponent :reload="fetchCosts" :destroy="remove" :row="row" />
+                <TableCell class="text-right">
+                  <div class="flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger as-child>
+                        <Button size="icon" variant="ghost">
+                          <MoreHorizontal class="h-4 w-4" />
+                          <span class="sr-only">Ações</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem @click="costEditRefs[row.id]?.openDialog()">
+                          <Pencil class="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          class="text-destructive focus:text-destructive"
+                          @click="costDestroyRefs[row.id]?.openDialog()"
+                        >
+                          <Trash2 class="mr-2 h-4 w-4" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <EditDialogComponent
+                      :ref="(el) => setCostEditRef(row.id, el)"
+                      :hide-trigger="true"
+                      :row="row"
+                      :reload="fetchCosts"
+                    />
+                    <DestroyDialogComponent
+                      :ref="(el) => setCostDestroyRef(row.id, el)"
+                      triggerless
+                      :reload="fetchCosts"
+                      :destroy="remove"
+                      :row="row"
+                    />
                   </div>
                 </TableCell>
               </TableRow>
@@ -82,11 +115,19 @@ import { useScreenContext } from "@/composables/useScreenContext";
 import { toast } from "@/components/ui/toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { getMs } from "@/filters/formatNumbers";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import CostCenter from "@/services/costCenters";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/cost_centers/CreateDialogComponent.vue";
-
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/cost_centers/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 
@@ -107,6 +148,32 @@ const pages = ref({
   total: 0,
   last: 0,
 });
+
+type RowActionRef = { openDialog: () => void };
+const costEditRefs = ref<Record<number, RowActionRef>>({});
+const costDestroyRefs = ref<Record<number, RowActionRef>>({});
+
+const setCostEditRef = (id: number, el: unknown) => {
+  const c = el as { openDialog?: () => void } | null;
+  if (c && typeof c.openDialog === "function") {
+    costEditRefs.value = { ...costEditRefs.value, [id]: c as RowActionRef };
+  } else {
+    const next = { ...costEditRefs.value };
+    delete next[id];
+    costEditRefs.value = next;
+  }
+};
+
+const setCostDestroyRef = (id: number, el: unknown) => {
+  const c = el as { openDialog?: () => void } | null;
+  if (c && typeof c.openDialog === "function") {
+    costDestroyRefs.value = { ...costDestroyRefs.value, [id]: c as RowActionRef };
+  } else {
+    const next = { ...costDestroyRefs.value };
+    delete next[id];
+    costDestroyRefs.value = next;
+  }
+};
 
 watch(perPages, (newPerPage) => {
   if (newPerPage) {
@@ -165,14 +232,7 @@ const remove = async (id: number) => {
 }
 
 // Screen Context
-useScreenContext("Gerenciamento de Custos", () => ({
-  "filter_id": activeGroupProjectId,
-  "find_name": nameCost.value,
-  "sort_by": "id",
-  "sort_order": "desc",
-  "per_page": perPages.value,
-  "page": pages.value.current,
-}), "/v1/cost-centers");
+useScreenContext("Gerenciamento de Custos", () => ({}));
 
 onMounted(async () => {
   isLoading.value = true;
