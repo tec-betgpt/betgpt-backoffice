@@ -17,9 +17,10 @@
 
       <form @submit.prevent="onSubmit()">
         <div class="grid gap-4 py-2">
-          <div>
+          <div class="grid items-center gap-1.5">
+            <Label for="cost_center_id">Centro de Custo</Label>
             <Select v-model="financialForm.cost_center_id" required>
-              <SelectTrigger class="col-span-3">
+              <SelectTrigger id="cost_center_id" class="col-span-3">
                 <SelectValue placeholder="Centro de Custo" />
               </SelectTrigger>
               <SelectContent>
@@ -28,9 +29,28 @@
                 </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs mt-1 text-right text-muted-foreground">
+            <p class="text-xs text-right text-muted-foreground">
               Obrigatório
             </p>
+          </div>
+
+          <div class="grid items-center gap-1.5">
+            <Label for="sector_id">Setor</Label>
+            <div class="flex flex-col gap-2">
+              <Select v-model="sectorId">
+                <SelectTrigger id="sector_id">
+                  <SelectValue placeholder="Opcional" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="s in props.sectors" :key="s.id" :value="s.id">
+                    {{ s.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="button" variant="outline" size="sm" class="self-end" @click="sectorId = null">
+                Limpar setor
+              </Button>
+            </div>
           </div>
 
           <div>
@@ -140,28 +160,31 @@
 </template>
 
 <script setup lang="ts">
-import {Ref, ref, watch} from "vue";
+import { ref, watch } from "vue";
 import { PlusSquareIcon } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
-import FinancialTransaction from "@/services/financialTransactions";
-import {Calendar} from "@/components/ui/calendar";
-import {CalendarDate, DateValue, fromDate, getLocalTimeZone} from '@internationalized/date'
+import financialTransactionsApi from "@/services/financialTransactions";
+import { toast } from "@/components/ui/toast";
 import DatePicker from "@/components/custom/DatePicker.vue";
-import {Dialog} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+
 const props = defineProps<{
   reload: () => void,
   costs: Array<{
     id: number,
     name: string,
     sector: string,
-  }>
+    sector_id: number | null,
+  }>,
+  sectors: Array<{ id: number; name: string }>,
 }>();
-// data
+
 const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
-const costs = ref([]);
 const isDialog = ref(false);
 const loading = ref(false);
+const sectorId = ref<number | null>(null);
 const financialForm = ref({
   cost_center_id: null,
   type: "",
@@ -174,27 +197,80 @@ const financialForm = ref({
 });
 const date = ref<Date>(new Date());
 
-// methods
+watch(
+  () => financialForm.value.cost_center_id,
+  (id) => {
+    if (id == null) {
+      return;
+    }
+    const cost = props.costs.find((c) => c.id === id);
+    if (cost) {
+      sectorId.value = cost.sector_id ?? null;
+    }
+  }
+);
+
+watch(sectorId, (sid) => {
+  const ccid = financialForm.value.cost_center_id;
+  if (ccid == null || sid == null) {
+    return;
+  }
+  const cost = props.costs.find((c) => c.id === ccid);
+  if (cost && cost.sector_id !== sid) {
+    financialForm.value.cost_center_id = null;
+  }
+});
+
+watch(isDialog, (open) => {
+  if (!open) {
+    reset();
+  }
+});
+
 const onSubmit = async () => {
   loading.value = true;
   financialForm.value.date = date.value.toLocaleDateString();
+  const cost = props.costs.find((c) => c.id === financialForm.value.cost_center_id);
+  if (!cost) {
+    loading.value = false;
+    toast({
+      title: "Centro de custo obrigatório",
+      description: "Selecione um centro de custo.",
+      variant: "destructive",
+    });
+    return;
+  }
+  if (sectorId.value != null) {
+    if (cost.sector_id == null || cost.sector_id !== sectorId.value) {
+      loading.value = false;
+      toast({
+        title: "Setor incompatível",
+        description:
+          cost.sector_id == null
+            ? "Este centro de custo não possui setor; deixe o setor em branco."
+            : "O setor selecionado não corresponde ao centro de custo.",
+        variant: "destructive",
+      });
+      return;
+    }
+  }
   try {
-    await FinancialTransaction.store({
+    await financialTransactionsApi.store({
       ...financialForm.value,
-      project_id: activeGroupProjectId,
-    })
+      ...(sectorId.value != null ? { sector_id: sectorId.value } : {}),
+    });
 
     isDialog.value = false;
-    reset()
     await props.reload();
   } catch (error) {
     console.error("Erro ao salvar transação financeira:", error);
   }
 
   loading.value = false;
-}
+};
 
 const reset = () => {
+  sectorId.value = null;
   financialForm.value = {
     cost_center_id: null,
     type: "",
@@ -205,5 +281,5 @@ const reset = () => {
     description: "",
     related: null,
   };
-}
+};
 </script>

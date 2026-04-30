@@ -1,5 +1,5 @@
 <template>
-  <Button variant="ghost" size="icon" @click="openDialog()":disabled="isLoading.dialog">
+  <Button variant="ghost" size="icon" @click="openDialog()" :disabled="isLoading.dialog">
     <Spinner v-if="isLoading.dialog" class="h-4 w-4 animate-spin" />
     <PenLine v-else />
   </Button>
@@ -51,7 +51,7 @@
                     class="ml-2 font-normal"
                     :for="'permission-' + permission.id"
                   >
-                    {{ permission.name }}
+                    {{ permissionLabel(permission.name) }}
                   </Label>
                 </div>
               </div>
@@ -79,12 +79,14 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { PenLine, Search } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { usePermissionLabel } from "@/composables/usePermissionLabel";
 import { Spinner } from "@/components/ui/spinner";
 import { watchDebounced } from "@vueuse/core/index";
 import Roles from '@/services/roles'
 import Permissions from '@/services/permissions'
 
 const { toast } = useToast();
+const { permissionLabel } = usePermissionLabel();
 const props = defineProps<{
   reload: () => void,
   row: any

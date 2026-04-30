@@ -40,16 +40,24 @@
           </div>
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="sector_id">Setor</Label>
-            <Select v-model="costForm.sector_id">
-              <SelectTrigger class="col-span-3">
-                <SelectValue placeholder="Selecione um setor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="sector in sectors" :key="sector.id" :value="sector.id">
-                  {{ sector.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <div class="col-span-3 flex flex-col gap-2">
+              <Select v-model="costForm.sector_id">
+                <SelectTrigger id="sector_id">
+                  <SelectValue placeholder="Opcional — selecione um setor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="sector in sectors" :key="sector.id" :value="sector.id">
+                    {{ sector.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="button" variant="outline" size="sm" class="self-end" @click="costForm.sector_id = null">
+                Sem setor
+              </Button>
+              <p class="text-xs text-muted-foreground">
+                Opcional. O centro de custo fica vinculado ao projeto atual.
+              </p>
+            </div>
           </div>
         </div>
         <DialogFooter>
@@ -83,6 +91,7 @@ const isEditing = ref(false);
 const form = ref({ type: "" });
 const costForm = ref<{
   name: string;
+  project_id: number | null;
   sector_id: number | null;
   user_id: number | null;
   otherName?: string;
@@ -91,6 +100,14 @@ const costForm = ref<{
 const loadingSub = ref(false);
 
 const onSubmit = async () => {
+  if (costForm.value.project_id == null) {
+    toast({
+      title: "Projeto não selecionado",
+      description: "Selecione um workspace com projeto ativo.",
+      variant: "destructive",
+    });
+    return;
+  }
   try {
     await CostCenter.store(costForm.value)
     await props.reload();
@@ -115,7 +132,13 @@ const openDialog = async () => {
   await fetchSectors();
   form.value.type = "custo";
   isEditing.value = false;
-  costForm.value = { name: "", user_id: null };
+  costForm.value = {
+    name: "",
+    user_id: null,
+    sector_id: null,
+    project_id: activeGroupProjectId,
+    type: "custo",
+  };
   isDialog.value = true;
 };
 
