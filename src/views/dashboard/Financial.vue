@@ -128,48 +128,13 @@
                   <TableCell class="text-right">
                     {{ row.createdByName }}
                   </TableCell>
-                  <TableCell class="text-right">
-                    <div class="flex justify-end">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                          <Button size="icon" variant="ghost">
-                            <MoreHorizontal class="h-4 w-4" />
-                            <span class="sr-only">Ações</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem @click="financialEditRefs[row.id]?.openDialog()">
-                            <Pencil class="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            class="text-destructive focus:text-destructive"
-                            @click="financialDestroyRefs[row.id]?.openDialog()"
-                          >
-                            <Trash2 class="mr-2 h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <EditDialogComponent
-                        :ref="(el) => setFinancialEditRef(row.id, el)"
-                        :hide-trigger="true"
-                        :reload="reloadFinancialsAfterMutation"
-                        :row="row"
-                        :costs="costs"
-                        :sectors="sectors"
-                      />
-                      <DestroyDialogComponent
-                        :ref="(el) => setFinancialDestroyRef(row.id, el)"
-                        triggerless
-                        :reload="reloadFinancialsAfterMutation"
-                        :row="row"
-                        :destroy="deleteFinancial"
-                      />
-                    </div>
-                  </TableCell>
+                  <FinancialRowActions
+                    :row="row"
+                    :costs="costs"
+                    :sectors="sectors"
+                    :reload="reloadFinancialsAfterMutation"
+                    :destroy="deleteFinancial"
+                  />
                 </TableRow>
               </transition-group>
             </TableBody>
@@ -199,24 +164,13 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CostCenter from "@/services/costCenters";
 import Sector from "@/services/sector";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Card, CardContent} from "@/components/ui/card";
 import OrderButton from "@/components/custom/OrderButton.vue";
 import CreateDialogComponent from "@/components/financial/CreateDialogComponent.vue";
-import EditDialogComponent from "@/components/financial/EditDialogComponent.vue";
+import FinancialRowActions from "@/components/financial/FinancialRowActions.vue";
 import {Badge} from "@/components/ui/badge";
-import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 
 interface FinancialData {
   id: number;
@@ -250,32 +204,6 @@ const pages = ref({
   total: 0,
   last: 0,
 });
-
-type RowActionRef = { openDialog: () => void };
-const financialEditRefs = ref<Record<number, RowActionRef>>({});
-const financialDestroyRefs = ref<Record<number, RowActionRef>>({});
-
-const setFinancialEditRef = (id: number, el: unknown) => {
-  const c = el as { openDialog?: () => void } | null;
-  if (c && typeof c.openDialog === "function") {
-    financialEditRefs.value = { ...financialEditRefs.value, [id]: c as RowActionRef };
-  } else {
-    const next = { ...financialEditRefs.value };
-    delete next[id];
-    financialEditRefs.value = next;
-  }
-};
-
-const setFinancialDestroyRef = (id: number, el: unknown) => {
-  const c = el as { openDialog?: () => void } | null;
-  if (c && typeof c.openDialog === "function") {
-    financialDestroyRefs.value = { ...financialDestroyRefs.value, [id]: c as RowActionRef };
-  } else {
-    const next = { ...financialDestroyRefs.value };
-    delete next[id];
-    financialDestroyRefs.value = next;
-  }
-};
 
 const reloadFinancialsAfterMutation = () =>
   fetchFinancials(pages.value.current, { refresh: true });
