@@ -201,7 +201,7 @@ const searchValues = ref<Record<string, string>>({});
 useScreenContext("Projetos", () => ({
   project_id: form.value.id,
   project_name: form.value.name
-}));
+}), "/v1/projects");
 
 const handleFileChange = (event) => {
   const file = event.target.files[0];

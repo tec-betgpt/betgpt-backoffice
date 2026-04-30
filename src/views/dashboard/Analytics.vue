@@ -271,6 +271,7 @@ useScreenContext(
   () => ({
     "start_date": selectedRange.value.start?.toString(),
     "end_date": selectedRange.value.end?.toString(),
-  })
+  }),
+  "/v1/analytics"
 )
 </script>

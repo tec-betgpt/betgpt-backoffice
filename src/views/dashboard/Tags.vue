@@ -304,7 +304,7 @@ useScreenContext("Gerenciamento de Tags", () => ({
   "page": pagination.value.current_page,
   "per_page": pagination.value.per_page,
   "filter_id": workspace.activeGroupProject.id,
-}));
+}), "/v1/tags");
 
 onMounted(() => {
   fetchTags();

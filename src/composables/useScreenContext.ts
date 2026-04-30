@@ -3,7 +3,8 @@ import { useWorkspaceStore } from "@/stores/workspace"
 
 export function useScreenContext(
   screenDescription: string,
-  getSelectedData: () => Record<string, any>
+  getSelectedData: () => Record<string, any>,
+  apiUrl?: string
 ) {
   const workspaceStore = useWorkspaceStore()
 
@@ -18,6 +19,11 @@ export function useScreenContext(
         screenDescription,
         ...Object.entries(data).map(([key, value]) => `${key}: ${value}`),
       ]
+      
+      if (apiUrl) {
+        contextArray.push(`API: ${apiUrl}`)
+      }
+      
       workspaceStore.setContext(contextArray)
     },
     { immediate: true, deep: true }

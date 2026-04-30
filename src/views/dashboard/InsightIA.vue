@@ -105,7 +105,8 @@ useScreenContext(
   "Tela de insights da IA - Exibe insights e análises gerados pela IA",
   () => ({
     "per_page": perPage.value,
-  })
+  }),
+  "/v1/ia/index"
 );
 </script>
 

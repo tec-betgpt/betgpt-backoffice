@@ -332,7 +332,7 @@ const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 useScreenContext("Perfil do Cliente", () => ({
   player_id: player.value?.id,
   player_name: player.value ? `${player.value.first_name} ${player.value.last_name}` : ''
-}));
+}), "/v1/players/{id}");
 
 // KPIs financeiros (Idealmente viriam do backend, senão calculamos do histórico se houver tudo lá)
 const financialStats = computed(() => {

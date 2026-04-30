@@ -893,6 +893,7 @@ useScreenContext(
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_pages": perPages.value,
-  })
+  }),
+  "/v1/active-campaign"
 );
 </script>

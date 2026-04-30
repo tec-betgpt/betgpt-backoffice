@@ -184,7 +184,8 @@ useScreenContext(
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
-  })
+  }),
+  "/v1/sectors"
 );
 
 watch(perPage,() => fetchSectors(1));

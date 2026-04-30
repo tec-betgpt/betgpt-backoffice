@@ -993,7 +993,8 @@ useScreenContext(
   () => ({
     "campaign_page": campaignPages.value.current,
     "campaign_per_page": campaignPerPage.value,
-  })
+  }),
+  "/v1/call4u"
 );
 
 </script>

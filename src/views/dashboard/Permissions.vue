@@ -174,7 +174,7 @@ useScreenContext("Permissões", () => ({
   "page": currentPage.value,
   "per_page": 15,
   "search": search.value,
-}));
+}), "/v1/permissions");
 
 onMounted(async () => {
   isLoading.value = true;

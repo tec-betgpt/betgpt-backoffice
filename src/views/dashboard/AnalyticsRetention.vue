@@ -101,7 +101,8 @@ useScreenContext(
     () => ({
       "start_date": selectedRange.value.start ? selectedRange.value.start.toString() : "",
       "end_date": selectedRange.value.end ? selectedRange.value.end.toString() : "",
-    })
+    }),
+    "/v1/analytics/client-classification"
 );
 </script>
 

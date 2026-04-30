@@ -146,7 +146,7 @@ const deleteGroup = async (groupId: number) => {
 useScreenContext("Grupos de Projetos", () => ({
   group_id: null,
   group_name: ''
-}));
+}), "/v1/user-project-groups");
 
 onMounted(fetchUserProjectGroups);
 </script>

@@ -130,7 +130,7 @@ const fetchUsers = async (params = {}) => {
 useScreenContext("Usuários Assinantes", () => ({
   "page": pages.value.current,
   "per_page": perPage.value,
-}));
+}), "/v1/users/with-projects");
 
 onMounted(async () => {
   isLoading.value = true

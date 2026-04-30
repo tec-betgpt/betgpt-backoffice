@@ -183,7 +183,7 @@ useScreenContext("Histórico de Logins", () => ({
   "perPage": perPage.value,
   "page": currentPage.value,
   "orderDirection": direction.value ? "asc" : "desc",
-}));
+}), "/v1/user-logins");
 
 onMounted(async () => {
   isLoading.value = true;

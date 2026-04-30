@@ -172,7 +172,7 @@ useScreenContext("Gerenciamento de Custos", () => ({
   "sort_order": "desc",
   "per_page": perPages.value,
   "page": pages.value.current,
-}));
+}), "/v1/cost-centers");
 
 onMounted(async () => {
   isLoading.value = true;

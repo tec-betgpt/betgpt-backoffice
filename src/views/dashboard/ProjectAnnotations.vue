@@ -178,7 +178,7 @@ useScreenContext("Marcos", () => ({
   "page": pages.value.current,
   "filter_id": activeGroupProjectId,
   "per_page": perPage.value,
-}));
+}), "/v1/project-annotations");
 
 const deleteAnnotation = async (id: number) => {
   try {

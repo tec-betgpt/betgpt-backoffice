@@ -1018,6 +1018,7 @@ useScreenContext(
     "campaign_page": campaignPages.value.current,
     "campaign_last_page": campaignPages.value.last,
     "campaign_per_page": campaignPerPage.value,
-  })
+  }),
+  "/v1/sms-funnel"
 );
 </script>

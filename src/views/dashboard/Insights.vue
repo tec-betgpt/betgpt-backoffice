@@ -175,7 +175,7 @@ useScreenContext("MyElevate Insights", () => ({
   "orderBy": "id",
   "orderDirection": "desc",
   "per_page": perPage.value,
-}));
+}), "/v1/insights");
 
 onMounted(() => fetchMessages());
 </script>

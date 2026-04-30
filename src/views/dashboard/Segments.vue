@@ -571,7 +571,8 @@ useScreenContext(
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
-  })
+  }),
+  "/v1/target-audience"
 );
 
 watch(perPage, () => fetchSegments(1));

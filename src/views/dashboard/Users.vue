@@ -935,7 +935,8 @@ useScreenContext(
       "page": pages.value.current,
       "last_page": pages.value.last,
       "per_page": perPage.value,
-    })
+    }),
+    "/v1/users"
 );
 interface Status {
   id: string; // ID do status

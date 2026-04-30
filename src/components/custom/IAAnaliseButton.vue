@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { ref } from "vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useRoute, useRouter } from "vue-router";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-vue-next";
+import { Sparkles, Loader2 } from "lucide-vue-next";
 
 const workspaceStore = useWorkspaceStore();
 const route = useRoute();
 const router = useRouter();
 
-const loading = computed(() => false);
+const isLoading = ref(false);
 
 const handleClick = async () => {
   if (!workspaceStore.activeGroupProject?.id) {
@@ -23,6 +23,11 @@ const handleClick = async () => {
     return;
   }
 
+  isLoading.value = true;
+  toast({
+    title: "IA Analise",
+    description: "Dados enviados para análise.",
+  });
   try {
     let chatId = localStorage.getItem("chatId");
 
@@ -53,10 +58,7 @@ const handleClick = async () => {
 
     router.push({ name: "chat-ia", query: { chatId: parseInt(chatId) } });
 
-    toast({
-      title: "IA Analise",
-      description: "Dados enviados para análise.",
-    });
+
   } catch (error) {
     console.error("Erro ao enviar para IA:", error);
     toast({
@@ -64,6 +66,8 @@ const handleClick = async () => {
       description: "Não foi possível enviar os dados para análise.",
       variant: "destructive",
     });
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
@@ -74,9 +78,10 @@ const handleClick = async () => {
     size="sm"
     class="gap-2"
     @click="handleClick"
-    :disabled="loading"
+    :disabled="isLoading"
   >
-    <Sparkles class="w-4 h-4" />
+    <Loader2 v-if="isLoading" class="w-4 h-4 animate-spin" />
+    <Sparkles v-else class="w-4 h-4" />
     IA Análise
   </Button>
 </template>

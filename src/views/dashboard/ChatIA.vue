@@ -419,7 +419,7 @@ const SpeechRecognition = (window as any).SpeechRecognition || (window as any).w
 useScreenContext("Chat IA", () => ({
   chat_id: selectedChatId.value,
   chat_title: chats.value.find(c => c.id === selectedChatId.value)?.title || 'Novo Chat'
-}));
+}), "/v1/ia");
 
 // Audio Recording Methods
 const toggleRecording = async () => {

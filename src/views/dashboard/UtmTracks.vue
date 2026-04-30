@@ -417,6 +417,7 @@ useScreenContext(
       "orderBy": order.value || "Padrão",
       "orderDirection": direction.value ? "asc" : "desc",
       "perPage": 100,
-    })
-);
+    }),
+    "/v1/utm-tracks"
+  );
 </script>

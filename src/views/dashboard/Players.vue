@@ -277,6 +277,7 @@ useScreenContext(
     "per_page": perPage.value,
     "orderBy": order.value,
     "orderDirection": direction.value ? "asc" : "desc",
-  })
+  }),
+  "/v1/players"
 );
 </script>

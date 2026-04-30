@@ -143,7 +143,7 @@ const destroy = async (id: number) => {
 }
 
 // Screen Context
-useScreenContext("Serviços", () => ({}));
+useScreenContext("Serviços", () => ({}), "/v1/services");
 
 onMounted(async () => {
   isLoading.value = true;

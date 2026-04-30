@@ -328,7 +328,8 @@ useScreenContext(
     "type": selectedType.value,
     "page": currentPage.value,
     "per_page": perPage.value,
-  })
+  }),
+  "/v1/postback-logs"
 );
 
 type PostbackLog = {

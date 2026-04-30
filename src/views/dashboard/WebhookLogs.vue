@@ -247,6 +247,7 @@ useScreenContext(
         "page": pages.value.current,
         "last_page": pages.value.last,
         "per_page": perPage.value,
-    })
+    }),
+    "/v1/webhook-logs"
 );
 </script>

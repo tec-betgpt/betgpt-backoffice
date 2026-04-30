@@ -148,6 +148,7 @@ useScreenContext(
   "Tela de webhooks - Gerencia webhooks do sistema",
   () => ({
     "project_id": workspaceStore.activeGroupProject.project_id,
-  })
+  }),
+  "/v1/webhooks"
 );
 </script>

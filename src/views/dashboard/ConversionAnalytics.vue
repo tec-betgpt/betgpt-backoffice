@@ -361,7 +361,7 @@ useScreenContext("Resultados", () => {
     "filter_id": workspaceStore.activeGroupProject.id,
     ...searchValues.value,
   };
-});
+}, "/v1/conversion-analytics");
 
 onMounted(() => {
   applyFilter();

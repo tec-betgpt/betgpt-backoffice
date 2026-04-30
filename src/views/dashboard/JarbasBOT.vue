@@ -253,7 +253,7 @@ const openDialog = ref(false);
 // Screen Context
 useScreenContext("Jarbas BOT", () => ({
   "filter_id": activeGroupProject.id,
-}));
+}), "/v1/jarbas/config");
 
 const form = ref({
   whatsapp_number: "",
