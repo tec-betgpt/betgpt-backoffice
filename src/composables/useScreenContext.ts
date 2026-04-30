@@ -9,7 +9,7 @@ export function useScreenContext(
   const workspaceStore = useWorkspaceStore()
 
   onMounted(() => {
-    workspaceStore.setContext(null)
+    workspaceStore.setContext([])
   })
 
   watch(
@@ -30,6 +30,6 @@ export function useScreenContext(
   )
 
   onUnmounted(() => {
-    workspaceStore.setContext(null)
+    workspaceStore.setContext([])
   })
 }

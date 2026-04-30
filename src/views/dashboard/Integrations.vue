@@ -15,7 +15,16 @@
     </div>
 
     <div v-else class="grid md:grid-cols-1 lg:grid-cols-3 gap-4">
-      <Card v-for="data in integrations" :key="data.id" class="p-5">
+      <Card v-for="data in integrations" :key="data.id" class="p-5 relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="absolute top-3 right-3 h-8 w-8"
+          @click="openPreferencesDialog(data)"
+          :title="`Preferências do ${data.name}`"
+        >
+          <Settings2 class="h-4 w-4" />
+        </Button>
         <div class="mb-5">
           <img
             :src="getApplicationDetail(data.name).logo"
@@ -198,6 +207,14 @@
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <IntegrationPreferencesGoogleAnalytics
+      :open="preferencesDialogOpen"
+      :integration-id="googleAnalyticsIntegrationId"
+      :project-id="googleAnalyticsProjectId"
+      @update:open="preferencesDialogOpen = $event"
+      @save="fetchIntegrations"
+    />
   </div>
 </template>
 
@@ -237,6 +254,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
+import IntegrationPreferencesGoogleAnalytics from "@/views/dashboard/IntegrationPreferencesGoogleAnalytics.vue";
+import { Settings2 } from "lucide-vue-next";
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
@@ -250,6 +269,17 @@ const propetySelect = ref("");
 const adAccountSelect = ref("");
 const adAccountMeta = ref<Array<{ id: string; name: string }>>([]);
 const disableBt = ref(false);
+const preferencesDialogOpen = ref(false);
+const googleAnalyticsIntegrationId = ref<number | undefined>();
+const googleAnalyticsProjectId = ref<string | undefined>();
+
+const openPreferencesDialog = (integration: any) => {
+  if (integration.slug === "google-analytics") {
+    googleAnalyticsIntegrationId.value = integration.id;
+    googleAnalyticsProjectId.value = activeGroupProject.id;
+    preferencesDialogOpen.value = true;
+  }
+};
 
 const isLogoutDialogOpen = ref(false);
 const integrationIdToLogout = ref(null);
@@ -490,6 +520,7 @@ useScreenContext(
   () => ({
     "property_id": propetySelect.value || "Não selecionada",
     "ad_account": adAccountSelect.value || "Não selecionada",
-  })
+  }),
+  "/v1/projects/integrations"
 );
 </script>

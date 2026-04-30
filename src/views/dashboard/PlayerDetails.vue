@@ -188,6 +188,20 @@
               />
             </CardContent>
           </Card>
+
+          <!-- Segmentos -->
+          <Card class="shadow-sm border-none md:border">
+            <CardHeader>
+              <CardTitle class="flex items-center gap-2 text-lg">
+                <FilterIcon class="h-5 w-5 text-slate-400" />
+                Segmentos do Jogador
+              </CardTitle>
+              <CardDescription class="text-xs">Segmentos automática ou manualmente atribuídos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SegmentManager :player="player" />
+            </CardContent>
+          </Card>
         </div>
 
         <!-- Coluna Direita: Histórico (Linha do Tempo) -->
@@ -280,7 +294,7 @@ import { useScreenContext } from "@/composables/useScreenContext";
 import { useRoute } from "vue-router";
 import { 
   ChevronLeft, Loader2Icon, MapPinIcon, 
-  SmartphoneIcon, TagIcon 
+  SmartphoneIcon, TagIcon, FilterIcon 
 } from "lucide-vue-next";
 import Players from "@/services/players";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -293,6 +307,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import TagManager from "@/components/custom/TagManager.vue";
+import SegmentManager from "@/components/custom/SegmentManager.vue";
 import PlayerProfileHeader from "@/components/players/PlayerProfileHeader.vue";
 import PlayerFinancialStats from "@/components/players/PlayerFinancialStats.vue";
 import PlayerTimeline from "@/components/players/PlayerTimeline.vue";
