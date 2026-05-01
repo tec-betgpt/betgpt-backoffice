@@ -24,6 +24,7 @@ import { useInternetConnection } from "@/composables/useInternetConnection";
 import { useErrorTracker } from "@/composables/useErrorTracker";
 import { storeToRefs } from "pinia";
 import { Toaster } from "@/components/ui/toast";
+import {useProjectPreferences} from "@/composables/useProjectPreferences.ts";
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -33,6 +34,7 @@ const layout = computed(() => route.meta.layout);
 
 useInternetConnection(5000);
 useErrorTracker();
+useProjectPreferences()
 
 onMounted(() => {});
 </script>

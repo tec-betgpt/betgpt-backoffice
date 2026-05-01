@@ -886,6 +886,7 @@ import {Card} from "@/components/ui/card";
 import { useScreenContext } from "@/composables/useScreenContext";
 
 import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
+import {gaNicknameStorageKey} from "@/composables/useProjectPreferences";
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
 
@@ -911,7 +912,7 @@ const engagementDurationSessionPeriod = ref<
 const arppuPeriod = ref<{ name: string; value: number[] }[]>([]);
 const arpuPeriod = ref<{ name: string; value: number[] }[]>([]);
 const bounceRatePeriod = ref<{ name: string; value: number[] }[]>([]);
-const selectedGroupBy = ref("sessionPrimaryChannelGroup");
+const selectedGroupBy = ref(localStorage.getItem(gaNicknameStorageKey));
 const pages = ref({
   current: 1,
   total: 0,
@@ -938,8 +939,7 @@ const getGroupByLabel = (value: string): string => {
 const groupSessionsData = ref<GroupSession[]>([]);
 const isFirstLoad = ref(true);
 const savedGroupBy =
-  localStorage.getItem(gaTypeGroupStorageKey) || "sessionDefaultChannelGroup";
-
+  localStorage.getItem(gaNicknameStorageKey) || "sessionDefaultChannelGroup";
 const searchValues = ref<Record<string, string>>({
   "search[0][group_by]": savedGroupBy,
   "search[1][channel]": "",
@@ -1301,7 +1301,7 @@ watch(
   (newVal) => {
     if (newVal) {
       selectedGroupBy.value = newVal;
-      localStorage.setItem(gaTypeGroupStorageKey, newVal);
+     // localStorage.setItem(gaTypeGroupStorageKey, newVal);
     }
   },
 );
@@ -1309,7 +1309,7 @@ watch(
 onMounted(() => {
   searchValues.value = {
     "search[0][group_by]":
-      localStorage.getItem(gaTypeGroupStorageKey) ||
+      localStorage.getItem(gaNicknameStorageKey) ||
       "sessionDefaultChannelGroup",
     "search[1][channel]": "",
   };
