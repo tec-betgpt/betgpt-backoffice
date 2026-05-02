@@ -19,7 +19,6 @@ export const useProjectPreferences = () => {
       });
 
       if (response.data?.google_analytics_channel_group) {
-        console.log(response.data.google_analytics_channel_group.nickname);
         const nickname = response.data.google_analytics_channel_group.nickname;
         localStorage.setItem(gaNicknameStorageKey, nickname);
         gaGroupNickname.value = nickname;

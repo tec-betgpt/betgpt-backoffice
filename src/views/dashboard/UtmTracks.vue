@@ -176,6 +176,9 @@ type UtmTrack = {
   source_type: string
   project_id: number
 }
+const order = ref();
+const direction = ref(false);
+const columnHelper = createColumnHelper<any>();
 
 const { toast } = useToast();
 const hasMore = ref(true);
@@ -306,6 +309,16 @@ const setType = (type: any) => {
 
 onMounted(async () => {
   await fetchUtmTracks();
+  useScreenContext(
+      "Tela de UTMs - Gerencia parâmetros UTM",
+      () => ({
+        "type": typeFilter.value?.join(", ") || "Todos",
+        "orderBy": order.value || "Padrão",
+        "orderDirection": direction.value ? "asc" : "desc",
+        "perPage": 100,
+      }),
+      "/v1/utm-tracks"
+  );
 })
 
 const setSearch = (values: Record<string, string>) => {
@@ -314,9 +327,7 @@ const setSearch = (values: Record<string, string>) => {
 
 
 
-const order = ref();
-const direction = ref(false);
-const columnHelper = createColumnHelper<any>();
+
 function createHeaderButton(label: string, columnKey: string) {
   return h(
     Button,
@@ -342,6 +353,7 @@ function createHeaderButton(label: string, columnKey: string) {
     ]
   );
 }
+
 
 const columns = [
   columnHelper.accessor("type", {
@@ -410,14 +422,5 @@ const columns = [
         ]),
   }),
 ]
-useScreenContext(
-    "Tela de UTMs - Gerencia parâmetros UTM",
-    () => ({
-      "type": typeFilter.value?.join(", ") || "Todos",
-      "orderBy": order.value || "Padrão",
-      "orderDirection": direction.value ? "asc" : "desc",
-      "perPage": 100,
-    }),
-    "/v1/utm-tracks"
-  );
+
 </script>
