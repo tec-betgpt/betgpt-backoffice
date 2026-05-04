@@ -326,7 +326,7 @@ async function fetchIntegrations() {
     const meta = integrations.value.find((value) => value.slug === "meta");
     if (google) {
       if (google.config !== null) {
-        if (google.config.property_id == "") {
+        if (google.config.property_id == "" || google.config.property_id == null) {
           await getProperty();
         }
       }

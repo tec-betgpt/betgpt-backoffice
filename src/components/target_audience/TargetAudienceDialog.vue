@@ -721,8 +721,8 @@ const save = async () => {
                             const offset = c.daysOffset || 0;
                             finalValue = c.dateModifier === 'minus' ? -offset : offset;
                         }
-                    } else if (c.value === '' && !['empty', 'not_empty'].includes(c.operator)) {
-                        return null;
+                    } else if (['empty', 'not_empty'].includes(c.operator)) {
+                        finalValue =  "*";
                     }
                     return {
                         target_audience_condition_field_id:field.id,
@@ -734,9 +734,7 @@ const save = async () => {
         };
 
         if (!payload.name) throw new Error('O nome do público alvo é obrigatório.');
-        if (!segmentId.value){
-          if (payload.condition_groups.length === 0) throw new Error("Defina pelo menos uma condição válida.");
-        }
+
 
         if (isEditing.value) {
             await TargetAudience.update(form.value.id, payload);
