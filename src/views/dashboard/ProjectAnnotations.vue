@@ -7,6 +7,11 @@
           Gerencie todas suas anotações/marcos adicionadas aos gráficos deste projeto
         </p>
       </div>
+      <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
+        <Button @click="openDialog">
+          <Plus class="h-4 w-4" /> Adicionar
+        </Button>
+      </div>
     </div>
 
     <Card>
@@ -33,7 +38,7 @@
             <template v-else>
               <TableRow v-for="annotation in projectAnnotations" :key="annotation.id">
                 <TableCell class="font-medium">{{ annotation.title }}</TableCell>
-                <TableCell>{{ annotation.project.name }}</TableCell>
+                <TableCell v-if="activeGroupProjectType == 'group'">{{ annotation.project.name }}</TableCell>
                 <TableCell>{{ annotation.resource || "N/A" }}</TableCell>
                 <TableCell>{{ annotation.chart_name || "Global" }}</TableCell>
                 <TableCell>
@@ -99,6 +104,14 @@
       :annotation="selectedAnnotation"
       @saved="fetchProjectAnnotations(pages.current)"
     />
+
+    <AnnotationDialog
+      v-model:open="isDialogOpen"
+      date=""
+      :chart-name="null"
+      chart-resource="projectAnnotations"
+      @saved="fetchProjectAnnotations(1)"
+    />
   </div>
 </template>
 
@@ -112,6 +125,7 @@ import CustomSimplePagination from "@/components/custom/CustomSimplePagination.v
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import AnnotationDetailsDialog from "@/components/project_annotations/AnnotationDetailsDialog.vue";
 import AnnotationEditDialog from "@/components/project_annotations/AnnotationEditDialog.vue";
+import AnnotationDialog from "@/components/project_annotations/AnnotationDialog.vue";
 import {
   Table,
   TableBody,
@@ -123,7 +137,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Eye, Pencil } from "lucide-vue-next";
+import { Eye, Pencil, Plus } from "lucide-vue-next";
 import moment from "moment";
 import { ProjectAnnotation } from "@/contracts/projectAnnotation";
 
@@ -142,7 +156,12 @@ const activeGroupProjectId = workspaceStore.activeGroupProject!.id;
 const activeGroupProjectType = workspaceStore.activeGroupProject!.type;
 const isDetailsOpen = ref(false);
 const isEditOpen = ref(false);
+const isDialogOpen = ref(false);
 const selectedAnnotation = ref(null);
+
+const openDialog = () => {
+  isDialogOpen.value = true;
+};
 
 const fetchProjectAnnotations = async (current = 1) => {
   isLoading.value = true;
