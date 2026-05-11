@@ -5,6 +5,7 @@ import Insights from "@/views/dashboard/Insights.vue";
 import Users from "@/views/dashboard/Users.vue";
 import Integrations from "@/views/dashboard/Integrations.vue";
 import Webhooks from "@/views/dashboard/Webhooks.vue";
+import GoogleAnalyticsPreferences from "@/views/dashboard/GoogleAnalyticsPreferences.vue";
 
 export default [
   {
@@ -88,6 +89,18 @@ export default [
           roles: "member|client",
           permissions: "access-to-webhooks",
           title: "Webhooks",
+        },
+      },
+      {
+        path: "ga-preferences",
+        name: "ga-preferences",
+        component: GoogleAnalyticsPreferences,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: "access-to-integrations",
+          title: "Preferências do Google Analytics",
         },
       },
     ],

@@ -337,7 +337,8 @@ import {
   PhoneCall,
   PencilLine,
   BadgeCheck,
-  LucideUserRoundCog
+  LucideUserRoundCog,
+  Settings2,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -572,6 +573,12 @@ const navMenu = computed(() => {
           url: { name: "webhooks" },
           icon: Building2,
           show: canAccess("access-to-webhooks"),
+        },
+        {
+          name: "Preferências GA",
+          url: { name: "ga-preferences" },
+          icon: Settings2,
+          show: canAccess("access-to-integrations"),
         },
       ],
     },
