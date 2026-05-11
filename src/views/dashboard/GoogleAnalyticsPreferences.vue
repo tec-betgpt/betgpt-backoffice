@@ -415,7 +415,7 @@ onMounted(async () => {
           <SelectItem
             v-for="secret in measurementSecrets"
             :key="secret.name"
-            :value="secret.name"
+            :value="secret.secret"
           >
             {{ secret.displayName }}
           </SelectItem>
