@@ -151,11 +151,9 @@ const loadCurrentPreference = async () => {
       filter_id: projectId.value,
     });
     if (response) {
-      console.log(response.data.google_analytics);
       selectedGroup.value = response.data.google_analytics["google_analytics_group_id"] || "";
       selectedMeasurement.value = response.data.google_analytics.events["google_analytics_measurement_id"] || "";
-      selectedSecret.value = response.data.google_analytics["google_analytics_measurement_secret"] || "";
-
+      selectedSecret.value = response.data.google_analytics.events["google_analytics_measurement_secret"] || "";
       const eventsData = response.data.google_analytics.events;
       if (eventsData) {
         const savedEvents = eventsData["google_analytics_key_events"];
@@ -282,6 +280,7 @@ const handleSave = async () => {
               google_analytics_measurement_id: measurements.value.find(v => v.id == selectedMeasurement.value).id || "",
               google_analytics_key_events: selectedKeyEvents.value || [],
               google_analytics_measurement_dataStreams: measurements.value.find(v => v.id == selectedMeasurement.value).name || "",
+              google_analytics_measurement_secret: selectedSecret.value || '',
             }
       }
     }
