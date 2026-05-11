@@ -240,8 +240,8 @@ const onSubmit = async () => {
 
     isDialog.value = false;
     toast({
-      title: "Novo custo adicionado",
-      description: "Registro salvo com sucesso",
+      title: "Custo Atualizado!",
+      description: "Registro atualizado com sucesso",
     });
 
     await props.reload();

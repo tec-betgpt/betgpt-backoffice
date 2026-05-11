@@ -263,7 +263,7 @@ const onSubmit = async () => {
 
     isDialog.value = false;
     toast({
-      title: "Novo custo adicionado",
+      title: "Novo Custo Adicionado!",
       description: "Registro salvo com sucesso",
     });
 
