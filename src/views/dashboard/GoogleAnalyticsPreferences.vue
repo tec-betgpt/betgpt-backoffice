@@ -147,9 +147,9 @@ const loadMeasurementSecrets = async () => {
 
 const loadCurrentPreference = async () => {
   try {
-    const response = await ProjectPreferences.index({
-      filter_id: projectId.value,
-    });
+    const response = await ProjectPreferences.show(
+      projectIdNumber.value,
+    );
     if (response) {
       selectedGroup.value = response.data.google_analytics["google_analytics_group_id"] || "";
       selectedMeasurement.value = response.data.google_analytics.events["google_analytics_measurement_id"] || "";
@@ -266,9 +266,7 @@ const handleCreateSecret = async () => {
 };
 
 const handleSave = async () => {
-
   saving.value = true;
-
   try {
     const payload = {
       project_id: projectIdNumber.value,
@@ -277,9 +275,9 @@ const handleSave = async () => {
         google_analytics_measurement_secret: selectedSecret.value || '',
         events:
             {
-              google_analytics_measurement_id: measurements.value.find(v => v.id == selectedMeasurement.value).id || "",
+              google_analytics_measurement_id: measurements.value.find(v => v.id == selectedMeasurement.value)?.id || "",
               google_analytics_key_events: selectedKeyEvents.value || [],
-              google_analytics_measurement_dataStreams: measurements.value.find(v => v.id == selectedMeasurement.value).name || "",
+              google_analytics_measurement_dataStreams: measurements.value.find(v => v.id == selectedMeasurement.value)?.name || "",
               google_analytics_measurement_secret: selectedSecret.value || '',
             }
       }
@@ -452,21 +450,21 @@ onMounted(async () => {
           v-for="event in keyEvents"
           :key="event.name"
           class="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-          :class="isKeyEventSelected(event.name) ? 'border-primary bg-primary/5' : 'border-input'"
+          :class="isKeyEventSelected(event.event_name) ? 'border-primary bg-primary/5' : 'border-input'"
         >
           <div class="flex items-center gap-3">
             <Checkbox 
-              :checked="isKeyEventSelected(event.name)"
-              @update:checked="() => toggleKeyEvent(event.name)"
+              :checked="isKeyEventSelected(event.event_name)"
+              @update:checked="() => toggleKeyEvent(event.event_name)"
             />
             <Label class="cursor-pointer font-normal">
               {{ event.event_name }}
             </Label>
           </div>
-          <div v-if="isKeyEventSelected(event.name)" class="flex items-center gap-2">
+          <div v-if="isKeyEventSelected(event.event_name)" class="flex items-center gap-2">
             <Select 
-              :modelValue="getEventType(event.name)"
-              @update:modelValue="(val) => updateEventType(event.name, val)"
+              :modelValue="getEventType(event.event_name)"
+              @update:modelValue="(val) => updateEventType(event.event_name, val)"
             >
               <SelectTrigger class="w-40 h-8 text-xs">
                 <SelectValue placeholder="Tipo" />
