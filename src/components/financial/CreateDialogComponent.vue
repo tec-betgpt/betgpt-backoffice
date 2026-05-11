@@ -1,6 +1,5 @@
 <template>
-  <Button class="dark:bg-yellow-400" @click="isDialog = true">
-    <PlusSquareIcon />
+  <Button class="dark:bg-yellow-400" @click="openDialog()">
     Novo Registro
   </Button>
 
@@ -19,7 +18,7 @@
         <div class="grid gap-4 py-2">
           <div class="grid items-center gap-1.5">
             <Label for="cost_center_id">Centro de Custo</Label>
-            <Select v-model="financialForm.cost_center_id" required>
+            <Select v-model="financialForm.cost_center_id">
               <SelectTrigger id="cost_center_id" class="col-span-3">
                 <SelectValue placeholder="Centro de Custo" />
               </SelectTrigger>
@@ -29,9 +28,6 @@
                 </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs text-right text-muted-foreground">
-              Obrigatório
-            </p>
           </div>
 
           <div class="grid items-center gap-1.5">
@@ -116,8 +112,8 @@
             <Input
               placeholder="Valor"
               id="amount"
-              v-model="financialForm.amount"
-              type="number"
+              v-model="displayAmount"
+              type="text"
               required
             />
             <p class="text-xs mt-1 text-right text-muted-foreground">
@@ -160,15 +156,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { PlusSquareIcon } from "lucide-vue-next";
+import { ref, watch, computed } from "vue";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import financialTransactionsApi from "@/services/financialTransactions";
-import { toast } from "@/components/ui/toast";
 import DatePicker from "@/components/custom/DatePicker.vue";
 import { Dialog } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/toast";
 
 const props = defineProps<{
   reload: () => void,
@@ -197,12 +192,42 @@ const financialForm = ref({
 });
 const date = ref<Date>(new Date());
 
+const displayAmount = computed({
+  get() {
+    if (financialForm.value.amount === null || financialForm.value.amount === "") return "";
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(financialForm.value.amount));
+  },
+  set(val: string) {
+    const numericValue = val.replace(/\D/g, "");
+    if (!numericValue) {
+      financialForm.value.amount = null as any;
+      return;
+    }
+    financialForm.value.amount = (Number(numericValue) / 100).toFixed(2) as any;
+  }
+});
+
 const formatDateForApi = (value: Date) => {
   const year = value.getFullYear();
   const month = String(value.getMonth() + 1).padStart(2, "0");
   const day = String(value.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+
+const openDialog = () => {
+  const typeProject = useWorkspaceStore().activeGroupProject?.type
+
+  if (typeProject === 'project') {
+    isDialog.value = true;
+    return;
+  }
+
+  toast({
+    title: "Apenas projetos",
+    description: "Selecione um Projeto invés de Grupo",
+    variant: "destructive",
+  });
+}
 
 watch(
   () => financialForm.value.cost_center_id,
@@ -217,16 +242,6 @@ watch(
   }
 );
 
-watch(sectorId, (sid) => {
-  const ccid = financialForm.value.cost_center_id;
-  if (ccid == null || sid == null) {
-    return;
-  }
-  const cost = props.costs.find((c) => c.id === ccid);
-  if (cost && cost.sector_id !== sid) {
-    financialForm.value.cost_center_id = null;
-  }
-});
 
 watch(isDialog, (open) => {
   if (!open) {
@@ -238,43 +253,27 @@ const onSubmit = async () => {
   loading.value = true;
   financialForm.value.date = formatDateForApi(date.value);
   const cost = props.costs.find((c) => c.id === financialForm.value.cost_center_id);
-  if (!cost) {
-    loading.value = false;
-    toast({
-      title: "Centro de custo obrigatório",
-      description: "Selecione um centro de custo.",
-      variant: "destructive",
-    });
-    return;
-  }
-  if (sectorId.value != null) {
-    if (cost.sector_id == null || cost.sector_id !== sectorId.value) {
-      loading.value = false;
-      toast({
-        title: "Setor incompatível",
-        description:
-          cost.sector_id == null
-            ? "Este centro de custo não possui setor; deixe o setor em branco."
-            : "O setor selecionado não corresponde ao centro de custo.",
-        variant: "destructive",
-      });
-      return;
-    }
-  }
+
   try {
     await financialTransactionsApi.store({
       ...financialForm.value,
+      project_id: parseInt(activeGroupProjectId!.split("_")[1]),
       ...(sectorId.value != null ? { sector_id: sectorId.value } : {}),
     });
 
     isDialog.value = false;
+    toast({
+      title: "Novo Custo Adicionado!",
+      description: "Registro salvo com sucesso",
+    });
+
     await props.reload();
   } catch (error) {
     console.error("Erro ao salvar transação financeira:", error);
   }
 
   loading.value = false;
-};
+}
 
 const reset = () => {
   sectorId.value = null;
@@ -288,5 +287,5 @@ const reset = () => {
     description: "",
     related: null,
   };
-};
+}
 </script>
