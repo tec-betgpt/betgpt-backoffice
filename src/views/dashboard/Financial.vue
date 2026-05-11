@@ -116,7 +116,12 @@
                     {{ $moment(row.date).format("DD/MM/YYYY") }}
                   </TableCell>
                   <TableCell class="text-right">
-                    {{ row.description }}
+                    <div
+                      :title="row.description"
+                      class="text-ellipsis overflow-hidden whitespace-nowrap max-w-[100px]"
+                    >
+                      {{ row.description }}
+                    </div>
                   </TableCell>
                   <TableCell class="text-right">
                     {{ row.percentage ?? 0 }}%
@@ -128,13 +133,20 @@
                   <TableCell class="text-right">
                     {{ row.createdByName }}
                   </TableCell>
-                  <FinancialRowActions
-                    :row="row"
-                    :costs="costs"
-                    :sectors="sectors"
-                    :reload="reloadFinancialsAfterMutation"
-                    :destroy="deleteFinancial"
-                  />
+                  <TableCell class="flex justify-end gap-1">
+                    <EditDialogComponent
+                      :reload="reloadFinancialsAfterMutation"
+                      :row="row"
+                      :costs="costs"
+                      :sectors="sectors"
+                    />
+
+                    <DestroyDialogComponent
+                      :reload="reloadFinancialsAfterMutation"
+                      :destroy="deleteFinancial"
+                      :row="row"
+                    />
+                  </TableCell>
                 </TableRow>
               </transition-group>
             </TableBody>
@@ -150,8 +162,6 @@
       />
     </div>
   </div>
-
-
 </template>
 
 <script setup lang="ts">
@@ -169,13 +179,14 @@ import {Skeleton} from "@/components/ui/skeleton";
 import {Card, CardContent} from "@/components/ui/card";
 import OrderButton from "@/components/custom/OrderButton.vue";
 import CreateDialogComponent from "@/components/financial/CreateDialogComponent.vue";
-import FinancialRowActions from "@/components/financial/FinancialRowActions.vue";
 import {Badge} from "@/components/ui/badge";
+import EditDialogComponent from "@/components/financial/EditDialogComponent.vue";
+import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 
 interface FinancialData {
   id: number;
   costCenter: string;
-  cost_center_id: number;
+  cost_center_id: number | null;
   sectorId: number | null;
   sectorName: string;
   category_type: string;
@@ -242,7 +253,7 @@ const fetchFinancials = async (
       ...(opts?.refresh ? { refresh: 1 } : {}),
     });
 
-    financial.value = data.data.map((financial) => {
+    financial.value = data.data.map((financial: any) => {
       const u = financial.user;
       const createdByName = u
         ? [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || "—"
@@ -251,7 +262,7 @@ const fetchFinancials = async (
       return {
         id: financial.id,
         costCenter: financial.cost_center?.name ?? "—",
-        cost_center_id: financial.cost_center_id,
+        cost_center_id: financial.cost_center_id ?? null,
         sectorId: sector?.id ?? financial.sector_id ?? null,
         sectorName: sector?.name ?? "—",
         category_type: financial.category_type,

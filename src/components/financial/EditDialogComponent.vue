@@ -1,11 +1,5 @@
 <template>
-  <Button
-    v-if="!hideTrigger"
-    size="icon"
-    variant="ghost"
-    class="dark:bg-yellow-400"
-    @click="openDialog"
-  >
+  <Button size="icon" variant="ghost" @click="openDialog">
     <Pencil />
   </Button>
 
@@ -49,12 +43,14 @@
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <Button type="button" variant="outline" size="sm" class="self-end" @click="sectorId = null">
-                Limpar setor
-              </Button>
-              <p class="text-xs text-muted-foreground">
-                Opcional.
-              </p>
+              <div class="flex justify-between items-center">
+                <p class="text-xs text-muted-foreground">
+                  Opcional
+                </p>
+                <Button type="button" variant="outline" size="sm" class="self-end" @click="sectorId = null">
+                  Limpar setor
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -93,7 +89,7 @@
               placeholder="Opcional"
               min="0"
             />
-            <p class="text-xs text-muted-foreground">
+            <p class="text-xs text-muted-foreground text-left">
               Opcional
             </p>
           </div>
@@ -102,8 +98,8 @@
             <Label for="amount">Valor</Label>
             <Input
               id="amount"
-              v-model="financialForm.amount"
-              type="number"
+              v-model="displayAmount"
+              type="text"
               placeholder="Digite o valor"
               required
             />
@@ -142,12 +138,13 @@
   </Dialog>
 </template>
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { Pencil } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import financialTransactionsApi from "@/services/financialTransactions";
-import DatePicker from "@/components/custom/DatePicker.vue";
 import { toast } from "@/components/ui/toast";
+import { Dialog } from "@/components/ui/dialog";
+import DatePicker from "@/components/custom/DatePicker.vue";
+import FinancialTransactions from "@/services/financialTransactions";
 
 interface FinancialData {
   id: number;
@@ -184,6 +181,21 @@ const loading = ref(false);
 const date = ref(new Date());
 const sectorId = ref<number | null>(props.row.sectorId ?? null);
 
+const displayAmount = computed({
+  get() {
+    if (!financialForm.value.amount) return "";
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(financialForm.value.amount));
+  },
+  set(val: string) {
+    const numericValue = val.replace(/\D/g, "");
+    if (!numericValue) {
+      financialForm.value.amount = "";
+      return;
+    }
+    financialForm.value.amount = (Number(numericValue) / 100).toFixed(2);
+  }
+});
+
 const formatDateForApi = (value: Date) => {
   const year = value.getFullYear();
   const month = String(value.getMonth() + 1).padStart(2, "0");
@@ -208,46 +220,14 @@ watch(
   }
 );
 
-watch(sectorId, (sid) => {
-  const ccid = financialForm.value.cost_center_id;
-  if (ccid == null || sid == null) {
-    return;
-  }
-  const cost = props.costs.find((c) => c.id === ccid);
-  if (cost && cost.sector_id !== sid) {
-    financialForm.value.cost_center_id = null;
-  }
-});
 
 const onSubmit = async () => {
   loading.value = true;
   financialForm.value.date = formatDateForApi(date.value);
   const cost = props.costs.find((c) => c.id === financialForm.value.cost_center_id);
-  if (!cost) {
-    loading.value = false;
-    toast({
-      title: "Centro de custo obrigatório",
-      description: "Selecione um centro de custo.",
-      variant: "destructive",
-    });
-    return;
-  }
-  if (sectorId.value != null) {
-    if (cost.sector_id == null || cost.sector_id !== sectorId.value) {
-      loading.value = false;
-      toast({
-        title: "Setor incompatível",
-        description:
-          cost.sector_id == null
-            ? "Este centro de custo não possui setor; deixe o setor em branco."
-            : "O setor selecionado não corresponde ao centro de custo.",
-        variant: "destructive",
-      });
-      return;
-    }
-  }
+
   try {
-    await financialTransactionsApi.update(financialForm.value.id, {
+    await FinancialTransactions.update(financialForm.value.id, {
       cost_center_id: financialForm.value.cost_center_id,
       sector_id: sectorId.value,
       type: financialForm.value.type,
@@ -257,7 +237,12 @@ const onSubmit = async () => {
       date: financialForm.value.date,
       description: financialForm.value.description,
     });
+
     isDialog.value = false;
+    toast({
+      title: "Novo custo adicionado",
+      description: "Registro salvo com sucesso",
+    });
 
     await props.reload();
   } catch (error) {
