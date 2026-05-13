@@ -42,15 +42,33 @@
     </CardHeader>
     <Separator />
     <CardContent class="pt-6">
-      <div class="h-[380px] w-full">
+      <div class="h-[380px] w-full relative">
         <apexchart
           v-if="series"
+          ref="chartRef"
           width="100%"
           height="100%"
           type="line"
           :options="chartOptions"
           :series="series"
         />
+        <div
+          v-if="annotationPopover.visible"
+          ref="popoverEl"
+          class="annotation-popover"
+          :style="popoverStyle"
+        >
+          <div class="annotation-popover-header">
+            <span>{{ annotationPopover.date }}</span>
+            <button @click="annotationPopover.visible = false">&times;</button>
+          </div>
+          <ul class="annotation-popover-list">
+            <li v-for="(note, idx) in annotationPopover.notes" :key="idx">
+              <span class="annotation-dot" :style="{ background: note.color }"></span>
+              {{ note.title }}
+            </li>
+          </ul>
+        </div>
       </div>
     </CardContent>
   </Card>
@@ -67,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
@@ -93,6 +111,7 @@ const workspaceStore = useWorkspaceStore()
 const mode = useColorMode()
 const apexchart = VueApexCharts
 
+const chartRef = ref(null)
 const dialogOpen = ref(false)
 const selectedDate = ref('')
 const selectedEndDate = ref('')
@@ -101,6 +120,54 @@ const annotationListRef = ref<any>(null)
 
 const chartName = 'composition-active-clients'
 const chartResource = 'retention_period'
+
+const annotationPopover = ref({
+  visible: false,
+  x: 0,
+  y: 0,
+  date: '',
+  notes: [] as { title: string; color: string }[]
+})
+
+const popoverEl = ref<HTMLElement | null>(null)
+
+const popoverStyle = computed(() => {
+  return {
+    top: annotationPopover.value.y + 'px',
+    left: annotationPopover.value.x + 'px'
+  }
+})
+
+function adjustPopoverPosition() {
+  nextTick(() => {
+    const el = popoverEl.value
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const pad = 8
+
+    if (rect.right > vw - pad) {
+      annotationPopover.value.x -= (rect.right - vw + pad)
+    }
+    if (rect.left < pad) {
+      annotationPopover.value.x += (pad - rect.left)
+    }
+    if (rect.top < pad) {
+      annotationPopover.value.y += rect.height + 16
+    }
+    if (rect.bottom > vh - pad) {
+      annotationPopover.value.y -= (rect.bottom - vh + pad)
+    }
+  })
+}
+
+function handleOutsideClick(e: MouseEvent) {
+  if (!annotationPopover.value.visible) return
+  const target = e.target as HTMLElement
+  if (target.closest('.annotation-popover') || target.closest('.apexcharts-point-annotations')) return
+  annotationPopover.value.visible = false
+}
 
 async function fetchAnnotations() {
   if (!chartName || !workspaceStore.activeGroupProject?.id) return
@@ -154,6 +221,16 @@ const series = computed(() => {
   }))
 })
 
+const groupedAnnotations = computed(() => {
+  const groups: Record<number, any[]> = {}
+  annotations.value.forEach(ann => {
+    const dateVal = moment(ann.date, ['DD/MM/YYYY', 'YYYY-MM-DD']).valueOf()
+    if (!groups[dateVal]) groups[dateVal] = []
+    groups[dateVal].push(ann)
+  })
+  return groups
+})
+
 const chartOptions = computed(() => {
   return {
     chart: {
@@ -163,6 +240,12 @@ const chartOptions = computed(() => {
       background: 'transparent',
       fontFamily: 'inherit',
       events: {
+        click: (event: MouseEvent, chartContext: any, opts: any) => {
+          const target = event.target as SVGElement
+          if (!target.closest('.apexcharts-point-annotations')) {
+            annotationPopover.value.visible = false
+          }
+        },
         selection: (chartContext: any, { xaxis }: any) => {
           if (xaxis) {
             const minTime = xaxis.min
@@ -214,19 +297,59 @@ const chartOptions = computed(() => {
       x: { format: 'dd/MM/yyyy' }
     },
     annotations: {
-      xaxis: annotations.value.map(ann => ({
-        x: moment(ann.date, ['DD/MM/YYYY', 'YYYY-MM-DD']).valueOf(),
-        x2: ann.date_end ? moment(ann.date_end, ['DD/MM/YYYY', 'YYYY-MM-DD']).valueOf() : undefined,
-        borderColor: ann.color || '#775DD0',
-        label: {
-          borderColor: ann.color || '#775DD0',
-          style: {
-            color: '#fff',
-            background: ann.color || '#775DD0',
-          },
-          text: ann.title,
+      points: Object.entries(groupedAnnotations.value).map(([dateVal, anns]) => {
+        let yVal = 0
+        const cat = chartCategories[0]
+        const dataPoint = sortedData.value.find(d => moment(d.date, 'DD/MM/YYYY').valueOf() === Number(dateVal))
+        if (dataPoint) {
+          yVal = dataPoint[cat]
         }
-      }))
+
+        const isMultiple = anns.length > 1
+        const baseColor = anns[0].color || chartColors[0]
+
+        return {
+          x: Number(dateVal),
+          y: yVal,
+          marker: {
+            size: isMultiple ? 6 : 5,
+            fillColor: isMultiple ? (mode.value === 'dark' ? '#1e293b' : '#334155') : baseColor,
+            strokeColor: isMultiple ? '#ffffff' : baseColor,
+            strokeWidth: isMultiple ? 2 : 0,
+            cssClass: 'annotation-marker'
+          },
+          label: {
+            text: '',
+            borderWidth: 0,
+            style: {
+              background: 'transparent',
+              color: 'transparent',
+              padding: { left: 0, right: 0, top: 0, bottom: 0 },
+              fontSize: '0px'
+            }
+          },
+          click: (annotation: any, event: MouseEvent) => {
+            const target = event.target as SVGElement
+            const circle = target.closest('g')?.querySelector('circle') || target
+            const cx = parseFloat(circle.getAttribute?.('cx') || '0')
+            const cy = parseFloat(circle.getAttribute?.('cy') || '0')
+            const chartEl = (chartRef.value as any)?.$el || (chartRef.value as any)?.chart?.el
+            const svgEl = chartEl?.querySelector('svg')
+            const containerEl = chartEl?.parentElement
+            const svgRect = svgEl?.getBoundingClientRect() || { left: 0, top: 0 }
+            const containerRect = containerEl?.getBoundingClientRect() || svgRect
+
+            annotationPopover.value = {
+              visible: true,
+              x: svgRect.left - containerRect.left + cx,
+              y: svgRect.top - containerRect.top + cy - 10,
+              date: moment(Number(dateVal)).format('DD/MM/YYYY'),
+              notes: anns.map((a: any) => ({ title: a.title, color: a.color || '#eab308' }))
+            }
+            adjustPopoverPosition()
+          }
+        }
+      })
     }
   }
 })
@@ -249,5 +372,82 @@ watch(() => workspaceStore.activeGroupProject?.id, () => {
 
 onMounted(() => {
   fetchAnnotations()
+  document.addEventListener('click', handleOutsideClick, true)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick, true)
 })
 </script>
+
+<style scoped>
+:deep(.apexcharts-point-annotations .apexcharts-point-annotation-label) {
+  display: none !important;
+}
+
+:deep(.apexcharts-point-annotations g) {
+  cursor: pointer;
+}
+
+.annotation-popover {
+  position: absolute;
+  z-index: 50;
+  transform: translate(-50%, -100%) translateY(-8px);
+  background: var(--popover-bg, #ffffff);
+  color: var(--popover-color, #1e293b);
+  border: 1px solid var(--popover-border, #e2e8f0);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  max-width: 300px;
+  font-size: 13px;
+  pointer-events: auto;
+}
+
+:root.dark .annotation-popover,
+.dark .annotation-popover {
+  --popover-bg: #1e293b;
+  --popover-color: #f8fafc;
+  --popover-border: #334155;
+}
+
+.annotation-popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--popover-border, #e2e8f0);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.annotation-popover-header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: inherit;
+  padding: 0 2px;
+}
+
+.annotation-popover-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 10px;
+}
+
+.annotation-popover-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+
+.annotation-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+</style>
