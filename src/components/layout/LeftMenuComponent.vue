@@ -580,6 +580,12 @@ const navMenu = computed(() => {
           icon: Settings2,
           show: canAccess("access-to-integrations"),
         },
+        {
+          name: "Preferências Meta Ads",
+          url: { name: "meta-ads-preferences" },
+          icon: Settings2,
+          show: canAccess("access-to-integrations"),
+        },
       ],
     },
     {

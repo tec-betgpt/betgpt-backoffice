@@ -6,6 +6,7 @@ import Users from "@/views/dashboard/Users.vue";
 import Integrations from "@/views/dashboard/Integrations.vue";
 import Webhooks from "@/views/dashboard/Webhooks.vue";
 import GoogleAnalyticsPreferences from "@/views/dashboard/GoogleAnalyticsPreferences.vue";
+import MetaAdsPreferences from "@/views/dashboard/MetaAdsPreferences.vue";
 
 export default [
   {
@@ -101,6 +102,18 @@ export default [
           roles: "member|client",
           permissions: "access-to-integrations",
           title: "Preferências do Google Analytics",
+        },
+      },
+      {
+        path: "meta-ads-preferences",
+        name: "meta-ads-preferences",
+        component: MetaAdsPreferences,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: "access-to-integrations",
+          title: "Preferências da Meta Ads",
         },
       },
     ],
