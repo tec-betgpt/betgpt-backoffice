@@ -194,7 +194,6 @@ import { Spinner } from "@/components/ui/spinner";
 import "moment/dist/locale/pt-br";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import PostbackLogService from "@/services/postbackLog";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 import ShowDialogComponent from "@/components/postback_logs/ShowDialogComponent.vue";

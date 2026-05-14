@@ -6,7 +6,6 @@
         Os rastreamentos UTM de todos os segmentos.
       </p>
     </div>
-    <IAAnaliseButton />
 
     <div v-if="isLoading">
       <div class="grid gap-4 md:grid-cols-6 lg:grid-cols-6 mb-3">
@@ -166,7 +165,6 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import ChartBarComponent from "@/components/utm_tracks/ChartBarComponent.vue";
 import {Skeleton} from "@/components/ui/skeleton";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 
 type UtmTrack = {
   id: number

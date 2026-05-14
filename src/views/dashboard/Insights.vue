@@ -92,7 +92,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/insights/CreateDialogComponent.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import {getMs} from "@/filters/formatNumbers";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";

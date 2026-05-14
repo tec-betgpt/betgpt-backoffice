@@ -8,7 +8,6 @@
 
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CreateDialogComponent :reload="fetchProtectionLists" />
-        <IAAnaliseButton />
       </div>
     </div>
 
@@ -234,7 +233,6 @@ import ProtectionLists from "@/services/protectionLists";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/protection-lists/CreateDialogComponent.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/protection-lists/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";

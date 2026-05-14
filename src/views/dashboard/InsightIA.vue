@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { Button } from "@/components/ui/button";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import {
   Dialog,
   DialogContent,

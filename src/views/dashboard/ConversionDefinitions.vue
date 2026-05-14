@@ -11,7 +11,6 @@
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CreateDialogComponent :reload="fetchConversionDefinitions" />
-        <IAAnaliseButton />
       </div>
     </div>
 
@@ -80,7 +79,6 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { CaretSortIcon } from "@radix-icons/vue";
 import CreateDialogComponent from "@/components/conversion_definitions/CreateDialogComponent.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/conversion_definitions/EditDialogComponent.vue";
 import ConversionDefinitions from "@/services/conversionDefinitions";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";

@@ -123,7 +123,6 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 
 const isLoading = ref(true);
 const perPage = ref(15);

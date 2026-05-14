@@ -84,7 +84,6 @@ import ServiceDialogComponent from "@/components/subscribers/ServiceDialogCompon
 import SettingsDialogComponent from "@/components/subscribers/SettingsDialogComponent.vue";
 import ToggleAvailableComponent from "@/components/subscribers/ToggleAvailableComponent.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 
 type User = {
   id: string;

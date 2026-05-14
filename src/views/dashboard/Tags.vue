@@ -158,7 +158,6 @@ import {
 import { useToast } from '@/components/ui/toast/use-toast';
 import { Button } from '@/components/ui/button';
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { Input } from '@/components/ui/input';
 import {
   Table,

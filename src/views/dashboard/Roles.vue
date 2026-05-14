@@ -100,7 +100,6 @@ import Roles from '@/services/roles'
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/roles/CreateDialogComponent.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/roles/EditDialogComponent.vue";
 import {Card, CardContent} from "@/components/ui/card";
 

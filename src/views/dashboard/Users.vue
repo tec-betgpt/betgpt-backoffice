@@ -8,7 +8,6 @@
         </p>
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
-        <IAAnaliseButton />
         <Button class="bg-yellow-400" @click="openCreateModal">
           <Plus />
           Novo Usuário
@@ -268,7 +267,6 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

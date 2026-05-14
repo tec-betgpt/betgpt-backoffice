@@ -253,7 +253,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import IntegrationPreferencesGoogleAnalytics from "@/views/dashboard/IntegrationPreferencesGoogleAnalytics.vue";
 import { Settings2 } from "lucide-vue-next";
 

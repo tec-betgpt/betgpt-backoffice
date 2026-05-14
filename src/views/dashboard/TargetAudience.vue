@@ -10,7 +10,6 @@
       </div>
 
       <div class="w-full sm:w-auto flex justify-end">
-        <IAAnaliseButton />
         <Button v-if="canEditSegment" @click="openCreateSheet" class="max-sm:w-full shadow-sm">
           <PlusIcon class="mr-2 h-4 w-4" />
           Novo Público Alvo
@@ -145,7 +144,6 @@ import TargetAudience from "@/services/targetAudience";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

@@ -9,7 +9,6 @@
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CustomDatePicker v-model="selectedRange" />
-        <IAAnaliseButton />
       </div>
     </div>
 
@@ -514,7 +513,6 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import {

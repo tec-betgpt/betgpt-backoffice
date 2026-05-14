@@ -166,7 +166,6 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 
 const { toast } = useToast();

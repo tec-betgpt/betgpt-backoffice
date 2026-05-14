@@ -15,8 +15,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import DefaultLayout from "@/layouts/default.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useConfigStore } from "@/stores/config";
@@ -25,12 +25,24 @@ import { useErrorTracker } from "@/composables/useErrorTracker";
 import { storeToRefs } from "pinia";
 import { Toaster } from "@/components/ui/toast";
 import {useProjectPreferences} from "@/composables/useProjectPreferences.ts";
+import { useIAAnaliseStore } from "@/stores/iaAnalise";
 
 const route = useRoute();
+const router = useRouter();
 const authStore = useAuthStore();
 const configStore = useConfigStore();
+const iaAnaliseStore = useIAAnaliseStore();
 const { loading } = storeToRefs(authStore);
 const layout = computed(() => route.meta.layout);
+
+let previousIsLoading = false;
+
+watch(() => iaAnaliseStore.isLoading, (newValue) => {
+  if (previousIsLoading && !newValue && iaAnaliseStore.chatId) {
+    router.push({ name: "chat-ia", query: { chatId: parseInt(iaAnaliseStore.chatId) } });
+  }
+  previousIsLoading = newValue;
+});
 
 useInternetConnection(5000);
 useErrorTracker();

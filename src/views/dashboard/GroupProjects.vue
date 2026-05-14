@@ -10,7 +10,6 @@
 
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CreateDialogComponent :reload="fetchUserProjectGroups" />
-        <IAAnaliseButton />
       </div>
     </div>
 
@@ -97,7 +96,6 @@ import { TableBody } from "@/components/ui/table";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import CreateDialogComponent from "@/components/projects/CreateDialogComponent.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import EditDialogComponent from "@/components/projects/EditDialogComponent.vue";
 import UserProjectGroup from '@/services/userProjectGroup'
 

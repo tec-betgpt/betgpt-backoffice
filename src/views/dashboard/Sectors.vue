@@ -13,7 +13,6 @@
 
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CreateDialogComponent :reload="fetchSectors" />
-        <IAAnaliseButton />
       </div>
 
     </div>
@@ -101,7 +100,6 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/sectors/CreateDialogComponent.vue";
 import SectorRowActions from "@/components/sectors/SectorRowActions.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import {TableCell, TableRow} from "@/components/ui/table";
 import {Skeleton} from "@/components/ui/skeleton";
 

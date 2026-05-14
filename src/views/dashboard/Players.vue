@@ -144,7 +144,6 @@ import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 
 const { toast } = useToast();
 const router = useRouter();

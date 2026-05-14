@@ -19,7 +19,6 @@
           {{ isLegacy ? "Ver Versão Atual" : "Ver Versão Antiga" }}
         </Button>
         <CustomDatePicker v-model="selectedRange" />
-        <IAAnaliseButton />
       </div>
     </div>
 
@@ -253,8 +252,6 @@ const { toast } = useToast();
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
-
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 
 import {
   DropdownMenu,

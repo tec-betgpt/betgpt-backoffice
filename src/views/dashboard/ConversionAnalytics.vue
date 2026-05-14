@@ -9,7 +9,6 @@
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CustomDatePicker v-model="selectedRange" />
-        <IAAnaliseButton />
         <div v-if="showDateRangeWarning" class="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
             <Info class="w-4 h-4" />
             <span>Para uma visão completa do relatório verifique um período superior a 2 dias.</span>
@@ -171,7 +170,6 @@ import "moment/dist/locale/pt-br";
 import ConversionAnalyticsService from "@/services/conversionAnalytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import ConversionPeriodComponent from "@/components/conversion_analytics/ConversionPeriodComponent.vue";
 import TrafficAcquisitionTable from "@/components/custom/TrafficAcquisitionTable.vue";
 import ConversionDefinitionPieChart from "@/components/conversion_analytics/ConversionDefinitionPieChart.vue";

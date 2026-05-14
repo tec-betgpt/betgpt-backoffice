@@ -6,7 +6,6 @@ import { useScreenContext } from "@/composables/useScreenContext";
 import Analytics from "@/services/analytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { formatMinifiedNumber, numberLocale } from "@/filters/formatNumbers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -118,7 +117,6 @@ useScreenContext(
       <div class="flex items-center justify-start w-full">
         <div class="flex flex-col items-center justify-end sm:flex-row gap-2 w-full">
           <CustomDatePicker v-model="selectedRange" />
-          <IAAnaliseButton />
         </div>
       </div>
     </div>

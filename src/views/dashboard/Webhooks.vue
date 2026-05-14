@@ -76,7 +76,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import {
   Dialog,

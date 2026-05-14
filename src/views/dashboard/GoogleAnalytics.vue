@@ -11,7 +11,6 @@
       </div>
       <div class="flex flex-col justify-end sm:flex-row gap-2 w-full">
         <CustomDatePicker v-model="selectedRange" />
-        <IAAnaliseButton />
       </div>
     </div>
 
@@ -885,7 +884,6 @@ import {Card} from "@/components/ui/card";
 
 import { useScreenContext } from "@/composables/useScreenContext";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import {gaNicknameStorageKey} from "@/composables/useProjectPreferences";
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();

@@ -83,6 +83,8 @@
             <EyeClosed v-else class="w-5 h-5 text-primary" />
           </button>
 
+          <IAAnaliseButton v-if="!hideIAButton" />
+
           <SidebarTrigger
             :logo="false"
             :toggle="toggleSidebarIA"
@@ -152,6 +154,7 @@ import Projects from "@/services/projects";
 import Auth from "@/services/auth";
 import LeftMenuComponent from "@/components/layout/LeftMenuComponent.vue";
 import RightMenuComponent from "@/components/layout/RightMenuComponent.vue";
+import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 
 interface BreadcrumbItem {
   name: string;
@@ -235,6 +238,20 @@ const logoCustomAi = computed(() => {
   return mode.value === "dark"
     ? "/svg/logo-ia-v1-white.svg"
     : "/svg/logo-ia-v1-black.svg";
+});
+
+const hideIAButton = computed(() => {
+  const hiddenRoutes = ['configurations', 'chat-ia', 'jarbas-bot','governance','exports','elevate-api','conversions','manage'];
+  let r = false;
+  hiddenRoutes.forEach((item) => {
+    if (r){
+      return
+    }else {
+      r =route.fullPath.includes(item)
+    }
+   })
+
+  return r
 });
 
 // Methods

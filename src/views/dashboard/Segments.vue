@@ -11,7 +11,6 @@
       <div
         class="w-full flex max-sm:justify-center justify-end max-sm:flex-col gap-2 max-sm:mt-3 items-center"
       >
-        <IAAnaliseButton />
         <Button v-if="canEditSegment" @click="openCreateModal" class="max-sm:w-full">
           <PlusIcon class="mr-2 h-4 w-4" />
           Novo Segmento
@@ -93,7 +92,6 @@ import { h, ref, onMounted, watch, computed } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
 
-import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ArrowDown,
