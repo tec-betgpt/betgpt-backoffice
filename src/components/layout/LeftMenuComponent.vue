@@ -476,7 +476,7 @@ const navMenu = computed(() => {
           show: canAccess("access-to-reports"),
         },
         {
-          name: "Tráfegos",
+          name: "Aquisição",
           url: { name: "traffics" },
           icon: ChartNoAxesCombined,
           show: canAccess("access-to-reports"),
