@@ -4,7 +4,7 @@
   >
     <div class="grid gap-4 md:grid-cols-2 sm:grid-cols-1 mb-10">
       <div class="space-y-0.5">
-        <h2 class="text-2xl font-bold tracking-tight">Tráfego</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Aquisição</h2>
         <p class="text-muted-foreground">
           Relatórios de tráfego de um período específico.
         </p>
