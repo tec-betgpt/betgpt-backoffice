@@ -297,9 +297,11 @@ onMounted(async () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="login">Login</SelectItem>
-              <SelectItem value="deposito">Depósito</SelectItem>
+              <SelectItem value="deposit">Depósito</SelectItem>
+              <SelectItem value="first_deposit">Primeiro Depósito</SelectItem>
+              <SelectItem value="pendent_deposit">Depósito Pendente</SelectItem>
               <SelectItem value="saque">Saque</SelectItem>
-              <SelectItem value="criacao_conta">Criação de Conta</SelectItem>
+              <SelectItem value="sign_up">Criação de Conta</SelectItem>
             </SelectContent>
           </Select>
         </div>
