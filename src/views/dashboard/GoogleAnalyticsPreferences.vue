@@ -473,8 +473,9 @@ onMounted(async () => {
                 <SelectItem value="login">Login</SelectItem>
                 <SelectItem value="deposit">Depósito</SelectItem>
                 <SelectItem value="first_deposit">Primeiro Depósito</SelectItem>
+                <SelectItem value="pendent_deposit">Depósito Pendente</SelectItem>
                 <SelectItem value="saque">Saque</SelectItem>
-                <SelectItem value="criacao_conta">Criação de Conta</SelectItem>
+                <SelectItem value="sign_up">Criação de Conta</SelectItem>
               </SelectContent>
             </Select>
             <Check class="h-4 w-4 text-primary" />
