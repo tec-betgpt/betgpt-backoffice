@@ -88,6 +88,6 @@ const handleClick = async () => {
   >
     <Loader2 v-if="iaAnaliseStore.isLoading" class="w-4 h-4 animate-spin" />
     <Sparkles v-else class="w-4 h-4" />
-    IA Análise
+    <span class="hidden md:block">IA Análise</span>
   </Button>
 </template>

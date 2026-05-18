@@ -2,11 +2,8 @@
   <div class="view-home pb-16 w-full">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 w-full mt-5">
       <div>
-        <div class="text-md">
-          {{ greeting() }}
-        </div>
         <div class="text-xl md:text-2xl lg:text-3xl font-semibold">
-          {{ user ? user.first_name : "" }}
+          {{ greeting() }} {{ user ? user.first_name : "" }}
         </div>
         <div
           class="text-xs md:text-sm"

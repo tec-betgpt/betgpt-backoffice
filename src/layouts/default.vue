@@ -3,13 +3,9 @@
     <LeftMenuComponent v-model:sidebarExpanded="sidebarExpanded" />
 
     <SidebarInset>
-      <header
-        class="flex sticky z-30 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4"
-      >
-        <div class="flex items-center gap-2 w-full px-4">
-          <SidebarTrigger :logo="true" :toggle="toggleSidebar" class="-ml-1" />
-
-          <Separator orientation="vertical" class="mr-2 h-4 hidden md:block" />
+      <header class="flex sticky z-30 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4">
+        <div class="flex items-center gap-2 w-full">
+          <SidebarTrigger :logo="true" :toggle="toggleSidebar" />
 
           <Breadcrumb class="flex-1">
             <BreadcrumbList class="flex flex-nowrap">
