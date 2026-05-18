@@ -12,11 +12,10 @@ defineOptions({
 
 const props = withDefaults(defineProps<SidebarProps>(), {
   side: "left",
-  variant: "sidebar",
+  variant: "floating",
   collapsible: "offcanvas",
   collapsed: false,
 });
-
 
 const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
@@ -34,12 +33,6 @@ const updateCol = async ()=>{
     handleClose()
   }
 }
-
-onMounted(()=>{
-  if (!isMobile.value) {
-    handleOpen()
-  }
-})
 </script>
 
 <template>
@@ -86,35 +79,33 @@ onMounted(()=>{
   </Sheet>
 
   <div
-    v-else
-    class="group peer hidden md:block"
-    :data-state="state"
-    :data-collapsible="!collapsed ? collapsible : ''"
-    :data-variant="variant"
-    :data-side="side"
+      v-else
+      class="group peer hidden md:block"
+      :data-state="state"
+      :data-collapsible="!collapsed ? collapsible : ''"
+      :data-variant="variant"
+      :data-side="side"
   >
     <!-- This is what handles the sidebar gap on desktop  -->
     <div
-      :class="
-        cn(
-          'duration-200 relative h-svh  bg-transparent transition-[width] ease-linear',
-          side === 'left'
-            ? 'w-[--sidebar-width]'
-            : 'w-[440px]',
-          'group-data-[collapsible=offcanvas]:w-0',
-          'group-data-[side=right]:rotate-180',
-          variant === 'floating' || variant === 'inset'
-            ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]'
-            : 'group-data-[collapsible=icon]:w-[--sidebar-width-icon]'
-        )
-      "
+        :class="
+            cn(
+              'duration-200 relative h-svh bg-transparent transition-[width] ease-linear',
+              collapsible === 'icon' ? 'w-[--sidebar-width-icon]' : (side === 'left' ? 'w-[--sidebar-width]' : 'w-[440px]'),
+              collapsible === 'offcanvas' ? 'w-0' : '',
+              'group-data-[side=right]:rotate-180',
+              (variant === 'floating' || variant === 'inset') && collapsible === 'icon'
+                ? 'w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]'
+                : ''
+            )
+          "
     />
     <div
-      :class="
-        cn(
-          'duration-200 fixed inset-y-0 z-10 hidden h-svh  transition-[left,right,width] ease-linear md:flex',
-          side === 'right' ? 'w-[440px]' : 'w-[--sidebar-width]',
-          side === 'left'
+        :class="
+            cn(
+              'duration-200 fixed inset-y-0 z-50 hidden h-svh transition-[left,right,width] ease-linear md:flex',
+              side === 'right' ? 'w-[440px]' : 'w-[--sidebar-width]',
+              side === 'left'
             ? 'left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]'
             : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(28rem*-1)]',          // Adjust the padding for floating and inset variants.
           variant === 'floating' || variant === 'inset'
