@@ -27,7 +27,7 @@ const { toggleSidebar } = useSidebar();
       v-if="logo"
       :src="logoSrc"
       alt="Logo"
-      class="h-10 w-10 mr-2 md:hidden cursor-pointer"
+      class="h-12 w-12 mr-2 md:hidden cursor-pointer"
       @click="
         () => {
           toggle?.();
