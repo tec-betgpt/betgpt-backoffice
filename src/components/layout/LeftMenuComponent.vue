@@ -5,6 +5,8 @@
     :openMobile="false"
     @update:modelValue="handleSidebarExpand"
     :collapsed="sidebarExpanded"
+    @mouseenter="onMouseEnter"
+    @mouseleave="onMouseLeave"
   >
     <div
       v-if="authStore && authStore.user && !authStore.user.is_available"
@@ -787,7 +789,7 @@ const setActiveGroupProject = async (project: any) => {
   setTimeout(() => {
     configStore.loading = false;
     const isMobile = window.innerWidth < 768;
-    sidebarExpanded.value = !isMobile;
+    sidebarExpanded.value = false;
     document.body.style.overflow = "";
   }, 2000);
 };
@@ -819,6 +821,21 @@ const toggleCollapsed = (type: string) => {
 
 const handleSidebarExpand = (value: boolean) => {
   sidebarExpanded.value = value;
+};
+
+const onMouseEnter = () => {
+  const isMobile = window.innerWidth < 768;
+  if (!isMobile) {
+    sidebarExpanded.value = true;
+  }
+};
+
+const onMouseLeave = () => {
+  const isMobile = window.innerWidth < 768;
+  if (!isMobile) {
+    sidebarExpanded.value = false;
+    collapsed.value = "";
+  }
 };
 
 const toggleSidebar = () => {
