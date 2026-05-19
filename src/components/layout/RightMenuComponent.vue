@@ -1,14 +1,15 @@
 <template>
   <Sidebar
-    class="ia"
+    class="ia z-20"
     side="right"
+    variant="sidebar"
+    collapsible="offcanvas"
     :collapsed="sidebarAi"
     :setOpen="setOpenAi"
-    collapsible="offcanvas"
     :openMobile="false"
     @update:modelValue="handleSidebarAiExpand"
   >
-    <SidebarHeader>
+      <SidebarHeader>
       <div class="flex justify-between items-center align-middle pl-2">
         <img :src="iconIa" alt="Logo" class="w-10 py-4" />
 
@@ -17,24 +18,24 @@
             <Tooltip>
               <TooltipTrigger>
                 <Maximize2
-                  :stroke-width="2"
-                  class="cursor-pointer"
-                  absoluteStrokeWidth
-                  @click="router.push({ name: 'chat-ia', query: { chatId: selectedChatId } })"
+                    :stroke-width="2"
+                    class="cursor-pointer"
+                    absoluteStrokeWidth
+                    @click="router.push({ name: 'chat-ia', query: { chatId: selectedChatId } })"
                 />
               </TooltipTrigger>
               <TooltipContent
-                side="bottom"
-                align="end"
-                :align-offset="4"
-                :arrow-padding="8"
-                avoid-collisions
-                :collision-padding="10"
-                hide-when-detached
-                position-strategy="absolute"
-                sticky="always"
-                update-position-strategy="optimized"
-                :collision-boundary="null"
+                  side="bottom"
+                  align="end"
+                  :align-offset="4"
+                  :arrow-padding="8"
+                  avoid-collisions
+                  :collision-padding="10"
+                  hide-when-detached
+                  position-strategy="absolute"
+                  sticky="always"
+                  update-position-strategy="optimized"
+                  :collision-boundary="null"
               >
                 Expandir Chat
               </TooltipContent>
@@ -45,24 +46,24 @@
             <Tooltip>
               <TooltipTrigger>
                 <Plus
-                  :stroke-width="2"
-                  class="cursor-pointer"
-                  absoluteStrokeWidth
-                  @click="resetChat"
+                    :stroke-width="2"
+                    class="cursor-pointer"
+                    absoluteStrokeWidth
+                    @click="resetChat"
                 />
               </TooltipTrigger>
               <TooltipContent
-                side="bottom"
-                align="end"
-                :align-offset="4"
-                :arrow-padding="8"
-                avoid-collisions
-                :collision-padding="10"
-                hide-when-detached
-                position-strategy="absolute"
-                sticky="always"
-                update-position-strategy="optimized"
-                :collision-boundary="null"
+                  side="bottom"
+                  align="end"
+                  :align-offset="4"
+                  :arrow-padding="8"
+                  avoid-collisions
+                  :collision-padding="10"
+                  hide-when-detached
+                  position-strategy="absolute"
+                  sticky="always"
+                  update-position-strategy="optimized"
+                  :collision-boundary="null"
               >
                 Nova sessão
               </TooltipContent>
@@ -72,16 +73,16 @@
           <DropdownMenu>
             <DropdownMenuTrigger>
               <History
-                :stroke-width="2"
-                absoluteStrokeWidth
-                class="cursor-pointer"
+                  :stroke-width="2"
+                  absoluteStrokeWidth
+                  class="cursor-pointer"
               />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem
-                v-for="chat in chats"
-                :key="chat.id"
-                @click="selectChat(chat.id)"
+                  v-for="chat in chats"
+                  :key="chat.id"
+                  @click="selectChat(chat.id)"
               >
                 {{ chat.title }}
               </DropdownMenuItem>
@@ -90,249 +91,256 @@
         </div>
       </div>
     </SidebarHeader>
-    <SidebarContent>
-      <div
-        v-if="isLoadingChat || isLoadingLocal"
-        class="h-full flex items-center justify-center w-full"
-      >
-        <LoadingFakeComponent />
-      </div>
-
-      <div class="h-full" v-else>
+      <SidebarContent>
         <div
-          v-if="messages.length == 0 && !file"
-          class="p-4 text-center flex flex-col justify-center align-middle items-center text-sm h-full font-semibold"
+            v-if="isLoadingChat || isLoadingLocal"
+            class="h-full flex flex-col items-center justify-center w-full gap-4"
         >
-          <div class="h-full flex flex-col justify-end items-center">
-            <img :src="logoInChat" class="size-12" alt="logoInChat" />
-            <span>Como posso ajudar?</span>
+          <Avatar class="h-4 w-4 rounded-lg">
+            <AvatarImage :src="iconIa" />
+            <AvatarFallback class="rounded-lg">
+              {{ authStore.user?.initials }}
+            </AvatarFallback>
+          </Avatar>
+          <div class="loading-dots">
+            <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
           </div>
+          <span class="text-xs text-muted-foreground animate-pulse">{{ loadingMessage }}</span>
+        </div>
 
+        <div class="h-full" v-else>
           <div
-            class="h-full flex flex-col justify-end items-center pb-2 gap-2 w-full"
+              v-if="messages.length == 0 && !file"
+              class="p-4 text-center flex flex-col justify-center align-middle items-center text-sm h-full font-semibold"
           >
+            <div class="h-full flex flex-col justify-end items-center">
+              <img :src="logoInChat" class="size-12" alt="logoInChat" />
+              <span>Como posso ajudar?</span>
+            </div>
+
             <div
-              v-if="suggestionList.length > 0"
-              v-for="suggestion in suggestionList"
-              @click="
+                class="h-full flex flex-col justify-end items-center pb-2 gap-2 w-full"
+            >
+              <div
+                  v-if="suggestionList.length > 0"
+                  v-for="suggestion in suggestionList"
+                  @click="
                 () => {
                   newMessage.message = suggestion;
                   sendMessage();
                 }
               "
-              class="p-2 rounded-xl bg-accent/60 text-accent-foreground/80 w-full flex gap-2 items-center cursor-pointer hover:bg-accent"
-            >
-              <Search :size="18" />
-              <span class="text-[12px] text-muted-foreground">{{
-                suggestion
-              }}</span>
+                  class="p-2 rounded-xl bg-accent/60 text-accent-foreground/80 w-full flex gap-2 items-center cursor-pointer hover:bg-accent"
+              >
+                <Search :size="18" />
+                <span class="text-[12px] text-muted-foreground">{{
+                    suggestion
+                  }}</span>
+              </div>
+              <Skeleton
+                  v-else
+                  v-for="n in 4"
+                  class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full"
+              />
             </div>
-            <Skeleton
-              v-else
-              v-for="n in 4"
-              class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full"
-            />
           </div>
-        </div>
 
-        <div
-          v-else
-          ref="messageContainerRef"
-          type="hover"
-          class="overflow-x-hidden h-full px-6"
-        >
-          <CustomTextChart
-            v-for="(message, index) in messages"
-            :key="message.id"
-            class="mb-6 last:mb-20"
-            :class="
+          <div
+              v-else
+              ref="messageContainerRef"
+              type="hover"
+              class="overflow-x-hidden h-full px-6"
+          >
+            <CustomTextChart
+                v-for="(message, index) in messages"
+                :key="message.id"
+                class="mb-6 last:mb-20"
+                :class="
               message.role === 'user'
                 ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
                 : 'flex-col text-start justify-start'
             "
-            :html="message.message"
-            :start="
+                :html="message.message"
+                :start="
               message.role !== 'user' &&
               index + 1 === messages.length &&
               isAnimating
             "
-            :speed="8"
-            @tick="scrollToBottom"
-            @done="
+                :speed="8"
+                @tick="scrollToBottom"
+                @done="
               () => {
                 isAnimating = false;
                 isInputDisabled = false;
               }
             "
-          />
+            />
 
-          <div v-if="loading" class="flex flex-col gap-2">
-            <Avatar class="h-4 w-4 rounded-lg">
-              <AvatarImage :src="iconIa" />
-              <AvatarFallback class="rounded-lg">
-                {{ authStore.user?.initials }}
-              </AvatarFallback>
-            </Avatar>
-            <div class="loading-dots">
-              <span
-                v-for="n in 3"
-                :key="n"
-                :style="{ animationDelay: `${n * 0.2}s` }"
-                >.</span
-              >
+            <div v-if="loading" class="flex flex-col gap-2">
+              <Avatar class="h-4 w-4 rounded-lg">
+                <AvatarImage :src="iconIa" />
+                <AvatarFallback class="rounded-lg">
+                  {{ authStore.user?.initials }}
+                </AvatarFallback>
+              </Avatar>
+              <div class="loading-dots">
+                <span v-for="n in 3" :key="n" :style="{ animationDelay: `${n * 0.2}s` }">.</span>
+              </div>
+              <span class="text-xs text-muted-foreground animate-pulse">{{ loadingMessage }}</span>
             </div>
           </div>
-        </div>
 
-        <div
-          v-if="file"
-          class="flex justify-end w-full items-center cursor-default gap-2 px-6"
-        >
-          <Badge class="p-4">
-            {{ file.name }}
-          </Badge>
-          <Button
-            v-if="!loading"
-            variant="ghost"
-            @click="
+          <div
+              v-if="file"
+              class="flex justify-end w-full items-center cursor-default gap-2 px-6"
+          >
+            <Badge class="p-4">
+              {{ file.name }}
+            </Badge>
+            <Button
+                v-if="!loading"
+                variant="ghost"
+                @click="
               () => {
                 file = undefined;
               }
             "
-          >
-            <Trash />
-          </Button>
-        </div>
-      </div>
-    </SidebarContent>
-    <SidebarFooter>
-      <div class=" w-full flex items-center justify-end ">
-        <CustomStarScore v-if="messages.length > 0" :readonly="false" :modelValue="star" @update:modelValue="args => star = args" >
-          <form @submit.prevent="sendFeed" class="flex justify-end flex-col gap-2">
-            <Textarea placeholder="Feedback" v-model="feedback"/>
-            <Button >
-              Enviar Feedback
+            >
+              <Trash />
             </Button>
-          </form>
+          </div>
+        </div>
+      </SidebarContent>
+      <SidebarFooter>
+        <div class=" w-full flex items-center justify-end ">
+          <CustomStarScore v-if="messages.length > 0" :readonly="false" :modelValue="star" @update:modelValue="args => star = args" >
+            <form @submit.prevent="sendFeed" class="flex justify-end flex-col gap-2">
+              <Textarea placeholder="Feedback" v-model="feedback"/>
+              <Button >
+                Enviar Feedback
+              </Button>
+            </form>
 
-        </CustomStarScore>
-      </div>
-
-      <div class="relative w-full items-center">
-        <div class="absolute end-0 flex  align-middle items-center justify-end w-28 h-full">
-          <Button
-              v-if="((!newMessage.message.trim() && !file) || isRecording) && SpeechRecognition "
-              variant="link"
-              @click="toggleRecording"
-              class="relative"
-              :class="{ 'text-red-600 hover:text-red-700': isRecording }"
-          >
-            <Square v-if="isRecording" class="h-5 w-5 fill-current" />
-            <Mic v-else class="h-5 w-5" />
-          </Button>
-          <Button
-              v-if="!isRecording"
-              variant="link"
-              @click="sendMessage"
-              :disabled="isInputDisabled"
-              class="relative"
-          >
-            <SendHorizontal :stroke-width="2.5" absoluteStrokeWidth />
-          </Button>
-
-
+          </CustomStarScore>
         </div>
 
+        <div class="relative w-full items-center">
+          <div class="absolute end-0 flex  align-middle items-center justify-end w-28 h-full">
+            <Button
+                v-if="((!newMessage.message.trim() && !file) || isRecording) && SpeechRecognition "
+                variant="link"
+                @click="toggleRecording"
+                class="relative"
+                :class="{ 'text-red-600 hover:text-red-700': isRecording }"
+            >
+              <Square v-if="isRecording" class="h-5 w-5 fill-current" />
+              <Mic v-else class="h-5 w-5" />
+            </Button>
+            <Button
+                v-if="!isRecording"
+                variant="link"
+                @click="sendMessage"
+                :disabled="isInputDisabled"
+                class="relative"
+            >
+              <SendHorizontal :stroke-width="2.5" absoluteStrokeWidth />
+            </Button>
 
-        <span
-          v-if="!isRecording"
-          class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2"
-        >
+
+          </div>
+
+
+          <span
+              v-if="!isRecording"
+              class="absolute start-0 inset-y-0 z-10 flex items-center justify-center px-2"
+          >
           <Popover>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger as-child>
                   <PopoverTrigger as-child>
                     <Ellipsis
-                      :stroke-width="2.5"
-                      absoluteStrokeWidth
-                      class="cursor-pointer"
+                        :stroke-width="2.5"
+                        absoluteStrokeWidth
+                        class="cursor-pointer"
                     />
                   </PopoverTrigger>
                 </TooltipTrigger>
                 <TooltipContent
-                  side="top"
-                  align="start"
-                  :align-offset="-4"
-                  :arrow-padding="8"
-                  avoid-collisions
-                  :collision-padding="10"
-                  hide-when-detached
-                  position-strategy="absolute"
-                  sticky="always"
-                  update-position-strategy="optimized"
-                  :collision-boundary="null"
+                    side="top"
+                    align="start"
+                    :align-offset="-4"
+                    :arrow-padding="8"
+                    avoid-collisions
+                    :collision-padding="10"
+                    hide-when-detached
+                    position-strategy="absolute"
+                    sticky="always"
+                    update-position-strategy="optimized"
+                    :collision-boundary="null"
                 >
                   Opcões
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
             <PopoverContent
-              align="start"
-              :alignOffset="-8"
-              :sideOffset="16"
-              :arrowPadding="0"
-              class="w-56 p-2"
+                align="start"
+                :alignOffset="-8"
+                :sideOffset="16"
+                :arrowPadding="0"
+                class="w-56 p-2"
             >
               <div class="flex flex-col gap-2 text-sm">
                 <Label
-                  for="file"
-                  class="cursor-pointer text-sm truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+                    for="file"
+                    class="cursor-pointer text-sm truncate py-2 px-1 flex gap-4 text-center align-baseline justify-start items-center font-semibold rounded-sm text-foreground hover:bg-accent hover:text-accent-foreground"
                 >
                   <Paperclip class="size-4" />
                   Anexar
                 </Label>
                 <Input
-                  id="file"
-                  type="file"
-                  class="hidden"
-                  @change="handleFileUpload"
-                  :disabled="isInputDisabled"
+                    id="file"
+                    type="file"
+                    class="hidden"
+                    @change="handleFileUpload"
+                    :disabled="isInputDisabled"
                 />
               </div>
             </PopoverContent>
           </Popover>
         </span>
-        
-        <Input
-          v-if="!isRecording"
-          id="search"
-          @keyup.enter="!isInputDisabled && sendMessage()"
-          v-model="newMessage.message"
-          type="text"
-          placeholder="Pergunte alguma coisa"
-          class="px-10 h-12"
-        />
-        
-        <!-- Recording Animation State -->
-        <div v-else class="flex items-center justify-center gap-4 h-12 px-2 border rounded-md bg-background">
-             <div class="flex items-center gap-1.5 h-full">
-                <div 
-                  v-for="i in 8" 
+
+          <Input
+              v-if="!isRecording"
+              id="search"
+              @keyup.enter="!isInputDisabled && sendMessage()"
+              v-model="newMessage.message"
+              type="text"
+              placeholder="Pergunte alguma coisa"
+              class="px-10 h-12"
+          />
+
+          <!-- Recording Animation State -->
+          <div v-else class="flex items-center justify-center gap-4 h-12 px-2 border rounded-md bg-background">
+            <div class="flex items-center gap-1.5 h-full">
+              <div
+                  v-for="i in 8"
                   :key="i"
                   class="w-1 bg-yellow-500 rounded-full transition-all duration-75 origin-center"
-                  :style="{ 
+                  :style="{
                     height: `${Math.max(4, audioLevel * (15 + (i % 4) * 10))}px`,
                     opacity: 0.4 + (audioLevel * 0.6)
                   }"
-                ></div>
-             </div>
-             <span class="text-xs text-muted-foreground w-full text-center">
+              ></div>
+            </div>
+            <span class="text-xs text-muted-foreground w-full text-center">
                {{ audioLevel > 0.1 ? 'Detectando fala...' : 'Silêncio...' }}
              </span>
+          </div>
         </div>
-      </div>
-    </SidebarFooter>
+      </SidebarFooter>
+
+
   </Sidebar>
 </template>
 
@@ -379,7 +387,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { Label } from "@/components/ui/label";
 import { marked } from "marked";
-import { computed, nextTick, onMounted, ref, toRefs, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, toRefs, watch } from "vue";
 import {useRoute, useRouter} from "vue-router";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
@@ -387,7 +395,6 @@ import { Button } from "@/components/ui/button";
 import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
 import CustomStarScore from "@/components/custom/CustomStarScore.vue";
 import {Textarea} from "@/components/ui/textarea";
 import { useIAAnaliseStore } from "@/stores/iaAnalise";
@@ -459,7 +466,19 @@ let analyser: AnalyserNode | null = null;
 let animationFrame: number | null = null;
 let recognition: any = null;
 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+const onMouseEnter = () => {
+  const isMobile = window.innerWidth < 768;
+  if (!isMobile) {
+    sidebarAi.value = true;
+  }
+};
 
+const onMouseLeave = () => {
+  const isMobile = window.innerWidth < 768;
+  if (!isMobile) {
+    sidebarAi.value = false;
+  }
+};
 // Audio Recording Methods
 const toggleRecording = async () => {
   if (isRecording.value) {
@@ -561,6 +580,39 @@ const activeGroupProject = computed(
 );
 
 const isLoadingChat = computed(() => iaAnaliseStore.isLoading);
+
+const loadingTexts = [
+  "Analisando os dados...",
+  "Estruturando KPIs...",
+  "Refletindo sobre os dados...",
+  "Construindo Relatorio...",
+]
+const loadingTextIndex = ref(0)
+const loadingMessage = computed(() => loadingTexts[loadingTextIndex.value])
+
+let loadingTextInterval: ReturnType<typeof setInterval> | null = null
+
+const startLoadingTextCycle = () => {
+  loadingTextIndex.value = 0
+  loadingTextInterval = setInterval(() => {
+    loadingTextIndex.value = (loadingTextIndex.value + 1) % loadingTexts.length
+  }, 3000)
+}
+
+const stopLoadingTextCycle = () => {
+  if (loadingTextInterval) {
+    clearInterval(loadingTextInterval)
+    loadingTextInterval = null
+  }
+}
+
+watch([isLoadingChat, isLoadingLocal, loading], ([chatLoading, localLoading, msgLoading]) => {
+  if (chatLoading || localLoading || msgLoading) {
+    startLoadingTextCycle()
+  } else {
+    stopLoadingTextCycle()
+  }
+})
 
 watch(() => iaAnaliseStore.isLoading, async (newVal, oldVal) => {
   if (oldVal === true && newVal === false && iaAnaliseStore.chatId) {
@@ -755,6 +807,10 @@ const setOpenAi = () => {
     emit("update:sidebarAi", shouldBeOpen);
   }
 };
+
+onUnmounted(() => {
+  stopLoadingTextCycle()
+})
 
 onMounted(async () => {
   const user = authStore.user;

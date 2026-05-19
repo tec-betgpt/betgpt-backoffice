@@ -11,6 +11,7 @@ const props = defineProps<{
   class?: HTMLAttributes["class"];
   toggle?: () => void;
   logoCustom?: string;
+  open?: boolean;
 }>();
 const mode = useColorMode();
 const logoSrc = computed(() => {
@@ -22,7 +23,7 @@ const { toggleSidebar } = useSidebar();
 </script>
 
 <template>
-  <div class="flex gap-2">
+  <div class="flex gap-2" :class="cn(props.class)">
     <img
       v-if="logo"
       :src="logoSrc"
@@ -35,5 +36,9 @@ const { toggleSidebar } = useSidebar();
         }
       "
     />
+    <Button v-else variant="ghost" size="icon" @click="toggle?.()">
+      <PanelRight v-if="open" class="h-5 w-5" />
+      <PanelLeft v-else class="h-5 w-5" />
+    </Button>
   </div>
 </template>
