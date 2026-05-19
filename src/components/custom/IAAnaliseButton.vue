@@ -11,6 +11,19 @@ const workspaceStore = useWorkspaceStore();
 const iaAnaliseStore = useIAAnaliseStore();
 const route = useRoute();
 
+const props = defineProps<{
+  openSidebar?: () => void;
+}>();
+
+const emit = defineEmits<{
+  (e: 'openSidebar'): void;
+}>();
+
+const openSidebar = () => {
+  emit('openSidebar');
+  props.openSidebar?.();
+};
+
 const handleClick = async () => {
   if (!workspaceStore.activeGroupProject?.id) {
     toast({
@@ -46,6 +59,7 @@ const handleClick = async () => {
     }
 
     iaAnaliseStore.startAnalise(chatId);
+    openSidebar();
 
     const contextString = workspaceStore.context
       ? workspaceStore.context.join("\n")

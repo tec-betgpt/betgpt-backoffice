@@ -83,7 +83,7 @@
             <EyeClosed v-else class="w-5 h-5 text-primary" />
           </button>
 
-          <IAAnaliseButton v-if="!hideIAButton" />
+          <IAAnaliseButton v-if="!hideIAButton" @openSidebar="sidebarAi = true" />
 
           <SidebarTrigger
             :logo="false"

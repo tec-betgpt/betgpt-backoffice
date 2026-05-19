@@ -30,19 +30,10 @@ import { useIAAnaliseStore } from "@/stores/iaAnalise";
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-const configStore = useConfigStore();
-const iaAnaliseStore = useIAAnaliseStore();
 const { loading } = storeToRefs(authStore);
 const layout = computed(() => route.meta.layout);
 
-let previousIsLoading = false;
 
-watch(() => iaAnaliseStore.isLoading, (newValue) => {
-  if (previousIsLoading && !newValue && iaAnaliseStore.chatId) {
-    router.push({ name: "chat-ia", query: { chatId: parseInt(iaAnaliseStore.chatId) } });
-  }
-  previousIsLoading = newValue;
-});
 
 useInternetConnection(5000);
 useErrorTracker();

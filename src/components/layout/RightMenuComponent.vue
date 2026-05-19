@@ -92,7 +92,7 @@
     </SidebarHeader>
     <SidebarContent>
       <div
-        v-if="isLoadingChat"
+        v-if="isLoadingChat || isLoadingLocal"
         class="h-full flex items-center justify-center w-full"
       >
         <LoadingFakeComponent />
@@ -379,7 +379,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { Label } from "@/components/ui/label";
 import { marked } from "marked";
-import { computed, nextTick, onMounted, ref, toRefs } from "vue";
+import { computed, nextTick, onMounted, ref, toRefs, watch } from "vue";
 import {useRoute, useRouter} from "vue-router";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { toast } from "@/components/ui/toast";
@@ -390,6 +390,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import LoadingFakeComponent from "@/components/layout/LoadingFakeComponent.vue";
 import CustomStarScore from "@/components/custom/CustomStarScore.vue";
 import {Textarea} from "@/components/ui/textarea";
+import { useIAAnaliseStore } from "@/stores/iaAnalise";
 
 interface Chat {
   id: number;
@@ -426,10 +427,11 @@ const mode: any = useColorMode();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
 const router = useRouter();
+const iaAnaliseStore = useIAAnaliseStore();
 
 // Chat e mensagens
 const chats = ref<Chat[]>([]);
-const isLoadingChat = ref(false);
+const isLoadingLocal = ref(false);
 const selectedChatId = ref<number | undefined>(undefined);
 const messages = ref<Message[]>([]);
 const newMessage = ref<Message>({
@@ -558,6 +560,16 @@ const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null
 );
 
+const isLoadingChat = computed(() => iaAnaliseStore.isLoading);
+
+watch(() => iaAnaliseStore.isLoading, async (newVal, oldVal) => {
+  if (oldVal === true && newVal === false && iaAnaliseStore.chatId) {
+    selectedChatId.value = parseInt(iaAnaliseStore.chatId);
+    localStorage.setItem("chatId", iaAnaliseStore.chatId);
+    await loadMessages();
+  }
+});
+
 const logoInChat = computed(() => getLogoSrc(mode.value === "dark", false));
 
 const iconIa = computed(() => {
@@ -619,11 +631,11 @@ const createNewChat = async () => {
 const selectChat = async (chatId: number) => {
   if (chatId == 0) return;
 
-  isLoadingChat.value = true;
+  isLoadingLocal.value = true;
   selectedChatId.value = chatId;
   localStorage.setItem("chatId", `${chatId}`);
   await loadMessages();
-  isLoadingChat.value = false;
+  isLoadingLocal.value = false;
 };
 
 const loadMessages = async () => {
