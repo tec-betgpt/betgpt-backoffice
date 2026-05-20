@@ -350,9 +350,9 @@ useScreenContext(
           </div>
           <Button :disabled="isBusy" @click="applyFilters">
             <Loader2 v-if="isBusy" class="mr-2 h-4 w-4 animate-spin" />
-            Apply filters
+            Aplicar Filtro
           </Button>
-          <Button :disabled="isBusy" variant="outline" @click="clearFilters">Clear</Button>
+          <Button :disabled="isBusy" variant="outline" @click="clearFilters">Limpar</Button>
         </div>
         <p v-if="validationMessage" class="text-sm text-destructive">{{ validationMessage }}</p>
       </div>
