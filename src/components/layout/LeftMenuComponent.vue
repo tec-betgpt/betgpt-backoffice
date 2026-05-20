@@ -490,6 +490,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-reports"),
         },
         {
+          name: "Risco",
+          url: { name: "risk" },
+          icon: ShieldAlert,
+          show: canAccess("access-to-reports"),
+        },
+        {
           name: "E-mails",
           url: { name: "emails" },
           icon: MailCheck,

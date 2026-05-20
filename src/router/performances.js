@@ -6,6 +6,7 @@ import SmsFunnel from "@/views/dashboard/SmsFunnel.vue";
 import Call4u from "@/views/dashboard/Call4u.vue";
 import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
 import AnalyticsRetention from "@/views/dashboard/AnalyticsRetention.vue";
+import Risk from "@/views/dashboard/Risk.vue";
 
 export default [
   {
@@ -38,6 +39,18 @@ export default [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Análise de Retenção",
+          roles: "member|client",
+          permissions: "access-to-reports",
+        },
+      },
+      {
+        path: "/risk",
+        name: "risk",
+        component: Risk,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Risco",
           roles: "member|client",
           permissions: "access-to-reports",
         },
