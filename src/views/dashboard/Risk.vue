@@ -383,7 +383,7 @@ useScreenContext(
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Acquisition</CardTitle>
+            <CardTitle>Aquisição</CardTitle>
           </CardHeader>
           <CardContent class="space-y-4">
             <div>
@@ -396,7 +396,7 @@ useScreenContext(
 
         <Card>
           <CardHeader>
-            <CardTitle>Engagement</CardTitle>
+            <CardTitle>Engajamento</CardTitle>
           </CardHeader>
           <CardContent class="space-y-4">
             <div>
@@ -410,7 +410,7 @@ useScreenContext(
 
       <Card>
         <CardHeader>
-          <CardTitle>Monetization</CardTitle>
+          <CardTitle>Monetização</CardTitle>
         </CardHeader>
         <CardContent>
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
