@@ -381,7 +381,7 @@ const fetchAudiences = async (current = pages.value.current, showLoading = true)
 const loadAllData = async (showLoading = true) => {
   if (!activeGroupProjectId.value) return;
   await Promise.all([
-    fetchAudiences(1, showLoading), 
+    fetchAudiences(pages.value.current, showLoading),
     fetchMetaAudiences(1, showLoading), 
     fetchDashboardStats(showLoading)
   ]);
@@ -492,6 +492,23 @@ const columns = [
   columnHelper.accessor("players", {
     header: "Tamanho (Elevate)",
     cell: ({ row }) => h("div", { class: "font-semibold text-slate-900 dark:text-slate-200" }, (row.getValue("players") ?? 0).toLocaleString('pt-BR')),
+  }),
+  columnHelper.accessor("syncs",{
+    header: "Provedor",
+    cell: ({ row }) => {
+      const providers = row.original?.syncs?.map(s => s.provider)
+      console.log(row.getValue("syncs"))
+      const providersMap: any = {
+        meta: { label: "Meta", variant: "default", class: "bg-blue-500 hover:bg-blue-600" },
+        google: { label: "Google", variant: "default",  class: "bg-blue-500 hover:bg-blue-600" },
+      };
+
+      return providers?.map( p => {
+        return  h(Badge, { variant: providersMap[p].variant, class: ["flex items-center gap-1.5 w-fit px-2 py-0.5", providersMap[p].class] }, () => [
+          providersMap[p].label
+        ]);
+      })
+    },
   }),
   columnHelper.accessor("updated_at", {
     header: "Sincronização",
