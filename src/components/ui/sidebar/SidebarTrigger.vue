@@ -14,21 +14,17 @@ const props = defineProps<{
   open?: boolean;
 }>();
 const mode = useColorMode();
-const logoSrc = computed(() => {
-  return mode.value === "dark"
-    ? "/logo-elevate-square-white.png"
-    : "/logo-elevate-square-black.png";
-});
 const { toggleSidebar } = useSidebar();
+
 </script>
 
 <template>
   <div class="flex gap-2" :class="cn(props.class)">
     <img
       v-if="logo"
-      :src="logoSrc"
+      :src="logoCustom"
       alt="Logo"
-      class="h-12 w-12 mr-2 md:hidden cursor-pointer"
+      class="h-8 w-8 mr-2  cursor-pointer"
       @click="
         () => {
           toggle?.();
