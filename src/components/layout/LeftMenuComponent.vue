@@ -478,6 +478,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-reports"),
         },
         {
+          name: "Risco",
+          url: { name: "risk" },
+          icon: ShieldAlert,
+          show: canAccess("access-to-reports"),
+        },
+        {
           name: "Aquisição",
           url: { name: "traffics" },
           icon: ChartNoAxesCombined,
@@ -780,6 +786,18 @@ const canAccess = (permissionName: string) => {
   );
 };
 
+const getActiveMenuType = () => {
+  const activeGroup = navMenu.value.find((group) => {
+    return group.children?.some((child) => child.url.name === route.name);
+  });
+
+  return activeGroup?.type || "";
+};
+
+const syncCollapsedWithRoute = () => {
+  collapsed.value = getActiveMenuType();
+};
+
 const setActiveGroupProject = async (project: any) => {
   sidebarExpanded.value = false;
   configStore.loading = true;
@@ -834,7 +852,7 @@ const onMouseLeave = () => {
   const isMobile = window.innerWidth < 768;
   if (!isMobile) {
     sidebarExpanded.value = false;
-    collapsed.value = "";
+    syncCollapsedWithRoute();
   }
 };
 
@@ -849,16 +867,8 @@ const toggleSidebar = () => {
 
 // Hooks
 watch(
-  () => route.matched,
-  (matchedRoutes) => {
-    matchedRoutes.forEach((matchedRoute) => {
-      navMenu.value.forEach((group) => {
-        if (group.children && group.type === matchedRoute.path.split("/")[1]) {
-          collapsed.value = group.type;
-        }
-      });
-    });
-  },
+  () => route.name,
+  () => syncCollapsedWithRoute(),
   { immediate: true, deep: true },
 );
 
