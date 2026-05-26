@@ -149,32 +149,58 @@
               v-else
               ref="messageContainerRef"
               type="hover"
-              class="overflow-x-hidden h-full px-6"
+              class="overflow-x-hidden overflow-y-auto h-full px-6 relative"
+              @scroll="updateActiveChatDate"
           >
-            <CustomTextChart
-                v-for="(message, index) in messages"
-                :key="message.id"
-                class="mb-6 last:mb-20"
-                :class="
-              message.role === 'user'
-                ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
-                : 'flex-col text-start justify-start'
-            "
-                :html="message.message"
-                :start="
-              message.role !== 'user' &&
-              index + 1 === messages.length &&
-              isAnimating
-            "
-                :speed="8"
-                @tick="scrollToBottom"
-                @done="
-              () => {
-                isAnimating = false;
-                isInputDisabled = false;
-              }
-            "
-            />
+            <div
+                v-if="messages.length"
+                class="sticky top-2 z-10 flex justify-center pointer-events-none mb-4"
+            >
+              <Badge
+                  class="text-foreground border shadow-sm backdrop-blur-sm transition-opacity duration-200"
+                  :class="isDateDividerPinned ? 'bg-background/45 opacity-55' : 'bg-background/90 opacity-100'"
+              >
+                {{ activeChatDateLabel }}
+              </Badge>
+            </div>
+
+            <template v-for="(message, index) in messages" :key="message.id ?? index">
+              <div
+                  v-if="shouldShowDateDivider(index)"
+                  data-date-divider
+                  class="flex items-center gap-3 my-6 text-[11px] font-medium text-muted-foreground"
+              >
+                <div class="h-px flex-1 bg-border"></div>
+                <span class="rounded-full border bg-background px-3 py-1">
+                  {{ formatChatDateLabel(message) }}
+                </span>
+                <div class="h-px flex-1 bg-border"></div>
+              </div>
+
+              <CustomTextChart
+                  :data-message-date="getMessageDateKey(message)"
+                  class="mb-6 last:mb-20"
+                  :class="
+                message.role === 'user'
+                  ? ' text-end justify-end bg-accent text-accent-foreground w-fit p-2 rounded-md ml-auto '
+                  : 'flex-col text-start justify-start'
+              "
+                  :html="message.message"
+                  :start="
+                message.role !== 'user' &&
+                index + 1 === messages.length &&
+                isAnimating
+              "
+                  :speed="8"
+                  @tick="scrollToBottom"
+                  @done="
+                () => {
+                  isAnimating = false;
+                  isInputDisabled = false;
+                }
+              "
+              />
+            </template>
 
             <div v-if="loading" class="flex flex-col gap-2">
               <Avatar class="h-4 w-4 rounded-lg">
@@ -408,6 +434,7 @@ interface Message {
   role: "user" | "assistant";
   message: string;
   file: File | null;
+  timestamp?: string;
 }
 
 const props = defineProps({
@@ -452,6 +479,8 @@ const feedback = ref<string>("");
 const loading = ref(false);
 const file = ref<File>();
 const messageContainerRef = ref<HTMLElement | null>(null);
+const activeChatDateLabel = ref("");
+const isDateDividerPinned = ref(false);
 const isAnimating = ref(false);
 const isInputDisabled = computed(() => loading.value || isAnimating.value);
 const suggestionList = ref([]);
@@ -640,8 +669,72 @@ const scrollToBottom = () => {
     const container = messageContainerRef.value;
     if (container) {
       messageContainerRef.value!.scrollTop = container.scrollHeight;
+      updateActiveChatDate();
     }
   });
+};
+
+const getDateKey = (date = new Date()) => date.toLocaleDateString("sv-SE");
+
+const getMessageDateKey = (message: Message) => {
+  const date = new Date((message.timestamp ?? "").replace(" ", "T"));
+
+  return getDateKey(Number.isNaN(date.getTime()) ? new Date() : date);
+};
+
+const getDateLabelFromKey = (dateKey: string) => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (dateKey === getDateKey()) return "Hoje";
+  if (dateKey === getDateKey(yesterday)) return "Ontem";
+
+  return new Date(`${dateKey}T00:00:00`).toLocaleDateString("pt-BR");
+};
+
+const formatChatDateLabel = (message: Message) => getDateLabelFromKey(getMessageDateKey(message));
+
+const shouldShowDateDivider = (index: number) => {
+  const currentMessage = messages.value[index];
+  const previousMessage = messages.value[index - 1];
+
+  return !previousMessage || getMessageDateKey(currentMessage) !== getMessageDateKey(previousMessage);
+};
+
+const updateActiveChatDate = () => {
+  const container = messageContainerRef.value;
+
+  if (!container || !messages.value.length) {
+    activeChatDateLabel.value = "";
+    isDateDividerPinned.value = false;
+    return;
+  }
+
+  const messageElements = Array.from(
+    container.querySelectorAll<HTMLElement>("[data-message-date]")
+  );
+
+  if (!messageElements.length) {
+    isDateDividerPinned.value = false;
+    return;
+  }
+
+  let activeDateKey = messageElements[0].dataset.messageDate || getMessageDateKey(messages.value[0]);
+
+  for (const element of messageElements) {
+    if (element.offsetTop <= container.scrollTop + 72) {
+      activeDateKey = element.dataset.messageDate || activeDateKey;
+    } else {
+      break;
+    }
+  }
+
+  isDateDividerPinned.value = Array.from(container.querySelectorAll<HTMLElement>("[data-date-divider]")).some((element) => {
+    const top = element.offsetTop - container.scrollTop;
+
+    return top >= 0 && top <= 64;
+  });
+  activeChatDateLabel.value = getDateLabelFromKey(activeDateKey);
 };
 
 const getLogoSrc = (isDarkMode: boolean, isSidebarExpanded: boolean) => {
@@ -706,6 +799,7 @@ const loadMessages = async () => {
       role: message.role,
       message: marked.parse(message.message[0]),
       file: null,
+      timestamp: message.timestamp,
     }));
     scrollToBottom();
   } catch (error) {
@@ -741,8 +835,9 @@ const sendMessage = async () => {
     };
     loading.value = true;
     newMessage.value.id = messages.value.length;
+    newMessage.value.timestamp = new Date().toISOString();
     try {
-      messages.value.push(newMessage.value);
+      messages.value.push({ ...newMessage.value });
       scrollToBottom();
 
       newMessage.value = { id: 0, role: "user", message: "", file: null };
@@ -753,6 +848,7 @@ const sendMessage = async () => {
         role: "assistant",
         message: await marked.parse(response.data.message),
         file: null,
+        timestamp: response.data.timestamp,
       };
 
       messages.value.push(assistantMessage);
@@ -795,6 +891,8 @@ const resetChat = async () => {
   selectedChatId.value = undefined;
   localStorage.removeItem("chatId");
   messages.value = [];
+  activeChatDateLabel.value = "";
+  isDateDividerPinned.value = false;
   file.value = undefined;
   newMessage.value = { id: undefined, role: "user", message: "", file: null };
   await loadChats();
