@@ -114,7 +114,7 @@
                           class="mr-1.5 md:mr-3 bg-gradient-to-br from-[#F6CE4C] to-[#FF9F00] h-6 w-6 md:h-11 md:w-11 p-1 md:p-2"
                           shape="square"
                         >
-                          <Component :is="subItem.icon" class="h-full w-full dark:text-black" />
+                          <Component :is="resolveIcon(subItem.icon)" class="h-full w-full dark:text-black" />
                         </Avatar>
 
                         <div class="font-semibold text-xs md:text-md">
@@ -359,11 +359,12 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import Home from "@/services/home";
 import type { DateRange } from "radix-vue";
-import { useScreenContext } from "@/composables/useScreenContext";
 import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
+import moment from "moment";
 import {
   ArrowDown,
   ArrowUp,
@@ -399,124 +400,49 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { useAuthStore } from "@/stores/auth";
-import { useColorMode } from "@vueuse/core";
 import { Skeleton } from "@/components/ui/skeleton";
 import SkeletonCustom from "@/components/custom/SkeletonCustom.vue";
 
 const { toast } = useToast();
-
-export default {
-  computed: {
-    CustomChartTooltip() {
-      return CustomChartTooltipRealPrice;
-    },
-
-    processedCards() {
-      const limits = { mobile: 2, tablet: 2, desktop: 5 };
-      return this.cards.map((group, groupIndex) => {
-        const rowWidth = this.rowWidths[groupIndex] || window.innerWidth;
-        let limit;
-        let isMobile = false;
-
-        if (rowWidth < 500) {
-          limit = limits.mobile;
-          isMobile = true;
-        } else if (rowWidth < 900) {
-          limit = limits.tablet;
-        } else {
-          limit = limits.desktop;
-        }
-
-        const newContent = [];
-
-        const visibleContent = group.content
-          .map((row) => row.filter((card) => !card.isConditional))
-          .filter((row) => row.length > 0);
-
-        visibleContent.forEach((originalRow) => {
-          let currentLimit = limit;
-          
-          if (isMobile) {
-            // Se algum item da linha for gráfico ou lista, o limite daquela linha inteira no mobile deve ser 1.
-            const hasFullWidthItem = originalRow.some(
-              (card) => card.layout === "card" || card.layout === "list"
-            );
-            if (hasFullWidthItem) {
-              currentLimit = 1;
-            }
-          }
-
-          if (originalRow.length > currentLimit) {
-            for (let i = 0; i < originalRow.length; i += currentLimit) {
-              newContent.push(originalRow.slice(i, i + currentLimit));
-            }
-          } else {
-            newContent.push(originalRow);
-          }
-        });
-        return { ...group, content: newContent };
-      });
-    },
-
-    iconColor() {
-      return this.color == "dark" ? "white" : "black";
-    },
-
-    sortedLastDeposits() {
-      const raw = this.deposits?.lasts;
-      if (!Array.isArray(raw) || raw.length === 0) {
-        return [];
-      }
-      return [...raw].sort(
-        (a, b) =>
-          new Date(b.created_at).valueOf() - new Date(a.created_at).valueOf(),
-      );
-    },
+const props = defineProps({
+  isShowValues: {
+    type: Boolean,
+    default: false,
   },
+});
 
-  components: {
-    LucideLockOpen,
-    SkeletonCustom,
-    Skeleton,
-    ArrowDown,
-    ArrowUp,
-    BadgeCheck,
-    Banknote,
-    BanknoteArrowDown,
-    BanknoteArrowUp,
-    CalendarArrowUp,
-    CalendarCheck2,
-    ChartCandlestick,
-    ChartNoAxesColumn,
-    Check,
-    ChevronDownIcon,
-    CirclePercent,
-    CustomChartTooltipRealPrice,
-    CustomDatePicker,
-    DollarSign,
-    Eye,
-    EyeClosed,
-    GlossaryTooltipComponent,
-    Hourglass,
-    SquareActivity,
-    ListCheck,
-    LogIn,
-    UserRound,
-    UserRoundPlus,
-    Users,
-    Wallet,
-    PencilRuler,
-    SquarePen,
-    RefreshCcw,
-  },
+type DashboardCard = {
+  id: string;
+  title: string;
+  tooltip: string | null;
+  value: any;
+  icon?: any;
+  variation?: number;
+  group?: string;
+  isConditional?: boolean;
+  suffix?: string;
+  prefix?: string;
+  showFull?: boolean;
+  toggle?: boolean;
+  quantity?: number;
+  count?: number;
+  layout?: string;
+};
 
-  data: () => ({
-    color: useColorMode(),
-    workspaceStore: useWorkspaceStore(),
-    userStore: useAuthStore(),
-    executionInfo: null,
-    isRefreshing: false,
-    players: {
+type DashboardGroup = {
+  id: string;
+  title: string;
+  subtitle: string;
+  content: DashboardCard[][];
+  edit: boolean;
+};
+
+const workspaceStore = useWorkspaceStore();
+const userStore = useAuthStore();
+
+const executionInfo = ref<any>(null);
+const isRefreshing = ref(false);
+const players = ref({
       count: 0,
       percentage: 0,
       ftd_general_percent: 0,
@@ -528,10 +454,10 @@ export default {
       ftd_post_d0_amount: 0,
       ftd_post_d0_percent: 0,
       player_logins: 0,
-    },
-    dragOverNewRow: null,
-    activeNow: { count: 0, change: 0 },
-    deposits: {
+    } as any);
+const dragOverNewRow = ref<string | null>(null);
+const activeNow = ref({ count: 0, change: 0 } as any);
+const deposits = ref({
       total: 0,
       percentage: 0,
       lasts: [],
@@ -547,8 +473,8 @@ export default {
       total_pending_deposits: 0,
       performance_return_hidden: true,
       performance_return_total: null as number | null,
-    },
-    withdraws: {
+    } as any);
+const withdraws = ref({
       total: 0,
       percentage: 0,
       average_ticket: 0,
@@ -557,164 +483,201 @@ export default {
       paid_withdraws: 0,
       total_pending_withdraws: 0,
       total_paid_withdraws: 0,
-    },
-    projects: [],
-    user: null,
-    loading: true,
-    selectedRange: {} as DateRange,
-    hideMetricsDaily: false,
-    monthlyCountsChart: {},
-    retention: {
+    } as any);
+const user = ref<any>(null);
+const loading = ref(true);
+const selectedRange = ref({} as DateRange);
+const hideMetricsDaily = ref(false);
+const retention = ref({
       time: "",
       ticket_avg: 0,
-    },
-    cards: Array<{
-      id: string;
-      title: string;
-      subtitle: string;
-      content: Array<
-        Array<{
-          id: string;
-          title: string;
-          tooltip: string | null;
-          value: number;
-          icon: any;
-          variation?: number;
-          group?: string;
-          isConditional?: boolean;
-          suffix?: string;
-          showFull?: boolean;
-          toggle?: boolean;
-          quantity?: number;
-          layout: string;
-        }>
-      >;
-      edit: boolean;
-    }>(),
-    dragOverId: null,
-    windowWidth: window.innerWidth,
-    rowRefs: [],
-    rowWidths: {},
-    resizeObservers: [],
-    debounceTimers: {},
-  }),
+    });
+const cards = ref<DashboardGroup[]>([]);
+const dragOverId = ref<string | null>(null);
+const windowWidth = ref(window.innerWidth);
+const rowWidths = ref<Record<number, number>>({});
+const resizeObservers = ref<Record<number, ResizeObserver>>({});
+const debounceTimers = ref<Record<string, ReturnType<typeof setTimeout>>>({});
 
-  beforeUnmount() {
-    window.removeEventListener("resize", this.handleResize);
-    Object.values(this.resizeObservers).forEach((obs) => obs.disconnect());
-    Object.values(this.debounceTimers).forEach((timerId) =>
-      clearTimeout(timerId),
-    );
-  },
+const iconRegistry: Record<string, any> = {
+  Banknote,
+  ChartCandlestick,
+  CirclePercent,
+  BanknoteArrowDown,
+  DollarSign,
+  CalendarArrowUp,
+  ChartNoAxesColumn,
+  BadgeCheck,
+  Check,
+  BanknoteArrowUp,
+  Users,
+  UserRound,
+  UserRoundPlus,
+  Wallet,
+  ListCheck,
+  Hourglass,
+  CalendarCheck2,
+  SquareActivity,
+  LogIn,
+};
 
-  methods: {
-    canAccess(permissionName: string) {
-      const hasPermission = (this.userStore.user as any)?.roles?.some((role: any) =>
-        role.permissions?.some((permission: any) => permission.name === permissionName),
-      );
-      return Boolean(hasPermission);
-    },
+const CustomChartTooltip = computed(() => CustomChartTooltipRealPrice);
 
-    debounce(func, delay, key) {
-      if (this.debounceTimers[key]) {
-        clearTimeout(this.debounceTimers[key]);
+const processedCards = computed(() => {
+  const limits = { mobile: 2, tablet: 2, desktop: 5 };
+  return cards.value.map((group, groupIndex) => {
+    const rowWidth = rowWidths.value[groupIndex] || window.innerWidth;
+    let limit;
+    let isMobile = false;
+
+    if (rowWidth < 500) {
+      limit = limits.mobile;
+      isMobile = true;
+    } else if (rowWidth < 900) {
+      limit = limits.tablet;
+    } else {
+      limit = limits.desktop;
+    }
+
+    const newContent: DashboardCard[][] = [];
+    const visibleContent = group.content
+      .map((row) => row.filter((card) => !card.isConditional))
+      .filter((row) => row.length > 0);
+
+    visibleContent.forEach((originalRow) => {
+      let currentLimit = limit;
+      if (isMobile) {
+        const hasFullWidthItem = originalRow.some(
+          (card) => card.layout === "card" || card.layout === "list",
+        );
+        if (hasFullWidthItem) {
+          currentLimit = 1;
+        }
       }
-      this.debounceTimers[key] = setTimeout(func, delay);
-    },
+
+      if (originalRow.length > currentLimit) {
+        for (let i = 0; i < originalRow.length; i += currentLimit) {
+          newContent.push(originalRow.slice(i, i + currentLimit));
+        }
+      } else {
+        newContent.push(originalRow);
+      }
+    });
+
+    return { ...group, content: newContent };
+  });
+});
+
+const sortedLastDeposits = computed(() => {
+  const raw = deposits.value?.lasts;
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return [];
+  }
+  return [...raw].sort(
+    (a: any, b: any) =>
+      new Date(b.created_at).valueOf() - new Date(a.created_at).valueOf(),
+  );
+});
+
+const canAccess = (permissionName: string) => {
+  const hasPermission = (userStore.user as any)?.roles?.some((role: any) =>
+    role.permissions?.some((permission: any) => permission.name === permissionName),
+  );
+  return Boolean(hasPermission);
+};
+
+const debounce = (func: () => void, delay: number, key: string) => {
+  if (debounceTimers.value[key]) {
+    clearTimeout(debounceTimers.value[key]);
+  }
+  debounceTimers.value[key] = setTimeout(func, delay);
+};
 
     /** Nome curto + reticências no mobile; tooltip com nome completo quando truncado. */
-    depositorNamePreview(name: string | null | undefined): {
-      text: string;
-      tooltip: boolean;
-    } {
-      const s = (name ?? "").trim();
-      if (!s) {
-        return { text: "—", tooltip: false };
-      }
-      const max = this.windowWidth < 640 ? 22 : 42;
-      if (s.length <= max) {
-        return { text: s, tooltip: false };
-      }
-      return { text: `${s.slice(0, max).trimEnd()}…`, tooltip: true };
-    },
+const depositorNamePreview = (name: string | null | undefined) => {
+  const s = (name ?? "").trim();
+  if (!s) {
+    return { text: "—", tooltip: false };
+  }
+  const max = windowWidth.value < 640 ? 22 : 42;
+  if (s.length <= max) {
+    return { text: s, tooltip: false };
+  }
+  return { text: `${s.slice(0, max).trimEnd()}…`, tooltip: true };
+};
 
-    setRowRef(el, index) {
-      if (!el) {
-        if (this.resizeObservers[index]) {
-          this.resizeObservers[index].disconnect();
-          delete this.resizeObservers[index];
-        }
-        return;
-      }
+const setRowRef = (el: any, index: number) => {
+  if (!el) {
+    if (resizeObservers.value[index]) {
+      resizeObservers.value[index].disconnect();
+      delete resizeObservers.value[index];
+    }
+    return;
+  }
 
-      if (this.resizeObservers[index]) return;
+  if (resizeObservers.value[index]) return;
 
-      const observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          this.debounce(
-            () => {
-              this.rowWidths[index] = entry.contentRect.width;
-            },
-            150,
-            `resize_${index}`,
-          );
-        }
-      });
+  const observer = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      debounce(
+        () => {
+          rowWidths.value[index] = entry.contentRect.width;
+        },
+        150,
+        `resize_${index}`,
+      );
+    }
+  });
 
-      observer.observe(el);
-      this.resizeObservers[index] = observer;
-    },
+  observer.observe(el);
+  resizeObservers.value[index] = observer;
+};
 
-    handleResize() {
-      this.windowWidth = window.innerWidth;
-    },
+const handleResize = () => {
+  windowWidth.value = window.innerWidth;
+};
 
-    onDragStart(event: DragEvent, item: any) {
-      event.dataTransfer!.effectAllowed = "move";
-      event.dataTransfer!.setData("text/plain", item.id);
-    },
+const onDragStart = (event: DragEvent, item: any) => {
+  event.dataTransfer!.effectAllowed = "move";
+  event.dataTransfer!.setData("text/plain", item.id);
+};
 
-    onDragEnter(item: any) {
-      this.dragOverId = item.id;
-    },
+const onDragEnter = (item: any) => {
+  dragOverId.value = item.id;
+};
 
-    onDragLeave() {
-      this.dragOverId = null;
-    },
+const onDragLeave = () => {
+  dragOverId.value = null;
+};
 
-    onDrop(event: DragEvent, targetItem: any) {
-      event.preventDefault();
-      const draggedItemId = event.dataTransfer!.getData("text/plain");
-      this.dragOverId = null;
+const onDrop = (event: DragEvent, targetItem: any) => {
+  event.preventDefault();
+  const draggedItemId = event.dataTransfer!.getData("text/plain");
+  dragOverId.value = null;
 
-      if (draggedItemId && draggedItemId !== targetItem.id) {
-        const draggedItemIndex = this.cards.findIndex(
-          (i) => i.id === draggedItemId,
-        );
-        const targetItemIndex = this.cards.findIndex(
-          (i) => i.id === targetItem.id,
-        );
+  if (draggedItemId && draggedItemId !== targetItem.id) {
+    const draggedItemIndex = cards.value.findIndex((i) => i.id === draggedItemId);
+    const targetItemIndex = cards.value.findIndex((i) => i.id === targetItem.id);
 
-        if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
-          // Troca os elementos de forma mais eficiente
-          [this.cards[draggedItemIndex], this.cards[targetItemIndex]] = [
-            this.cards[targetItemIndex],
-            this.cards[draggedItemIndex],
-          ];
-          this.saveLayout();
-        }
-      }
-    },
+    if (draggedItemIndex !== -1 && targetItemIndex !== -1) {
+      [cards.value[draggedItemIndex], cards.value[targetItemIndex]] = [
+        cards.value[targetItemIndex],
+        cards.value[draggedItemIndex],
+      ];
+      saveLayout();
+    }
+  }
+};
 
-    onDropSub(event: DragEvent, targetItem: any, parentId: string) {
-      event.preventDefault();
-      const draggedItemId = event.dataTransfer.getData("text/plain");
-      this.dragOverId = null;
+const onDropSub = (event: DragEvent, targetItem: any, parentId: string) => {
+  event.preventDefault();
+  const draggedItemId = event.dataTransfer?.getData("text/plain");
+  dragOverId.value = null;
 
-      if (!draggedItemId || draggedItemId === targetItem.id) return;
+  if (!draggedItemId || draggedItemId === targetItem.id) return;
 
-      const parentCard = this.cards.find((c) => c.id === parentId);
-      if (!parentCard) return;
+  const parentCard = cards.value.find((c) => c.id === parentId);
+  if (!parentCard) return;
 
       let sourceLocation = null;
       let targetLocation = null;
@@ -749,18 +712,18 @@ export default {
       );
 
       parentCard.content = parentCard.content.filter((row) => row.length > 0);
-      this.saveLayout();
-    },
+  saveLayout();
+};
 
-    onDropNewRow(event: DragEvent, parentId: string) {
-      event.preventDefault();
-      const draggedItemId = event.dataTransfer.getData("text/plain");
-      this.dragOverNewRow = null;
+const onDropNewRow = (event: DragEvent, parentId: string) => {
+  event.preventDefault();
+  const draggedItemId = event.dataTransfer?.getData("text/plain");
+  dragOverNewRow.value = null;
 
-      if (!draggedItemId) return;
+  if (!draggedItemId) return;
 
-      const parentCard = this.cards.find((c) => c.id === parentId);
-      if (!parentCard) return;
+  const parentCard = cards.value.find((c) => c.id === parentId);
+  if (!parentCard) return;
 
       let draggedItem = null;
 
@@ -779,30 +742,30 @@ export default {
       parentCard.content.push([draggedItem]);
 
       parentCard.content = parentCard.content.filter((row) => row.length > 0);
-    },
+};
 
-    saveLayout() {
-      const layoutToSave = this.cards.map((group) => ({
-        id: group.id,
-        content: group.content.map((row) => row.map((card) => card.id)),
-      }));
-      Home.layout(layoutToSave);
-    },
+const saveLayout = () => {
+  const layoutToSave = cards.value.map((group) => ({
+    id: group.id,
+    content: group.content.map((row) => row.map((card) => card.id)),
+  }));
+  Home.layout(layoutToSave);
+};
 
-    onDragEnterNewRow(parentId) {
-      this.dragOverNewRow = parentId;
-    },
+const onDragEnterNewRow = (parentId: string) => {
+  dragOverNewRow.value = parentId;
+};
 
-    onDragLeaveNewRow() {
-      this.dragOverNewRow = null;
-    },
+const onDragLeaveNewRow = () => {
+  dragOverNewRow.value = null;
+};
 
-    async _user() {
-      this.user = useAuthStore().user;
-    },
+const _user = async () => {
+  user.value = useAuthStore().user;
+};
 
-    greeting() {
-      const hour = new Date().getHours();
+const greeting = () => {
+  const hour = new Date().getHours();
 
       if (hour < 12) {
         return "Bom dia";
@@ -810,14 +773,14 @@ export default {
         return "Boa tarde";
       }
 
-      return "Boa noite";
-    },
+  return "Boa noite";
+};
 
-    editLayout(value: string) {
-      this.cards = this.cards.map((card) =>
+const editLayout = (value: string) => {
+  cards.value = cards.value.map((card) =>
         card.id === value ? { ...card, edit: !card.edit } : card,
       );
-      const card = this.cards.find((card) => card.id === value);
+  const card = cards.value.find((groupCard) => groupCard.id === value);
 
       if (card) {
         toast({
@@ -827,8 +790,8 @@ export default {
           duration: 1000,
         });
       }
-      if (!card.edit) {
-        const save = this.cards.map((group) => {
+  if (card && !card.edit) {
+    const save = cards.value.map((group) => {
           return {
             id: group.id,
             content: group.content.map((row) => {
@@ -836,97 +799,96 @@ export default {
             }),
           };
         });
-        Home.layout(save);
-      }
-    },
+    Home.layout(save);
+  }
+};
 
-    formatLocalDate(date: any) {
-      const d = new Date(date);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    },
+const formatLocalDate = (date: any) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
-    async applyFilter() {
-      this.loading = true;
+const applyFilter = async () => {
+  loading.value = true;
 
-      if (!this.workspaceStore.activeGroupProject?.id) {
-        toast({
-          title: "Erro",
-          description: "Selecione um grupo ou projeto antes de filtrar.",
-          variant: "destructive",
-        });
-        return;
-      }
+  if (!workspaceStore.activeGroupProject?.id) {
+    toast({
+      title: "Erro",
+      description: "Selecione um grupo ou projeto antes de filtrar.",
+      variant: "destructive",
+    });
+    loading.value = false;
+    return;
+  }
 
       try {
-        this.hideMetricsDaily =
-          this.selectedRange?.start === this.selectedRange?.end &&
-          this.selectedRange?.start.toString() ==
-            this.formatLocalDate(new Date());
+    hideMetricsDaily.value =
+      selectedRange.value?.start === selectedRange.value?.end &&
+      selectedRange.value?.start?.toString() === formatLocalDate(new Date());
 
-        const { data } = await Home.index({
-          filter_id: this.workspaceStore.activeGroupProject.id,
-          start_date: this.selectedRange.start?.toString(),
-          end_date: this.selectedRange.end?.toString(),
-        });
+    const { data } = await Home.index({
+      filter_id: workspaceStore.activeGroupProject.id,
+      start_date: selectedRange.value.start?.toString(),
+      end_date: selectedRange.value.end?.toString(),
+    });
 
-        this.players = data.players;
-        this.activeNow = data.active_now;
-        this.deposits = data.deposits;
-        this.withdraws = data.withdraws;
-        this.retention = data.retention;
-        this.executionInfo = data.execution_info;
+    players.value = data.players;
+    activeNow.value = data.active_now;
+    deposits.value = data.deposits;
+    withdraws.value = data.withdraws;
+    retention.value = data.retention;
+    executionInfo.value = data.execution_info;
 
-        if (this.userStore.user.preferences.user_dashboard_layouts) {
-          const savedOrder =
-            this.userStore.user.preferences.user_dashboard_layouts;
-          this.applySavedOrder(savedOrder);
-        } else {
-          this.cards = [
+    if (userStore.user.preferences.user_dashboard_layouts) {
+      const savedOrder = userStore.user.preferences.user_dashboard_layouts;
+      applySavedOrder(savedOrder);
+    } else {
+      cards.value = [
             {
               id: "depositors",
               title: "Visão Geral de Receita",
               subtitle: "Entradas, saídas e indicadores financeiros",
-              content: this.buildCardsDeposits(),
+              content: buildCardsDeposits(),
               edit: false,
             },
             {
               id: "players",
               title: "Visão Geral dos Clientes",
               subtitle: "Confira os últimos indicadores",
-              content: this.buildCardsPlayers(),
+              content: buildCardsPlayers(),
               edit: false,
             },
             {
               id: "retention",
               title: "Retenção",
               subtitle: " Veja os últimos indicadores e mais recentes",
-              content: this.buildCardsRetention(),
+              content: buildCardsRetention(),
               edit: false,
             },
             {
               id: "history",
               title: "Histórico e Últimas de Entradas",
               subtitle: " Veja o gráfico e informações mais recentes ",
-              content: this.buildCardsHistory(),
+              content: buildCardsHistory(),
               edit: false,
             },
           ];
-        }
-      } catch (_) {
-        toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível aplicar o filtro selecionado.",
-          variant: "destructive",
-        });
-      }
+    }
+  } catch (_) {
+    toast({
+      title: "Erro ao carregar dados",
+      description: "Não foi possível aplicar o filtro selecionado.",
+      variant: "destructive",
+    });
+  }
 
-      this.loading = false;
-    },
+  loading.value = false;
+};
 
-    applySavedOrder(savedOrder) {
+const applySavedOrder = (savedOrder: any[]) => {
       const withdrawsSaved = savedOrder.find((g: { id: string }) => g.id === "withdraws");
       let orderForLayout = savedOrder.filter((g: { id: string }) => g.id !== "withdraws");
       if (withdrawsSaved) {
@@ -950,28 +912,28 @@ export default {
           id: "depositors",
           title: "Visão Geral de Receita",
           subtitle: "Entradas, saídas e indicadores financeiros",
-          content: this.buildCardsDeposits(),
+          content: buildCardsDeposits(),
           edit: false,
         },
         {
           id: "players",
           title: "Visão Geral dos Clientes",
           subtitle: "Confira os últimos indicadores",
-          content: this.buildCardsPlayers(),
+          content: buildCardsPlayers(),
           edit: false,
         },
         {
           id: "retention",
           title: "Retenção",
           subtitle: " Veja os últimos indicadores e mais recentes",
-          content: this.buildCardsRetention(),
+          content: buildCardsRetention(),
           edit: false,
         },
         {
           id: "history",
           title: "Histórico e Últimas de Entradas",
           subtitle: " Veja o gráfico e informações mais recentes ",
-          content: this.buildCardsHistory(),
+          content: buildCardsHistory(),
           edit: false,
         },
       ];
@@ -986,7 +948,7 @@ export default {
       });
       const defaultGroupsMap = new Map(allGroupsDefault.map((g) => [g.id, g]));
 
-      this.cards = orderForLayout
+  cards.value = orderForLayout
         .map((savedGroup: { id: string; content: string[][] }) => {
           const groupData = defaultGroupsMap.get(savedGroup.id);
           if (!groupData) return null;
@@ -1002,18 +964,18 @@ export default {
         })
         .filter(Boolean);
 
-      this.mergeMissingDashboardCards();
-    },
+  mergeMissingDashboardCards();
+};
 
-    mergeMissingDashboardCards() {
+const mergeMissingDashboardCards = () => {
       const specs = [
-        { id: "depositors", build: () => this.buildCardsDeposits() },
-        { id: "players", build: () => this.buildCardsPlayers() },
-        { id: "retention", build: () => this.buildCardsRetention() },
-        { id: "history", build: () => this.buildCardsHistory() },
+        { id: "depositors", build: () => buildCardsDeposits() },
+        { id: "players", build: () => buildCardsPlayers() },
+        { id: "retention", build: () => buildCardsRetention() },
+        { id: "history", build: () => buildCardsHistory() },
       ];
       for (const { id, build } of specs) {
-        const group = this.cards.find((g) => g.id === id);
+        const group = cards.value.find((g) => g.id === id);
         if (!group) continue;
         const defaultRows = build();
         const present = new Set(group.content.flat().map((c) => c.id));
@@ -1023,78 +985,78 @@ export default {
         const last = group.content[group.content.length - 1];
         last.push(...missing);
       }
-    },
+};
 
     /**
      * Margem bruta (%) = ((entradas − saídas) / entradas) × 100
      * (entradas/saídas = valores confirmados no período, mesma base do dashboard)
      */
-    grossMarginPercentFormatted() {
-      const entradas = Number(this.deposits.total_paid_deposits ?? 0);
-      const saidas = Number(this.withdraws.total_paid_withdraws ?? 0);
-      if (entradas <= 0) {
-        return "0.00";
-      }
-      return (((entradas - saidas) / entradas) * 100).toFixed(2);
-    },
+const grossMarginPercentFormatted = () => {
+  const entradas = Number(deposits.value.total_paid_deposits ?? 0);
+  const saidas = Number(withdraws.value.total_paid_withdraws ?? 0);
+  if (entradas <= 0) {
+    return "0.00";
+  }
+  return (((entradas - saidas) / entradas) * 100).toFixed(2);
+};
 
-    revenueWithdrawCards() {
-      return [
+const revenueWithdrawCards = () => {
+  return [
         {
           id: "saques-7d",
           title: "Saídas 7D",
           tooltip: null,
-          value: this.withdraws.total / 100,
-          variation: this.withdraws.percentage,
-          icon: "CalendarArrowUp",
-          isConditional: !this.hideMetricsDaily,
+          value: withdraws.value.total / 100,
+          variation: withdraws.value.percentage,
+          icon: CalendarArrowUp,
+          isConditional: !hideMetricsDaily.value,
         },
         {
           id: "ticket-medio-saida",
           title: "Ticket Médio de Saída",
           tooltip: "Valor médio por transação de saída confirmada.",
-          value: this.withdraws.average_ticket / 100,
-          icon: "ChartNoAxesColumn",
+          value: withdraws.value.average_ticket / 100,
+          icon: ChartNoAxesColumn,
         },
         {
           id: "taxa-aprovacao-saques",
           title: "Taxa de Aprovação (Saídas)",
           tooltip:
             "Taxa de aprovação de saídas solicitadas e saídas confirmadas",
-          value: this.withdraws.conversion_rate,
+          value: withdraws.value.conversion_rate,
           suffix: "%",
-          icon: "BadgeCheck",
+          icon: BadgeCheck,
         },
         {
           id: "saidas-solicitadas",
           title: "Saídas Solicitadas",
           tooltip:
             "Valor total de solicitações de retirada feitas pelos usuários.",
-          quantity: this.withdraws.generated_withdraws,
-          value: this.withdraws.total_pending_withdraws / 100,
-          icon: "Check",
+          quantity: withdraws.value.generated_withdraws,
+          value: withdraws.value.total_pending_withdraws / 100,
+          icon: Check,
         },
         {
           id: "saidas-processadas",
           title: "Saídas Confirmadas",
           tooltip:
             "Valor total de saídas confirmadas e pagas com sucesso.",
-          quantity: this.withdraws.paid_withdraws,
-          value: this.withdraws.total_paid_withdraws / 100,
-          icon: "BanknoteArrowUp",
+          quantity: withdraws.value.paid_withdraws,
+          value: withdraws.value.total_paid_withdraws / 100,
+          icon: BanknoteArrowUp,
         },
       ];
-    },
+};
 
-    buildCardsDeposits() {
+const buildCardsDeposits = () => {
       const depositCards = [
         {
           id: "volume-liquido-entradas",
           title: "Retorno Bruto",
           tooltip:
             "Valor total líquido de entradas financeiras na plataforma (ex: depósitos, pagamentos ou compras).",
-          value: this.deposits.total_net_deposits / 100,
-          icon: "Banknote",
+          value: deposits.value.total_net_deposits / 100,
+          icon: Banknote,
           isConditional: false,
         },
         {
@@ -1102,37 +1064,37 @@ export default {
           title: "Retorno de Performance",
           tooltip:
             "Receita total do relatório de conversões.",
-          value: this.deposits.performance_return_total ?? 0,
-          icon: "ChartCandlestick",
-          isConditional: this.deposits.performance_return_hidden,
+          value: deposits.value.performance_return_total ?? 0,
+          icon: ChartCandlestick,
+          isConditional: deposits.value.performance_return_hidden,
         },
         {
           id: "margem-bruta",
           title: "Margem Bruta",
           tooltip:
             "Percentual de (entradas − saídas) sobre as entradas confirmadas no período.",
-          value: this.grossMarginPercentFormatted(),
+          value: grossMarginPercentFormatted(),
           suffix: "%",
-          icon: "CirclePercent",
+          icon: CirclePercent,
           isConditional: false,
         },
         {
           id: "total-entradas-7d",
           title: "Total de Entradas 7D",
           tooltip: "Total de entradas dos últimos 7 dias.",
-          value: this.deposits.total / 100,
-          variation: this.deposits.percentage,
+          value: deposits.value.total / 100,
+          variation: deposits.value.percentage,
           icon: CalendarCheck2,
-          isConditional: !this.hideMetricsDaily,
+          isConditional: !hideMetricsDaily.value,
         },
         {
           id: "taxa-aprovacao-depositos",
           title: "Taxa de Aprovação",
           tooltip:
             "Taxa de aprovação de entradas geradas e entradas confirmadas",
-          value: this.deposits.conversion_rate,
+          value: deposits.value.conversion_rate,
           suffix: "%",
-          icon: "CirclePercent",
+          icon: CirclePercent,
           isConditional: false,
         },
         {
@@ -1140,8 +1102,8 @@ export default {
           title: "Ticket Médio de Entradas",
           tooltip:
             "Valor médio por transação de entrada confirmadas realizada pelos usuários",
-          value: this.deposits.average_ticket / 100,
-          icon: "ChartCandlestick",
+          value: deposits.value.average_ticket / 100,
+          icon: ChartCandlestick,
           isConditional: false,
         },
         {
@@ -1149,9 +1111,9 @@ export default {
           title: "Entradas Geradas",
           tooltip:
             "Valor total de transações de entrada iniciadas, independentemente da confirmação.",
-          quantity: this.deposits.generated_deposits,
-          value: this.deposits.total_pending_deposits / 100,
-          icon: "BanknoteArrowDown",
+          quantity: deposits.value.generated_deposits,
+          value: deposits.value.total_pending_deposits / 100,
+          icon: BanknoteArrowDown,
           isConditional: false,
         },
         {
@@ -1159,14 +1121,14 @@ export default {
           title: "Entradas Confirmadas",
           tooltip:
             "Valor total de transações de entrada confirmadas com sucesso.",
-          quantity: this.deposits.paid_deposits,
-          value: this.deposits.total_paid_deposits / 100,
-          icon: "DollarSign",
+          quantity: deposits.value.paid_deposits,
+          value: deposits.value.total_paid_deposits / 100,
+          icon: DollarSign,
           isConditional: false,
         },
       ];
 
-      const withdrawCards = this.revenueWithdrawCards();
+      const withdrawCards = revenueWithdrawCards();
       const firstRow = depositCards.slice(0, 3);
       const rest = [...depositCards.slice(3), ...withdrawCards];
       const rows = [firstRow];
@@ -1174,44 +1136,44 @@ export default {
         rows.push(rest.slice(i, i + 4));
       }
       return rows;
-    },
+};
 
-    buildCardsPlayers() {
+const buildCardsPlayers = () => {
       const allCards = [
         {
           id: "total-registros",
           title: "Total de Cadastros",
           tooltip:
             "Total de cadastros vinculados ao(s) projeto(s) filtrado(s) (contagem distinta na base da Elevate).",
-          count: this.players.count,
-          variation: this.players.change,
-          icon: "Users",
-          isConditional: !this.hideMetricsDaily,
+          count: players.value.count,
+          variation: players.value.change,
+          icon: Users,
+          isConditional: !hideMetricsDaily.value,
         },
         {
           id: "usuarios-ativos",
           title: "Clientes Ativos",
           tooltip:
             "Total de clientes ativos com pelo menos um pagamento nos últimos 30 dias",
-          count: this.activeNow.count,
-          variation: this.activeNow.change,
-          icon: "UserRound",
-          isConditional: !this.hideMetricsDaily,
+          count: activeNow.value.count,
+          variation: activeNow.value.change,
+          icon: UserRound,
+          isConditional: !hideMetricsDaily.value,
         },
         {
           id: "novos-registros",
           title: "Novos Cadastros",
           tooltip:
             "Total de cadastros completos no sistema no período selecionado",
-          value: this.players.registered_users_day,
-          icon: "UserRoundPlus",
+          value: players.value.registered_users_day,
+          icon: UserRoundPlus,
         },
         {
           id: "quantidade-logins",
           title: "Quantidade de Logins",
           tooltip:
             "Total de logins de clientes no período selecionado",
-          count: Number(this.players.player_logins ?? 0),
+          count: Number(players.value.player_logins ?? 0),
           icon: LogIn,
         },
         {
@@ -1219,73 +1181,73 @@ export default {
           title: "Taxa de Conversão Geral",
           tooltip:
             "Percentual de cadastros do período que realizaram uma primeira transação validada (FTD).",
-          value: (this.players.ftd_general_percent / 100).toFixed(2),
+          value: (players.value.ftd_general_percent / 100).toFixed(2),
           suffix: "%",
-          icon: "CirclePercent",
+          icon: CirclePercent,
         },
         {
           id: "primeiros-depositantes",
           title: "Cadastros convertidos em Clientes em D0",
           tooltip:
             "Cadastros cuja primeira transação (FTD) ocorreu no mesmo dia do cadastro.",
-          quantity: this.players.ftd_registered_users_count,
-          value: this.players.ftd_registered_users_amount / 100,
-          icon: "Wallet",
+          quantity: players.value.ftd_registered_users_count,
+          value: players.value.ftd_registered_users_amount / 100,
+          icon: Wallet,
         },
         {
           id: "taxa-conversao-d0",
           title: "Taxa de Conversão em D0",
           tooltip:
             "Percentual de cadastros do período que realizaram a primeira transação no mesmo dia do cadastro.",
-          value: (this.players.ftd_registered_users_percent / 100).toFixed(2),
+          value: (players.value.ftd_registered_users_percent / 100).toFixed(2),
           suffix: "%",
-          icon: "CirclePercent",
+          icon: CirclePercent,
         },
         {
           id: "convertidos-pos-d0",
           title: "Convertidos pós D0",
           tooltip:
             "Primeiras entradas no período menos conversões em D0 (FTD após o dia do cadastro).",
-          quantity: this.players.ftd_post_d0_count,
-          value: this.players.ftd_post_d0_amount / 100,
-          icon: "CalendarCheck2",
+          quantity: players.value.ftd_post_d0_count,
+          value: players.value.ftd_post_d0_amount / 100,
+          icon: CalendarCheck2,
         },
         {
           id: "percentual-convertidos-pos-d0",
           title: "% Clientes Convertidos pós D0",
           tooltip:
             "(Primeiras entradas − convertidos em D0) ÷ primeiras entradas, no período.",
-          value: Number(this.players.ftd_post_d0_percent ?? 0).toFixed(2),
+          value: Number(players.value.ftd_post_d0_percent ?? 0).toFixed(2),
           suffix: "%",
-          icon: "CirclePercent",
+          icon: CirclePercent,
         },
         {
           id: "primeiras-entradas",
           title: "Cadastros Convertidos em Clientes",
           tooltip:
             "Total de primeiras entradas (FTD) no período — cadastros que se converteram em clientes pagantes.",
-          quantity: this.deposits.total_ftd_count,
-          value: this.deposits.total_ftd_amount / 100,
-          icon: "ListCheck",
+          quantity: deposits.value.total_ftd_count,
+          value: deposits.value.total_ftd_amount / 100,
+          icon: ListCheck,
         },
       ];
 
-      return [
+  return [
         allCards.slice(0, 4),
         allCards.slice(4, 8),
         allCards.slice(8, 10),
       ];
-    },
+};
 
-    buildCardsRetention() {
+const buildCardsRetention = () => {
       const allCards = [
         {
           id: "tempo-medio-retencao",
           title: "Tempo Médio de Retenção",
           tooltip:
             "Tempo médio consolidada: dias entre primeira e última entrada, apenas perfis com FTD e última entrada.",
-          value: this.retention.time,
-          icon: "Hourglass",
+          value: retention.value.time,
+          icon: Hourglass,
         },
         // {
         //   id: "frequencia-media-deposito",
@@ -1299,15 +1261,15 @@ export default {
           title: "Ticket Médio Pós-Ativação",
           tooltip:
             "Média da taxa de retenção consolidada, entre perfis com valor calculado.",
-          value: this.retention.ticket_avg / 100,
-          icon: "ChartNoAxesColumn",
+          value: retention.value.ticket_avg / 100,
+          icon: ChartNoAxesColumn,
         },
       ];
 
-      return [allCards];
-    },
+  return [allCards];
+};
 
-    buildCardsHistory() {
+const buildCardsHistory = () => {
       const allCards = [
         {
           id: "hitorico-entrada",
@@ -1326,46 +1288,44 @@ export default {
           layout: "list",
         },
       ];
-      return [allCards];
-    },
+  return [allCards];
+};
 
-    isToday() {
-      return (
-        this.selectedRange?.start.toString() == this.formatLocalDate(new Date())
-      );
-    },
+const isToday = () => {
+  return selectedRange.value?.start?.toString() === formatLocalDate(new Date());
+};
 
-    formatUpdatedAt(updatedAt) {
-      if (!updatedAt) return "";
-      return this.$moment(updatedAt).format("HH:mm[h]");
-    },
+const formatUpdatedAt = (updatedAt: string) => {
+  if (!updatedAt) return "";
+  return moment(updatedAt).format("HH:mm[h]");
+};
 
-    formatExecutionTime(seconds) {
-      if (!seconds) return "";
+const formatExecutionTime = (seconds: number) => {
+  if (!seconds) return "";
 
-      if (seconds < 1) {
-        return "menos de 1s";
-      } else if (seconds < 60) {
-        return `${seconds}s`;
-      } else {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
+  if (seconds < 1) {
+    return "menos de 1s";
+  }
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
 
-        if (remainingSeconds === 0) {
-          return `${minutes}min`;
-        } else {
-          return `${minutes}min ${remainingSeconds}s`;
-        }
-      }
-    },
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
 
-    async refreshMetrics() {
-      if (this.isRefreshing) return;
+  if (remainingSeconds === 0) {
+    return `${minutes}min`;
+  }
 
-      this.isRefreshing = true;
+  return `${minutes}min ${remainingSeconds}s`;
+};
+
+const refreshMetrics = async () => {
+  if (isRefreshing.value) return;
+  isRefreshing.value = true;
 
       try {
-        if (!this.workspaceStore.activeGroupProject?.id) {
+        if (!workspaceStore.activeGroupProject?.id) {
           toast({
             title: "Erro",
             description: "Selecione um projeto antes de atualizar.",
@@ -1374,7 +1334,7 @@ export default {
           return;
         }
 
-        if (!this.isToday()) {
+        if (!isToday()) {
           toast({
             title: "Aviso",
             description:
@@ -1386,8 +1346,8 @@ export default {
 
         await new Promise((resolve) => setTimeout(resolve, 3000));
 
-        const { response } = await Home.refresh({
-          filter_id: this.workspaceStore.activeGroupProject.id,
+        await Home.refresh({
+          filter_id: workspaceStore.activeGroupProject.id,
         });
 
         toast({
@@ -1398,47 +1358,54 @@ export default {
         });
 
         setTimeout(() => {
-          this.applyFilter();
+          applyFilter();
         }, 5000);
       } catch (error) {
+        const typedError = error as any;
         toast({
           title: "Erro",
           description:
-            error.response?.data?.message ||
+            typedError.response?.data?.message ||
             "Ocorreu um erro ao solicitar a atualização.",
           variant: "destructive",
         });
       } finally {
-        this.isRefreshing = false;
+        isRefreshing.value = false;
       }
-    },
-  },
-
-  mounted() {
-    this._user();
-    window.addEventListener("resize", this.handleResize, { passive: true });
-  },
-
-  props: {
-    isShowValues: {
-      type: Boolean,
-      default: false,
-    },
-  },
-
-  watch: {
-    workspaceStore() {
-      this.applyFilter();
-    },
-    selectedRange: {
-      handler() {
-        this.applyFilter();
-      },
-    },
-  },
-
-  
 };
+
+const resolveIcon = (icon: any) => {
+  if (typeof icon === "string") {
+    return iconRegistry[icon] ?? icon;
+  }
+  return icon;
+};
+
+watch(
+  () => workspaceStore.activeGroupProject?.id,
+  () => {
+    applyFilter();
+  },
+);
+
+watch(
+  selectedRange,
+  () => {
+    applyFilter();
+  },
+  { deep: true },
+);
+
+onMounted(() => {
+  _user();
+  window.addEventListener("resize", handleResize, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", handleResize);
+  Object.values(resizeObservers.value).forEach((observer) => observer.disconnect());
+  Object.values(debounceTimers.value).forEach((timerId) => clearTimeout(timerId));
+});
 </script>
 
 <style scoped>
