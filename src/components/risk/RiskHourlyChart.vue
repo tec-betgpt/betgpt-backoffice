@@ -1,68 +1,46 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-interface RiskHourlyBucket {
-  hour: string;
-  count: number;
-}
-
 interface RiskHourlySeries {
-  name: string;
-  data: RiskHourlyBucket[];
+  key: string;
+  label: string;
+  data: number[];
 }
 
 const props = defineProps<{
   type: "area" | "line";
+  title?: string;
+  categories: string[];
   series: RiskHourlySeries[];
-  isSingleDay: boolean;
+  valueType?: "integer" | "money";
 }>();
 
+const chartColors = ["#947c2c", "#f4a261", "#c3c3c3", "#2a9d8f"];
 const integerFormatter = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 0,
 });
-
-const tooltipFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
+const moneyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
 });
 
-function parseHour(hour: string) {
-  const match = hour.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):00:00$/);
+function formatValue(value: number) {
+  const parsedValue = Number(value) || 0;
 
-  if (!match) {
-    return Number.NaN;
-  }
-
-  const [, year, month, day, bucketHour] = match;
-
-  return new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(bucketHour),
-    0,
-    0,
-  ).getTime();
+  return props.valueType === "money"
+    ? moneyFormatter.format(parsedValue)
+    : integerFormatter.format(Math.round(parsedValue));
 }
 
 const chartSeries = computed(() =>
   props.series.map((serie) => ({
-    name: serie.name,
-    data: [...(serie.data || [])]
-      .map((bucket) => ({
-        x: parseHour(bucket.hour),
-        y: Number(bucket.count) || 0,
-      }))
-      .filter((point) => Number.isFinite(point.x))
-      .sort((current, next) => current.x - next.x),
+    name: serie.label,
+    data: (serie.data || []).map((value) => Number(value) || 0),
   })),
 );
 
 const hasData = computed(() =>
-  chartSeries.value.some((serie) => serie.data.some((point) => point.y > 0)),
+  chartSeries.value.some((serie) => serie.data.some((point) => point > 0)),
 );
 
 const chartOptions = computed(() => ({
@@ -71,7 +49,9 @@ const chartOptions = computed(() => ({
     toolbar: { show: false },
     zoom: { enabled: false },
     fontFamily: "inherit",
+    foreColor: "hsl(var(--muted-foreground))",
   },
+  colors: chartColors,
   stroke: {
     curve: "smooth",
     width: props.type === "area" ? 3 : 2,
@@ -90,28 +70,15 @@ const chartOptions = computed(() => ({
     show: props.series.length > 1,
     position: "top",
     horizontalAlign: "right",
+    labels: {
+      colors: "hsl(var(--foreground))",
+    },
   },
   xaxis: {
-    type: "datetime",
+    categories: props.categories || [],
     labels: {
-      datetimeUTC: false,
-      formatter: (value: string) => {
-        const date = new Date(Number(value));
-
-        if (props.isSingleDay) {
-          return date.toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        }
-
-        return `${date.toLocaleDateString("pt-BR", {
-          day: "2-digit",
-          month: "2-digit",
-        })} ${date.toLocaleTimeString("pt-BR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}`;
+      style: {
+        colors: "hsl(var(--muted-foreground))",
       },
     },
     tooltip: { enabled: false },
@@ -121,15 +88,19 @@ const chartOptions = computed(() => ({
     forceNiceScale: true,
     decimalsInFloat: 0,
     labels: {
-      formatter: (value: number) => integerFormatter.format(Math.round(value)),
+      formatter: (value: number) => formatValue(value),
+      style: {
+        colors: "hsl(var(--muted-foreground))",
+      },
     },
   },
   tooltip: {
+    theme: false,
     x: {
-      formatter: (value: number) => tooltipFormatter.format(new Date(value)),
+      formatter: (value: string) => value,
     },
     y: {
-      formatter: (value: number) => integerFormatter.format(Math.round(value)),
+      formatter: (value: number) => formatValue(value),
       title: {
         formatter: (seriesName: string) => `${seriesName}:`,
       },
@@ -137,12 +108,14 @@ const chartOptions = computed(() => ({
   },
   grid: {
     strokeDashArray: 4,
+    borderColor: "hsl(var(--border))",
   },
 }));
 </script>
 
 <template>
   <div class="min-h-[320px] w-full">
+    <p v-if="title" class="mb-3 text-sm font-medium text-muted-foreground">{{ title }}</p>
     <apexchart
       v-if="hasData"
       :type="type"
