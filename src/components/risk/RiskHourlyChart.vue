@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useColorMode } from "@vueuse/core";
 
 interface RiskHourlySeries {
   key: string;
@@ -16,6 +17,7 @@ const props = defineProps<{
 }>();
 
 const chartColors = ["#947c2c", "#f4a261", "#c3c3c3", "#2a9d8f"];
+const mode = useColorMode();
 const integerFormatter = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 0,
 });
@@ -43,13 +45,22 @@ const hasData = computed(() =>
   chartSeries.value.some((serie) => serie.data.some((point) => point > 0)),
 );
 
+const isDarkMode = computed(() => mode.value === "dark");
+const chartTextColor = computed(() => isDarkMode.value ? "#d4d4d8" : "#52525b");
+const chartForegroundColor = computed(() => isDarkMode.value ? "#f4f4f5" : "#18181b");
+const chartBorderColor = computed(() => isDarkMode.value ? "#3f3f46" : "#e4e4e7");
+
 const chartOptions = computed(() => ({
   chart: {
     type: props.type,
     toolbar: { show: false },
     zoom: { enabled: false },
     fontFamily: "inherit",
-    foreColor: "hsl(var(--muted-foreground))",
+    foreColor: chartTextColor.value,
+    background: "transparent",
+  },
+  theme: {
+    mode: isDarkMode.value ? "dark" : "light",
   },
   colors: chartColors,
   stroke: {
@@ -71,14 +82,14 @@ const chartOptions = computed(() => ({
     position: "top",
     horizontalAlign: "right",
     labels: {
-      colors: "hsl(var(--foreground))",
+      colors: chartForegroundColor.value,
     },
   },
   xaxis: {
     categories: props.categories || [],
     labels: {
       style: {
-        colors: "hsl(var(--muted-foreground))",
+        colors: chartTextColor.value,
       },
     },
     tooltip: { enabled: false },
@@ -90,12 +101,12 @@ const chartOptions = computed(() => ({
     labels: {
       formatter: (value: number) => formatValue(value),
       style: {
-        colors: "hsl(var(--muted-foreground))",
+        colors: chartTextColor.value,
       },
     },
   },
   tooltip: {
-    theme: false,
+    theme: isDarkMode.value ? "dark" : "light",
     x: {
       formatter: (value: string) => value,
     },
@@ -108,7 +119,7 @@ const chartOptions = computed(() => ({
   },
   grid: {
     strokeDashArray: 4,
-    borderColor: "hsl(var(--border))",
+    borderColor: chartBorderColor.value,
   },
 }));
 </script>
