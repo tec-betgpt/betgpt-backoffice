@@ -88,17 +88,19 @@ const updateCol = async ()=>{
   >
     <!-- This is what handles the sidebar gap on desktop  -->
     <div
-        :class="
-            cn(
-              'duration-200 relative h-svh bg-transparent transition-[width] ease-linear',
-              collapsible === 'icon' ? 'w-[--sidebar-width-icon]' : (side === 'left' ? 'w-[--sidebar-width]' : 'w-[440px]'),
-              collapsible === 'offcanvas' ? 'w-0' : '',
-              'group-data-[side=right]:rotate-180',
-              (variant === 'floating' || variant === 'inset') && collapsible === 'icon'
-                ? 'w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]'
-                : ''
-            )
-          "
+      :class="
+        cn(
+          'duration-200 relative h-svh  bg-transparent transition-[width] ease-linear',
+          side === 'left'
+            ? 'w-[--sidebar-width]'
+            : 'w-[440px]',
+          'group-data-[collapsible=offcanvas]:w-0',
+          'group-data-[side=right]:rotate-180',
+          variant === 'floating' || variant === 'inset'
+            ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]'
+            : 'group-data-[collapsible=icon]:w-[--sidebar-width-icon]'
+        )
+      "
     />
     <div
         :class="
