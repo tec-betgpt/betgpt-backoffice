@@ -98,7 +98,7 @@
 
       <!-- Messages Area -->
       <div class="flex-1 overflow-hidden relative">
-        <div ref="messageContainerRef" class="h-full overflow-y-auto p-4 sm:p-6 scroll-smooth">
+        <div ref="messageContainerRef" class="h-full overflow-y-auto p-4 sm:p-6 scroll-smooth" @scroll="updateActiveChatDate">
           
           <!-- Empty State -->
           <div v-if="messages.length === 0 && !loadingMessages" class="h-full flex flex-col items-center justify-center space-y-8 text-center px-4">
@@ -133,18 +133,42 @@
           </div>
 
           <!-- Messages List -->
-          <div v-else class="space-y-6 pb-4">
+          <div v-else class="pb-4">
             <div
-              v-for="(message, index) in messages"
-              :key="index"
-              class="flex w-full gap-3"
-              :class="message.role === 'user' ? 'justify-end' : 'justify-start'"
+              v-if="messages.length"
+              class="sticky top-2 z-10 flex justify-center pointer-events-none mb-4"
             >
-              <!-- Avatar Assistant -->
-              <Avatar v-if="message.role !== 'user'" class="h-8 w-8 mt-1 border">
-                <AvatarImage src="/logo-elevate-square-black.png" class="dark:invert" />
-                <AvatarFallback>AI</AvatarFallback>
-              </Avatar>
+              <Badge
+                class="text-foreground border shadow-sm backdrop-blur-sm transition-opacity duration-200"
+                :class="isDateDividerPinned ? 'bg-background/45 opacity-55' : 'bg-background/90 opacity-100'"
+              >
+                {{ activeChatDateLabel }}
+              </Badge>
+            </div>
+
+            <template v-for="(message, index) in messages" :key="message.id ?? index">
+              <div
+                v-if="shouldShowDateDivider(index)"
+                data-date-divider
+                class="flex items-center gap-3 my-6 text-[11px] font-medium text-muted-foreground"
+              >
+                <div class="h-px flex-1 bg-border"></div>
+                <span class="rounded-full border bg-background px-3 py-1">
+                  {{ formatChatDateLabel(message) }}
+                </span>
+                <div class="h-px flex-1 bg-border"></div>
+              </div>
+
+              <div
+                :data-message-date="getMessageDateKey(message)"
+                class="flex w-full gap-3 mb-6"
+                :class="message.role === 'user' ? 'justify-end' : 'justify-start'"
+              >
+               <!-- Avatar Assistant -->
+               <Avatar v-if="message.role !== 'user'" class="h-8 w-8 mt-1 border">
+                 <AvatarImage src="/logo-elevate-square-black.png" class="dark:invert" />
+                 <AvatarFallback>AI</AvatarFallback>
+               </Avatar>
 
               <div class="flex flex-col gap-1 max-w-[85%] lg:max-w-[70%]">
                 <div
@@ -184,7 +208,8 @@
                   <AvatarImage v-if="authStore.user?.icon" :src="authStore.user?.icon" />
                   <AvatarFallback>{{ authStore.user?.initials || 'U' }}</AvatarFallback>
                 </Avatar>
-            </div>
+              </div>
+            </template>
 
             <!-- Loading Indicator for new message -->
             <div v-if="sendingMessage" class="flex w-full gap-3 justify-start">
@@ -341,6 +366,7 @@ import { useRoute } from 'vue-router';
 
 // UI Components
 import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
 import {Input} from '@/components/ui/input';
 import {Textarea} from '@/components/ui/textarea';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
@@ -383,13 +409,24 @@ const route = useRoute();
 
 // State
 const chats = ref<Array<{id: number, title: string}>>([]);
-const messages = ref<Array<any>>([]);
+type ChatMessage = {
+  id?: number;
+  role: 'user' | 'assistant';
+  rawMessage: string;
+  message: string;
+  file: File | null;
+  timestamp?: string;
+};
+
+const messages = ref<ChatMessage[]>([]);
 const suggestionList = ref<string[]>([]);
 const selectedChatId = ref<number | null>(null);
 const newMessage = ref('');
 const attachedFile = ref<File | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const messageContainerRef = ref<HTMLElement | null>(null);
+const activeChatDateLabel = ref('');
+const isDateDividerPinned = ref(false);
 
 // Loading States
 const loadingChats = ref(false);
@@ -533,8 +570,70 @@ const scrollToBottom = () => {
   nextTick(() => {
     if (messageContainerRef.value) {
       messageContainerRef.value.scrollTop = messageContainerRef.value.scrollHeight;
+      updateActiveChatDate();
     }
   });
+};
+
+const getDateKey = (date = new Date()) => date.toLocaleDateString('sv-SE');
+
+const getMessageDateKey = (message: ChatMessage) => {
+  const date = new Date((message.timestamp ?? '').replace(' ', 'T'));
+
+  return getDateKey(Number.isNaN(date.getTime()) ? new Date() : date);
+};
+
+const getDateLabelFromKey = (dateKey: string) => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (dateKey === getDateKey()) return 'Hoje';
+  if (dateKey === getDateKey(yesterday)) return 'Ontem';
+
+  return new Date(`${dateKey}T00:00:00`).toLocaleDateString('pt-BR');
+};
+
+const formatChatDateLabel = (message: ChatMessage) => getDateLabelFromKey(getMessageDateKey(message));
+
+const shouldShowDateDivider = (index: number) => {
+  const currentMessage = messages.value[index];
+  const previousMessage = messages.value[index - 1];
+
+  return !previousMessage || getMessageDateKey(currentMessage) !== getMessageDateKey(previousMessage);
+};
+
+const updateActiveChatDate = () => {
+  const container = messageContainerRef.value;
+
+  if (!container || !messages.value.length) {
+    activeChatDateLabel.value = '';
+    isDateDividerPinned.value = false;
+    return;
+  }
+
+  const messageElements = Array.from(container.querySelectorAll<HTMLElement>('[data-message-date]'));
+
+  if (!messageElements.length) {
+    isDateDividerPinned.value = false;
+    return;
+  }
+
+  let activeDateKey = messageElements[0].dataset.messageDate || getMessageDateKey(messages.value[0]);
+
+  for (const element of messageElements) {
+    if (element.offsetTop <= container.scrollTop + 72) {
+      activeDateKey = element.dataset.messageDate || activeDateKey;
+    } else {
+      break;
+    }
+  }
+
+  isDateDividerPinned.value = Array.from(container.querySelectorAll<HTMLElement>('[data-date-divider]')).some((element) => {
+    const top = element.offsetTop - container.scrollTop;
+
+    return top >= 0 && top <= 64;
+  });
+  activeChatDateLabel.value = getDateLabelFromKey(activeDateKey);
 };
 
 const handleEnterKey = (e: KeyboardEvent) => {
@@ -591,7 +690,8 @@ const selectChat = async (chatId: number) => {
       role: msg.role,
       rawMessage: msg.message[0] || '',
       message: await marked.parse(msg.message[0] || ''),
-      file: null // The API response structure for files wasn't clear, assuming basic text for history for now
+      file: null,
+      timestamp: msg.timestamp
     })));
     
     scrollToBottom();
@@ -647,12 +747,14 @@ const sendMessage = async () => {
   attachedFile.value = null;
   
   // Optimistic UI update
-  messages.value.push({
-    role: 'user',
-    rawMessage: content,
-    message: content, // User message doesn't need markdown parsing usually
-    file: file
-  });
+    messages.value.push({
+      id: Date.now(),
+      role: 'user',
+      rawMessage: content,
+      message: content, // User message doesn't need markdown parsing usually
+      file: file,
+      timestamp: new Date().toISOString()
+    });
   
   scrollToBottom();
 
@@ -689,9 +791,12 @@ const sendMessage = async () => {
     const parsedResponse = await marked.parse(response.data.message);
     
     messages.value.push({
+      id: response.data.id,
       role: 'assistant',
       rawMessage: response.data.message,
-      message: parsedResponse
+      message: parsedResponse,
+      file: null,
+      timestamp: response.data.timestamp ?? new Date().toISOString()
     });
     
     isAnimating.value = true;
@@ -751,6 +856,13 @@ watch(() => isMobile.value, (mobile) => {
   if (!mobile) isSidebarOpen.value = true;
   else isSidebarOpen.value = false;
 });
+
+watch(
+  () => messages.value.length,
+  () => {
+    nextTick(() => updateActiveChatDate());
+  }
+);
 
 </script>
 

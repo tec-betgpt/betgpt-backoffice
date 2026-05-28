@@ -3,7 +3,7 @@
     <LeftMenuComponent v-model:sidebarExpanded="sidebarExpanded" />
 
     <SidebarInset
-      :class="sidebarAi ? 'mr-[440px] transition-all duration-200' : 'transition-all duration-200'"
+      :class="sidebarAi && !hideRightMenuAi ? 'mr-[440px] transition-all duration-200' : 'transition-all duration-200'"
     >
       <header class="flex sticky z-30 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4">
         <div class="flex items-center gap-2 w-full">
@@ -82,6 +82,7 @@
           <IAAnaliseButton v-if="!hideIAButton" @openSidebar="sidebarAi = true" />
 
           <SidebarTrigger
+            v-if="!hideRightMenuAi"
             :logo="true"
             :toggle="toggleSidebarIA"
             :logoCustom="logoCustomAi"
@@ -101,7 +102,7 @@
       </main>
     </SidebarInset>
 
-    <RightMenuComponent v-model:sidebarAi="sidebarAi" />
+    <RightMenuComponent v-if="!hideRightMenuAi" v-model:sidebarAi="sidebarAi" />
 
     <div
       v-if="isImpersonating"
@@ -144,7 +145,7 @@ import { Separator } from "@/components/ui/separator";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { toast } from "@/components/ui/toast";
 import Projects from "@/services/projects";
@@ -238,7 +239,7 @@ const logoCustomAi = computed(() => {
 });
 
 const hideIAButton = computed(() => {
-  const hiddenRoutes = ['configurations', 'chat-ia', 'jarbas-bot','governance','exports','elevate-api','conversions','manage'];
+  const hiddenRoutes = ['configurations', 'elevate-ia', 'jarbas-bot','governance','exports','elevate-api','conversions','manage'];
   let r = false;
   hiddenRoutes.forEach((item) => {
     if (r){
@@ -251,6 +252,10 @@ const hideIAButton = computed(() => {
   return r
 });
 
+const hideRightMenuAi = computed(() =>
+  route.matched.some((record) => Boolean(record.meta?.hideRightMenuAi))
+);
+
 // Methods
 const toggleValues = () => {
   isShowValues.value = !isShowValues.value;
@@ -261,9 +266,19 @@ const toggleSidebar = () => {
 };
 
 const toggleSidebarIA = () => {
+  if (hideRightMenuAi.value) {
+    sidebarAi.value = false;
+    return;
+  }
   localStorage.setItem("sidebarAi", sidebarAi.value ? "0" : "1");
   sidebarAi.value = !sidebarAi.value;
 };
+
+watch(hideRightMenuAi, (shouldHide) => {
+  if (shouldHide) {
+    sidebarAi.value = false;
+  }
+});
 
 const minSwipeDistance = 60;
 const edgeArea = 48;

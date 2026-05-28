@@ -24,6 +24,7 @@ export default [
           title: "Chat IA",
           roles: "member|client",
           permissions: "access-to-ai",
+          hideRightMenuAi: true,
         },
       },
       // {
