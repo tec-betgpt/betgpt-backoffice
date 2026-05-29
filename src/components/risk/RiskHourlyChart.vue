@@ -13,6 +13,7 @@ const props = defineProps<{
   title?: string;
   categories: string[];
   series: RiskHourlySeries[];
+  seriesLabels?: Record<string, string>;
   valueType?: "integer" | "money";
 }>();
 
@@ -34,9 +35,15 @@ function formatValue(value: number) {
     : integerFormatter.format(Math.round(parsedValue));
 }
 
+function getSerieName(serie: RiskHourlySeries) {
+  const labelKey = serie.label.toLowerCase();
+
+  return props.seriesLabels?.[serie.key] || props.seriesLabels?.[labelKey] || serie.label;
+}
+
 const chartSeries = computed(() =>
   props.series.map((serie) => ({
-    name: serie.label,
+    name: getSerieName(serie),
     data: (serie.data || []).map((value) => Number(value) || 0),
   })),
 );

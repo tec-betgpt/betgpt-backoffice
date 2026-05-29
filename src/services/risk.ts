@@ -1,9 +1,15 @@
 import api from "./base.js";
 
 interface RiskParams {
-  filter_id: string;
-  start_date: string;
-  end_date?: string;
+  filter_id: string
+  today_date: string
+  yesterday_date: string
+  average_start_date: string
+  average_end_date: string
+}
+
+interface RiskRequestConfig {
+  signal?: AbortSignal;
 }
 
 interface RiskChartSerie {
@@ -46,8 +52,8 @@ export interface IndexResponse {
 }
 
 export default {
-  async index(params: RiskParams): Promise<IndexResponse> {
-    const { data } = await api.get("/risk", { params });
+  async index(params: RiskParams, config?: RiskRequestConfig): Promise<IndexResponse> {
+    const { data } = await api.get("/risk", { params, ...config });
     return data;
-  },
+  }
 }
