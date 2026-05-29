@@ -44,7 +44,7 @@ export default [
         },
       },
       {
-        path: "/risk",
+        path: "risk",
         name: "risk",
         component: Risk,
         meta: {
