@@ -19,8 +19,8 @@
         <Table class="w-full">
           <TableHeader>
             <TableRow>
+              <TableHead v-if="activeGroupProjectType == 'group'">Logo</TableHead>
               <TableHead>Título</TableHead>
-              <TableHead v-if="activeGroupProjectType == 'group'">Projeto</TableHead>
               <TableHead>Recurso</TableHead>
               <TableHead>Gráfico</TableHead>
               <TableHead>Cor</TableHead>
@@ -31,14 +31,21 @@
           </TableHeader>
           <TableBody>
             <TableRow v-if="isLoading" v-for="row in 5" :key="row">
-              <TableCell v-for="col in 7" :key="col">
+              <TableCell v-for="col in tableColumnCount" :key="col">
                 <Skeleton class="h-4 w-full bg-gray-300 my-2" />
               </TableCell>
             </TableRow>
             <template v-else>
               <TableRow v-for="annotation in projectAnnotations" :key="annotation.id">
+                <TableCell v-if="activeGroupProjectType == 'group'">
+                  <Avatar class="h-10 w-10 rounded-lg">
+                    <AvatarImage :src="annotation.project.logo_url || undefined" />
+                    <AvatarFallback class="p-10 rounded-lg">
+                      {{ annotation.project.name.charAt(0) }}{{ annotation.project.name.charAt(1) }}
+                    </AvatarFallback>
+                  </Avatar>
+                </TableCell>
                 <TableCell class="font-medium">{{ annotation.title }}</TableCell>
-                <TableCell v-if="activeGroupProjectType == 'group'">{{ annotation.project.name }}</TableCell>
                 <TableCell>{{ annotation.resource || "N/A" }}</TableCell>
                 <TableCell>{{ annotation.chart_name || "Global" }}</TableCell>
                 <TableCell>
@@ -75,7 +82,7 @@
                 </TableCell>
               </TableRow>
               <TableRow v-if="projectAnnotations.length === 0">
-                <TableCell colspan="7" class="text-center py-10 text-muted-foreground">
+                <TableCell :colspan="tableColumnCount" class="text-center py-10 text-muted-foreground">
                   Nenhuma anotação encontrada.
                 </TableCell>
               </TableRow>
@@ -116,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useToast } from "@/components/ui/toast/use-toast";
 import ProjectAnnotations from "@/services/projectAnnotations";
@@ -137,6 +144,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye, Pencil, Plus } from "lucide-vue-next";
 import moment from "moment";
 import { ProjectAnnotation } from "@/contracts/projectAnnotation";
@@ -154,6 +162,9 @@ const perPage = ref(15);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject!.id;
 const activeGroupProjectType = workspaceStore.activeGroupProject!.type;
+const tableColumnCount = computed(() =>
+  activeGroupProjectType === "group" ? 8 : 7
+);
 const isDetailsOpen = ref(false);
 const isEditOpen = ref(false);
 const isDialogOpen = ref(false);

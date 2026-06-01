@@ -7,7 +7,7 @@ export default [
     name: "updates",
     meta: {
       requiresAuth: true,
-      title: "Atualizações",
+      title: "Gestão",
       roles: "member|client",
       permissions: "access-to-dashboard",
     },

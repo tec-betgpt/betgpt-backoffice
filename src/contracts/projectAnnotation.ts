@@ -14,5 +14,6 @@ export interface ProjectAnnotation {
   project: {
     id: number
     name: string
+    logo_url?: string | null
   }
 }
