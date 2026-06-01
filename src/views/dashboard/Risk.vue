@@ -1,24 +1,31 @@
 <script setup lang="ts">
-import type { DateRange } from "radix-vue";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { Calendar as CalendarIcon, AlertCircle, Loader2 } from "lucide-vue-next";
 import { CalendarDate } from "@internationalized/date";
-import { AlertCircle, Loader2 } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import RiskService from "@/services/risk";
 import type { IndexResponse } from "@/services/risk";
 import RiskHourlyChart from "@/components/risk/RiskHourlyChart.vue";
-import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type RiskChartValueType = "integer" | "money";
 
 type RiskStatus = "idle" | "loading" | "refreshing" | "success" | "empty" | "error";
+
+type RiskFilters = {
+  today_date: string;
+  yesterday_date: string;
+  average_start_date: string;
+  average_end_date: string;
+};
 
 const route = useRoute();
 const router = useRouter();
@@ -28,13 +35,31 @@ const riskData = ref<IndexResponse | null>(null);
 const status = ref<RiskStatus>("idle");
 const errorMessage = ref("");
 const validationMessage = ref("");
-const draftFilters = ref({ start_date: "", end_date: "" });
-const selectedRange = ref<DateRange>({ start: undefined, end: undefined });
-const appliedFilters = ref({ start_date: "", end_date: "" });
-const lastAppliedFilters = ref({ start_date: "", end_date: "" });
+const draftFilters = ref<RiskFilters>({
+  today_date: "",
+  yesterday_date: "",
+  average_start_date: "",
+  average_end_date: "",
+});
+const appliedFilters = ref<RiskFilters>({
+  today_date: "",
+  yesterday_date: "",
+  average_start_date: "",
+  average_end_date: "",
+});
+const lastAppliedFilters = ref<RiskFilters>({
+  today_date: "",
+  yesterday_date: "",
+  average_start_date: "",
+  average_end_date: "",
+});
 const currentController = ref<AbortController | null>(null);
+const todayPopoverOpen = ref(false);
+const yesterdayPopoverOpen = ref(false);
+const averagePopoverOpen = ref(false);
 
 const integerFormatter = new Intl.NumberFormat("pt-BR");
+const averagePresetOptions = [7, 14, 30];
 
 function getSaoPauloDate() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -70,6 +95,21 @@ function formatDisplayDate(value: string) {
   return `${day}/${month}/${year}`;
 }
 
+function formatShortDisplayDate(value: string) {
+  if (!isValidDateString(value)) {
+    return "";
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  const formattedDate = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+  }).format(date);
+
+  return formattedDate.replace(" de ", " ").replace(/\.$/, ".");
+}
+
 function dateStringToCalendarDate(value: string) {
   if (!isValidDateString(value)) {
     return undefined;
@@ -80,23 +120,20 @@ function dateStringToCalendarDate(value: string) {
   return new CalendarDate(year, month, day);
 }
 
-function syncSelectedRange(filters: { start_date: string; end_date: string }) {
-  selectedRange.value = {
-    start: dateStringToCalendarDate(filters.start_date),
-    end: dateStringToCalendarDate(filters.end_date),
-  };
+function calendarDateToString(value?: CalendarDate) {
+  return value?.toString() || "";
 }
 
-function updateDraftFiltersFromRange(range: DateRange) {
-  if (range.start) {
-    draftFilters.value.start_date = range.start.toString();
-  }
+function addDays(value: string, days: number) {
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + days);
 
-  if (range.end) {
-    draftFilters.value.end_date = range.end.toString();
-  } else if (range.start) {
-    draftFilters.value.end_date = range.start.toString();
-  }
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
 function normalizeQueryParam(value: unknown) {
@@ -105,35 +142,76 @@ function normalizeQueryParam(value: unknown) {
 
 function getDefaultFilters() {
   const today = getSaoPauloDate();
+  const yesterday = addDays(today, -1);
 
-  return { start_date: today, end_date: today };
+  return {
+    today_date: today,
+    yesterday_date: yesterday,
+    average_start_date: addDays(today, -6),
+    average_end_date: today,
+  };
 }
 
 function getInitialFilters() {
   const defaults = getDefaultFilters();
-  const queryStartDate = normalizeQueryParam(route.query.start_date);
-  const queryEndDate = normalizeQueryParam(route.query.end_date);
 
   return {
-    start_date: queryStartDate || defaults.start_date,
-    end_date: queryEndDate || defaults.end_date,
+    today_date: normalizeQueryParam(route.query.today_date) || defaults.today_date,
+    yesterday_date: normalizeQueryParam(route.query.yesterday_date) || defaults.yesterday_date,
+    average_start_date: normalizeQueryParam(route.query.average_start_date) || defaults.average_start_date,
+    average_end_date: normalizeQueryParam(route.query.average_end_date) || defaults.average_end_date,
   };
 }
 
-function validateFilters(filters: { start_date: string; end_date: string }) {
-  if (!filters.start_date || !isValidDateString(filters.start_date)) {
-    return "Informe uma data inicial.";
+function validateFilters(filters: RiskFilters) {
+  if (!filters.today_date || !isValidDateString(filters.today_date)) {
+    return "Informe uma data valida para hoje.";
   }
 
-  if (!filters.end_date || !isValidDateString(filters.end_date)) {
-    return "Informe uma data final valida.";
+  if (!filters.yesterday_date || !isValidDateString(filters.yesterday_date)) {
+    return "Informe uma data valida para ontem.";
   }
 
-  if (filters.end_date < filters.start_date) {
-    return "A data final nao pode ser anterior a data inicial.";
+  if (!filters.average_start_date || !isValidDateString(filters.average_start_date)) {
+    return "Informe uma data inicial valida para a media.";
+  }
+
+  if (!filters.average_end_date || !isValidDateString(filters.average_end_date)) {
+    return "Informe uma data final valida para a media.";
+  }
+
+  if (filters.average_end_date < filters.average_start_date) {
+    return "A data final da media nao pode ser anterior a data inicial.";
   }
 
   return "";
+}
+
+function getInclusiveDays(startDate: string, endDate: string) {
+  if (!isValidDateString(startDate) || !isValidDateString(endDate)) {
+    return 0;
+  }
+
+  const [startYear, startMonth, startDay] = startDate.split("-").map(Number);
+  const [endYear, endMonth, endDay] = endDate.split("-").map(Number);
+  const start = new Date(startYear, startMonth - 1, startDay);
+  const end = new Date(endYear, endMonth - 1, endDay);
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+
+  return Math.round((end.getTime() - start.getTime()) / millisecondsPerDay) + 1;
+}
+
+function getAverageSeriesLabel(filters: RiskFilters) {
+  const days = getInclusiveDays(filters.average_start_date, filters.average_end_date);
+
+  if (averagePresetOptions.includes(days)) {
+    return `Media ${days} dias`;
+  }
+
+  const startDate = formatShortDisplayDate(filters.average_start_date);
+  const endDate = formatShortDisplayDate(filters.average_end_date);
+
+  return startDate && endDate ? `${startDate} ~ ${endDate}` : "Media";
 }
 
 function isCanceledError(error: any) {
@@ -182,23 +260,25 @@ function isEmptyPayload(payload: IndexResponse) {
   return getPayloadCharts(payload).every((chart) => chartIsEmpty(chart));
 }
 
-async function updateQuery(filters: { start_date: string; end_date: string }) {
+async function updateQuery(filters: RiskFilters) {
   await router.replace({
     query: {
       ...route.query,
-      start_date: filters.start_date,
-      end_date: filters.end_date,
+      today_date: filters.today_date,
+      yesterday_date: filters.yesterday_date,
+      average_start_date: filters.average_start_date,
+      average_end_date: filters.average_end_date,
     },
   });
 }
 
 async function clearQuery() {
-  const { start_date, end_date, ...query } = route.query;
+  const { today_date, yesterday_date, average_start_date, average_end_date, ...query } = route.query;
 
   await router.replace({ query });
 }
 
-async function fetchRisk(filters: { start_date: string; end_date: string }) {
+async function fetchRisk(filters: RiskFilters) {
   validationMessage.value = "";
 
   const validation = validateFilters(filters);
@@ -224,11 +304,12 @@ async function fetchRisk(filters: { start_date: string; end_date: string }) {
   try {
     const response = await RiskService.index(
       {
-        filter_id: workspaceStore.activeGroupProject.id,
-        start_date: filters.start_date,
-        end_date: filters.end_date,
-      },
-      { signal: currentController.value.signal },
+        today_date: filters.today_date,
+        yesterday_date: filters.yesterday_date,
+        average_start_date: filters.average_start_date,
+        average_end_date: filters.average_end_date,
+        filter_id: workspaceStore.activeGroupProject?.id,
+      }
     );
 
     riskData.value = response;
@@ -259,9 +340,30 @@ async function applyFilters() {
 async function clearFilters() {
   const defaults = getDefaultFilters();
   draftFilters.value = { ...defaults };
-  syncSelectedRange(defaults);
   await clearQuery();
   await fetchRisk(defaults);
+}
+
+function applyAveragePreset(days: number) {
+  const endDate = draftFilters.value.average_end_date || getSaoPauloDate();
+  draftFilters.value.average_start_date = addDays(endDate, -(days - 1));
+  draftFilters.value.average_end_date = endDate;
+}
+
+function updateSingleDate(filter: "today_date" | "yesterday_date", value?: CalendarDate) {
+  const date = calendarDateToString(value);
+
+  if (date) {
+    draftFilters.value[filter] = date;
+  }
+}
+
+function updateAverageDate(filter: "average_start_date" | "average_end_date", value?: CalendarDate) {
+  const date = calendarDateToString(value);
+
+  if (date) {
+    draftFilters.value[filter] = date;
+  }
 }
 
 function retryLastRequest() {
@@ -271,11 +373,33 @@ function retryLastRequest() {
 const isBusy = computed(() => status.value === "loading" || status.value === "refreshing");
 const shouldShowSkeleton = computed(() => status.value === "loading" && !riskData.value);
 const periodLabel = computed(() => {
-  const startDate = formatDisplayDate(appliedFilters.value.start_date || draftFilters.value.start_date);
-  const endDate = formatDisplayDate(appliedFilters.value.end_date || draftFilters.value.end_date);
+  const filters = appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value;
+  const todayDate = formatDisplayDate(filters.today_date);
+  const yesterdayDate = formatDisplayDate(filters.yesterday_date);
+  const averageStartDate = formatDisplayDate(filters.average_start_date);
+  const averageEndDate = formatDisplayDate(filters.average_end_date);
 
-  return startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+  return `Hoje: ${todayDate} | Ontem: ${yesterdayDate} | Media: ${averageStartDate} - ${averageEndDate}`;
 });
+const seriesLabels = computed(() => ({
+  today: formatDisplayDate(appliedFilters.value.today_date || draftFilters.value.today_date),
+  yesterday: formatDisplayDate(appliedFilters.value.yesterday_date || draftFilters.value.yesterday_date),
+  hoje: formatDisplayDate(appliedFilters.value.today_date || draftFilters.value.today_date),
+  ontem: formatDisplayDate(appliedFilters.value.yesterday_date || draftFilters.value.yesterday_date),
+  average: getAverageSeriesLabel(appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value),
+  media: getAverageSeriesLabel(appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value),
+  média: getAverageSeriesLabel(appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value),
+  "media 7 dias": getAverageSeriesLabel(appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value),
+  "média 7 dias": getAverageSeriesLabel(appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value),
+  "media 14 dias": getAverageSeriesLabel(appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value),
+  "média 14 dias": getAverageSeriesLabel(appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value),
+  "media 30 dias": getAverageSeriesLabel(appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value),
+  "média 30 dias": getAverageSeriesLabel(appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value),
+}));
+const todayCalendarValue = computed(() => dateStringToCalendarDate(draftFilters.value.today_date));
+const yesterdayCalendarValue = computed(() => dateStringToCalendarDate(draftFilters.value.yesterday_date));
+const averageStartCalendarValue = computed(() => dateStringToCalendarDate(draftFilters.value.average_start_date));
+const averageEndCalendarValue = computed(() => dateStringToCalendarDate(draftFilters.value.average_end_date));
 
 const chartGroups = computed(() => [
   {
@@ -309,7 +433,6 @@ const chartGroups = computed(() => [
 onMounted(() => {
   const initialFilters = getInitialFilters();
   draftFilters.value = { ...initialFilters };
-  syncSelectedRange(initialFilters);
   appliedFilters.value = { ...initialFilters };
   lastAppliedFilters.value = { ...initialFilters };
   fetchRisk(initialFilters);
@@ -322,8 +445,10 @@ onBeforeUnmount(() => {
 useScreenContext(
   "Tela de risco - Exibe indicadores operacionais por hora e monetizacao acumulada",
   () => ({
-    start_date: appliedFilters.value.start_date,
-    end_date: appliedFilters.value.end_date,
+    today_date: appliedFilters.value.today_date,
+    yesterday_date: appliedFilters.value.yesterday_date,
+    average_start_date: appliedFilters.value.average_start_date,
+    average_end_date: appliedFilters.value.average_end_date,
     filter_id: workspaceStore.activeGroupProject?.id || "",
   }),
   "/v1/risk",
@@ -344,19 +469,93 @@ useScreenContext(
       </div>
 
       <div class="flex flex-col items-start justify-start gap-2 min-[900px]:items-end">
-        <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-end">
-          <div class="grid w-full gap-1 sm:w-auto">
-            <label class="text-xs font-medium text-muted-foreground">Periodo</label>
-            <CustomDatePicker
-              v-model="selectedRange"
-              @update:model-value="updateDraftFiltersFromRange"
-            />
+        <div class="grid w-full gap-3 sm:w-auto">
+          <div class="flex flex-wrap items-center justify-start gap-2 min-[900px]:justify-end">
+            <Popover v-model:open="todayPopoverOpen">
+              <PopoverTrigger as-child>
+                <Button type="button" variant="outline" :disabled="isBusy" class="justify-start gap-2">
+                  <CalendarIcon class="h-4 w-4" />
+                  Hoje: {{ formatDisplayDate(draftFilters.today_date) }}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent class="w-auto p-3" align="end">
+                <Calendar
+                  :model-value="todayCalendarValue"
+                  weekday-format="short"
+                  initial-focus
+                  @update:model-value="updateSingleDate('today_date', $event); todayPopoverOpen = false"
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Popover v-model:open="yesterdayPopoverOpen">
+              <PopoverTrigger as-child>
+                <Button type="button" variant="outline" :disabled="isBusy" class="justify-start gap-2">
+                  <CalendarIcon class="h-4 w-4" />
+                  Ontem: {{ formatDisplayDate(draftFilters.yesterday_date) }}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent class="w-auto p-3" align="end">
+                <Calendar
+                  :model-value="yesterdayCalendarValue"
+                  weekday-format="short"
+                  initial-focus
+                  @update:model-value="updateSingleDate('yesterday_date', $event); yesterdayPopoverOpen = false"
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Popover v-model:open="averagePopoverOpen">
+              <PopoverTrigger as-child>
+                <Button type="button" variant="outline" :disabled="isBusy" class="justify-start gap-2">
+                  <CalendarIcon class="h-4 w-4" />
+                  Media: {{ formatDisplayDate(draftFilters.average_start_date) }} - {{ formatDisplayDate(draftFilters.average_end_date) }}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent class="w-auto max-w-[calc(100vw-2rem)] p-4" align="end">
+                <div class="grid gap-4 lg:grid-cols-[auto_auto]">
+                  <div class="grid gap-2">
+                    <span class="text-xs font-medium text-muted-foreground">Media inicial</span>
+                    <Calendar
+                      :model-value="averageStartCalendarValue"
+                      weekday-format="short"
+                      initial-focus
+                      @update:model-value="updateAverageDate('average_start_date', $event)"
+                    />
+                  </div>
+                  <div class="grid gap-2">
+                    <span class="text-xs font-medium text-muted-foreground">Media final</span>
+                    <Calendar
+                      :model-value="averageEndCalendarValue"
+                      weekday-format="short"
+                      @update:model-value="updateAverageDate('average_end_date', $event)"
+                    />
+                  </div>
+                </div>
+                <div class="mt-3 flex flex-wrap items-center gap-2 border-t pt-3">
+                  <span class="text-xs font-medium text-muted-foreground">Predefinicoes:</span>
+                  <Button
+                    v-for="days in averagePresetOptions"
+                    :key="days"
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    :disabled="isBusy"
+                    @click="applyAveragePreset(days)"
+                  >
+                    Ultimos {{ days }} dias
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-          <Button :disabled="isBusy" @click="applyFilters">
-            <Loader2 v-if="isBusy" class="mr-2 h-4 w-4 animate-spin" />
-            Aplicar Filtro
-          </Button>
-          <Button :disabled="isBusy" variant="outline" @click="clearFilters">Limpar</Button>
+          <div class="flex flex-wrap items-center justify-start gap-2 min-[900px]:justify-end">
+            <Button :disabled="isBusy" @click="applyFilters">
+              <Loader2 v-if="isBusy" class="mr-2 h-4 w-4 animate-spin" />
+              Aplicar Filtro
+            </Button>
+            <Button :disabled="isBusy" variant="outline" @click="clearFilters">Limpar</Button>
+          </div>
         </div>
         <p v-if="validationMessage" class="text-sm text-destructive">{{ validationMessage }}</p>
       </div>
@@ -395,6 +594,7 @@ useScreenContext(
               :title="chart.data?.title"
               :categories="chart.data?.x_axis || riskData?.hours || []"
               :series="chart.data?.series || []"
+              :series-labels="seriesLabels"
               :value-type="chart.valueType"
             />
           </div>
