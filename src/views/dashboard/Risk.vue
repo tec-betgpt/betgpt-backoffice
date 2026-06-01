@@ -124,6 +124,12 @@ function calendarDateToString(value?: CalendarDate) {
   return value?.toString() || "";
 }
 
+function getDateButtonLabel(label: string, value: string, expectedValue: string) {
+  const formattedDate = formatDisplayDate(value);
+
+  return value === expectedValue ? `${label}: ${formattedDate}` : formattedDate;
+}
+
 function addDays(value: string, days: number) {
   const [year, month, day] = value.split("-").map(Number);
   const date = new Date(year, month - 1, day);
@@ -164,20 +170,38 @@ function getInitialFilters() {
 }
 
 function validateFilters(filters: RiskFilters) {
+  const maxDate = getSaoPauloDate();
+
   if (!filters.today_date || !isValidDateString(filters.today_date)) {
     return "Informe uma data valida para hoje.";
+  }
+
+  if (filters.today_date > maxDate) {
+    return "A data de hoje nao pode ser futura.";
   }
 
   if (!filters.yesterday_date || !isValidDateString(filters.yesterday_date)) {
     return "Informe uma data valida para ontem.";
   }
 
+  if (filters.yesterday_date > maxDate) {
+    return "A data de ontem nao pode ser futura.";
+  }
+
   if (!filters.average_start_date || !isValidDateString(filters.average_start_date)) {
     return "Informe uma data inicial valida para a media.";
   }
 
+  if (filters.average_start_date > maxDate) {
+    return "A data inicial da media nao pode ser futura.";
+  }
+
   if (!filters.average_end_date || !isValidDateString(filters.average_end_date)) {
     return "Informe uma data final valida para a media.";
+  }
+
+  if (filters.average_end_date > maxDate) {
+    return "A data final da media nao pode ser futura.";
   }
 
   if (filters.average_end_date < filters.average_start_date) {
@@ -400,6 +424,13 @@ const todayCalendarValue = computed(() => dateStringToCalendarDate(draftFilters.
 const yesterdayCalendarValue = computed(() => dateStringToCalendarDate(draftFilters.value.yesterday_date));
 const averageStartCalendarValue = computed(() => dateStringToCalendarDate(draftFilters.value.average_start_date));
 const averageEndCalendarValue = computed(() => dateStringToCalendarDate(draftFilters.value.average_end_date));
+const maxCalendarValue = computed(() => dateStringToCalendarDate(getSaoPauloDate()));
+const todayButtonLabel = computed(() =>
+  getDateButtonLabel("Hoje", draftFilters.value.today_date, getSaoPauloDate()),
+);
+const yesterdayButtonLabel = computed(() =>
+  getDateButtonLabel("Ontem", draftFilters.value.yesterday_date, addDays(getSaoPauloDate(), -1)),
+);
 
 const chartGroups = computed(() => [
   {
@@ -475,12 +506,13 @@ useScreenContext(
               <PopoverTrigger as-child>
                 <Button type="button" variant="outline" :disabled="isBusy" class="justify-start gap-2">
                   <CalendarIcon class="h-4 w-4" />
-                  Hoje: {{ formatDisplayDate(draftFilters.today_date) }}
+                  {{ todayButtonLabel }}
                 </Button>
               </PopoverTrigger>
               <PopoverContent class="w-auto p-3" align="end">
                 <Calendar
                   :model-value="todayCalendarValue"
+                  :max-value="maxCalendarValue"
                   weekday-format="short"
                   initial-focus
                   @update:model-value="updateSingleDate('today_date', $event); todayPopoverOpen = false"
@@ -492,12 +524,13 @@ useScreenContext(
               <PopoverTrigger as-child>
                 <Button type="button" variant="outline" :disabled="isBusy" class="justify-start gap-2">
                   <CalendarIcon class="h-4 w-4" />
-                  Ontem: {{ formatDisplayDate(draftFilters.yesterday_date) }}
+                  {{ yesterdayButtonLabel }}
                 </Button>
               </PopoverTrigger>
               <PopoverContent class="w-auto p-3" align="end">
                 <Calendar
                   :model-value="yesterdayCalendarValue"
+                  :max-value="maxCalendarValue"
                   weekday-format="short"
                   initial-focus
                   @update:model-value="updateSingleDate('yesterday_date', $event); yesterdayPopoverOpen = false"
@@ -518,6 +551,7 @@ useScreenContext(
                     <span class="text-xs font-medium text-muted-foreground">Media inicial</span>
                     <Calendar
                       :model-value="averageStartCalendarValue"
+                      :max-value="maxCalendarValue"
                       weekday-format="short"
                       initial-focus
                       @update:model-value="updateAverageDate('average_start_date', $event)"
@@ -527,6 +561,7 @@ useScreenContext(
                     <span class="text-xs font-medium text-muted-foreground">Media final</span>
                     <Calendar
                       :model-value="averageEndCalendarValue"
+                      :max-value="maxCalendarValue"
                       weekday-format="short"
                       @update:model-value="updateAverageDate('average_end_date', $event)"
                     />
