@@ -3,7 +3,11 @@
     <LeftMenuComponent v-model:sidebarExpanded="sidebarExpanded" />
 
     <SidebarInset
-      :class="sidebarAi && !hideRightMenuAi ? 'mr-[440px] transition-all duration-200' : 'transition-all duration-200'"
+      :class="[
+        sidebarAi && !hideRightMenuAi ? 'mr-[440px]' : '',
+        sidebarExpanded ? 'md:ml-[13rem]' : '',
+        'transition-all duration-200',
+      ]"
     >
       <header class="flex sticky z-30 top-0 bg-background/5 backdrop-blur-md h-16 shrink-0 items-center gap-2 px-4">
         <div class="flex items-center gap-2 w-full">
