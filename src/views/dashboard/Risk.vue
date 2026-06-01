@@ -234,9 +234,9 @@ function getRequestErrorMessage(error: any) {
   return "Nao foi possivel carregar os dados de risco.";
 }
 
-function chartIsEmpty(chart?: { series?: { data?: number[] }[] }) {
+function chartIsEmpty(chart?: { series?: { data?: (number | null)[] }[] }) {
   return !chart?.series?.length || chart.series.every((serie) =>
-    !serie.data?.length || serie.data.every((value) => Number(value) === 0),
+    !serie.data?.length || serie.data.every((value) => value === null || Number(value) === 0),
   );
 }
 
