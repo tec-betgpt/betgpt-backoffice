@@ -15,7 +15,7 @@ interface RiskRequestConfig {
 interface RiskChartSerie {
   key: string;
   label: string;
-  data: number[];
+  data: (number | null)[];
 }
 
 interface RiskChartData {

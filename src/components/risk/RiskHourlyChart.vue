@@ -5,7 +5,7 @@ import { useColorMode } from "@vueuse/core";
 interface RiskHourlySeries {
   key: string;
   label: string;
-  data: number[];
+  data: (number | null)[];
 }
 
 const props = defineProps<{
@@ -27,7 +27,11 @@ const moneyFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
-function formatValue(value: number) {
+function formatValue(value: number | null) {
+  if (value === null) {
+    return "-";
+  }
+
   const parsedValue = Number(value) || 0;
 
   return props.valueType === "money"
@@ -44,12 +48,12 @@ function getSerieName(serie: RiskHourlySeries) {
 const chartSeries = computed(() =>
   props.series.map((serie) => ({
     name: getSerieName(serie),
-    data: (serie.data || []).map((value) => Number(value) || 0),
+    data: (serie.data || []).map((value) => value === null ? null : Number(value) || 0),
   })),
 );
 
 const hasData = computed(() =>
-  chartSeries.value.some((serie) => serie.data.some((point) => point > 0)),
+  chartSeries.value.some((serie) => serie.data.some((point) => point !== null && point > 0)),
 );
 
 const isDarkMode = computed(() => mode.value === "dark");
@@ -118,7 +122,7 @@ const chartOptions = computed(() => ({
       formatter: (value: string) => value,
     },
     y: {
-      formatter: (value: number) => formatValue(value),
+      formatter: (value: number | null) => formatValue(value),
       title: {
         formatter: (seriesName: string) => `${seriesName}:`,
       },
