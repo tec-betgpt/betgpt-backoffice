@@ -93,7 +93,21 @@
     </SidebarHeader>
       <SidebarContent>
         <div
-            v-if="isLoadingChat || isLoadingLocal"
+            v-if="analysisErrorMessage"
+            class="h-full flex flex-col items-center justify-center w-full gap-4 px-6 text-center"
+        >
+          <Avatar class="h-4 w-4 rounded-lg">
+            <AvatarImage :src="iconIa" />
+            <AvatarFallback class="rounded-lg">
+              {{ authStore.user?.initials }}
+            </AvatarFallback>
+          </Avatar>
+          <TriangleAlert class="h-6 w-6 text-destructive" />
+          <span class="text-xs text-muted-foreground">{{ analysisErrorMessage }}</span>
+        </div>
+
+        <div
+            v-else-if="isLoadingChat || isLoadingLocal"
             class="h-full flex flex-col items-center justify-center w-full gap-4"
         >
           <Avatar class="h-4 w-4 rounded-lg">
@@ -405,7 +419,8 @@ import {
   Search,
   Maximize2,
   Mic,
-  Square
+  Square,
+  TriangleAlert
 } from "lucide-vue-next";
 import { useColorMode } from "@vueuse/core";
 import { Input } from "@/components/ui/input";
@@ -484,6 +499,7 @@ const isDateDividerPinned = ref(false);
 const isAnimating = ref(false);
 const isInputDisabled = computed(() => loading.value || isAnimating.value);
 const suggestionList = ref([]);
+const analysisErrorMessage = ref("");
 
 // Audio Recording State
 const isRecording = ref(false);
@@ -643,6 +659,14 @@ watch([isLoadingChat, isLoadingLocal, loading], ([chatLoading, localLoading, msg
   }
 })
 
+watch(() => iaAnaliseStore.error, (errorMessage) => {
+  if (!errorMessage) return;
+
+  analysisErrorMessage.value = errorMessage;
+  iaAnaliseStore.chatId = null;
+  iaAnaliseStore.error = null;
+})
+
 watch(() => iaAnaliseStore.isLoading, async (newVal, oldVal) => {
   if (oldVal === true && newVal === false && iaAnaliseStore.chatId) {
     selectedChatId.value = parseInt(iaAnaliseStore.chatId);
@@ -776,6 +800,7 @@ const createNewChat = async () => {
 const selectChat = async (chatId: number) => {
   if (chatId == 0) return;
 
+  analysisErrorMessage.value = "";
   isLoadingLocal.value = true;
   selectedChatId.value = chatId;
   localStorage.setItem("chatId", `${chatId}`);
@@ -811,6 +836,8 @@ const loadMessages = async () => {
 const route = useRoute();
 
 const sendMessage = async () => {
+  analysisErrorMessage.value = "";
+
   if (!newMessage.value.message) {
     toast({
       title: "Adicione um Texto",
@@ -888,6 +915,7 @@ const handleFileUpload = async (event: Event) => {
 };
 
 const resetChat = async () => {
+  analysisErrorMessage.value = "";
   selectedChatId.value = undefined;
   localStorage.removeItem("chatId");
   messages.value = [];

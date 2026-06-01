@@ -47,6 +47,7 @@ const handleClick = async () => {
     title: "IA Analise",
     description: "Dados enviados para análise.",
   });
+
   try {
     let chatId = localStorage.getItem("chatId");
 
@@ -87,6 +88,7 @@ const handleClick = async () => {
       description: "Não foi possível enviar os dados para análise.",
       variant: "destructive",
     });
+    iaAnaliseStore.setError("Não foi possível concluir a análise. Tente novamente.");
     iaAnaliseStore.finishAnalise();
   }
 };
