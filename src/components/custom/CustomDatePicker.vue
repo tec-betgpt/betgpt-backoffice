@@ -47,6 +47,8 @@ const calendarRef = ref<DateRange | undefined>();
 const value = ref<DateRange>(props.modelValue);
 const width = ref(window.innerWidth);
 
+const getMaxSelectableDate = () => today(TIMEZONE);
+
 // Atualiza o tamanho da tela para o modo responsivo do calendário
 function updateSize() {
   width.value = window.innerWidth;
@@ -246,6 +248,7 @@ watch(openS, (newV) => {
           initial-focus
           :number-of-months="width > 768 ? 2 : 1"
           :placeholder="value.start"
+          :max-value="getMaxSelectableDate()"
       />
       <Button class="w-full mt-2" @click="handleCalendar"> Aplicar </Button>
     </PopoverContent>
