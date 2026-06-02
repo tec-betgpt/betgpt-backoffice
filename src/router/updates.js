@@ -1,5 +1,6 @@
 import DefaultLayout from "@/layouts/default.vue";
 import ProjectAnnotations from "@/views/dashboard/ProjectAnnotations.vue";
+import Risk from "@/views/dashboard/Risk.vue";
 
 export default [
   {
@@ -13,7 +14,7 @@ export default [
     },
     children: [
       {
-        path: "/annotations",
+        path: "annotations",
         name: "annotations",
         component: ProjectAnnotations,
         meta: {
@@ -22,6 +23,18 @@ export default [
           roles: "member",
           title: "Marcos",
           permissions: "access-to-dashboard",
+        },
+      },
+      {
+        path: "risk",
+        name: "risk",
+        component: Risk,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Risco",
+          roles: "member|client",
+          permissions: "access-to-reports",
         },
       }
     ]

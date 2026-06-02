@@ -464,12 +464,6 @@ const navMenu = computed(() => {
           show: canAccess("access-to-reports"),
         },
         {
-          name: "Risco",
-          url: { name: "risk" },
-          icon: ShieldAlert,
-          show: canAccess("access-to-reports"),
-        },
-        {
           name: "Aquisição",
           url: { name: "traffics" },
           icon: ChartNoAxesCombined,
@@ -594,6 +588,12 @@ const navMenu = computed(() => {
           icon: PencilLine,
           show: canAccess("access-to-dashboard"),
         },
+        {
+          name: "Risco",
+          url: { name: "risk" },
+          icon: ShieldAlert,
+          show: canAccess("access-to-reports"),
+        }
       ],
     },
     {
