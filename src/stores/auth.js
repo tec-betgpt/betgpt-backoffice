@@ -12,8 +12,8 @@ export const useAuthStore = defineStore("auth", {
     loading: false,
     isImpersonating: false,
     twoFactorData: {
-      userId: "",
-      authMethod: null,
+      token: "",
+      authMethod: "",
     },
   }),
   actions: {
@@ -31,9 +31,11 @@ export const useAuthStore = defineStore("auth", {
         localStorage.removeItem(IMPERSONATION_KEY);
       }
     },
-    setTwoFactorData(userId, authMethod){
+    setTwoFactorData(token, authMethod){
         this.twoFactorData.authMethod = authMethod;
-        this.twoFactorData.userId = userId;
+        this.twoFactorData.token = token;
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
     },
     clearUserData() {
       this.user = null;
@@ -78,7 +80,7 @@ export const useAuthStore = defineStore("auth", {
     },
     clearTwoFactorData() {
       this.twoFactorData.authMethod = null;
-      this.twoFactorData.userId = null;
+      this.twoFactorData.token = null;
     },
     async fetchUser() {
       this.loading = true;

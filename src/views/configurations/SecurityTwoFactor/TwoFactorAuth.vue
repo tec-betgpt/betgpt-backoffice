@@ -9,7 +9,7 @@
       </div>
       <Separator class="mb-3" />
       <div class="flex justify-center gap-4">
-        <TwoFactorDialog />
+        <TwoFactorDialog @success="handleCreateSuccess"/>
       </div>
     </div>
     <div v-else>
@@ -42,4 +42,8 @@ const isTwoFactorPending = computed(() => {
   const auth2fa = authStore.user.preferences.auth2fa;
   return auth2fa == null || auth2fa === 'pending';
 });
+
+const handleCreateSuccess = () =>{
+  authStore.fetchUser()
+}
 </script>

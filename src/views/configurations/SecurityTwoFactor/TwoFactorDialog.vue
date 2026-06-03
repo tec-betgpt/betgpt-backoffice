@@ -100,15 +100,14 @@ import { ref, watch } from "vue";
 import { Loader2 as LucideSpinner, X } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import Pin from "@/components/custom/CustomPinInput.vue";
-import { useAuthStore } from "@/stores/auth";
 import ClipboardButton from "@/components/custom/ClipboardButton.vue";
 import Users from "@/services/users";
 
 import i18n from "@/i18n";
+import auth from "@/services/auth";
 const { toast } = useToast();
 const isDialogOpen = ref(false);
 const step = ref({ type: "", step: true });
-const auth = useAuthStore();
 const loading = ref(false);
 const qrCode = ref<string[]>([]);
 const finish = ref(true);
@@ -117,6 +116,11 @@ const form2fa = ref({
   two_factor_code: "",
   type: "",
 });
+
+
+const emit = defineEmits<{
+  success: []
+}>();
 
 watch(isDialogOpen, (value) => {
   if (!value) {
@@ -129,11 +133,12 @@ function openDialog(type: string) {
   isDialogOpen.value = true;
 }
 function closeDialog() {
+  const wasSuccess = !finish.value;
   isDialogOpen.value = false;
   step.value.step = true;
   step.value.type = "";
   finish.value = true;
-  auth.fetchUser();
+  if (wasSuccess) emit('success');
 }
 function copySecurityCode() {
   return securityCode.value;
@@ -144,7 +149,7 @@ const active2fa = async () => {
 
   try {
     qrCode.value = [];
-    const data = await Users.activeTwoFactor(form2fa.value);
+    const data = await auth.activeTwoFactor(form2fa.value);
 
     if (data.message === "app") {
       qrCode.value = data.data;
@@ -173,7 +178,7 @@ const validate2fa = async (code: Array<string>) => {
 
   try {
     form2fa.value.two_factor_code = code.join("");
-    const data = await Users.validateTwoFactor(form2fa.value);
+    const data = await auth.validateTwoFactor(form2fa.value);
 
     toast({
       title: i18n.global.t("success"),

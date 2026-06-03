@@ -5,9 +5,30 @@
            class=" h-16 ml-6"
            alt="Logo Elevate"/>
     </div>
+    <!-- Tela de criação de 2FA -->
+    <div
+        v-if="isCreateTwoFactorFlow"
+        class="mx-10 flex w-full h-screen flex-col justify-center space-y-6 sm:w-[400px]"
+    >
+      <div class="flex flex-col space-y-2 text-center">
+        <h1 class="text-2xl font-semibold tracking-tight">
+          {{ $t('two_factor_add_method') }}
+        </h1>
+        <p class="text-sm text-muted-foreground">
+          {{ $t('two_factor_choose_option') }}
+        </p>
+      </div>
+      <div class="flex justify-center gap-4">
+        <TwoFactorDialog @success="handleCreateSuccess" />
+      </div>
+      <Button @click="goBack" variant="outline">
+        <p>{{ $t("back") }}</p>
+      </Button>
+    </div>
+
     <!-- Tela de Inserção de Código PIN -->
     <div
-        v-if="recoveryScreen"
+        v-else-if="isTwoFactorFlow && !recoveryScreen"
         class="mx-10 flex w-full h-screen flex-col justify-center space-y-6 sm:w-[350px]"
     >
       <div class="flex flex-col space-y-2 text-center">
@@ -50,7 +71,7 @@
 
     <!-- Tela de Recuperação de Conta com Palavras-Chave -->
     <div
-        v-else
+        v-else-if="twoFactorLogin && recoveryScreen"
         class="mx-10 flex w-full flex-col h-screen justify-center space-y-6 sm:w-[400px]"
     >
       <div class="flex flex-col space-y-2 text-center">
@@ -141,16 +162,19 @@ import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogFooter } 
 import Pin from "@/components/custom/CustomPinInput.vue";
 import {useColorMode} from "@vueuse/core";
 import {useWorkspaceStore} from "@/stores/workspace";
+import TwoFactorDialog from "@/views/configurations/SecurityTwoFactor/TwoFactorDialog.vue";
 
 const { toast } = useToast();
 const router = useRouter();
 const authStore = useAuthStore();
-const userId = computed(() => authStore.twoFactorData.userId);
+const token = computed(() => authStore.twoFactorData.token);
 const authMethod = computed(() => authStore.twoFactorData.authMethod);
+const isCreateTwoFactorFlow = computed(() => authMethod.value == "not_2fa");
+const isTwoFactorFlow = computed(()=> authStore.twoFactorData.authMethod == "email" || authStore.twoFactorData.authMethod == "app")
 const workspaceStore = useWorkspaceStore();
 const loading = ref(false);
 const loadingRecovery = ref(false);
-const recoveryScreen = ref(true);
+const recoveryScreen = ref(false);
 const time = ref(0);
 const resend = ref(false);
 const isDialog = ref(false);
@@ -171,7 +195,13 @@ function goBack() {
 function handleRecoverySuccess() {
   isDialog.value = false;
   authStore.clearTwoFactorData();
-  router.push("/login");
+  router.push("/");
+}
+
+function handleCreateSuccess() {
+  authStore.clearTwoFactorData();
+  console.log("teste");
+  router.push("/");
 }
 
 /**
@@ -195,7 +225,7 @@ const twoFactorLogin = async (code: Array<string>) => {
   }
   loading.value = true;
   try {
-    const { data } = await Auth.twoFactor({id:userId.value,two_factor_code:code.join("")});
+    const { data } = await Auth.twoFactor({two_factor_code:code.join("")});
 
     const tokenAuth = data ? data.token : null;
     const userAuth = data ? data.user : null;
@@ -224,7 +254,7 @@ const twoFactorLogin = async (code: Array<string>) => {
 const resendTwoFactorLogin = async () => {
   resend.value = false;
   try {
-    const data = await Auth.getResendTwoFactor(userId.value);
+    const data = await Auth.getResendTwoFactor();
     time.value = 60;
     startResendTimer();
     toast({
@@ -242,11 +272,13 @@ const resendTwoFactorLogin = async () => {
  */
 const getRecoveryCode = async () => {
   try {
-    const data = await Auth.getValidateRecoveryCode(userId.value);
+    const data = await Auth.getValidateRecoveryCode();
     previewCode.value = data.data;
-    recoveryScreen.value = false;
+    recoveryScreen.value = true;
   } catch (error) {
     console.error("Erro ao buscar código de recuperação:", error);
+    recoveryScreen.value = false;
+    previewCode.value = [];
   }
 };
 
@@ -266,7 +298,7 @@ const submitRecoveryCode = async () => {
 
   try {
     loadingRecovery.value = true;
-    await Auth.validateRecoveryCode({id:userId.value,recovery_code:securityCode.value.join("-")});
+    await Auth.validateRecoveryCode({recovery_code:securityCode.value.join("-")});
     isDialog.value = true;
   } catch (error) {
     console.error("Erro ao validar código de recuperação:", error);
@@ -281,7 +313,7 @@ const submitRecoveryCode = async () => {
  * @param {string} value - O código a ser adicionado.
  */
 function selectCode(value: string) {
-  if (securityCode.value.includes(value)) return;
+  if (securityCode.value.find(v => v == value)) return;
   securityCode.value.push(value);
 }
 
@@ -314,7 +346,7 @@ function startResendTimer() {
 }
 
 onMounted(() => {
-  if (!userId.value) {
+  if (!token.value) {
     console.error("Dados de 2FA não encontrados. Redirecionando para o login.");
     router.push('/login');
     return;
