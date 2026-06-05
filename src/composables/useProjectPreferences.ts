@@ -12,6 +12,7 @@ export const useProjectPreferences = () => {
   );
   const workspace = useWorkspaceStore()
   const loadGaGroupNickname = async () => {
+    if (!workspace.activeGroupProject?.id) return
     try {
       const response = await ProjectPreferences.index({
         // @ts-ignore

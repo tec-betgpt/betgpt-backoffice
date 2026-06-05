@@ -16,7 +16,7 @@ export default {
    * @param {string} body.email
    * @param {string} body.password
    */
-  async login (body) {
+  async login (body:{}) {
     const { data } = await api.post('/auth/login', body, { withCredentials: true })
     return data
   },
@@ -28,28 +28,26 @@ export default {
    * @param {string} body.id
    * @param {string} body.two_factor_code
    */
-  async twoFactor (body) {
+  async twoFactor (body:{}) {
     const { data } = await api.post('/auth/login/two-factor', body, { withCredentials: true })
     return data
   },
 
   /**
-   * GET /v1/auth/login/two-factor/{id}
+   * GET /v1/auth/login/two-factor/
    *
-   * @param {string} id
    */
-  async getResendTwoFactor (id) {
-    const { data } = await api.get(`/auth/login/two-factor/${id}`)
+  async getResendTwoFactor () {
+    const { data } = await api.get(`/auth/login/two-factor/`)
     return data
   },
 
   /**
-   * GET /v1/auth/validate-recovery-code/{id}
+   * GET /v1/auth/validate-recovery-code/
    *
-   * @param {string} id
    */
-  async getValidateRecoveryCode (id) {
-    const { data } = await api.get(`/auth/validate-recovery-code/${id}`)
+  async getValidateRecoveryCode () {
+    const { data } = await api.get(`/auth/validate-recovery-code/`)
     return data
   },
 
@@ -60,11 +58,33 @@ export default {
    * @param {string} body.id
    * @param {string} body.recovery_code
    */
-  async validateRecoveryCode (body) {
+  async validateRecoveryCode (body:{}) {
     const { data } = await api.post('/auth/validate-recovery-code', body, { withCredentials: true })
     return data
   },
 
+  /**
+   * POST /v1/auth/active-two-factor
+   *
+   * @param {object} body
+   * @param {string} body.type
+   */
+  async activeTwoFactor (body:{}) {
+    const { data } = await api.post('/auth/active-two-factor', body)
+    return data
+  },
+
+   /**
+   * POST /v1/auth/validate-two-factor
+   *
+   * @param {object} body
+   * @param {string} body.two_factor_code
+   * @param {string} body.type
+   */
+  async validateTwoFactor(body:{}) {
+    const { data } = await api.post('/auth/validate-two-factor', body)
+    return data
+  },
   /**
    * POST /v1/auth/logout
    */

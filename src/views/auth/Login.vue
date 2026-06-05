@@ -34,7 +34,9 @@
                   placeholder="email@elevate.com.br"
                   type="email"
                   autocomplete="email"
-                  v-model="form.email"
+                  @update:model-value="(payload)=>{
+                    form.email = payload as string
+                  }"
                   :disabled="loading"
                 />
               </div>
@@ -57,7 +59,9 @@
                   autocomplete="current-password"
                   required
                   type="password"
-                  v-model="form.password"
+                  @update:model-value="(paylaod)=>{
+                    form.password = paylaod as string
+                  }"
                   :disabled="loading"
                 />
               </div>
@@ -103,7 +107,7 @@
           >
             <img
               :src="slide.src"
-              :alt="slide.alt"
+              alt="Image"
               class="w-full h-auto"
             />
 
@@ -177,6 +181,7 @@ import { useColorMode } from "@vueuse/core";
 import { useConfigStore } from "@/stores/config";
 import { useWorkspaceStore } from "@/stores/workspace";
 
+import Input from "@/components/ui/input/Input.vue";
 const slides = [
   {
     src: "/mockups/device-0.png",
@@ -209,8 +214,6 @@ function goTo(index: number) {
   currentIndex.value = index
 }
 
-
-const workspaceStore = useWorkspaceStore();
 const mode = useColorMode();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -230,22 +233,12 @@ const form = ref({
  *   redireciona para a página inicial e realiza uma chamada adicional para autenticação externa, se configurada.
  * - Caso contrário, verifica se há dados para autenticação de dois fatores e redireciona para a página correspondente.
  */
-const handleLoginResponse = async ({ data }) => {
+const handleLoginResponse = async ({ data  }) => {
   const tokenAuth = data ? data.token : null;
-  const userAuth = data ? data.user : null;
-
-  if (tokenAuth && userAuth) {
-    authStore.setUserData(userAuth, tokenAuth);
-    router.push("/");
-    await workspaceStore.loadInitialData(
-      userAuth?.preferences,
-      userAuth?.group_projects
-    );
-  } else {
-    if (data[1]) {
-      authStore.setTwoFactorData(data[0], data[1]);
+  const authType = data ? data.type : null;
+  if (tokenAuth && authType) {
+      authStore.setTwoFactorData(tokenAuth,authType)
       router.push("/two-factor");
-    }
   }
 };
 
