@@ -55,7 +55,6 @@ export default {
    * POST /v1/auth/validate-recovery-code
    *
    * @param {object} body
-   * @param {string} body.id
    * @param {string} body.recovery_code
    */
   async validateRecoveryCode (body:{}) {
@@ -85,6 +84,30 @@ export default {
     const { data } = await api.post('/auth/validate-two-factor', body)
     return data
   },
+
+  /** POST /v1/auth/recover/questions
+   *
+   * @param {object} body
+   * @param {string} body.cpf
+   */
+  async recoverQuestions (body:{}) {
+    const { data } = await api.post('/auth/recover/questions', body)
+    return data
+  },
+
+  /**
+   * POST /v1/auth/recover/validate
+   *
+   * @param {object} body
+   * @param {string} body.cpf
+   * @param {string} body.answer1
+   * @param {string} body.answer2
+   */
+  async recoverAnswers (body:{}) {
+    const { data } = await api.post('/auth/recover/validate', body)
+    return data
+  },
+
   /**
    * POST /v1/auth/logout
    */

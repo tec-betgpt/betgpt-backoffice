@@ -333,6 +333,14 @@ const hasProprietorRole = computed(
     authStore.user?.roles?.some((r: { name: string }) => r.name === "member-proprietor") ??
     false,
 );
+const hasPermission = (permissionName: string) =>
+  Boolean(
+    (authStore.user as any)?.roles?.some((role: any) =>
+      role.permissions?.some(
+        (permission: any) => permission.name === permissionName,
+      ),
+    ),
+  );
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 
 if (activeGroupProjectId) {
@@ -673,6 +681,30 @@ const simulateClient = async (user) => {
   }
 };
 
+const removeTwoFactor = async (user) => {
+  processingAction.value = `2fa-${user.id}`;
+
+  try {
+    await Users.removeTwoFactor(user.id);
+
+    toast({
+      title: "Sucesso",
+      description: "2FA removido com sucesso.",
+      variant: "success",
+    });
+
+    await fetchUsersAndProjects();
+  } catch {
+    toast({
+      title: "Erro",
+      description: "Não foi possível remover o 2FA.",
+      variant: "destructive",
+    });
+  }
+
+  processingAction.value = null;
+};
+
 onMounted(() => {
   fetchUsersAndProjects();
 });
@@ -899,6 +931,28 @@ const columns = [
                 : "Resetar Senha",
             ),
           ),
+          ...(hasPermission("control-security") &&
+          row.original.auth2fa &&
+          row.original.auth2fa !== "pending"
+            ? [
+                h(
+                  DropdownMenuItem,
+                  {
+                    onClick: () => removeTwoFactor(row.original),
+                    disabled:
+                      processingAction.value === `2fa-${row.original.id}`,
+                  },
+                  processingAction.value === `2fa-${row.original.id}`
+                    ? h("div", { class: "flex items-center" }, [
+                        h(LucideSpinner, {
+                          class: "mr-2 h-4 w-4 animate-spin",
+                        }),
+                        "Removendo 2FA...",
+                      ])
+                    : "Remover 2FA",
+                ),
+              ]
+            : []),
           h(
             DropdownMenuItem,
             {

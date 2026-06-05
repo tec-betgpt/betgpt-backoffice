@@ -6,6 +6,7 @@ import Login from "@/views/auth/Login.vue";
 import Recover from "@/views/auth/Recover.vue";
 import Home from "@/views/dashboard/Home.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
+import AccountRecovery from "@/views/auth/AccountRecovery.vue";
 import configurations from "@/router/configurations.js";
 import elevate_ia from "@/router/elevate_ia.js";
 import performances from "@/router/performances.js";
@@ -42,6 +43,12 @@ const routes = [
     name: "two-factor",
     component: TwoFactor,
     meta: { layout: BlankLayout, title: "Autenticação de dois fatores" },
+  },
+  {
+    path: "/recover/account",
+    name: "recover-account",
+    component: AccountRecovery,
+    meta: { layout: BlankLayout, title: "Recuperação de Conta" },
   },
   {
     path: "/home",
