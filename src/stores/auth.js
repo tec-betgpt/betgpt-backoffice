@@ -11,6 +11,7 @@ export const useAuthStore = defineStore("auth", {
     token: null,
     loading: false,
     isImpersonating: false,
+    requiresSecurityQuestions: false,
     twoFactorData: {
       token: "",
       authMethod: "",
@@ -37,10 +38,15 @@ export const useAuthStore = defineStore("auth", {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
     },
+    setRequiresSecurityQuestions(value) {
+      this.requiresSecurityQuestions = value;
+    },
+
     clearUserData() {
       this.user = null;
       this.token = null;
       this.isImpersonating = false;
+      this.requiresSecurityQuestions = false;
 
       localStorage.removeItem("authToken");
       localStorage.removeItem("token");

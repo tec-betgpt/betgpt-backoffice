@@ -7,6 +7,7 @@ import Recover from "@/views/auth/Recover.vue";
 import Home from "@/views/dashboard/Home.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
 import AccountRecovery from "@/views/auth/AccountRecovery.vue";
+import SecurityQuestions from "@/views/auth/SecurityQuestions.vue";
 import configurations from "@/router/configurations.js";
 import elevate_ia from "@/router/elevate_ia.js";
 import performances from "@/router/performances.js";
@@ -51,6 +52,12 @@ const routes = [
     meta: { layout: BlankLayout, title: "Recuperação de Conta" },
   },
   {
+    path: "/security-questions",
+    name: "security-questions",
+    component: SecurityQuestions,
+    meta: { layout: BlankLayout, title: "Perguntas de Segurança" },
+  },
+  {
     path: "/home",
     name: "home",
     component: Home,
@@ -91,6 +98,14 @@ router.beforeEach(async (to, from, next) => {
 
   if (to.meta.requiresAuth && !authStore.user) {
     return next({ name: "login" });
+  }
+
+  if (
+    authStore.requiresSecurityQuestions &&
+    to.name !== "security-questions" &&
+    to.name !== "login"
+  ) {
+    return next({ name: "security-questions" });
   }
 
   if (to.meta.requiresAuth && to.meta.permissions) {

@@ -26,6 +26,8 @@
                 placeholder="Digite seu CPF"
                 :disabled="isLoading"
                 required
+                maxlength="14"
+                @input="formatCpf"
               />
             </div>
             <Button :disabled="isLoading" type="submit">
@@ -83,9 +85,6 @@
             </div>
           </div>
           <h1 class="text-2xl font-semibold tracking-tight">Recuperação Iniciada</h1>
-          <p class="text-sm text-muted-foreground">
-            Enviamos um email com as instruções para redefinir sua senha.
-          </p>
           <Button @click="finish" class="w-full">Ir para o Login</Button>
         </div>
       </template>
@@ -118,13 +117,13 @@ const answer2 = ref("")
 const lookupCpf = async () => {
   isLoading.value = true
   try {
-    const response = await Auth.recoverQuestions({ cpf: cpf.value })
-    questions.value = response.questions
+    const response = await Auth.recoverQuestions({ document_number: cpf.value.replace(/\D/g, "") })
+    questions.value = response.data.questions
     step.value = 2
-  } catch {
+  } catch(erro) {
     toast({
       title: "Erro",
-      description: "CPF não encontrado. Verifique o número informado.",
+      description: erro.data.message,
       variant: "destructive",
     })
   } finally {
@@ -136,7 +135,7 @@ const submitAnswers = async () => {
   isLoading.value = true
   try {
     await Auth.recoverAnswers({
-      cpf: cpf.value,
+      cpf: cpf.value.replace(/\D/g, ""),
       answer1: answer1.value,
       answer2: answer2.value,
     })
@@ -150,6 +149,15 @@ const submitAnswers = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const formatCpf = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  let value = target.value.replace(/\D/g, "").slice(0, 11)
+  value = value.replace(/(\d{3})(\d)/, "$1.$2")
+  value = value.replace(/(\d{3})(\d)/, "$1.$2")
+  value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+  cpf.value = value
 }
 
 const goBack = () => {

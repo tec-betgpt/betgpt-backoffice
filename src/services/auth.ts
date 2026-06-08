@@ -63,32 +63,44 @@ export default {
   },
 
   /**
-   * POST /v1/auth/active-two-factor
-   *
-   * @param {object} body
-   * @param {string} body.type
-   */
-  async activeTwoFactor (body:{}) {
-    const { data } = await api.post('/auth/active-two-factor', body)
-    return data
-  },
-
-   /**
-   * POST /v1/auth/validate-two-factor
-   *
+   * POST /auth/active-two-factor
+   * 
    * @param {object} body
    * @param {string} body.two_factor_code
    * @param {string} body.type
    */
-  async validateTwoFactor(body:{}) {
-    const { data } = await api.post('/auth/validate-two-factor', body)
+
+  async activeTwoFactor(body:{}){
+    const {data} = await api.post('/auth/active-two-factor',body)
+    return data
+  },
+  /**
+   * GET /v1/auth/security-questions
+   */
+  async getSecurityQuestions () {
+    const { data } = await api.get('/auth/security-questions')
     return data
   },
 
-  /** POST /v1/auth/recover/questions
+  /**
+   * POST /v1/auth/security-questions
    *
    * @param {object} body
-   * @param {string} body.cpf
+   * @param {string} body.question1
+   * @param {string} body.answer1
+   * @param {string} body.question2
+   * @param {string} body.answer2
+   */
+  async saveSecurityQuestions (body:{}) {
+    const { data } = await api.post('/auth/security-questions', body)
+    return data
+  },
+
+  /**
+   * POST /v1/auth/recover/questions
+   *
+   * @param {object} body
+   * @param {string} body.document_number
    */
   async recoverQuestions (body:{}) {
     const { data } = await api.post('/auth/recover/questions', body)
@@ -105,6 +117,26 @@ export default {
    */
   async recoverAnswers (body:{}) {
     const { data } = await api.post('/auth/recover/validate', body)
+    return data
+  },
+
+   /**
+   * POST /v1/auth/validate-two-factor
+   *
+   * @param {object} body
+   * @param {string} body.two_factor_code
+   * @param {string} body.type
+   */
+  async validateTwoFactor(body:{}) {
+    const { data } = await api.post('/auth/validate-two-factor', body)
+    return data
+  },
+
+  /**
+   * GET /v1/auth/account-status
+   */
+  async getAccountStatus () {
+    const { data } = await api.get('/auth/account-status')
     return data
   },
 
