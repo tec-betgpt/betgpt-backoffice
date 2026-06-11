@@ -63,6 +63,38 @@ interface IndexParams {
   refresh?: number
 }
 
+interface DashboardResponse {
+  period: {
+    start: string
+    end: string
+  },
+  consolidated: {
+    revenue: number
+    expense: number
+    balance: number
+    margin_percentage: number
+    is_profitable: boolean
+  },
+  charts: {
+    expenses_by_sector: Array<{
+        label: string
+        value: number
+        percentage: number
+      }>
+    expenses_by_category: Array<{
+        label: string
+        value: number
+        percentage: number
+    }>
+  }
+}
+
+interface DashboardParams {
+  start_date: string
+  end_date: string
+  filter_id: string | null
+}
+
 export default {
   async index(params: IndexParams): Promise<IndexResponse> {
     const { data } = await api.get("/financial-transactions", { params });
@@ -88,4 +120,9 @@ export default {
     const { data } = await api.delete(`/financial-transactions/${id}`);
     return data;
   },
-};
+
+  async dashboard(params: DashboardParams): Promise<DashboardResponse> {
+    const { data } = await api.get('/financial-transactions/dashboard', { params });
+    return data;
+  }
+}
