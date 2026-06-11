@@ -11,6 +11,7 @@
       <div class="flex items-center justify-start w-full">
         <div class="flex flex-col items-center justify-end sm:flex-row gap-2 w-full">
           <CreateDialogComponent :costs="costs" :sectors="sectors" :reload="reloadFinancialsAfterMutation" />
+          <CustomDatePicker v-model="selectedRange" />
         </div>
       </div>
     </div>
@@ -22,9 +23,15 @@
             :transactions="financial"
             :is-loading="loading"
             :search="search"
+            :type="type"
+            :cost-center-id="costCenterId"
+            :sector-id="sectorId"
             :global-totals="globalTotals"
             :on-search="() => fetchFinancials(1)"
             :on-update-search="(value) => search = value"
+            :on-update-type="(value) => type = value"
+            :on-update-cost-center-id="(value) => costCenterId = value"
+            :on-update-sector-id="(value) => sectorId = value"
             :on-open-import-dialog="openImportDialog"
             :reload-financials-after-mutation="reloadFinancialsAfterMutation"
             :delete-financial="deleteFinancial"
@@ -41,11 +48,18 @@
         @update:perPages="(valueUpdater) => perPage = valueUpdater"
       />
     </div>
+
+    <div class="pt-10">
+      <FinancialDashboard :selected-range="selectedRange" />
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
+import type { DateRange } from "radix-vue";
+import { getLocalTimeZone, today } from "@internationalized/date";
 import financialTransactionsApi from "@/services/financialTransactions";
 import { toast } from "@/components/ui/toast";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -53,9 +67,11 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CostCenter from "@/services/costCenters";
 import Sector from "@/services/sector";
-import {Card, CardContent} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import CreateDialogComponent from "@/components/financial/CreateDialogComponent.vue";
 import FinancialTransactionsTable from "@/components/financial/FinancialTransactionsTable.vue";
+import FinancialDashboard from "@/components/financial/FinancialDashboard.vue";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
 interface FinancialData {
   id: number;
@@ -78,9 +94,16 @@ interface FinancialGlobalTotals {
   balance: number;
 }
 
-// data
 const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
+const currentDate = today(getLocalTimeZone());
+const selectedRange = ref<DateRange>({
+  start: currentDate.subtract({ days: 28 }),
+  end: currentDate,
+});
 const search = ref("");
+const type = ref("");
+const costCenterId = ref("");
+const sectorId = ref("");
 const orderId = ref("name");
 const order = ref(false);
 const perPage = ref("10");
@@ -108,7 +131,6 @@ const openImportDialog = () => {
   console.log("Abrir modal de importação de tabela financeira");
 };
 
-// methods
 const deleteFinancial = async (id: number) => {
   try {
     await financialTransactionsApi.destroy(id);
@@ -127,6 +149,12 @@ const deleteFinancial = async (id: number) => {
   }
 }
 
+const formatDateForAPI = (date: DateRange["start"]) => {
+  if (!date) return "";
+
+  return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+};
+
 const fetchFinancials = async (
   current = pages.value.current,
   opts?: { refresh?: boolean },
@@ -139,6 +167,11 @@ const fetchFinancials = async (
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
       per_page: perPage.value,
+      ...(type.value ? { type: type.value } : {}),
+      ...(costCenterId.value ? { cost_center_id: Number(costCenterId.value) } : {}),
+      ...(sectorId.value ? { sector_id: Number(sectorId.value) } : {}),
+      start_date: formatDateForAPI(selectedRange.value.start),
+      end_date: formatDateForAPI(selectedRange.value.end),
       ...(opts?.refresh ? { refresh: 1 } : {}),
     });
 
@@ -220,7 +253,6 @@ const getSectors = async () => {
   }
 };
 
-// hooks
 onMounted(async () => {
   loading.value = true;
 
@@ -246,4 +278,12 @@ useScreenContext(
 watch(perPage,() => {
   fetchFinancials(1);
 })
+
+watch(
+  selectedRange,
+  () => {
+    fetchFinancials(1);
+  },
+  { deep: true },
+);
 </script>

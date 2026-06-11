@@ -56,6 +56,9 @@ interface IndexParams {
   start_date?: string
   end_date?: string
   sort_by?: string
+  type?: string
+  cost_center_id?: number
+  sector_id?: number
   sort_column?: string
   sort_order?: string
   per_page: number | string

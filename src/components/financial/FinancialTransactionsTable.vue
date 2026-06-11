@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div class="flex w-full max-w-sm items-center gap-1.5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div class="grid w-full gap-2 md:grid-cols-[minmax(220px,1fr)_180px_220px_220px_auto] md:items-center">
         <Input
           :model-value="search"
           type="search"
@@ -9,13 +9,58 @@
           @update:model-value="(value) => onUpdateSearch?.(String(value ?? ''))"
           @keyup.enter="onSearch?.()"
         />
+
+        <Select
+          :model-value="type || 'all'"
+          @update:model-value="(value) => onUpdateType?.(String(value === 'all' ? '' : value))"
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os tipos</SelectItem>
+            <SelectItem value="cost">Custo</SelectItem>
+            <SelectItem value="revenue">Receita</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          :model-value="costCenterId || 'all'"
+          @update:model-value="(value) => onUpdateCostCenterId?.(String(value === 'all' ? '' : value))"
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Centro de Custo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os centros</SelectItem>
+            <SelectItem v-for="cost in costs" :key="cost.id" :value="String(cost.id)">
+              {{ cost.name }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          :model-value="sectorId || 'all'"
+          @update:model-value="(value) => onUpdateSectorId?.(String(value === 'all' ? '' : value))"
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Setor" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os setores</SelectItem>
+            <SelectItem v-for="sector in sectors" :key="sector.id" :value="String(sector.id)">
+              {{ sector.name }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
         <Button type="button" :disabled="isLoading" @click="onSearch?.()">
           Buscar
         </Button>
       </div>
 
       <Button type="button" variant="outline" @click="onOpenImportDialog?.()">
-        Importar Tabela
+        Importar
       </Button>
     </div>
 
@@ -123,6 +168,7 @@ import { computed } from "vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
@@ -164,9 +210,15 @@ const props = withDefaults(defineProps<{
   transactions: FinancialTransactionTableItem[];
   isLoading?: boolean;
   search?: string;
+  type?: string;
+  costCenterId?: string;
+  sectorId?: string;
   globalTotals?: FinancialGlobalTotals;
   onSearch?: () => void;
   onUpdateSearch?: (value: string) => void;
+  onUpdateType?: (value: string) => void;
+  onUpdateCostCenterId?: (value: string) => void;
+  onUpdateSectorId?: (value: string) => void;
   onOpenImportDialog?: () => void;
   reloadFinancialsAfterMutation: () => void;
   deleteFinancial: (id: number) => void;
@@ -176,6 +228,9 @@ const props = withDefaults(defineProps<{
   transactions: () => [],
   isLoading: false,
   search: "",
+  type: "",
+  costCenterId: "",
+  sectorId: "",
   globalTotals: () => ({
     total_revenue: 0,
     total_expense: 0,
