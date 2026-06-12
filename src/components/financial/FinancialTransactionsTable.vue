@@ -59,9 +59,10 @@
         </Button>
       </div>
 
-      <Button type="button" variant="outline" @click="onOpenImportDialog?.()">
-        Importar
-      </Button>
+      <FinancialImportHistoriesDialog
+        :project-id="projectId"
+        :reload="reloadFinancialsAfterMutation"
+      />
     </div>
 
     <div class="rounded-md border overflow-x-auto">
@@ -173,6 +174,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import EditDialogComponent from "@/components/financial/EditDialogComponent.vue";
+import FinancialImportHistoriesDialog from "@/components/financial/FinancialImportHistoriesDialog.vue";
 
 export interface FinancialTransactionTableItem {
   id: number;
@@ -219,7 +221,7 @@ const props = withDefaults(defineProps<{
   onUpdateType?: (value: string) => void;
   onUpdateCostCenterId?: (value: string) => void;
   onUpdateSectorId?: (value: string) => void;
-  onOpenImportDialog?: () => void;
+  projectId: string | number | null;
   reloadFinancialsAfterMutation: () => void;
   deleteFinancial: (id: number) => void;
   costs: FinancialCostOption[];

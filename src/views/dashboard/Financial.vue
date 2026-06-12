@@ -32,7 +32,7 @@
             :on-update-type="(value) => type = value"
             :on-update-cost-center-id="(value) => costCenterId = value"
             :on-update-sector-id="(value) => sectorId = value"
-            :on-open-import-dialog="openImportDialog"
+            :project-id="activeGroupProjectId"
             :reload-financials-after-mutation="reloadFinancialsAfterMutation"
             :delete-financial="deleteFinancial"
             :costs="costs"
@@ -126,10 +126,6 @@ const pages = ref({
 
 const reloadFinancialsAfterMutation = () =>
   fetchFinancials(pages.value.current, { refresh: true });
-
-const openImportDialog = () => {
-  console.log("Abrir modal de importação de tabela financeira");
-};
 
 const deleteFinancial = async (id: number) => {
   try {
