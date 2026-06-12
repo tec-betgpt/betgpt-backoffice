@@ -324,9 +324,18 @@ watch(selectedRange, (value) => {
 useScreenContext(
   "Tela de logs de postback - Exibe histórico de postbacks",
   () => ({
+    "filter_id": workspaceStore.activeGroupProject?.id ?? "",
+    "start_date": selectedRange.value.start?.toString(),
+    "end_date": selectedRange.value.end?.toString(),
     "type": selectedType.value,
+    "status": selectedStatus.value,
     "page": currentPage.value,
     "per_page": perPage.value,
+    "orderBy": order.value,
+    "orderDirection": direction.value ? "asc" : "desc",
+    "processed_total": totalLogs.value.processed,
+    "pending_total": totalLogs.value.pending,
+    "failed_total": totalLogs.value.failed,
   }),
   "/v1/postback-logs"
 );

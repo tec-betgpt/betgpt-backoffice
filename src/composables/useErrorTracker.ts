@@ -6,8 +6,8 @@ const STORAGE_KEY = "pending_user_errors"
 const MAX_STORED_ERRORS = 50
 
 interface ErrorData {
-  project_id: number
-  error_type: "network" | "js_error" | "unhandled_rejection" | "offline" | "timeout"
+  project_id: string | number
+  error_type: "js_error" | "unhandled_rejection"
   error_message: string
   error_stack?: string
   error_url?: string
@@ -37,7 +37,11 @@ function getBrowserInfo(): string {
 function getStorageErrors(): ErrorData[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
+    const errors = stored ? JSON.parse(stored) : []
+    return errors.filter((error: ErrorData) =>
+      error.error_type === "js_error" ||
+      error.error_type === "unhandled_rejection"
+    )
   } catch {
     return []
   }
@@ -62,7 +66,8 @@ export async function sendPendingErrors() {
   if (errors.length === 0) return
 
   const workspaceStore = useWorkspaceStore()
-  const projectId = workspaceStore.activeGroupProject?.project_id
+  const activeGroupProject = workspaceStore.activeGroupProject as { project_id?: string | number } | null
+  const projectId = activeGroupProject?.project_id
 
   if (!projectId) return
 
@@ -140,43 +145,14 @@ export function useErrorTracker() {
     )
   }
 
-  const originalFetch = window.fetch
-  window.fetch = async (...args) => {
-    const url = typeof args[0] === "string" ? args[0] : args[0]?.url || "unknown"
-    try {
-      const response = await originalFetch(...args)
-      if (!response.ok || (response.status >= 400 && response.status < 600)) {
-        captureError(
-          "network",
-          `HTTP ${response.status}: ${response.statusText}`,
-          `Status: ${response.status}`,
-          url
-        )
-      }
-      return response
-    } catch (error: any) {
-      captureError(
-        "network",
-        error.message || "Network error",
-        error.stack,
-        url
-      )
-      throw error
-    }
-  }
-
   onMounted(() => {
     window.addEventListener("error", handleError)
     window.addEventListener("unhandledrejection", handleUnhandledRejection)
-    window.addEventListener("offline", () => {
-      captureError("offline", "Connection lost")
-    })
   })
 
   onUnmounted(() => {
     window.removeEventListener("error", handleError)
     window.removeEventListener("unhandledrejection", handleUnhandledRejection)
-    window.fetch = originalFetch
   })
 
   return {

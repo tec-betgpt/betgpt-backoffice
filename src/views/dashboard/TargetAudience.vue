@@ -590,10 +590,11 @@ onUnmounted(() => {
 useScreenContext(
   "Tela de audiência alvo - Gerencia audiências do Meta",
   () => ({
+    "filter_id": activeGroupProjectId.value,
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
   }),
-  "/v1/target-audience"
+  "/v1/target-audiences"
 );
 </script>

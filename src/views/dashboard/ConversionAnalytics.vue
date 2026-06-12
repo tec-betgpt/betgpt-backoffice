@@ -356,7 +356,7 @@ useScreenContext("Resultados", () => {
   return {
     "start_date": startDateFormatted,
     "end_date": endDateFormatted,
-    "filter_id": workspaceStore.activeGroupProject.id,
+    "filter_id": workspaceStore.activeGroupProject?.id ?? "",
     ...searchValues.value,
   };
 }, "/v1/conversion-analytics");

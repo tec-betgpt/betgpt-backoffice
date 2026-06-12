@@ -251,7 +251,7 @@ const openDialog = ref(false);
 
 // Screen Context
 useScreenContext("Jarbas BOT", () => ({
-  "filter_id": activeGroupProject.id,
+  "filter_id": workspaceStore.activeGroupProject?.id ?? "",
 }), "/v1/jarbas/config");
 
 const form = ref({

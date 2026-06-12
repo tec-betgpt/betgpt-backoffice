@@ -420,9 +420,17 @@ onMounted(async () => {
 useScreenContext(
   "Tela de listas de proteção - Gerencia listas de proteção",
   () => ({
+    "project_id": workspaceStore.activeGroupProject?.id ?? "",
+    "start_date": selectedRange.value.start?.toString(),
+    "end_date": selectedRange.value.end?.toString(),
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
+    "player_name": filters.player_name,
+    "event_type": filters.event_type,
+    "channel": filters.channel,
+    "orderBy": filters.orderBy,
+    "orderDirection": filters.orderDirection || "default",
   }),
   "/v1/protection-lists"
 );

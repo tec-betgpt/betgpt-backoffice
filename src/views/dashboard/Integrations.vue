@@ -517,9 +517,19 @@ onMounted(async () => {
 useScreenContext(
   "Tela de integrações - Gerencia integrações com serviços externos",
   () => ({
+    "project_id": workspaceStore.activeGroupProject?.project_id ?? "",
+    "filter_id": workspaceStore.activeGroupProject?.id ?? "",
+    "project_name": workspaceStore.activeGroupProject?.name ?? "",
+    "project_type": workspaceStore.activeGroupProject?.type ?? "",
+    "integrations_count": integrations.value.length,
+    "configured_integrations": integrations.value
+      .filter((integration: any) => Boolean(integration.config) && Object.keys(integration.config).length > 0)
+      .map((integration: any) => integration.name || integration.slug)
+      .filter(Boolean)
+      .join(", "),
     "property_id": propetySelect.value || "Não selecionada",
     "ad_account": adAccountSelect.value || "Não selecionada",
   }),
-  "/v1/projects/integrations"
+  "/v1/projects/:project_id/integrations"
 );
 </script>

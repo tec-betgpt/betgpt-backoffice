@@ -21,7 +21,7 @@
                     :stroke-width="2"
                     class="cursor-pointer"
                     absoluteStrokeWidth
-                    @click="router.push({ name: 'chat-ia', query: { chatId: selectedChatId } })"
+                    @click="openExpandedChat"
                 />
               </TooltipTrigger>
               <TooltipContent
@@ -790,11 +790,20 @@ const getSuggestions = async () => {
 
 const createNewChat = async () => {
   try {
-    const response = await IntelligenceArtificial.createSession({project_id:activeGroupProject.value.project_id});
+    const response = await IntelligenceArtificial.createSession({project_id: activeGroupProject.value?.project_id});
     selectedChatId.value = response.data.id;
+    return response.data;
   } catch (error) {
     console.error("Erro ao criar chat:", error);
   }
+};
+
+const openExpandedChat = () => {
+  router.push(
+    selectedChatId.value
+      ? { name: 'chat-ia', query: { chatId: selectedChatId.value } }
+      : { name: 'chat-ia' }
+  );
 };
 
 const selectChat = async (chatId: number) => {
@@ -845,48 +854,54 @@ const sendMessage = async () => {
     return;
   }
 
-  if (selectedChatId.value === undefined) {
-    await createNewChat();
-    await sendMessage();
-  } else {
-    const userMessage = {
-      chat_id: selectedChatId.value,
-      message: newMessage.value.message,
-      file: newMessage.value.file,
-      project_id: activeGroupProject.value?.id,
-      context:{
-        url:route.path,
-        date: workspaceStore.date,
-        context: workspaceStore.context,
-      }
-    };
-    loading.value = true;
-    newMessage.value.id = messages.value.length;
-    newMessage.value.timestamp = new Date().toISOString();
-    try {
-      messages.value.push({ ...newMessage.value });
-      scrollToBottom();
+  let chatId = selectedChatId.value;
 
-      newMessage.value = { id: 0, role: "user", message: "", file: null };
-      const response = await IntelligenceArtificial.sendMessage(userMessage);
-      file.value = undefined;
-      const assistantMessage: Message = {
-        id: messages.value.length,
-        role: "assistant",
-        message: await marked.parse(response.data.message),
-        file: null,
-        timestamp: response.data.timestamp,
-      };
+  if (chatId === undefined) {
+    const newChat = await createNewChat();
 
-      messages.value.push(assistantMessage);
-      scrollToBottom();
-      loading.value = false;
-      isAnimating.value = true;
-    } catch (error) {
-      console.error("Erro ao enviar mensagem: "+error);
-      loading.value = false;
-      isAnimating.value = false;
+    if (!newChat?.id) return;
+
+    chatId = newChat.id;
+  }
+
+  const contextString = workspaceStore.context?.join("\n") ?? "";
+  const userMessage = {
+    chat_id: chatId,
+    message: newMessage.value.message,
+    file: newMessage.value.file,
+    project_id: activeGroupProject.value?.id,
+    context:{
+      url:route.path,
+      date: workspaceStore.date,
+      context: contextString,
     }
+  };
+  loading.value = true;
+  newMessage.value.id = messages.value.length;
+  newMessage.value.timestamp = new Date().toISOString();
+  try {
+    messages.value.push({ ...newMessage.value });
+    scrollToBottom();
+
+    newMessage.value = { id: 0, role: "user", message: "", file: null };
+    const response = await IntelligenceArtificial.sendMessage(userMessage);
+    file.value = undefined;
+    const assistantMessage: Message = {
+      id: messages.value.length,
+      role: "assistant",
+      message: await marked.parse(response.data.message),
+      file: null,
+      timestamp: response.data.timestamp,
+    };
+
+    messages.value.push(assistantMessage);
+    scrollToBottom();
+    loading.value = false;
+    isAnimating.value = true;
+  } catch (error) {
+    console.error("Erro ao enviar mensagem: "+error);
+    loading.value = false;
+    isAnimating.value = false;
   }
 };
 
