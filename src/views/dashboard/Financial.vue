@@ -266,13 +266,16 @@ onMounted(async () => {
 useScreenContext(
   "Tela financeiro - Gerencia informações financeiras",
   () => ({
-    "Período": search.value || "Não selecionado",
-    "Ordenação": orderId.value || "Padrão",
-    "Direção": order.value ? "Crescente" : "Decrescente",
-    "Página atual": pages.value.current,
-    "Total de páginas": pages.value.last,
-    "Itens por página": perPage.value,
-  })
+    "filter_id": activeGroupProjectId ?? "",
+    "name": search.value || "",
+    "sort_by": orderId.value,
+    "sort_order": order.value ? "asc" : "desc",
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
+    "total": pages.value.total,
+  }),
+  "/v1/financial-transactions"
 );
 
 watch(perPage,() => {

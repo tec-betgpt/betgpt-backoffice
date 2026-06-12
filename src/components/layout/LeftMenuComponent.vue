@@ -352,7 +352,7 @@ import { useConfigStore } from "@/stores/config";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
-import { computed, ref, watch, defineModel } from "vue";
+import { computed, ref, watch } from "vue";
 import ServicesPreviewComponent from "@/components/layout/ServicesPreviewComponent.vue";
 
 const sidebarExpanded = defineModel<boolean>("sidebarExpanded");
@@ -382,7 +382,7 @@ const activeGroupProject = computed(
 );
 
 const logoSrc = computed(() =>
-  getLogoSrc(mode.value === "dark", sidebarExpanded.value),
+  getLogoSrc(mode.value === "dark", sidebarExpanded.value as boolean),
 );
 
 const navMenu = computed(() => {
@@ -629,6 +629,7 @@ const navMenu = computed(() => {
           show:
             hasRole("member-proprietor") ||
             hasRole("member-admin") ||
+            hasRole("member-developer") ||
             canAccess("access-to-subscribers"),
         },
         {
@@ -638,6 +639,7 @@ const navMenu = computed(() => {
           show:
             hasRole("member-proprietor") ||
             hasRole("member-admin") ||
+            hasRole("member-developer") ||
             canAccess("access-to-services"),
         },
         {
@@ -647,32 +649,33 @@ const navMenu = computed(() => {
           show:
             hasRole("member-proprietor") ||
             hasRole("member-admin") ||
+            hasRole("member-developer") ||
             canAccess("access-to-motivational-texts"),
         },
         {
           name: "Acessos",
           url: { name: "user-logins" },
           icon: History,
-          show: hasRole("member-proprietor") || hasRole("member-admin"),
+          show: hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer"),
         },
         {
           name: "Insights IA",
           url: { name: "insightIA" },
           icon: Bot,
-          show: hasRole("member-proprietor"),
+          show: hasRole("member-proprietor") || hasRole("member-developer"),
         },
         {
           name: "Controlador IA",
           url: { name: "ai-controller" },
           icon: SlidersHorizontal,
-          show: hasRole("member-proprietor"),
+          show: hasRole("member-proprietor") || hasRole("member-developer"),
         },
         {
           name: "Webhook Logs",
           url: { name: "webhook-logs" },
           icon: Webhook,
           show:
-            (hasRole("member-proprietor") || hasRole("member-admin")) &&
+            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) &&
             canAccess("access-to-webhook-logs"),
         },
       ],
@@ -684,6 +687,7 @@ const navMenu = computed(() => {
       show:
         hasRole("member-proprietor") ||
         hasRole("member-admin") ||
+        hasRole("member-developer") ||
         canAccess("access-to-protection-lists") ||
         canAccess("protection-list-report-view"),
       children: [
@@ -694,6 +698,7 @@ const navMenu = computed(() => {
           show:
             hasRole("member-proprietor") ||
             hasRole("member-admin") ||
+            hasRole("member-developer") ||
             canAccess("access-to-protection-lists"),
         },
         {
@@ -703,6 +708,7 @@ const navMenu = computed(() => {
           show:
             hasRole("member-proprietor") ||
             hasRole("member-admin") ||
+            hasRole("member-developer") ||
             canAccess("access-to-protection-lists"),
         },
         {
@@ -712,6 +718,7 @@ const navMenu = computed(() => {
           show:
             hasRole("member-proprietor") ||
             hasRole("member-admin") ||
+            hasRole("member-developer") ||
             canAccess("protection-list-report-view"),
         },
       ],

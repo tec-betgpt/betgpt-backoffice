@@ -156,7 +156,19 @@ const remove = async (id: number) => {
 }
 
 // Screen Context
-useScreenContext("Gerenciamento de Custos", () => ({}));
+useScreenContext(
+  "Gerenciamento de Custos - Lista e administra centros de custo do projeto ativo",
+  () => ({
+    "filter_id": workspaceStore.activeGroupProject?.id ?? "",
+    "find_name": nameCost.value || "",
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPages.value,
+    "sort_by": "id",
+    "sort_order": "desc",
+  }),
+  "/v1/cost-centers"
+);
 
 onMounted(async () => {
   isLoading.value = true;

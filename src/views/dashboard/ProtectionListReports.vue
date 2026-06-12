@@ -197,10 +197,11 @@ onMounted(async () => {
 useScreenContext(
   "Tela de relatórios de lista de proteção - Exibe relatórios de listas de proteção",
   () => ({
+    "project_id": workspaceStore.activeGroupProject?.id ?? "",
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
   }),
-  "/v1/protection-lists/reports"
+  "/v1/protection-list-reports"
 );
 </script>

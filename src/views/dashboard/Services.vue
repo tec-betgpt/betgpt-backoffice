@@ -143,7 +143,17 @@ const destroy = async (id: number) => {
 }
 
 // Screen Context
-useScreenContext("Serviços", () => ({}), "/v1/services");
+useScreenContext(
+  "Serviços - Lista e administra serviços disponíveis na plataforma",
+  () => ({
+    "search": search.value || "",
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
+    "total": pages.value.total,
+  }),
+  "/v1/services"
+);
 
 onMounted(async () => {
   isLoading.value = true;

@@ -103,7 +103,13 @@ onMounted(() => {
 useScreenContext(
   "Tela de insights da IA - Exibe insights e análises gerados pela IA",
   () => ({
+    "filter_id": activeGroupProject.value?.id ?? "",
+    "page": pagination.value.current,
+    "last_page": pagination.value.last,
     "per_page": perPage.value,
+    "total": pagination.value.total,
+    "history_dialog_open": isHistoryDialogOpen.value,
+    "selected_messages_count": selectedMessages.value.length,
   }),
   "/v1/ia/index"
 );

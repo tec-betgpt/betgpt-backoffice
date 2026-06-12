@@ -141,10 +141,18 @@ const deleteGroup = async (groupId: number) => {
 };
 
 // Screen Context
-useScreenContext("Grupos de Projetos", () => ({
-  group_id: null,
-  group_name: ''
-}), "/v1/user-project-groups");
+useScreenContext(
+  "Grupos de Projetos - Lista e administra grupos de projetos do usuário",
+  () => ({
+    "active_group_project_id": workspaceStore.activeGroupProject?.id ?? "",
+    "active_group_project_name": workspaceStore.activeGroupProject?.name ?? "",
+    "groups_count": Array.isArray(groups.value) ? groups.value.length : 0,
+    "groups_preview": Array.isArray(groups.value)
+      ? groups.value.slice(0, 10).map((group: any) => group.name).filter(Boolean).join(", ")
+      : "",
+  }),
+  "/v1/user-project-groups"
+);
 
 onMounted(fetchUserProjectGroups);
 </script>

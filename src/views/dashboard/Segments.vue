@@ -566,11 +566,16 @@ onMounted(async () => await fetchSegments());
 useScreenContext(
   "Tela de segmentos - Gerencia segmentos de audiência",
   () => ({
+    "filter_id": activeGroupProjectId.value,
+    "is_segment": true,
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
+    "order_by": orderId.value,
+    "type_order": order.value ? "asc" : "desc",
+    ...nameSegment.value,
   }),
-  "/v1/target-audience"
+  "/v1/target-audiences"
 );
 
 watch(perPage, () => fetchSegments(1));

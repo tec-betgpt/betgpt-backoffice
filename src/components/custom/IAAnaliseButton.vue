@@ -49,15 +49,10 @@ const handleClick = async () => {
   });
 
   try {
-    let chatId = localStorage.getItem("chatId");
-
-    if (!chatId) {
-      const newChat = await IntelligenceArtificial.createSession({
-        project_id: workspaceStore.activeGroupProject.project_id,
-      });
-      chatId = newChat.data.id;
-      localStorage.setItem("chatId", `${chatId}`);
-    }
+    const newChat = await IntelligenceArtificial.createSession({
+      project_id: workspaceStore.activeGroupProject.project_id,
+    });
+    const chatId = String(newChat.data.id);
 
     iaAnaliseStore.startAnalise(chatId);
     openSidebar();
