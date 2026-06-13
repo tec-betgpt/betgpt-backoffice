@@ -11,6 +11,7 @@
       <div class="flex items-center justify-start w-full">
         <div class="flex flex-col items-center justify-end sm:flex-row gap-2 w-full">
           <CreateDialogComponent :costs="costs" :sectors="sectors" :reload="reloadFinancialsAfterMutation" />
+          <CustomDatePicker v-model="selectedRange" />
         </div>
       </div>
     </div>
@@ -18,139 +19,25 @@
     <div class="space-y-6">
       <Card>
         <CardContent class="pt-6">
-          <div class="flex justify-end">
-            <div class="flex w-full max-w-sm items-center gap-1.5">
-              <Input v-model="search" type="search" placeholder="Buscar por descrição" />
-              <Button type="submit" @click="fetchFinancials()">
-                Buscar
-              </Button>
-            </div>
-          </div>
-
-          <Table class="w-full mt-4">
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  Centro de Custo
-                </TableHead>
-                <TableHead>
-                  Setor
-                </TableHead>
-                <TableHead>
-                  Categoria
-                </TableHead>
-                <TableHead>
-                  <OrderButton
-                    align="right"
-                    label="Valor"
-                    column="amount"
-                    :orderId="orderId"
-                    :order="order"
-                    :onOrder="handlerOrder"
-                  />
-                </TableHead>
-
-                <TableHead>
-                  <OrderButton
-                    align="right"
-                    label="Data"
-                    column="date"
-                    :orderId="orderId"
-                    :order="order"
-                    :onOrder="handlerOrder"
-                  />
-                </TableHead>
-                <TableHead class="text-right">
-                  Descrição
-                </TableHead>
-                <TableHead>
-                  <OrderButton
-                    align="right"
-                    label="Porcentagem"
-                    column="percentage"
-                    :orderId="orderId"
-                    :order="order"
-                    :onOrder="handlerOrder"
-                  />
-                </TableHead>
-                <TableHead class="text-right">
-                  Tipo
-                </TableHead>
-                <TableHead class="text-right">
-                  Cadastrado por
-                </TableHead>
-                <TableHead class="text-right">
-                  Ações
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              <TableRow v-if="loading" v-for="row in 7" :key="row">
-                <TableCell v-for="col in 10" :key="col">
-                  <Skeleton class="h-4 w-full bg-gray-300 my-4" />
-                </TableCell>
-              </TableRow>
-
-              <transition-group
-                v-else
-                appear
-                enter-active-class="enter-active"
-                enter-from-class="enter"
-                enter-to-class="enter-to"
-              >
-                <TableRow v-for="(row, index) in financial" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                  <TableCell>
-                    {{ row.costCenter }}
-                  </TableCell>
-                  <TableCell>
-                    {{ row.sectorName }}
-                  </TableCell>
-                  <TableCell>
-                    {{ row.category_type === "fixed" ? "Fixa" : "Variavel" }}
-                  </TableCell>
-                  <TableCell class="text-right">
-                    {{ toCurrency(Number.parseInt(row.amount)) }}
-                  </TableCell>
-                  <TableCell class="text-right">
-                    {{ $moment(row.date).format("DD/MM/YYYY") }}
-                  </TableCell>
-                  <TableCell class="text-right">
-                    <div
-                      :title="row.description"
-                      class="text-ellipsis overflow-hidden whitespace-nowrap max-w-[100px]"
-                    >
-                      {{ row.description }}
-                    </div>
-                  </TableCell>
-                  <TableCell class="text-right">
-                    {{ row.percentage ?? 0 }}%
-                  </TableCell>
-                  <TableCell class="text-right">
-                    <Badge v-if="row.type === 'revenue'" class="bg-green-500 text-white">Receita</Badge>
-                    <Badge v-else variant="outline" class="bg-red-500 text-white">Custo</Badge>
-                  </TableCell>
-                  <TableCell class="text-right">
-                    {{ row.createdByName }}
-                  </TableCell>
-                  <TableCell class="flex justify-end gap-1">
-                    <EditDialogComponent
-                      :reload="reloadFinancialsAfterMutation"
-                      :row="row"
-                      :costs="costs"
-                      :sectors="sectors"
-                    />
-
-                    <DestroyDialogComponent
-                      :reload="reloadFinancialsAfterMutation"
-                      :destroy="deleteFinancial"
-                      :row="row"
-                    />
-                  </TableCell>
-                </TableRow>
-              </transition-group>
-            </TableBody>
-          </Table>
+          <FinancialTransactionsTable
+            :transactions="financial"
+            :is-loading="loading"
+            :search="search"
+            :type="type"
+            :cost-center-id="costCenterId"
+            :sector-id="sectorId"
+            :global-totals="globalTotals"
+            :on-search="() => fetchFinancials(1)"
+            :on-update-search="(value) => search = value"
+            :on-update-type="(value) => type = value"
+            :on-update-cost-center-id="(value) => costCenterId = value"
+            :on-update-sector-id="(value) => sectorId = value"
+            :project-id="activeGroupProjectId"
+            :reload-financials-after-mutation="reloadFinancialsAfterMutation"
+            :delete-financial="deleteFinancial"
+            :costs="costs"
+            :sectors="sectors"
+          />
         </CardContent>
       </Card>
 
@@ -161,27 +48,30 @@
         @update:perPages="(valueUpdater) => perPage = valueUpdater"
       />
     </div>
+
+    <div class="pt-10">
+      <FinancialDashboard :selected-range="selectedRange" />
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
+import type { DateRange } from "radix-vue";
+import { getLocalTimeZone, today } from "@internationalized/date";
 import financialTransactionsApi from "@/services/financialTransactions";
 import { toast } from "@/components/ui/toast";
-import toCurrency from "@/filters/currencyFilter";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CostCenter from "@/services/costCenters";
 import Sector from "@/services/sector";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Skeleton} from "@/components/ui/skeleton";
-import {Card, CardContent} from "@/components/ui/card";
-import OrderButton from "@/components/custom/OrderButton.vue";
+import { Card, CardContent } from "@/components/ui/card";
 import CreateDialogComponent from "@/components/financial/CreateDialogComponent.vue";
-import {Badge} from "@/components/ui/badge";
-import EditDialogComponent from "@/components/financial/EditDialogComponent.vue";
-import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
+import FinancialTransactionsTable from "@/components/financial/FinancialTransactionsTable.vue";
+import FinancialDashboard from "@/components/financial/FinancialDashboard.vue";
+import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
 interface FinancialData {
   id: number;
@@ -198,9 +88,22 @@ interface FinancialData {
   createdByName: string;
 }
 
-// data
+interface FinancialGlobalTotals {
+  total_revenue: number;
+  total_expense: number;
+  balance: number;
+}
+
 const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
-const search = ref(null);
+const currentDate = today(getLocalTimeZone());
+const selectedRange = ref<DateRange>({
+  start: currentDate.subtract({ days: 28 }),
+  end: currentDate,
+});
+const search = ref("");
+const type = ref("");
+const costCenterId = ref("");
+const sectorId = ref("");
 const orderId = ref("name");
 const order = ref(false);
 const perPage = ref("10");
@@ -210,6 +113,11 @@ const costs = ref<
 const sectors = ref<{ id: number; name: string }[]>([]);
 const financial = ref<FinancialData[]>([]);
 const loading = ref(true);
+const globalTotals = ref<FinancialGlobalTotals>({
+  total_revenue: 0,
+  total_expense: 0,
+  balance: 0,
+});
 const pages = ref({
   current: 1,
   total: 0,
@@ -219,7 +127,6 @@ const pages = ref({
 const reloadFinancialsAfterMutation = () =>
   fetchFinancials(pages.value.current, { refresh: true });
 
-// methods
 const deleteFinancial = async (id: number) => {
   try {
     await financialTransactionsApi.destroy(id);
@@ -238,22 +145,36 @@ const deleteFinancial = async (id: number) => {
   }
 }
 
+const formatDateForAPI = (date: DateRange["start"]) => {
+  if (!date) return "";
+
+  return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+};
+
 const fetchFinancials = async (
   current = pages.value.current,
   opts?: { refresh?: boolean },
 ) => {
   try {
-    const { data } = await financialTransactionsApi.index({
+    const response = await financialTransactionsApi.index({
       page: current,
       filter_id: activeGroupProjectId,
       name: search.value,
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
       per_page: perPage.value,
+      ...(type.value ? { type: type.value } : {}),
+      ...(costCenterId.value ? { cost_center_id: Number(costCenterId.value) } : {}),
+      ...(sectorId.value ? { sector_id: Number(sectorId.value) } : {}),
+      start_date: formatDateForAPI(selectedRange.value.start),
+      end_date: formatDateForAPI(selectedRange.value.end),
       ...(opts?.refresh ? { refresh: 1 } : {}),
     });
 
-    financial.value = data.data.map((financial: any) => {
+    const data = response.data
+    const meta = response.meta
+
+    financial.value = data.map((financial: any) => {
       const u = financial.user;
       const createdByName = u
         ? [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || "—"
@@ -275,10 +196,16 @@ const fetchFinancials = async (
       };
     });
 
+    globalTotals.value = meta.global_totals ?? {
+      total_revenue: 0,
+      total_expense: 0,
+      balance: 0,
+    };
+
     pages.value = {
-      current: data.current_page,
-      total: data.total,
-      last: data.last_page,
+      current: meta.current_page,
+      total: meta.total,
+      last: meta.last_page,
     };
   } catch (error) {
     console.error("Erro ao buscar transações financeiras:", error);
@@ -322,20 +249,6 @@ const getSectors = async () => {
   }
 };
 
-const getMs = (num: number): string => {
-  return (num / 10).toFixed(1) + "s";
-}
-
-const handlerOrder = (column: string, direction: boolean) => {
-  if (column) {
-    orderId.value = column;
-    order.value = direction;
-  }
-
-  fetchFinancials();
-}
-
-// hooks
 onMounted(async () => {
   loading.value = true;
 
@@ -364,4 +277,12 @@ useScreenContext(
 watch(perPage,() => {
   fetchFinancials(1);
 })
+
+watch(
+  selectedRange,
+  () => {
+    fetchFinancials(1);
+  },
+  { deep: true },
+);
 </script>

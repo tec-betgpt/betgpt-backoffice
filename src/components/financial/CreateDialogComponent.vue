@@ -4,7 +4,7 @@
   </Button>
 
   <Dialog :open="isDialog" @update:open="isDialog = $event">
-    <DialogContent class="sm:max-w-[400px]">
+    <DialogContent class="sm:max-w-[450px]">
       <DialogHeader>
         <DialogTitle>
           Novo Registro
@@ -16,7 +16,7 @@
 
       <form @submit.prevent="onSubmit()">
         <div class="grid gap-4 py-2">
-          <div class="grid items-center gap-1.5">
+          <div class="gap-1.5">
             <Label for="cost_center_id">Centro de Custo</Label>
             <Select v-model="financialForm.cost_center_id">
               <SelectTrigger id="cost_center_id" class="col-span-3">
@@ -28,11 +28,14 @@
                 </SelectItem>
               </SelectContent>
             </Select>
+            <p class="w-full text-xs mt-1 text-right text-muted-foreground">
+              Opcional
+            </p>
           </div>
 
           <div class="grid items-center gap-1.5">
             <Label for="sector_id">Setor</Label>
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-row gap-2">
               <Select v-model="sectorId">
                 <SelectTrigger id="sector_id">
                   <SelectValue placeholder="Opcional" />
@@ -43,40 +46,42 @@
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <Button type="button" variant="outline" size="sm" class="self-end" @click="sectorId = null">
-                Limpar setor
+              <Button type="button" variant="ghost" @click="sectorId = null">
+                Limpar
               </Button>
             </div>
           </div>
 
-          <div>
-            <Select v-model="financialForm.type" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cost">Custo</SelectItem>
-                <SelectItem value="revenue">Receita</SelectItem>
-              </SelectContent>
-            </Select>
-            <p class="text-xs mt-1 text-right text-muted-foreground">
-              Obrigatório
-            </p>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <Select v-model="financialForm.type" required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cost">Custo</SelectItem>
+                  <SelectItem value="revenue">Receita</SelectItem>
+                </SelectContent>
+              </Select>
+              <p class="text-xs mt-1 text-right text-muted-foreground">
+                Obrigatório
+              </p>
+            </div>
 
-          <div>
-            <Select v-model="financialForm.category_type" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="fixed">Fixo</SelectItem>
-                <SelectItem value="variable">Variável</SelectItem>
-              </SelectContent>
-            </Select>
-            <p class="text-xs mt-1 text-right text-muted-foreground">
-              Obrigatório
-            </p>
+            <div>
+              <Select v-model="financialForm.category_type" required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Fixo</SelectItem>
+                  <SelectItem value="variable">Variável</SelectItem>
+                </SelectContent>
+              </Select>
+              <p class="text-xs mt-1 text-right text-muted-foreground">
+                Obrigatório
+              </p>
+            </div>
           </div>
 
           <div>
@@ -95,30 +100,32 @@
             </p>
           </div>
 
-          <div>
-            <Input
-              placeholder="Porcentagem (%)"
-              id="percentage"
-              v-model="financialForm.percentage"
-              type="number"
-              min="0"
-            />
-            <p class="text-xs mt-1 text-right text-muted-foreground">
-              Opcional
-            </p>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <Input
+                placeholder="Porcentagem (%)"
+                id="percentage"
+                v-model="financialForm.percentage"
+                type="number"
+                min="0"
+              />
+              <p class="text-xs mt-1 text-right text-muted-foreground">
+                Opcional
+              </p>
+            </div>
 
-          <div>
-            <Input
-              placeholder="Valor"
-              id="amount"
-              v-model="displayAmount"
-              type="text"
-              required
-            />
-            <p class="text-xs mt-1 text-right text-muted-foreground">
-              Ex.: 1000
-            </p>
+            <div>
+              <Input
+                placeholder="Valor"
+                id="amount"
+                v-model="displayAmount"
+                type="text"
+                required
+              />
+              <p class="text-xs mt-1 text-right text-muted-foreground">
+                Ex.: 1000
+              </p>
+            </div>
           </div>
 
           <div>
