@@ -18,21 +18,28 @@
         <div class="grid gap-4 py-4">
           <div class="grid items-center gap-1.5">
             <Label for="cost_center_id">Centro de Custo</Label>
-            <Select v-model="financialForm.cost_center_id">
-              <SelectTrigger id="cost_center_id">
-                <SelectValue placeholder="Selecione um centro de custo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="(cost, index) in props.costs" :key="index" :value="cost.id">
-                  {{ cost.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+
+            <div class="flex flex-row gap-2">
+              <Select v-model="financialForm.cost_center_id">
+                <SelectTrigger id="cost_center_id">
+                  <SelectValue placeholder="Selecione um centro de custo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="(cost, index) in props.costs" :key="index" :value="cost.id">
+                    {{ cost.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button type="button" variant="ghost" @click="financialForm.cost_center_id = null">
+                Limpar
+              </Button>
+            </div>
           </div>
 
           <div class="grid items-center gap-1.5">
             <Label for="sector_id">Setor</Label>
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-row gap-2">
               <Select v-model="sectorId">
                 <SelectTrigger id="sector_id">
                   <SelectValue placeholder="Opcional" />
@@ -43,66 +50,61 @@
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <div class="flex justify-between items-center">
-                <p class="text-xs text-muted-foreground">
-                  Opcional
-                </p>
-                <Button type="button" variant="outline" size="sm" class="self-end" @click="sectorId = null">
-                  Limpar setor
-                </Button>
-              </div>
+              <Button type="button" variant="ghost" @click="sectorId = null">
+                Limpar
+              </Button>
             </div>
           </div>
 
-          <div class="grid items-center gap-1.5">
-            <Label for="type">Tipo</Label>
-            <Select v-model="financialForm.type">
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cost">Custo</SelectItem>
-                <SelectItem value="revenue">Receita</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
 
-          <div class="grid items-center gap-1.5">
-            <Label for="category_type">Categoria</Label>
-            <Select v-model="financialForm.category_type">
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="fixed">Fixo</SelectItem>
-                <SelectItem value="variable">Variável</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div>
+              <Label for="type">Tipo</Label>
+              <Select v-model="financialForm.type">
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cost">Custo</SelectItem>
+                  <SelectItem value="revenue">Receita</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div class="grid items-center gap-1.5">
-            <Label for="percentage">Porcentagem (%)</Label>
-            <Input
-              id="percentage"
-              v-model="financialForm.percentage"
-              type="number"
-              placeholder="Opcional"
-              min="0"
-            />
-            <p class="text-xs text-muted-foreground text-left">
-              Opcional
-            </p>
-          </div>
+            <div class="grid items-center gap-1.5">
+              <Label for="category_type">Categoria</Label>
+              <Select v-model="financialForm.category_type">
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Fixo</SelectItem>
+                  <SelectItem value="variable">Variável</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div class="grid items-center gap-1.5">
-            <Label for="amount">Valor</Label>
-            <Input
-              id="amount"
-              v-model="displayAmount"
-              type="text"
-              placeholder="Digite o valor"
-              required
-            />
+            <div>
+              <Label for="percentage">Porcentagem (%)</Label>
+              <Input
+                id="percentage"
+                v-model="financialForm.percentage"
+                type="number"
+                placeholder="Opcional"
+                min="0"
+              />
+            </div>
+
+            <div class="grid items-center gap-1.5">
+              <Label for="amount">Valor</Label>
+              <Input
+                id="amount"
+                v-model="displayAmount"
+                type="text"
+                placeholder="Digite o valor"
+                required
+              />
+            </div>
           </div>
 
           <div class="grid items-center gap-1.5">

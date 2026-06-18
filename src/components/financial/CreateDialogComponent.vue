@@ -18,19 +18,22 @@
         <div class="grid gap-4 py-2">
           <div class="gap-1.5">
             <Label for="cost_center_id">Centro de Custo</Label>
-            <Select v-model="financialForm.cost_center_id">
-              <SelectTrigger id="cost_center_id" class="col-span-3">
-                <SelectValue placeholder="Centro de Custo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="cost in props.costs" :key="cost.id" :value="cost.id">
-                  {{ cost.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p class="w-full text-xs mt-1 text-right text-muted-foreground">
-              Opcional
-            </p>
+            <div class="flex flex-row gap-2">
+              <Select v-model="financialForm.cost_center_id">
+                <SelectTrigger id="cost_center_id" class="col-span-3">
+                  <SelectValue placeholder="Centro de Custo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="cost in props.costs" :key="cost.id" :value="cost.id">
+                    {{ cost.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button type="button" variant="ghost" @click="financialForm.cost_center_id = null">
+                Limpar
+              </Button>
+            </div>
           </div>
 
           <div class="grid items-center gap-1.5">
