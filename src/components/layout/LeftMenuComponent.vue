@@ -678,6 +678,14 @@ const navMenu = computed(() => {
             (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) &&
             canAccess("access-to-webhook-logs"),
         },
+        {
+          name: "Link Engine",
+          url: { name: "link-engine" },
+          icon: ChartArea,
+          show:
+            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) &&
+            canAccess("access-to-member-governance"),
+        },
       ],
     },
     {
