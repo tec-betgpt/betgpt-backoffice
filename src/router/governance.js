@@ -10,6 +10,7 @@ import InsightIA from "@/views/dashboard/InsightIA.vue";
 import AIController from "@/views/dashboard/AIController.vue";
 import WebhookLogs from "@/views/dashboard/WebhookLogs.vue";
 import LinkEngine from "@/views/dashboard/LinkEngine.vue";
+import Links from "@/views/dashboard/Links.vue";
 
 import Tags from "@/views/dashboard/Tags.vue";
 
@@ -143,6 +144,18 @@ export default [
             title: "Logs de Webhooks",
             roles: "member",
             permissions: "access-to-webhook-logs",
+          },
+        },
+        {
+          path: "links",
+          name: "links",
+          component: Links,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Links",
+            roles: "member",
+            permissions: "access-to-member-governance",
           },
         },
         {
