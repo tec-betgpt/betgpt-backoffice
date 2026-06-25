@@ -126,11 +126,12 @@ watch(perPage, () => {
 useScreenContext(
   "Tela de exports - Gerencia exportação de dados",
   () => ({
+    "filter_id": activeGroupProjectId ?? "",
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
   }),
-  "/v1/exports"
+  "/v1/export"
 );
 
 onMounted(async () => {

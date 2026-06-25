@@ -198,8 +198,15 @@ const searchValues = ref<Record<string, string>>({});
 
 // Screen Context
 useScreenContext("Projetos", () => ({
-  project_id: form.value.id,
-  project_name: form.value.name
+  "page": pages.value.current,
+  "last_page": pages.value.last,
+  "per_page": perPage.value,
+  "status": statusFilter.value.join(", "),
+  "orderBy": order.value || "",
+  "orderDirection": direction.value ? "asc" : "desc",
+  "editing_project_id": form.value.id ?? "",
+  "editing_project_name": form.value.name || "",
+  ...searchValues.value,
 }), "/v1/projects");
 
 const handleFileChange = (event) => {

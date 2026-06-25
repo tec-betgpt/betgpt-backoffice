@@ -4,6 +4,7 @@ import type { DateRange } from "radix-vue";
 
 interface ActiveGroupProject {
   id: string
+  project_id:string
   is_selected: boolean
   label: string
   logo: string | null

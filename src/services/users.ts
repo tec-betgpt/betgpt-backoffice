@@ -265,5 +265,15 @@ export default {
   async toggleAvailable (id, body = {}) {
     const { data } = await api.patch(`/users/${id}/toggle-available`, body)
     return data
+  },
+
+  /**
+   * POST /v1/users/{id}/remove-two-factor
+   *
+   * @param {number} userId
+   */
+  async removeTwoFactor (userId) {
+    const { data } = await api.post(`/users/${userId}/remove-two-factor`)
+    return data
   }
 }

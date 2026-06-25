@@ -18,11 +18,11 @@ export const useProjectPreferences = () => {
         // @ts-ignore
         filter_id: String(workspace.activeGroupProject.id),
       });
-
-      if (response.data?.google_analytics_channel_group) {
-        const nickname = response.data.google_analytics_channel_group.nickname;
+        
+      if (response.data?.google_analytics.google_analytics_group) {
+        const nickname = response.data.google_analytics.google_analytics_group.nickname;
         localStorage.setItem(gaNicknameStorageKey, nickname);
-        gaGroupNickname.value = nickname;
+        gaGroupNickname.value = nickname;        
       }
     } catch (error) {
       console.error("Erro ao carregar preferências:", error);

@@ -55,7 +55,7 @@
       <div class="flex flex-col justify-center align-middle gap-3">
         <!-- Botão de Reenviar Código (aparece apenas para método 'email') -->
         <Button
-            v-if="authMethod == 'email'"
+            v-if="authMethod === 'email'"
             @click="resendTwoFactorLogin"
             :disabled="!resend"
             class="flex gap-1"
@@ -122,6 +122,9 @@
         <Button @click="recoveryScreen = !recoveryScreen" variant="outline">
           <p>{{ $t("back") }}</p>
         </Button>
+        <Button variant="link" class="text-xs" @click="goToAccountRecovery">
+          Outra forma de recuperação
+        </Button>
       </div>
 
       <!-- Dialog de Sucesso na Recuperação -->
@@ -156,9 +159,12 @@ import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import i18n from "@/i18n";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Pin from "@/components/custom/CustomPinInput.vue";
 import {useColorMode} from "@vueuse/core";
 import {useWorkspaceStore} from "@/stores/workspace";
@@ -189,6 +195,10 @@ function goBack() {
   router.back();
 }
 
+function goToAccountRecovery() {
+  router.push("/recover/account");
+}
+
 /**
  * Lida com o sucesso da recuperação, limpando os dados e navegando para o login.
  */
@@ -198,9 +208,10 @@ function handleRecoverySuccess() {
   router.push("/");
 }
 
-function handleCreateSuccess() {
+
+
+async function handleCreateSuccess() {
   authStore.clearTwoFactorData();
-  console.log("teste");
   router.push("/");
 }
 
@@ -237,6 +248,16 @@ const twoFactorLogin = async (code: Array<string>) => {
           userAuth?.preferences,
           userAuth?.group_projects
       );
+
+      try {
+        const status = await Auth.getAccountStatus();
+        if (!status.data.security_questions_configured) {
+          authStore.setRequiresSecurityQuestions(true);
+          router.push("/security-questions");
+          return;
+        }
+      } catch {}
+
       router.push("/");
     } else {
       toast({ title: "Erro", description: "Resposta inesperada do servidor.", variant: "destructive" });

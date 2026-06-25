@@ -233,12 +233,28 @@ const form = ref({
  *   redireciona para a página inicial e realiza uma chamada adicional para autenticação externa, se configurada.
  * - Caso contrário, verifica se há dados para autenticação de dois fatores e redireciona para a página correspondente.
  */
-const handleLoginResponse = async ({ data  }) => {
+const handleLoginResponse = async (response: any) => {
+  const data = response.data ?? response;
   const tokenAuth = data ? data.token : null;
   const authType = data ? data.type : null;
+  const userAuth = data ? data.user : null;
+
   if (tokenAuth && authType) {
-      authStore.setTwoFactorData(tokenAuth,authType)
-      router.push("/two-factor");
+    authStore.setTwoFactorData(tokenAuth, authType);
+    router.push("/two-factor");
+  } else if (tokenAuth && userAuth) {
+    authStore.setUserData(userAuth, tokenAuth);
+
+    try {
+      const status = await Auth.getAccountStatus();
+      if (!status.data.security_questions_configured) {
+        authStore.setRequiresSecurityQuestions(true);
+        router.push("/security-questions");
+        return;
+      }
+    } catch {}
+
+    router.push("/");
   }
 };
 

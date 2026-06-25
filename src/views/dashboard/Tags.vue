@@ -302,7 +302,7 @@ useScreenContext("Gerenciamento de Tags", () => ({
   "search": searchQuery.value,
   "page": pagination.value.current_page,
   "per_page": pagination.value.per_page,
-  "filter_id": workspace.activeGroupProject.id,
+  "filter_id": workspace.activeGroupProject?.id ?? "",
 }), "/v1/tags");
 
 onMounted(() => {
