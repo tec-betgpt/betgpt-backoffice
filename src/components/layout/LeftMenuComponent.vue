@@ -684,16 +684,13 @@ const navMenu = computed(() => {
           url: { name: "links" },
           icon: Link2,
           show:
-            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) &&
-            canAccess("access-to-member-governance"),
-        },
+            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer"))     },
         {
           name: "Link Engine",
           url: { name: "link-engine" },
           icon: ChartArea,
           show:
-            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) &&
-            canAccess("access-to-member-governance"),
+            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) 
         },
       ],
     },
