@@ -52,27 +52,25 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
-              <TableRow v-for="(row, index) in userLogins" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ row.user.first_name }} {{ row.user.last_name }}
-                </TableCell>
-                <TableCell>
-                  <Badge >
-                    {{ row.type === 'login' ? 'Login' : 'Acesso' }}
-                  </Badge>
-                </TableCell>
-                <TableCell class="text-right">
-                  {{ row.user.email }}
-                </TableCell>
-                <TableCell class="text-right">
-                  {{ row.ip }}
-                </TableCell>
-                <TableCell class="text-right text-nowrap">
-                  {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm:ss') }}
-                </TableCell>
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="(row, index) in userLogins" :key="row.id">
+              <TableCell>
+                {{ row.user.first_name }} {{ row.user.last_name }}
+              </TableCell>
+              <TableCell>
+                <Badge >
+                  {{ row.type === 'login' ? 'Login' : 'Acesso' }}
+                </Badge>
+              </TableCell>
+              <TableCell class="text-right">
+                {{ row.user.email }}
+              </TableCell>
+              <TableCell class="text-right">
+                {{ row.ip }}
+              </TableCell>
+              <TableCell class="text-right text-nowrap">
+                {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm:ss') }}
+              </TableCell>
+            </TableRow>
 
             <template v-if="isLoading">
               <TableRow v-for="i in perPage" :key="i">
@@ -105,14 +103,13 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted} from "vue";
+import { ref, onMounted } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import FilterDialogComponent from "@/components/user_logins/FilterDialogComponent.vue";
 import UserLogins from '@/services/userLogins';
-import { getMs } from "@/filters/formatNumbers";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
-import {CaretSortIcon} from "@radix-icons/vue";
-import {ArrowDown, ArrowUp} from "lucide-vue-next";
+import { CaretSortIcon } from "@radix-icons/vue";
+import { ArrowDown, ArrowUp } from "lucide-vue-next";
 
 import {
   Select,
