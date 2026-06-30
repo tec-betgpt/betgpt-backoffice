@@ -54,25 +54,15 @@
             </TableRow>
           </TableHeader>
           <TableBody>
-            <transition-group
-              appear
-              enter-active-class="enter-active"
-              leave-active-class="leave-active"
-              enter-from-class="enter"
-              enter-to-class="enter-to"
-              leave-from-class="leave"
-              leave-to-class="leave-to"
-            >
-              <TableRow v-for="(row, index) in sectors" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ row.name }}
-                </TableCell>
-                <TableCell>
-                  {{ row.project?.name }}
-                </TableCell>
-                <SectorRowActions :row="row" :reload="fetchSectors" :destroy="remove" />
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="(row, index) in sectors" :key="row.id">
+              <TableCell>
+                {{ row.name }}
+              </TableCell>
+              <TableCell>
+                {{ row.project?.name }}
+              </TableCell>
+              <SectorRowActions :row="row" :reload="fetchSectors" :destroy="remove" />
+            </TableRow>
           </TableBody>
         </Table>
       </CardContent>
@@ -92,16 +82,14 @@ import { onMounted, ref, watch } from "vue";
 import { toast } from "@/components/ui/toast";
 import { X } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
-import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Sector from "@/services/sector"
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/sectors/CreateDialogComponent.vue";
 import SectorRowActions from "@/components/sectors/SectorRowActions.vue";
-
-import {TableCell, TableRow} from "@/components/ui/table";
-import {Skeleton} from "@/components/ui/skeleton";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SectorData {
   id: number;

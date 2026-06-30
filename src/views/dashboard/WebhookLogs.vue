@@ -57,48 +57,46 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
-              <TableRow v-for="(row, index) in logs" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ row.id }}
-                </TableCell>
-                <TableCell>
-                  <div v-if="row.webhookable">
-                    <span class="font-medium">{{ row.webhookable_type.split('\\').pop() }}</span>
-                    <span class="text-xs text-muted-foreground block">#{{ row.webhookable.id }} - {{ row.webhookable.name || 'Sem Nome' }}</span>
-                  </div>
-                  <div v-else>
-                    <span class="text-muted-foreground text-xs">Entidade removida</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{{ row.response_status ?? 'N/A' }}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge v-if="row.success" class="bg-green-100 text-green-800 hover:bg-green-100">Sucesso</Badge>
-                  <Badge v-else variant="destructive">Falha</Badge>
-                </TableCell>
-                <TableCell class="max-w-[200px] truncate" :title="row.reason">
-                  {{ row.reason || '-' }}
-                </TableCell>
-                <TableCell class="text-right text-nowrap">
-                  {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm:ss') }}
-                </TableCell>
-                <TableCell class="text-right">
-                  <Button 
-                    v-if="!row.success" 
-                    variant="ghost" 
-                    size="sm" 
-                    @click="retryWebhook(row.id)"
-                    :disabled="retrying === row.id"
-                  >
-                    <RefreshCw v-if="retrying === row.id" class="mr-2 h-4 w-4 animate-spin" />
-                    <RefreshCw v-else class="mr-2 h-4 w-4" />
-                    Retry
-                  </Button>
-                </TableCell>
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="row in logs" :key="row.id">
+              <TableCell>
+                {{ row.id }}
+              </TableCell>
+              <TableCell>
+                <div v-if="row.webhookable">
+                  <span class="font-medium">{{ row.webhookable_type.split('\\').pop() }}</span>
+                  <span class="text-xs text-muted-foreground block">#{{ row.webhookable.id }} - {{ row.webhookable.name || 'Sem Nome' }}</span>
+                </div>
+                <div v-else>
+                  <span class="text-muted-foreground text-xs">Entidade removida</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline">{{ row.response_status ?? 'N/A' }}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge v-if="row.success" class="bg-green-100 text-green-800 hover:bg-green-100">Sucesso</Badge>
+                <Badge v-else variant="destructive">Falha</Badge>
+              </TableCell>
+              <TableCell class="max-w-[200px] truncate" :title="row.reason">
+                {{ row.reason || '-' }}
+              </TableCell>
+              <TableCell class="text-right text-nowrap">
+                {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm:ss') }}
+              </TableCell>
+              <TableCell class="text-right">
+                <Button
+                  v-if="!row.success"
+                  variant="ghost"
+                  size="sm"
+                  @click="retryWebhook(row.id)"
+                  :disabled="retrying === row.id"
+                >
+                  <RefreshCw v-if="retrying === row.id" class="mr-2 h-4 w-4 animate-spin" />
+                  <RefreshCw v-else class="mr-2 h-4 w-4" />
+                  Retry
+                </Button>
+              </TableCell>
+            </TableRow>
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
@@ -132,14 +130,12 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import WebhookLogs from "@/services/webhooks";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

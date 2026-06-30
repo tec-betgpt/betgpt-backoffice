@@ -25,39 +25,32 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group
-              appear
-              enter-active-class="enter-active"
-              enter-from-class="enter"
-              enter-to-class="enter-to"
-            >
-              <TableRow v-for="(row, index) in users" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ row.first_name }} {{ row.last_name }}
-                </TableCell>
-                <TableCell>
-                  {{ row.email }}
-                </TableCell>
-                <TableCell class="text-right">
-                  <Badge variant="outline">
-                    {{ row.projects_count }} workspaces
-                  </Badge>
-                </TableCell>
-                <TableCell class="text-right">
-                  <Badge variant="outline" v-if="row.service">
-                    {{ row.service.name }}
-                  </Badge>
-                  <span v-else>
-                    -
-                  </span>
-                </TableCell>
-                <TableCell class="text-right flex flex-row justify-end gap-2">
-                  <ToggleAvailableComponent :row="row" :reload="fetchUsers" />
-                  <SettingsDialogComponent :reload="fetchUsers" :row="row" />
-                  <ServiceDialogComponent :reload="fetchUsers" :row="row" />
-                </TableCell>
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="row in users" :key="row.id">
+              <TableCell>
+                {{ row.first_name }} {{ row.last_name }}
+              </TableCell>
+              <TableCell>
+                {{ row.email }}
+              </TableCell>
+              <TableCell class="text-right">
+                <Badge variant="outline">
+                  {{ row.projects_count }} workspaces
+                </Badge>
+              </TableCell>
+              <TableCell class="text-right">
+                <Badge variant="outline" v-if="row.service">
+                  {{ row.service.name }}
+                </Badge>
+                <span v-else>
+                  -
+                </span>
+              </TableCell>
+              <TableCell class="text-right flex flex-row justify-end gap-2">
+                <ToggleAvailableComponent :row="row" :reload="fetchUsers" />
+                <SettingsDialogComponent :reload="fetchUsers" :row="row" />
+                <ServiceDialogComponent :reload="fetchUsers" :row="row" />
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
 
@@ -75,7 +68,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { getMs } from "@/filters/formatNumbers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
 import Users from "@/services/users";
@@ -83,7 +75,6 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ServiceDialogComponent from "@/components/subscribers/ServiceDialogComponent.vue";
 import SettingsDialogComponent from "@/components/subscribers/SettingsDialogComponent.vue";
 import ToggleAvailableComponent from "@/components/subscribers/ToggleAvailableComponent.vue";
-
 
 type User = {
   id: string;

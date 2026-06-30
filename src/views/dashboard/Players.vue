@@ -58,45 +58,43 @@
             </TableRow>
           </TableHeader>
           <TableBody>
-            <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
-              <TableRow v-for="(row, index) in players" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ row.name ?? 'Não Informado'}}
-                </TableCell>
-                <TableCell>
-                  {{ row.email }}
-                </TableCell>
-                <TableCell>
-                  <template v-if="row.referrer_id">
-                    <router-link
-                      v-if="canAccessClientManagement && row.referrer_player"
-                      :to="{ name: 'clients.show', params: { id: String(row.referrer_player.id) } }"
-                      class="text-primary hover:underline"
-                    >
-                      {{ row.referrer_id }}
-                    </router-link>
-                    <span v-else>{{ row.referrer_id }}</span>
-                  </template>
-                  <span v-else class="text-muted-foreground">—</span>
-                </TableCell>
-                <TableCell class="text-right text-nowrap">
-                  {{ $moment(row.created_at).format('DD/MM/YYYY') }}
-                </TableCell>
-                <TableCell class="text-right">
-                  <div class="gap-1 flex flex-nowrap justify-end">
-                    <Button
-                      v-if="canAccessClientManagement"
-                      size="icon"
-                      variant="ghost"
-                      @click="showPlayer(row.id)"
-                    >
-                      <Eye class="h-4 w-4" />
-                    </Button>
-                    <EditDialogComponent :row="row" :reload="fetchPlayers" :filter-id="activeGroupProjectId" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="row in players" :key="row.id">
+              <TableCell>
+                {{ row.name ?? 'Não Informado'}}
+              </TableCell>
+              <TableCell>
+                {{ row.email }}
+              </TableCell>
+              <TableCell>
+                <template v-if="row.referrer_id">
+                  <router-link
+                    v-if="canAccessClientManagement && row.referrer_player"
+                    :to="{ name: 'clients.show', params: { id: String(row.referrer_player.id) } }"
+                    class="text-primary hover:underline"
+                  >
+                    {{ row.referrer_id }}
+                  </router-link>
+                  <span v-else>{{ row.referrer_id }}</span>
+                </template>
+                <span v-else class="text-muted-foreground">—</span>
+              </TableCell>
+              <TableCell class="text-right text-nowrap">
+                {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm') }}h
+              </TableCell>
+              <TableCell class="text-right">
+                <div class="gap-1 flex flex-nowrap justify-end">
+                  <Button
+                    v-if="canAccessClientManagement"
+                    size="icon"
+                    variant="ghost"
+                    @click="showPlayer(row.id)"
+                  >
+                    <Eye class="h-4 w-4" />
+                  </Button>
+                  <EditDialogComponent :row="row" :reload="fetchPlayers" :filter-id="activeGroupProjectId" />
+                </div>
+              </TableCell>
+            </TableRow>
 
             <template v-if="isLoading">
               <TableRow v-for="i in perPage" :key="i">
@@ -118,9 +116,10 @@
 
         <CustomSimplePagination
           :current-page="currentPage"
+          :has-next-page="hasNextPage"
           :per-page="perPage"
           @page-changed="fetchPlayers"
-          @update:per-page="(val) => perPage = val"
+          @update:per-page="(val) => { perPage = val; fetchPlayers(1); }"
         />
       </CardContent>
     </Card>
@@ -132,7 +131,6 @@ import { ref, onMounted, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { getMs } from "@/filters/formatNumbers";
 import { ArrowDown, ArrowUp, Eye, ChevronsUpDown } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
 import Players from "@/services/players";
@@ -143,7 +141,6 @@ import CustomSimplePagination from "@/components/custom/CustomSimplePagination.v
 import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
-
 
 const { toast } = useToast();
 const router = useRouter();
@@ -183,6 +180,7 @@ const tags = ref<Tag[]>([]);
 const selectedTagName = ref('Todas as Tags');
 const isLoading = ref(true);
 const currentPage = ref(1);
+const hasNextPage = ref(false);
 const searchValues = ref<Record<string, string>>({});
 const order = ref('id');
 const direction = ref(false);
@@ -221,7 +219,10 @@ const fetchPlayers = async (page = currentPage.value) => {
     }
 
     const response = await Players.index(params);
-    players.value = response.data
+    players.value = response.data ?? [];
+    currentPage.value = response.current_page ?? page;
+    perPage.value = Number(response.per_page ?? perPage.value);
+    hasNextPage.value = Boolean(response.next_page_url);
   } catch (error) {
     toast({
       title: "Ops",

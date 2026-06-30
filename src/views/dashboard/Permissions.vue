@@ -41,33 +41,31 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
-              <TableRow v-for="(row, index) in permissions" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ te(row.name) ? t(row.name) : row.name }}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">
-                    {{ row.guard_name ?? '-' }}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {{ row.scope_access ?? '-' }}
-                </TableCell>
-                <TableCell>
-                  {{ row.scope_order ?? '-' }}
-                </TableCell>
-                <TableCell class="text-right text-nowrap">
-                  {{ $moment(row.created_at).format('DD/MM/YYYY') }}
-                </TableCell>
-                <TableCell class="text-right">
-                  <div class="gap-1 flex flex-nowrap justify-end">
-                    <EditDialogComponent :row="row" :reload="fetchPermissions" />
-                    <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchPermissions" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="row in permissions" :key="row.id">
+              <TableCell>
+                {{ te(row.name) ? t(row.name) : row.name }}
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline">
+                  {{ row.guard_name ?? '-' }}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {{ row.scope_access ?? '-' }}
+              </TableCell>
+              <TableCell>
+                {{ row.scope_order ?? '-' }}
+              </TableCell>
+              <TableCell class="text-right text-nowrap">
+                {{ $moment(row.created_at).format('DD/MM/YYYY') }}
+              </TableCell>
+              <TableCell class="text-right">
+                <div class="gap-1 flex flex-nowrap justify-end">
+                  <EditDialogComponent :row="row" :reload="fetchPermissions" />
+                  <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchPermissions" />
+                </div>
+              </TableCell>
+            </TableRow>
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
@@ -104,15 +102,13 @@ import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { getMs } from "@/filters/formatNumbers";
 import { Search } from "lucide-vue-next";
+import { Card } from "@/components/ui/card";
 import Permissions from "@/services/permissions";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/permissions/CreateDialogComponent.vue";
-
 import EditDialogComponent from "@/components/permissions/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
-import {Card} from "@/components/ui/card";
 
 const { toast } = useToast();
 const { t, te } = useI18n();
