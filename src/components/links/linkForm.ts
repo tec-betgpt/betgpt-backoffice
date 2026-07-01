@@ -1,0 +1,262 @@
+import type {
+  LinkCreatePayload,
+  LinkDetailsResponse,
+  LinkListItem,
+  LinkUtmObject,
+  LinkUtmSnapshot,
+  LinkUpdatePayload,
+} from "@/contracts/link";
+import { useWorkspaceStore } from "@/stores/workspace";
+
+export const SELECT_ALL_VALUE = "__all__";
+export const SELECT_NONE_VALUE = "__none__";
+
+export interface UtmGroup {
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_content: string;
+  utm_term: string;
+}
+
+export interface LinkFormState {
+  project_id: string | number;
+  code: string;
+  slug: string;
+  status: string;
+  type: string;
+  fallback_url: string;
+  reason: string;
+  destination: {
+    url: string;
+    backup_url: string;
+    weight: string;
+    variant_key: string;
+    status: string;
+    is_healthy: boolean;
+  };
+  utm: UtmGroup;
+  preserve_original: boolean;
+  channel: string;
+  campaign_utm: UtmGroup;
+  channel_utm: UtmGroup;
+  workspace_utm: UtmGroup;
+  system_fallback: string;
+  context: string;
+  snapshot_at: string;
+}
+
+export function getActiveProjectId() {
+  const workspaceStore = useWorkspaceStore();
+  return workspaceStore.activeGroupProject?.project_id || workspaceStore.activeGroupProject?.id || "";
+}
+
+function defaultUtmGroup(): UtmGroup {
+  return { utm_source: "", utm_medium: "", utm_campaign: "", utm_content: "", utm_term: "" };
+}
+
+export function createDefaultForm(): LinkFormState {
+  return {
+    project_id: getActiveProjectId(),
+    code: "",
+    slug: "",
+    status: SELECT_NONE_VALUE,
+    type: SELECT_NONE_VALUE,
+    fallback_url: "",
+    reason: "",
+    destination: {
+      url: "",
+      backup_url: "",
+      weight: "",
+      variant_key: "",
+      status: SELECT_NONE_VALUE,
+      is_healthy: true,
+    },
+    utm: defaultUtmGroup(),
+    preserve_original: false,
+    channel: SELECT_NONE_VALUE,
+    campaign_utm: defaultUtmGroup(),
+    channel_utm: defaultUtmGroup(),
+    workspace_utm: defaultUtmGroup(),
+    system_fallback: "",
+    context: "",
+    snapshot_at: "",
+  };
+}
+
+export function normalizeSelectValue(value?: string | null) {
+  return value || SELECT_NONE_VALUE;
+}
+
+export function denormalizeSelectValue(value?: string | null) {
+  return !value || value === SELECT_NONE_VALUE ? null : value;
+}
+
+export function validateForm(form: LinkFormState) {
+  const errors: Record<string, string> = {};
+
+  if (!String(form.project_id || "").trim()) {
+    errors.project_id = "Projeto não identificado.";
+  }
+
+  if (!form.code.trim()) {
+    errors.code = "Informe o código do link.";
+  }
+
+  if (!form.destination.url.trim()) {
+    errors["destination.url"] = "Informe a URL de destino.";
+  }
+
+  return errors;
+}
+
+function buildUtmPayload(group: UtmGroup): LinkUtmObject | null {
+  const obj: LinkUtmObject = {};
+  if (group.utm_source) obj.utm_source = group.utm_source;
+  if (group.utm_medium) obj.utm_medium = group.utm_medium;
+  if (group.utm_campaign) obj.utm_campaign = group.utm_campaign;
+  if (group.utm_content) obj.utm_content = group.utm_content;
+  if (group.utm_term) obj.utm_term = group.utm_term;
+  return Object.keys(obj).length ? obj : null;
+}
+
+export function sanitizePayload(form: LinkFormState) {
+  const payload: Record<string, unknown> = {
+    project_id: Number(form.project_id),
+    code: form.code.trim(),
+    slug: form.slug || null,
+    status: denormalizeSelectValue(form.status),
+    type: denormalizeSelectValue(form.type),
+    fallback_url: form.fallback_url || null,
+    reason: form.reason || null,
+    preserve_original: form.preserve_original,
+    channel: denormalizeSelectValue(form.channel),
+    utm: buildUtmPayload(form.utm),
+    campaign_utm: buildUtmPayload(form.campaign_utm),
+    channel_utm: buildUtmPayload(form.channel_utm),
+    workspace_utm: buildUtmPayload(form.workspace_utm),
+    system_fallback: form.system_fallback || null,
+    snapshot_at: form.snapshot_at || null,
+    destination: {
+      url: form.destination.url.trim(),
+      backup_url: form.destination.backup_url || null,
+      weight: form.destination.weight === "" ? null : Number(form.destination.weight),
+      variant_key: form.destination.variant_key || null,
+      status: denormalizeSelectValue(form.destination.status),
+      is_healthy: form.destination.is_healthy,
+    },
+  };
+
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== "" && value !== undefined),
+  );
+}
+
+export function buildUpdatePayload(form: LinkFormState): LinkUpdatePayload {
+  const payload = sanitizePayload(form);
+
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== null),
+  ) as unknown as LinkUpdatePayload;
+}
+
+export function mapApiErrors(error: any) {
+  const responseErrors = error?.response?.data?.errors || error?.response?.data?.data || {};
+  const mappedErrors: Record<string, string> = {};
+
+  Object.entries(responseErrors).forEach(([key, value]) => {
+    mappedErrors[key] = Array.isArray(value) ? value.join(", ") : String(value);
+  });
+
+  return mappedErrors;
+}
+
+function parseUtmObject(value: unknown): UtmGroup {
+  const empty = defaultUtmGroup();
+  if (!value) return empty;
+  let obj: Record<string, unknown> = {};
+  if (typeof value === "string") {
+    try { obj = JSON.parse(value); } catch { obj = {}; }
+  } else if (typeof value === "object") {
+    obj = value as Record<string, unknown>;
+  }
+  return {
+    utm_source: String(obj.utm_source ?? ""),
+    utm_medium: String(obj.utm_medium ?? ""),
+    utm_campaign: String(obj.utm_campaign ?? ""),
+    utm_content: String(obj.utm_content ?? ""),
+    utm_term: String(obj.utm_term ?? ""),
+  };
+}
+
+export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkDetailsResponse, destinationUrl: string) {
+  const snapshot = getLatestUtmSnapshot(link);
+  const snapshotContext = snapshot?.context && typeof snapshot.context === "object"
+    ? snapshot.context as Record<string, unknown>
+    : null;
+
+  form.project_id = String(link.project_id || getActiveProjectId());
+  form.code = link.code || "";
+  form.slug = link.slug || "";
+  form.status = normalizeSelectValue(link.status);
+  form.type = normalizeSelectValue(link.type);
+  form.fallback_url = link.fallback_url || "";
+  form.reason = String(link.reason || "");
+  form.destination.url = destinationUrl === "—" ? "" : destinationUrl;
+  form.destination.backup_url = link.destination?.backup_url || "";
+  form.destination.weight = link.destination?.weight !== null && link.destination?.weight !== undefined
+    ? String(link.destination.weight)
+    : "";
+  form.destination.variant_key = link.destination?.variant_key || "";
+  form.destination.status = normalizeSelectValue(link.destination?.status || null);
+  form.destination.is_healthy = Boolean(link.destination?.is_healthy ?? true);
+  Object.assign(form.utm, parseUtmObject(snapshot?.utm ?? link.utm ?? null));
+  if (!form.utm.utm_source) form.utm.utm_source = String(snapshot?.utm_source ?? link.utm_source ?? "");
+  if (!form.utm.utm_medium) form.utm.utm_medium = String(snapshot?.utm_medium ?? link.utm_medium ?? "");
+  if (!form.utm.utm_campaign) form.utm.utm_campaign = String(snapshot?.utm_campaign ?? link.utm_campaign ?? "");
+  if (!form.utm.utm_term) form.utm.utm_term = String(snapshot?.utm_term ?? link.utm_term ?? "");
+  if (!form.utm.utm_content) form.utm.utm_content = String(snapshot?.utm_content ?? link.utm_content ?? "");
+  form.preserve_original = Boolean(
+    snapshot?.preserve_original
+    ?? snapshotContext?.preserve_original
+    ?? link.preserve_original,
+  );
+  form.channel = normalizeSelectValue(
+    (typeof snapshot?.channel === "string" && snapshot.channel)
+    || (typeof snapshotContext?.channel === "string" ? snapshotContext.channel : null)
+    || link.channel
+    || null,
+  );
+  Object.assign(form.campaign_utm, parseUtmObject(snapshot?.campaign_utm ?? link.campaign_utm ?? null));
+  Object.assign(form.channel_utm, parseUtmObject(snapshot?.channel_utm ?? link.channel_utm ?? null));
+  Object.assign(form.workspace_utm, parseUtmObject(snapshot?.workspace_utm ?? link.workspace_utm ?? null));
+  form.system_fallback = String(snapshot?.system_fallback ?? link.system_fallback ?? "");
+  form.context = snapshotContext ? JSON.stringify(snapshotContext, null, 2) : String(link.context || "");
+  form.snapshot_at = String(
+    snapshot?.snapshot_at
+    ?? (typeof snapshotContext?.snapshot_at === "string" ? snapshotContext.snapshot_at : null)
+    ?? link.snapshot_at
+    ?? "",
+  );
+}
+
+export function getDestinationUrl(link: LinkListItem | LinkDetailsResponse) {
+  return link.destination?.url || link.versions?.[0]?.destination?.url || "—";
+}
+
+export function getLatestUtmSnapshot(link: LinkListItem | LinkDetailsResponse): LinkUtmSnapshot | null {
+  const snapshots = [
+    ...(Array.isArray(link.utmSnapshots) ? link.utmSnapshots : []),
+    ...(Array.isArray(link.utm_snapshots) ? link.utm_snapshots : []),
+  ];
+
+  if (!snapshots.length) {
+    return null;
+  }
+
+  return [...snapshots].sort((left, right) => {
+    const leftTime = Date.parse(left.snapshot_at || "") || Date.parse(String(left.created_at || "")) || 0;
+    const rightTime = Date.parse(right.snapshot_at || "") || Date.parse(String(right.created_at || "")) || 0;
+    return rightTime - leftTime;
+  })[0];
+}

@@ -1,0 +1,340 @@
+<template>
+  <Dialog :open="open" @update:open="emit('update:open', $event)">
+    <DialogContent class="sm:max-w-[760px] max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>Editar Link</DialogTitle>
+        <DialogDescription>
+          Atualize os campos necessários e salve apenas o que mudou.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div v-if="isLoadingLink" class="py-8 text-center text-muted-foreground">Carregando dados do link...</div>
+
+      <form v-else class="space-y-6" @submit.prevent="submitForm()">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="space-y-2">
+            <Label>Código *</Label>
+            <Input v-model="form.code" placeholder="promo-junho" />
+            <p v-if="fieldErrors.code" class="text-sm text-destructive">{{ fieldErrors.code }}</p>
+          </div>
+
+          <div class="space-y-2">
+            <Label>Slug</Label>
+            <Input v-model="form.slug" placeholder="minha-oferta" />
+          </div>
+
+          <div class="space-y-2">
+            <Label>Status</Label>
+            <Select v-model="form.status">
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem :value="SELECT_NONE_VALUE">Sem definir</SelectItem>
+                <SelectItem v-for="option in LINK_STATUS_OPTIONS" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div class="space-y-2">
+            <Label>Tipo</Label>
+            <Select v-model="form.type">
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem :value="SELECT_NONE_VALUE">Sem definir</SelectItem>
+                <SelectItem v-for="option in LINK_TYPE_OPTIONS" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div class="space-y-2 md:col-span-2">
+            <Label>Fallback URL</Label>
+            <Input v-model="form.fallback_url" placeholder="https://site.com/fallback" />
+          </div>
+        </div>
+
+        <div class="space-y-4 rounded-lg border p-4">
+          <div>
+            <h3 class="font-medium">Destino</h3>
+            <p class="text-sm text-muted-foreground">Alterar destino ou UTM pode gerar nova versão no backend.</p>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="space-y-2 md:col-span-2">
+              <Label>URL de destino *</Label>
+              <Input v-model="form.destination.url" placeholder="https://site.com/oferta" />
+              <p v-if="fieldErrors['destination.url']" class="text-sm text-destructive">{{ fieldErrors['destination.url'] }}</p>
+            </div>
+         
+            <div class="space-y-2">
+              <Label>Peso</Label>
+              <Input v-model="form.destination.weight" type="number" min="0" placeholder="100" />
+            </div>
+
+            <div class="space-y-2">
+              <Label>Variant key</Label>
+              <Input v-model="form.destination.variant_key" placeholder="A" />
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4 rounded-lg border p-4">
+          <div>
+            <h3 class="font-medium">UTM e contexto</h3>
+            <p class="text-sm text-muted-foreground">Campos opcionais enviados de forma parcial na edição.</p>
+          </div>
+
+          <div class="space-y-4">
+            <Collapsible v-slot="{ open }">
+              <div class="rounded-lg border">
+                <CollapsibleTrigger class="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-muted/50 [&[data-state=open]>svg]:rotate-180">
+                  UTM
+                  <ChevronDown class="h-4 w-4 transition-transform duration-200" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 px-4 pb-4">
+                    <div class="space-y-2"><Label>Source</Label><Input v-model="form.utm.utm_source" /></div>
+                    <div class="space-y-2"><Label>Medium</Label><Input v-model="form.utm.utm_medium" /></div>
+                    <div class="space-y-2"><Label>Campaign</Label><Input v-model="form.utm.utm_campaign" /></div>
+                    <div class="space-y-2"><Label>Term</Label><Input v-model="form.utm.utm_term" /></div>
+                    <div class="space-y-2"><Label>Content</Label><Input v-model="form.utm.utm_content" /></div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            <Collapsible v-slot="{ open }">
+              <div class="rounded-lg border">
+                <CollapsibleTrigger class="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-muted/50 [&[data-state=open]>svg]:rotate-180">
+                  Campaign UTM
+                  <ChevronDown class="h-4 w-4 transition-transform duration-200" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 px-4 pb-4">
+                    <div class="space-y-2"><Label>Source</Label><Input v-model="form.campaign_utm.utm_source" /></div>
+                    <div class="space-y-2"><Label>Medium</Label><Input v-model="form.campaign_utm.utm_medium" /></div>
+                    <div class="space-y-2"><Label>Campaign</Label><Input v-model="form.campaign_utm.utm_campaign" /></div>
+                    <div class="space-y-2"><Label>Term</Label><Input v-model="form.campaign_utm.utm_term" /></div>
+                    <div class="space-y-2"><Label>Content</Label><Input v-model="form.campaign_utm.utm_content" /></div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            <Collapsible v-slot="{ open }">
+              <div class="rounded-lg border">
+                <CollapsibleTrigger class="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-muted/50 [&[data-state=open]>svg]:rotate-180">
+                  Channel UTM
+                  <ChevronDown class="h-4 w-4 transition-transform duration-200" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 px-4 pb-4">
+                    <div class="space-y-2"><Label>Source</Label><Input v-model="form.channel_utm.utm_source" /></div>
+                    <div class="space-y-2"><Label>Medium</Label><Input v-model="form.channel_utm.utm_medium" /></div>
+                    <div class="space-y-2"><Label>Campaign</Label><Input v-model="form.channel_utm.utm_campaign" /></div>
+                    <div class="space-y-2"><Label>Term</Label><Input v-model="form.channel_utm.utm_term" /></div>
+                    <div class="space-y-2"><Label>Content</Label><Input v-model="form.channel_utm.utm_content" /></div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            <Collapsible v-slot="{ open }">
+              <div class="rounded-lg border">
+                <CollapsibleTrigger class="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-muted/50 [&[data-state=open]>svg]:rotate-180">
+                  Workspace UTM
+                  <ChevronDown class="h-4 w-4 transition-transform duration-200" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 px-4 pb-4">
+                    <div class="space-y-2"><Label>Source</Label><Input v-model="form.workspace_utm.utm_source" /></div>
+                    <div class="space-y-2"><Label>Medium</Label><Input v-model="form.workspace_utm.utm_medium" /></div>
+                    <div class="space-y-2"><Label>Campaign</Label><Input v-model="form.workspace_utm.utm_campaign" /></div>
+                    <div class="space-y-2"><Label>Term</Label><Input v-model="form.workspace_utm.utm_term" /></div>
+                    <div class="space-y-2"><Label>Content</Label><Input v-model="form.workspace_utm.utm_content" /></div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            <div class="space-y-2">
+              <Label>Canal</Label>
+              <Select v-model="form.channel">
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem :value="SELECT_NONE_VALUE">Sem definir</SelectItem>
+                  <SelectItem v-for="option in LINK_CHANNEL_OPTIONS" :key="option.value" :value="option.value">
+                    {{ option.label }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between rounded-md border p-3">
+            <div>
+              <p class="font-medium">Preservar URL original</p>
+              <p class="text-sm text-muted-foreground">Envia `preserve_original` quando ativado.</p>
+            </div>
+            <Switch v-model:checked="form.preserve_original" />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" @click="emit('update:open', false)">Cancelar</Button>
+          <Button type="submit" :disabled="isSubmitting || !linkId">
+            {{ isSubmitting ? "Salvando..." : "Salvar alterações" }}
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  </Dialog>
+</template>
+
+<script setup lang="ts">
+import { reactive, ref, watch } from "vue";
+import { toast } from "@/components/ui/toast";
+import linksService from "@/services/links";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { ChevronDown } from "lucide-vue-next";
+import {
+  LINK_CHANNEL_OPTIONS,
+  LINK_DESTINATION_STATUS_OPTIONS,
+  LINK_STATUS_OPTIONS,
+  LINK_TYPE_OPTIONS,
+} from "@/contracts/link";
+import {
+  buildUpdatePayload,
+  createDefaultForm,
+  fillFormFromLink,
+  getDestinationUrl,
+  mapApiErrors,
+  SELECT_NONE_VALUE,
+  validateForm,
+} from "@/components/links/linkForm";
+
+const props = defineProps<{
+  open: boolean;
+  linkId: number | null;
+  currentPage: number;
+  refreshList: (page?: number) => Promise<void> | void;
+}>();
+
+const emit = defineEmits<{
+  (event: "update:open", value: boolean): void;
+}>();
+
+const form = reactive(createDefaultForm());
+const isSubmitting = ref(false);
+const isLoadingLink = ref(false);
+const fieldErrors = ref<Record<string, string>>({});
+
+function resetForm() {
+  Object.assign(form, createDefaultForm());
+  fieldErrors.value = {};
+}
+
+async function loadLink() {
+  if (!props.linkId) {
+    resetForm();
+    return;
+  }
+
+  isLoadingLink.value = true;
+  fieldErrors.value = {};
+
+  try {
+    const link = await linksService.show(props.linkId);
+    resetForm();
+    fillFormFromLink(form, link, getDestinationUrl(link));
+  } catch (error: any) {
+    emit("update:open", false);
+    if (error?.response?.status === 403) {
+      toast({
+        title: "Acesso negado",
+        description: error.response?.data?.message || "Você não tem acesso a esse link.",
+        variant: "destructive",
+      });
+    }
+  } finally {
+    isLoadingLink.value = false;
+  }
+}
+
+async function submitForm() {
+  if (!props.linkId) {
+    return;
+  }
+
+  const errors = validateForm(form);
+  fieldErrors.value = errors;
+
+  if (Object.keys(errors).length > 0) {
+    return;
+  }
+
+  isSubmitting.value = true;
+  fieldErrors.value = {};
+
+  try {
+    await linksService.update(props.linkId, buildUpdatePayload(form));
+    toast({ title: "Link atualizado com sucesso!" });
+    emit("update:open", false);
+    await props.refreshList(props.currentPage);
+    resetForm();
+  } catch (error: any) {
+    fieldErrors.value = mapApiErrors(error);
+
+    if (error?.response?.status === 403) {
+      toast({
+        title: "Acesso negado",
+        description: error.response?.data?.message || "Você não tem acesso a esse projeto ou link.",
+        variant: "destructive",
+      });
+    }
+  } finally {
+    isSubmitting.value = false;
+  }
+}
+
+watch(
+  () => [props.open, props.linkId],
+  ([open]) => {
+    if (open) {
+      loadLink();
+    }
+  },
+  { immediate: true },
+);
+</script>

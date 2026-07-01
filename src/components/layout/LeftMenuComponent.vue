@@ -341,6 +341,7 @@ import {
   BadgeCheck,
   LucideUserRoundCog,
   Settings2,
+  Link2,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -677,6 +678,19 @@ const navMenu = computed(() => {
           show:
             (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) &&
             canAccess("access-to-webhook-logs"),
+        },
+        {
+          name: "Links",
+          url: { name: "links" },
+          icon: Link2,
+          show:
+            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer"))     },
+        {
+          name: "Link Engine",
+          url: { name: "link-engine" },
+          icon: ChartArea,
+          show:
+            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) 
         },
       ],
     },
