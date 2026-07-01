@@ -71,26 +71,6 @@
             </div>
 
             <div class="space-y-2">
-              <Label>Backup URL</Label>
-              <Input v-model="form.destination.backup_url" placeholder="https://site.com/reserva" />
-            </div>
-
-            <div class="space-y-2">
-              <Label>Status do destino</Label>
-              <Select v-model="form.destination.status">
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem :value="SELECT_NONE_VALUE">Sem definir</SelectItem>
-                  <SelectItem v-for="option in LINK_DESTINATION_STATUS_OPTIONS" :key="option.value" :value="option.value">
-                    {{ option.label }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div class="space-y-2">
               <Label>Peso</Label>
               <Input v-model="form.destination.weight" type="number" min="0" placeholder="100" />
             </div>
@@ -100,13 +80,7 @@
               <Input v-model="form.destination.variant_key" placeholder="A" />
             </div>
 
-            <div class="flex items-center justify-between rounded-md border p-3 md:col-span-2">
-              <div>
-                <p class="font-medium">Destino saudável</p>
-                <p class="text-sm text-muted-foreground">Indica o estado informado para `is_healthy`.</p>
-              </div>
-              <Switch v-model:checked="form.destination.is_healthy" />
-            </div>
+         
           </div>
         </div>
 
@@ -116,12 +90,79 @@
             <p class="text-sm text-muted-foreground">Campos opcionais enviados na criação.</p>
           </div>
 
-          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div class="space-y-2"><Label>UTM Source</Label><Input v-model="form.utm_source" /></div>
-            <div class="space-y-2"><Label>UTM Medium</Label><Input v-model="form.utm_medium" /></div>
-            <div class="space-y-2"><Label>UTM Campaign</Label><Input v-model="form.utm_campaign" /></div>
-            <div class="space-y-2"><Label>UTM Term</Label><Input v-model="form.utm_term" /></div>
-            <div class="space-y-2"><Label>UTM Content</Label><Input v-model="form.utm_content" /></div>
+          <div class="space-y-4">
+            <Collapsible v-slot="{ open }">
+              <div class="rounded-lg border">
+                <CollapsibleTrigger class="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-muted/50 [&[data-state=open]>svg]:rotate-180">
+                  UTM
+                  <ChevronDown class="h-4 w-4 transition-transform duration-200" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 px-4 pb-4">
+                    <div class="space-y-2"><Label>Source</Label><Input v-model="form.utm.utm_source" /></div>
+                    <div class="space-y-2"><Label>Medium</Label><Input v-model="form.utm.utm_medium" /></div>
+                    <div class="space-y-2"><Label>Campaign</Label><Input v-model="form.utm.utm_campaign" /></div>
+                    <div class="space-y-2"><Label>Term</Label><Input v-model="form.utm.utm_term" /></div>
+                    <div class="space-y-2"><Label>Content</Label><Input v-model="form.utm.utm_content" /></div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            <Collapsible v-slot="{ open }">
+              <div class="rounded-lg border">
+                <CollapsibleTrigger class="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-muted/50 [&[data-state=open]>svg]:rotate-180">
+                  Campaign UTM
+                  <ChevronDown class="h-4 w-4 transition-transform duration-200" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 px-4 pb-4">
+                    <div class="space-y-2"><Label>Source</Label><Input v-model="form.campaign_utm.utm_source" /></div>
+                    <div class="space-y-2"><Label>Medium</Label><Input v-model="form.campaign_utm.utm_medium" /></div>
+                    <div class="space-y-2"><Label>Campaign</Label><Input v-model="form.campaign_utm.utm_campaign" /></div>
+                    <div class="space-y-2"><Label>Term</Label><Input v-model="form.campaign_utm.utm_term" /></div>
+                    <div class="space-y-2"><Label>Content</Label><Input v-model="form.campaign_utm.utm_content" /></div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            <Collapsible v-slot="{ open }">
+              <div class="rounded-lg border">
+                <CollapsibleTrigger class="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-muted/50 [&[data-state=open]>svg]:rotate-180">
+                  Channel UTM
+                  <ChevronDown class="h-4 w-4 transition-transform duration-200" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 px-4 pb-4">
+                    <div class="space-y-2"><Label>Source</Label><Input v-model="form.channel_utm.utm_source" /></div>
+                    <div class="space-y-2"><Label>Medium</Label><Input v-model="form.channel_utm.utm_medium" /></div>
+                    <div class="space-y-2"><Label>Campaign</Label><Input v-model="form.channel_utm.utm_campaign" /></div>
+                    <div class="space-y-2"><Label>Term</Label><Input v-model="form.channel_utm.utm_term" /></div>
+                    <div class="space-y-2"><Label>Content</Label><Input v-model="form.channel_utm.utm_content" /></div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            <Collapsible v-slot="{ open }">
+              <div class="rounded-lg border">
+                <CollapsibleTrigger class="flex w-full items-center justify-between p-4 text-sm font-medium hover:bg-muted/50 [&[data-state=open]>svg]:rotate-180">
+                  Workspace UTM
+                  <ChevronDown class="h-4 w-4 transition-transform duration-200" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 px-4 pb-4">
+                    <div class="space-y-2"><Label>Source</Label><Input v-model="form.workspace_utm.utm_source" /></div>
+                    <div class="space-y-2"><Label>Medium</Label><Input v-model="form.workspace_utm.utm_medium" /></div>
+                    <div class="space-y-2"><Label>Campaign</Label><Input v-model="form.workspace_utm.utm_campaign" /></div>
+                    <div class="space-y-2"><Label>Term</Label><Input v-model="form.workspace_utm.utm_term" /></div>
+                    <div class="space-y-2"><Label>Content</Label><Input v-model="form.workspace_utm.utm_content" /></div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
             <div class="space-y-2">
               <Label>Canal</Label>
               <Select v-model="form.channel">
@@ -135,22 +176,6 @@
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div class="space-y-2"><Label>Campaign UTM</Label><Input v-model="form.campaign_utm" /></div>
-            <div class="space-y-2"><Label>Channel UTM</Label><Input v-model="form.channel_utm" /></div>
-            <div class="space-y-2"><Label>Workspace UTM</Label><Input v-model="form.workspace_utm" /></div>
-            <div class="space-y-2"><Label>Snapshot at</Label><Input v-model="form.snapshot_at" placeholder="2026-06-24T12:00:00Z" /></div>
-            <div class="space-y-2"><Label>System fallback</Label><Input v-model="form.system_fallback" /></div>
-          </div>
-
-          <div class="grid gap-4 md:grid-cols-2">
-            <div class="space-y-2">
-              <Label>Reason</Label>
-              <Textarea v-model="form.reason" rows="3" />
-            </div>
-            <div class="space-y-2">
-              <Label>Contexto</Label>
-              <Textarea v-model="form.context" rows="3" />
             </div>
           </div>
 
@@ -180,6 +205,11 @@ import { toast } from "@/components/ui/toast";
 import linksService from "@/services/links";
 import { Button } from "@/components/ui/button";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -197,7 +227,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import { ChevronDown } from "lucide-vue-next";
 import type { LinkCreatePayload } from "@/contracts/link";
 import {
   LINK_CHANNEL_OPTIONS,
@@ -243,7 +273,7 @@ async function submitForm() {
   fieldErrors.value = {};
 
   try {
-    await linksService.store(sanitizePayload(form) as LinkCreatePayload);
+    await linksService.store(sanitizePayload(form) as unknown as LinkCreatePayload);
     toast({ title: "Link criado com sucesso!" });
     emit("update:open", false);
     await props.refreshList(1);

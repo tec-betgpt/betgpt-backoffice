@@ -162,13 +162,12 @@
             <CardHeader><CardTitle>Versões</CardTitle></CardHeader>
             <CardContent class="space-y-3">
               <div v-if="selectedLinkDetails.versions?.length === 0" class="text-sm text-muted-foreground">Nenhuma versão retornada.</div>
-              <div v-for="version in selectedLinkDetails.versions" :key="version.id || version.created_at" class="rounded-lg border p-4 space-y-2">
+              <div v-for="version in selectedLinkDetails.versions" :key="version.id" class="rounded-lg border p-4 space-y-2">
                 <div class="flex items-center justify-between gap-3">
                   <Badge variant="outline">Versão {{ version.id || "—" }}</Badge>
                   <span class="text-xs text-muted-foreground">{{ version.created_at || "Sem data" }}</span>
                 </div>
                 <div class="text-sm"><span class="font-medium">Destino:</span> {{ version.destination?.url || "—" }}</div>
-                <div class="text-sm"><span class="font-medium">Backup:</span> {{ version.destination?.backup_url || "—" }}</div>
                 <div class="text-sm"><span class="font-medium">Status:</span> {{ version.destination?.status || "—" }}</div>
               </div>
             </CardContent>

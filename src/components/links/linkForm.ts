@@ -2,6 +2,7 @@ import type {
   LinkCreatePayload,
   LinkDetailsResponse,
   LinkListItem,
+  LinkUtmObject,
   LinkUtmSnapshot,
   LinkUpdatePayload,
 } from "@/contracts/link";
@@ -9,6 +10,14 @@ import { useWorkspaceStore } from "@/stores/workspace";
 
 export const SELECT_ALL_VALUE = "__all__";
 export const SELECT_NONE_VALUE = "__none__";
+
+export interface UtmGroup {
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_content: string;
+  utm_term: string;
+}
 
 export interface LinkFormState {
   project_id: string | number;
@@ -26,16 +35,12 @@ export interface LinkFormState {
     status: string;
     is_healthy: boolean;
   };
-  utm_source: string;
-  utm_medium: string;
-  utm_campaign: string;
-  utm_term: string;
-  utm_content: string;
+  utm: UtmGroup;
   preserve_original: boolean;
   channel: string;
-  campaign_utm: string;
-  channel_utm: string;
-  workspace_utm: string;
+  campaign_utm: UtmGroup;
+  channel_utm: UtmGroup;
+  workspace_utm: UtmGroup;
   system_fallback: string;
   context: string;
   snapshot_at: string;
@@ -44,6 +49,10 @@ export interface LinkFormState {
 export function getActiveProjectId() {
   const workspaceStore = useWorkspaceStore();
   return workspaceStore.activeGroupProject?.project_id || workspaceStore.activeGroupProject?.id || "";
+}
+
+function defaultUtmGroup(): UtmGroup {
+  return { utm_source: "", utm_medium: "", utm_campaign: "", utm_content: "", utm_term: "" };
 }
 
 export function createDefaultForm(): LinkFormState {
@@ -63,16 +72,12 @@ export function createDefaultForm(): LinkFormState {
       status: SELECT_NONE_VALUE,
       is_healthy: true,
     },
-    utm_source: "",
-    utm_medium: "",
-    utm_campaign: "",
-    utm_term: "",
-    utm_content: "",
+    utm: defaultUtmGroup(),
     preserve_original: false,
     channel: SELECT_NONE_VALUE,
-    campaign_utm: "",
-    channel_utm: "",
-    workspace_utm: "",
+    campaign_utm: defaultUtmGroup(),
+    channel_utm: defaultUtmGroup(),
+    workspace_utm: defaultUtmGroup(),
     system_fallback: "",
     context: "",
     snapshot_at: "",
@@ -105,6 +110,16 @@ export function validateForm(form: LinkFormState) {
   return errors;
 }
 
+function buildUtmPayload(group: UtmGroup): LinkUtmObject | null {
+  const obj: LinkUtmObject = {};
+  if (group.utm_source) obj.utm_source = group.utm_source;
+  if (group.utm_medium) obj.utm_medium = group.utm_medium;
+  if (group.utm_campaign) obj.utm_campaign = group.utm_campaign;
+  if (group.utm_content) obj.utm_content = group.utm_content;
+  if (group.utm_term) obj.utm_term = group.utm_term;
+  return Object.keys(obj).length ? obj : null;
+}
+
 export function sanitizePayload(form: LinkFormState) {
   const payload: Record<string, unknown> = {
     project_id: Number(form.project_id),
@@ -116,17 +131,12 @@ export function sanitizePayload(form: LinkFormState) {
     reason: form.reason || null,
     preserve_original: form.preserve_original,
     channel: denormalizeSelectValue(form.channel),
-    campaign_utm: form.campaign_utm || null,
-    channel_utm: form.channel_utm || null,
-    workspace_utm: form.workspace_utm || null,
+    utm: buildUtmPayload(form.utm),
+    campaign_utm: buildUtmPayload(form.campaign_utm),
+    channel_utm: buildUtmPayload(form.channel_utm),
+    workspace_utm: buildUtmPayload(form.workspace_utm),
     system_fallback: form.system_fallback || null,
-    context: form.context || null,
     snapshot_at: form.snapshot_at || null,
-    utm_source: form.utm_source || null,
-    utm_medium: form.utm_medium || null,
-    utm_campaign: form.utm_campaign || null,
-    utm_term: form.utm_term || null,
-    utm_content: form.utm_content || null,
     destination: {
       url: form.destination.url.trim(),
       backup_url: form.destination.backup_url || null,
@@ -143,11 +153,11 @@ export function sanitizePayload(form: LinkFormState) {
 }
 
 export function buildUpdatePayload(form: LinkFormState): LinkUpdatePayload {
-  const payload = sanitizePayload(form) as LinkCreatePayload;
+  const payload = sanitizePayload(form);
 
   return Object.fromEntries(
     Object.entries(payload).filter(([, value]) => value !== null),
-  ) as LinkUpdatePayload;
+  ) as unknown as LinkUpdatePayload;
 }
 
 export function mapApiErrors(error: any) {
@@ -159,6 +169,24 @@ export function mapApiErrors(error: any) {
   });
 
   return mappedErrors;
+}
+
+function parseUtmObject(value: unknown): UtmGroup {
+  const empty = defaultUtmGroup();
+  if (!value) return empty;
+  let obj: Record<string, unknown> = {};
+  if (typeof value === "string") {
+    try { obj = JSON.parse(value); } catch { obj = {}; }
+  } else if (typeof value === "object") {
+    obj = value as Record<string, unknown>;
+  }
+  return {
+    utm_source: String(obj.utm_source ?? ""),
+    utm_medium: String(obj.utm_medium ?? ""),
+    utm_campaign: String(obj.utm_campaign ?? ""),
+    utm_content: String(obj.utm_content ?? ""),
+    utm_term: String(obj.utm_term ?? ""),
+  };
 }
 
 export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkDetailsResponse, destinationUrl: string) {
@@ -182,11 +210,12 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
   form.destination.variant_key = link.destination?.variant_key || "";
   form.destination.status = normalizeSelectValue(link.destination?.status || null);
   form.destination.is_healthy = Boolean(link.destination?.is_healthy ?? true);
-  form.utm_source = String(snapshot?.utm_source ?? link.utm_source ?? "");
-  form.utm_medium = String(snapshot?.utm_medium ?? link.utm_medium ?? "");
-  form.utm_campaign = String(snapshot?.utm_campaign ?? link.utm_campaign ?? "");
-  form.utm_term = String(snapshot?.utm_term ?? link.utm_term ?? "");
-  form.utm_content = String(snapshot?.utm_content ?? link.utm_content ?? "");
+  Object.assign(form.utm, parseUtmObject(snapshot?.utm ?? link.utm ?? null));
+  if (!form.utm.utm_source) form.utm.utm_source = String(snapshot?.utm_source ?? link.utm_source ?? "");
+  if (!form.utm.utm_medium) form.utm.utm_medium = String(snapshot?.utm_medium ?? link.utm_medium ?? "");
+  if (!form.utm.utm_campaign) form.utm.utm_campaign = String(snapshot?.utm_campaign ?? link.utm_campaign ?? "");
+  if (!form.utm.utm_term) form.utm.utm_term = String(snapshot?.utm_term ?? link.utm_term ?? "");
+  if (!form.utm.utm_content) form.utm.utm_content = String(snapshot?.utm_content ?? link.utm_content ?? "");
   form.preserve_original = Boolean(
     snapshot?.preserve_original
     ?? snapshotContext?.preserve_original
@@ -198,9 +227,9 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
     || link.channel
     || null,
   );
-  form.campaign_utm = String(snapshot?.campaign_utm ?? link.campaign_utm ?? "");
-  form.channel_utm = String(snapshot?.channel_utm ?? link.channel_utm ?? "");
-  form.workspace_utm = String(snapshot?.workspace_utm ?? link.workspace_utm ?? "");
+  Object.assign(form.campaign_utm, parseUtmObject(snapshot?.campaign_utm ?? link.campaign_utm ?? null));
+  Object.assign(form.channel_utm, parseUtmObject(snapshot?.channel_utm ?? link.channel_utm ?? null));
+  Object.assign(form.workspace_utm, parseUtmObject(snapshot?.workspace_utm ?? link.workspace_utm ?? null));
   form.system_fallback = String(snapshot?.system_fallback ?? link.system_fallback ?? "");
   form.context = snapshotContext ? JSON.stringify(snapshotContext, null, 2) : String(link.context || "");
   form.snapshot_at = String(

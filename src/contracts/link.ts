@@ -15,6 +15,14 @@ export interface LinkDestination {
   is_healthy?: boolean | null;
 }
 
+export interface LinkUtmObject {
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  utm_content?: string | null;
+  utm_term?: string | null;
+}
+
 export interface LinkUtmSnapshot {
   id?: number;
   link_version_id?: number;
@@ -24,9 +32,10 @@ export interface LinkUtmSnapshot {
   utm_term?: string | null;
   utm_content?: string | null;
   channel?: string | null;
-  campaign_utm?: string | null;
-  channel_utm?: string | null;
-  workspace_utm?: string | null;
+  utm?: LinkUtmObject | string | null;
+  campaign_utm?: LinkUtmObject | string | null;
+  channel_utm?: LinkUtmObject | string | null;
+  workspace_utm?: LinkUtmObject | string | null;
   system_fallback?: string | null;
   preserve_original?: boolean | null;
   context?: Record<string, unknown> | null;
@@ -70,9 +79,10 @@ export interface LinkListItem {
   utm_content?: string | null;
   preserve_original?: boolean | null;
   channel?: string | null;
-  campaign_utm?: string | null;
-  channel_utm?: string | null;
-  workspace_utm?: string | null;
+  utm?: LinkUtmObject | string | null;
+  campaign_utm?: LinkUtmObject | string | null;
+  channel_utm?: LinkUtmObject | string | null;
+  workspace_utm?: LinkUtmObject | string | null;
   system_fallback?: string | null;
   context?: string | null;
   snapshot_at?: string | null;
@@ -125,7 +135,7 @@ export interface LinkFormPayloadBase {
   fallback_url?: string | null;
   reason?: string | null;
   destination?: LinkDestination;
-  utm?: Record<string, string | null> | null;
+  utm?: LinkUtmObject | null;
   utm_source?: string | null;
   utm_medium?: string | null;
   utm_campaign?: string | null;
@@ -133,9 +143,9 @@ export interface LinkFormPayloadBase {
   utm_content?: string | null;
   preserve_original?: boolean;
   channel?: string | null;
-  campaign_utm?: string | null;
-  channel_utm?: string | null;
-  workspace_utm?: string | null;
+  campaign_utm?: LinkUtmObject | null;
+  channel_utm?: LinkUtmObject | null;
+  workspace_utm?: LinkUtmObject | null;
   system_fallback?: string | null;
   context?: string | null;
   snapshot_at?: string | null;
