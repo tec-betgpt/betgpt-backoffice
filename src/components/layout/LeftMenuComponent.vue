@@ -342,6 +342,7 @@ import {
   LucideUserRoundCog,
   Settings2,
   Link2,
+  MessageSquareText,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -691,6 +692,13 @@ const navMenu = computed(() => {
           icon: ChartArea,
           show:
             (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) 
+        },
+        {
+          name: "Campanha draft",
+          url: { name: "campaign-drafts.create" },
+          icon: MessageSquareText,
+          show:
+            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer"))
         },
       ],
     },

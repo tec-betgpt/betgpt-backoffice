@@ -11,6 +11,7 @@ import AIController from "@/views/dashboard/AIController.vue";
 import WebhookLogs from "@/views/dashboard/WebhookLogs.vue";
 import LinkEngine from "@/views/dashboard/LinkEngine.vue";
 import Links from "@/views/dashboard/Links.vue";
+import CampaignDraftWizard from "@/views/dashboard/CampaignDraftWizard.vue";
 
 import Tags from "@/views/dashboard/Tags.vue";
 
@@ -166,6 +167,30 @@ export default [
             layout: DefaultLayout,
             requiresAuth: true,
             title: "Link Engine",
+            roles: "member",
+            permissions: "access-to-member-governance",
+          },
+        },
+        {
+          path: "campaign-drafts/create",
+          name: "campaign-drafts.create",
+          component: CampaignDraftWizard,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Nova campanha draft",
+            roles: "member",
+            permissions: "access-to-member-governance",
+          },
+        },
+        {
+          path: "campaign-drafts/:id/edit",
+          name: "campaign-drafts.edit",
+          component: CampaignDraftWizard,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Editar campanha draft",
             roles: "member",
             permissions: "access-to-member-governance",
           },
