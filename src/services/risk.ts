@@ -26,6 +26,7 @@ interface RiskChartData {
 
 export interface IndexResponse {
   hours: string[],
+  has_smartico?: boolean,
   acquisition: {
     signups: RiskChartData,
     signups_accumulated: RiskChartData,
@@ -51,9 +52,52 @@ export interface IndexResponse {
   }
 }
 
+export interface SmarticoChartData extends RiskChartData {
+  value_type?: "integer" | "money";
+  chart_type?: "area" | "line" | "bar";
+}
+
+export interface SmarticoIndexResponse {
+  available: boolean;
+  message?: string;
+  hours?: string[];
+  casino?: {
+    revenue: SmarticoChartData;
+    turnover: SmarticoChartData;
+    ggr: SmarticoChartData;
+    ggr_accumulated: SmarticoChartData;
+  };
+  sports?: {
+    revenue: SmarticoChartData;
+    turnover: SmarticoChartData;
+    bets_count: SmarticoChartData;
+    ggr: SmarticoChartData;
+  };
+  bonus?: {
+    approved_amount: SmarticoChartData;
+    free_spins: SmarticoChartData;
+    free_spins_accumulated: SmarticoChartData;
+  };
+  wallet?: {
+    real_balance: SmarticoChartData;
+    bonus_balance: SmarticoChartData;
+    total_balance: SmarticoChartData;
+  };
+  meta?: {
+    source: string;
+    last_sync_at?: string | null;
+    timezone?: string;
+  };
+}
+
 export default {
   async index(params: RiskParams, config?: RiskRequestConfig): Promise<IndexResponse> {
     const { data } = await api.get("/risk", { params, ...config });
     return data;
-  }
+  },
+
+  async smartico(params: RiskParams, config?: RiskRequestConfig): Promise<SmarticoIndexResponse> {
+    const { data } = await api.get("/risk/smartico", { params, ...config });
+    return data;
+  },
 }

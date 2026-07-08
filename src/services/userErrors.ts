@@ -20,6 +20,10 @@ export default {
     return api.post("user-errors", data)
   },
 
+  bulkStore(errors: UserError[]) {
+    return api.post("user-errors/bulk", { errors })
+  },
+
   index(params: {
     filter_id?: string
     error_type?: string

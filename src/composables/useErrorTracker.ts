@@ -4,6 +4,14 @@ import UserErrors from "@/services/userErrors"
 
 const STORAGE_KEY = "pending_user_errors"
 const MAX_STORED_ERRORS = 50
+const SEND_DEBOUNCE_MS = 1000
+
+let sendTimeout: ReturnType<typeof setTimeout> | null = null
+let isSending = false
+
+function isUserErrorsRequest(url: string) {
+  return url.includes("/user-errors")
+}
 
 interface ErrorData {
   project_id: number
@@ -57,7 +65,23 @@ function addErrorToStorage(error: ErrorData) {
   saveErrorsToStorage(errors)
 }
 
+function scheduleSendPendingErrors() {
+  if (sendTimeout) {
+    clearTimeout(sendTimeout)
+  }
+
+  sendTimeout = setTimeout(() => {
+    sendTimeout = null
+    void sendPendingErrors()
+  }, SEND_DEBOUNCE_MS)
+}
+
 export async function sendPendingErrors() {
+  if (isSending) {
+    scheduleSendPendingErrors()
+    return
+  }
+
   const errors = getStorageErrors()
   if (errors.length === 0) return
 
@@ -70,7 +94,7 @@ export async function sendPendingErrors() {
   sessionStorage.setItem("session_id", sessionId)
 
   const errorsToSend = errors.map(err => ({
-    project_id: projectId,
+    project_id: Number(err.project_id) || projectId,
     error_type: err.error_type,
     error_message: err.error_message,
     error_stack: err.error_stack,
@@ -80,13 +104,15 @@ export async function sendPendingErrors() {
     session_id: sessionId,
   }))
 
+  isSending = true
+
   try {
-    await Promise.all(
-      errorsToSend.map(errorData => UserErrors.store(errorData))
-    )
+    await UserErrors.bulkStore(errorsToSend)
     localStorage.removeItem(STORAGE_KEY)
   } catch (e) {
     console.error("Failed to send pending errors:", e)
+  } finally {
+    isSending = false
   }
 }
 
@@ -120,7 +146,7 @@ export function useErrorTracker() {
     }
 
     addErrorToStorage(errorData)
-    sendPendingErrors()
+    scheduleSendPendingErrors()
   }
 
   const handleError = (event: ErrorEvent) => {
@@ -143,9 +169,14 @@ export function useErrorTracker() {
   const originalFetch = window.fetch
   window.fetch = async (...args) => {
     const url = typeof args[0] === "string" ? args[0] : args[0]?.url || "unknown"
+    const skipTracking = isUserErrorsRequest(url)
+
     try {
       const response = await originalFetch(...args)
-      if (!response.ok || (response.status >= 400 && response.status < 600)) {
+      if (
+        !skipTracking
+        && (!response.ok || (response.status >= 400 && response.status < 600))
+      ) {
         captureError(
           "network",
           `HTTP ${response.status}: ${response.statusText}`,
@@ -155,12 +186,14 @@ export function useErrorTracker() {
       }
       return response
     } catch (error: any) {
-      captureError(
-        "network",
-        error.message || "Network error",
-        error.stack,
-        url
-      )
+      if (!skipTracking) {
+        captureError(
+          "network",
+          error.message || "Network error",
+          error.stack,
+          url
+        )
+      }
       throw error
     }
   }
