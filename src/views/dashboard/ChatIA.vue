@@ -781,11 +781,6 @@ const sendMessage = async () => {
       project_id: activeGroupProject.value?.id,
       message: content,
       file: file,
-      context:{
-        url:route.path,
-        date: workspaceStore.date,
-        context: workspaceStore.context,
-      }
     });
 
     const parsedResponse = await marked.parse(response.data.message);

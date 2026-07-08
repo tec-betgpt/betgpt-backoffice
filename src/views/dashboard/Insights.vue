@@ -40,30 +40,20 @@
             </TableRow>
           </TableHeader>
           <TableBody>
-            <transition-group
-              appear
-              enter-active-class="enter-active"
-              leave-active-class="leave-active"
-              enter-from-class="enter"
-              enter-to-class="enter-to"
-              leave-from-class="leave"
-              leave-to-class="leave-to"
-            >
-              <TableRow v-for="(row, index) in valuesTable" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ row.message }}
-                </TableCell>
-                <TableCell>
-                  {{ row.signature }}
-                </TableCell>
-                <TableCell>
-                  <div class="flex flex-nowrap">
-                    <EditDialogComponent :row="row" :reload="fetchMessages" />
-                    <DestroyDialogComponent :reload="fetchMessages" :destroy="remove" :row="row" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="(row, index) in valuesTable" :key="row.id">
+              <TableCell>
+                {{ row.message }}
+              </TableCell>
+              <TableCell>
+                {{ row.signature }}
+              </TableCell>
+              <TableCell>
+                <div class="flex flex-nowrap">
+                  <EditDialogComponent :row="row" :reload="fetchMessages" />
+                  <DestroyDialogComponent :reload="fetchMessages" :destroy="remove" :row="row" />
+                </div>
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </CardContent>
@@ -81,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import {h, onMounted, ref, watch} from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Button } from "@/components/ui/button";
 import Insights from "@/services/insights";
@@ -91,9 +81,7 @@ import i18n from "@/i18n";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/insights/CreateDialogComponent.vue";
-
-import {getMs} from "@/filters/formatNumbers";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import EditDialogComponent from "@/components/insights/EditDialogComponent.vue";
 

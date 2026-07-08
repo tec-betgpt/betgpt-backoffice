@@ -35,25 +35,15 @@
             </TableRow>
           </TableHeader>
           <TableBody>
-            <transition-group
-              appear
-              enter-active-class="enter-active"
-              leave-active-class="leave-active"
-              enter-from-class="enter"
-              enter-to-class="enter-to"
-              leave-from-class="leave"
-              leave-to-class="leave-to"
-            >
-              <TableRow v-for="(row, index) in costs" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ row.name }}
-                </TableCell>
-                <TableCell>
-                  {{ row.sector?.name ?? "—" }}
-                </TableCell>
-                <CostCenterRowActions :row="row" :reload="fetchCosts" :destroy="remove" />
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="(row, index) in costs" :key="row.id">
+              <TableCell>
+                {{ row.name }}
+              </TableCell>
+              <TableCell>
+                {{ row.sector?.name ?? "—" }}
+              </TableCell>
+              <CostCenterRowActions :row="row" :reload="fetchCosts" :destroy="remove" />
+            </TableRow>
           </TableBody>
         </Table>
       </CardContent>
@@ -75,7 +65,6 @@ import { ref, onMounted, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { toast } from "@/components/ui/toast";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { getMs } from "@/filters/formatNumbers";
 import CostCenter from "@/services/costCenters";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/cost_centers/CreateDialogComponent.vue";
@@ -156,7 +145,19 @@ const remove = async (id: number) => {
 }
 
 // Screen Context
-useScreenContext("Gerenciamento de Custos", () => ({}));
+useScreenContext(
+  "Gerenciamento de Custos - Lista e administra centros de custo do projeto ativo",
+  () => ({
+    "filter_id": workspaceStore.activeGroupProject?.id ?? "",
+    "find_name": nameCost.value || "",
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPages.value,
+    "sort_by": "id",
+    "sort_order": "desc",
+  }),
+  "/v1/cost-centers"
+);
 
 onMounted(async () => {
   isLoading.value = true;

@@ -109,7 +109,11 @@ const onSubmit = async () => {
     return;
   }
   try {
-    await CostCenter.store(costForm.value)
+
+    await CostCenter.store({
+      ...costForm.value,
+      project_id: workspaceStore.activeGroupProject!.project_id
+    })
     await props.reload();
     isDialog.value = false;
     toast({

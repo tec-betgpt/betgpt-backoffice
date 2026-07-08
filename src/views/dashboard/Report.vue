@@ -525,11 +525,17 @@ watch(selectedRange, () => {
 useScreenContext(
   "Tela de relatórios - Exibe relatórios gerados",
   () => ({
+    "filter_id": workspaceStore.activeGroupProject?.id ?? "",
+    "start_date": selectedRange.value.start?.toString(),
+    "end_date": selectedRange.value.end?.toString(),
     "page": pages.value.current,
     "last_page": pages.value.last,
-    "per_pages": perPages.value,
+    "per_page": perPages.value,
+    "orderBy": order.value,
+    "orderDirection": direction.value ? "asc" : "desc",
+    ...searchValues.value,
   }),
-  "/v1/reports"
+  "/v1/generated-reports"
 );
 
 </script>

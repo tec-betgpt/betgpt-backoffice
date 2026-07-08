@@ -26,40 +26,33 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group
-              appear
-              enter-active-class="enter-active"
-              enter-from-class="enter"
-              enter-to-class="enter-to"
-            >
-              <TableRow v-for="(row, index) in roles" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{
-                    row.title &&
-                    String(row.title).trim() !== "" &&
-                    String(row.title).trim() !== String(row.name)
-                      ? row.title
-                      : $t("role-" + row.name)
-                  }}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {{ $t("role-" + row.scope_access) }}
-                  </Badge>
-                </TableCell>
-                <TableCell class="text-right text-nowrap">
-                  {{ $moment(row.created_at).format('DD/MM/YYYY') }}
-                </TableCell>
-                <TableCell class="text-right text-nowrap">
-                  {{ $moment(row.updated_at).format('DD/MM/YYYY') }}
-                </TableCell>
-                <TableCell class="text-right">
-                  <div class="gap-1 flex flex-nowrap justify-end">
-                    <EditDialogComponent :row="row" :reload="fetchRoles" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="(row, index) in roles" :key="row.id">
+              <TableCell>
+                {{
+                  row.title &&
+                  String(row.title).trim() !== "" &&
+                  String(row.title).trim() !== String(row.name)
+                    ? row.title
+                    : $t("role-" + row.name)
+                }}
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary">
+                  {{ $t("role-" + row.scope_access) }}
+                </Badge>
+              </TableCell>
+              <TableCell class="text-right text-nowrap">
+                {{ $moment(row.created_at).format('DD/MM/YYYY') }}
+              </TableCell>
+              <TableCell class="text-right text-nowrap">
+                {{ $moment(row.updated_at).format('DD/MM/YYYY') }}
+              </TableCell>
+              <TableCell class="text-right">
+                <div class="gap-1 flex flex-nowrap justify-end">
+                  <EditDialogComponent :row="row" :reload="fetchRoles" />
+                </div>
+              </TableCell>
+            </TableRow>
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
@@ -93,7 +86,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Roles from '@/services/roles'

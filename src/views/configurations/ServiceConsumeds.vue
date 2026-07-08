@@ -25,56 +25,49 @@
           </TableRow>
         </TableHeader>
         <TableBody>
-          <transition-group
-            appear
-            enter-active-class="enter-active"
-            enter-from-class="enter"
-            enter-to-class="enter-to"
-          >
-            <TableRow v-for="(row, index) in services" :key="row.id" :style="`--delay: ${getMs(index)}`">
-              <TableCell>
-                {{ row.service ? row.service.name : '-' }}
-              </TableCell>
-              <TableCell class="text-right">
-                <Badge variant="secondary">
-                  {{ row.active_campaign }}
-                </Badge>
-              </TableCell>
-              <TableCell class="text-right">
-                <Badge variant="secondary">
-                  {{ row.ai_token }}
-                </Badge>
-              </TableCell>
-              <TableCell class="text-right">
-                <Badge variant="secondary">
-                  {{ row.deposits }}
-                </Badge>
-              </TableCell>
-              <TableCell class="text-right">
-                <Badge variant="secondary">
-                  {{ row.email }}
-                </Badge>
-              </TableCell>
-              <TableCell class="text-right">
-                <Badge variant="secondary">
-                  {{ row.google_analytics }}
-                </Badge>
-              </TableCell>
-              <TableCell class="text-right">
-                <Badge variant="secondary">
-                  {{ row.sms_funnel }}
-                </Badge>
-              </TableCell>
-              <TableCell class="text-right">
-                <Badge variant="secondary">
-                  {{ row.project }}
-                </Badge>
-              </TableCell>
-              <TableCell class="text-right text-nowrap capitalize">
-                {{ $moment(row.created_at).format('MMM/YYYY') }}
-              </TableCell>
-            </TableRow>
-          </transition-group>
+          <TableRow v-for="row in services" :key="row.id">
+            <TableCell>
+              {{ row.service ? row.service.name : '-' }}
+            </TableCell>
+            <TableCell class="text-right">
+              <Badge variant="secondary">
+                {{ row.active_campaign }}
+              </Badge>
+            </TableCell>
+            <TableCell class="text-right">
+              <Badge variant="secondary">
+                {{ row.ai_token }}
+              </Badge>
+            </TableCell>
+            <TableCell class="text-right">
+              <Badge variant="secondary">
+                {{ row.deposits }}
+              </Badge>
+            </TableCell>
+            <TableCell class="text-right">
+              <Badge variant="secondary">
+                {{ row.email }}
+              </Badge>
+            </TableCell>
+            <TableCell class="text-right">
+              <Badge variant="secondary">
+                {{ row.google_analytics }}
+              </Badge>
+            </TableCell>
+            <TableCell class="text-right">
+              <Badge variant="secondary">
+                {{ row.sms_funnel }}
+              </Badge>
+            </TableCell>
+            <TableCell class="text-right">
+              <Badge variant="secondary">
+                {{ row.project }}
+              </Badge>
+            </TableCell>
+            <TableCell class="text-right text-nowrap capitalize">
+              {{ $moment(row.created_at).format('MMM/YYYY') }}
+            </TableCell>
+          </TableRow>
 
           <template v-if="isLoading">
             <TableRow v-for="i in 5" :key="i">
@@ -107,7 +100,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { getMs } from "@/filters/formatNumbers";
 import ServiceConsumeds from "@/services/serviceConsumeds";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 

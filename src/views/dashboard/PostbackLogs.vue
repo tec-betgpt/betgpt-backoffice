@@ -144,27 +144,25 @@
             </TableBody>
 
             <TableBody v-else>
-              <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
-                <TableRow v-for="(row, index) in logs" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                  <TableCell>
-                    {{ getType(row.type) }}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" :class="getStatus(row.status).color">
-                      {{ getStatus(row.status).name }}
-                    </Badge>
-                  </TableCell>
-                  <TableCell class="text-right">
-                    {{ $moment(row.created_at).format("DD/MM/YYYY HH:mm:ss") }}
-                  </TableCell>
-                  <TableCell class="text-right">
-                    {{ row.processed_at ? $moment(row.processed_at).format("DD/MM/YYYY HH:mm:ss") : "-" }}
-                  </TableCell>
-                  <TableCell class="text-right">
-                    <ShowDialogComponent :row="row" />
-                  </TableCell>
-                </TableRow>
-              </transition-group>
+              <TableRow v-for="row in logs" :key="row.id">
+                <TableCell>
+                  {{ getType(row.type) }}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary" :class="getStatus(row.status).color">
+                    {{ getStatus(row.status).name }}
+                  </Badge>
+                </TableCell>
+                <TableCell class="text-right">
+                  {{ $moment(row.created_at).format("DD/MM/YYYY HH:mm:ss") }}
+                </TableCell>
+                <TableCell class="text-right">
+                  {{ row.processed_at ? $moment(row.processed_at).format("DD/MM/YYYY HH:mm:ss") : "-" }}
+                </TableCell>
+                <TableCell class="text-right">
+                  <ShowDialogComponent :row="row" />
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </CardContent>
@@ -189,16 +187,12 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import {ArrowDown, ArrowUp, Check, Hourglass, Mail, Search, CircleX } from "lucide-vue-next";
 import { CaretSortIcon } from "@radix-icons/vue";
-import { getMs } from "@/filters/formatNumbers";
-import { Spinner } from "@/components/ui/spinner";
 import "moment/dist/locale/pt-br";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
-
 import PostbackLogService from "@/services/postbackLog";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 import ShowDialogComponent from "@/components/postback_logs/ShowDialogComponent.vue";
-import {Skeleton} from "@/components/ui/skeleton";
-import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const { toast } = useToast();
 
@@ -324,9 +318,18 @@ watch(selectedRange, (value) => {
 useScreenContext(
   "Tela de logs de postback - Exibe histórico de postbacks",
   () => ({
+    "filter_id": workspaceStore.activeGroupProject?.id ?? "",
+    "start_date": selectedRange.value.start?.toString(),
+    "end_date": selectedRange.value.end?.toString(),
     "type": selectedType.value,
+    "status": selectedStatus.value,
     "page": currentPage.value,
     "per_page": perPage.value,
+    "orderBy": order.value,
+    "orderDirection": direction.value ? "asc" : "desc",
+    "processed_total": totalLogs.value.processed,
+    "pending_total": totalLogs.value.pending,
+    "failed_total": totalLogs.value.failed,
   }),
   "/v1/postback-logs"
 );

@@ -2,9 +2,9 @@ import api from "@/services/base"
 
 export interface UserError {
   id?: number
-  project_id: number
+  project_id: string | number
   user_id?: number
-  error_type: "network" | "js_error" | "unhandled_rejection" | "offline" | "timeout"
+  error_type: "js_error" | "unhandled_rejection"
   error_message: string
   error_stack?: string
   error_url?: string

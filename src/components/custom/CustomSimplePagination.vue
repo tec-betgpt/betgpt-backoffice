@@ -32,12 +32,16 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["page-changed", "update:perPage"]);
+const emit = defineEmits(["page-changed", "update:per-page"]);
 
 const localPerPage = ref(String(props.perPage));
 
 watch(localPerPage, (newValue) => {
-  emit("update:perPage", Number(newValue));
+  emit("update:per-page", Number(newValue));
+});
+
+watch(() => props.perPage, (newValue) => {
+  localPerPage.value = String(newValue);
 });
 
 const isPrevDisabled = computed(() => props.currentPage <= 1);
@@ -94,7 +98,7 @@ const goToNext = () => {
         <SelectItem value="15">15 por página</SelectItem>
         <SelectItem value="30">30 por página</SelectItem>
         <SelectItem value="50">50 por página</SelectItem>
-        <SelectItem value="50">100 por página</SelectItem>
+        <SelectItem value="100">100 por página</SelectItem>
       </SelectContent>
     </Select>
   </div>

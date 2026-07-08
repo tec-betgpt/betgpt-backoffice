@@ -87,96 +87,85 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group
-              appear
-              enter-active-class="enter-active"
-              enter-from-class="enter"
-              enter-to-class="enter-to"
-            >
-              <TableRow
-                v-for="(row, index) in protectionLists"
-                :key="row.id"
-                :style="`--delay: ${getMs(index)}`"
-              >
-                <TableCell>
-                  {{ row.player?.name }}
-                </TableCell>
-                <TableCell>
-                  {{ eventTypeMap[row.event_type] || row.event_type }}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    :variant="
-                      row.dispatch_type === 'LP_ENTERED' ? 'default' : 'outline'
-                    "
-                    :class="
-                      row.dispatch_type === 'LP_ENTERED'
-                        ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100'
-                        : 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100'
-                    "
-                  >
-                    {{
-                      dispatchTypeMap[row.dispatch_type] || row.dispatch_type
-                    }}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {{ row.channel || "-" }}
-                </TableCell>
-                <TableCell class="whitespace-nowrap">
-                  <span v-if="row.start_at"
-                    >{{ $moment(row.start_at).format("DD/MM/YYYY") }} -
-                    {{ $moment(row.end_at).format("DD/MM/YYYY") }}</span
-                  >
-                  <span v-else class="text-muted-foreground italic"> - </span>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary" class="bg-blue-200 text-blue-800">
-                    {{
-                      row.user_id === null ? "Regra do Sistema" : "Regra Manual"
-                    }}</Badge
-                  >
-                </TableCell>
-                <TableCell>
-                  {{ $moment(row.created_at).format("DD/MM/YYYY HH:mm") }}
-                </TableCell>
-                <TableCell class="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                      <Button variant="ghost" class="h-8 w-8 p-0">
-                        <span class="sr-only">Abrir menu</span>
-                        <MoreHorizontal class="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
+            <TableRow v-for="row in protectionLists" :key="row.id">
+              <TableCell>
+                {{ row.player?.name }}
+              </TableCell>
+              <TableCell>
+                {{ eventTypeMap[row.event_type] || row.event_type }}
+              </TableCell>
+              <TableCell>
+                <Badge
+                  :variant="
+                    row.dispatch_type === 'LP_ENTERED' ? 'default' : 'outline'
+                  "
+                  :class="
+                    row.dispatch_type === 'LP_ENTERED'
+                      ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100'
+                      : 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100'
+                  "
+                >
+                  {{
+                    dispatchTypeMap[row.dispatch_type] || row.dispatch_type
+                  }}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {{ row.channel || "-" }}
+              </TableCell>
+              <TableCell class="whitespace-nowrap">
+                <span v-if="row.start_at"
+                  >{{ $moment(row.start_at).format("DD/MM/YYYY") }} -
+                  {{ $moment(row.end_at).format("DD/MM/YYYY") }}</span
+                >
+                <span v-else class="text-muted-foreground italic"> - </span>
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary" class="bg-blue-200 text-blue-800">
+                  {{
+                    row.user_id === null ? "Regra do Sistema" : "Regra Manual"
+                  }}</Badge
+                >
+              </TableCell>
+              <TableCell>
+                {{ $moment(row.created_at).format("DD/MM/YYYY HH:mm") }}
+              </TableCell>
+              <TableCell class="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
+                    <Button variant="ghost" class="h-8 w-8 p-0">
+                      <span class="sr-only">Abrir menu</span>
+                      <MoreHorizontal class="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
 
-                      <DropdownMenuItem
-                        v-if="canAccessClientManagement"
-                        @click="$router.push({ name: 'clients.show', params: { id: row.player?.id } })"
-                      >
-                        <Eye class="mr-2 h-4 w-4" />
-                        Ver Jogador
-                      </DropdownMenuItem>
+                    <DropdownMenuItem
+                      v-if="canAccessClientManagement"
+                      @click="$router.push({ name: 'clients.show', params: { id: row.player?.id } })"
+                    >
+                      <Eye class="mr-2 h-4 w-4" />
+                      Ver Jogador
+                    </DropdownMenuItem>
 
-                      <DropdownMenuItem @click.prevent="openEdit(row)">
-                        <Pencil class="mr-2 h-4 w-4" />
-                        Editar
-                      </DropdownMenuItem>
+                    <DropdownMenuItem @click.prevent="openEdit(row)">
+                      <Pencil class="mr-2 h-4 w-4" />
+                      Editar
+                    </DropdownMenuItem>
 
-                      <DropdownMenuItem
-                        @click.prevent="openDestroy(row)"
-                        class="text-red-600 focus:text-red-600 focus:bg-red-50"
-                      >
-                        <Trash class="mr-2 h-4 w-4" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            </transition-group>
+                    <DropdownMenuItem
+                      @click.prevent="openDestroy(row)"
+                      class="text-red-600 focus:text-red-600 focus:bg-red-50"
+                    >
+                      <Trash class="mr-2 h-4 w-4" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
@@ -207,7 +196,6 @@
       </CardContent>
     </Card>
 
-    <!-- Diálogos fora do loop da tabela -->
     <EditDialogComponent
       ref="editDialogRef"
       :row="selectedRow"
@@ -225,14 +213,12 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, watch, nextTick } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { getMs } from "@/filters/formatNumbers";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useAuthStore } from "@/stores/auth";
 import ProtectionLists from "@/services/protectionLists";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/protection-lists/CreateDialogComponent.vue";
-
 import EditDialogComponent from "@/components/protection-lists/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
@@ -420,9 +406,17 @@ onMounted(async () => {
 useScreenContext(
   "Tela de listas de proteção - Gerencia listas de proteção",
   () => ({
+    "project_id": workspaceStore.activeGroupProject?.id ?? "",
+    "start_date": selectedRange.value.start?.toString(),
+    "end_date": selectedRange.value.end?.toString(),
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
+    "player_name": filters.player_name,
+    "event_type": filters.event_type,
+    "channel": filters.channel,
+    "orderBy": filters.orderBy,
+    "orderDirection": filters.orderDirection || "default",
   }),
   "/v1/protection-lists"
 );

@@ -37,7 +37,7 @@ function getBrowserInfo(): string {
   else if (ua.includes("Safari")) browser = "Safari"
   else if (ua.includes("Edge")) browser = "Edge"
   else if (ua.includes("Opera")) browser = "Opera"
-  
+
   const version = ua.match(/(?:Chrome|Firefox|Safari|Edge|Opera)\/(\d+)/)
   return version ? `${browser} ${version[1]}` : browser
 }
@@ -86,7 +86,7 @@ export async function sendPendingErrors() {
   if (errors.length === 0) return
 
   const workspaceStore = useWorkspaceStore()
-  const projectId = workspaceStore.activeGroupProject?.project_id
+  const projectId = workspaceStore.activeGroupProject?.id
 
   if (!projectId) return
 
@@ -94,7 +94,7 @@ export async function sendPendingErrors() {
   sessionStorage.setItem("session_id", sessionId)
 
   const errorsToSend = errors.map(err => ({
-    project_id: Number(err.project_id) || projectId,
+    project_id: Number(err.project_id) || Number(projectId),
     error_type: err.error_type,
     error_message: err.error_message,
     error_stack: err.error_stack,
@@ -119,7 +119,7 @@ export async function sendPendingErrors() {
 export function useErrorTracker() {
   const workspaceStore = useWorkspaceStore()
   const sessionId = ref(sessionStorage.getItem("session_id") || crypto.randomUUID())
-  
+
   if (sessionStorage.getItem("session_id") !== sessionId.value) {
     sessionStorage.setItem("session_id", sessionId.value)
   }
@@ -134,7 +134,7 @@ export function useErrorTracker() {
     if (!projectId) return
 
     const errorData: ErrorData = {
-      project_id: projectId,
+      project_id: Number(projectId),
       error_type: errorType,
       error_message: message,
       error_stack: stack,

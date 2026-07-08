@@ -27,30 +27,28 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
-              <TableRow v-for="(row, index) in services" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ row.name }}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary" v-if="row.is_active" class="bg-green-200 text-green-800">Ativo</Badge>
-                  <Badge variant="secondary" v-else class="bg-red-200 text-red-800">Inativo</Badge>
-                </TableCell>
-                <TableCell class="text-right">
-                  -
-                </TableCell>
-                <TableCell class="text-right text-nowrap">
-                  {{ $moment(row.created_at).format('DD/MM/YYYY') }}
-                </TableCell>
-                <TableCell class="text-right">
-                  <div class="gap-1 flex flex-nowrap justify-end">
-                    <ToggleActivatedComponent :row="row" :reload="fetchServices" class="mr-1" />
-                    <EditDialogComponent :row="row" :reload="fetchServices" />
-                    <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchServices" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="row in services" :key="row.id">
+              <TableCell>
+                {{ row.name }}
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary" v-if="row.is_active" class="bg-green-200 text-green-800">Ativo</Badge>
+                <Badge variant="secondary" v-else class="bg-red-200 text-red-800">Inativo</Badge>
+              </TableCell>
+              <TableCell class="text-right">
+                -
+              </TableCell>
+              <TableCell class="text-right text-nowrap">
+                {{ $moment(row.created_at).format('DD/MM/YYYY') }}
+              </TableCell>
+              <TableCell class="text-right">
+                <div class="gap-1 flex flex-nowrap justify-end">
+                  <ToggleActivatedComponent :row="row" :reload="fetchServices" class="mr-1" />
+                  <EditDialogComponent :row="row" :reload="fetchServices" />
+                  <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchServices" />
+                </div>
+              </TableCell>
+            </TableRow>
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
@@ -85,7 +83,6 @@
 import { ref, onMounted } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { getMs } from "@/filters/formatNumbers";
 import Services from "@/services/services";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/services/CreateDialogComponent.vue";
@@ -143,7 +140,17 @@ const destroy = async (id: number) => {
 }
 
 // Screen Context
-useScreenContext("Serviços", () => ({}), "/v1/services");
+useScreenContext(
+  "Serviços - Lista e administra serviços disponíveis na plataforma",
+  () => ({
+    "search": search.value || "",
+    "page": pages.value.current,
+    "last_page": pages.value.last,
+    "per_page": perPage.value,
+    "total": pages.value.total,
+  }),
+  "/v1/services"
+);
 
 onMounted(async () => {
   isLoading.value = true;

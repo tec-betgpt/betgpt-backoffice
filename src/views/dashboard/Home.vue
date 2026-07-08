@@ -397,6 +397,7 @@ import {
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useScreenContext } from "@/composables/useScreenContext";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
 import { useAuthStore } from "@/stores/auth";
@@ -1380,6 +1381,26 @@ const resolveIcon = (icon: any) => {
   }
   return icon;
 };
+
+useScreenContext(
+  "Home - Dashboard principal com métricas gerais de receita, clientes, retenção e histórico de entradas",
+  () => ({
+    filter_id: workspaceStore.activeGroupProject?.id ?? "",
+    project_name: workspaceStore.activeGroupProject?.name ?? "",
+    start_date: selectedRange.value.start?.toString(),
+    end_date: selectedRange.value.end?.toString(),
+    total_registros: players.value.count,
+    clientes_ativos: activeNow.value.count,
+    retorno_bruto: deposits.value.total_net_deposits / 100,
+    margem_bruta: grossMarginPercentFormatted(),
+    entradas_confirmadas: deposits.value.total_paid_deposits / 100,
+    saidas_confirmadas: withdraws.value.total_paid_withdraws / 100,
+    ticket_medio_entradas: deposits.value.average_ticket / 100,
+    ticket_medio_saida: withdraws.value.average_ticket / 100,
+    tempo_medio_retencao: retention.value.time,
+  }),
+  "/v1/home",
+);
 
 watch(
   () => workspaceStore.activeGroupProject?.id,

@@ -160,10 +160,10 @@ const pages = ref({
 const selectedRange = ref();
 const perPage = ref(15);
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject!.id;
-const activeGroupProjectType = workspaceStore.activeGroupProject!.type;
+const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id ?? "");
+const activeGroupProjectType = computed(() => workspaceStore.activeGroupProject?.type ?? "project");
 const tableColumnCount = computed(() =>
-  activeGroupProjectType === "group" ? 8 : 7
+  activeGroupProjectType.value === "group" ? 8 : 7
 );
 const isDetailsOpen = ref(false);
 const isEditOpen = ref(false);
@@ -180,7 +180,7 @@ const fetchProjectAnnotations = async (current = 1) => {
   try {
     const params: any = {
       page: current,
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       per_page: perPage.value,
     };
 
@@ -206,7 +206,7 @@ const fetchProjectAnnotations = async (current = 1) => {
 // Screen Context
 useScreenContext("Marcos", () => ({
   "page": pages.value.current,
-  "filter_id": activeGroupProjectId,
+  "filter_id": activeGroupProjectId.value,
   "per_page": perPage.value,
 }), "/v1/project-annotations");
 

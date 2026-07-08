@@ -989,8 +989,27 @@ watch(selectedRange, () => {
 useScreenContext(
   "Tela de Call4u - Gerencia chamadas telefônicas",
   () => ({
+    "filter_id": workspaceStore.activeGroupProject?.id ?? "",
+    "start_date": selectedRange.value.start?.toString(),
+    "end_date": selectedRange.value.end?.toString(),
     "campaign_page": campaignPages.value.current,
+    "campaign_last_page": campaignPages.value.last,
     "campaign_per_page": campaignPerPage.value,
+    "campaign_order_by": campaignOrderId.value || "",
+    "campaign_type_order": campaignOrder.value ? "asc" : "desc",
+    "campaign_total": totalCampaigns.value ?? 0,
+    "campaign_total_sent": campaignsStats.value.total_sent,
+    "campaign_total_answered": campaignsStats.value.total_answered,
+    "campaign_answer_rate": campaignsStats.value.answer_rate,
+    "selected_campaign_id": selectedCampaign.value?.id ?? "",
+    "calls_page": callsPages.value.current,
+    "calls_last_page": callsPages.value.last,
+    "calls_per_page": callsPerPage.value,
+    "calls_status": callsFilterStatus.value,
+    "calls_phone": callsFilterPhone.value,
+    "calls_order_by": callsOrderBy.value,
+    "calls_type_order": callsTypeOrder.value,
+    ...searchCampaignValues.value,
   }),
   "/v1/call4u"
 );

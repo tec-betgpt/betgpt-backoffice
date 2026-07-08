@@ -23,49 +23,47 @@
           </TableHeader>
 
           <TableBody>
-            <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
-              <TableRow v-for="(row, index) in reports" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                <TableCell>
-                  {{ row.id }}
-                </TableCell>
-                <TableCell>
-                  {{ row.file_name }}
-                </TableCell>
-                <TableCell>
-                  <Badge :variant="getStatusVariant(row.status)">
-                    {{ formatStatus(row.status) }}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm') }}
-                </TableCell>
-                <TableCell class="text-right">
-                  <div class="flex justify-end gap-2">
-                    <Button
-                      v-if="row.file_path_csv"
-                      size="sm"
-                      variant="outline"
-                      @click="openLink(row.file_path_csv)"
-                      title="Baixar CSV"
-                    >
-                      <FileSpreadsheet class="h-4 w-4 mr-1" />
-                      CSV
-                    </Button>
-                    <Button
-                      v-if="row.file_path_xls"
-                      size="sm"
-                      variant="outline"
-                      @click="openLink(row.file_path_xls)"
-                      title="Baixar XLS"
-                    >
-                      <FileChartColumn class="h-4 w-4 mr-1" />
-                      XLS
-                    </Button>
-                    <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchReports" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            </transition-group>
+            <TableRow v-for="row in reports" :key="row.id">
+              <TableCell>
+                {{ row.id }}
+              </TableCell>
+              <TableCell>
+                {{ row.file_name }}
+              </TableCell>
+              <TableCell>
+                <Badge :variant="getStatusVariant(row.status)">
+                  {{ formatStatus(row.status) }}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm') }}
+              </TableCell>
+              <TableCell class="text-right">
+                <div class="flex justify-end gap-2">
+                  <Button
+                    v-if="row.file_path_csv"
+                    size="sm"
+                    variant="outline"
+                    @click="openLink(row.file_path_csv)"
+                    title="Baixar CSV"
+                  >
+                    <FileSpreadsheet class="h-4 w-4 mr-1" />
+                    CSV
+                  </Button>
+                  <Button
+                    v-if="row.file_path_xls"
+                    size="sm"
+                    variant="outline"
+                    @click="openLink(row.file_path_xls)"
+                    title="Baixar XLS"
+                  >
+                    <FileChartColumn class="h-4 w-4 mr-1" />
+                    XLS
+                  </Button>
+                  <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchReports" />
+                </div>
+              </TableCell>
+            </TableRow>
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
@@ -99,7 +97,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { getMs } from "@/filters/formatNumbers";
 import ProtectionListReports from "@/services/protectionListReports";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
@@ -108,7 +105,6 @@ import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.v
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, FileChartColumn } from "lucide-vue-next";
@@ -197,10 +193,11 @@ onMounted(async () => {
 useScreenContext(
   "Tela de relatórios de lista de proteção - Exibe relatórios de listas de proteção",
   () => ({
+    "project_id": workspaceStore.activeGroupProject?.id ?? "",
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
   }),
-  "/v1/protection-lists/reports"
+  "/v1/protection-list-reports"
 );
 </script>

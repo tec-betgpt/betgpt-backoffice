@@ -291,6 +291,19 @@ const openDialogAndFetchTrack = async (trackValue: string) => {
 };
 
 
+useScreenContext(
+    "Tela de UTMs - Gerencia parâmetros UTM",
+    () => ({
+      "filter_id": workspaceStore.activeGroupProject?.id ?? "",
+      "type": typeFilter.value?.join(", ") || "Todos",
+      "orderBy": order.value || "Padrão",
+      "orderDirection": direction.value ? "asc" : "desc",
+      "perPage": 100,
+      ...searchValues.value,
+    }),
+    "/v1/utm-tracks"
+);
+
 const loadMore = async () => {
   pages.value.current = pages.value.current + 100
   await fetchUtmTracks(pages.value.current);
@@ -307,16 +320,6 @@ const setType = (type: any) => {
 
 onMounted(async () => {
   await fetchUtmTracks();
-  useScreenContext(
-      "Tela de UTMs - Gerencia parâmetros UTM",
-      () => ({
-        "type": typeFilter.value?.join(", ") || "Todos",
-        "orderBy": order.value || "Padrão",
-        "orderDirection": direction.value ? "asc" : "desc",
-        "perPage": 100,
-      }),
-      "/v1/utm-tracks"
-  );
 })
 
 const setSearch = (values: Record<string, string>) => {

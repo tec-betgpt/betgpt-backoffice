@@ -146,8 +146,8 @@ onMounted(async () => {
 useScreenContext(
   "Tela de webhooks - Gerencia webhooks do sistema",
   () => ({
-    "project_id": workspaceStore.activeGroupProject.project_id,
+    "project_id": workspaceStore.activeGroupProject?.project_id ?? "",
   }),
-  "/v1/webhooks"
+  "/v1/projects/:project_id/webhooks"
 );
 </script>

@@ -26,48 +26,46 @@
               </TableRow>
             </TableHeader>
             <TableBody v-if="groups.length">
-              <transition-group appear enter-active-class="enter-active" enter-from-class="enter" enter-to-class="enter-to">
-                <TableRow v-for="(row, index) in groups" :key="row.id" :style="`--delay: ${getMs(index)}`">
-                  <TableCell>
-                    {{ row.name }}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" class="m-1 py-2 " v-for="(item, index) in row.projects.slice(0, 3)" :key="index">
-                      {{ item.name }}
-                    </Badge>
-                    <DropdownMenu v-if="row.projects.length > 3" class="overflow-y-scroll">
-                      <DropdownMenuTrigger as-child>
-                        <Button size="sm" variant="secondary" class="py-0">
-                          +{{ row.projects.length - 3 }}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent class="w-56" align="start">
-                        <DropdownMenuGroup>
-                          <DropdownMenuItem v-for="(item, index) in row.projects.slice(3)">
-                            {{ item.name }}
-                          </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                  <TableCell class="text-right text-nowrap">
-                    {{ $moment(row.created_at).format('DD/MM/YYYY') }}
-                  </TableCell>
-                  <TableCell class="text-right">
-                    <EditDialogComponent :row="row" :reload="fetchUserProjectGroups" />
+              <TableRow v-for="row in groups" :key="row.id">
+                <TableCell>
+                  {{ row.name }}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary" class="m-1 py-2 " v-for="(item, index) in row.projects.slice(0, 3)" :key="index">
+                    {{ item.name }}
+                  </Badge>
+                  <DropdownMenu v-if="row.projects.length > 3" class="overflow-y-scroll">
+                    <DropdownMenuTrigger as-child>
+                      <Button size="sm" variant="secondary" class="py-0">
+                        +{{ row.projects.length - 3 }}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent class="w-56" align="start">
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem v-for="(item, index) in row.projects.slice(3)">
+                          {{ item.name }}
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+                <TableCell class="text-right text-nowrap">
+                  {{ $moment(row.created_at).format('DD/MM/YYYY') }}
+                </TableCell>
+                <TableCell class="text-right">
+                  <EditDialogComponent :row="row" :reload="fetchUserProjectGroups" />
 
-                    <DestroyDialogComponent
-                      v-if="workspaceStore.activeGroupProject?.id !== `group_${row.id}`"
-                      :destroy="deleteGroup"
-                      :row="row"
-                      :reload="fetchUserProjectGroups"
-                    />
-                    <Button v-else size="icon" variant="ghost" disabled>
-                      <Trash />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </transition-group>
+                  <DestroyDialogComponent
+                    v-if="workspaceStore.activeGroupProject?.id !== `group_${row.id}`"
+                    :destroy="deleteGroup"
+                    :row="row"
+                    :reload="fetchUserProjectGroups"
+                  />
+                  <Button v-else size="icon" variant="ghost" disabled>
+                    <Trash />
+                  </Button>
+                </TableCell>
+              </TableRow>
             </TableBody>
 
             <TableBody v-else>
@@ -90,12 +88,10 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Trash } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { getMs } from "@/filters/formatNumbers";
 import { Card, CardContent } from "@/components/ui/card";
 import { TableBody } from "@/components/ui/table";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import CreateDialogComponent from "@/components/projects/CreateDialogComponent.vue";
-
 import EditDialogComponent from "@/components/projects/EditDialogComponent.vue";
 import UserProjectGroup from '@/services/userProjectGroup'
 
@@ -141,10 +137,18 @@ const deleteGroup = async (groupId: number) => {
 };
 
 // Screen Context
-useScreenContext("Grupos de Projetos", () => ({
-  group_id: null,
-  group_name: ''
-}), "/v1/user-project-groups");
+useScreenContext(
+  "Grupos de Projetos - Lista e administra grupos de projetos do usuário",
+  () => ({
+    "active_group_project_id": workspaceStore.activeGroupProject?.id ?? "",
+    "active_group_project_name": workspaceStore.activeGroupProject?.name ?? "",
+    "groups_count": Array.isArray(groups.value) ? groups.value.length : 0,
+    "groups_preview": Array.isArray(groups.value)
+      ? groups.value.slice(0, 10).map((group: any) => group.name).filter(Boolean).join(", ")
+      : "",
+  }),
+  "/v1/user-project-groups"
+);
 
 onMounted(fetchUserProjectGroups);
 </script>
