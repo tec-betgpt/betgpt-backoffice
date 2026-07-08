@@ -65,6 +65,29 @@ function addErrorToStorage(error: ErrorData) {
   saveErrorsToStorage(errors)
 }
 
+function resolveActiveProjectId(): number | null {
+  const workspaceStore = useWorkspaceStore()
+  const raw = workspaceStore.activeGroupProject?.project_id
+
+  if (raw === undefined || raw === null || raw === "") {
+    return null
+  }
+
+  const parsed = Number(raw)
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+function resolveErrorProjectId(storedProjectId: number | undefined, fallbackProjectId: number): number {
+  const parsedStored = Number(storedProjectId)
+
+  if (Number.isFinite(parsedStored) && parsedStored > 0) {
+    return parsedStored
+  }
+
+  return fallbackProjectId
+}
+
 function scheduleSendPendingErrors() {
   if (sendTimeout) {
     clearTimeout(sendTimeout)
@@ -85,8 +108,7 @@ export async function sendPendingErrors() {
   const errors = getStorageErrors()
   if (errors.length === 0) return
 
-  const workspaceStore = useWorkspaceStore()
-  const projectId = workspaceStore.activeGroupProject?.id
+  const projectId = resolveActiveProjectId()
 
   if (!projectId) return
 
@@ -94,7 +116,7 @@ export async function sendPendingErrors() {
   sessionStorage.setItem("session_id", sessionId)
 
   const errorsToSend = errors.map(err => ({
-    project_id: Number(err.project_id) || Number(projectId),
+    project_id: resolveErrorProjectId(err.project_id, projectId),
     error_type: err.error_type,
     error_message: err.error_message,
     error_stack: err.error_stack,
@@ -130,11 +152,11 @@ export function useErrorTracker() {
     stack?: string,
     url?: string
   ) => {
-    const projectId = workspaceStore.activeGroupProject?.id
+    const projectId = resolveActiveProjectId()
     if (!projectId) return
 
     const errorData: ErrorData = {
-      project_id: Number(projectId),
+      project_id: projectId,
       error_type: errorType,
       error_message: message,
       error_stack: stack,

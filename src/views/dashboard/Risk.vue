@@ -789,8 +789,7 @@ useScreenContext(
         <AlertCircle class="h-4 w-4" />
         <AlertTitle>Sem dados</AlertTitle>
         <AlertDescription>
-          Ainda não há snapshots horários para este período. Os dados são sincronizados automaticamente a cada hora
-          (job <code>smartico:sync-hourly</code>).
+          Ainda não há snapshots horários para este período.
         </AlertDescription>
       </Alert>
 
