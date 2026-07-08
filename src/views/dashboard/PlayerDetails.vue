@@ -30,6 +30,11 @@
       <!-- KPIs Financeiros -->
       <PlayerFinancialStats :stats="financialStats" />
 
+      <PlayerSmarticoInsights
+        :player-id="player.id"
+        :project-id="activeGroupProjectId"
+      />
+
       <!-- Conteúdo em Grade -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Coluna Esquerda: Perfil e Tags -->
@@ -309,6 +314,7 @@ import TagManager from "@/components/custom/TagManager.vue";
 import SegmentManager from "@/components/custom/SegmentManager.vue";
 import PlayerProfileHeader from "@/components/players/PlayerProfileHeader.vue";
 import PlayerFinancialStats from "@/components/players/PlayerFinancialStats.vue";
+import PlayerSmarticoInsights from "@/components/players/PlayerSmarticoInsights.vue";
 import PlayerTimeline from "@/components/players/PlayerTimeline.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import {

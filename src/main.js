@@ -12,8 +12,13 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import moment from "moment";
 import "moment/dist/locale/pt-br";
 import globalComponents from "@/boot/components";
+import ApexCharts from "apexcharts";
 import VueApexCharts from "vue3-apexcharts";
 import VueDragscroll from "vue-dragscroll";
+
+if (typeof window !== "undefined") {
+  window.ApexCharts = ApexCharts;
+}
 
 import "tippy.js/dist/tippy.css";
 import "./styles/base.css";

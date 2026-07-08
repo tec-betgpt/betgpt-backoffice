@@ -4,10 +4,18 @@ import UserErrors from "@/services/userErrors"
 
 const STORAGE_KEY = "pending_user_errors"
 const MAX_STORED_ERRORS = 50
+const SEND_DEBOUNCE_MS = 1000
+
+let sendTimeout: ReturnType<typeof setTimeout> | null = null
+let isSending = false
+
+function isUserErrorsRequest(url: string) {
+  return url.includes("/user-errors")
+}
 
 interface ErrorData {
-  project_id: string | number
-  error_type: "js_error" | "unhandled_rejection"
+  project_id: number
+  error_type: "network" | "js_error" | "unhandled_rejection" | "offline" | "timeout"
   error_message: string
   error_stack?: string
   error_url?: string
@@ -29,7 +37,7 @@ function getBrowserInfo(): string {
   else if (ua.includes("Safari")) browser = "Safari"
   else if (ua.includes("Edge")) browser = "Edge"
   else if (ua.includes("Opera")) browser = "Opera"
-  
+
   const version = ua.match(/(?:Chrome|Firefox|Safari|Edge|Opera)\/(\d+)/)
   return version ? `${browser} ${version[1]}` : browser
 }
@@ -37,11 +45,7 @@ function getBrowserInfo(): string {
 function getStorageErrors(): ErrorData[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    const errors = stored ? JSON.parse(stored) : []
-    return errors.filter((error: ErrorData) =>
-      error.error_type === "js_error" ||
-      error.error_type === "unhandled_rejection"
-    )
+    return stored ? JSON.parse(stored) : []
   } catch {
     return []
   }
@@ -61,13 +65,28 @@ function addErrorToStorage(error: ErrorData) {
   saveErrorsToStorage(errors)
 }
 
+function scheduleSendPendingErrors() {
+  if (sendTimeout) {
+    clearTimeout(sendTimeout)
+  }
+
+  sendTimeout = setTimeout(() => {
+    sendTimeout = null
+    void sendPendingErrors()
+  }, SEND_DEBOUNCE_MS)
+}
+
 export async function sendPendingErrors() {
+  if (isSending) {
+    scheduleSendPendingErrors()
+    return
+  }
+
   const errors = getStorageErrors()
   if (errors.length === 0) return
 
   const workspaceStore = useWorkspaceStore()
-  const activeGroupProject = workspaceStore.activeGroupProject as { project_id?: string | number } | null
-  const projectId = activeGroupProject?.project_id
+  const projectId = workspaceStore.activeGroupProject?.id
 
   if (!projectId) return
 
@@ -75,7 +94,7 @@ export async function sendPendingErrors() {
   sessionStorage.setItem("session_id", sessionId)
 
   const errorsToSend = errors.map(err => ({
-    project_id: projectId,
+    project_id: Number(err.project_id) || Number(projectId),
     error_type: err.error_type,
     error_message: err.error_message,
     error_stack: err.error_stack,
@@ -85,20 +104,22 @@ export async function sendPendingErrors() {
     session_id: sessionId,
   }))
 
+  isSending = true
+
   try {
-    await Promise.all(
-      errorsToSend.map(errorData => UserErrors.store(errorData))
-    )
+    await UserErrors.bulkStore(errorsToSend)
     localStorage.removeItem(STORAGE_KEY)
   } catch (e) {
     console.error("Failed to send pending errors:", e)
+  } finally {
+    isSending = false
   }
 }
 
 export function useErrorTracker() {
   const workspaceStore = useWorkspaceStore()
   const sessionId = ref(sessionStorage.getItem("session_id") || crypto.randomUUID())
-  
+
   if (sessionStorage.getItem("session_id") !== sessionId.value) {
     sessionStorage.setItem("session_id", sessionId.value)
   }
@@ -113,7 +134,7 @@ export function useErrorTracker() {
     if (!projectId) return
 
     const errorData: ErrorData = {
-      project_id: projectId,
+      project_id: Number(projectId),
       error_type: errorType,
       error_message: message,
       error_stack: stack,
@@ -125,7 +146,7 @@ export function useErrorTracker() {
     }
 
     addErrorToStorage(errorData)
-    sendPendingErrors()
+    scheduleSendPendingErrors()
   }
 
   const handleError = (event: ErrorEvent) => {
@@ -145,14 +166,50 @@ export function useErrorTracker() {
     )
   }
 
+  const originalFetch = window.fetch
+  window.fetch = async (...args) => {
+    const url = typeof args[0] === "string" ? args[0] : args[0]?.url || "unknown"
+    const skipTracking = isUserErrorsRequest(url)
+
+    try {
+      const response = await originalFetch(...args)
+      if (
+        !skipTracking
+        && (!response.ok || (response.status >= 400 && response.status < 600))
+      ) {
+        captureError(
+          "network",
+          `HTTP ${response.status}: ${response.statusText}`,
+          `Status: ${response.status}`,
+          url
+        )
+      }
+      return response
+    } catch (error: any) {
+      if (!skipTracking) {
+        captureError(
+          "network",
+          error.message || "Network error",
+          error.stack,
+          url
+        )
+      }
+      throw error
+    }
+  }
+
   onMounted(() => {
     window.addEventListener("error", handleError)
     window.addEventListener("unhandledrejection", handleUnhandledRejection)
+    window.addEventListener("offline", () => {
+      captureError("offline", "Connection lost")
+    })
   })
 
   onUnmounted(() => {
     window.removeEventListener("error", handleError)
     window.removeEventListener("unhandledrejection", handleUnhandledRejection)
+    window.fetch = originalFetch
   })
 
   return {

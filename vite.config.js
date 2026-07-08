@@ -9,6 +9,9 @@ export default defineConfig({
       "@": resolve(__dirname, "src"),
     },
   },
+  optimizeDeps: {
+    include: ["apexcharts", "vue3-apexcharts"],
+  },
   server: {
     port: 5174,
   }

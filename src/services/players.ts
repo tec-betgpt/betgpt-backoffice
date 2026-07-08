@@ -29,6 +29,11 @@ export default {
     return data
   },
 
+  async smartico(id, params = {}) {
+    const { data } = await api.get(`/players/${id}/smartico`, { params })
+    return data
+  },
+
   /**
    * @param {number} id
    * @param {object} body
