@@ -28,7 +28,6 @@ type SmarticoChart = {
 type SmarticoPlayerResponse = {
   available: boolean;
   has_data?: boolean;
-  registry_status?: string | null;
   message?: string;
   meta?: {
     reference_date?: string;
@@ -59,16 +58,22 @@ function formatMoney(value?: number | null) {
   return moneyFormatter.format(Number(value) || 0);
 }
 
-const registryLabel = computed(() => {
-  const registryStatus = payload.value?.registry_status;
+function formatSyncAt(value?: string | null) {
+  if (!value) return "";
 
-  if (!registryStatus) return null;
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
 
-  return {
-    pending: "Verificação pendente",
-    active: "Ativo na Smartico",
-    not_found: "Não encontrado na Smartico",
-  }[registryStatus] || registryStatus;
+const emptyMessage = computed(() => {
+  return payload.value?.message
+    || "Ainda não há dados Smartico deste jogador. Eles aparecem após a próxima sincronização.";
 });
 
 const kpiCards = computed(() => {
@@ -94,7 +99,7 @@ const kpiCards = computed(() => {
     {
       label: "Apostado Cassino",
       value: formatMoney(snapshot.casino_turnover),
-      hint: "Turnover do snapshot",
+      hint: "Volume apostado no cassino",
       icon: TrendingUp,
       accent: "from-emerald-500/15 to-teal-500/5 text-emerald-700 dark:text-emerald-300",
     },
@@ -154,18 +159,15 @@ watch(
               Insights Smartico
             </CardTitle>
             <p class="text-xs text-slate-300">
-              Snapshot horário do jogador na Smartico, sem consulta em tempo real.
+              Dados atualizados ao longo do dia pela sincronização Smartico.
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" class="bg-white/10 text-white hover:bg-white/10">
-              Fonte: player_smartico_metrics
-            </Badge>
-            <Badge v-if="registryLabel" variant="outline" class="border-white/20 text-white">
-              {{ registryLabel }}
+              Smartico
             </Badge>
             <Badge v-if="payload?.meta?.last_sync_at" variant="outline" class="border-white/20 text-white">
-              Sync: {{ payload.meta.last_sync_at }}
+              Atualizado: {{ formatSyncAt(payload.meta.last_sync_at) }}
             </Badge>
           </div>
         </div>
@@ -179,8 +181,7 @@ watch(
     </div>
 
     <div v-else-if="status === 'empty'" class="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-      Integração Smartico ativa, mas ainda não há snapshots deste jogador.
-      <span v-if="payload?.message"> {{ payload.message }}</span>
+      {{ emptyMessage }}
     </div>
 
     <template v-else-if="status === 'success' && payload">
