@@ -695,7 +695,7 @@ const navMenu = computed(() => {
         },
         {
           name: "Campanha draft",
-          url: { name: "campaign-drafts.create" },
+          url: { name: "campaign-drafts.index" },
           icon: MessageSquareText,
           show:
             (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer"))

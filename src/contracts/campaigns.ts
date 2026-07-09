@@ -22,23 +22,82 @@ export type CampaignLinkStatus = "detected" | "linked" | "ignored" | "invalid" |
 
 export type CampaignMetadata = Record<string, unknown>;
 
-export type CampaignValidationItem = {
+export type CampaignMessageLike = {
   field: string;
   message: string;
 };
 
-export type CampaignValidationSection =
-  | "campaign"
+export type CampaignProjectSummary = {
+  id: number;
+  name: string;
+  uuid?: string | null;
+};
+
+export type CampaignUserProjectGroupSummary = {
+  id: number;
+  name: string;
+};
+
+export type CampaignUserSummary = {
+  id: number;
+  service_id?: number | null;
+  language_id?: number | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  email_verified_at?: string | null;
+  debit_in?: string | null;
+  day_to_debit?: number | null;
+  expires_on?: string | null;
+  is_available?: number | boolean | null;
+  document_number?: string | null;
+  kind_person?: string | null;
+  asaas_costumer?: string | null;
+  last_login_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  deleted_at?: string | null;
+  initials?: string | null;
+  name?: string | null;
+};
+
+export type CampaignWizardIssue = CampaignMessageLike;
+
+export type CampaignWizardStepKey =
+  | "channels"
   | "message"
   | "links"
+  | "audience"
   | "schedule"
   | "delivery_windows"
-  | "recurrence_policy"
-  | "warmup_policy";
+  | "warmup";
 
-export type CampaignValidationSections = Partial<
-  Record<CampaignValidationSection, CampaignValidationItem[]>
->;
+export type CampaignWizardStep = {
+  key: CampaignWizardStepKey;
+  label: string;
+  status: "missing" | "partial" | "valid";
+  filled_fields: string[];
+  pending_fields: string[];
+  issues: CampaignWizardIssue[];
+  is_optional?: boolean;
+  is_applicable?: boolean;
+  is_enabled?: boolean;
+  summary?: string;
+  detected_urls?: number;
+  tracked_links?: number;
+  audience_mode?: CampaignAudienceMode | null;
+  apply_protection_list?: boolean;
+  schedule_type?: CampaignScheduleType | null;
+  active_windows?: number;
+};
+
+export type CampaignConfigurationProgress = {
+  status: "missing" | "partial" | "valid";
+  completed_steps: number;
+  missing_steps: number;
+  total_steps: number;
+  steps: CampaignWizardStep[];
+};
 
 export type CampaignSingleStageConfigPayload = {
   target_audience_id?: number | null;
@@ -133,11 +192,64 @@ export type CampaignStorePayload = {
 
 export type CampaignUpdatePayload = Partial<Omit<CampaignStorePayload, "project_id">>;
 
+export type CampaignListParams = {
+  filter_id?: string | null;
+  project_id?: number | null;
+  status?: CampaignStatus | null;
+  channel?: CampaignChannel | null;
+  type?: CampaignType | null;
+  search?: string | null;
+  per_page?: number | null;
+  page?: number | null;
+};
+
+export type CampaignListSchedule = {
+  id: number;
+  schedule_type: CampaignScheduleType | null;
+  timezone: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  respect_delivery_windows: boolean;
+};
+
+export type CampaignListItem = {
+  id: number;
+  uuid: string;
+  project_id: number;
+  user_project_group_id: number | null;
+  created_by: number | CampaignUserSummary | null;
+  updated_by: number | CampaignUserSummary | null;
+  name: string;
+  description: string | null;
+  type: CampaignType;
+  channel: CampaignChannel;
+  status: CampaignStatus;
+  validated_at: string | null;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+  project?: CampaignProjectSummary | null;
+  user_project_group?: CampaignUserProjectGroupSummary | null;
+  created_by_user?: CampaignUserSummary | null;
+  updated_by_user?: CampaignUserSummary | null;
+  schedule?: CampaignListSchedule | null;
+};
+
+export type CampaignListResponse = {
+  current_page: number;
+  data: CampaignListItem[];
+  per_page: number;
+  total: number;
+  last_page: number;
+};
+
 export type CampaignSingleStageConfig = CampaignSingleStageConfigPayload & {
   id?: number;
   campaign_id?: number;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string | null;
+  target_audience?: unknown | null;
 };
 
 export type CampaignMessage = CampaignMessagePayload & {
@@ -145,6 +257,8 @@ export type CampaignMessage = CampaignMessagePayload & {
   campaign_id?: number;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string | null;
+  links?: CampaignLink[];
 };
 
 export type CampaignLink = CampaignLinkPayload & {
@@ -152,6 +266,7 @@ export type CampaignLink = CampaignLinkPayload & {
   campaign_id?: number;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string | null;
 };
 
 export type CampaignSchedule = CampaignSchedulePayload & {
@@ -159,6 +274,7 @@ export type CampaignSchedule = CampaignSchedulePayload & {
   campaign_id?: number;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string | null;
 };
 
 export type CampaignDeliveryWindow = CampaignDeliveryWindowPayload & {
@@ -166,6 +282,7 @@ export type CampaignDeliveryWindow = CampaignDeliveryWindowPayload & {
   campaign_id?: number;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string | null;
 };
 
 export type CampaignRecurrencePolicy = CampaignRecurrencePolicyPayload & {
@@ -173,6 +290,7 @@ export type CampaignRecurrencePolicy = CampaignRecurrencePolicyPayload & {
   campaign_id?: number;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string | null;
 };
 
 export type CampaignWarmupPolicy = CampaignWarmupPolicyPayload & {
@@ -180,14 +298,16 @@ export type CampaignWarmupPolicy = CampaignWarmupPolicyPayload & {
   campaign_id?: number;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string | null;
 };
 
 export type CampaignDetail = {
   id: number;
   uuid: string;
   project_id: number;
-  created_by: number;
-  updated_by: number | null;
+  user_project_group_id: number | null;
+  created_by: CampaignUserSummary | number | null;
+  updated_by: CampaignUserSummary | number | null;
   name: string;
   description: string | null;
   type: CampaignType;
@@ -198,8 +318,11 @@ export type CampaignDetail = {
   archived_at: string | null;
   created_at: string;
   updated_at: string;
-  project?: unknown;
-  user_project_group?: unknown | null;
+  deleted_at?: string | null;
+  project?: CampaignProjectSummary | null;
+  user_project_group?: CampaignUserProjectGroupSummary | null;
+  created_by_user?: CampaignUserSummary | null;
+  updated_by_user?: CampaignUserSummary | null;
   single_stage_config?: CampaignSingleStageConfig | null;
   messages?: CampaignMessage[];
   links?: CampaignLink[];
@@ -207,17 +330,106 @@ export type CampaignDetail = {
   delivery_windows?: CampaignDeliveryWindow[];
   recurrence_policy?: CampaignRecurrencePolicy | null;
   warmup_policy?: CampaignWarmupPolicy | null;
+  configuration_progress?: CampaignConfigurationProgress | null;
+};
+
+export type CampaignSectionMessages = Record<string, CampaignMessageLike[]>;
+
+export type CampaignPreLaunchChecklistItem = {
+  key:
+    | "audience"
+    | "message"
+    | "links"
+    | "schedule"
+    | "delivery_windows"
+    | "warmup"
+    | "financial";
+  label: string;
+  status: "valid" | "warning" | "invalid";
+  blocking: boolean;
+  messages: string[];
 };
 
 export type CampaignValidationResponse = {
-  success: boolean;
-  message: string | null;
-  data: {
-    valid: boolean;
-    status: "valid" | "invalid";
-    errors: CampaignValidationSections;
-    warnings: CampaignValidationSections;
+  valid: boolean;
+  status: "valid" | "invalid";
+  configuration_progress: CampaignConfigurationProgress | null;
+  pre_launch_checklist: CampaignPreLaunchChecklistItem[];
+  errors: CampaignSectionMessages;
+  warnings: CampaignSectionMessages;
+};
+
+export type CampaignEstimateSectionMessage = CampaignMessageLike;
+
+export type CampaignEstimateResponse = {
+  campaign_id: number;
+  status: "estimated" | "blocked";
+  can_continue: boolean;
+  estimated_at: string;
+  audience: {
+    mode: CampaignAudienceMode | null;
+    target_audience_id: number | null;
+    target_audience_name: string | null;
+    source:
+      | "missing"
+      | "target_audience_results"
+      | "audience_query_builder"
+      | "target_audiences.players";
+    total: number;
+    with_phone: number;
+    without_phone: number;
+    protected: number;
+    suppressed: number;
+    opted_out: number;
+    eligible: number;
+    estimated_recipients: number;
+    daily_recipient_cap: number | null;
+    total_recipient_cap: number | null;
   };
+  message: {
+    message_id: number | null;
+    character_count: number;
+    sms_segments_per_recipient: number;
+    estimated_messages: number;
+    estimated_sms_segments: number;
+  };
+  links: {
+    detected_urls: number;
+    campaign_links: number;
+    tracked_links: number;
+    untracked_links: number;
+  };
+  schedule: {
+    schedule_type: CampaignScheduleType | null;
+    timezone: string | null;
+    starts_at: string | null;
+    ends_at: string | null;
+    respect_delivery_windows: boolean;
+    active_delivery_windows: number;
+  };
+  warmup: {
+    enabled: boolean;
+    initial_limit: number | null;
+    increment_amount: number | null;
+    increment_type: CampaignWarmupIncrementType | null;
+    interval_unit: CampaignWarmupIntervalUnit | "week" | null;
+    interval_value: number | null;
+    max_limit: number | null;
+  };
+  financial: {
+    currency: string | null;
+    price_per_sms_segment: number | null;
+    estimated_cost: number | null;
+    estimated_sms_segments: number;
+  };
+  errors: Record<string, CampaignEstimateSectionMessage[]>;
+  warnings: Record<string, CampaignEstimateSectionMessage[]>;
+};
+
+export type CampaignApiResponse<T> = {
+  success?: boolean;
+  message?: string | null;
+  data?: T;
 };
 
 export type CampaignFormState = {
@@ -247,6 +459,33 @@ export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
   canceled: "Cancelada",
   archived: "Arquivada",
 };
+
+export const CAMPAIGN_STATUS_OPTIONS = Object.entries(CAMPAIGN_STATUS_LABELS).map(
+  ([value, label]) => ({
+    value: value as CampaignStatus,
+    label,
+  }),
+);
+
+export const CAMPAIGN_CHANNEL_OPTIONS = [
+  { label: "SMS", value: "sms" as CampaignChannel },
+];
+
+export const CAMPAIGN_TYPE_OPTIONS = [
+  { label: "Broadcast", value: "broadcast" as CampaignType },
+];
+
+export const CAMPAIGN_PROGRESS_STATUS_LABELS = {
+  missing: "Pendente",
+  partial: "Parcial",
+  valid: "Válido",
+} as const;
+
+export const CAMPAIGN_CHECKLIST_STATUS_LABELS = {
+  valid: "Válido",
+  warning: "Alerta",
+  invalid: "Inválido",
+} as const;
 
 export const CAMPAIGN_DAY_OPTIONS = [
   { label: "Domingo", value: 0 },

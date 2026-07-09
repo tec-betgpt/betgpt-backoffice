@@ -11,6 +11,7 @@ import AIController from "@/views/dashboard/AIController.vue";
 import WebhookLogs from "@/views/dashboard/WebhookLogs.vue";
 import LinkEngine from "@/views/dashboard/LinkEngine.vue";
 import Links from "@/views/dashboard/Links.vue";
+import CampaignDrafts from "@/views/dashboard/CampaignDrafts.vue";
 import CampaignDraftWizard from "@/views/dashboard/CampaignDraftWizard.vue";
 
 import Tags from "@/views/dashboard/Tags.vue";
@@ -167,6 +168,18 @@ export default [
             layout: DefaultLayout,
             requiresAuth: true,
             title: "Link Engine",
+            roles: "member",
+            permissions: "access-to-member-governance",
+          },
+        },
+        {
+          path: "campaign-drafts",
+          name: "campaign-drafts.index",
+          component: CampaignDrafts,
+          meta: {
+            layout: DefaultLayout,
+            requiresAuth: true,
+            title: "Campaign Builder",
             roles: "member",
             permissions: "access-to-member-governance",
           },
