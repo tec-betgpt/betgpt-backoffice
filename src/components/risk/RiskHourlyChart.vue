@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useColorMode } from "@vueuse/core";
+import VueApexCharts from "vue3-apexcharts";
+
+const apexchart = VueApexCharts;
 
 interface RiskHourlySeries {
   key: string;
@@ -9,7 +12,7 @@ interface RiskHourlySeries {
 }
 
 const props = defineProps<{
-  type: "area" | "line";
+  type: "area" | "line" | "bar";
   title?: string;
   categories: string[];
   series: RiskHourlySeries[];
@@ -48,18 +51,20 @@ function getSerieName(serie: RiskHourlySeries) {
 const chartSeries = computed(() =>
   props.series.map((serie) => ({
     name: getSerieName(serie),
-    data: (serie.data || []).map((value) => value === null ? null : Number(value) || 0),
+    data: (serie.data || []).map((value) => (value === null ? null : Number(value) || 0)),
   })),
 );
 
-const hasData = computed(() =>
-  chartSeries.value.some((serie) => serie.data.some((point) => point !== null && point > 0)),
+const canRender = computed(() =>
+  props.categories.length > 0
+  && chartSeries.value.length > 0
+  && chartSeries.value.some((serie) => serie.data.some((point) => point !== null && point > 0)),
 );
 
 const isDarkMode = computed(() => mode.value === "dark");
-const chartTextColor = computed(() => isDarkMode.value ? "#d4d4d8" : "#52525b");
-const chartForegroundColor = computed(() => isDarkMode.value ? "#f4f4f5" : "#18181b");
-const chartBorderColor = computed(() => isDarkMode.value ? "#3f3f46" : "#e4e4e7");
+const chartTextColor = computed(() => (isDarkMode.value ? "#d4d4d8" : "#52525b"));
+const chartForegroundColor = computed(() => (isDarkMode.value ? "#f4f4f5" : "#18181b"));
+const chartBorderColor = computed(() => (isDarkMode.value ? "#3f3f46" : "#e4e4e7"));
 
 const chartOptions = computed(() => ({
   chart: {
@@ -69,6 +74,9 @@ const chartOptions = computed(() => ({
     fontFamily: "inherit",
     foreColor: chartTextColor.value,
     background: "transparent",
+    animations: {
+      enabled: true,
+    },
   },
   theme: {
     mode: isDarkMode.value ? "dark" : "light",
@@ -76,11 +84,12 @@ const chartOptions = computed(() => ({
   colors: chartColors,
   stroke: {
     curve: "smooth",
-    width: props.type === "area" ? 3 : 2,
+    width: props.type === "area" ? 3 : props.type === "line" ? 2 : 0,
   },
   dataLabels: { enabled: false },
   fill: {
     type: props.type === "area" ? "gradient" : "solid",
+    opacity: props.type === "area" ? 0.35 : 1,
     gradient: {
       shadeIntensity: 1,
       opacityFrom: 0.35,
@@ -88,6 +97,16 @@ const chartOptions = computed(() => ({
       stops: [0, 90, 100],
     },
   },
+  ...(props.type === "bar"
+    ? {
+        plotOptions: {
+          bar: {
+            borderRadius: 4,
+            columnWidth: "55%",
+          },
+        },
+      }
+    : {}),
   legend: {
     show: props.series.length > 1,
     position: "top",
@@ -138,13 +157,15 @@ const chartOptions = computed(() => ({
 <template>
   <div class="min-h-[320px] w-full">
     <p v-if="title" class="mb-3 text-sm font-medium text-muted-foreground">{{ title }}</p>
-    <apexchart
-      v-if="hasData"
-      :type="type"
-      height="320"
-      :options="chartOptions"
-      :series="chartSeries"
-    />
+    <div v-if="canRender" class="h-[320px] w-full">
+      <apexchart
+        width="100%"
+        height="100%"
+        :type="type"
+        :options="chartOptions"
+        :series="chartSeries"
+      />
+    </div>
     <div
       v-else
       class="flex h-[320px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground"

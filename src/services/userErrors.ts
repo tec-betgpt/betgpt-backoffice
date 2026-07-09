@@ -4,7 +4,7 @@ export interface UserError {
   id?: number
   project_id: string | number
   user_id?: number
-  error_type: "js_error" | "unhandled_rejection"
+  error_type: "network" | "js_error" | "unhandled_rejection" | "offline" | "timeout"
   error_message: string
   error_stack?: string
   error_url?: string
@@ -18,6 +18,10 @@ export interface UserError {
 export default {
   store(data: UserError) {
     return api.post("user-errors", data)
+  },
+
+  bulkStore(errors: UserError[]) {
+    return api.post("user-errors/bulk", { errors })
   },
 
   index(params: {

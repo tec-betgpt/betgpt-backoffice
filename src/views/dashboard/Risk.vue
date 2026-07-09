@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Calendar as CalendarIcon, AlertCircle, Loader2 } from "lucide-vue-next";
 import { CalendarDate } from "@internationalized/date";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import RiskService from "@/services/risk";
-import type { IndexResponse } from "@/services/risk";
+import type { IndexResponse, SmarticoChartData, SmarticoIndexResponse } from "@/services/risk";
 import RiskHourlyChart from "@/components/risk/RiskHourlyChart.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +15,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type RiskChartValueType = "integer" | "money";
 
 type RiskStatus = "idle" | "loading" | "refreshing" | "success" | "empty" | "error";
+type RiskTab = "general" | "smartico";
 
 type RiskFilters = {
   today_date: string;
@@ -32,8 +34,13 @@ const router = useRouter();
 const workspaceStore = useWorkspaceStore();
 
 const riskData = ref<IndexResponse | null>(null);
+const smarticoData = ref<SmarticoIndexResponse | null>(null);
+const activeTab = ref<RiskTab>("general");
+const hasSmartico = ref(false);
 const status = ref<RiskStatus>("idle");
+const smarticoStatus = ref<RiskStatus>("idle");
 const errorMessage = ref("");
+const smarticoErrorMessage = ref("");
 const validationMessage = ref("");
 const draftFilters = ref<RiskFilters>({
   today_date: "",
@@ -54,6 +61,7 @@ const lastAppliedFilters = ref<RiskFilters>({
   average_end_date: "",
 });
 const currentController = ref<AbortController | null>(null);
+const smarticoController = ref<AbortController | null>(null);
 const todayPopoverOpen = ref(false);
 const yesterdayPopoverOpen = ref(false);
 const averagePopoverOpen = ref(false);
@@ -284,6 +292,41 @@ function isEmptyPayload(payload: IndexResponse) {
   return getPayloadCharts(payload).every((chart) => chartIsEmpty(chart));
 }
 
+function getSmarticoCharts(payload?: SmarticoIndexResponse | null) {
+  if (!payload?.available) {
+    return [];
+  }
+
+  return [
+    payload.casino?.revenue,
+    payload.casino?.turnover,
+    payload.casino?.ggr,
+    payload.casino?.ggr_accumulated,
+    payload.sports?.revenue,
+    payload.sports?.turnover,
+    payload.sports?.bets_count,
+    payload.sports?.ggr,
+    payload.bonus?.approved_amount,
+    payload.bonus?.free_spins,
+    payload.bonus?.free_spins_accumulated,
+    payload.wallet?.real_balance,
+    payload.wallet?.bonus_balance,
+    payload.wallet?.total_balance,
+  ].filter(Boolean);
+}
+
+function getSmarticoChartType(chart?: SmarticoChartData): "area" | "line" | "bar" {
+  return chart?.chart_type === "line" ? "line" : "area";
+}
+
+function isEmptySmarticoPayload(payload: SmarticoIndexResponse) {
+  return getSmarticoCharts(payload).every((chart) => chartIsEmpty(chart));
+}
+
+function getSmarticoChartValueType(chart?: SmarticoChartData): RiskChartValueType {
+  return chart?.value_type === "integer" ? "integer" : "money";
+}
+
 async function updateQuery(filters: RiskFilters) {
   await router.replace({
     query: {
@@ -337,6 +380,7 @@ async function fetchRisk(filters: RiskFilters) {
     );
 
     riskData.value = response;
+    hasSmartico.value = Boolean(response.has_smartico);
     status.value = isEmptyPayload(response) ? "empty" : "success";
   } catch (error: any) {
     if (isCanceledError(error)) {
@@ -359,6 +403,10 @@ async function applyFilters() {
 
   await updateQuery(filters);
   await fetchRisk(filters);
+
+  if (activeTab.value === "smartico" && hasSmartico.value) {
+    await fetchSmartico(filters);
+  }
 }
 
 async function clearFilters() {
@@ -390,12 +438,63 @@ function updateAverageDate(filter: "average_start_date" | "average_end_date", va
   }
 }
 
+async function fetchSmartico(filters: RiskFilters = appliedFilters.value) {
+  if (!workspaceStore.activeGroupProject?.id || !hasSmartico.value) {
+    return;
+  }
+
+  smarticoController.value?.abort();
+  smarticoController.value = new AbortController();
+  smarticoStatus.value = smarticoData.value ? "refreshing" : "loading";
+  smarticoErrorMessage.value = "";
+
+  try {
+    const response = await RiskService.smartico(
+      {
+        filter_id: workspaceStore.activeGroupProject.id,
+        today_date: filters.today_date,
+        yesterday_date: filters.yesterday_date,
+        average_start_date: filters.average_start_date,
+        average_end_date: filters.average_end_date,
+      },
+      { signal: smarticoController.value.signal },
+    );
+
+    smarticoData.value = response;
+    smarticoStatus.value = isEmptySmarticoPayload(response) ? "empty" : "success";
+  } catch (error: any) {
+    if (isCanceledError(error)) {
+      return;
+    }
+
+    smarticoStatus.value = "error";
+    smarticoErrorMessage.value = getRequestErrorMessage(error);
+  }
+}
+
+function handleTabChange(value: string | number) {
+  activeTab.value = String(value) as RiskTab;
+}
+
+watch(activeTab, (tab) => {
+  if (tab === "smartico" && hasSmartico.value && smarticoStatus.value === "idle") {
+    void fetchSmartico();
+  }
+});
+
 function retryLastRequest() {
+  if (activeTab.value === "smartico") {
+    fetchSmartico();
+    return;
+  }
+
   fetchRisk(lastAppliedFilters.value);
 }
 
 const isBusy = computed(() => status.value === "loading" || status.value === "refreshing");
+const isSmarticoBusy = computed(() => smarticoStatus.value === "loading" || smarticoStatus.value === "refreshing");
 const shouldShowSkeleton = computed(() => status.value === "loading" && !riskData.value);
+const shouldShowSmarticoSkeleton = computed(() => activeTab.value === "smartico" && smarticoStatus.value === "loading" && !smarticoData.value);
 const periodLabel = computed(() => {
   const filters = appliedFilters.value.today_date ? appliedFilters.value : draftFilters.value;
   const todayDate = formatDisplayDate(filters.today_date);
@@ -431,6 +530,23 @@ const todayButtonLabel = computed(() =>
 const yesterdayButtonLabel = computed(() =>
   getDateButtonLabel("Ontem", draftFilters.value.yesterday_date, addDays(getSaoPauloDate(), -1)),
 );
+
+const smarticoChartGroups = computed(() => [
+  {
+    title: "Indicadores Smartico",
+    charts: [
+      { data: smarticoData.value?.casino?.revenue, type: getSmarticoChartType(smarticoData.value?.casino?.revenue), valueType: getSmarticoChartValueType(smarticoData.value?.casino?.revenue) },
+      { data: smarticoData.value?.casino?.ggr, type: getSmarticoChartType(smarticoData.value?.casino?.ggr), valueType: getSmarticoChartValueType(smarticoData.value?.casino?.ggr) },
+      { data: smarticoData.value?.casino?.ggr_accumulated, type: getSmarticoChartType(smarticoData.value?.casino?.ggr_accumulated), valueType: getSmarticoChartValueType(smarticoData.value?.casino?.ggr_accumulated) },
+      { data: smarticoData.value?.casino?.turnover, type: getSmarticoChartType(smarticoData.value?.casino?.turnover), valueType: getSmarticoChartValueType(smarticoData.value?.casino?.turnover) },
+      { data: smarticoData.value?.sports?.bets_count, type: getSmarticoChartType(smarticoData.value?.sports?.bets_count), valueType: getSmarticoChartValueType(smarticoData.value?.sports?.bets_count) },
+      { data: smarticoData.value?.bonus?.approved_amount, type: getSmarticoChartType(smarticoData.value?.bonus?.approved_amount), valueType: getSmarticoChartValueType(smarticoData.value?.bonus?.approved_amount) },
+      { data: smarticoData.value?.bonus?.free_spins, type: getSmarticoChartType(smarticoData.value?.bonus?.free_spins), valueType: getSmarticoChartValueType(smarticoData.value?.bonus?.free_spins) },
+      { data: smarticoData.value?.bonus?.free_spins_accumulated, type: getSmarticoChartType(smarticoData.value?.bonus?.free_spins_accumulated), valueType: getSmarticoChartValueType(smarticoData.value?.bonus?.free_spins_accumulated) },
+      { data: smarticoData.value?.wallet?.total_balance, type: getSmarticoChartType(smarticoData.value?.wallet?.total_balance), valueType: getSmarticoChartValueType(smarticoData.value?.wallet?.total_balance) },
+    ],
+  },
+]);
 
 const chartGroups = computed(() => [
   {
@@ -471,6 +587,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   currentController.value?.abort();
+  smarticoController.value?.abort();
 });
 
 useScreenContext(
@@ -596,45 +713,111 @@ useScreenContext(
       </div>
     </div>
 
-    <Alert v-if="status === 'error'" variant="destructive" class="mb-4">
-      <AlertCircle class="h-4 w-4" />
-      <AlertTitle>Erro ao carregar dados</AlertTitle>
-      <AlertDescription class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <span>{{ errorMessage }}</span>
-        <Button size="sm" variant="outline" :disabled="isBusy" @click="retryLastRequest">Tentar novamente</Button>
-      </AlertDescription>
-    </Alert>
+    <Tabs
+      v-if="hasSmartico"
+      :model-value="activeTab"
+      class="mb-4"
+      @update:model-value="handleTabChange"
+    >
+      <TabsList>
+        <TabsTrigger value="general">Geral</TabsTrigger>
+        <TabsTrigger value="smartico">Smartico</TabsTrigger>
+      </TabsList>
+    </Tabs>
 
-    <Alert v-if="status === 'empty'" class="mb-4">
-      <AlertCircle class="h-4 w-4" />
-      <AlertTitle>Sem dados</AlertTitle>
-      <AlertDescription>Sem dados no periodo selecionado.</AlertDescription>
-    </Alert>
+    <div v-show="!hasSmartico || activeTab === 'general'" class="space-y-4">
+      <Alert v-if="status === 'error'" variant="destructive" class="mb-4">
+        <AlertCircle class="h-4 w-4" />
+        <AlertTitle>Erro ao carregar dados</AlertTitle>
+        <AlertDescription class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <span>{{ errorMessage }}</span>
+          <Button size="sm" variant="outline" :disabled="isBusy" @click="retryLastRequest">Tentar novamente</Button>
+        </AlertDescription>
+      </Alert>
 
-    <div v-if="shouldShowSkeleton" class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <Skeleton v-for="index in 6" :key="index" class="h-[420px]" />
+      <Alert v-if="status === 'empty'" class="mb-4">
+        <AlertCircle class="h-4 w-4" />
+        <AlertTitle>Sem dados</AlertTitle>
+        <AlertDescription>Sem dados no periodo selecionado.</AlertDescription>
+      </Alert>
+
+      <div v-if="shouldShowSkeleton" class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Skeleton v-for="index in 6" :key="index" class="h-[420px]" />
+      </div>
+
+      <div v-else-if="riskData" class="space-y-4" :class="{ 'opacity-60': status === 'refreshing' }">
+        <Card v-for="group in chartGroups" :key="group.title">
+          <CardHeader>
+            <CardTitle>{{ group.title }}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <RiskHourlyChart
+                v-for="chart in group.charts"
+                :key="`${chart.data?.title}-${appliedFilters.today_date}`"
+                :type="chart.type"
+                :title="chart.data?.title"
+                :categories="chart.data?.x_axis || riskData?.hours || []"
+                :series="chart.data?.series || []"
+                :series-labels="seriesLabels"
+                :value-type="chart.valueType"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
 
-    <div v-else class="space-y-4" :class="{ 'opacity-60': status === 'refreshing' }">
-      <Card v-for="group in chartGroups" :key="group.title">
-        <CardHeader>
-          <CardTitle>{{ group.title }}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <RiskHourlyChart
-              v-for="chart in group.charts"
-              :key="chart.data?.title"
-              :type="chart.type"
-              :title="chart.data?.title"
-              :categories="chart.data?.x_axis || riskData?.hours || []"
-              :series="chart.data?.series || []"
-              :series-labels="seriesLabels"
-              :value-type="chart.valueType"
-            />
-          </div>
-        </CardContent>
-      </Card>
+    <div v-show="hasSmartico && activeTab === 'smartico'" class="space-y-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <Badge variant="outline">Fonte: Smartico (snapshots horários)</Badge>
+        <Badge v-if="smarticoData?.meta?.last_sync_at" variant="secondary">
+          Última sync: {{ smarticoData.meta.last_sync_at }}
+        </Badge>
+      </div>
+
+      <Alert v-if="smarticoStatus === 'error'" variant="destructive" class="mb-4">
+        <AlertCircle class="h-4 w-4" />
+        <AlertTitle>Erro ao carregar dados Smartico</AlertTitle>
+        <AlertDescription class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <span>{{ smarticoErrorMessage }}</span>
+          <Button size="sm" variant="outline" :disabled="isSmarticoBusy" @click="retryLastRequest">Tentar novamente</Button>
+        </AlertDescription>
+      </Alert>
+
+      <Alert v-if="smarticoStatus === 'empty'" class="mb-4">
+        <AlertCircle class="h-4 w-4" />
+        <AlertTitle>Sem dados</AlertTitle>
+        <AlertDescription>
+          Ainda não há snapshots horários para este período.
+        </AlertDescription>
+      </Alert>
+
+      <div v-if="shouldShowSmarticoSkeleton" class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Skeleton v-for="index in 6" :key="`smartico-${index}`" class="h-[420px]" />
+      </div>
+
+      <div v-else-if="smarticoData?.available" class="space-y-4" :class="{ 'opacity-60': smarticoStatus === 'refreshing' }">
+        <Card v-for="group in smarticoChartGroups" :key="group.title">
+          <CardHeader>
+            <CardTitle>{{ group.title }}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <RiskHourlyChart
+                  v-for="chart in group.charts"
+                  :key="`${chart.data?.title}-${appliedFilters.today_date}`"
+                  :type="chart.type"
+                  :title="chart.data?.title"
+                  :categories="chart.data?.x_axis || smarticoData?.hours || []"
+                  :series="chart.data?.series || []"
+                  :series-labels="seriesLabels"
+                  :value-type="chart.valueType"
+                />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   </div>
 </template>
