@@ -162,6 +162,7 @@
             :warnings="sectionWarnings('recurrence_policy')"
             :loading="stepLoading.recurrence_policy"
             :readonly="isReadonly"
+            :is-applicable="form.schedule.schedule_type === 'recurring'"
             :on-save="() => saveDraft('recurrence_policy')"
           />
           <CampaignWarmupStep

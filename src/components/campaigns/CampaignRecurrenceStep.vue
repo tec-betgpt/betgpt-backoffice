@@ -9,15 +9,19 @@
 
     <CampaignValidationList :errors="errors" :warnings="warnings" />
 
+    <p v-if="!isApplicable" class="text-sm text-muted-foreground">
+      Esta etapa fica editável quando o tipo de agendamento estiver como recorrente.
+    </p>
+
     <label class="flex items-center gap-3 rounded-md border p-3 text-sm">
-      <Switch v-model:checked="model.is_enabled" :disabled="readonly" />
+      <Switch v-model:checked="model.is_enabled" :disabled="readonly || !isApplicable" />
       Ativar recorrência
     </label>
 
     <div class="grid gap-4 md:grid-cols-3">
       <div class="space-y-2">
         <Label>Frequência</Label>
-        <select v-model="model.frequency" :disabled="readonly || !model.is_enabled" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+        <select v-model="model.frequency" :disabled="fieldsDisabled" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
           <option value="daily">Diária</option>
           <option value="weekly">Semanal</option>
           <option value="monthly">Mensal</option>
@@ -25,27 +29,27 @@
       </div>
       <div class="space-y-2">
         <Label>Intervalo</Label>
-        <Input v-model.number="model.interval" type="number" min="1" :disabled="readonly || !model.is_enabled" />
+        <Input v-model.number="model.interval" type="number" min="1" :disabled="fieldsDisabled" />
       </div>
       <div class="space-y-2">
         <Label>Máximo de ocorrências</Label>
-        <Input v-model.number="model.max_occurrences" type="number" min="1" :disabled="readonly || !model.is_enabled" />
+        <Input v-model.number="model.max_occurrences" type="number" min="1" :disabled="fieldsDisabled" />
       </div>
       <div class="space-y-2">
         <Label>Repetir até</Label>
-        <Input v-model="model.repeat_until" type="date" :disabled="readonly || !model.is_enabled" />
+        <Input v-model="model.repeat_until" type="date" :disabled="fieldsDisabled" />
       </div>
       <div class="space-y-2">
         <Label>Dias da semana</Label>
-        <Input v-model="daysOfWeekText" :disabled="readonly || !model.is_enabled" placeholder="1,2,3,4,5" @blur="commitDaysOfWeek" />
+        <Input v-model="daysOfWeekText" :disabled="fieldsDisabled" placeholder="1,2,3,4,5" @blur="commitDaysOfWeek" />
       </div>
       <div class="space-y-2">
         <Label>Dias do mês</Label>
-        <Input v-model="daysOfMonthText" :disabled="readonly || !model.is_enabled" placeholder="1,15,30" @blur="commitDaysOfMonth" />
+        <Input v-model="daysOfMonthText" :disabled="fieldsDisabled" placeholder="1,15,30" @blur="commitDaysOfMonth" />
       </div>
     </div>
 
-    <CampaignJsonField v-model="model.metadata" label="Metadata" :readonly="readonly || !model.is_enabled" />
+    <CampaignJsonField v-model="model.metadata" label="Metadata" :readonly="fieldsDisabled" />
 
     <Button v-if="onSave" variant="outline" :disabled="readonly || loading" @click="onSave">
       {{ loading ? "Salvando..." : "Salvar etapa" }}
@@ -54,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,17 +67,24 @@ import CampaignJsonField from "./CampaignJsonField.vue";
 import CampaignValidationList from "./CampaignValidationList.vue";
 import type { CampaignRecurrencePolicyPayload, CampaignValidationItem } from "@/contracts/campaigns";
 
-defineProps<{
-  errors?: CampaignValidationItem[];
-  warnings?: CampaignValidationItem[];
-  loading?: boolean;
-  readonly?: boolean;
-  onSave?: () => void | Promise<void>;
-}>();
-
 const model = defineModel<CampaignRecurrencePolicyPayload>({ required: true });
 const daysOfWeekText = ref("");
 const daysOfMonthText = ref("");
+const props = withDefaults(
+  defineProps<{
+    errors?: CampaignValidationItem[];
+    warnings?: CampaignValidationItem[];
+    loading?: boolean;
+    readonly?: boolean;
+    isApplicable?: boolean;
+    onSave?: () => void | Promise<void>;
+  }>(),
+  {
+    isApplicable: false,
+  },
+);
+
+const fieldsDisabled = computed(() => props.readonly || !props.isApplicable || !model.value.is_enabled);
 
 const serialize = (items?: number[]) => (items || []).join(",");
 const parseNumbers = (value: string) =>
@@ -94,6 +105,20 @@ watch(
   () => model.value.days_of_month,
   (value) => {
     daysOfMonthText.value = serialize(value);
+  },
+  { immediate: true },
+);
+
+watch(
+  () => props.isApplicable,
+  (isApplicable) => {
+    if (isApplicable && !model.value.is_enabled) {
+      model.value.is_enabled = true;
+    }
+
+    if (!isApplicable) {
+      model.value.is_enabled = false;
+    }
   },
   { immediate: true },
 );
