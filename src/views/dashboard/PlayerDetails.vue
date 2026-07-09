@@ -63,7 +63,7 @@
               </div>
               <div class="flex flex-col space-y-6">
                 <div class="space-y-1">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">UserID (Cometa)</p>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">EXTERNAL_ID</p>
                   <p class="text-sm font-medium">{{ player.external_id || 'Não informado' }}</p>
                 </div>
                 <div class="space-y-1">

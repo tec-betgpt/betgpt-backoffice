@@ -16,6 +16,7 @@ export interface Player {
   cpf: string | null
   external_id: string | null
   referrer_id: string | null
+  identity_project_id?: number | null
   referrer_player?: {
     id: number
     name: string | null
