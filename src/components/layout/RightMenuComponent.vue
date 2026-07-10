@@ -668,6 +668,9 @@ watch(() => iaAnaliseStore.error, (errorMessage) => {
 })
 
 watch(() => iaAnaliseStore.isLoading, async (newVal, oldVal) => {
+  if (oldVal === false && newVal === true) {
+    analysisErrorMessage.value = "";
+  }
   if (oldVal === true && newVal === false && iaAnaliseStore.chatId) {
     selectedChatId.value = parseInt(iaAnaliseStore.chatId);
     localStorage.setItem("chatId", iaAnaliseStore.chatId);
