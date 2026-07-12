@@ -120,6 +120,19 @@ export default {
   async export(params = {}) {
     const { data } = await api.get('/target-audiences/export', { params: params })
     return data
+  },
+
+  /**
+   * GET /v1/target-audiences/list
+   *
+   * @param {object} params
+   * @param {string} params.filter_id
+   * @param {Array<string>} params.search
+   * @param {boolean} params.is_segment
+   */
+  async list (params = {}): Promise<{ id: number; name: string} []> {
+    const { data } = await api.get('/target-audiences/list', { params })
+    return data
   }
 }
   
