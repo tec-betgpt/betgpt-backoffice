@@ -1,5 +1,6 @@
 import type {
   LinkCreatePayload,
+  LinkDestination,
   LinkDetailsResponse,
   LinkListItem,
   LinkUtmObject,
@@ -10,6 +11,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 
 export const SELECT_ALL_VALUE = "__all__";
 export const SELECT_NONE_VALUE = "__none__";
+export const MAX_DESTINATIONS = 3;
 
 export interface UtmGroup {
   utm_source: string;
@@ -17,6 +19,12 @@ export interface UtmGroup {
   utm_campaign: string;
   utm_content: string;
   utm_term: string;
+}
+
+export interface DestinationState {
+  url: string;
+  weight: string;
+  variant_key: string;
 }
 
 export interface LinkFormState {
@@ -27,20 +35,10 @@ export interface LinkFormState {
   type: string;
   fallback_url: string;
   reason: string;
-  destination: {
-    url: string;
-    backup_url: string;
-    weight: string;
-    variant_key: string;
-    status: string;
-    is_healthy: boolean;
-  };
+  destinations: DestinationState[];
   utm: UtmGroup;
   preserve_original: boolean;
   channel: string;
-  campaign_utm: UtmGroup;
-  channel_utm: UtmGroup;
-  workspace_utm: UtmGroup;
   system_fallback: string;
   context: string;
   snapshot_at: string;
@@ -55,6 +53,10 @@ function defaultUtmGroup(): UtmGroup {
   return { utm_source: "", utm_medium: "", utm_campaign: "", utm_content: "", utm_term: "" };
 }
 
+function defaultDestination(): DestinationState {
+  return { url: "", weight: "100", variant_key: "" };
+}
+
 export function createDefaultForm(): LinkFormState {
   return {
     project_id: getActiveProjectId(),
@@ -64,20 +66,10 @@ export function createDefaultForm(): LinkFormState {
     type: SELECT_NONE_VALUE,
     fallback_url: "",
     reason: "",
-    destination: {
-      url: "",
-      backup_url: "",
-      weight: "",
-      variant_key: "",
-      status: SELECT_NONE_VALUE,
-      is_healthy: true,
-    },
+    destinations: [defaultDestination()],
     utm: defaultUtmGroup(),
     preserve_original: false,
     channel: SELECT_NONE_VALUE,
-    campaign_utm: defaultUtmGroup(),
-    channel_utm: defaultUtmGroup(),
-    workspace_utm: defaultUtmGroup(),
     system_fallback: "",
     context: "",
     snapshot_at: "",
@@ -103,8 +95,14 @@ export function validateForm(form: LinkFormState) {
     errors.code = "Informe o código do link.";
   }
 
-  if (!form.destination.url.trim()) {
-    errors["destination.url"] = "Informe a URL de destino.";
+  const filledDestinations = form.destinations.filter((d) => d.url.trim());
+  if (filledDestinations.length === 0) {
+    errors["destinations.0.url"] = "Informe ao menos uma URL de destino.";
+  }
+
+  const totalWeight = form.destinations.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
+  if (totalWeight !== 100) {
+    errors["destinations.weight"] = `A soma dos pesos deve ser 100 (atual: ${totalWeight}).`;
   }
 
   return errors;
@@ -132,19 +130,15 @@ export function sanitizePayload(form: LinkFormState) {
     preserve_original: form.preserve_original,
     channel: denormalizeSelectValue(form.channel),
     utm: buildUtmPayload(form.utm),
-    campaign_utm: buildUtmPayload(form.campaign_utm),
-    channel_utm: buildUtmPayload(form.channel_utm),
-    workspace_utm: buildUtmPayload(form.workspace_utm),
     system_fallback: form.system_fallback || null,
     snapshot_at: form.snapshot_at || null,
-    destination: {
-      url: form.destination.url.trim(),
-      backup_url: form.destination.backup_url || null,
-      weight: form.destination.weight === "" ? null : Number(form.destination.weight),
-      variant_key: form.destination.variant_key || null,
-      status: denormalizeSelectValue(form.destination.status),
-      is_healthy: form.destination.is_healthy,
-    },
+    destinations: form.destinations
+      .filter((d) => d.url.trim())
+      .map((d) => ({
+        url: d.url.trim(),
+        weight: d.weight === "" ? null : Number(d.weight),
+        variant_key: d.variant_key || null,
+      })),
   };
 
   return Object.fromEntries(
@@ -202,14 +196,25 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
   form.type = normalizeSelectValue(link.type);
   form.fallback_url = link.fallback_url || "";
   form.reason = String(link.reason || "");
-  form.destination.url = destinationUrl === "—" ? "" : destinationUrl;
-  form.destination.backup_url = link.destination?.backup_url || "";
-  form.destination.weight = link.destination?.weight !== null && link.destination?.weight !== undefined
-    ? String(link.destination.weight)
-    : "";
-  form.destination.variant_key = link.destination?.variant_key || "";
-  form.destination.status = normalizeSelectValue(link.destination?.status || null);
-  form.destination.is_healthy = Boolean(link.destination?.is_healthy ?? true);
+
+  const linkDests = (link as LinkDetailsResponse).destinations as LinkDestination[] | undefined
+    || (link as LinkDetailsResponse).last_version?.destinations;
+  if (linkDests && linkDests.length > 0) {
+    form.destinations = linkDests.map((d) => ({
+      url: d.url || "",
+      weight: d.weight !== null && d.weight !== undefined ? String(d.weight) : "",
+      variant_key: d.variant_key || "",
+    }));
+    if (form.destinations.length === 0) form.destinations.push(defaultDestination());
+  } else {
+    form.destinations = [{
+      url: destinationUrl === "—" ? "" : destinationUrl,
+      weight: link.destination?.weight !== null && link.destination?.weight !== undefined
+        ? String(link.destination.weight)
+        : "",
+      variant_key: link.destination?.variant_key || "",
+    }];
+  }
   Object.assign(form.utm, parseUtmObject(snapshot?.utm ?? link.utm ?? null));
   if (!form.utm.utm_source) form.utm.utm_source = String(snapshot?.utm_source ?? link.utm_source ?? "");
   if (!form.utm.utm_medium) form.utm.utm_medium = String(snapshot?.utm_medium ?? link.utm_medium ?? "");
@@ -227,9 +232,7 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
     || link.channel
     || null,
   );
-  Object.assign(form.campaign_utm, parseUtmObject(snapshot?.campaign_utm ?? link.campaign_utm ?? null));
-  Object.assign(form.channel_utm, parseUtmObject(snapshot?.channel_utm ?? link.channel_utm ?? null));
-  Object.assign(form.workspace_utm, parseUtmObject(snapshot?.workspace_utm ?? link.workspace_utm ?? null));
+
   form.system_fallback = String(snapshot?.system_fallback ?? link.system_fallback ?? "");
   form.context = snapshotContext ? JSON.stringify(snapshotContext, null, 2) : String(link.context || "");
   form.snapshot_at = String(
@@ -241,7 +244,27 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
 }
 
 export function getDestinationUrl(link: LinkListItem | LinkDetailsResponse) {
-  return link.destination?.url || link.versions?.[0]?.destination?.url || "—";
+  return link.destination?.url
+    || link.versions?.[0]?.destination?.url
+    || (link as LinkDetailsResponse).last_version?.destinations?.[0]?.url
+    || "—";
+}
+
+export function addDestination(destinations: DestinationState[]) {
+  if (destinations.length >= MAX_DESTINATIONS) return;
+  destinations.push(defaultDestination());
+}
+
+export function removeDestination(destinations: DestinationState[], index: number) {
+  if (destinations.length <= 1) return;
+  destinations.splice(index, 1);
+  const totalWeight = destinations.reduce((sum, d) => sum + (Number(d.weight) || 0), 0);
+  if (totalWeight === 0) {
+    const even = Math.floor(100 / destinations.length);
+    destinations.forEach((d, i) => {
+      d.weight = String(i < destinations.length - 1 ? even : 100 - even * (destinations.length - 1));
+    });
+  }
 }
 
 export function getLatestUtmSnapshot(link: LinkListItem | LinkDetailsResponse): LinkUtmSnapshot | null {

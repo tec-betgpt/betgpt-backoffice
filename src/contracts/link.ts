@@ -47,6 +47,7 @@ export interface LinkVersion {
   id?: number;
   created_at?: string | null;
   destination?: LinkDestination | null;
+  destinations?: LinkDestination[];
   utmSnapshots?: LinkUtmSnapshot[];
   utm_snapshots?: LinkUtmSnapshot[];
   [key: string]: unknown;
@@ -86,11 +87,13 @@ export interface LinkListItem {
   system_fallback?: string | null;
   context?: string | null;
   snapshot_at?: string | null;
+  short_url:string;
   [key: string]: unknown;
 }
 
 export interface LinkDetailsResponse extends LinkListItem {
-  versions: LinkVersion[];
+  last_version: LinkVersion;
+  versions?: LinkVersion[];
   utmSnapshots: LinkUtmSnapshot[];
   utm_snapshots?: LinkUtmSnapshot[];
 }
@@ -135,6 +138,7 @@ export interface LinkFormPayloadBase {
   fallback_url?: string | null;
   reason?: string | null;
   destination?: LinkDestination;
+  destinations?: LinkDestination[];
   utm?: LinkUtmObject | null;
   utm_source?: string | null;
   utm_medium?: string | null;
@@ -152,7 +156,7 @@ export interface LinkFormPayloadBase {
   archived_at?: string | null;
 }
 
-export type LinkCreatePayload = Required<Pick<LinkFormPayloadBase, "project_id" | "code" | "destination">> & LinkFormPayloadBase;
+export type LinkCreatePayload = Required<Pick<LinkFormPayloadBase, "project_id" | "code" | "destinations">> & LinkFormPayloadBase;
 export type LinkUpdatePayload = LinkFormPayloadBase;
 export type LinkArchiveResponse = LinkDetailsResponse;
 
@@ -184,6 +188,4 @@ export const LINK_TYPE_OPTIONS = [
   { label: "Campanha", value: "campaign" },
   { label: "Afiliado", value: "affiliate" },
   { label: "Indicação", value: "referral" },
-  { label: "Experimento A/B", value: "ab_experiment" },
-  { label: "Divisão ponderada", value: "split" },
 ];

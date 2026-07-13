@@ -78,8 +78,8 @@
             <TableHeader>
               <TableRow>
                 <TableHead>Código</TableHead>
+                <TableHead>Encurtador</TableHead>
                 <TableHead>Slug</TableHead>
-                <TableHead>Projeto</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Destino</TableHead>
@@ -99,8 +99,9 @@
               </TableRow>
               <TableRow v-for="link in links" :key="link.id">
                 <TableCell class="font-medium">{{ link.code }}</TableCell>
+                <TableCell class="font-medium">{{ link.short_url }}</TableCell>
+
                 <TableCell>{{ link.slug || "—" }}</TableCell>
-                <TableCell>{{ link.project?.name || `#${link.project_id}` }}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{{ link.status || "—" }}</Badge>
                 </TableCell>
@@ -159,26 +160,38 @@
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Versões</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Última versão</CardTitle></CardHeader>
             <CardContent class="space-y-3">
-              <div v-if="selectedLinkDetails.versions?.length === 0" class="text-sm text-muted-foreground">Nenhuma versão retornada.</div>
-              <div v-for="version in selectedLinkDetails.versions" :key="version.id" class="rounded-lg border p-4 space-y-2">
-                <div class="flex items-center justify-between gap-3">
-                  <Badge variant="outline">Versão {{ version.id || "—" }}</Badge>
-                  <span class="text-xs text-muted-foreground">{{ version.created_at || "Sem data" }}</span>
+              <template v-if="selectedLinkDetails.last_version">
+                <div class="rounded-lg border p-4 space-y-2">
+                  <div class="flex items-center justify-between gap-3">
+                    <Badge variant="outline">Versão {{ selectedLinkDetails.last_version.id || "—" }}</Badge>
+                    <span class="text-xs text-muted-foreground">{{ selectedLinkDetails.last_version.created_at || "Sem data" }}</span>
+                  </div>
+                  <div v-for="dest in selectedLinkDetails.last_version.destinations" :key="dest.id" class="border-t pt-2 mt-2 first:border-t-0 first:pt-0 first:mt-0">
+                    <div class="text-sm"><span class="font-medium">URL:</span> {{ dest.url || "—" }}</div>
+                    <div class="text-sm"><span class="font-medium">Peso:</span> {{ dest.weight ?? "—" }}</div>
+                    <div class="text-sm"><span class="font-medium">Status:</span> {{ dest.status || "—" }}</div>
+                  </div>
                 </div>
-                <div class="text-sm"><span class="font-medium">Destino:</span> {{ version.destination?.url || "—" }}</div>
-                <div class="text-sm"><span class="font-medium">Status:</span> {{ version.destination?.status || "—" }}</div>
-              </div>
+              </template>
+              <div v-else class="text-sm text-muted-foreground">Nenhuma versão retornada.</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle>UTM Snapshots</CardTitle></CardHeader>
             <CardContent class="space-y-3">
-              <div v-if="selectedLinkDetails.utmSnapshots?.length === 0" class="text-sm text-muted-foreground">Nenhum snapshot retornado.</div>
-              <div v-for="snapshot in selectedLinkDetails.utmSnapshots" :key="snapshot.id || snapshot.snapshot_at || JSON.stringify(snapshot)" class="rounded-lg border p-4">
-                <pre class="whitespace-pre-wrap break-all text-xs">{{ JSON.stringify(snapshot, null, 2) }}</pre>
+              <div v-if="snapshots.length === 0" class="text-sm text-muted-foreground">Nenhum snapshot retornado.</div>
+              <div v-for="snapshot in snapshots" :key="snapshot.id || snapshot.snapshot_at || JSON.stringify(snapshot)" class="rounded-lg border p-4 space-y-1">
+                <div class="text-sm"><span class="font-medium">UTM Source:</span> {{ snapshot.utm_source || "—" }}</div>
+                <div class="text-sm"><span class="font-medium">UTM Medium:</span> {{ snapshot.utm_medium || "—" }}</div>
+                <div class="text-sm"><span class="font-medium">UTM Campaign:</span> {{ snapshot.utm_campaign || "—" }}</div>
+                <div class="text-sm"><span class="font-medium">UTM Content:</span> {{ snapshot.utm_content || "—" }}</div>
+                <div class="text-sm"><span class="font-medium">UTM Term:</span> {{ snapshot.utm_term || "—" }}</div>
+                <div class="text-sm pt-1 border-t" v-if="snapshot.context">
+                  <span class="font-medium">Channel:</span> {{ snapshot.context.channel || "—" }}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -206,7 +219,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { toast } from "@/components/ui/toast";
 import linksService from "@/services/links";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -268,6 +281,11 @@ const isDetailsOpen = ref(false);
 const isArchiveDialogOpen = ref(false);
 const selectedLinkDetails = ref<LinkDetailsResponse | null>(null);
 const selectedLinkForArchive = ref<LinkListItem | null>(null);
+
+const snapshots = computed(() => [
+  ...(selectedLinkDetails.value?.utmSnapshots ?? []),
+  ...(selectedLinkDetails.value?.utm_snapshots ?? []),
+]);
 const editingLinkId = ref<number | null>(null);
 
 const filters = reactive({
