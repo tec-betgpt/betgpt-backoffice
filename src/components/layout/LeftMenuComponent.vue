@@ -343,6 +343,7 @@ import {
   Settings2,
   Link2,
   MessageSquareText,
+  Megaphone,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -582,7 +583,12 @@ const navMenu = computed(() => {
       name: "Gestão",
       icon: BadgeCheck,
       type: "updates",
-      show: canAccess("access-to-dashboard"),
+      show:
+        canAccess("access-to-dashboard") ||
+        canAccess("access-to-users") ||
+        hasRole("member-proprietor") ||
+        hasRole("member-admin") ||
+        hasRole("member-developer"),
       children: [
         {
           name: "Marcos",
@@ -595,7 +601,54 @@ const navMenu = computed(() => {
           url: { name: "risk" },
           icon: ShieldAlert,
           show: canAccess("access-to-reports"),
-        }
+        },
+        {
+          name: "Usuários",
+          url: { name: "users" },
+          icon: Users2,
+          show: canAccess("access-to-users"),
+        },
+        {
+          name: "Acessos",
+          url: { name: "user-logins" },
+          icon: History,
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            hasRole("member-developer"),
+        },
+        {
+          name: "Controlador IA",
+          url: { name: "ai-controller" },
+          icon: SlidersHorizontal,
+          show: hasRole("member-proprietor") || hasRole("member-developer"),
+        },
+      ],
+    },
+    {
+      name: "Marketing",
+      icon: Megaphone,
+      type: "marketing",
+      show: canAccess("access-to-marketing"),
+      children: [
+        {
+          name: "Campanhas",
+          url: { name: "campaign-drafts.index" },
+          icon: MessageSquareText,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Links",
+          url: { name: "links" },
+          icon: Link2,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Link Engine",
+          url: { name: "link-engine" },
+          icon: ChartArea,
+          show: canAccess("access-to-marketing"),
+        },
       ],
     },
     {
@@ -606,12 +659,6 @@ const navMenu = computed(() => {
         canAccess("access-to-client-governance") ||
         canAccess("access-to-member-governance"),
       children: [
-        {
-          name: "Usuários",
-          url: { name: "users" },
-          icon: Users2,
-          show: canAccess("access-to-users"),
-        },
         {
           name: "Perfis",
           url: { name: "roles" },
@@ -655,21 +702,9 @@ const navMenu = computed(() => {
             canAccess("access-to-motivational-texts"),
         },
         {
-          name: "Acessos",
-          url: { name: "user-logins" },
-          icon: History,
-          show: hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer"),
-        },
-        {
           name: "Insights IA",
           url: { name: "insightIA" },
           icon: Bot,
-          show: hasRole("member-proprietor") || hasRole("member-developer"),
-        },
-        {
-          name: "Controlador IA",
-          url: { name: "ai-controller" },
-          icon: SlidersHorizontal,
           show: hasRole("member-proprietor") || hasRole("member-developer"),
         },
         {
@@ -677,28 +712,10 @@ const navMenu = computed(() => {
           url: { name: "webhook-logs" },
           icon: Webhook,
           show:
-            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) &&
+            (hasRole("member-proprietor") ||
+              hasRole("member-admin") ||
+              hasRole("member-developer")) &&
             canAccess("access-to-webhook-logs"),
-        },
-        {
-          name: "Links",
-          url: { name: "links" },
-          icon: Link2,
-          show:
-            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer"))     },
-        {
-          name: "Link Engine",
-          url: { name: "link-engine" },
-          icon: ChartArea,
-          show:
-            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer")) 
-        },
-        {
-          name: "Campanhas",
-          url: { name: "campaign-drafts.index" },
-          icon: MessageSquareText,
-          show:
-            (hasRole("member-proprietor") || hasRole("member-admin") || hasRole("member-developer"))
         },
       ],
     },
