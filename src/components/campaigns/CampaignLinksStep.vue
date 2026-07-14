@@ -11,7 +11,6 @@
 
     <div class="flex flex-wrap gap-2">
       <Button variant="outline" :disabled="readonly" @click="addLink()">Adicionar link</Button>
-      <Button variant="ghost" :disabled="readonly || detectedLinks.length === 0" @click="syncDetectedLinks()">Importar detectados</Button>
     </div>
 
     <div v-if="model.length === 0" class="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
@@ -30,7 +29,21 @@
         </div>
         <div class="space-y-2">
           <Label>Link Engine ID</Label>
-          <Input v-model.number="link.link_id" type="number" min="1" :disabled="readonly" />
+          <Select
+            :model-value="link.link_id == null ? SELECT_NONE_VALUE : String(link.link_id)"
+            :disabled="readonly || loadingLinks"
+            @update:model-value="value => setLinkId(link, value)"
+          >
+            <SelectTrigger>
+              <SelectValue :placeholder="loadingLinks ? 'Carregando links...' : 'Selecione um link'" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem :value="SELECT_NONE_VALUE">Sem link</SelectItem>
+              <SelectItem v-for="option in linkOptions" :key="option.id" :value="String(option.id)">
+                {{ option.slug }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div class="space-y-2">
           <Label>Placeholder</Label>
@@ -63,13 +76,30 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, ref } from "vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import CampaignJsonField from "./CampaignJsonField.vue";
 import CampaignValidationList from "./CampaignValidationList.vue";
 import type { CampaignLinkPayload, CampaignValidationItem } from "@/contracts/campaigns";
+import LinkService from "@/services/links";
+import {useWorkspaceStore} from "@/stores/workspace";
+
+const SELECT_NONE_VALUE = "__none__";
+
+type LinkOption = {
+  id: number;
+  slug: string;
+};
 
 const props = withDefaults(
   defineProps<{
@@ -86,6 +116,8 @@ const props = withDefaults(
 );
 
 const model = defineModel<CampaignLinkPayload[]>({ required: true });
+const linkOptions = ref<LinkOption[]>([]);
+const loadingLinks = ref(false);
 
 const addLink = (originalUrl = "") => {
   model.value.push({
@@ -103,11 +135,25 @@ const removeLink = (index: number) => {
   model.value.splice(index, 1);
 };
 
-const syncDetectedLinks = () => {
-  props.detectedLinks.forEach((url) => {
-    if (!model.value.some((item) => item.original_url === url)) {
-      addLink(url);
-    }
-  });
+const setLinkId = (link: CampaignLinkPayload, value?: string) => {
+  link.link_id = !value || value === SELECT_NONE_VALUE ? null : Number(value);
 };
+
+const loadLinkOptions = async () => {
+  loadingLinks.value = true;
+
+  try {
+    const filter_id = useWorkspaceStore().activeGroupProject!.id
+    linkOptions.value = await LinkService.list({ filter_id });
+  } catch (error) {
+    console.error("Erro ao carregar links", error);
+    linkOptions.value = [];
+  } finally {
+    loadingLinks.value = false;
+  }
+};
+
+onMounted(() => {
+  void loadLinkOptions();
+});
 </script>
