@@ -152,13 +152,7 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-between rounded-md border p-3">
-            <div>
-              <p class="font-medium">Preservar URL original</p>
-              <p class="text-sm text-muted-foreground">Envia `preserve_original` quando ativado.</p>
-            </div>
-            <Switch v-model:checked="form.preserve_original" />
-          </div>
+       
         </div>
 
         <DialogFooter>
