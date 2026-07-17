@@ -240,7 +240,7 @@
                   variant="outline"
                   @click="navigateSms('next')"
                   :disabled="
-                    currentSmsIndex === campaigns.length - 1 ||
+                    currentSmsIndex === currentTemplateItems.length - 1 ||
                     loadingSmsTemplate
                   "
                 >
@@ -249,8 +249,12 @@
                 </Button>
               </div>
 
-              <Button variant="outline" @click="showSmsTemplateModal = false">
-                Fechar
+              <Button
+                v-if="selectedSmsCampaign?.reference && hasMemberAccess"
+                variant="secondary"
+                @click="editTemplateModal(selectedSmsCampaign)"
+              >
+                Editar Template
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -279,190 +283,190 @@
           :glossary="meta['clicks'] || 'Dados de Cliques'"
         />
       </div>
-
-      <!-- Tabela de Campanhas -->
-      <Card class="w-full mt-4">
-        <CardHeader>
-          <CardTitle>Campanhas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CustomDataTable
-            :data="campaigns"
-            :columns="filteredCampaignColumns"
-            :loading="loading"
-            :update-text="setSearchCampaigns"
-            :find="applyCampaignFilter"
-            :result="campaignsStats"
-            :footer="true"
-            :head="totalCampaigns"
-            :formatters="formatters"
-            :search-fields="[
-              {
-                key: 'name',
-                placeholder: 'Buscar por nome da campanha...',
-                label: 'Titulo da campanha',
-              },
-              {
-                key: 'body',
-                placeholder: 'Buscar por conteúdo da campanha...',
-                label: 'Conteúdo da campanha',
-              },
-            ]"
-          />
-        </CardContent>
-        <CardFooter class="py-4 w-full">
-          <CustomPagination
-            :pages="{
-              current: campaignPages.current,
-              last: campaignPages.last,
-              total: campaignPages.total,
-            }"
-            :select-page="applyCampaignFilter"
-            :per_pages="campaignPerPage"
-            @update:perPages="(args) => (campaignPerPage = args)"
-          />
-        </CardFooter>
-      </Card>
-
-      <!-- Tabela de Broadcasts -->
-      <Card class="w-full mt-4">
-        <CardHeader>
-          <CardTitle>Broadcasts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CustomDataTable
-            :data="broadcasts"
-            :columns="filteredBroadcastColumns"
-            :loading="loading"
-            :update-text="setSearchBroadcasts"
-            :find="applyBroadcastFilter"
-            :result="broadcastsStats"
-            :footer="true"
-            :head="totalBroadcasts"
-            :formatters="formatters"
-            :search-fields="[
-              {
-                key: 'name',
-                placeholder: 'Buscar por nome do broadcast...',
-                label: 'Titulo do broadcast',
-              },
-              {
-                key: 'body',
-                label: 'Conteúdo do broadcast',
-                placeholder: 'Buscar por conteúdo do broadcast...',
-              },
-              {
-                key: 'last_send_date',
-                type: 'date-range',
-                placeholder: 'Filtrar por última data de envio',
-              },
-            ]"
-          />
-        </CardContent>
-        <CardFooter class="py-4 w-full">
-          <CustomPagination
-            :pages="{
-              current: broadcastPages.current,
-              last: broadcastPages.last,
-              total: broadcastPages.total,
-            }"
-            :select-page="applyBroadcastFilter"
-            :per_pages="broadcastPerPage"
-            @update:perPages="(args) => (broadcastPerPage = args)"
-          />
-        </CardFooter>
-      </Card>
-
-      <Card v-if="canViewRecharges" class="w-full mt-4">
-        <CardHeader>
-          <CardTitle>Recargas</CardTitle>
-        </CardHeader>
-
-        <Separator />
-
-        <CardContent>
-          <Table class="min-w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Serviço</TableHead>
-                <TableHead class="text-right">Créditos</TableHead>
-                <TableHead class="text-right">Preço</TableHead>
-                <TableHead class="text-right">Valor</TableHead>
-                <TableHead class="text-right">Situação</TableHead>
-                <TableHead class="text-right">Nota Fiscal</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <template v-if="loading">
-                <TableRow v-for="n in 5" :key="`loading-${n}`">
-                  <TableCell v-for="j in 8" :key="j">
-                    <Skeleton class="h-4 w-full bg-gray-300" />
-                  </TableCell>
-                </TableRow>
-              </template>
-
-              <template v-else>
-                <TableRow class="font-bold">
-                  <TableCell colspan="3"></TableCell>
-                  <TableCell class="text-right">{{
-                    rechargesTotal.credits
-                  }}</TableCell>
-                  <TableCell class="text-right">{{
-                    $toCurrency(rechargesTotal.price)
-                  }}</TableCell>
-                  <TableCell class="text-right">{{
-                    $toCurrency(rechargesTotal.total)
-                  }}</TableCell>
-                  <TableCell class="text-right" colspan="2"></TableCell>
-                </TableRow>
-                <TableRow v-for="(recharge, index) in recharges" :key="index">
-                  <TableCell>{{
-                    recharge.created_at
-                      ? $moment(recharge.created_at).format(
-                          "DD/MM/YYYY HH:mm:ss",
-                        )
-                      : ""
-                  }}</TableCell>
-                  <TableCell>{{ recharge.description }}</TableCell>
-                  <TableCell>{{ recharge.service }}</TableCell>
-                  <TableCell class="text-right">{{
-                    recharge.credits
-                  }}</TableCell>
-                  <TableCell
-                    class="text-right"
-                    :title="'R$ ' + recharge.total / recharge.credits"
-                    >{{ $toCurrency(recharge.price) }}</TableCell
-                  >
-                  <TableCell class="text-right">{{
-                    $toCurrency(recharge.total)
-                  }}</TableCell>
-                  <TableCell class="text-right">
-                    <span
-                      class="text-green-600"
-                      v-if="recharge.situation == 'APPROVED'"
-                      >Confirmado</span
-                    >
-                    <span class="text-red-600" v-else>Pendente</span>
-                  </TableCell>
-                  <TableCell class="text-right">
-                    <Button
-                      v-if="recharge.invoice_url"
-                      variant="outline"
-                      @click="redirectToInvoiceUrl(recharge.invoice_url)"
-                    >
-                      <Download class="w-4 h-4" />
-                    </Button>
-                    <span v-else>-</span>
-                  </TableCell>
-                </TableRow>
-              </template>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </div>
+
+    <!-- Tabelas ficam montadas para preservar os campos de busca -->
+    <Card class="w-full mt-4">
+      <CardHeader>
+        <CardTitle>Campanhas</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <CustomDataTable
+          :data="campaigns"
+          :columns="filteredCampaignColumns"
+          :loading="loading || loadingCampaigns"
+          :update-text="setSearchCampaigns"
+          :find="applyCampaignFilter"
+          :result="campaignsStats"
+          :footer="true"
+          :head="totalCampaigns"
+          :formatters="formatters"
+          :search-fields="[
+            {
+              key: 'name',
+              placeholder: 'Buscar por nome da campanha...',
+              label: 'Titulo da campanha',
+            },
+            {
+              key: 'body',
+              placeholder: 'Buscar por conteúdo da campanha...',
+              label: 'Conteúdo da campanha',
+            },
+          ]"
+        />
+      </CardContent>
+      <CardFooter class="py-4 w-full">
+        <CustomPagination
+          :pages="{
+            current: campaignPages.current,
+            last: campaignPages.last,
+            total: campaignPages.total,
+          }"
+          :select-page="applyCampaignFilter"
+          :per_pages="campaignPerPage"
+          @update:perPages="(args) => (campaignPerPage = args)"
+        />
+      </CardFooter>
+    </Card>
+
+    <Card class="w-full mt-4">
+      <CardHeader>
+        <CardTitle>Broadcasts</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <CustomDataTable
+          :data="broadcasts"
+          :columns="filteredBroadcastColumns"
+          :loading="loading || loadingBroadcasts"
+          :update-text="setSearchBroadcasts"
+          :find="applyBroadcastFilter"
+          :result="broadcastsStats"
+          :footer="true"
+          :head="totalBroadcasts"
+          :formatters="formatters"
+          :search-fields="[
+            {
+              key: 'name',
+              placeholder: 'Buscar por nome do broadcast...',
+              label: 'Titulo do broadcast',
+            },
+            {
+              key: 'body',
+              label: 'Conteúdo do broadcast',
+              placeholder: 'Buscar por conteúdo do broadcast...',
+            },
+            {
+              key: 'last_send_date',
+              type: 'date-range',
+              label: 'Data do último envio',
+              placeholder: 'Filtrar por última data de envio',
+            },
+          ]"
+        />
+      </CardContent>
+      <CardFooter class="py-4 w-full">
+        <CustomPagination
+          :pages="{
+            current: broadcastPages.current,
+            last: broadcastPages.last,
+            total: broadcastPages.total,
+          }"
+          :select-page="applyBroadcastFilter"
+          :per_pages="broadcastPerPage"
+          @update:perPages="(args) => (broadcastPerPage = args)"
+        />
+      </CardFooter>
+    </Card>
+
+    <Card v-if="canViewRecharges" class="w-full mt-4">
+      <CardHeader>
+        <CardTitle>Recargas</CardTitle>
+      </CardHeader>
+
+      <Separator />
+
+      <CardContent>
+        <Table class="min-w-full">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Data</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Serviço</TableHead>
+              <TableHead class="text-right">Créditos</TableHead>
+              <TableHead class="text-right">Preço</TableHead>
+              <TableHead class="text-right">Valor</TableHead>
+              <TableHead class="text-right">Situação</TableHead>
+              <TableHead class="text-right">Nota Fiscal</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <template v-if="loading">
+              <TableRow v-for="n in 5" :key="`loading-${n}`">
+                <TableCell v-for="j in 8" :key="j">
+                  <Skeleton class="h-4 w-full bg-gray-300" />
+                </TableCell>
+              </TableRow>
+            </template>
+
+            <template v-else>
+              <TableRow class="font-bold">
+                <TableCell colspan="3"></TableCell>
+                <TableCell class="text-right">{{
+                  rechargesTotal.credits
+                }}</TableCell>
+                <TableCell class="text-right">{{
+                  $toCurrency(rechargesTotal.price)
+                }}</TableCell>
+                <TableCell class="text-right">{{
+                  $toCurrency(rechargesTotal.total)
+                }}</TableCell>
+                <TableCell class="text-right" colspan="2"></TableCell>
+              </TableRow>
+              <TableRow v-for="(recharge, index) in recharges" :key="index">
+                <TableCell>{{
+                  recharge.created_at
+                    ? $moment(recharge.created_at).format(
+                        "DD/MM/YYYY HH:mm:ss",
+                      )
+                    : ""
+                }}</TableCell>
+                <TableCell>{{ recharge.description }}</TableCell>
+                <TableCell>{{ recharge.service }}</TableCell>
+                <TableCell class="text-right">{{
+                  recharge.credits
+                }}</TableCell>
+                <TableCell
+                  class="text-right"
+                  :title="'R$ ' + recharge.total / recharge.credits"
+                  >{{ $toCurrency(recharge.price) }}</TableCell
+                >
+                <TableCell class="text-right">{{
+                  $toCurrency(recharge.total)
+                }}</TableCell>
+                <TableCell class="text-right">
+                  <span
+                    class="text-green-600"
+                    v-if="recharge.situation == 'APPROVED'"
+                    >Confirmado</span
+                  >
+                  <span class="text-red-600" v-else>Pendente</span>
+                </TableCell>
+                <TableCell class="text-right">
+                  <Button
+                    v-if="recharge.invoice_url"
+                    variant="outline"
+                    @click="redirectToInvoiceUrl(recharge.invoice_url)"
+                  >
+                    <Download class="w-4 h-4" />
+                  </Button>
+                  <span v-else>-</span>
+                </TableCell>
+              </TableRow>
+            </template>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   </div>
 </template>
 
@@ -553,7 +557,12 @@ const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 
 const loading = ref(true);
-const last = ref<any>([]);
+const loadingCampaigns = ref(false);
+const loadingBroadcasts = ref(false);
+const last = ref<any>({
+  sms: { contracted: 0, sent: 0, available: 0 },
+  whatsapp: { contracted: 0, sent: 0, available: 0 },
+});
 const daily = ref<any>([]);
 const sms = ref<{ name: string; value: number[] }[]>([]);
 const clicks = ref<{ name: string; value: number[] }[]>([]);
@@ -610,6 +619,15 @@ const navigateSms = async (direction: "prev" | "next") => {
 
   currentSmsIndex.value = newIndex;
   selectedSmsCampaign.value = currentTemplateItems.value[newIndex];
+};
+
+const editTemplateModal = (selectedCampaign: any) => {
+  if (!selectedCampaign?.reference) return;
+
+  window.open(
+    `https://app2.smsfunnel.com.br/#/campaigns/edit/${selectedCampaign.reference}`,
+    "_blank",
+  );
 };
 
 const campaignOrderId = ref();
@@ -701,20 +719,58 @@ const setSearchBroadcasts = (values: Record<string, string>) => {
   localBroadcastSearch.value = values;
 };
 
-const applyCampaignFilter = async (page = campaignPages.value.current) => {
+const normalizeTableSearch = (values: Record<string, string>) => {
+  const normalized: Record<string, string> = {};
+
+  Object.entries(values).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
+
+    const match = key.match(/^search\[\d+\]\[([^\]]+)\]$/);
+    if (match) {
+      normalized[match[1]] = value;
+      return;
+    }
+
+    normalized[key] = value;
+  });
+
+  return Object.keys(normalized).length > 0 ? [normalized] : [];
+};
+
+const applyCampaignFilter = async (page?: number) => {
   searchCampaignValues.value = { ...localCampaignSearch.value };
-  campaignPages.value.current = page;
-  await loadData();
+  campaignPages.value.current = page ?? 1;
+  await loadData("campaigns");
 };
 
-const applyBroadcastFilter = async (page = broadcastPages.value.current) => {
+const applyBroadcastFilter = async (page?: number) => {
   searchBroadcastValues.value = { ...localBroadcastSearch.value };
-  broadcastPages.value.current = page;
-  await loadData();
+  broadcastPages.value.current = page ?? 1;
+  await loadData("broadcasts");
 };
 
-const loadData = async () => {
-  loading.value = true;
+const mapTableRows = (rows: any[] = []) =>
+  rows.map((row: any) => ({
+    ...row,
+    ctr:
+      row.sms && row.clicks
+        ? ((row.clicks / row.sms) * 100).toFixed(2)
+        : "0.00",
+  }));
+
+const loadData = async (
+  section: "all" | "campaigns" | "broadcasts" = "all",
+) => {
+  const isFullLoad = section === "all";
+
+  if (isFullLoad) {
+    loading.value = true;
+  } else if (section === "campaigns") {
+    loadingCampaigns.value = true;
+  } else {
+    loadingBroadcasts.value = true;
+  }
+
   if (!workspaceStore.activeGroupProject?.id) {
     toast({
       title: "Erro",
@@ -722,53 +778,62 @@ const loadData = async () => {
       variant: "destructive",
     });
     loading.value = false;
+    loadingCampaigns.value = false;
+    loadingBroadcasts.value = false;
     return;
   }
 
   try {
-    const searchParams = {
+    const searchParams: Record<string, any> = {
       start_date: selectedRange.value.start?.toString(),
       end_date: selectedRange.value.end?.toString(),
       filter_id: workspaceStore.activeGroupProject.id,
-
-      campaign_page: campaignPages.value.current,
-      campaign_per_page: campaignPerPage.value,
-      campaign_order_by: campaignOrderId.value,
-      campaign_type_order: campaignOrder.value ? "asc" : "desc",
-      campaign_search:
-        Object.keys(searchCampaignValues.value).length > 0
-          ? [searchCampaignValues.value]
-          : [],
-
-      broadcast_page: broadcastPages.value.current,
-      broadcast_per_page: broadcastPerPage.value,
-      broadcast_order_by: broadcastOrderId.value,
-      broadcast_type_order: broadcastOrder.value ? "asc" : "desc",
-      broadcast_search:
-        Object.keys(searchBroadcastValues.value).length > 0
-          ? [searchBroadcastValues.value]
-          : [],
+      section,
     };
+
+    if (section === "all" || section === "campaigns") {
+      searchParams.campaign_page = campaignPages.value.current;
+      searchParams.campaign_per_page = campaignPerPage.value;
+      searchParams.campaign_order_by = campaignOrderId.value;
+      searchParams.campaign_type_order = campaignOrder.value ? "asc" : "desc";
+      searchParams.campaign_search = normalizeTableSearch(
+        searchCampaignValues.value,
+      );
+    }
+
+    if (section === "all" || section === "broadcasts") {
+      searchParams.broadcast_page = broadcastPages.value.current;
+      searchParams.broadcast_per_page = broadcastPerPage.value;
+      searchParams.broadcast_order_by = broadcastOrderId.value;
+      searchParams.broadcast_type_order = broadcastOrder.value
+        ? "asc"
+        : "desc";
+      searchParams.broadcast_search = normalizeTableSearch(
+        searchBroadcastValues.value,
+      );
+    }
 
     const { data } = await SmsFunnel.index(searchParams);
 
-    last.value = data.last;
-    daily.value = data.daily;
-    sms.value = [{ name: "Total SMS Enviado", value: data.daily.sms }];
-    clicks.value = [{ name: "Total Cliques", value: data.daily.clicks }];
-    canViewRecharges.value = Boolean(data.permissions?.view_recharges);
-    recharges.value = canViewRecharges.value ? data.recharges ?? [] : [];
-    meta.value = data.meta || {};
-    totals.value = data.totals ?? {
-      clicks_total: 0,
-      ctr_total: 0,
-    };
+    if (data.permissions) {
+      canViewRecharges.value = Boolean(data.permissions.view_recharges);
+    }
+
+    if (isFullLoad) {
+      last.value = data.last;
+      daily.value = data.daily;
+      sms.value = [{ name: "Total SMS Enviado", value: data.daily.sms }];
+      clicks.value = [{ name: "Total Cliques", value: data.daily.clicks }];
+      recharges.value = canViewRecharges.value ? data.recharges ?? [] : [];
+      meta.value = data.meta || {};
+      totals.value = data.totals ?? {
+        clicks_total: 0,
+        ctr_total: 0,
+      };
+    }
 
     if (data.campaigns) {
-      campaigns.value = data.campaigns.data.map((c: any) => ({
-        ...c,
-        ctr: c.sms && c.clicks ? ((c.clicks / c.sms) * 100).toFixed(2) : "0.00",
-      }));
+      campaigns.value = mapTableRows(data.campaigns.data);
       totalCampaigns.value = data.campaigns.total;
       campaignPages.value = {
         current: data.campaigns.pagination.current_page,
@@ -778,10 +843,7 @@ const loadData = async () => {
     }
 
     if (data.broadcasts) {
-      broadcasts.value = data.broadcasts.data.map((b: any) => ({
-        ...b,
-        ctr: b.sms && b.clicks ? ((b.clicks / b.sms) * 100).toFixed(2) : "0.00",
-      }));
+      broadcasts.value = mapTableRows(data.broadcasts.data);
       totalBroadcasts.value = data.broadcasts.total;
       broadcastPages.value = {
         current: data.broadcasts.pagination.current_page,
@@ -796,7 +858,14 @@ const loadData = async () => {
       variant: "destructive",
     });
   }
-  loading.value = false;
+
+  if (isFullLoad) {
+    loading.value = false;
+  } else if (section === "campaigns") {
+    loadingCampaigns.value = false;
+  } else {
+    loadingBroadcasts.value = false;
+  }
 };
 
 function createHeaderButton(
@@ -818,12 +887,14 @@ function createHeaderButton(
           campaignOrderId.value = columnKey;
           campaignOrder.value = !campaignOrder.value;
           campaignPages.value.current = 1;
-        } else {
-          broadcastOrderId.value = columnKey;
-          broadcastOrder.value = !broadcastOrder.value;
-          broadcastPages.value.current = 1;
+          await loadData("campaigns");
+          return;
         }
-        await loadData();
+
+        broadcastOrderId.value = columnKey;
+        broadcastOrder.value = !broadcastOrder.value;
+        broadcastPages.value.current = 1;
+        await loadData("broadcasts");
       },
       class: "h-fit text-pretty my-1 w-full justify-end",
     },
@@ -996,18 +1067,18 @@ const filteredBroadcastColumns = computed(() => {
 
 watch(campaignPerPage, () => {
   campaignPages.value.current = 1;
-  loadData();
+  loadData("campaigns");
 });
 
 watch(broadcastPerPage, () => {
   broadcastPages.value.current = 1;
-  loadData();
+  loadData("broadcasts");
 });
 
 watch(selectedRange, () => {
   campaignPages.value.current = 1;
   broadcastPages.value.current = 1;
-  loadData();
+  loadData("all");
 });
 
 useScreenContext(
