@@ -154,6 +154,13 @@
                 </TableCell>
                 <TableCell>
                   <div class="flex justify-end gap-2">
+                    <Button
+                      v-if="item.status !== 'draft' && item.status !== 'validation_failed'"
+                      size="sm"
+                      @click="openCampaignDetail(item)"
+                    >
+                      Disparos
+                    </Button>
                     <Button variant="outline" size="sm" @click="openCampaign(item)">
                       {{ item.status === "draft" ? "Editar" : "Abrir" }}
                     </Button>
@@ -353,6 +360,10 @@ function updatePerPage(value: string) {
 
 function openCampaign(item: CampaignListItem) {
   router.push({ name: "campaign-drafts.edit", params: { id: item.id } });
+}
+
+function openCampaignDetail(item: CampaignListItem) {
+  router.push({ name: "campaign-drafts.show", params: { id: item.id } });
 }
 
 function openDeleteDialog(item: CampaignListItem) {

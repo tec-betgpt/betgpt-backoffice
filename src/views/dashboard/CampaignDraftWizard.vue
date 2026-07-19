@@ -28,6 +28,20 @@
           {{ isValidating ? "Validando..." : "Validar configuração" }}
         </Button>
         <Button
+          v-if="canLaunch"
+          :disabled="isLaunching || isDirty"
+          @click="isLaunchDialogOpen = true"
+        >
+          {{ isLaunching ? "Disparando..." : "Validar e disparar" }}
+        </Button>
+        <Button
+          v-if="campaign?.id && !canLaunch && campaign.status !== 'draft'"
+          variant="outline"
+          @click="router.push({ name: 'campaign-drafts.show', params: { id: campaign.id } })"
+        >
+          Acompanhar disparo
+        </Button>
+        <Button
           v-if="canDelete"
           variant="destructive"
           :disabled="isDeleting"
@@ -204,6 +218,29 @@
       </div>
     </div>
 
+    <AlertDialog :open="isLaunchDialogOpen" @update:open="isLaunchDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Disparar campanha</AlertDialogTitle>
+          <AlertDialogDescription>
+            A campanha <strong>{{ campaign?.name }}</strong> será validada e enviada para o pipeline de disparo via SMS Funnel.
+            <span v-if="campaignEstimate">
+              Estimativa: <strong>{{ campaignEstimate.audience.estimated_recipients }}</strong> destinatário(s),
+              <strong>{{ campaignEstimate.message.estimated_sms_segments }}</strong> segmento(s) de SMS<template v-if="campaignEstimate.financial.estimated_cost !== null">,
+              custo estimado de <strong>{{ formatCurrency(campaignEstimate.financial.estimated_cost) }}</strong></template>.
+            </span>
+            Esta ação não pode ser desfeita após o início do envio.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction :disabled="isLaunching" @click="confirmLaunch">
+            {{ isLaunching ? "Disparando..." : "Confirmar disparo" }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <AlertDialog :open="isDeleteDialogOpen" @update:open="isDeleteDialogOpen = $event">
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -258,6 +295,7 @@ import {
   deleteCampaign,
   estimateCampaign,
   getCampaign,
+  launchCampaign,
   updateCampaign,
   validateCampaign,
 } from "@/services/campaigns";
@@ -331,8 +369,10 @@ const isSaving = ref(false);
 const isValidating = ref(false);
 const isEstimating = ref(false);
 const isDeleting = ref(false);
+const isLaunching = ref(false);
 const isInitialLoading = ref(false);
 const isDeleteDialogOpen = ref(false);
+const isLaunchDialogOpen = ref(false);
 const errorMessage = ref("");
 const estimateErrorMessage = ref("");
 const suppressDirty = ref(false);
@@ -385,6 +425,12 @@ const progressSummary = computed(() => {
 });
 const isReadonly = computed(() => Boolean(campaign.value && campaign.value.status !== "draft"));
 const canDelete = computed(() => Boolean(campaign.value?.id && campaign.value.status === "draft"));
+const canLaunch = computed(() =>
+  Boolean(
+    campaign.value?.id &&
+      ["draft", "validation_failed", "validated"].includes(campaign.value.status),
+  ),
+);
 const statusLabel = computed(() => CAMPAIGN_STATUS_LABELS[(campaign.value?.status || "draft") as CampaignStatus]);
 
 watch(
@@ -603,6 +649,47 @@ async function runValidation() {
   } finally {
     isValidating.value = false;
   }
+}
+
+async function confirmLaunch() {
+  if (!campaign.value?.id) return;
+
+  isLaunching.value = true;
+  errorMessage.value = "";
+
+  try {
+    await launchCampaign(campaign.value.id);
+    toast({ title: "Campanha enviada para disparo." });
+    isLaunchDialogOpen.value = false;
+    await router.push({ name: "campaign-drafts.show", params: { id: campaign.value.id } });
+  } catch (error) {
+    isLaunchDialogOpen.value = false;
+
+    if (isHttpLikeError(error) && error.response?.status === 422) {
+      const data = error.response.data as {
+        message?: string;
+        data?: CampaignValidationResponse;
+      };
+
+      if (data?.data?.errors) {
+        validationResult.value = data.data;
+        validationErrors.value = data.data.errors || {};
+        validationWarnings.value = data.data.warnings || {};
+        configurationProgress.value = data.data.configuration_progress || configurationProgress.value;
+      }
+
+      errorMessage.value = data?.message || "A campanha possui erros de configuração e não pode ser disparada.";
+      return;
+    }
+
+    handleHttpError(error);
+  } finally {
+    isLaunching.value = false;
+  }
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
 async function confirmDelete() {

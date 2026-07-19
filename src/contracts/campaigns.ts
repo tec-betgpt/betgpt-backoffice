@@ -432,6 +432,74 @@ export type CampaignApiResponse<T> = {
   data?: T;
 };
 
+export type CampaignDispatchStatus =
+  | "pending"
+  | "preparing"
+  | "ready"
+  | "sending"
+  | "completed"
+  | "completed_with_errors"
+  | "cancelled"
+  | "failed";
+
+export type CampaignProviderBroadcast = {
+  id: number;
+  campaign_dispatch_id: number;
+  provider: string;
+  external_broadcast_id: string;
+  idempotency_key: string | null;
+  status: string | null;
+  messages_count: number;
+  metrics: { sent?: number; failed?: number; total?: number } | null;
+  synced_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CampaignDispatch = {
+  id: number;
+  uuid: string;
+  campaign_id: number;
+  occurrence_key: string;
+  status: CampaignDispatchStatus;
+  scheduled_for: string | null;
+  total_recipients: number;
+  sent_count: number;
+  delivered_count: number;
+  failed_count: number;
+  skipped_count: number;
+  prepared_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+  provider_broadcasts?: CampaignProviderBroadcast[];
+};
+
+export type CampaignDispatchesResponse = {
+  campaign_id: number;
+  status: CampaignStatus;
+  dispatches: CampaignDispatch[];
+};
+
+export type CampaignLaunchResponse = {
+  campaign: CampaignDetail;
+  dispatch: CampaignDispatch;
+  validation: CampaignValidationResponse;
+};
+
+export const CAMPAIGN_DISPATCH_STATUS_LABELS: Record<CampaignDispatchStatus, string> = {
+  pending: "Pendente",
+  preparing: "Preparando público",
+  ready: "Pronto para envio",
+  sending: "Enviando",
+  completed: "Concluído",
+  completed_with_errors: "Concluído com erros",
+  cancelled: "Cancelado",
+  failed: "Falhou",
+};
+
 export type CampaignFormState = {
   name: string;
   description: string | null;
