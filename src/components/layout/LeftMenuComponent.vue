@@ -570,6 +570,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-webhooks"),
         },
         {
+          name: "Preferências do Projeto",
+          url: { name: "project-preferences" },
+          icon: Settings2,
+          show: canAccess("access-to-integrations"),
+        },
+        {
           name: "Preferências GA",
           url: { name: "ga-preferences" },
           icon: Settings2,

@@ -1,5 +1,26 @@
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
+    <div v-if="slugLoading" class="space-y-4">
+      <Skeleton class="h-8 w-48" />
+      <Skeleton class="h-4 w-96" />
+    </div>
+
+    <div v-else-if="!hasSlug" class="flex flex-col items-center justify-center py-20 space-y-6">
+      <AlertCircle class="h-16 w-16 text-muted-foreground" />
+      <div class="text-center space-y-2">
+        <h2 class="text-2xl font-bold">Slug não configurado</h2>
+        <p class="text-muted-foreground max-w-md">
+          Para acessar a tela de Links, é necessário configurar um slug para o projeto.
+          O slug é um identificador amigável usado em outras partes do sistema.
+        </p>
+      </div>
+      <Button @click="router.push({ name: 'project-preferences' })">
+        <Settings2 class="h-4 w-4 mr-2" />
+        Configurar Slug
+      </Button>
+    </div>
+
+    <template v-else>
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <h2 class="text-2xl font-bold tracking-tight">Links</h2>
@@ -215,6 +236,7 @@
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  </template>
   </div>
 </template>
 
@@ -222,15 +244,19 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { toast } from "@/components/ui/toast";
 import linksService from "@/services/links";
+import ProjectPreferencesService from "@/services/projectPreferences";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useRouter } from "vue-router";
 import CreateDialogComponent from "@/components/links/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/links/EditDialogComponent.vue";
+import { AlertCircle, Settings2 } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -271,6 +297,25 @@ import {
 import { getDestinationUrl, SELECT_ALL_VALUE } from "@/components/links/linkForm";
 
 const workspaceStore = useWorkspaceStore();
+const router = useRouter();
+
+const slugLoading = ref(true);
+const hasSlug = ref(false);
+
+const projectIdNumber = computed(() => Number(workspaceStore.activeGroupProject?.project_id));
+
+const checkSlug = async () => {
+  slugLoading.value = true;
+  try {
+    const response = await ProjectPreferencesService.show(projectIdNumber.value);
+    hasSlug.value = !!(response?.data?.slug?.trim());
+  } catch {
+    hasSlug.value = false;
+  } finally {
+    slugLoading.value = false;
+  }
+};
+
 const links = ref<LinkListItem[]>([]);
 const isLoading = ref(false);
 const isLoadingDetails = ref(false);
@@ -392,12 +437,18 @@ async function confirmArchive() {
 
 watch(
   () => workspaceStore.activeGroupProject?.id,
-  () => {
-    fetchLinks(1);
+  async () => {
+    await checkSlug();
+    if (hasSlug.value) {
+      await fetchLinks(1);
+    }
   },
 );
 
 onMounted(async () => {
-  await fetchLinks(1);
+  await checkSlug();
+  if (hasSlug.value) {
+    await fetchLinks(1);
+  }
 });
 </script>
