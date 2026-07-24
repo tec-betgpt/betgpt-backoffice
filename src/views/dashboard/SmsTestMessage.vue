@@ -44,10 +44,12 @@
             </div>
           </div>
 
-          <div v-if="hasMeuLink" class="space-y-2">
-            <Label>URL do {meu_link}</Label>
+          <div class="space-y-2">
+            <Label>Link</Label>
             <Input v-model="url" placeholder="https://exemplo.com/promo" :disabled="isSending" />
-            <p class="text-xs text-muted-foreground">Obrigatória quando a mensagem contém a variável {meu_link}.</p>
+            <p class="text-xs text-muted-foreground">
+              Opcional. Para usar o encurtador, inclua <code>{meu_link}</code> no texto da mensagem e informe a URL aqui.
+            </p>
           </div>
 
           <div class="flex justify-end">
@@ -60,10 +62,12 @@
 
       <Card>
         <CardHeader>
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between gap-3">
             <div>
               <CardTitle>Mensagens enviadas</CardTitle>
-              <CardDescription>Status atualizado automaticamente a cada 10 segundos.</CardDescription>
+              <CardDescription>
+                Status consultado pelo broadcast_id do envio. Atualiza a cada 10 segundos.
+              </CardDescription>
             </div>
             <Button
               v-if="sentMessages.length"
@@ -85,8 +89,8 @@
               <TableRow>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Enviada em</TableHead>
-                <TableHead>Entregue em</TableHead>
+                <TableHead>Broadcast</TableHead>
+                <TableHead>Atualizado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -97,8 +101,10 @@
                     {{ SMS_MESSAGE_STATUS_LABELS[item.status] || item.status }}
                   </Badge>
                 </TableCell>
-                <TableCell>{{ formatDateTime(item.sent_at) }}</TableCell>
-                <TableCell>{{ formatDateTime(item.delivered_at) }}</TableCell>
+                <TableCell class="font-mono text-xs text-muted-foreground">
+                  {{ item.broadcast_status || "—" }}
+                </TableCell>
+                <TableCell>{{ formatDateTime(item.updated_at) }}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -126,17 +132,24 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
-import { SMS_MESSAGE_STATUS_LABELS, type SmsMessageStatus } from "@/contracts/smsProvider";
-import { getTestMessage, sendTestMessage } from "@/services/smsProvider";
+import {
+  SMS_MESSAGE_STATUS_LABELS,
+  type SmsBroadcastStatus,
+  type SmsMessageStatus,
+} from "@/contracts/smsProvider";
+import { getSmsBroadcast, listSmsBroadcastContacts, sendTestMessage } from "@/services/smsProvider";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 type SentMessage = {
   id: string;
+  broadcast_id: string;
   phone: string;
   status: SmsMessageStatus;
-  sent_at: string | null;
-  delivered_at: string | null;
+  broadcast_status: SmsBroadcastStatus | string | null;
+  updated_at: string | null;
 };
+
+const FINAL_MESSAGE_STATUSES: SmsMessageStatus[] = ["delivered", "failed", "undelivered"];
 
 const workspaceStore = useWorkspaceStore();
 const phonesInput = ref("");
@@ -152,7 +165,13 @@ const hasMeuLink = computed(() => message.value.includes("{meu_link}"));
 const segmentsCount = computed(() => Math.max(Math.ceil(message.value.length / 160), 1));
 const canSend = computed(() => {
   const phones = parsePhones();
-  return phones.length > 0 && message.value.trim().length > 0 && (!hasMeuLink.value || url.value.trim().length > 0);
+  const hasPhonesAndMessage = phones.length > 0 && message.value.trim().length > 0;
+
+  if (!hasPhonesAndMessage) return false;
+  if (hasMeuLink.value && !url.value.trim()) return false;
+  if (url.value.trim() && !hasMeuLink.value) return false;
+
+  return true;
 });
 
 function requireFilterId(): string | null {
@@ -184,13 +203,23 @@ function parsePhones(): string[] {
 }
 
 function hasPendingStatuses() {
-  return sentMessages.value.some((item) => item.status === "queued" || item.status === "sent");
+  return sentMessages.value.some((item) => !FINAL_MESSAGE_STATUSES.includes(item.status));
 }
 
 async function send() {
   errorMessage.value = "";
   const filter_id = requireFilterId();
   if (!filter_id) return;
+
+  if (url.value.trim() && !hasMeuLink.value) {
+    errorMessage.value = "Para usar o Link, inclua {meu_link} no texto da mensagem.";
+    return;
+  }
+
+  if (hasMeuLink.value && !url.value.trim()) {
+    errorMessage.value = "Informe o Link quando a mensagem contém {meu_link}.";
+    return;
+  }
 
   isSending.value = true;
 
@@ -202,16 +231,24 @@ async function send() {
       url: hasMeuLink.value ? url.value.trim() : undefined,
     });
 
+    const broadcastId = response.broadcast_id;
+    const now = new Date().toISOString();
+
     const items: SentMessage[] = (response.messages || []).map((item) => ({
       id: item.id,
+      broadcast_id: broadcastId,
       phone: item.phone,
       status: item.status,
-      sent_at: null,
-      delivered_at: null,
+      broadcast_status: "pending",
+      updated_at: now,
     }));
 
     sentMessages.value = [...items, ...sentMessages.value];
     toast({ title: `Mensagem de teste enviada para ${items.length} telefone(s).` });
+
+    if (broadcastId) {
+      await refreshBroadcast(broadcastId, filter_id);
+    }
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível enviar a mensagem de teste.");
   } finally {
@@ -228,24 +265,56 @@ async function refreshStatuses(showLoading = true) {
   if (showLoading) isRefreshing.value = true;
 
   try {
-    const pending = sentMessages.value.filter((item) => item.status === "queued" || item.status === "sent");
-    const updates = await Promise.allSettled(pending.map((item) => getTestMessage(item.id, { filter_id })));
+    const pendingBroadcastIds = [
+      ...new Set(
+        sentMessages.value
+          .filter((item) => !FINAL_MESSAGE_STATUSES.includes(item.status))
+          .map((item) => item.broadcast_id)
+          .filter(Boolean),
+      ),
+    ];
 
-    updates.forEach((result) => {
-      if (result.status !== "fulfilled" || !result.value) return;
-
-      const index = sentMessages.value.findIndex((item) => item.id === result.value.id);
-      if (index >= 0) {
-        sentMessages.value[index] = {
-          ...sentMessages.value[index],
-          status: result.value.status,
-          sent_at: result.value.sent_at,
-          delivered_at: result.value.delivered_at,
-        };
-      }
-    });
+    await Promise.allSettled(pendingBroadcastIds.map((broadcastId) => refreshBroadcast(broadcastId, filter_id)));
   } finally {
     isRefreshing.value = false;
+  }
+}
+
+async function refreshBroadcast(broadcastId: string, filter_id: string) {
+  const [broadcastResult, contactsResult] = await Promise.allSettled([
+    getSmsBroadcast(broadcastId, { filter_id }),
+    listSmsBroadcastContacts(broadcastId, { filter_id, per_page: 100, page: 1 }),
+  ]);
+
+  const now = new Date().toISOString();
+  const broadcastStatus =
+    broadcastResult.status === "fulfilled" ? broadcastResult.value.status : null;
+
+  if (contactsResult.status === "fulfilled") {
+    const contacts = contactsResult.value.data || [];
+
+    for (const contact of contacts) {
+      const index = sentMessages.value.findIndex(
+        (item) => item.id === contact.id || (item.broadcast_id === broadcastId && item.phone === contact.phone),
+      );
+
+      if (index < 0) continue;
+
+      sentMessages.value[index] = {
+        ...sentMessages.value[index],
+        status: contact.cancelled ? "failed" : contact.status,
+        broadcast_status: broadcastStatus ?? sentMessages.value[index].broadcast_status,
+        updated_at: now,
+      };
+    }
+  }
+
+  if (broadcastStatus) {
+    sentMessages.value = sentMessages.value.map((item) =>
+      item.broadcast_id === broadcastId
+        ? { ...item, broadcast_status: broadcastStatus, updated_at: item.updated_at || now }
+        : item,
+    );
   }
 }
 

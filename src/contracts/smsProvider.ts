@@ -33,6 +33,7 @@ export type SmsBroadcastStatus =
   | "sending"
   | "sent"
   | "sent_with_errors"
+  | "completed"
   | "cancelled"
   | "sanitizing"
   | "importing";
@@ -187,6 +188,7 @@ export const SMS_BROADCAST_STATUS_LABELS: Record<SmsBroadcastStatus, string> = {
   sending: "Enviando",
   sent: "Enviado",
   sent_with_errors: "Enviado com erros",
+  completed: "Concluído",
   cancelled: "Cancelado",
   sanitizing: "Sanitizando",
   importing: "Importando",
