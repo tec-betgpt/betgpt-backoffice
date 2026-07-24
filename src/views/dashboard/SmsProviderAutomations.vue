@@ -325,6 +325,7 @@ import {
   updateSmsCampaign,
   updateSmsSequence,
 } from "@/services/smsProvider";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 type SequenceForm = {
   interval: number;
@@ -333,6 +334,7 @@ type SequenceForm = {
   url: string;
 };
 
+const workspaceStore = useWorkspaceStore();
 const campaigns = ref<SmsProviderCampaign[]>([]);
 const sequences = ref<SmsSequence[]>([]);
 const intervalTypes = ref<SmsIntervalType[]>(SMS_INTERVAL_TYPE_FALLBACK);
@@ -353,10 +355,22 @@ const formListId = ref("");
 const formSequences = ref<SequenceForm[]>([]);
 const newSequence = reactive<SequenceForm>(createSequenceForm());
 
+function requireFilterId(): string | null {
+  const id = workspaceStore.activeGroupProject?.id;
+  if (!id) {
+    errorMessage.value = "Selecione um projeto no workspace para operar o SMS Funnel.";
+    return null;
+  }
+  return id;
+}
+
 onMounted(async () => {
   await fetchCampaigns(1);
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   try {
-    const types = await listSmsIntervalTypes();
+    const types = await listSmsIntervalTypes({ filter_id });
     if (Array.isArray(types) && types.length > 0) {
       intervalTypes.value = types;
     }
@@ -373,8 +387,15 @@ async function fetchCampaigns(targetPage = 1) {
   isLoading.value = true;
   errorMessage.value = "";
 
+  const filter_id = requireFilterId();
+  if (!filter_id) {
+    isLoading.value = false;
+    campaigns.value = [];
+    return;
+  }
+
   try {
-    const response = await listSmsCampaigns({ per_page: 20, page: targetPage });
+    const response = await listSmsCampaigns({ filter_id, per_page: 20, page: targetPage });
     campaigns.value = response.data || [];
     page.value = response.current_page || targetPage;
     hasNextPage.value = Boolean(response.next_page_url);
@@ -401,6 +422,12 @@ async function saveCampaign() {
   isSaving.value = true;
   errorMessage.value = "";
 
+  const filter_id = requireFilterId();
+  if (!filter_id) {
+    isSaving.value = false;
+    return;
+  }
+
   try {
     const sequencesPayload = formSequences.value
       .filter((sequence) => sequence.text.trim())
@@ -413,6 +440,7 @@ async function saveCampaign() {
       }));
 
     await createSmsCampaign({
+      filter_id,
       name: formName.value.trim(),
       active: true,
       lead_list_id: formListId.value.trim() || undefined,
@@ -433,8 +461,14 @@ async function toggleActive(item: SmsProviderCampaign) {
   isSaving.value = true;
   errorMessage.value = "";
 
+  const filter_id = requireFilterId();
+  if (!filter_id) {
+    isSaving.value = false;
+    return;
+  }
+
   try {
-    await updateSmsCampaign(item.id, { active: !item.active });
+    await updateSmsCampaign(item.id, { filter_id, active: !item.active });
     toast({ title: item.active ? "Automação desativada." : "Automação ativada." });
     await fetchCampaigns(page.value);
   } catch (error) {
@@ -455,8 +489,14 @@ async function confirmDelete() {
   isSaving.value = true;
   errorMessage.value = "";
 
+  const filter_id = requireFilterId();
+  if (!filter_id) {
+    isSaving.value = false;
+    return;
+  }
+
   try {
-    await deleteSmsCampaign(selectedCampaign.value.id);
+    await deleteSmsCampaign(selectedCampaign.value.id, { filter_id });
     toast({ title: "Automação excluída." });
     isDeleteDialogOpen.value = false;
     await fetchCampaigns(1);
@@ -478,10 +518,13 @@ async function openSequences(item: SmsProviderCampaign) {
 async function fetchSequences() {
   if (!selectedCampaign.value) return;
 
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   isLoadingSequences.value = true;
 
   try {
-    sequences.value = await listSmsSequences(selectedCampaign.value.id);
+    sequences.value = await listSmsSequences(selectedCampaign.value.id, { filter_id });
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível carregar as sequências.");
     sequences.value = [];
@@ -493,11 +536,15 @@ async function fetchSequences() {
 async function submitSequence() {
   if (!selectedCampaign.value) return;
 
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   isSaving.value = true;
   errorMessage.value = "";
 
   try {
     await createSmsSequence(selectedCampaign.value.id, {
+      filter_id,
       interval: newSequence.interval || 1,
       interval_type_id: Number(newSequence.interval_type_id),
       text: newSequence.text,
@@ -515,11 +562,14 @@ async function submitSequence() {
 }
 
 async function toggleSequence(sequence: SmsSequence) {
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   isSaving.value = true;
   errorMessage.value = "";
 
   try {
-    await updateSmsSequence(sequence.id, { active: !sequence.active });
+    await updateSmsSequence(sequence.id, { filter_id, active: !sequence.active });
     await fetchSequences();
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível atualizar a sequência.");
@@ -529,11 +579,14 @@ async function toggleSequence(sequence: SmsSequence) {
 }
 
 async function removeSequence(sequence: SmsSequence) {
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   isSaving.value = true;
   errorMessage.value = "";
 
   try {
-    await deleteSmsSequence(sequence.id);
+    await deleteSmsSequence(sequence.id, { filter_id });
     toast({ title: "Sequência excluída." });
     await fetchSequences();
   } catch (error) {

@@ -271,9 +271,11 @@ import {
   listSmsBroadcastContacts,
   listSmsBroadcasts,
 } from "@/services/smsProvider";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 const SELECT_ALL_VALUE = "__all__";
 
+const workspaceStore = useWorkspaceStore();
 const broadcasts = ref<SmsBroadcast[]>([]);
 const contacts = ref<SmsBroadcastContact[]>([]);
 const selectedBroadcast = ref<SmsBroadcast | null>(null);
@@ -295,14 +297,31 @@ const filters = reactive({
   text: "",
 });
 
+function requireFilterId(): string | null {
+  const id = workspaceStore.activeGroupProject?.id;
+  if (!id) {
+    errorMessage.value = "Selecione um projeto no workspace para operar o SMS Funnel.";
+    return null;
+  }
+  return id;
+}
+
 onMounted(() => fetchBroadcasts(1));
 
 async function fetchBroadcasts(targetPage = 1) {
   isLoading.value = true;
   errorMessage.value = "";
 
+  const filter_id = requireFilterId();
+  if (!filter_id) {
+    isLoading.value = false;
+    broadcasts.value = [];
+    return;
+  }
+
   try {
     const response = await listSmsBroadcasts({
+      filter_id,
       status: filters.status === SELECT_ALL_VALUE ? null : filters.status,
       start_date: filters.start_date || null,
       end_date: filters.end_date || null,
@@ -335,10 +354,13 @@ async function openDetail(item: SmsBroadcast) {
   contactsPhoneFilter.value = "";
   isDetailOpen.value = true;
 
-  try {
-    selectedBroadcast.value = await getSmsBroadcast(item.id);
-  } catch {
-    // mantém os dados da listagem
+  const filter_id = requireFilterId();
+  if (filter_id) {
+    try {
+      selectedBroadcast.value = await getSmsBroadcast(item.id, { filter_id });
+    } catch {
+      // mantém os dados da listagem
+    }
   }
 
   await fetchContacts(1);
@@ -347,10 +369,14 @@ async function openDetail(item: SmsBroadcast) {
 async function fetchContacts(targetPage = 1) {
   if (!selectedBroadcast.value) return;
 
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   isLoadingContacts.value = true;
 
   try {
     const response = await listSmsBroadcastContacts(selectedBroadcast.value.id, {
+      filter_id,
       phone: contactsPhoneFilter.value.trim() || null,
       per_page: 20,
       page: targetPage,
@@ -371,8 +397,14 @@ async function cancelBroadcast(item: SmsBroadcast) {
   isSaving.value = true;
   errorMessage.value = "";
 
+  const filter_id = requireFilterId();
+  if (!filter_id) {
+    isSaving.value = false;
+    return;
+  }
+
   try {
-    await cancelSmsBroadcast(item.id);
+    await cancelSmsBroadcast(item.id, { filter_id });
     toast({ title: "Broadcast cancelado (mensagens pendentes não serão enviadas)." });
     await fetchBroadcasts(page.value);
   } catch (error) {

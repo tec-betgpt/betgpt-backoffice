@@ -245,7 +245,9 @@ import {
   removeSmsLead,
   updateSmsList,
 } from "@/services/smsProvider";
+import { useWorkspaceStore } from "@/stores/workspace";
 
+const workspaceStore = useWorkspaceStore();
 const lists = ref<SmsList[]>([]);
 const leads = ref<SmsLead[]>([]);
 const isLoading = ref(false);
@@ -267,12 +269,28 @@ const leadsInput = ref("");
 
 onMounted(() => fetchLists(1));
 
+function requireFilterId(): string | null {
+  const id = workspaceStore.activeGroupProject?.id;
+  if (!id) {
+    errorMessage.value = "Selecione um projeto no workspace para operar o SMS Funnel.";
+    return null;
+  }
+  return id;
+}
+
 async function fetchLists(targetPage = 1) {
   isLoading.value = true;
   errorMessage.value = "";
 
+  const filter_id = requireFilterId();
+  if (!filter_id) {
+    isLoading.value = false;
+    lists.value = [];
+    return;
+  }
+
   try {
-    const response = await listSmsLists({ per_page: 20, page: targetPage });
+    const response = await listSmsLists({ filter_id, per_page: 20, page: targetPage });
     lists.value = response.data || [];
     page.value = response.current_page || targetPage;
     hasNextPage.value = Boolean(response.next_page_url);
@@ -300,12 +318,18 @@ async function saveList() {
   isSaving.value = true;
   errorMessage.value = "";
 
+  const filter_id = requireFilterId();
+  if (!filter_id) {
+    isSaving.value = false;
+    return;
+  }
+
   try {
     if (editingList.value) {
-      await updateSmsList(editingList.value.id, listName.value.trim());
+      await updateSmsList(editingList.value.id, listName.value.trim(), { filter_id });
       toast({ title: "Lista renomeada." });
     } else {
-      await createSmsList(listName.value.trim());
+      await createSmsList(listName.value.trim(), { filter_id });
       toast({ title: "Lista criada no SMS Funnel." });
     }
     isFormDialogOpen.value = false;
@@ -328,8 +352,14 @@ async function confirmDelete() {
   isSaving.value = true;
   errorMessage.value = "";
 
+  const filter_id = requireFilterId();
+  if (!filter_id) {
+    isSaving.value = false;
+    return;
+  }
+
   try {
-    await deleteSmsList(selectedList.value.id);
+    await deleteSmsList(selectedList.value.id, { filter_id });
     toast({ title: "Lista excluída." });
     isDeleteDialogOpen.value = false;
     await fetchLists(1);
@@ -354,10 +384,13 @@ async function openLeads(list: SmsList) {
 async function fetchLeads(targetPage = 1) {
   if (!selectedList.value) return;
 
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   isLoadingLeads.value = true;
 
   try {
-    const response = await listSmsLeads(selectedList.value.id, { per_page: 20, page: targetPage });
+    const response = await listSmsLeads(selectedList.value.id, { filter_id, per_page: 20, page: targetPage });
     leads.value = response.data || [];
     leadsPage.value = response.current_page || targetPage;
     hasNextLeadsPage.value = Boolean(response.next_page_url);
@@ -379,11 +412,14 @@ async function submitLeads() {
     return;
   }
 
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   isSaving.value = true;
   errorMessage.value = "";
 
   try {
-    const result = await addSmsLeads(selectedList.value.id, parsed);
+    const result = await addSmsLeads(selectedList.value.id, parsed, { filter_id });
     toast({
       title: `${result.accepted_count} lead(s) aceitos` +
         (result.blacklisted_count ? `, ${result.blacklisted_count} em blacklist.` : "."),
@@ -414,11 +450,14 @@ function parseLeadsInput(): SmsLeadPayload[] {
 async function removeLead(lead: SmsLead) {
   if (!selectedList.value) return;
 
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   isSaving.value = true;
   errorMessage.value = "";
 
   try {
-    await removeSmsLead(selectedList.value.id, lead.id);
+    await removeSmsLead(selectedList.value.id, lead.id, { filter_id });
     toast({ title: "Lead removido." });
     await fetchLeads(leadsPage.value);
   } catch (error) {

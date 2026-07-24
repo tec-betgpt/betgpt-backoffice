@@ -128,6 +128,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { SMS_MESSAGE_STATUS_LABELS, type SmsMessageStatus } from "@/contracts/smsProvider";
 import { getTestMessage, sendTestMessage } from "@/services/smsProvider";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 type SentMessage = {
   id: string;
@@ -137,6 +138,7 @@ type SentMessage = {
   delivered_at: string | null;
 };
 
+const workspaceStore = useWorkspaceStore();
 const phonesInput = ref("");
 const message = ref("");
 const url = ref("");
@@ -152,6 +154,15 @@ const canSend = computed(() => {
   const phones = parsePhones();
   return phones.length > 0 && message.value.trim().length > 0 && (!hasMeuLink.value || url.value.trim().length > 0);
 });
+
+function requireFilterId(): string | null {
+  const id = workspaceStore.activeGroupProject?.id;
+  if (!id) {
+    errorMessage.value = "Selecione um projeto no workspace para operar o SMS Funnel.";
+    return null;
+  }
+  return id;
+}
 
 onMounted(() => {
   pollTimer = window.setInterval(() => {
@@ -178,10 +189,14 @@ function hasPendingStatuses() {
 
 async function send() {
   errorMessage.value = "";
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   isSending.value = true;
 
   try {
     const response = await sendTestMessage({
+      filter_id,
       phones: parsePhones(),
       message: message.value,
       url: hasMeuLink.value ? url.value.trim() : undefined,
@@ -207,11 +222,14 @@ async function send() {
 async function refreshStatuses(showLoading = true) {
   if (sentMessages.value.length === 0) return;
 
+  const filter_id = requireFilterId();
+  if (!filter_id) return;
+
   if (showLoading) isRefreshing.value = true;
 
   try {
     const pending = sentMessages.value.filter((item) => item.status === "queued" || item.status === "sent");
-    const updates = await Promise.allSettled(pending.map((item) => getTestMessage(item.id)));
+    const updates = await Promise.allSettled(pending.map((item) => getTestMessage(item.id, { filter_id })));
 
     updates.forEach((result) => {
       if (result.status !== "fulfilled" || !result.value) return;
