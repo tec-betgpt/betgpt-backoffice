@@ -58,6 +58,12 @@
         </template>
         <template v-else>
           <Button
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.prepare"
+            @click="prepareExecution"
+          >
+            {{ campaignExecutionStore.loading.prepare ? "Preparando..." : "Preparar campanha" }}
+          </Button>
+          <Button
             variant="outline"
             :disabled="!campaign?.id || campaignExecutionStore.loading.refresh"
             @click="campaign?.id ? campaignExecutionStore.fetchRun(campaign.id).catch(() => {}) : null"
@@ -249,6 +255,11 @@
           <AlertDescription>{{ campaignExecutionStore.errors.refresh }}</AlertDescription>
         </Alert>
 
+        <Alert v-if="campaignExecutionStore.errors.prepare" variant="destructive">
+          <AlertTitle>Não foi possível preparar a campanha</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.prepare }}</AlertDescription>
+        </Alert>
+
         <Card v-if="campaignExecutionStore.loading.refresh">
           <CardContent class="pt-6 text-sm text-muted-foreground">Carregando execução...</CardContent>
         </Card>
@@ -264,6 +275,37 @@
         </Card>
 
         <div v-else class="space-y-6">
+          <Card v-if="campaignExecutionStore.lastPrepareResult">
+            <CardHeader>
+              <CardTitle>Preparação</CardTitle>
+              <CardDescription>
+                Resumo do último preparo realizado nesta sessão.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Status</div>
+                  <div class="text-sm font-medium">
+                    {{ CAMPAIGN_RUN_STATUS_LABELS[campaignExecutionStore.lastPrepareResult.status] }}
+                  </div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Destinatários</div>
+                  <div class="text-sm font-medium">{{ campaignExecutionStore.lastPrepareResult.total_recipients }}</div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Waves</div>
+                  <div class="text-sm font-medium">{{ campaignExecutionStore.lastPrepareResult.waves }}</div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Batches</div>
+                  <div class="text-sm font-medium">{{ campaignExecutionStore.lastPrepareResult.batches }}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader class="pb-2">
               <CardTitle class="flex flex-wrap items-center gap-2">
@@ -566,6 +608,20 @@ const executionMetrics = computed(() => {
 function formatDateTime(value: string | null) {
   if (!value) return "—";
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
+}
+
+async function prepareExecution() {
+  if (!campaign.value?.id) return;
+
+  try {
+    const result = await campaignExecutionStore.prepare(campaign.value.id);
+    toast({
+      title: "Campanha preparada.",
+      description: `${result.total_recipients} destinatário(s) · ${result.waves} wave(s) · ${result.batches} batch(es).`,
+    });
+  } catch {
+    // erro já foi mapeado no store (errors.prepare)
+  }
 }
 
 const activeProjectId = computed(() => {
