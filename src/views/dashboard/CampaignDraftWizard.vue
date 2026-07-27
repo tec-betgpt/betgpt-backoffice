@@ -64,6 +64,13 @@
             {{ campaignExecutionStore.loading.prepare ? "Preparando..." : "Preparar campanha" }}
           </Button>
           <Button
+            v-if="campaignExecutionStore.canLaunch"
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.launch"
+            @click="isExecutionLaunchDialogOpen = true"
+          >
+            {{ campaignExecutionStore.loading.launch ? "Lançando..." : "Lançar execução" }}
+          </Button>
+          <Button
             variant="outline"
             :disabled="!campaign?.id || campaignExecutionStore.loading.refresh"
             @click="campaign?.id ? campaignExecutionStore.fetchRun(campaign.id).catch(() => {}) : null"
@@ -260,6 +267,11 @@
           <AlertDescription>{{ campaignExecutionStore.errors.prepare }}</AlertDescription>
         </Alert>
 
+        <Alert v-if="campaignExecutionStore.errors.launch" variant="destructive">
+          <AlertTitle>Não foi possível lançar a execução</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.launch }}</AlertDescription>
+        </Alert>
+
         <Card v-if="campaignExecutionStore.loading.refresh">
           <CardContent class="pt-6 text-sm text-muted-foreground">Carregando execução...</CardContent>
         </Card>
@@ -376,6 +388,24 @@
       </TabsContent>
     </Tabs>
 
+    <AlertDialog :open="isExecutionLaunchDialogOpen" @update:open="isExecutionLaunchDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Lançar execução</AlertDialogTitle>
+          <AlertDialogDescription>
+            Isto irá iniciar o processamento assíncrono da execução (run) da campanha.
+            Confirme apenas se você já preparou a campanha e deseja iniciar o envio.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction :disabled="campaignExecutionStore.loading.launch" @click="confirmExecutionLaunch">
+            {{ campaignExecutionStore.loading.launch ? "Lançando..." : "Confirmar lançamento" }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <AlertDialog :open="isLaunchDialogOpen" @update:open="isLaunchDialogOpen = $event">
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -422,7 +452,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -543,11 +573,13 @@ const isLaunching = ref(false);
 const isInitialLoading = ref(false);
 const isDeleteDialogOpen = ref(false);
 const isLaunchDialogOpen = ref(false);
+const isExecutionLaunchDialogOpen = ref(false);
 const errorMessage = ref("");
 const estimateErrorMessage = ref("");
 const suppressDirty = ref(false);
 const validationErrors = ref<Record<string, { field: string; message: string }[]>>({});
 const validationWarnings = ref<Record<string, { field: string; message: string }[]>>({});
+let executionPollTimer: number | null = null;
 
 const stepLoading = reactive<Record<StepKey, boolean>>({
   basic: false,
@@ -624,6 +656,39 @@ async function prepareExecution() {
   }
 }
 
+function startExecutionPolling() {
+  if (!campaign.value?.id) return;
+  if (executionPollTimer) return;
+
+  executionPollTimer = window.setInterval(() => {
+    if (!campaign.value?.id) return;
+    campaignExecutionStore.fetchRun(campaign.value.id).catch(() => {});
+  }, 5000);
+}
+
+function stopExecutionPolling() {
+  if (!executionPollTimer) return;
+  window.clearInterval(executionPollTimer);
+  executionPollTimer = null;
+}
+
+async function confirmExecutionLaunch() {
+  if (!campaign.value?.id) return;
+
+  try {
+    await campaignExecutionStore.launch(campaign.value.id);
+    toast({
+      title: "Execução lançada.",
+      description: "O processamento assíncrono foi iniciado.",
+    });
+    isExecutionLaunchDialogOpen.value = false;
+    startExecutionPolling();
+  } catch {
+    // erro já foi mapeado no store (errors.launch)
+    isExecutionLaunchDialogOpen.value = false;
+  }
+}
+
 const activeProjectId = computed(() => {
   const numeric = Number(workspaceStore.activeGroupProject?.project_id);
   return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
@@ -683,6 +748,32 @@ watch(
   },
   { immediate: false },
 );
+
+watch(
+  [activeCampaignTab, () => campaignExecutionStore.runStatus, () => campaignExecutionStore.isRunFinal],
+  ([tab, status, isFinal]) => {
+    if (tab !== "execution") {
+      stopExecutionPolling();
+      return;
+    }
+
+    if (isFinal) {
+      stopExecutionPolling();
+      return;
+    }
+
+    if (status === "running") {
+      startExecutionPolling();
+    } else {
+      stopExecutionPolling();
+    }
+  },
+  { immediate: false },
+);
+
+onBeforeUnmount(() => {
+  stopExecutionPolling();
+});
 
 function createEmptyForm(): CampaignFormState {
   return {
