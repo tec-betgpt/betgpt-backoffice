@@ -358,6 +358,13 @@
 
           <CampaignRunProgressPanel v-if="campaignExecutionStore.run" :run="campaignExecutionStore.run" />
 
+          <CampaignWavesBatchesPanel
+            :campaign-id="campaign?.id ?? null"
+            :waves="campaignExecutionStore.waves"
+            :loading="campaignExecutionStore.loading.refresh"
+            :on-refresh-batches="() => (campaign?.id ? campaignExecutionStore.fetchRunBatches(campaign.id) : undefined)"
+          />
+
           <Card>
             <CardHeader>
               <CardTitle>Timestamps</CardTitle>
@@ -541,6 +548,7 @@ import {
 } from "@/contracts/campaignExecution";
 import { useCampaignExecutionStore } from "@/domains/campaign-execution/store";
 import CampaignRunProgressPanel from "@/domains/campaign-execution/components/CampaignRunProgressPanel.vue";
+import CampaignWavesBatchesPanel from "@/domains/campaign-execution/components/CampaignWavesBatchesPanel.vue";
 
 type StepKey =
   | "basic"
