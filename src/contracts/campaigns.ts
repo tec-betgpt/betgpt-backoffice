@@ -1,5 +1,5 @@
 export type CampaignType = "broadcast";
-export type CampaignChannel = "sms";
+export type CampaignChannel = "sms" | "email";
 
 export type CampaignStatus =
   | "draft"
@@ -114,6 +114,7 @@ export type CampaignSingleStageConfigPayload = {
 export type CampaignMessagePayload = {
   channel?: CampaignChannel;
   locale?: string | null;
+  subject?: string | null;
   body?: string | null;
   character_count?: number;
   sms_segments_count?: number;
@@ -388,10 +389,13 @@ export type CampaignEstimateResponse = {
   };
   message: {
     message_id: number | null;
+    channel?: CampaignChannel;
+    subject?: string | null;
     character_count: number;
     sms_segments_per_recipient: number;
     estimated_messages: number;
     estimated_sms_segments: number;
+    estimated_emails?: number;
   };
   links: {
     detected_urls: number;
@@ -419,8 +423,10 @@ export type CampaignEstimateResponse = {
   financial: {
     currency: string | null;
     price_per_sms_segment: number | null;
+    price_per_email?: number | null;
     estimated_cost: number | null;
     estimated_sms_segments: number;
+    estimated_emails?: number;
   };
   errors: Record<string, CampaignEstimateSectionMessage[]>;
   warnings: Record<string, CampaignEstimateSectionMessage[]>;
@@ -430,6 +436,74 @@ export type CampaignApiResponse<T> = {
   success?: boolean;
   message?: string | null;
   data?: T;
+};
+
+export type CampaignDispatchStatus =
+  | "pending"
+  | "preparing"
+  | "ready"
+  | "sending"
+  | "completed"
+  | "completed_with_errors"
+  | "cancelled"
+  | "failed";
+
+export type CampaignProviderBroadcast = {
+  id: number;
+  campaign_dispatch_id: number;
+  provider: string;
+  external_broadcast_id: string;
+  idempotency_key: string | null;
+  status: string | null;
+  messages_count: number;
+  metrics: { sent?: number; failed?: number; total?: number } | null;
+  synced_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CampaignDispatch = {
+  id: number;
+  uuid: string;
+  campaign_id: number;
+  occurrence_key: string;
+  status: CampaignDispatchStatus;
+  scheduled_for: string | null;
+  total_recipients: number;
+  sent_count: number;
+  delivered_count: number;
+  failed_count: number;
+  skipped_count: number;
+  prepared_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+  provider_broadcasts?: CampaignProviderBroadcast[];
+};
+
+export type CampaignDispatchesResponse = {
+  campaign_id: number;
+  status: CampaignStatus;
+  dispatches: CampaignDispatch[];
+};
+
+export type CampaignLaunchResponse = {
+  campaign: CampaignDetail;
+  dispatch: CampaignDispatch;
+  validation: CampaignValidationResponse;
+};
+
+export const CAMPAIGN_DISPATCH_STATUS_LABELS: Record<CampaignDispatchStatus, string> = {
+  pending: "Pendente",
+  preparing: "Preparando público",
+  ready: "Pronto para envio",
+  sending: "Enviando",
+  completed: "Concluído",
+  completed_with_errors: "Concluído com erros",
+  cancelled: "Cancelado",
+  failed: "Falhou",
 };
 
 export type CampaignFormState = {
@@ -469,6 +543,7 @@ export const CAMPAIGN_STATUS_OPTIONS = Object.entries(CAMPAIGN_STATUS_LABELS).ma
 
 export const CAMPAIGN_CHANNEL_OPTIONS = [
   { label: "SMS", value: "sms" as CampaignChannel },
+  { label: "E-mail", value: "email" as CampaignChannel },
 ];
 
 export const CAMPAIGN_TYPE_OPTIONS = [

@@ -28,6 +28,20 @@
           {{ isValidating ? "Validando..." : "Validar configuração" }}
         </Button>
         <Button
+          v-if="canLaunch"
+          :disabled="isLaunching || isDirty"
+          @click="isLaunchDialogOpen = true"
+        >
+          {{ isLaunching ? "Disparando..." : "Validar e disparar" }}
+        </Button>
+        <Button
+          v-if="campaign?.id && !canLaunch && campaign.status !== 'draft'"
+          variant="outline"
+          @click="router.push({ name: 'campaign-drafts.show', params: { id: campaign.id } })"
+        >
+          Acompanhar disparo
+        </Button>
+        <Button
           v-if="canDelete"
           variant="destructive"
           :disabled="isDeleting"
@@ -108,6 +122,7 @@
             :loading="stepLoading.basic"
             :readonly="isReadonly"
             :on-save="() => saveDraft('basic')"
+            @channel-change="onChannelChange"
           />
           <CampaignSingleStageStep
             v-if="activeStep === 'audience'"
@@ -204,6 +219,32 @@
       </div>
     </div>
 
+    <AlertDialog :open="isLaunchDialogOpen" @update:open="isLaunchDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Disparar campanha</AlertDialogTitle>
+          <AlertDialogDescription>
+            A campanha <strong>{{ campaign?.name }}</strong> será validada e enviada para o pipeline de disparo
+            <template v-if="form.channel === 'email'"> via SMTP (e-mail).</template>
+            <template v-else> via SMS Funnel.</template>
+            <span v-if="campaignEstimate">
+              Estimativa: <strong>{{ campaignEstimate.audience.estimated_recipients }}</strong> destinatário(s)<template v-if="form.channel === 'email'">
+              / <strong>{{ campaignEstimate.message.estimated_emails ?? campaignEstimate.message.estimated_messages }}</strong> e-mail(s)</template><template v-else>,
+              <strong>{{ campaignEstimate.message.estimated_sms_segments }}</strong> segmento(s) de SMS</template><template v-if="campaignEstimate.financial.estimated_cost !== null">,
+              custo estimado de <strong>{{ formatCurrency(campaignEstimate.financial.estimated_cost) }}</strong></template>.
+            </span>
+            Esta ação não pode ser desfeita após o início do envio.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction :disabled="isLaunching" @click="confirmLaunch">
+            {{ isLaunching ? "Disparando..." : "Confirmar disparo" }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <AlertDialog :open="isDeleteDialogOpen" @update:open="isDeleteDialogOpen = $event">
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -258,6 +299,7 @@ import {
   deleteCampaign,
   estimateCampaign,
   getCampaign,
+  launchCampaign,
   updateCampaign,
   validateCampaign,
 } from "@/services/campaigns";
@@ -309,7 +351,7 @@ type StepDefinition = {
 const steps: StepDefinition[] = [
   { key: "basic", label: "Dados básicos", sectionKeys: ["campaign", "channels"], progressKey: "channels" },
   { key: "audience", label: "Público", sectionKeys: ["audience", "campaign"], progressKey: "audience" },
-  { key: "message", label: "Mensagem SMS", sectionKeys: ["message"], progressKey: "message" },
+  { key: "message", label: "Mensagem", sectionKeys: ["message"], progressKey: "message" },
   { key: "links", label: "Links", sectionKeys: ["links"], progressKey: "links" },
   { key: "schedule", label: "Agendamento", sectionKeys: ["schedule"], progressKey: "schedule" },
   { key: "delivery_windows", label: "Janelas", sectionKeys: ["delivery_windows"], progressKey: "delivery_windows" },
@@ -331,8 +373,10 @@ const isSaving = ref(false);
 const isValidating = ref(false);
 const isEstimating = ref(false);
 const isDeleting = ref(false);
+const isLaunching = ref(false);
 const isInitialLoading = ref(false);
 const isDeleteDialogOpen = ref(false);
+const isLaunchDialogOpen = ref(false);
 const errorMessage = ref("");
 const estimateErrorMessage = ref("");
 const suppressDirty = ref(false);
@@ -357,6 +401,17 @@ const formModel = computed({
     Object.assign(form, value);
   },
 });
+
+function onChannelChange(channel: "sms" | "email") {
+  form.channel = channel;
+  form.message.channel = channel;
+  if (channel === "email") {
+    form.message.sms_segments_count = 0;
+  }
+  if (channel === "sms" && form.message.subject == null) {
+    form.message.subject = "";
+  }
+}
 
 const campaignId = computed(() => {
   const id = Number(route.params.id);
@@ -385,6 +440,12 @@ const progressSummary = computed(() => {
 });
 const isReadonly = computed(() => Boolean(campaign.value && campaign.value.status !== "draft"));
 const canDelete = computed(() => Boolean(campaign.value?.id && campaign.value.status === "draft"));
+const canLaunch = computed(() =>
+  Boolean(
+    campaign.value?.id &&
+      ["draft", "validation_failed", "validated"].includes(campaign.value.status),
+  ),
+);
 const statusLabel = computed(() => CAMPAIGN_STATUS_LABELS[(campaign.value?.status || "draft") as CampaignStatus]);
 
 watch(
@@ -424,6 +485,7 @@ function createEmptyForm(): CampaignFormState {
     message: {
       channel: "sms",
       locale: "",
+      subject: "",
       body: "",
       character_count: 0,
       sms_segments_count: 0,
@@ -605,6 +667,47 @@ async function runValidation() {
   }
 }
 
+async function confirmLaunch() {
+  if (!campaign.value?.id) return;
+
+  isLaunching.value = true;
+  errorMessage.value = "";
+
+  try {
+    await launchCampaign(campaign.value.id);
+    toast({ title: "Campanha enviada para disparo." });
+    isLaunchDialogOpen.value = false;
+    await router.push({ name: "campaign-drafts.show", params: { id: campaign.value.id } });
+  } catch (error) {
+    isLaunchDialogOpen.value = false;
+
+    if (isHttpLikeError(error) && error.response?.status === 422) {
+      const data = error.response.data as {
+        message?: string;
+        data?: CampaignValidationResponse;
+      };
+
+      if (data?.data?.errors) {
+        validationResult.value = data.data;
+        validationErrors.value = data.data.errors || {};
+        validationWarnings.value = data.data.warnings || {};
+        configurationProgress.value = data.data.configuration_progress || configurationProgress.value;
+      }
+
+      errorMessage.value = data?.message || "A campanha possui erros de configuração e não pode ser disparada.";
+      return;
+    }
+
+    handleHttpError(error);
+  } finally {
+    isLaunching.value = false;
+  }
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+}
+
 async function confirmDelete() {
   if (!campaign.value?.id || campaign.value.status !== "draft") return;
 
@@ -632,10 +735,13 @@ function buildStorePayload(): CampaignStorePayload {
     name: form.name,
     description: form.description,
     type: "broadcast",
-    channel: "sms",
+    channel: form.channel,
     metadata: form.metadata,
     single_stage_config: form.single_stage_config,
-    message: form.message,
+    message: {
+      ...form.message,
+      channel: form.channel,
+    },
     links: form.links,
     schedule: form.schedule,
     delivery_windows: form.delivery_windows,
@@ -649,10 +755,13 @@ function buildUpdatePayload(): CampaignUpdatePayload {
     name: form.name,
     description: form.description,
     type: "broadcast",
-    channel: "sms",
+    channel: form.channel,
     metadata: form.metadata,
     single_stage_config: form.single_stage_config,
-    message: form.message,
+    message: {
+      ...form.message,
+      channel: form.channel,
+    },
     links: form.links,
     schedule: form.schedule,
     delivery_windows: form.delivery_windows,

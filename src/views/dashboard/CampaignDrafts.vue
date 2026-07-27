@@ -154,6 +154,13 @@
                 </TableCell>
                 <TableCell>
                   <div class="flex justify-end gap-2">
+                    <Button
+                      v-if="item.status !== 'draft' && item.status !== 'validation_failed'"
+                      size="sm"
+                      @click="openCampaignDetail(item)"
+                    >
+                      Disparos
+                    </Button>
                     <Button variant="outline" size="sm" @click="openCampaign(item)">
                       {{ item.status === "draft" ? "Editar" : "Abrir" }}
                     </Button>
@@ -262,7 +269,7 @@ const errorMessage = ref("");
 const isDeleteDialogOpen = ref(false);
 const selectedCampaign = ref<CampaignListItem | null>(null);
 
-const filters = reactive<CampaignListParams & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: "sms" | typeof SELECT_ALL_VALUE | null; type: "broadcast" | typeof SELECT_ALL_VALUE | null }>({
+const filters = reactive<CampaignListParams & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: "sms" | "email" | typeof SELECT_ALL_VALUE | null; type: "broadcast" | typeof SELECT_ALL_VALUE | null }>({
   filter_id: null,
   project_id: null,
   status: SELECT_ALL_VALUE,
@@ -353,6 +360,10 @@ function updatePerPage(value: string) {
 
 function openCampaign(item: CampaignListItem) {
   router.push({ name: "campaign-drafts.edit", params: { id: item.id } });
+}
+
+function openCampaignDetail(item: CampaignListItem) {
+  router.push({ name: "campaign-drafts.show", params: { id: item.id } });
 }
 
 function openDeleteDialog(item: CampaignListItem) {

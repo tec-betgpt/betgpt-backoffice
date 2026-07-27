@@ -487,10 +487,10 @@ const columns = [
           },
           [
             h(RefreshCcw, {
-              class: "h-4 w-4",
-              class: {
-                "animate-spin": isUpdating.value === row.original.id,
-              },
+              class: [
+                "h-4 w-4",
+                { "animate-spin": isUpdating.value === row.original.id },
+              ],
             }),
           ],
         ),

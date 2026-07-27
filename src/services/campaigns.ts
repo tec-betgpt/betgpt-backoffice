@@ -2,7 +2,9 @@ import api from "./base.js";
 import type {
   CampaignApiResponse,
   CampaignDetail,
+  CampaignDispatchesResponse,
   CampaignEstimateResponse,
+  CampaignLaunchResponse,
   CampaignListParams,
   CampaignListResponse,
   CampaignStorePayload,
@@ -63,6 +65,33 @@ export async function estimateCampaign(id: number): Promise<CampaignEstimateResp
   return unwrapResponse(data);
 }
 
+export async function launchCampaign(id: number): Promise<CampaignLaunchResponse> {
+  const { data } = await api.post<CampaignApiResponse<CampaignLaunchResponse>>(`/campaigns/${id}/launch`);
+  return unwrapResponse(data) as CampaignLaunchResponse;
+}
+
+export async function pauseCampaign(id: number): Promise<CampaignDetail> {
+  const { data } = await api.post<CampaignApiResponse<CampaignDetail>>(`/campaigns/${id}/pause`);
+  return unwrapResponse(data) as CampaignDetail;
+}
+
+export async function resumeCampaign(id: number): Promise<CampaignDetail> {
+  const { data } = await api.post<CampaignApiResponse<CampaignDetail>>(`/campaigns/${id}/resume`);
+  return unwrapResponse(data) as CampaignDetail;
+}
+
+export async function cancelCampaign(id: number): Promise<CampaignDetail> {
+  const { data } = await api.post<CampaignApiResponse<CampaignDetail>>(`/campaigns/${id}/cancel`);
+  return unwrapResponse(data) as CampaignDetail;
+}
+
+export async function getCampaignDispatches(id: number): Promise<CampaignDispatchesResponse> {
+  const { data } = await api.get<CampaignDispatchesResponse | CampaignApiResponse<CampaignDispatchesResponse>>(
+    `/campaigns/${id}/dispatches`,
+  );
+  return unwrapResponse(data);
+}
+
 export default {
   index: listCampaigns,
   listCampaigns,
@@ -72,6 +101,11 @@ export default {
   deleteCampaign,
   validateCampaign,
   estimateCampaign,
+  launchCampaign,
+  pauseCampaign,
+  resumeCampaign,
+  cancelCampaign,
+  getCampaignDispatches,
   store: createCampaign,
   show: getCampaign,
   update: updateCampaign,

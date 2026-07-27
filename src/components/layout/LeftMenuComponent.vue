@@ -305,6 +305,7 @@ import {
   Send,
   ChartNoAxesCombined,
   MailCheck,
+  Mail,
   Album,
   SlidersHorizontal,
   View,
@@ -344,6 +345,11 @@ import {
   Link2,
   MessageSquareText,
   Megaphone,
+  MessageCircleMore,
+  ListChecks,
+  Workflow,
+  RadioTower,
+  PieChart,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -479,6 +485,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-reports"),
         },
         {
+          name: "Análise de Segmentos",
+          url: { name: "segment-analysis" },
+          icon: PieChart,
+          show: canAccess("access-to-reports"),
+        },
+        {
           name: "E-mails",
           url: { name: "emails" },
           icon: MailCheck,
@@ -566,6 +578,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-webhooks"),
         },
         {
+          name: "Preferências do Projeto",
+          url: { name: "project-preferences" },
+          icon: Settings2,
+          show: canAccess("access-to-integrations"),
+        },
+        {
           name: "Preferências GA",
           url: { name: "ga-preferences" },
           icon: Settings2,
@@ -635,6 +653,30 @@ const navMenu = computed(() => {
           name: "Campanhas",
           url: { name: "campaign-drafts.index" },
           icon: MessageSquareText,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Teste de SMS",
+          url: { name: "sms.test-message" },
+          icon: MessageCircleMore,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Listas SMS",
+          url: { name: "sms.lists" },
+          icon: ListChecks,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Automações SMS",
+          url: { name: "sms.automations" },
+          icon: Workflow,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Broadcasts SMS",
+          url: { name: "sms.broadcasts" },
+          icon: RadioTower,
           show: canAccess("access-to-marketing"),
         },
         {
@@ -716,6 +758,12 @@ const navMenu = computed(() => {
               hasRole("member-admin") ||
               hasRole("member-developer")) &&
             canAccess("access-to-webhook-logs"),
+        },
+        {
+          name: "E-mail SMTP",
+          url: { name: "campaign-mail-settings" },
+          icon: Mail,
+          show: hasRole("member-proprietor") || hasRole("member-developer"),
         },
       ],
     },

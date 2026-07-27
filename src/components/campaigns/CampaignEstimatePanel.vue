@@ -46,8 +46,14 @@
           <h4 class="text-sm font-medium">Audiência</h4>
           <div class="grid gap-3 sm:grid-cols-2">
             <StatBlock label="Total" :value="formatNumber(estimate.audience.total)" />
-            <StatBlock label="Com telefone" :value="formatNumber(estimate.audience.with_phone)" />
-            <StatBlock label="Sem telefone" :value="formatNumber(estimate.audience.without_phone)" />
+            <StatBlock
+              :label="isEmail ? 'Com e-mail' : 'Com telefone'"
+              :value="formatNumber(estimate.audience.with_phone)"
+            />
+            <StatBlock
+              :label="isEmail ? 'Sem e-mail' : 'Sem telefone'"
+              :value="formatNumber(estimate.audience.without_phone)"
+            />
             <StatBlock label="Source" :value="estimate.audience.source || '—'" />
             <StatBlock label="Protegidos" :value="formatNumber(estimate.audience.protected)" />
             <StatBlock label="Suppressed" :value="formatNumber(estimate.audience.suppressed)" />
@@ -70,9 +76,15 @@
           <h4 class="text-sm font-medium">Mensagem</h4>
           <div class="grid gap-3 sm:grid-cols-2">
             <StatBlock label="Caracteres" :value="formatNumber(estimate.message.character_count)" />
-            <StatBlock label="Segmentos por destinatário" :value="formatNumber(estimate.message.sms_segments_per_recipient)" />
-            <StatBlock label="Mensagens estimadas" :value="formatNumber(estimate.message.estimated_messages)" />
-            <StatBlock label="Segmentos estimados" :value="formatNumber(estimate.message.estimated_sms_segments)" />
+            <template v-if="isEmail">
+              <StatBlock label="Assunto" :value="estimate.message.subject || '—'" />
+              <StatBlock label="E-mails estimados" :value="formatNumber(estimate.message.estimated_emails ?? estimate.message.estimated_messages)" />
+            </template>
+            <template v-else>
+              <StatBlock label="Segmentos por destinatário" :value="formatNumber(estimate.message.sms_segments_per_recipient)" />
+              <StatBlock label="Mensagens estimadas" :value="formatNumber(estimate.message.estimated_messages)" />
+              <StatBlock label="Segmentos estimados" :value="formatNumber(estimate.message.estimated_sms_segments)" />
+            </template>
           </div>
         </section>
 
@@ -121,10 +133,25 @@
           <div class="grid gap-3 sm:grid-cols-2">
             <StatBlock label="Moeda" :value="estimate.financial.currency || '—'" />
             <StatBlock
+              v-if="isEmail"
+              label="Preço por e-mail"
+              :value="formatMoney(estimate.financial.price_per_email ?? null, estimate.financial.currency)"
+            />
+            <StatBlock
+              v-else
               label="Preço por segmento"
               :value="formatMoney(estimate.financial.price_per_sms_segment, estimate.financial.currency)"
             />
-            <StatBlock label="Segmentos" :value="formatNumber(estimate.financial.estimated_sms_segments)" />
+            <StatBlock
+              v-if="isEmail"
+              label="E-mails"
+              :value="formatNumber(estimate.financial.estimated_emails ?? estimate.message.estimated_messages)"
+            />
+            <StatBlock
+              v-else
+              label="Segmentos"
+              :value="formatNumber(estimate.financial.estimated_sms_segments)"
+            />
             <StatBlock
               label="Custo estimado"
               :value="estimate.financial.estimated_cost === null ? 'Estimativa financeira indisponível' : formatMoney(estimate.financial.estimated_cost, estimate.financial.currency)"
@@ -147,20 +174,22 @@
 </template>
 
 <script setup lang="ts">
-import { h, defineComponent } from "vue";
+import { computed, h, defineComponent } from "vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CampaignEstimateResponse, CampaignMessageLike } from "@/contracts/campaigns";
 
-defineProps<{
+const props = defineProps<{
   estimate: CampaignEstimateResponse | null;
   loading?: boolean;
   disabled?: boolean;
   errorMessage?: string;
   onRefresh?: () => void | Promise<void>;
 }>();
+
+const isEmail = computed(() => props.estimate?.message?.channel === "email");
 
 const numberFormatter = new Intl.NumberFormat("pt-BR");
 

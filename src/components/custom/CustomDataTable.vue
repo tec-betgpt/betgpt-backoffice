@@ -1,9 +1,12 @@
 <template>
-  <div v-if="updateText" class="flex flex-col sm:flex-row gap-2">
+  <div
+    v-if="updateText"
+    class="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3"
+  >
     <div
       v-for="(field, index) in searchFields"
       :key="field.key"
-      class="grid w-full max-w-sm items-center gap-1.5"
+      class="grid w-full sm:w-[240px] sm:max-w-sm items-center gap-1.5"
     >
       <Label v-if="field.label" :for="'input-' + field.key">{{
         field.label
@@ -12,7 +15,7 @@
       <Input
         v-if="!field.type || field.type === 'text'"
         :id="'input-' + field.key"
-        class="sm:max-w-sm w-full"
+        class="w-full"
         :placeholder="field.placeholder"
         v-model="searchValues[`search[${index}][${field.key}]`]"
       />
@@ -23,7 +26,7 @@
         v-model="searchValues[`search[${index}][${field.key}]`]"
         :multiple="field.multiple"
       >
-        <SelectTrigger class="sm:max-w-sm w-full">
+        <SelectTrigger class="w-full">
           <SelectValue :placeholder="field.placeholder" />
         </SelectTrigger>
         <SelectContent>
@@ -41,7 +44,7 @@
         v-else-if="field.type === 'date-range'"
         v-model="searchValues[`search[${index}][${field.key}]`]"
       >
-        <SelectTrigger class="sm:max-w-sm w-full">
+        <SelectTrigger class="w-full">
           <SelectValue :placeholder="field.placeholder" />
         </SelectTrigger>
         <SelectContent>
@@ -55,14 +58,10 @@
         </SelectContent>
       </Select>
     </div>
-    <Button
-      :class="hasLabel ? 'mt-0 lg:mt-6' : ''"
-      @click="find()"
-      :disabled="loading"
-    >
+    <Button class="w-full sm:w-auto shrink-0" @click="find()" :disabled="loading">
       Buscar
     </Button>
-    <div class="flex flex-1 gap-2"></div>
+    <div class="flex flex-1 gap-2 min-w-0"></div>
     <slot></slot>
   </div>
 
@@ -442,7 +441,4 @@ watch(
   { immediate: true }
 );
 
-const hasLabel = computed(() => {
-  return props.searchFields.some((field) => field.label);
-});
 </script>
