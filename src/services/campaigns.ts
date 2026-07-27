@@ -1,10 +1,10 @@
 import api from "./base.js";
+import campaignExecutionApi from "@/domains/campaign-execution/api";
 import type {
   CampaignApiResponse,
   CampaignDetail,
   CampaignDispatchesResponse,
   CampaignEstimateResponse,
-  CampaignLaunchResponse,
   CampaignListParams,
   CampaignListResponse,
   CampaignStorePayload,
@@ -65,24 +65,27 @@ export async function estimateCampaign(id: number): Promise<CampaignEstimateResp
   return unwrapResponse(data);
 }
 
-export async function launchCampaign(id: number): Promise<CampaignLaunchResponse> {
-  const { data } = await api.post<CampaignApiResponse<CampaignLaunchResponse>>(`/campaigns/${id}/launch`);
-  return unwrapResponse(data) as CampaignLaunchResponse;
+/**
+ * A partir da Fase 3, os endpoints `/campaigns/{id}/launch|pause|resume|cancel`
+ * são operacionais e devem ser acessados via módulo de domínio `campaign-execution`.
+ */
+export async function launchCampaign(id: number): Promise<void> {
+  await campaignExecutionApi.launch(id);
 }
 
 export async function pauseCampaign(id: number): Promise<CampaignDetail> {
-  const { data } = await api.post<CampaignApiResponse<CampaignDetail>>(`/campaigns/${id}/pause`);
-  return unwrapResponse(data) as CampaignDetail;
+  await campaignExecutionApi.pause(id);
+  return getCampaign(id);
 }
 
 export async function resumeCampaign(id: number): Promise<CampaignDetail> {
-  const { data } = await api.post<CampaignApiResponse<CampaignDetail>>(`/campaigns/${id}/resume`);
-  return unwrapResponse(data) as CampaignDetail;
+  await campaignExecutionApi.resume(id);
+  return getCampaign(id);
 }
 
 export async function cancelCampaign(id: number): Promise<CampaignDetail> {
-  const { data } = await api.post<CampaignApiResponse<CampaignDetail>>(`/campaigns/${id}/cancel`);
-  return unwrapResponse(data) as CampaignDetail;
+  await campaignExecutionApi.cancel(id);
+  return getCampaign(id);
 }
 
 export async function getCampaignDispatches(id: number): Promise<CampaignDispatchesResponse> {
