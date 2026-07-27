@@ -42,4 +42,21 @@ export default {
     const { data } = await api.get('/analytics/return-general', { params })
     return data
   },
+
+  /**
+   * GET /v1/analytics/segment-analysis
+   *
+   * Análise de segmento (público-alvo is_segment) ou tag.
+   *
+   * @param {object} params
+   * @param {string} params.filter_id
+   * @param {string} params.start_date
+   * @param {string} params.end_date
+   * @param {'segment'|'tag'} params.source_type
+   * @param {number} params.source_id
+   */
+  async segmentAnalysis (params = {}) {
+    const { data } = await api.get('/analytics/segment-analysis', { params })
+    return data
+  },
 }

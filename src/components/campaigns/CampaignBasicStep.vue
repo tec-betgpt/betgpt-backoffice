@@ -3,7 +3,7 @@
     <div>
       <h3 class="text-lg font-semibold">Dados básicos</h3>
       <p class="text-sm text-muted-foreground">
-        Esta etapa define a identidade da campanha. O projeto indica onde a campanha será criada, o nome ajuda a identificar o rascunho no painel, e o canal define que a campanha será de SMS. Nesta fase, o tipo deve ser broadcast e o canal deve ser sms.
+        Defina a identidade da campanha. O canal escolhido determina se o disparo será via SMS Funnel ou e-mail (SMTP Elevate).
       </p>
     </div>
 
@@ -12,7 +12,7 @@
     <div class="grid gap-4 md:grid-cols-2">
       <div class="space-y-2 md:col-span-2">
         <Label>Nome</Label>
-        <Input v-model="model.name" :disabled="readonly" placeholder="Campanha SMS de retenção" />
+        <Input v-model="model.name" :disabled="readonly" placeholder="Campanha de retenção" />
       </div>
       <div class="space-y-2 md:col-span-2">
         <Label>Descrição</Label>
@@ -24,7 +24,15 @@
       </div>
       <div class="space-y-2">
         <Label>Canal</Label>
-        <Input v-model="model.channel" disabled />
+        <select
+          v-model="model.channel"
+          :disabled="readonly"
+          class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          @change="onChannelChange"
+        >
+          <option value="sms">SMS</option>
+          <option value="email">E-mail</option>
+        </select>
       </div>
     </div>
 
@@ -42,7 +50,7 @@ import { Textarea } from "@/components/ui/textarea";
 import CampaignValidationList from "./CampaignValidationList.vue";
 import type { CampaignFormState, CampaignValidationItem } from "@/contracts/campaigns";
 
-defineProps<{
+const props = defineProps<{
   errors?: CampaignValidationItem[];
   warnings?: CampaignValidationItem[];
   loading?: boolean;
@@ -51,4 +59,11 @@ defineProps<{
 }>();
 
 const model = defineModel<CampaignFormState>({ required: true });
+const emit = defineEmits<{
+  (e: "channel-change", channel: "sms" | "email"): void;
+}>();
+
+function onChannelChange() {
+  emit("channel-change", model.value.channel);
+}
 </script>

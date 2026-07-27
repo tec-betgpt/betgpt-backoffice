@@ -305,6 +305,7 @@ import {
   Send,
   ChartNoAxesCombined,
   MailCheck,
+  Mail,
   Album,
   SlidersHorizontal,
   View,
@@ -348,6 +349,7 @@ import {
   ListChecks,
   Workflow,
   RadioTower,
+  PieChart,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -480,6 +482,12 @@ const navMenu = computed(() => {
           name: "Retenção",
           url: { name: "retention" },
           icon: LucideUserRoundCog,
+          show: canAccess("access-to-reports"),
+        },
+        {
+          name: "Análise de Segmentos",
+          url: { name: "segment-analysis" },
+          icon: PieChart,
           show: canAccess("access-to-reports"),
         },
         {
@@ -750,6 +758,12 @@ const navMenu = computed(() => {
               hasRole("member-admin") ||
               hasRole("member-developer")) &&
             canAccess("access-to-webhook-logs"),
+        },
+        {
+          name: "E-mail SMTP",
+          url: { name: "campaign-mail-settings" },
+          icon: Mail,
+          show: hasRole("member-proprietor") || hasRole("member-developer"),
         },
       ],
     },

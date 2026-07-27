@@ -1,5 +1,5 @@
 export type CampaignType = "broadcast";
-export type CampaignChannel = "sms";
+export type CampaignChannel = "sms" | "email";
 
 export type CampaignStatus =
   | "draft"
@@ -114,6 +114,7 @@ export type CampaignSingleStageConfigPayload = {
 export type CampaignMessagePayload = {
   channel?: CampaignChannel;
   locale?: string | null;
+  subject?: string | null;
   body?: string | null;
   character_count?: number;
   sms_segments_count?: number;
@@ -388,10 +389,13 @@ export type CampaignEstimateResponse = {
   };
   message: {
     message_id: number | null;
+    channel?: CampaignChannel;
+    subject?: string | null;
     character_count: number;
     sms_segments_per_recipient: number;
     estimated_messages: number;
     estimated_sms_segments: number;
+    estimated_emails?: number;
   };
   links: {
     detected_urls: number;
@@ -419,8 +423,10 @@ export type CampaignEstimateResponse = {
   financial: {
     currency: string | null;
     price_per_sms_segment: number | null;
+    price_per_email?: number | null;
     estimated_cost: number | null;
     estimated_sms_segments: number;
+    estimated_emails?: number;
   };
   errors: Record<string, CampaignEstimateSectionMessage[]>;
   warnings: Record<string, CampaignEstimateSectionMessage[]>;
@@ -537,6 +543,7 @@ export const CAMPAIGN_STATUS_OPTIONS = Object.entries(CAMPAIGN_STATUS_LABELS).ma
 
 export const CAMPAIGN_CHANNEL_OPTIONS = [
   { label: "SMS", value: "sms" as CampaignChannel },
+  { label: "E-mail", value: "email" as CampaignChannel },
 ];
 
 export const CAMPAIGN_TYPE_OPTIONS = [

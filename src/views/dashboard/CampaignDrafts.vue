@@ -269,7 +269,7 @@ const errorMessage = ref("");
 const isDeleteDialogOpen = ref(false);
 const selectedCampaign = ref<CampaignListItem | null>(null);
 
-const filters = reactive<CampaignListParams & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: "sms" | typeof SELECT_ALL_VALUE | null; type: "broadcast" | typeof SELECT_ALL_VALUE | null }>({
+const filters = reactive<CampaignListParams & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: "sms" | "email" | typeof SELECT_ALL_VALUE | null; type: "broadcast" | typeof SELECT_ALL_VALUE | null }>({
   filter_id: null,
   project_id: null,
   status: SELECT_ALL_VALUE,

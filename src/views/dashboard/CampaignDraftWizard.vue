@@ -122,6 +122,7 @@
             :loading="stepLoading.basic"
             :readonly="isReadonly"
             :on-save="() => saveDraft('basic')"
+            @channel-change="onChannelChange"
           />
           <CampaignSingleStageStep
             v-if="activeStep === 'audience'"
@@ -223,10 +224,13 @@
         <AlertDialogHeader>
           <AlertDialogTitle>Disparar campanha</AlertDialogTitle>
           <AlertDialogDescription>
-            A campanha <strong>{{ campaign?.name }}</strong> será validada e enviada para o pipeline de disparo via SMS Funnel.
+            A campanha <strong>{{ campaign?.name }}</strong> será validada e enviada para o pipeline de disparo
+            <template v-if="form.channel === 'email'"> via SMTP (e-mail).</template>
+            <template v-else> via SMS Funnel.</template>
             <span v-if="campaignEstimate">
-              Estimativa: <strong>{{ campaignEstimate.audience.estimated_recipients }}</strong> destinatário(s),
-              <strong>{{ campaignEstimate.message.estimated_sms_segments }}</strong> segmento(s) de SMS<template v-if="campaignEstimate.financial.estimated_cost !== null">,
+              Estimativa: <strong>{{ campaignEstimate.audience.estimated_recipients }}</strong> destinatário(s)<template v-if="form.channel === 'email'">
+              / <strong>{{ campaignEstimate.message.estimated_emails ?? campaignEstimate.message.estimated_messages }}</strong> e-mail(s)</template><template v-else>,
+              <strong>{{ campaignEstimate.message.estimated_sms_segments }}</strong> segmento(s) de SMS</template><template v-if="campaignEstimate.financial.estimated_cost !== null">,
               custo estimado de <strong>{{ formatCurrency(campaignEstimate.financial.estimated_cost) }}</strong></template>.
             </span>
             Esta ação não pode ser desfeita após o início do envio.
@@ -347,7 +351,7 @@ type StepDefinition = {
 const steps: StepDefinition[] = [
   { key: "basic", label: "Dados básicos", sectionKeys: ["campaign", "channels"], progressKey: "channels" },
   { key: "audience", label: "Público", sectionKeys: ["audience", "campaign"], progressKey: "audience" },
-  { key: "message", label: "Mensagem SMS", sectionKeys: ["message"], progressKey: "message" },
+  { key: "message", label: "Mensagem", sectionKeys: ["message"], progressKey: "message" },
   { key: "links", label: "Links", sectionKeys: ["links"], progressKey: "links" },
   { key: "schedule", label: "Agendamento", sectionKeys: ["schedule"], progressKey: "schedule" },
   { key: "delivery_windows", label: "Janelas", sectionKeys: ["delivery_windows"], progressKey: "delivery_windows" },
@@ -397,6 +401,17 @@ const formModel = computed({
     Object.assign(form, value);
   },
 });
+
+function onChannelChange(channel: "sms" | "email") {
+  form.channel = channel;
+  form.message.channel = channel;
+  if (channel === "email") {
+    form.message.sms_segments_count = 0;
+  }
+  if (channel === "sms" && form.message.subject == null) {
+    form.message.subject = "";
+  }
+}
 
 const campaignId = computed(() => {
   const id = Number(route.params.id);
@@ -470,6 +485,7 @@ function createEmptyForm(): CampaignFormState {
     message: {
       channel: "sms",
       locale: "",
+      subject: "",
       body: "",
       character_count: 0,
       sms_segments_count: 0,
@@ -719,10 +735,13 @@ function buildStorePayload(): CampaignStorePayload {
     name: form.name,
     description: form.description,
     type: "broadcast",
-    channel: "sms",
+    channel: form.channel,
     metadata: form.metadata,
     single_stage_config: form.single_stage_config,
-    message: form.message,
+    message: {
+      ...form.message,
+      channel: form.channel,
+    },
     links: form.links,
     schedule: form.schedule,
     delivery_windows: form.delivery_windows,
@@ -736,10 +755,13 @@ function buildUpdatePayload(): CampaignUpdatePayload {
     name: form.name,
     description: form.description,
     type: "broadcast",
-    channel: "sms",
+    channel: form.channel,
     metadata: form.metadata,
     single_stage_config: form.single_stage_config,
-    message: form.message,
+    message: {
+      ...form.message,
+      channel: form.channel,
+    },
     links: form.links,
     schedule: form.schedule,
     delivery_windows: form.delivery_windows,

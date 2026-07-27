@@ -1,9 +1,14 @@
 <template>
   <div class="space-y-6">
     <div>
-      <h3 class="text-lg font-semibold">Mensagem SMS</h3>
+      <h3 class="text-lg font-semibold">{{ isEmail ? "Mensagem E-mail" : "Mensagem SMS" }}</h3>
       <p class="text-sm text-muted-foreground">
-        Esta etapa define o texto que será enviado por SMS. O campo de mensagem deve mostrar contagem de caracteres e estimativa de segmentos SMS. Se o texto tiver links, eles devem ser destacados para revisão na etapa seguinte.
+        <template v-if="isEmail">
+          Defina o assunto e o corpo do e-mail. Variáveis no formato {{ variableHint }} serão substituídas por destinatário.
+        </template>
+        <template v-else>
+          Defina o texto que será enviado por SMS. O campo mostra contagem de caracteres e segmentos. Links detectados seguem para a etapa seguinte.
+        </template>
       </p>
     </div>
 
@@ -12,18 +17,30 @@
     <div class="grid gap-4 md:grid-cols-2">
       <div class="space-y-2">
         <Label>Canal</Label>
-        <Input v-model="model.channel" disabled />
+        <Input :model-value="model.channel" disabled />
       </div>
       <div class="space-y-2">
         <Label>Locale</Label>
         <Input v-model="model.locale" :disabled="readonly" />
       </div>
+      <div v-if="isEmail" class="space-y-2 md:col-span-2">
+        <Label>Assunto</Label>
+        <Input v-model="model.subject" :disabled="readonly" placeholder="Assunto do e-mail" />
+      </div>
       <div class="space-y-2 md:col-span-2">
-        <Label>Mensagem</Label>
-        <Textarea v-model="model.body" :disabled="readonly" class="min-h-40" placeholder="Digite o SMS..." />
-        <div class="flex flex-wrap gap-2 text-xs text-muted-foreground">
+        <Label>{{ isEmail ? "Corpo do e-mail" : "Mensagem" }}</Label>
+        <Textarea
+          v-model="model.body"
+          :disabled="readonly"
+          class="min-h-40"
+          :placeholder="isEmail ? 'Digite o conteúdo do e-mail...' : 'Digite o SMS...'"
+        />
+        <div v-if="!isEmail" class="flex flex-wrap gap-2 text-xs text-muted-foreground">
           <span>{{ model.character_count || 0 }} caracteres</span>
           <span>{{ model.sms_segments_count || 0 }} segmento(s)</span>
+        </div>
+        <div v-else class="text-xs text-muted-foreground">
+          {{ model.character_count || 0 }} caracteres
         </div>
       </div>
     </div>
@@ -71,6 +88,9 @@ defineProps<{
 const model = defineModel<CampaignMessagePayload>({ required: true });
 const variablesText = ref("");
 
+const isEmail = computed(() => model.value.channel === "email");
+const variableHint = "{{nome}}";
+
 const metadataObject = computed({
   get: () => model.value.metadata,
   set: (value) => {
@@ -86,7 +106,11 @@ watch(
   (body) => {
     const text = body || "";
     model.value.character_count = text.length;
-    model.value.sms_segments_count = text.length === 0 ? 0 : Math.ceil(text.length / 160);
+    model.value.sms_segments_count = isEmail.value
+      ? 0
+      : text.length === 0
+        ? 0
+        : Math.ceil(text.length / 160);
     model.value.detected_links = Array.from(new Set(text.match(urlRegex) || []));
     model.value.variables = Array.from(new Set([...text.matchAll(variableRegex)].map((match) => match[1])));
     variablesText.value = model.value.variables.join(", ");
