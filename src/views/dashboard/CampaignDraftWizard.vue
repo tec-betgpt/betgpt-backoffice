@@ -71,6 +71,29 @@
             {{ campaignExecutionStore.loading.launch ? "Lançando..." : "Lançar execução" }}
           </Button>
           <Button
+            v-if="campaignExecutionStore.canPause"
+            variant="secondary"
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.pause"
+            @click="pauseExecution"
+          >
+            {{ campaignExecutionStore.loading.pause ? "Pausando..." : "Pausar" }}
+          </Button>
+          <Button
+            v-if="campaignExecutionStore.canResume"
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.resume"
+            @click="resumeExecution"
+          >
+            {{ campaignExecutionStore.loading.resume ? "Retomando..." : "Retomar" }}
+          </Button>
+          <Button
+            v-if="campaignExecutionStore.canCancel"
+            variant="destructive"
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.cancel"
+            @click="isExecutionCancelDialogOpen = true"
+          >
+            {{ campaignExecutionStore.loading.cancel ? "Cancelando..." : "Cancelar execução" }}
+          </Button>
+          <Button
             variant="outline"
             :disabled="!campaign?.id || campaignExecutionStore.loading.refresh"
             @click="campaign?.id ? campaignExecutionStore.fetchRun(campaign.id).catch(() => {}) : null"
@@ -272,6 +295,21 @@
           <AlertDescription>{{ campaignExecutionStore.errors.launch }}</AlertDescription>
         </Alert>
 
+        <Alert v-if="campaignExecutionStore.errors.pause" variant="destructive">
+          <AlertTitle>Não foi possível pausar a execução</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.pause }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="campaignExecutionStore.errors.resume" variant="destructive">
+          <AlertTitle>Não foi possível retomar a execução</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.resume }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="campaignExecutionStore.errors.cancel" variant="destructive">
+          <AlertTitle>Não foi possível cancelar a execução</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.cancel }}</AlertDescription>
+        </Alert>
+
         <Card v-if="campaignExecutionStore.loading.refresh">
           <CardContent class="pt-6 text-sm text-muted-foreground">Carregando execução...</CardContent>
         </Card>
@@ -401,6 +439,27 @@
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction :disabled="campaignExecutionStore.loading.launch" @click="confirmExecutionLaunch">
             {{ campaignExecutionStore.loading.launch ? "Lançando..." : "Confirmar lançamento" }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog :open="isExecutionCancelDialogOpen" @update:open="isExecutionCancelDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Cancelar execução</AlertDialogTitle>
+          <AlertDialogDescription>
+            Atenção: o cancelamento interrompe a execução e pode cancelar/envio pendente.
+            Mensagens já processadas não serão revertidas. Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Voltar</AlertDialogCancel>
+          <AlertDialogAction
+            :disabled="campaignExecutionStore.loading.cancel"
+            @click="confirmExecutionCancel"
+          >
+            {{ campaignExecutionStore.loading.cancel ? "Cancelando..." : "Confirmar cancelamento" }}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -574,6 +633,7 @@ const isInitialLoading = ref(false);
 const isDeleteDialogOpen = ref(false);
 const isLaunchDialogOpen = ref(false);
 const isExecutionLaunchDialogOpen = ref(false);
+const isExecutionCancelDialogOpen = ref(false);
 const errorMessage = ref("");
 const estimateErrorMessage = ref("");
 const suppressDirty = ref(false);
@@ -686,6 +746,41 @@ async function confirmExecutionLaunch() {
   } catch {
     // erro já foi mapeado no store (errors.launch)
     isExecutionLaunchDialogOpen.value = false;
+  }
+}
+
+async function pauseExecution() {
+  if (!campaign.value?.id) return;
+
+  try {
+    await campaignExecutionStore.pause(campaign.value.id);
+    toast({ title: "Execução pausada." });
+  } catch {
+    // erro já foi mapeado no store (errors.pause)
+  }
+}
+
+async function resumeExecution() {
+  if (!campaign.value?.id) return;
+
+  try {
+    await campaignExecutionStore.resume(campaign.value.id);
+    toast({ title: "Execução retomada." });
+  } catch {
+    // erro já foi mapeado no store (errors.resume)
+  }
+}
+
+async function confirmExecutionCancel() {
+  if (!campaign.value?.id) return;
+
+  try {
+    await campaignExecutionStore.cancel(campaign.value.id);
+    toast({ title: "Execução cancelada." });
+    isExecutionCancelDialogOpen.value = false;
+  } catch {
+    // erro já foi mapeado no store (errors.cancel)
+    isExecutionCancelDialogOpen.value = false;
   }
 }
 
