@@ -356,27 +356,7 @@
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader class="pb-2">
-              <CardTitle class="flex flex-wrap items-center gap-2">
-                Execução
-                <Badge :variant="runStatusVariant">
-                  {{ CAMPAIGN_RUN_STATUS_LABELS[campaignExecutionStore.runStatus || "prepared"] }}
-                </Badge>
-              </CardTitle>
-              <CardDescription>
-                #{{ campaignExecutionStore.run?.id }} · Total de destinatários: {{ campaignExecutionStore.run?.total_recipients ?? 0 }}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div v-for="metric in executionMetrics" :key="metric.label" class="rounded-md border p-3">
-                  <div class="text-xs text-muted-foreground">{{ metric.label }}</div>
-                  <div class="text-lg font-semibold">{{ metric.value }}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <CampaignRunProgressPanel v-if="campaignExecutionStore.run" :run="campaignExecutionStore.run" />
 
           <Card>
             <CardHeader>
@@ -410,16 +390,6 @@
                   <div class="text-sm">{{ formatDateTime(campaignExecutionStore.run?.finished_at ?? null) }}</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card v-if="campaignExecutionStore.run?.last_error">
-            <CardHeader>
-              <CardTitle>Último erro</CardTitle>
-              <CardDescription>Mensagem retornada/registrada pelo backend.</CardDescription>
-            </CardHeader>
-            <CardContent class="text-sm text-destructive">
-              {{ campaignExecutionStore.run.last_error }}
             </CardContent>
           </Card>
         </div>
@@ -568,10 +538,9 @@ import {
 } from "@/contracts/campaigns";
 import {
   CAMPAIGN_RUN_STATUS_LABELS,
-  type CampaignRunCounts,
-  type CampaignRunStatus,
 } from "@/contracts/campaignExecution";
 import { useCampaignExecutionStore } from "@/domains/campaign-execution/store";
+import CampaignRunProgressPanel from "@/domains/campaign-execution/components/CampaignRunProgressPanel.vue";
 
 type StepKey =
   | "basic"
@@ -674,27 +643,6 @@ function onChannelChange(channel: "sms" | "email") {
 const campaignId = computed(() => {
   const id = Number(route.params.id);
   return Number.isFinite(id) && id > 0 ? id : null;
-});
-
-const runStatusVariant = computed(() => {
-  const status = campaignExecutionStore.runStatus as CampaignRunStatus | null;
-  if (!status) return "outline";
-  if (status === "running") return "default";
-  if (status === "paused") return "secondary";
-  if (status === "failed" || status === "canceled") return "destructive";
-  return "outline";
-});
-
-const executionMetrics = computed(() => {
-  const counts = campaignExecutionStore.run?.counts as CampaignRunCounts | undefined;
-
-  return [
-    { label: "Pendente", value: counts?.pending ?? 0 },
-    { label: "Processando", value: counts?.processing ?? 0 },
-    { label: "Enviado", value: counts?.sent ?? 0 },
-    { label: "Falhou", value: counts?.failed ?? 0 },
-    { label: "Cancelado", value: counts?.canceled ?? 0 },
-  ];
 });
 
 function formatDateTime(value: string | null) {
