@@ -1,4 +1,4 @@
-import api from "@/services/api";
+import api from "./base.js";
 
 export type CampaignMailSettings = {
   is_enabled: boolean;
