@@ -27,8 +27,15 @@
       </CardHeader>
       <CardContent class="space-y-4">
         <div class="flex items-center gap-3">
-          <Switch v-model:checked="form.is_enabled" :disabled="loading || saving" />
-          <Label>Habilitar SMTP de campanhas</Label>
+          <Switch
+            id="campaign-smtp-enabled"
+            :checked="form.is_enabled"
+            :disabled="loading || saving"
+            @update:checked="onEnabledChange"
+          />
+          <Label for="campaign-smtp-enabled" class="cursor-pointer" @click.prevent="toggleEnabled">
+            Habilitar SMTP de campanhas
+          </Label>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2">
@@ -90,7 +97,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
-import CampaignMailSettingsService from "@/services/campaignMailSettings";
+import CampaignMailSettingsService, { type CampaignMailSettings } from "@/services/campaignMailSettings";
 
 const { toast } = useToast();
 const loading = ref(false);
@@ -107,32 +114,37 @@ const form = reactive({
   from_address: "",
   from_name: "",
   has_password: false,
-  resolved: null as null | {
-    is_ready: boolean;
-    source: string;
-    host: string | null;
-    port: number | null;
-    encryption: string | null;
-    from_address: string | null;
-    from_name: string | null;
-  },
+  resolved: null as CampaignMailSettings["resolved"] | null,
 });
+
+function applyData(data: CampaignMailSettings) {
+  form.is_enabled = Boolean(data.is_enabled);
+  form.host = data.host || "";
+  form.port = data.port ?? 587;
+  form.encryption = data.encryption || "tls";
+  form.username = data.username || "";
+  form.password = "";
+  form.from_address = data.from_address || "";
+  form.from_name = data.from_name || "";
+  form.has_password = Boolean(data.has_password);
+  form.resolved = data.resolved || null;
+}
+
+function onEnabledChange(value: boolean) {
+  form.is_enabled = Boolean(value);
+}
+
+function toggleEnabled() {
+  if (loading.value || saving.value) return;
+  form.is_enabled = !form.is_enabled;
+}
 
 async function load() {
   loading.value = true;
   errorMessage.value = "";
   try {
     const data = await CampaignMailSettingsService.get();
-    form.is_enabled = Boolean(data.is_enabled);
-    form.host = data.host || "";
-    form.port = data.port ?? 587;
-    form.encryption = data.encryption || "tls";
-    form.username = data.username || "";
-    form.password = "";
-    form.from_address = data.from_address || "";
-    form.from_name = data.from_name || "";
-    form.has_password = Boolean(data.has_password);
-    form.resolved = data.resolved || null;
+    applyData(data);
   } catch (error: any) {
     errorMessage.value = error?.response?.data?.message || "Falha ao carregar configuração SMTP.";
   } finally {
@@ -144,14 +156,24 @@ async function save() {
   saving.value = true;
   errorMessage.value = "";
   try {
+    if (form.is_enabled && !form.host.trim()) {
+      errorMessage.value = "Informe o Host SMTP antes de habilitar.";
+      return;
+    }
+
+    if (form.is_enabled && !form.from_address.trim()) {
+      errorMessage.value = "Informe o e-mail remetente antes de habilitar.";
+      return;
+    }
+
     const payload: Record<string, unknown> = {
-      is_enabled: form.is_enabled,
-      host: form.host || null,
+      is_enabled: form.is_enabled ? true : false,
+      host: form.host.trim() || null,
       port: form.port || null,
       encryption: form.encryption || null,
-      username: form.username || null,
-      from_address: form.from_address || null,
-      from_name: form.from_name || null,
+      username: form.username.trim() || null,
+      from_address: form.from_address.trim() || null,
+      from_name: form.from_name.trim() || null,
     };
 
     if (form.password.trim()) {
@@ -159,12 +181,19 @@ async function save() {
     }
 
     const data = await CampaignMailSettingsService.save(payload as any);
-    form.has_password = Boolean(data.has_password);
-    form.password = "";
-    form.resolved = data.resolved || null;
-    toast({ title: "Configuração SMTP salva." });
+    applyData(data);
+    toast({
+      title: "Configuração SMTP salva.",
+      description: form.is_enabled ? "Envio de campanhas por e-mail habilitado." : "Envio SMTP desabilitado.",
+    });
   } catch (error: any) {
-    errorMessage.value = error?.response?.data?.message || "Falha ao salvar configuração SMTP.";
+    const apiMessage = error?.response?.data?.message;
+    const validationErrors = error?.response?.data?.errors;
+    if (validationErrors && typeof validationErrors === "object") {
+      errorMessage.value = Object.values(validationErrors).flat().join(" ");
+    } else {
+      errorMessage.value = apiMessage || "Falha ao salvar configuração SMTP.";
+    }
   } finally {
     saving.value = false;
   }
