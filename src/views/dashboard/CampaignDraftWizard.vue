@@ -310,7 +310,7 @@
           <AlertDescription>{{ campaignExecutionStore.errors.cancel }}</AlertDescription>
         </Alert>
 
-        <Card v-if="campaignExecutionStore.loading.refresh">
+        <Card v-if="campaignExecutionStore.loading.refresh && !campaignExecutionStore.hasRun">
           <CardContent class="pt-6 text-sm text-muted-foreground">Carregando execução...</CardContent>
         </Card>
 
@@ -622,7 +622,16 @@ const estimateErrorMessage = ref("");
 const suppressDirty = ref(false);
 const validationErrors = ref<Record<string, { field: string; message: string }[]>>({});
 const validationWarnings = ref<Record<string, { field: string; message: string }[]>>({});
-let executionPollTimer: number | null = null;
+let executionPollTimeout: number | null = null;
+let executionPollInFlight = false;
+const handleVisibilityChange = () => {
+  if (typeof document === "undefined") return;
+  if (document.hidden) {
+    stopExecutionPolling();
+  } else {
+    scheduleExecutionPolling();
+  }
+};
 
 const stepLoading = reactive<Record<StepKey, boolean>>({
   basic: false,
@@ -678,20 +687,57 @@ async function prepareExecution() {
   }
 }
 
-function startExecutionPolling() {
-  if (!campaign.value?.id) return;
-  if (executionPollTimer) return;
+function desiredExecutionPollMs(): number | null {
+  if (typeof document === "undefined") return null;
+  if (document.hidden) return null;
+  if (activeCampaignTab.value !== "execution") return null;
+  if (!campaign.value?.id) return null;
+  if (!campaignExecutionStore.hasRun) return null;
+  if (campaignExecutionStore.isRunFinal) return null;
 
-  executionPollTimer = window.setInterval(() => {
-    if (!campaign.value?.id) return;
-    campaignExecutionStore.fetchRun(campaign.value.id).catch(() => {});
-  }, 5000);
+  const status = campaignExecutionStore.runStatus;
+  if (status === "running") return 5000;
+  if (status === "paused" || status === "prepared") return 20000;
+  return null;
+}
+
+function scheduleExecutionPolling() {
+  if (executionPollTimeout) {
+    window.clearTimeout(executionPollTimeout);
+    executionPollTimeout = null;
+  }
+
+  const ms = desiredExecutionPollMs();
+  if (!ms) return;
+
+  executionPollTimeout = window.setTimeout(async () => {
+    executionPollTimeout = null;
+    const campaignId = campaign.value?.id;
+    if (!campaignId) return;
+    if (!desiredExecutionPollMs()) return;
+
+    if (executionPollInFlight) {
+      scheduleExecutionPolling();
+      return;
+    }
+
+    executionPollInFlight = true;
+    try {
+      await campaignExecutionStore.fetchRun(campaignId);
+    } catch {
+      // erros já são armazenados no store (errors.refresh)
+    } finally {
+      executionPollInFlight = false;
+    }
+
+    scheduleExecutionPolling();
+  }, ms);
 }
 
 function stopExecutionPolling() {
-  if (!executionPollTimer) return;
-  window.clearInterval(executionPollTimer);
-  executionPollTimer = null;
+  if (!executionPollTimeout) return;
+  window.clearTimeout(executionPollTimeout);
+  executionPollTimeout = null;
 }
 
 async function confirmExecutionLaunch() {
@@ -704,7 +750,7 @@ async function confirmExecutionLaunch() {
       description: "O processamento assíncrono foi iniciado.",
     });
     isExecutionLaunchDialogOpen.value = false;
-    startExecutionPolling();
+    scheduleExecutionPolling();
   } catch {
     // erro já foi mapeado no store (errors.launch)
     isExecutionLaunchDialogOpen.value = false;
@@ -792,6 +838,11 @@ onMounted(async () => {
   }
 });
 
+onMounted(() => {
+  if (typeof document === "undefined") return;
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+});
+
 watch(
   [activeCampaignTab, () => campaign.value?.id],
   async ([tab, id]) => {
@@ -807,29 +858,24 @@ watch(
 );
 
 watch(
-  [activeCampaignTab, () => campaignExecutionStore.runStatus, () => campaignExecutionStore.isRunFinal],
-  ([tab, status, isFinal]) => {
-    if (tab !== "execution") {
-      stopExecutionPolling();
-      return;
-    }
-
-    if (isFinal) {
-      stopExecutionPolling();
-      return;
-    }
-
-    if (status === "running") {
-      startExecutionPolling();
-    } else {
-      stopExecutionPolling();
-    }
+  [
+    activeCampaignTab,
+    () => campaign.value?.id,
+    () => campaignExecutionStore.hasRun,
+    () => campaignExecutionStore.runStatus,
+    () => campaignExecutionStore.isRunFinal,
+  ],
+  () => {
+    scheduleExecutionPolling();
   },
   { immediate: false },
 );
 
 onBeforeUnmount(() => {
   stopExecutionPolling();
+  if (typeof document !== "undefined") {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }
 });
 
 function createEmptyForm(): CampaignFormState {
