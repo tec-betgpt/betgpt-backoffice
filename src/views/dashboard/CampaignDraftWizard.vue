@@ -365,6 +365,11 @@
             :on-refresh-batches="() => (campaign?.id ? campaignExecutionStore.fetchRunBatches(campaign.id) : undefined)"
           />
 
+          <CampaignRecipientsPanel
+            :campaign-id="campaign?.id ?? null"
+            :active="activeCampaignTab === 'execution'"
+          />
+
           <Card>
             <CardHeader>
               <CardTitle>Timestamps</CardTitle>
@@ -549,6 +554,7 @@ import {
 import { useCampaignExecutionStore } from "@/domains/campaign-execution/store";
 import CampaignRunProgressPanel from "@/domains/campaign-execution/components/CampaignRunProgressPanel.vue";
 import CampaignWavesBatchesPanel from "@/domains/campaign-execution/components/CampaignWavesBatchesPanel.vue";
+import CampaignRecipientsPanel from "@/domains/campaign-execution/components/CampaignRecipientsPanel.vue";
 
 type StepKey =
   | "basic"
