@@ -339,6 +339,7 @@ async function applyFilter() {
 
   isLoading.value = true;
   hasLoadedOnce.value = true;
+  analysis.value = null;
 
   try {
     const { data } = await Analytics.segmentAnalysis({
@@ -447,7 +448,10 @@ useScreenContext(
     </div>
 
     <template v-else>
-      <div v-if="analysis?.source" class="text-sm text-muted-foreground">
+      <div v-if="isLoading" class="text-sm text-muted-foreground">
+        <Skeleton class="h-4 w-64" />
+      </div>
+      <div v-else-if="analysis?.source" class="text-sm text-muted-foreground">
         Analisando
         <span class="font-medium text-foreground">{{ analysis.source.name }}</span>
         ({{ analysis.source.type === "segment" ? "segmento" : "tag" }})
@@ -455,8 +459,8 @@ useScreenContext(
 
       <!-- KPIs -->
       <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <template v-if="isLoading && !analysis">
-          <Card v-for="n in 10" :key="n">
+        <template v-if="isLoading">
+          <Card v-for="n in 10" :key="`kpi-skel-${n}`">
             <CardHeader class="pb-2"><Skeleton class="h-4 w-2/3" /></CardHeader>
             <CardContent>
               <Skeleton class="h-8 w-1/2 mb-2" />
@@ -464,33 +468,46 @@ useScreenContext(
             </CardContent>
           </Card>
         </template>
-        <Card v-for="card in kpiCards" :key="card.title" :class="{ 'opacity-60': isLoading }">
-          <CardHeader class="pb-2">
-            <div class="flex items-start justify-between gap-2">
-              <CardTitle class="text-sm font-medium text-muted-foreground">{{ card.title }}</CardTitle>
-              <component :is="card.icon" class="h-4 w-4 text-muted-foreground shrink-0" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p class="text-2xl font-bold tracking-tight">{{ card.value }}</p>
-            <p class="text-xs text-muted-foreground mt-1">{{ card.hint }}</p>
-          </CardContent>
-        </Card>
+        <template v-else>
+          <Card v-for="card in kpiCards" :key="card.title">
+            <CardHeader class="pb-2">
+              <div class="flex items-start justify-between gap-2">
+                <CardTitle class="text-sm font-medium text-muted-foreground">{{ card.title }}</CardTitle>
+                <component :is="card.icon" class="h-4 w-4 text-muted-foreground shrink-0" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p class="text-2xl font-bold tracking-tight">{{ card.value }}</p>
+              <p class="text-xs text-muted-foreground mt-1">{{ card.hint }}</p>
+            </CardContent>
+          </Card>
+        </template>
       </div>
 
       <!-- Performance -->
       <div>
         <h3 class="text-lg font-semibold mb-3">Métricas de desempenho</h3>
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Card v-for="card in performanceCards" :key="card.title" :class="{ 'opacity-60': isLoading }">
-            <CardHeader class="py-3 pb-1">
-              <CardTitle class="text-sm font-medium text-muted-foreground">{{ card.title }}</CardTitle>
-            </CardHeader>
-            <CardContent class="pb-3">
-              <p class="text-xl font-semibold">{{ card.value }}</p>
-              <p class="text-xs text-muted-foreground mt-1">{{ card.hint }}</p>
-            </CardContent>
-          </Card>
+          <template v-if="isLoading">
+            <Card v-for="n in 12" :key="`perf-skel-${n}`">
+              <CardHeader class="py-3 pb-1"><Skeleton class="h-4 w-2/3" /></CardHeader>
+              <CardContent class="pb-3">
+                <Skeleton class="h-6 w-1/2 mb-2" />
+                <Skeleton class="h-3 w-3/4" />
+              </CardContent>
+            </Card>
+          </template>
+          <template v-else>
+            <Card v-for="card in performanceCards" :key="card.title">
+              <CardHeader class="py-3 pb-1">
+                <CardTitle class="text-sm font-medium text-muted-foreground">{{ card.title }}</CardTitle>
+              </CardHeader>
+              <CardContent class="pb-3">
+                <p class="text-xl font-semibold">{{ card.value }}</p>
+                <p class="text-xs text-muted-foreground mt-1">{{ card.hint }}</p>
+              </CardContent>
+            </Card>
+          </template>
         </div>
       </div>
 
@@ -502,7 +519,7 @@ useScreenContext(
             <CardDescription>Distribuição de jogadores por quantidade de depósitos no período.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Skeleton v-if="isLoading && !analysis" class="h-80 w-full" />
+            <Skeleton v-if="isLoading" class="h-80 w-full" />
             <apexchart
               v-else-if="pieSeries.length"
               type="donut"
@@ -520,7 +537,7 @@ useScreenContext(
             <CardDescription>Volume depositado por faixa de frequência.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Skeleton v-if="isLoading && !analysis" class="h-80 w-full" />
+            <Skeleton v-if="isLoading" class="h-80 w-full" />
             <apexchart
               v-else-if="revenueBarSeries[0]?.data?.length"
               type="bar"
@@ -538,7 +555,7 @@ useScreenContext(
             <CardDescription>Do cadastro no grupo até múltiplos depósitos no período.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Skeleton v-if="isLoading && !analysis" class="h-80 w-full" />
+            <Skeleton v-if="isLoading" class="h-80 w-full" />
             <apexchart
               v-else-if="funnelSeries[0]?.data?.length"
               type="bar"
@@ -556,8 +573,8 @@ useScreenContext(
             <CardDescription>% dos depositantes com atividade recente (login ou depósito).</CardDescription>
           </CardHeader>
           <CardContent>
-            <div v-if="isLoading && !analysis" class="grid grid-cols-3 gap-4">
-              <Skeleton v-for="n in 3" :key="n" class="h-24 w-full" />
+            <div v-if="isLoading" class="grid grid-cols-3 gap-4">
+              <Skeleton v-for="n in 3" :key="`ret-skel-${n}`" class="h-24 w-full" />
             </div>
             <div v-else class="grid grid-cols-3 gap-4 py-6">
               <div class="rounded-lg border p-4 text-center">
@@ -583,7 +600,7 @@ useScreenContext(
           <CardDescription>Logins únicos e depositantes por dia no período.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Skeleton v-if="isLoading && !analysis" class="h-96 w-full" />
+          <Skeleton v-if="isLoading" class="h-96 w-full" />
           <apexchart
             v-else-if="activitySeries[0]?.data?.length"
             type="area"

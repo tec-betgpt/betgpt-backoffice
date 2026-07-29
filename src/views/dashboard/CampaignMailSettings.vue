@@ -3,8 +3,7 @@
     <div>
       <h1 class="text-2xl font-semibold">E-mail SMTP (Campanhas)</h1>
       <p class="mt-1 text-sm text-muted-foreground">
-        Configuração global Elevate para disparo de campanhas por e-mail. Não é por projeto — o envio sai da infraestrutura Elevate.
-        No futuro pode migrar para ActiveCampaign ou outra API.
+        Configuração global Elevate para disparo de campanhas por e-mail.
       </p>
     </div>
 
@@ -17,24 +16,34 @@
       <CardHeader>
         <CardTitle>SMTP</CardTitle>
         <CardDescription>
-          Quando habilitado, estas credenciais têm prioridade sobre as variáveis <code>MAIL_*</code> do ambiente.
           <span v-if="form.resolved">
             Atualmente o provedor está
             <strong>{{ form.resolved.is_ready ? "pronto" : "incompleto" }}</strong>
-            (fonte: {{ form.resolved.source }}).
           </span>
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
         <div class="flex items-center gap-3">
-          <Switch
+          <button
             id="campaign-smtp-enabled"
-            :checked="form.is_enabled"
+            type="button"
+            role="switch"
+            :aria-checked="isEnabled"
             :disabled="loading || saving"
-            @update:checked="onEnabledChange"
-          />
+            class="inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            :class="isEnabled ? 'bg-primary' : 'bg-input'"
+            @click="toggleEnabled"
+          >
+            <span
+              class="pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform"
+              :class="isEnabled ? 'translate-x-4' : 'translate-x-0'"
+            />
+          </button>
           <Label for="campaign-smtp-enabled" class="cursor-pointer" @click.prevent="toggleEnabled">
             Habilitar SMTP de campanhas
+            <span class="ml-2 text-xs text-muted-foreground">
+              ({{ isEnabled ? "ativo" : "inativo" }})
+            </span>
           </Label>
         </div>
 
@@ -95,7 +104,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
 import CampaignMailSettingsService, { type CampaignMailSettings } from "@/services/campaignMailSettings";
 
@@ -103,9 +111,9 @@ const { toast } = useToast();
 const loading = ref(false);
 const saving = ref(false);
 const errorMessage = ref("");
+const isEnabled = ref(false);
 
 const form = reactive({
-  is_enabled: false,
   host: "",
   port: 587 as number | null,
   encryption: "tls" as string | null,
@@ -118,7 +126,7 @@ const form = reactive({
 });
 
 function applyData(data: CampaignMailSettings) {
-  form.is_enabled = Boolean(data.is_enabled);
+  isEnabled.value = Boolean(data.is_enabled);
   form.host = data.host || "";
   form.port = data.port ?? 587;
   form.encryption = data.encryption || "tls";
@@ -130,13 +138,9 @@ function applyData(data: CampaignMailSettings) {
   form.resolved = data.resolved || null;
 }
 
-function onEnabledChange(value: boolean) {
-  form.is_enabled = Boolean(value);
-}
-
 function toggleEnabled() {
   if (loading.value || saving.value) return;
-  form.is_enabled = !form.is_enabled;
+  isEnabled.value = !isEnabled.value;
 }
 
 async function load() {
@@ -144,9 +148,12 @@ async function load() {
   errorMessage.value = "";
   try {
     const data = await CampaignMailSettingsService.get();
+    if (!data) {
+      throw new Error("Resposta vazia da API de configuração SMTP.");
+    }
     applyData(data);
   } catch (error: any) {
-    errorMessage.value = error?.response?.data?.message || "Falha ao carregar configuração SMTP.";
+    errorMessage.value = error?.response?.data?.message || error?.message || "Falha ao carregar configuração SMTP.";
   } finally {
     loading.value = false;
   }
@@ -156,18 +163,18 @@ async function save() {
   saving.value = true;
   errorMessage.value = "";
   try {
-    if (form.is_enabled && !form.host.trim()) {
+    if (isEnabled.value && !form.host.trim()) {
       errorMessage.value = "Informe o Host SMTP antes de habilitar.";
       return;
     }
 
-    if (form.is_enabled && !form.from_address.trim()) {
+    if (isEnabled.value && !form.from_address.trim()) {
       errorMessage.value = "Informe o e-mail remetente antes de habilitar.";
       return;
     }
 
     const payload: Record<string, unknown> = {
-      is_enabled: form.is_enabled ? true : false,
+      is_enabled: Boolean(isEnabled.value),
       host: form.host.trim() || null,
       port: form.port || null,
       encryption: form.encryption || null,
@@ -181,10 +188,13 @@ async function save() {
     }
 
     const data = await CampaignMailSettingsService.save(payload as any);
+    if (!data) {
+      throw new Error("Resposta vazia ao salvar configuração SMTP.");
+    }
     applyData(data);
     toast({
       title: "Configuração SMTP salva.",
-      description: form.is_enabled ? "Envio de campanhas por e-mail habilitado." : "Envio SMTP desabilitado.",
+      description: isEnabled.value ? "Envio de campanhas por e-mail habilitado." : "Envio SMTP desabilitado.",
     });
   } catch (error: any) {
     const apiMessage = error?.response?.data?.message;
@@ -192,7 +202,7 @@ async function save() {
     if (validationErrors && typeof validationErrors === "object") {
       errorMessage.value = Object.values(validationErrors).flat().join(" ");
     } else {
-      errorMessage.value = apiMessage || "Falha ao salvar configuração SMTP.";
+      errorMessage.value = apiMessage || error?.message || "Falha ao salvar configuração SMTP.";
     }
   } finally {
     saving.value = false;
