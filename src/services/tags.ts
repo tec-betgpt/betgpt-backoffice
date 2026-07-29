@@ -11,6 +11,15 @@ export default {
   },
 
   /**
+   * Lista resumida (id, name) para selects
+   * @param {Object} params - { filter_id, search }
+   */
+  async list(params = {}): Promise<{ id: number; name: string }[]> {
+    const { data } = await api.get("/tags/list", { params });
+    return data;
+  },
+
+  /**
    * Criar nova tag
    * @param {Object} data
    */

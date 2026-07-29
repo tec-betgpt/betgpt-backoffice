@@ -288,24 +288,16 @@ async function loadSources() {
   analysis.value = null;
 
   try {
-    if (sourceType.value === "segment") {
-      const response = await TargetAudience.index({
-        filter_id: workspaceStore.activeGroupProject.id,
-        is_segment: true,
-        per_page: 200,
-        page: 1,
-      });
-      const list = response?.data?.target_audiences ?? response?.target_audiences ?? [];
-      sourceOptions.value = list.map((item: any) => ({ id: item.id, name: item.name }));
-    } else {
-      const response = await Tags.index({
-        filter_id: workspaceStore.activeGroupProject.id,
-        per_page: 200,
-        page: 1,
-      });
-      const list = Array.isArray(response?.data) ? response.data : response?.data?.data ?? [];
-      sourceOptions.value = list.map((item: any) => ({ id: item.id, name: item.name }));
-    }
+    const filterId = workspaceStore.activeGroupProject.id;
+    const list =
+      sourceType.value === "segment"
+        ? await TargetAudience.list({ filter_id: filterId, is_segment: true })
+        : await Tags.list({ filter_id: filterId });
+
+    sourceOptions.value = (Array.isArray(list) ? list : []).map((item: any) => ({
+      id: item.id,
+      name: item.name,
+    }));
   } catch (error) {
     console.error(error);
     toast({
