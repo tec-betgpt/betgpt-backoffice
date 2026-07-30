@@ -8,6 +8,7 @@ import SmsTestMessage from "@/views/dashboard/SmsTestMessage.vue";
 import SmsProviderLists from "@/views/dashboard/SmsProviderLists.vue";
 import SmsProviderAutomations from "@/views/dashboard/SmsProviderAutomations.vue";
 import SmsProviderBroadcasts from "@/views/dashboard/SmsProviderBroadcasts.vue";
+import CampaignMailSettings from "@/views/dashboard/CampaignMailSettings.vue";
 
 const marketingMeta = {
   layout: DefaultLayout,
@@ -115,6 +116,17 @@ export default [
         meta: {
           ...marketingMeta,
           title: "Link Engine",
+        },
+      },
+      {
+        path: "campaign-mail-settings",
+        name: "campaign-mail-settings",
+        component: CampaignMailSettings,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "E-mail SMTP (Campanhas)",
+          roles: "member",
         },
       },
     ],

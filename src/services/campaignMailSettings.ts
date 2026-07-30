@@ -34,10 +34,30 @@ export type CampaignMailSettingsPayload = {
 
 const CampaignMailSettingsService = {
   get() {
-    return api.get("/campaign-mail-settings").then((res) => res.data?.data as CampaignMailSettings);
+    return api.get("/campaign-mail-settings").then((res) => {
+      const body = res.data;
+      // RespondsApi: { success, message, data }
+      if (body?.data && typeof body.data === "object" && ("is_enabled" in body.data || "host" in body.data)) {
+        return body.data as CampaignMailSettings;
+      }
+      // Fallback se a API devolver o payload na raiz
+      if (body && typeof body === "object" && ("is_enabled" in body || "host" in body)) {
+        return body as CampaignMailSettings;
+      }
+      return body?.data as CampaignMailSettings;
+    });
   },
   save(payload: CampaignMailSettingsPayload) {
-    return api.put("/campaign-mail-settings", payload).then((res) => res.data?.data as CampaignMailSettings);
+    return api.put("/campaign-mail-settings", payload).then((res) => {
+      const body = res.data;
+      if (body?.data && typeof body.data === "object" && ("is_enabled" in body.data || "host" in body.data)) {
+        return body.data as CampaignMailSettings;
+      }
+      if (body && typeof body === "object" && ("is_enabled" in body || "host" in body)) {
+        return body as CampaignMailSettings;
+      }
+      return body?.data as CampaignMailSettings;
+    });
   },
 };
 

@@ -691,6 +691,15 @@ const navMenu = computed(() => {
           icon: ChartArea,
           show: canAccess("access-to-marketing"),
         },
+        {
+          name: "E-mail SMTP",
+          url: { name: "campaign-mail-settings" },
+          icon: Mail,
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            hasRole("member-developer"),
+        },
       ],
     },
     {
@@ -758,12 +767,6 @@ const navMenu = computed(() => {
               hasRole("member-admin") ||
               hasRole("member-developer")) &&
             canAccess("access-to-webhook-logs"),
-        },
-        {
-          name: "E-mail SMTP",
-          url: { name: "campaign-mail-settings" },
-          icon: Mail,
-          show: hasRole("member-proprietor") || hasRole("member-developer"),
         },
       ],
     },

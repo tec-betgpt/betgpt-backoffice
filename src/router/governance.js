@@ -9,7 +9,6 @@ import UserLogins from "@/views/dashboard/UserLogins.vue";
 import InsightIA from "@/views/dashboard/InsightIA.vue";
 import AIController from "@/views/dashboard/AIController.vue";
 import WebhookLogs from "@/views/dashboard/WebhookLogs.vue";
-import CampaignMailSettings from "@/views/dashboard/CampaignMailSettings.vue";
 
 export default [
   {
@@ -128,17 +127,6 @@ export default [
           title: "Controlador IA",
           roles: "member",
           permissions: "access-to-ai",
-        },
-      },
-      {
-        path: "campaign-mail-settings",
-        name: "campaign-mail-settings",
-        component: CampaignMailSettings,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: "E-mail SMTP (Campanhas)",
-          roles: "member",
         },
       },
       {
