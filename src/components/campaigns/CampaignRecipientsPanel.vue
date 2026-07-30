@@ -105,6 +105,7 @@
               <TableHead>player_id</TableHead>
               <TableHead>phone</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>ID supplier</TableHead>
               <TableHead class="text-right">Tentativas</TableHead>
               <TableHead>Próx. retry</TableHead>
               <TableHead>Erro</TableHead>
@@ -117,12 +118,12 @@
           </TableHeader>
           <TableBody>
             <TableRow v-if="store.loading.recipients && store.recipients.length === 0">
-              <TableCell colspan="11" class="h-24 text-center text-muted-foreground">
+              <TableCell colspan="12" class="h-24 text-center text-muted-foreground">
                 Carregando recipients...
               </TableCell>
             </TableRow>
             <TableRow v-else-if="store.recipients.length === 0">
-              <TableCell colspan="11" class="h-24 text-center text-muted-foreground">
+              <TableCell colspan="12" class="h-24 text-center text-muted-foreground">
                 Nenhum recipient encontrado.
               </TableCell>
             </TableRow>
@@ -131,9 +132,13 @@
               <TableCell class="font-mono text-xs">{{ recipient.player_id || "—" }}</TableCell>
               <TableCell class="font-mono text-xs">{{ recipient.phone || "—" }}</TableCell>
               <TableCell>
-                <Badge variant="outline">
-                  {{ CAMPAIGN_RUN_RECIPIENT_STATUS_LABELS[recipient.status] || recipient.status }}
-                </Badge>
+                <RecipientStatusBadge :status="recipient.status" />
+              </TableCell>
+              <TableCell
+                class="max-w-[140px] truncate font-mono text-xs text-muted-foreground"
+                :title="recipient.provider_message_id || undefined"
+              >
+                {{ recipient.provider_message_id || "—" }}
               </TableCell>
               <TableCell class="text-right">{{ recipient.attempts }}</TableCell>
               <TableCell>{{ formatDateTime(recipient.next_retry_at) }}</TableCell>
@@ -199,11 +204,11 @@
       </div>
 
       <Dialog v-model:open="isDetailsOpen">
-        <DialogContent class="sm:max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent class="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalhes do recipient</DialogTitle>
             <DialogDescription>
-              Informações de auditoria (payload snapshot e metadata).
+              Estado interno, vínculo com o envio real no supplier e auditoria.
             </DialogDescription>
           </DialogHeader>
 
@@ -214,8 +219,10 @@
                 <div class="font-mono text-sm">{{ selectedRecipient.id }}</div>
               </div>
               <div class="rounded-md border p-3">
-                <div class="text-xs text-muted-foreground">status</div>
-                <div class="font-mono text-sm">{{ selectedRecipient.status }}</div>
+                <div class="text-xs text-muted-foreground">status interno</div>
+                <div class="mt-1">
+                  <RecipientStatusBadge :status="selectedRecipient.status" />
+                </div>
               </div>
               <div class="rounded-md border p-3">
                 <div class="text-xs text-muted-foreground">dispatch_wave_id</div>
@@ -225,6 +232,109 @@
                 <div class="text-xs text-muted-foreground">broadcast_batch_id</div>
                 <div class="font-mono text-sm">{{ selectedRecipient.broadcast_batch_id ?? "—" }}</div>
               </div>
+            </div>
+
+            <div class="space-y-3 rounded-md border p-3">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-medium">Envio no supplier</div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  :disabled="store.loading.dispatches"
+                  @click="loadDispatches(selectedRecipient.id)"
+                >
+                  {{ store.loading.dispatches ? "Atualizando..." : "Atualizar" }}
+                </Button>
+              </div>
+
+              <Alert v-if="store.errors.dispatches" variant="destructive">
+                <AlertTitle>Não foi possível carregar os disparos</AlertTitle>
+                <AlertDescription>{{ store.errors.dispatches }}</AlertDescription>
+              </Alert>
+
+              <div v-else-if="store.loading.dispatches && !store.recipientDispatches" class="space-y-2">
+                <Skeleton class="h-6 w-full" />
+                <Skeleton class="h-6 w-full" />
+              </div>
+
+              <template v-else-if="store.recipientDispatches">
+                <div class="grid gap-3 md:grid-cols-3">
+                  <div>
+                    <div class="text-xs text-muted-foreground">supplier_message_id</div>
+                    <div class="break-all font-mono text-xs">
+                      {{ store.recipientDispatches.recipient.supplier_message_id || "—" }}
+                    </div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-muted-foreground">Última atualização</div>
+                    <div class="text-sm">{{ formatDateTime(lastDispatchUpdate) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-muted-foreground">Último erro técnico</div>
+                    <div class="text-sm text-destructive">
+                      <template v-if="lastDispatchError">
+                        <span class="font-mono text-xs">{{ lastDispatchError.code }}</span>
+                        {{ lastDispatchError.message }}
+                      </template>
+                      <span v-else class="text-muted-foreground">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="store.recipientDispatches.dispatches.length" class="overflow-x-auto rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead class="text-right">Tentativa</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>supplier_status</TableHead>
+                        <TableHead>supplier_message_id</TableHead>
+                        <TableHead>supplier_dispatch_id</TableHead>
+                        <TableHead>Erro</TableHead>
+                        <TableHead>dispatched_at</TableHead>
+                        <TableHead>responded_at</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow
+                        v-for="dispatch in store.recipientDispatches.dispatches"
+                        :key="dispatch.id"
+                      >
+                        <TableCell class="text-right font-mono text-xs">{{ dispatch.attempt }}</TableCell>
+                        <TableCell>
+                          <RecipientStatusBadge :status="dispatch.status" />
+                        </TableCell>
+                        <TableCell class="font-mono text-xs">{{ dispatch.supplier_status || "—" }}</TableCell>
+                        <TableCell
+                          class="max-w-[140px] truncate font-mono text-xs text-muted-foreground"
+                          :title="dispatch.supplier_message_id || undefined"
+                        >
+                          {{ dispatch.supplier_message_id || "—" }}
+                        </TableCell>
+                        <TableCell
+                          class="max-w-[140px] truncate font-mono text-xs text-muted-foreground"
+                          :title="dispatch.supplier_dispatch_id || undefined"
+                        >
+                          {{ dispatch.supplier_dispatch_id || "—" }}
+                        </TableCell>
+                        <TableCell class="min-w-[180px]">
+                          <div v-if="dispatch.error_code || dispatch.error_message" class="text-xs text-destructive">
+                            <span v-if="dispatch.error_code" class="font-mono">{{ dispatch.error_code }}</span>
+                            {{ dispatch.error_message }}
+                          </div>
+                          <span v-else class="text-xs text-muted-foreground">—</span>
+                        </TableCell>
+                        <TableCell class="text-xs">{{ formatDateTime(dispatch.dispatched_at) }}</TableCell>
+                        <TableCell class="text-xs">{{ formatDateTime(dispatch.responded_at) }}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <p v-else class="text-sm text-muted-foreground">
+                  Nenhum disparo registrado — o recipient ainda não foi enviado ao supplier.
+                </p>
+              </template>
             </div>
 
             <div class="space-y-2">
@@ -256,7 +366,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -289,10 +398,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import RecipientStatusBadge from "@/components/campaigns/RecipientStatusBadge.vue";
 import type { CampaignRunRecipient, CampaignRunRecipientStatus, CampaignRunRecipientsFilters } from "@/contracts/campaignExecution";
 import {
   CAMPAIGN_RUN_RECIPIENT_PER_PAGE_OPTIONS,
-  CAMPAIGN_RUN_RECIPIENT_STATUS_LABELS,
   CAMPAIGN_RUN_RECIPIENT_STATUS_OPTIONS,
 } from "@/contracts/campaignExecution";
 import { extractExecutionErrorMessage, useCampaignExecutionStore } from "@/stores/campaignExecution";
@@ -424,10 +534,48 @@ onMounted(() => {
 const isDetailsOpen = ref(false);
 const selectedRecipient = ref<CampaignRunRecipient | null>(null);
 
+const lastDispatch = computed(() => {
+  const dispatches = store.recipientDispatches?.dispatches;
+  return dispatches && dispatches.length ? dispatches[dispatches.length - 1] : null;
+});
+
+/** Timestamp da última atualização: responded_at/dispatched_at da última tentativa. */
+const lastDispatchUpdate = computed(
+  () => lastDispatch.value?.responded_at ?? lastDispatch.value?.dispatched_at ?? null,
+);
+
+/** Último erro técnico: error_code + error_message da última tentativa (fallback: last_error do recipient). */
+const lastDispatchError = computed(() => {
+  if (lastDispatch.value?.error_code || lastDispatch.value?.error_message) {
+    return {
+      code: lastDispatch.value.error_code,
+      message: lastDispatch.value.error_message,
+    };
+  }
+
+  const lastError = store.recipientDispatches?.recipient.last_error;
+  return lastError ? { code: null, message: lastError } : null;
+});
+
 function openDetails(recipient: CampaignRunRecipient) {
   selectedRecipient.value = recipient;
   isDetailsOpen.value = true;
+  loadDispatches(recipient.id);
 }
+
+async function loadDispatches(recipientId: number) {
+  try {
+    await store.fetchRecipientDispatches(recipientId);
+  } catch {
+    // Erro exibido no dialog via store.errors.dispatches.
+  }
+}
+
+watch(isDetailsOpen, (open) => {
+  if (!open) {
+    store.clearRecipientDispatches();
+  }
+});
 
 function formatDateTime(value: string | null) {
   if (!value) return "—";

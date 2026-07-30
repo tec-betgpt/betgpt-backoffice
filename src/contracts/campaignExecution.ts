@@ -8,6 +8,7 @@ export type CampaignRunStatus =
 
 export type CampaignRunRecipientStatus =
   | "pending"
+  | "queued"
   | "processing"
   | "sent"
   | "failed"
@@ -135,6 +136,8 @@ export type CampaignRunRecipient = {
   attempts: number;
   next_retry_at: string | null;
   last_error: string | null;
+  /** supplier_message_id do envio real (Fase 4). */
+  provider_message_id?: string | null;
   payload_snapshot: Record<string, unknown> | null;
   metadata: Record<string, unknown> | null;
   queued_at: string | null;
@@ -164,6 +167,7 @@ export const CAMPAIGN_RUN_STATUS_LABELS: Record<CampaignRunStatus, string> = {
 
 export const CAMPAIGN_RUN_RECIPIENT_STATUS_LABELS: Record<CampaignRunRecipientStatus, string> = {
   pending: "Pendente",
+  queued: "Na fila",
   processing: "Processando",
   sent: "Enviado",
   failed: "Falhou",

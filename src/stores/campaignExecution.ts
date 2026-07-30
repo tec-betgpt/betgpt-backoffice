@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import campaignExecutionService from "@/services/campaignExecution";
+import smsMessagesService from "@/services/smsMessages";
 import type {
   CampaignPrepareResponse,
   CampaignRun,
@@ -8,6 +9,7 @@ import type {
   CampaignRunStatus,
   CampaignWave,
 } from "@/contracts/campaignExecution";
+import type { SmsRecipientDispatchesResponse } from "@/contracts/smsMessages";
 
 export type CampaignExecutionAction =
   | "prepare"
@@ -19,9 +21,12 @@ export type CampaignExecutionAction =
 
 type CampaignExecutionLoading = Record<CampaignExecutionAction, boolean> & {
   recipients: boolean;
+  dispatches: boolean;
 };
 
-type CampaignExecutionErrors = Record<CampaignExecutionAction, string | null>;
+type CampaignExecutionErrors = Record<CampaignExecutionAction, string | null> & {
+  dispatches: string | null;
+};
 
 const FINAL_RUN_STATUSES: CampaignRunStatus[] = ["completed", "canceled", "failed"];
 
@@ -44,6 +49,7 @@ function buildLoadingFlags(): CampaignExecutionLoading {
     cancel: false,
     refresh: false,
     recipients: false,
+    dispatches: false,
   };
 }
 
@@ -55,6 +61,7 @@ function buildErrors(): CampaignExecutionErrors {
     resume: null,
     cancel: null,
     refresh: null,
+    dispatches: null,
   };
 }
 
@@ -99,6 +106,7 @@ export const useCampaignExecutionStore = defineStore("campaignExecution", {
       last_page: 1,
     },
     recipientFilters: { ...DEFAULT_FILTERS } as CampaignRunRecipientsFilters,
+    recipientDispatches: null as SmsRecipientDispatchesResponse | null,
     loading: buildLoadingFlags(),
     errors: buildErrors(),
   }),
@@ -257,6 +265,36 @@ export const useCampaignExecutionStore = defineStore("campaignExecution", {
       await this.fetchRunRecipients(campaignId, { page });
     },
 
+    async fetchRecipientDispatches(recipientId: number) {
+      this.loading.dispatches = true;
+      this.errors.dispatches = null;
+
+      try {
+        this.recipientDispatches =
+          await smsMessagesService.getSmsRecipientDispatches(recipientId);
+        return this.recipientDispatches;
+      } catch (error) {
+        const status = (error as { response?: { status?: number } })?.response?.status;
+
+        this.recipientDispatches = null;
+        this.errors.dispatches =
+          status === 404
+            ? "Registro não encontrado ou sem acesso."
+            : extractExecutionErrorMessage(
+                error,
+                "Não foi possível carregar os disparos do recipient.",
+              );
+        throw error;
+      } finally {
+        this.loading.dispatches = false;
+      }
+    },
+
+    clearRecipientDispatches() {
+      this.recipientDispatches = null;
+      this.errors.dispatches = null;
+    },
+
     reset() {
       this.campaignId = null;
       this.run = null;
@@ -265,6 +303,7 @@ export const useCampaignExecutionStore = defineStore("campaignExecution", {
       this.recipients = [];
       this.recipientsPagination = { current_page: 1, per_page: 50, total: 0, last_page: 1 };
       this.recipientFilters = { ...DEFAULT_FILTERS };
+      this.recipientDispatches = null;
       this.loading = buildLoadingFlags();
       this.errors = buildErrors();
     },
