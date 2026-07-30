@@ -1,28 +1,95 @@
-/**
- * @deprecated Mantenha as chamadas operacionais da Fase 3 no módulo de domínio:
- * `@/domains/campaign-execution`.
- *
- * Este arquivo existe apenas por compatibilidade retroativa.
- */
-import campaignExecutionApi, {
+import api from "./base.js";
+import type { CampaignApiResponse } from "@/contracts/campaigns";
+import type {
+  CampaignPrepareResponse,
+  CampaignRunActionResponse,
+  CampaignRunRecipientsFilters,
+  CampaignRunRecipientsResponse,
+  CampaignRunWithWaves,
+} from "@/contracts/campaignExecution";
+
+function unwrapResponse<T>(response: T | CampaignApiResponse<T>): T {
+  if (
+    response &&
+    typeof response === "object" &&
+    "success" in response &&
+    "data" in response &&
+    response.data !== undefined
+  ) {
+    return response.data;
+  }
+
+  return response as T;
+}
+
+export async function prepare(campaignId: number): Promise<CampaignPrepareResponse> {
+  const { data } = await api.post<CampaignPrepareResponse | CampaignApiResponse<CampaignPrepareResponse>>(
+    `/campaigns/${campaignId}/prepare`,
+  );
+  return unwrapResponse(data);
+}
+
+export async function launch(campaignId: number): Promise<CampaignRunActionResponse> {
+  const { data } = await api.post<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
+    `/campaigns/${campaignId}/launch`,
+  );
+  return unwrapResponse(data);
+}
+
+export async function pause(campaignId: number): Promise<CampaignRunActionResponse> {
+  const { data } = await api.post<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
+    `/campaigns/${campaignId}/pause`,
+  );
+  return unwrapResponse(data);
+}
+
+export async function resume(campaignId: number): Promise<CampaignRunActionResponse> {
+  const { data } = await api.post<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
+    `/campaigns/${campaignId}/resume`,
+  );
+  return unwrapResponse(data);
+}
+
+export async function cancel(campaignId: number): Promise<CampaignRunActionResponse> {
+  const { data } = await api.post<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
+    `/campaigns/${campaignId}/cancel`,
+  );
+  return unwrapResponse(data);
+}
+
+export async function getRun(campaignId: number): Promise<CampaignRunWithWaves> {
+  const { data } = await api.get<CampaignRunWithWaves | CampaignApiResponse<CampaignRunWithWaves>>(
+    `/campaigns/${campaignId}/run`,
+  );
+  return unwrapResponse(data);
+}
+
+export async function getRunBatches(campaignId: number): Promise<CampaignRunWithWaves> {
+  const { data } = await api.get<CampaignRunWithWaves | CampaignApiResponse<CampaignRunWithWaves>>(
+    `/campaigns/${campaignId}/run/batches`,
+  );
+  return unwrapResponse(data);
+}
+
+export async function getRunRecipients(
+  campaignId: number,
+  filters: CampaignRunRecipientsFilters = {},
+): Promise<CampaignRunRecipientsResponse> {
+  const { data } = await api.get<
+    CampaignRunRecipientsResponse | CampaignApiResponse<CampaignRunRecipientsResponse>
+  >(`/campaigns/${campaignId}/run/recipients`, { params: filters });
+  return unwrapResponse(data);
+}
+
+const campaignExecutionService = {
+  prepare,
+  launch,
+  pause,
+  resume,
   cancel,
   getRun,
   getRunBatches,
   getRunRecipients,
-  launch,
-  pause,
-  prepare,
-  resume,
-} from "@/domains/campaign-execution/api";
+};
 
-// Back-compat: nomes antigos (pré-módulo).
-export const prepareCampaign = prepare;
-export const launchCampaignRun = launch;
-export const pauseCampaignRun = pause;
-export const resumeCampaignRun = resume;
-export const cancelCampaignRun = cancel;
-export const getCampaignRun = getRun;
-export const getCampaignRunBatches = getRunBatches;
-export const getCampaignRunRecipients = getRunRecipients;
-
-export default campaignExecutionApi;
+export default campaignExecutionService;

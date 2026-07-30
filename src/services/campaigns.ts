@@ -1,5 +1,5 @@
 import api from "./base.js";
-import campaignExecutionApi from "@/domains/campaign-execution/api";
+import campaignExecutionService from "@/services/campaignExecution";
 import type {
   CampaignApiResponse,
   CampaignDetail,
@@ -70,21 +70,21 @@ export async function estimateCampaign(id: number): Promise<CampaignEstimateResp
  * são operacionais e devem ser acessados via módulo de domínio `campaign-execution`.
  */
 export async function launchCampaign(id: number): Promise<void> {
-  await campaignExecutionApi.launch(id);
+  await campaignExecutionService.launch(id);
 }
 
 export async function pauseCampaign(id: number): Promise<CampaignDetail> {
-  await campaignExecutionApi.pause(id);
+  await campaignExecutionService.pause(id);
   return getCampaign(id);
 }
 
 export async function resumeCampaign(id: number): Promise<CampaignDetail> {
-  await campaignExecutionApi.resume(id);
+  await campaignExecutionService.resume(id);
   return getCampaign(id);
 }
 
 export async function cancelCampaign(id: number): Promise<CampaignDetail> {
-  await campaignExecutionApi.cancel(id);
+  await campaignExecutionService.cancel(id);
   return getCampaign(id);
 }
 

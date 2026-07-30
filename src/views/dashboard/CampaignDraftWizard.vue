@@ -551,10 +551,10 @@ import {
 import {
   CAMPAIGN_RUN_STATUS_LABELS,
 } from "@/contracts/campaignExecution";
-import { useCampaignExecutionStore } from "@/domains/campaign-execution/store";
-import CampaignRunProgressPanel from "@/domains/campaign-execution/components/CampaignRunProgressPanel.vue";
-import CampaignWavesBatchesPanel from "@/domains/campaign-execution/components/CampaignWavesBatchesPanel.vue";
-import CampaignRecipientsPanel from "@/domains/campaign-execution/components/CampaignRecipientsPanel.vue";
+import { useCampaignExecutionStore } from "@/stores/campaignExecution";
+import CampaignRunProgressPanel from "@/components/campaigns/CampaignRunProgressPanel.vue";
+import CampaignWavesBatchesPanel from "@/components/campaigns/CampaignWavesBatchesPanel.vue";
+import CampaignRecipientsPanel from "@/components/campaigns/CampaignRecipientsPanel.vue";
 
 type StepKey =
   | "basic"

@@ -9,6 +9,16 @@
       </p>
     </div>
 
+    <section v-if="activeGroupProject.type !== 'group'" class="space-y-3">
+      <div class="space-y-0.5">
+        <h3 class="text-lg font-medium">Integração de SMS</h3>
+        <p class="text-sm text-muted-foreground">
+          Configure o provedor comercial de SMS do projeto.
+        </p>
+      </div>
+      <ElevateSmsIntegrationCard @retry="fetchElevateSmsConfig" />
+    </section>
+
     <div v-if="loading" class="space-y-4">
       <Skeleton class="h-6 w-full" />
       <Skeleton class="h-6 w-full" />
@@ -254,10 +264,13 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import IntegrationPreferencesGoogleAnalytics from "@/views/dashboard/IntegrationPreferencesGoogleAnalytics.vue";
+import ElevateSmsIntegrationCard from "@/components/integrations/ElevateSmsIntegrationCard.vue";
+import { useSmsIntegrationsStore } from "@/stores/smsIntegrations";
 import { Settings2 } from "lucide-vue-next";
 
 const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
+const smsIntegrationsStore = useSmsIntegrationsStore();
 const loading = ref(false);
 const saving = ref(false);
 const integrations = ref<Array<any>>([]);
@@ -308,17 +321,25 @@ async function fetchIntegrations() {
 
     const { data } = await Projects.integrations(activeGroupProject.project_id);
 
-    integrations.value = data.map((integration: any) => {
-      const rawConfig = integration.integration?.config;
+    // O supplier smsfunnel é detalhe técnico interno e nunca aparece como
+    // integração separada no painel (o catálogo já não o expõe — filtro defensivo).
+    const hiddenSupplierSlugs = ["smsfunnel", "sms-funnel"];
 
-      const configFixed =
-        Array.isArray(rawConfig) || !rawConfig ? {} : rawConfig;
+    integrations.value = data
+      .map((integration: any) => {
+        const rawConfig = integration.integration?.config;
 
-      return {
-        ...integration,
-        config: configFixed,
-      };
-    });
+        const configFixed =
+          Array.isArray(rawConfig) || !rawConfig ? {} : rawConfig;
+
+        return {
+          ...integration,
+          config: configFixed,
+        };
+      })
+      .filter(
+        (integration: any) => !hiddenSupplierSlugs.includes(integration.slug),
+      );
     const google = integrations.value.find(
       (value) => value.slug === "google-analytics",
     );
@@ -510,8 +531,21 @@ async function saveAllIntegrations() {
   await fetchIntegrations();
 }
 
+async function fetchElevateSmsConfig() {
+  if (activeGroupProject.type === "group") {
+    return;
+  }
+
+  try {
+    await smsIntegrationsStore.fetchConfig(activeGroupProject.project_id);
+  } catch {
+    // Estado de erro já é exibido no card da integração.
+  }
+}
+
 onMounted(async () => {
   await fetchIntegrations();
+  await fetchElevateSmsConfig();
 });
 
 useScreenContext(
