@@ -8,6 +8,7 @@ import SmsTestMessage from "@/views/dashboard/SmsTestMessage.vue";
 import SmsProviderLists from "@/views/dashboard/SmsProviderLists.vue";
 import SmsProviderAutomations from "@/views/dashboard/SmsProviderAutomations.vue";
 import SmsProviderBroadcasts from "@/views/dashboard/SmsProviderBroadcasts.vue";
+import SmsDirectSend from "@/views/dashboard/SmsDirectSend.vue";
 import CampaignMailSettings from "@/views/dashboard/CampaignMailSettings.vue";
 
 const marketingMeta = {
@@ -98,6 +99,15 @@ export default [
         meta: {
           ...marketingMeta,
           title: "Broadcasts de SMS",
+        },
+      },
+      {
+        path: "sms/direct-send",
+        name: "sms.direct-send",
+        component: SmsDirectSend,
+        meta: {
+          ...marketingMeta,
+          title: "Envio Direto de SMS",
         },
       },
       {

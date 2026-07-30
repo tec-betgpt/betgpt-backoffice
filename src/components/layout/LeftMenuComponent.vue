@@ -680,6 +680,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-marketing"),
         },
         {
+          name: "Envio Direto SMS",
+          url: { name: "sms.direct-send" },
+          icon: Send,
+          show: canAccess("access-to-marketing"),
+        },
+        {
           name: "Links",
           url: { name: "links" },
           icon: Link2,
