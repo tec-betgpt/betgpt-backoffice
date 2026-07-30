@@ -686,6 +686,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-marketing"),
         },
         {
+          name: "Histórico SMS",
+          url: { name: "sms.history" },
+          icon: History,
+          show: canAccess("access-to-marketing"),
+        },
+        {
           name: "Links",
           url: { name: "links" },
           icon: Link2,

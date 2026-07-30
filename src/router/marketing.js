@@ -9,6 +9,7 @@ import SmsProviderLists from "@/views/dashboard/SmsProviderLists.vue";
 import SmsProviderAutomations from "@/views/dashboard/SmsProviderAutomations.vue";
 import SmsProviderBroadcasts from "@/views/dashboard/SmsProviderBroadcasts.vue";
 import SmsDirectSend from "@/views/dashboard/SmsDirectSend.vue";
+import SmsHistory from "@/views/dashboard/SmsHistory.vue";
 import CampaignMailSettings from "@/views/dashboard/CampaignMailSettings.vue";
 
 const marketingMeta = {
@@ -108,6 +109,15 @@ export default [
         meta: {
           ...marketingMeta,
           title: "Envio Direto de SMS",
+        },
+      },
+      {
+        path: "sms/history",
+        name: "sms.history",
+        component: SmsHistory,
+        meta: {
+          ...marketingMeta,
+          title: "Histórico de SMS",
         },
       },
       {

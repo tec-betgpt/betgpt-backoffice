@@ -102,3 +102,100 @@ export interface SmsRecipientDispatchesResponse {
   recipient: SmsRecipientDispatchesRecipient;
   dispatches: SmsRecipientDispatch[];
 }
+
+// ----------------------------------------------------------------------
+// Histórico técnico de SMS direto (Fase 4)
+// GET /v1/channels/sms/messages | /{id} | /{id}/events | POST status-sync
+// ----------------------------------------------------------------------
+
+/** Item da listagem paginada de mensagens. */
+export interface SmsMessageListItem {
+  id: number;
+  uuid: string;
+  status: SmsMessageStatus;
+  supplier_message_id: string | null;
+  supplier_dispatch_id: string | null;
+  supplier_status: string | null;
+  requested_at: string;
+}
+
+export interface SmsMessagesPagination {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+}
+
+/** Resposta do GET /v1/channels/sms/messages. */
+export interface SmsMessagesListResponse {
+  items: SmsMessageListItem[];
+  pagination: SmsMessagesPagination;
+}
+
+/** Filtros da listagem. `project_id` é obrigatório (422 sem ele). */
+export interface SmsMessagesFilters {
+  project_id?: number | string | null;
+  status?: SmsMessageStatus | null;
+  recipient_phone?: string | null;
+  requested_from?: string | null;
+  requested_to?: string | null;
+  supplier_message_id?: string | null;
+  per_page?: number | null;
+  page?: number | null;
+}
+
+/** Detalhe consolidado da mensagem (GET /v1/channels/sms/messages/{id}). */
+export interface SmsMessageDetail extends SmsMessageListItem {
+  project_id: number;
+  project_integration_id: number | null;
+  provider_slug: string | null;
+  supplier_slug: string | null;
+  recipient_phone: string | null;
+  recipient_phone_e164: string | null;
+  message_body: string | null;
+  character_count: number | null;
+  sms_segments: number | null;
+  error_code: string | null;
+  error_message: string | null;
+  metadata: Record<string, unknown> | null;
+  accepted_at: string | null;
+  queued_at: string | null;
+  sent_at: string | null;
+  delivered_at: string | null;
+  failed_at: string | null;
+  canceled_at: string | null;
+  last_status_at: string | null;
+}
+
+export type SmsMessageEventSource = "request" | "callback" | "manual_status_check";
+
+export const SMS_MESSAGE_EVENT_SOURCE_LABELS: Record<SmsMessageEventSource, string> = {
+  request: "Envio",
+  callback: "Callback (webhook)",
+  manual_status_check: "Consulta manual",
+};
+
+/** Evento da timeline (GET /v1/channels/sms/messages/{id}/events). */
+export interface SmsMessageEvent {
+  id: number;
+  event_source: SmsMessageEventSource;
+  normalized_status: SmsMessageStatus | null;
+  supplier_status: string | null;
+  supplier_event_id: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  /** Payload bruto preservado — exibir como JSON colapsável, nunca como HTML. */
+  payload: Record<string, unknown> | null;
+  occurred_at: string | null;
+  processed_at: string | null;
+}
+
+export type SmsStatusSyncOutcome = "updated" | "unchanged" | "ignored_regression";
+
+/** Resposta do POST /v1/channels/sms/status-sync. */
+export interface SmsStatusSyncResponse {
+  outcome: SmsStatusSyncOutcome;
+  status: SmsMessageStatus;
+  supplier_status: string | null;
+  project_id: number;
+}
