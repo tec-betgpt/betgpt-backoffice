@@ -27,7 +27,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import MarketingApiKeysTable from "@/components/marketing-api-keys/MarketingApiKeysTable.vue";
 import MarketingApiKeySecretDialog from "@/components/marketing-api-keys/MarketingApiKeySecretDialog.vue";
-import type { MarketingApiKey } from "@/contracts/marketingApiKeys";
+import MarketingApiKeyFormDialog from "@/components/marketing-api-keys/MarketingApiKeyFormDialog.vue";
+import { PlusIcon } from "lucide-vue-next";
+import type {
+  CreateMarketingApiKeyPayload,
+  MarketingApiKey,
+} from "@/contracts/marketingApiKeys";
 import type { MarketingApiKeyStatusFilter } from "@/stores/marketingApiKeys";
 
 const { t } = useI18n();
@@ -78,6 +83,25 @@ function operationErrorMessage(err: unknown, fallbackKey: string): string {
   return normalized.code === "state_conflict"
     ? t("marketing_api_keys.state_conflict")
     : t(fallbackKey);
+}
+
+// --- Criação ---------------------------------------------------------------
+
+const createDialogOpen = ref(false);
+const isCreating = ref(false);
+
+async function handleCreate(payload: CreateMarketingApiKeyPayload) {
+  isCreating.value = true;
+  try {
+    // O secret retornado vai apenas para o estado volátil da store; o modal
+    // bloqueante de exibição única abre em seguida via `ephemeralSecret`.
+    await store.createApiKey(payload);
+    createDialogOpen.value = false;
+  } catch {
+    // Feedback de erro já é exibido pelo interceptor global (422/500/rede).
+  } finally {
+    isCreating.value = false;
+  }
 }
 
 // --- Rotação ---------------------------------------------------------------
@@ -137,11 +161,20 @@ function requestEdit(_apiKey: MarketingApiKey) {
 
 <template>
   <div class="w-full">
-    <div class="mb-4">
-      <h3 class="text-lg font-medium">{{ t("marketing_api_keys.title") }}</h3>
-      <p class="text-sm text-muted-foreground">
-        {{ t("marketing_api_keys.description") }}
-      </p>
+    <div class="mb-4 flex items-start justify-between gap-4">
+      <div>
+        <h3 class="text-lg font-medium">{{ t("marketing_api_keys.title") }}</h3>
+        <p class="text-sm text-muted-foreground">
+          {{ t("marketing_api_keys.description") }}
+        </p>
+      </div>
+      <Button
+        v-if="canManage && hasWorkspace && !isForbidden"
+        @click="createDialogOpen = true"
+      >
+        <PlusIcon class="size-4 mr-2" />
+        {{ t("marketing_api_keys.create_button") }}
+      </Button>
     </div>
 
     <Separator class="mb-4" />
@@ -283,7 +316,15 @@ function requestEdit(_apiKey: MarketingApiKey) {
       </AlertDialogContent>
     </AlertDialog>
 
-    <!-- Exibição única do secret (rotação; criação entra na tarefa 4) -->
+    <!-- Formulário de emissão -->
+    <MarketingApiKeyFormDialog
+      :open="createDialogOpen"
+      :submitting="isCreating"
+      @update:open="createDialogOpen = $event"
+      @submit="handleCreate"
+    />
+
+    <!-- Exibição única do secret (criação e rotação) -->
     <MarketingApiKeySecretDialog
       :secret="ephemeralSecret"
       @close="store.clearEphemeralSecret()"

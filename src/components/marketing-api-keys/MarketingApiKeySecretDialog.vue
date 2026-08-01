@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import moment from "moment";
 import {
@@ -11,8 +11,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { CopyIcon, TriangleAlertIcon } from "lucide-vue-next";
+import { CopyIcon, DownloadIcon, TriangleAlertIcon } from "lucide-vue-next";
 import type { EphemeralMarketingApiSecret } from "@/stores/marketingApiKeys";
 
 const props = defineProps<{
@@ -27,6 +29,16 @@ const { t } = useI18n();
 const { toast } = useToast();
 
 const open = computed(() => props.secret !== null);
+
+/** Confirmação explícita de salvamento — exigida antes de fechar/destruir. */
+const confirmedSaved = ref(false);
+
+watch(
+  () => props.secret,
+  () => {
+    confirmedSaved.value = false;
+  },
+);
 
 const title = computed(() =>
   props.secret?.kind === "rotated"
@@ -75,6 +87,21 @@ async function copySecret() {
     });
   }
 }
+
+/** Download opcional em arquivo texto, sempre iniciado pelo usuário. */
+function downloadSecret() {
+  if (!props.secret) return;
+
+  const blob = new Blob([props.secret.secret], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${props.secret.apiKey.key_prefix}-secret.txt`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+
+  toast({ description: t("marketing_api_keys.secret_downloaded") });
+}
 </script>
 
 <template>
@@ -100,18 +127,49 @@ async function copySecret() {
           >
             {{ secret.secret }}
           </code>
-          <Button variant="outline" size="icon" @click="copySecret">
+          <Button
+            variant="outline"
+            size="icon"
+            :title="t('marketing_api_keys.secret_copy')"
+            @click="copySecret"
+          >
             <CopyIcon class="size-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            :title="t('marketing_api_keys.secret_download')"
+            @click="downloadSecret"
+          >
+            <DownloadIcon class="size-4" />
           </Button>
         </div>
 
         <p v-if="rotationPolicyMessage" class="text-sm text-muted-foreground">
           {{ rotationPolicyMessage }}
         </p>
+
+        <div class="flex items-center gap-2 pt-1">
+          <Checkbox
+            id="api-key-secret-saved"
+            :checked="confirmedSaved"
+            @update:checked="confirmedSaved = $event as boolean"
+          />
+          <Label
+            for="api-key-secret-saved"
+            class="text-sm font-normal cursor-pointer"
+          >
+            {{ t("marketing_api_keys.secret_confirm_saved") }}
+          </Label>
+        </div>
       </div>
 
       <DialogFooter>
-        <Button class="w-full" @click="emit('close')">
+        <Button
+          class="w-full"
+          :disabled="!confirmedSaved"
+          @click="emit('close')"
+        >
           {{ t("marketing_api_keys.secret_close") }}
         </Button>
       </DialogFooter>
