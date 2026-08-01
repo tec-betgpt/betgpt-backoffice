@@ -1,15 +1,26 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { UserRoundIcon, LucideLock, ClipboardPenIcon, MessageCircle, CreditCard } from "lucide-vue-next";
+import { UserRoundIcon, LucideLock, ClipboardPenIcon, MessageCircle, CreditCard, KeyRound } from "lucide-vue-next";
 import { cn } from "@/lib/utils";
 import { useRouter, RouterView } from "vue-router";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useMarketingApiKeysStore } from "@/stores/marketingApiKeys";
+import { resolveGroupIdFromWorkspaceKey } from "@/services/marketingApiKeys";
 
 const workspaceStore = useWorkspaceStore();
-const activeGroupProject = workspaceStore.activeGroupProject;
+const marketingApiKeysStore = useMarketingApiKeysStore();
 
-const sidebarNavItems: {title: string, route: string, show: boolean}[] = [
+// Capability administrativa (dono do grupo ou `manage-marketing-api-keys`)
+// sobre o workspace atualmente selecionado.
+const canManageMarketingApiKeys = computed(() =>
+  marketingApiKeysStore.canManageGroup(
+    resolveGroupIdFromWorkspaceKey(workspaceStore.activeGroupProject?.id),
+  ),
+);
+
+const sidebarNavItems = computed(() => [
   {
     title: "Perfil",
     route: "configurations.profile",
@@ -21,6 +32,12 @@ const sidebarNavItems: {title: string, route: string, show: boolean}[] = [
     route: "configurations.security",
     show: true,
     icon: LucideLock
+  },
+  {
+    title: "API Keys",
+    route: "configurations.api-keys",
+    show: canManageMarketingApiKeys.value,
+    icon: KeyRound
   },
   {
     title: "Notificações",
@@ -40,7 +57,7 @@ const sidebarNavItems: {title: string, route: string, show: boolean}[] = [
     show: true,
     icon: CreditCard
   },
-];
+]);
 
 const router = useRouter();
 </script>

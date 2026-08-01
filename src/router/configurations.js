@@ -6,6 +6,7 @@ import ConfigurationNotifications from "@/views/configurations/Notifications.vue
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
 import ServiceConsumeds from "@/views/configurations/ServiceConsumeds.vue";
 import Invoices from "@/views/configurations/Invoices.vue";
+import MarketingApiKeys from "@/views/configurations/MarketingApiKeys.vue";
 
 export default [
   {
@@ -59,6 +60,17 @@ export default [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Confirmação de E-mail",
+          roles: "member|client",
+        },
+      },
+      {
+        path: "api-keys",
+        name: "configurations.api-keys",
+        component: MarketingApiKeys,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "API Keys",
           roles: "member|client",
         },
       },

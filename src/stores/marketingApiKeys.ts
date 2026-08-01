@@ -62,30 +62,38 @@ export const useMarketingApiKeysStore = defineStore("marketingApiKeys", {
     },
 
     /**
-     * Capability administrativa: dono do grupo (`group.user_id === user.id`)
-     * ou permissão `manage-marketing-api-keys`. Projeto isolado do grupo
-     * (sem `activeGroupId`) NÃO concede administração — o backend retorna 403.
+     * Capability administrativa por grupo: dono do grupo
+     * (`group.user_id === user.id`) ou permissão `manage-marketing-api-keys`.
+     * Projeto isolado do grupo (groupId null) NÃO concede administração.
      */
-    canManage(): boolean {
+    canManageGroup(): (groupId: number | null) => boolean {
       const authStore = useAuthStore();
       // auth store é legada em JS; `user` chega sem tipagem estática.
       const user = authStore.user as any;
-      if (!user || this.activeGroupId == null) return false;
 
-      const ownsGroup = user.projectGroups?.some(
-        (group: { id: number; user_id: number }) =>
-          group.id === this.activeGroupId && group.user_id === user.id,
-      );
-      if (ownsGroup) return true;
+      return (groupId: number | null) => {
+        if (!user || groupId == null) return false;
 
-      return Boolean(
-        user.roles?.some((role: any) =>
-          role.permissions?.some(
-            (permission: any) =>
-              permission.name === MANAGE_MARKETING_API_KEYS_PERMISSION,
+        const ownsGroup = user.projectGroups?.some(
+          (group: { id: number; user_id: number }) =>
+            group.id === groupId && group.user_id === user.id,
+        );
+        if (ownsGroup) return true;
+
+        return Boolean(
+          user.roles?.some((role: any) =>
+            role.permissions?.some(
+              (permission: any) =>
+                permission.name === MANAGE_MARKETING_API_KEYS_PERMISSION,
+            ),
           ),
-        ),
-      );
+        );
+      };
+    },
+
+    /** Capability para o workspace ativo no store. */
+    canManage(): boolean {
+      return this.canManageGroup(this.activeGroupId);
     },
   },
 
