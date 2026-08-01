@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useMarketingApiKeysStore } from "@/stores/marketingApiKeys";
 import { normalizeMarketingApiKeyError } from "@/services/marketingApiKeys";
+import { showApiErrorToast } from "@/lib/apiErrorFeedback";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ import {
 import MarketingApiKeysTable from "@/components/marketing-api-keys/MarketingApiKeysTable.vue";
 import MarketingApiKeySecretDialog from "@/components/marketing-api-keys/MarketingApiKeySecretDialog.vue";
 import MarketingApiKeyFormDialog from "@/components/marketing-api-keys/MarketingApiKeyFormDialog.vue";
+import ApiErrorAlert from "@/components/custom/ApiErrorAlert.vue";
 import { PlusIcon } from "lucide-vue-next";
 import type {
   CreateMarketingApiKeyPayload,
@@ -80,13 +82,6 @@ const statusOptions: { value: MarketingApiKeyStatusFilter; label: string }[] = [
   { value: "revoked", label: t("marketing_api_keys.status_revoked") },
 ];
 
-function operationErrorMessage(err: unknown, fallbackKey: string): string {
-  const normalized = normalizeMarketingApiKeyError(err);
-  return normalized.code === "state_conflict"
-    ? t("marketing_api_keys.state_conflict")
-    : t(fallbackKey);
-}
-
 // --- Formulário (criação e edição) ------------------------------------------
 
 const formOpen = ref(false);
@@ -119,11 +114,7 @@ async function handleFormSubmit(payload: CreateMarketingApiKeyPayload) {
     editingKey.value = null;
   } catch (err) {
     if (normalizeMarketingApiKeyError(err).code === "state_conflict") {
-      toast({
-        title: t("error_ocurried"),
-        description: t("marketing_api_keys.state_conflict"),
-        variant: "destructive",
-      });
+      showApiErrorToast(err);
     }
     // Demais erros: feedback já é exibido pelo interceptor global (422/500/rede).
   } finally {
@@ -145,11 +136,7 @@ async function confirmRotate() {
     rotateTarget.value = null;
     toast({ description: t("marketing_api_keys.rotate_success") });
   } catch (err) {
-    toast({
-      title: t("error_ocurried"),
-      description: operationErrorMessage(err, "marketing_api_keys.rotate_error"),
-      variant: "destructive",
-    });
+    showApiErrorToast(err, { fallbackKey: "marketing_api_keys.rotate_error" });
   } finally {
     isRotating.value = false;
   }
@@ -181,11 +168,7 @@ async function confirmRevoke() {
     revokeTarget.value = null;
     toast({ description: t("marketing_api_keys.revoke_success") });
   } catch (err) {
-    toast({
-      title: t("error_ocurried"),
-      description: operationErrorMessage(err, "marketing_api_keys.revoke_error"),
-      variant: "destructive",
-    });
+    showApiErrorToast(err, { fallbackKey: "marketing_api_keys.revoke_error" });
   } finally {
     isRevoking.value = false;
   }
@@ -231,18 +214,12 @@ async function confirmRevoke() {
       </p>
     </div>
 
-    <!-- Erro genérico de carregamento -->
-    <div
+    <!-- Erro de carregamento: mensagem padronizada + request_id + retry -->
+    <ApiErrorAlert
       v-else-if="error && !loading"
-      class="border rounded-lg p-8 text-center space-y-3"
-    >
-      <p class="text-sm text-muted-foreground">
-        {{ t("marketing_api_keys.error_loading") }}
-      </p>
-      <Button variant="outline" @click="store.fetchApiKeys()">
-        {{ t("marketing_api_keys.retry") }}
-      </Button>
-    </div>
+      :error="error"
+      @retry="store.fetchApiKeys()"
+    />
 
     <template v-else>
       <div class="flex justify-end mb-3">
