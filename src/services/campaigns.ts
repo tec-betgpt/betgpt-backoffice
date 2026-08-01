@@ -1,4 +1,5 @@
 import api from "./base.js";
+import { postWithIdempotency } from "./idempotency";
 import campaignExecutionService from "@/services/campaignExecution";
 import type {
   CampaignApiResponse,
@@ -34,7 +35,7 @@ export async function listCampaigns(params: CampaignListParams = {}): Promise<Ca
 }
 
 export async function createCampaign(payload: CampaignStorePayload): Promise<CampaignDetail> {
-  const { data } = await api.post<CampaignDetail | CampaignApiResponse<CampaignDetail>>("/campaigns", payload);
+  const data = await postWithIdempotency<CampaignDetail | CampaignApiResponse<CampaignDetail>>("/campaigns", payload);
   return unwrapResponse(data);
 }
 

@@ -1,4 +1,5 @@
 import api from "./base.js";
+import { postWithIdempotency } from "./idempotency";
 import type {
   SmsDirectSendPayload,
   SmsMessage,
@@ -23,7 +24,7 @@ type Envelope<T> = {
  * backend persiste a mensagem com status `failed` (ver histórico).
  */
 export async function sendSmsMessage(payload: SmsDirectSendPayload): Promise<SmsMessage> {
-  const { data } = await api.post<Envelope<SmsMessage>>("/channels/sms/messages", payload);
+  const data = await postWithIdempotency<Envelope<SmsMessage>>("/channels/sms/messages", payload);
   return data.data;
 }
 

@@ -1,4 +1,5 @@
 import api from "./base.js";
+import { postWithIdempotency } from "./idempotency";
 import type {
   LinkApiResponse,
   LinkArchiveResponse,
@@ -17,7 +18,7 @@ export default {
   },
 
   async store(body: LinkCreatePayload): Promise<LinkDetailsResponse> {
-    const { data } = await api.post<LinkApiResponse<LinkDetailsResponse>>("/links", body);
+    const data = await postWithIdempotency<LinkApiResponse<LinkDetailsResponse>>("/links", body);
     return data.data;
   },
 

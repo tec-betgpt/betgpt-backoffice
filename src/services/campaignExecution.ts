@@ -1,4 +1,5 @@
 import api from "./base.js";
+import { postWithIdempotency } from "./idempotency";
 import type { CampaignApiResponse } from "@/contracts/campaigns";
 import type {
   CampaignPrepareResponse,
@@ -23,35 +24,35 @@ function unwrapResponse<T>(response: T | CampaignApiResponse<T>): T {
 }
 
 export async function prepare(campaignId: number): Promise<CampaignPrepareResponse> {
-  const { data } = await api.post<CampaignPrepareResponse | CampaignApiResponse<CampaignPrepareResponse>>(
+  const data = await postWithIdempotency<CampaignPrepareResponse | CampaignApiResponse<CampaignPrepareResponse>>(
     `/campaigns/${campaignId}/prepare`,
   );
   return unwrapResponse(data);
 }
 
 export async function launch(campaignId: number): Promise<CampaignRunActionResponse> {
-  const { data } = await api.post<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
+  const data = await postWithIdempotency<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
     `/campaigns/${campaignId}/launch`,
   );
   return unwrapResponse(data);
 }
 
 export async function pause(campaignId: number): Promise<CampaignRunActionResponse> {
-  const { data } = await api.post<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
+  const data = await postWithIdempotency<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
     `/campaigns/${campaignId}/pause`,
   );
   return unwrapResponse(data);
 }
 
 export async function resume(campaignId: number): Promise<CampaignRunActionResponse> {
-  const { data } = await api.post<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
+  const data = await postWithIdempotency<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
     `/campaigns/${campaignId}/resume`,
   );
   return unwrapResponse(data);
 }
 
 export async function cancel(campaignId: number): Promise<CampaignRunActionResponse> {
-  const { data } = await api.post<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
+  const data = await postWithIdempotency<CampaignRunActionResponse | CampaignApiResponse<CampaignRunActionResponse>>(
     `/campaigns/${campaignId}/cancel`,
   );
   return unwrapResponse(data);
