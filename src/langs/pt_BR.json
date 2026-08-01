@@ -295,6 +295,19 @@
     "validation_rate_limit": "Informe um limite entre 1 e 600.",
     "create_submit": "Criar API key",
     "create_submitting": "Criando...",
-    "create_error": "Não foi possível criar a API key."
+    "create_error": "Não foi possível criar a API key.",
+    "edit_title": "Editar API key",
+    "edit_description": "Altere nome, escopos, limite de requisições e expiração. Workspace, identificador, status e atores são imutáveis.",
+    "edit_submit": "Salvar alterações",
+    "edit_submitting": "Salvando...",
+    "update_success": "API key atualizada com sucesso.",
+    "update_error": "Não foi possível atualizar a API key.",
+    "edit_expired_hint": "Esta chave está expirada. Defina uma data de expiração futura para reativá-la.",
+    "scopes_diff_title": "Alterações de escopo (sincronizadas nos tokens ativos ao salvar)",
+    "scopes_added": "Adicionados",
+    "scopes_removed": "Removidos",
+    "impact_warning": "Atenção: a redução de escopos e a antecipação da expiração têm efeito imediato nas integrações que utilizam esta chave.",
+    "revoke_typed_hint": "Digite o nome da chave para confirmar a revogação.",
+    "revoke_irreversible": "Esta operação não é reversível."
   }
 }

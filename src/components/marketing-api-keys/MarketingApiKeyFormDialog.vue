@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import moment from "moment";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { TriangleAlertIcon, InfoIcon } from "lucide-vue-next";
 import {
   MARKETING_API_KEY_NAME_MAX_LENGTH,
   MARKETING_API_KEY_NAME_MIN_LENGTH,
@@ -23,13 +26,20 @@ import {
 } from "@/contracts/marketingApiKeys";
 import type {
   CreateMarketingApiKeyPayload,
+  MarketingApiKey,
   MarketingApiScope,
 } from "@/contracts/marketingApiKeys";
 
-const props = defineProps<{
-  open: boolean;
-  submitting: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    open: boolean;
+    submitting: boolean;
+    mode?: "create" | "edit";
+    /** Chave em edição (obrigatória quando `mode === "edit"`). */
+    initial?: MarketingApiKey | null;
+  }>(),
+  { mode: "create", initial: null },
+);
 
 const emit = defineEmits<{
   "update:open": [value: boolean];
@@ -39,26 +49,39 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const name = ref("");
-/** Menor privilégio: nenhum escopo pré-selecionado. */
+/** Menor privilégio: na criação, nenhum escopo pré-selecionado. */
 const selectedScopes = ref<MarketingApiScope[]>([]);
 const expiresAt = ref("");
 const rateLimit = ref<number>(MARKETING_API_KEY_RATE_LIMIT_DEFAULT);
 const attemptedSubmit = ref(false);
 
-// Reseta o formulário sempre que o diálogo é aberto.
+// Inicializa o formulário sempre que o diálogo é aberto.
 watch(
   () => props.open,
   (open) => {
     if (!open) return;
-    name.value = "";
-    selectedScopes.value = [];
-    expiresAt.value = "";
-    rateLimit.value = MARKETING_API_KEY_RATE_LIMIT_DEFAULT;
+
+    if (props.mode === "edit" && props.initial) {
+      name.value = props.initial.name;
+      selectedScopes.value = [...props.initial.scopes];
+      expiresAt.value = props.initial.expires_at
+        ? moment(props.initial.expires_at).format("YYYY-MM-DDTHH:mm")
+        : "";
+      rateLimit.value = props.initial.rate_limit_per_minute;
+    } else {
+      name.value = "";
+      selectedScopes.value = [];
+      expiresAt.value = "";
+      rateLimit.value = MARKETING_API_KEY_RATE_LIMIT_DEFAULT;
+    }
+
     attemptedSubmit.value = false;
   },
 );
 
 const scopeGroups = MARKETING_API_SCOPE_GROUPS;
+
+const isEdit = computed(() => props.mode === "edit");
 
 function scopeLabelKey(scope: MarketingApiScope): string {
   return `marketing_api_keys.scope_${scope.replace(":", "_")}`;
@@ -73,6 +96,47 @@ function toggleScope(scope: MarketingApiScope, checked: boolean) {
     ? [...selectedScopes.value, scope]
     : selectedScopes.value.filter((item) => item !== scope);
 }
+
+// --- Comparação de escopos (modo edição) ------------------------------------
+
+const addedScopes = computed(() =>
+  isEdit.value
+    ? selectedScopes.value.filter(
+        (scope) => !props.initial?.scopes.includes(scope),
+      )
+    : [],
+);
+
+const removedScopes = computed(() =>
+  isEdit.value
+    ? (props.initial?.scopes ?? []).filter(
+        (scope) => !selectedScopes.value.includes(scope),
+      )
+    : [],
+);
+
+const hasScopeChanges = computed(
+  () => addedScopes.value.length > 0 || removedScopes.value.length > 0,
+);
+
+/** Expiração antecipada: definir expiração onde não havia ou para data anterior. */
+const isExpiringEarlier = computed(() => {
+  if (!isEdit.value || !expiresAt.value) return false;
+
+  const next = new Date(expiresAt.value).getTime();
+  const previous = props.initial?.expires_at
+    ? new Date(props.initial.expires_at).getTime()
+    : null;
+
+  return previous === null || next < previous;
+});
+
+/** Mudanças com impacto imediato nas integrações em produção. */
+const hasImmediateImpact = computed(
+  () => isEdit.value && (removedScopes.value.length > 0 || isExpiringEarlier.value),
+);
+
+// --- Validação ---------------------------------------------------------------
 
 const nameError = computed(() => {
   const length = name.value.trim().length;
@@ -116,6 +180,8 @@ function handleSubmit() {
   attemptedSubmit.value = true;
   if (!isValid.value || props.submitting) return;
 
+  // Somente campos editáveis — workspace, uuid, status e atores são imutáveis
+  // (qualquer outro campo retorna 422 `immutable_fields`).
   emit("submit", {
     name: name.value.trim(),
     scopes: selectedScopes.value,
@@ -131,13 +197,31 @@ function handleSubmit() {
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent class="sm:max-w-xl">
       <DialogHeader>
-        <DialogTitle>{{ t("marketing_api_keys.create_title") }}</DialogTitle>
+        <DialogTitle>
+          {{
+            isEdit
+              ? t("marketing_api_keys.edit_title")
+              : t("marketing_api_keys.create_title")
+          }}
+        </DialogTitle>
         <DialogDescription>
-          {{ t("marketing_api_keys.create_description") }}
+          {{
+            isEdit
+              ? t("marketing_api_keys.edit_description")
+              : t("marketing_api_keys.create_description")
+          }}
         </DialogDescription>
       </DialogHeader>
 
       <form class="space-y-5" @submit.prevent="handleSubmit">
+        <div
+          v-if="isEdit && initial?.status === 'expired'"
+          class="flex items-start gap-2 text-sm text-muted-foreground border rounded-lg p-3"
+        >
+          <InfoIcon class="size-4 mt-0.5 shrink-0" />
+          <span>{{ t("marketing_api_keys.edit_expired_hint") }}</span>
+        </div>
+
         <div class="space-y-2">
           <Label for="api-key-name">{{ t("marketing_api_keys.field_name") }}</Label>
           <Input
@@ -190,6 +274,42 @@ function handleSubmit() {
           >
             {{ scopesError }}
           </p>
+
+          <!-- Comparação de escopos adicionados/removidos antes de salvar -->
+          <div
+            v-if="isEdit && hasScopeChanges"
+            class="border rounded-lg p-3 space-y-2"
+          >
+            <p class="text-sm font-medium">
+              {{ t("marketing_api_keys.scopes_diff_title") }}
+            </p>
+            <div v-if="addedScopes.length" class="flex flex-wrap items-center gap-1">
+              <span class="text-xs text-muted-foreground">
+                {{ t("marketing_api_keys.scopes_added") }}:
+              </span>
+              <Badge
+                v-for="scope in addedScopes"
+                :key="`added-${scope}`"
+                variant="outline"
+                class="text-xs border-green-600 text-green-700"
+              >
+                + {{ scope }}
+              </Badge>
+            </div>
+            <div v-if="removedScopes.length" class="flex flex-wrap items-center gap-1">
+              <span class="text-xs text-muted-foreground">
+                {{ t("marketing_api_keys.scopes_removed") }}:
+              </span>
+              <Badge
+                v-for="scope in removedScopes"
+                :key="`removed-${scope}`"
+                variant="outline"
+                class="text-xs border-destructive text-destructive"
+              >
+                − {{ scope }}
+              </Badge>
+            </div>
+          </div>
         </div>
 
         <div class="grid sm:grid-cols-2 gap-4">
@@ -232,6 +352,15 @@ function handleSubmit() {
           </div>
         </div>
 
+        <!-- Aviso de impacto imediato (redução de escopos / expiração antecipada) -->
+        <div
+          v-if="hasImmediateImpact"
+          class="flex items-start gap-2 text-sm border border-amber-500/50 bg-amber-500/10 rounded-lg p-3"
+        >
+          <TriangleAlertIcon class="size-4 mt-0.5 shrink-0 text-amber-600" />
+          <span>{{ t("marketing_api_keys.impact_warning") }}</span>
+        </div>
+
         <DialogFooter>
           <Button
             type="button"
@@ -242,11 +371,20 @@ function handleSubmit() {
             {{ t("cancel") }}
           </Button>
           <Button type="submit" :disabled="submitting">
-            {{
-              submitting
-                ? t("marketing_api_keys.create_submitting")
-                : t("marketing_api_keys.create_submit")
-            }}
+            <template v-if="submitting">
+              {{
+                isEdit
+                  ? t("marketing_api_keys.edit_submitting")
+                  : t("marketing_api_keys.create_submitting")
+              }}
+            </template>
+            <template v-else>
+              {{
+                isEdit
+                  ? t("marketing_api_keys.edit_submit")
+                  : t("marketing_api_keys.create_submit")
+              }}
+            </template>
           </Button>
         </DialogFooter>
       </form>

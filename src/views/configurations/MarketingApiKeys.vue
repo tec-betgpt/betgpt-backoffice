@@ -7,6 +7,8 @@ import { useMarketingApiKeysStore } from "@/stores/marketingApiKeys";
 import { normalizeMarketingApiKeyError } from "@/services/marketingApiKeys";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -85,22 +87,47 @@ function operationErrorMessage(err: unknown, fallbackKey: string): string {
     : t(fallbackKey);
 }
 
-// --- Criação ---------------------------------------------------------------
+// --- Formulário (criação e edição) ------------------------------------------
 
-const createDialogOpen = ref(false);
-const isCreating = ref(false);
+const formOpen = ref(false);
+const editingKey = ref<MarketingApiKey | null>(null);
+const isSubmittingForm = ref(false);
 
-async function handleCreate(payload: CreateMarketingApiKeyPayload) {
-  isCreating.value = true;
+function openCreateForm() {
+  editingKey.value = null;
+  formOpen.value = true;
+}
+
+function requestEdit(apiKey: MarketingApiKey) {
+  editingKey.value = apiKey;
+  formOpen.value = true;
+}
+
+async function handleFormSubmit(payload: CreateMarketingApiKeyPayload) {
+  isSubmittingForm.value = true;
   try {
-    // O secret retornado vai apenas para o estado volátil da store; o modal
-    // bloqueante de exibição única abre em seguida via `ephemeralSecret`.
-    await store.createApiKey(payload);
-    createDialogOpen.value = false;
-  } catch {
-    // Feedback de erro já é exibido pelo interceptor global (422/500/rede).
+    if (editingKey.value) {
+      // Atualização somente após confirmação do backend (sem optimistic update).
+      await store.updateApiKey(editingKey.value.uuid, payload);
+      toast({ description: t("marketing_api_keys.update_success") });
+    } else {
+      // O secret retornado vai apenas para o estado volátil da store; o modal
+      // bloqueante de exibição única abre em seguida via `ephemeralSecret`.
+      await store.createApiKey(payload);
+    }
+    formOpen.value = false;
+    editingKey.value = null;
+  } catch (err) {
+    if (normalizeMarketingApiKeyError(err).code === "state_conflict") {
+      toast({
+        title: t("error_ocurried"),
+        description: t("marketing_api_keys.state_conflict"),
+        variant: "destructive",
+      });
+    }
+    // Demais erros: feedback já é exibido pelo interceptor global (422/500/rede).
   } finally {
-    isCreating.value = false;
+    isSubmittingForm.value = false;
   }
 }
 
@@ -132,9 +159,21 @@ async function confirmRotate() {
 
 const revokeTarget = ref<MarketingApiKey | null>(null);
 const isRevoking = ref(false);
+/** Confirmação digitada: deve ser igual ao nome da chave. */
+const revokeConfirmation = ref("");
+
+watch(revokeTarget, () => {
+  revokeConfirmation.value = "";
+});
+
+const canConfirmRevoke = computed(
+  () =>
+    revokeTarget.value !== null &&
+    revokeConfirmation.value.trim() === revokeTarget.value.name,
+);
 
 async function confirmRevoke() {
-  if (!revokeTarget.value) return;
+  if (!revokeTarget.value || !canConfirmRevoke.value) return;
 
   isRevoking.value = true;
   try {
@@ -151,12 +190,6 @@ async function confirmRevoke() {
     isRevoking.value = false;
   }
 }
-
-// --- Edição (tarefa 5 implementa o formulário) ------------------------------
-
-function requestEdit(_apiKey: MarketingApiKey) {
-  // O diálogo de edição é entregue na tarefa 5 da Fase 6.
-}
 </script>
 
 <template>
@@ -170,7 +203,7 @@ function requestEdit(_apiKey: MarketingApiKey) {
       </div>
       <Button
         v-if="canManage && hasWorkspace && !isForbidden"
-        @click="createDialogOpen = true"
+        @click="openCreateForm"
       >
         <PlusIcon class="size-4 mr-2" />
         {{ t("marketing_api_keys.create_button") }}
@@ -279,7 +312,7 @@ function requestEdit(_apiKey: MarketingApiKey) {
       </AlertDialogContent>
     </AlertDialog>
 
-    <!-- Confirmação explícita de revogação -->
+    <!-- Revogação com confirmação digitada do nome da chave -->
     <AlertDialog
       :open="revokeTarget !== null"
       @update:open="!$event && (revokeTarget = null)"
@@ -295,14 +328,30 @@ function requestEdit(_apiKey: MarketingApiKey) {
                 name: revokeTarget?.name,
               })
             }}
+            <strong class="block mt-1">
+              {{ t("marketing_api_keys.revoke_irreversible") }}
+            </strong>
           </AlertDialogDescription>
         </AlertDialogHeader>
+
+        <div class="space-y-2">
+          <Label for="revoke-confirmation" class="text-sm">
+            {{ t("marketing_api_keys.revoke_typed_hint") }}
+          </Label>
+          <Input
+            id="revoke-confirmation"
+            v-model="revokeConfirmation"
+            :placeholder="revokeTarget?.name"
+            :disabled="isRevoking"
+          />
+        </div>
+
         <AlertDialogFooter>
           <AlertDialogCancel :disabled="isRevoking">
             {{ t("cancel") }}
           </AlertDialogCancel>
           <AlertDialogAction
-            :disabled="isRevoking"
+            :disabled="isRevoking || !canConfirmRevoke"
             class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             @click="confirmRevoke"
           >
@@ -316,12 +365,17 @@ function requestEdit(_apiKey: MarketingApiKey) {
       </AlertDialogContent>
     </AlertDialog>
 
-    <!-- Formulário de emissão -->
+    <!-- Formulário de emissão/edição -->
     <MarketingApiKeyFormDialog
-      :open="createDialogOpen"
-      :submitting="isCreating"
-      @update:open="createDialogOpen = $event"
-      @submit="handleCreate"
+      :open="formOpen"
+      :mode="editingKey ? 'edit' : 'create'"
+      :initial="editingKey"
+      :submitting="isSubmittingForm"
+      @update:open="
+        formOpen = $event;
+        !$event && (editingKey = null);
+      "
+      @submit="handleFormSubmit"
     />
 
     <!-- Exibição única do secret (criação e rotação) -->
