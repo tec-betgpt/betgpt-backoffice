@@ -74,6 +74,7 @@ const handleClick = async () => {
       },
     });
 
+    iaAnaliseStore.setPendingChat(chatId);
     iaAnaliseStore.finishAnalise();
 
   } catch (error) {
