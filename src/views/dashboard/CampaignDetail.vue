@@ -7,6 +7,13 @@
           <Badge v-if="campaignStatus" :variant="statusVariant(campaignStatus)">
             {{ CAMPAIGN_STATUS_LABELS[campaignStatus] }}
           </Badge>
+          <Badge
+            v-if="financialStatus"
+            variant="outline"
+            class="border-emerald-600/40 text-emerald-600 dark:border-emerald-500/40 dark:text-emerald-400"
+          >
+            Financeiro: {{ FINANCIAL_STATUS_LABELS[financialStatus] }}
+          </Badge>
         </div>
         <p class="text-muted-foreground">
           Acompanhe o progresso do disparo via SMS Funnel: ocorrências, broadcasts e entregas.
@@ -15,6 +22,13 @@
 
       <div class="flex flex-wrap items-center gap-2">
         <Button variant="outline" @click="router.push({ name: 'campaign-drafts.index' })">Voltar para lista</Button>
+        <Button
+          variant="outline"
+          :disabled="!campaignId"
+          @click="router.push({ name: 'financial.resource-usage', query: { campaign_id: campaignId } })"
+        >
+          Uso de recursos
+        </Button>
         <Button variant="outline" :disabled="isLoading" @click="refresh">
           {{ isLoading ? "Atualizando..." : "Atualizar" }}
         </Button>
@@ -58,6 +72,13 @@
       </Card>
     </div>
 
+    <Tabs default-value="dispatches" class="space-y-4">
+      <TabsList>
+        <TabsTrigger value="dispatches">Ocorrências</TabsTrigger>
+        <TabsTrigger value="costs">Custos</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="dispatches" class="space-y-4">
     <Card>
       <CardHeader>
         <CardTitle>Ocorrências de disparo</CardTitle>
@@ -136,6 +157,16 @@
         </div>
       </CardContent>
     </Card>
+      </TabsContent>
+
+      <TabsContent value="costs" class="space-y-4">
+        <CampaignCostsPanel
+          ref="costsPanel"
+          :campaign-id="campaignId"
+          @financial-status="financialStatus = $event"
+        />
+      </TabsContent>
+    </Tabs>
 
     <AlertDialog :open="isCancelDialogOpen" @update:open="isCancelDialogOpen = $event">
       <AlertDialogContent>
@@ -175,6 +206,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -192,6 +224,8 @@ import {
   type CampaignDispatchStatus,
   type CampaignStatus,
 } from "@/contracts/campaigns";
+import { FINANCIAL_STATUS_LABELS, type FinancialStatus } from "@/contracts/financialLedger";
+import CampaignCostsPanel from "@/components/campaigns/CampaignCostsPanel.vue";
 import {
   cancelCampaign,
   getCampaign,
@@ -210,6 +244,8 @@ const isLoading = ref(false);
 const isActing = ref(false);
 const isCancelDialogOpen = ref(false);
 const errorMessage = ref("");
+const financialStatus = ref<FinancialStatus | null>(null);
+const costsPanel = ref<InstanceType<typeof CampaignCostsPanel> | null>(null);
 let pollTimer: number | null = null;
 
 const campaignId = computed(() => {
@@ -276,6 +312,10 @@ async function refresh(showLoading = true) {
     campaign.value = detail;
     campaignStatus.value = dispatchesResponse.status;
     dispatches.value = dispatchesResponse.dispatches;
+
+    if (costsPanel.value) {
+      costsPanel.value.refresh();
+    }
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível carregar os disparos da campanha.");
   } finally {

@@ -834,6 +834,18 @@ const navMenu = computed(() => {
           icon: DollarSignIcon,
           show: canAccess("access-to-finance"),
         },
+        {
+          name: "Uso de recursos",
+          url: { name: "financial.resource-usage" },
+          icon: Rows3,
+          show: canAccess("access-to-finance"),
+        },
+        {
+          name: "Extrato do ledger",
+          url: { name: "financial.ledger" },
+          icon: Rows3,
+          show: canAccess("access-to-finance"),
+        },
       ],
     },
   ];
