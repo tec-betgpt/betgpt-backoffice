@@ -4,6 +4,7 @@ export const useIAAnaliseStore = defineStore("iaAnalise", {
   state: () => ({
     isLoading: false,
     chatId: null as string | null,
+    pendingChatId: null as string | null,
     error: null as string | null,
   }),
   actions: {
@@ -17,6 +18,10 @@ export const useIAAnaliseStore = defineStore("iaAnalise", {
       this.isLoading = false;
     },
 
+    setPendingChat(chatId: string) {
+      this.pendingChatId = chatId;
+    },
+
     setError(message: string) {
       this.error = message;
     },
@@ -24,6 +29,7 @@ export const useIAAnaliseStore = defineStore("iaAnalise", {
     reset() {
       this.isLoading = false;
       this.chatId = null;
+      this.pendingChatId = null;
       this.error = null;
     },
   },

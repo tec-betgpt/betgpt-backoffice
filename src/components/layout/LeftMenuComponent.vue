@@ -350,6 +350,7 @@ import {
   Workflow,
   RadioTower,
   PieChart,
+  Activity,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -578,6 +579,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-webhooks"),
         },
         {
+          name: "Operação de Webhooks",
+          url: { name: "webhook-operations" },
+          icon: Webhook,
+          show: canAccess("access-to-webhooks"),
+        },
+        {
           name: "Preferências do Projeto",
           url: { name: "project-preferences" },
           icon: Settings2,
@@ -689,6 +696,12 @@ const navMenu = computed(() => {
           name: "Link Engine",
           url: { name: "link-engine" },
           icon: ChartArea,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Monitor de Campanha",
+          url: { name: "campaign-monitor" },
+          icon: Activity,
           show: canAccess("access-to-marketing"),
         },
       ],

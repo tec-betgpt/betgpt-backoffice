@@ -247,6 +247,18 @@
               </div>
             </CardContent>
           </Card>
+
+          <Card v-if="playerContact" class="shadow-sm border-none md:border">
+            <CardHeader class="pb-4">
+              <CardTitle class="text-lg md:text-xl">Timeline de Comunicação</CardTitle>
+              <CardDescription class="text-xs">
+                Eventos canônicos consolidados por contato (telefone ou e-mail).
+              </CardDescription>
+            </CardHeader>
+            <CardContent class="p-2 md:p-6 pt-0">
+              <ContactTimeline :contact="playerContact" :project-id="projectIdForTimeline" />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
@@ -316,6 +328,7 @@ import PlayerProfileHeader from "@/components/players/PlayerProfileHeader.vue";
 import PlayerFinancialStats from "@/components/players/PlayerFinancialStats.vue";
 import PlayerSmarticoInsights from "@/components/players/PlayerSmarticoInsights.vue";
 import PlayerTimeline from "@/components/players/PlayerTimeline.vue";
+import ContactTimeline from "@/components/observability/ContactTimeline.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import {
   Dialog,
@@ -347,6 +360,18 @@ const activeTab = ref('activity');
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+
+const playerContact = computed(() => {
+  if (!player.value) return null;
+  const phone = String(player.value.phone ?? "").trim();
+  if (phone) return phone;
+  const email = String(player.value.email ?? "").trim();
+  return email || null;
+});
+
+const projectIdForTimeline = computed(() =>
+  Number(workspaceStore.activeGroupProject?.project_id ?? 0),
+);
 
 // Screen Context
 useScreenContext("Perfil do Cliente", () => ({

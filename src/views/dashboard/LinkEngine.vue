@@ -169,6 +169,44 @@
       <Card>
         <CardHeader class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
+            <CardTitle>Cliques canonicos por campanha</CardTitle>
+            <p class="text-sm text-muted-foreground">
+              {{ formatInteger(monitor.canonical_clicks.total) }} cliques desde
+              {{ formatNullableDateTime(monitor.canonical_clicks.since) }}
+            </p>
+          </div>
+          <Badge variant="outline">{{ formatInteger(monitor.canonical_clicks.by_campaign.length) }} campanhas</Badge>
+        </CardHeader>
+        <CardContent>
+          <div class="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Campanha</TableHead>
+                  <TableHead>Link</TableHead>
+                  <TableHead class="text-right">Cliques</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-for="item in monitor.canonical_clicks.by_campaign" :key="`${item.campaign_id}-${item.link_id}`">
+                  <TableCell class="font-mono text-xs">{{ shortUuid(item.campaign_id) }}</TableCell>
+                  <TableCell>#{{ item.link_id }}</TableCell>
+                  <TableCell class="text-right font-medium">{{ formatInteger(item.clicks) }}</TableCell>
+                </TableRow>
+                <TableRow v-if="monitor.canonical_clicks.by_campaign.length === 0">
+                  <TableCell :colspan="3" class="py-8 text-center text-muted-foreground">
+                    Nenhum clique canonico registrado.
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
             <CardTitle>Links com falha</CardTitle>
             <p class="text-sm text-muted-foreground">
               Destinos que retornaram timeout, erro ou indisponibilidade.
@@ -368,8 +406,14 @@ const chartOptions = computed<ApexOptions>(() => ({
 
 function getRequestParams() {
   const filterId = workspaceStore.activeGroupProject?.id;
+  const projectId = workspaceStore.activeGroupProject?.project_id;
 
-  return filterId ? { filter_id: filterId } : {};
+  const params: Record<string, string | number> = {};
+
+  if (filterId) params.filter_id = filterId;
+  if (projectId) params.project_id = projectId;
+
+  return params;
 }
 
 function getRequestErrorMessage(error: any) {
@@ -443,6 +487,10 @@ function formatDateTime(value: string | Date) {
 
 function formatNullableDateTime(value: string | null) {
   return value ? formatDateTime(value) : "—";
+}
+
+function shortUuid(value: string) {
+  return value.length > 16 ? `${value.slice(0, 8)}…${value.slice(-6)}` : value;
 }
 
 function isCriticalLinkStatus(status: string) {

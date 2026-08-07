@@ -8,6 +8,7 @@ import SmsTestMessage from "@/views/dashboard/SmsTestMessage.vue";
 import SmsProviderLists from "@/views/dashboard/SmsProviderLists.vue";
 import SmsProviderAutomations from "@/views/dashboard/SmsProviderAutomations.vue";
 import SmsProviderBroadcasts from "@/views/dashboard/SmsProviderBroadcasts.vue";
+import CampaignMonitor from "@/views/dashboard/CampaignMonitor.vue";
 
 const marketingMeta = {
   layout: DefaultLayout,
@@ -115,6 +116,15 @@ export default [
         meta: {
           ...marketingMeta,
           title: "Link Engine",
+        },
+      },
+      {
+        path: "monitor/de-campanha",
+        name: "campaign-monitor",
+        component: CampaignMonitor,
+        meta: {
+          ...marketingMeta,
+          title: "Monitor de Campanha",
         },
       },
     ],
