@@ -9,6 +9,7 @@ import GoogleAnalyticsPreferences from "@/views/dashboard/GoogleAnalyticsPrefere
 import MetaAdsPreferences from "@/views/dashboard/MetaAdsPreferences.vue";
 import ProjectPreferences from "@/views/dashboard/ProjectPreferences.vue";
 import WebhookOperations from "@/views/dashboard/WebhookOperations.vue";
+import ProjectApiKeys from "@/views/dashboard/ProjectApiKeys.vue";
 
 export default [
   {
@@ -43,6 +44,18 @@ export default [
           roles: "member",
           permissions: "view-projects",
           title: "Projetos",
+        },
+      },
+      {
+        path: "projects/:id/api-keys",
+        name: "project-api-keys",
+        component: ProjectApiKeys,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member",
+          permissions: "manage-project-api-keys",
+          title: "Chaves de API",
         },
       },
       {

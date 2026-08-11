@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import api from "@/services/base";
 import Auth from "@/services/auth";
 import { useMarketingApiKeysStore } from "@/stores/marketingApiKeys";
+import { useProjectApiKeysStore } from "@/stores/projectApiKeys";
 
 const IMPERSONATION_KEY = "betgpt_impersonating";
 const ADMIN_AUTH_BACKUP_KEY = "betgpt_admin_auth_backup";
@@ -57,6 +58,7 @@ export const useAuthStore = defineStore("auth", {
 
       // Remove listas, erros e qualquer secret efêmero de API keys.
       useMarketingApiKeysStore().reset();
+      useProjectApiKeysStore().reset();
     },
 
     /** Guarda sessão do admin antes de abrir simulação (localStorage é compartilhado entre abas). */

@@ -349,7 +349,8 @@ import {
   ListChecks,
   Workflow,
   RadioTower,
-  PieChart,
+  PieChart, Activity,
+  KeyRound,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -562,6 +563,17 @@ const navMenu = computed(() => {
           url: { name: "projects" },
           icon: Building2,
           show: canAccess("access-to-project-groups"),
+        },
+        {
+          name: "Chaves de API",
+          url: {
+            name: "project-api-keys",
+            params: { id: activeGroupProject.value?.project_id },
+          },
+          icon: KeyRound,
+          show:
+            canAccess("manage-project-api-keys") &&
+            activeGroupProject.value?.type === "project",
         },
         {
           name: "Fontes de Dados",
