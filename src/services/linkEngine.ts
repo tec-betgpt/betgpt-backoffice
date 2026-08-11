@@ -28,9 +28,22 @@ export interface UnhealthyLinkItem {
   checked_at: string | null;
 }
 
+export interface CanonicalCampaignClicks {
+  campaign_id: string;
+  link_id: number;
+  clicks: number;
+}
+
+export interface CanonicalClicks {
+  total: number;
+  by_campaign: CanonicalCampaignClicks[];
+  since: string;
+}
+
 export interface LinkEngineMonitorResponse {
   clicks_last_5min: number;
   clicks_per_minute_24h: ClickMinutePoint[];
+  canonical_clicks: CanonicalClicks;
   queue_pending: number;
   avg_processing_delay_ms: number | null;
   redirect_latency: RedirectLatency;

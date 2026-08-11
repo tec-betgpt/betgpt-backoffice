@@ -704,6 +704,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-marketing"),
         },
         {
+          name: "Monitor de Campanha",
+          url: { name: "campaign-monitor" },
+          icon: Activity,
+          show: canAccess("access-to-marketing"),
+        },
+        {
           name: "E-mail SMTP",
           url: { name: "campaign-mail-settings" },
           icon: Mail,
@@ -847,6 +853,18 @@ const navMenu = computed(() => {
           name: "Entradas e Saídas",
           url: { name: "registers" },
           icon: DollarSignIcon,
+          show: canAccess("access-to-finance"),
+        },
+        {
+          name: "Uso de recursos",
+          url: { name: "financial.resource-usage" },
+          icon: Rows3,
+          show: canAccess("access-to-finance"),
+        },
+        {
+          name: "Extrato do ledger",
+          url: { name: "financial.ledger" },
+          icon: Rows3,
           show: canAccess("access-to-finance"),
         },
       ],
