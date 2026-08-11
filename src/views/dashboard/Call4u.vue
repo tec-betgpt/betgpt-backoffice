@@ -936,7 +936,7 @@ const campaignColumns = computed(() => [
       ),
   }),
   columnHelper.accessor("unique_answer_rate", {
-    header: () => "Tent. Únicas / Atendidas",
+    header: () => "Taxa de Atendimento Unico",
     cell: ({ row }) =>
       h(
         "div",
