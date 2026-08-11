@@ -560,6 +560,7 @@ const callsChart = ref<{ name: string; value: any[] }[]>([]);
 // Campaigns table
 const campaigns = ref<any[]>([]);
 const totalCampaigns = ref();
+const totalUniqueAnswerRate = ref<string>("0.00");
 const campaignPages = ref({ current: 1, total: 0, last: 0 });
 const campaignPerPage = ref(10);
 const campaignOrderId = ref<string>();
@@ -601,6 +602,7 @@ const campaignsStats = computed(() => {
     total_unique_attempts: 0,
     total_seconds_duration: 0,
     answer_rate: "0.00",
+    unique_answer_rate: "0.00",
   };
   campaigns.value.forEach((c: any) => {
     s.total_sent += c.total_sent ?? 0;
@@ -612,6 +614,7 @@ const campaignsStats = computed(() => {
     s.total_sent > 0
       ? ((s.total_answered / s.total_sent) * 100).toFixed(2)
       : "0.00";
+  s.unique_answer_rate = totalUniqueAnswerRate.value ?? "0.00";
   return s;
 });
 
@@ -657,6 +660,7 @@ const formatters = {
   total_sent: formatNumber,
   total_answered: formatNumber,
   total_unique_attempts: formatNumber,
+  unique_answer_rate: formatPercentage,
   answered_with_typing: formatNumber,
   answered_and_listened_to_the_end: formatNumber,
   total_seconds_duration: formatDuration,
@@ -717,6 +721,9 @@ const loadData = async () => {
             ? ((c.total_answered / c.total_sent) * 100).toFixed(2)
             : "0.00",
       }));
+      totalUniqueAnswerRate.value = String(
+        data.campaigns.total_unique_answer_rate ?? "0.00",
+      );
       totalCampaigns.value = data.campaigns.total;
       campaignPages.value = {
         current: data.campaigns.pagination.current_page,
@@ -926,6 +933,15 @@ const campaignColumns = computed(() => [
         "div",
         { class: "text-right" },
         formatPercentage(row.getValue("answer_rate")),
+      ),
+  }),
+  columnHelper.accessor("unique_answer_rate", {
+    header: () => "Tent. Únicas / Atendidas",
+    cell: ({ row }) =>
+      h(
+        "div",
+        { class: "text-right" },
+        formatPercentage(row.getValue("unique_answer_rate")),
       ),
   }),
   columnHelper.accessor("total_seconds_duration", {
