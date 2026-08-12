@@ -132,7 +132,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, h, watch } from "vue";
+import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useToast } from "@/components/ui/toast/use-toast";
+import { useAuthStore } from "@/stores/auth";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -152,7 +155,7 @@ import {
   ArrowDown,
   ArrowUp,
 } from "lucide-vue-next";
-import { Loader2 as LucideSpinner, Plus } from "lucide-vue-next";
+import { Loader2 as LucideSpinner, Plus, KeyIcon } from "lucide-vue-next";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import moment from "moment";
@@ -172,6 +175,15 @@ watch(statusFilter.value, () => {
   fetchProjects(1);
 });
 const { toast } = useToast();
+const router = useRouter();
+const { t } = useI18n();
+const authStore = useAuthStore();
+// Helper local (mesmo padrão de Players.vue) — usado apenas pelo item
+// "Chaves de API" do dropdown de ações.
+const hasPermission = (permissionName: string) =>
+  Boolean((authStore.user as any)?.roles?.some((role: any) =>
+    role.permissions?.some((permission: any) => permission.name === permissionName),
+  ));
 const processingAction = ref(null);
 const projects = ref<Project[]>([]);
 const isLoading = ref(true);
@@ -551,6 +563,24 @@ const columns = [
         h(DropdownMenuContent, { align: "end" }, [
           h(DropdownMenuLabel, {}, "Ações"),
           h(DropdownMenuSeparator, {}),
+          ...(hasPermission("manage-project-api-keys")
+            ? [
+                h(
+                  DropdownMenuItem,
+                  {
+                    onClick: () =>
+                      router.push({
+                        name: "project-api-keys",
+                        params: { id: row.original.id },
+                      }),
+                  },
+                  () => [
+                    h(KeyIcon, { class: "mr-2 h-4 w-4" }),
+                    t("project_api_keys.title"),
+                  ]
+                ),
+              ]
+            : []),
           h(
             DropdownMenuItem,
             {

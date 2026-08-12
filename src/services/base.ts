@@ -25,19 +25,21 @@ api.interceptors.response.use(
     }
 
     if (error.response && error.response.status === 422) {
-      const fields = [];
+      const fields: string[] = [];
 
-      Object.entries(error.response.data.errors).forEach(([key, value]) => {
+      Object.entries(error.response.data.errors ?? {}).forEach(([key, value]) => {
         return Array.isArray(value)
           ? fields.push(value.join(", "))
-          : fields.push(value);
+          : fields.push(String(value));
       });
 
-      toast({
-        title: i18n.global.t("attention"),
-        description: fields.join("<br>"),
-        variant: "destructive",
-      });
+      if (fields.length) {
+        toast({
+          title: i18n.global.t("attention"),
+          description: fields.join("<br>"),
+          variant: "destructive",
+        });
+      }
     }
 
     if (error.code === "ERR_NETWORK") {

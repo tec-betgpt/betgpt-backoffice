@@ -349,7 +349,8 @@ import {
   ListChecks,
   Workflow,
   RadioTower,
-  PieChart,
+  PieChart, Activity,
+  KeyRound,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -564,6 +565,17 @@ const navMenu = computed(() => {
           show: canAccess("access-to-project-groups"),
         },
         {
+          name: "Chaves de API",
+          url: {
+            name: "project-api-keys",
+            params: { id: activeGroupProject.value?.project_id },
+          },
+          icon: KeyRound,
+          show:
+            canAccess("manage-project-api-keys") &&
+            activeGroupProject.value?.type === "project",
+        },
+        {
           name: "Fontes de Dados",
           url: { name: "data-sources" },
           icon: Blocks,
@@ -680,6 +692,18 @@ const navMenu = computed(() => {
           show: canAccess("access-to-marketing"),
         },
         {
+          name: "Envio Direto SMS",
+          url: { name: "sms.direct-send" },
+          icon: Send,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Histórico SMS",
+          url: { name: "sms.history" },
+          icon: History,
+          show: canAccess("access-to-marketing"),
+        },
+        {
           name: "Links",
           url: { name: "links" },
           icon: Link2,
@@ -689,6 +713,12 @@ const navMenu = computed(() => {
           name: "Link Engine",
           url: { name: "link-engine" },
           icon: ChartArea,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Monitor de Campanha",
+          url: { name: "campaign-monitor" },
+          icon: Activity,
           show: canAccess("access-to-marketing"),
         },
         {
@@ -835,6 +865,18 @@ const navMenu = computed(() => {
           name: "Entradas e Saídas",
           url: { name: "registers" },
           icon: DollarSignIcon,
+          show: canAccess("access-to-finance"),
+        },
+        {
+          name: "Uso de recursos",
+          url: { name: "financial.resource-usage" },
+          icon: Rows3,
+          show: canAccess("access-to-finance"),
+        },
+        {
+          name: "Extrato do ledger",
+          url: { name: "financial.ledger" },
+          icon: Rows3,
           show: canAccess("access-to-finance"),
         },
       ],

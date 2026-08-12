@@ -1,10 +1,12 @@
 import api from "./base.js";
+import { postWithIdempotency } from "./idempotency";
 import type {
   LinkApiResponse,
   LinkArchiveResponse,
   LinkCreatePayload,
   LinkDetailsResponse,
   LinkListParams,
+  ListParams,
   LinkListResponse,
   LinkUpdatePayload,
 } from "@/contracts/link";
@@ -16,7 +18,7 @@ export default {
   },
 
   async store(body: LinkCreatePayload): Promise<LinkDetailsResponse> {
-    const { data } = await api.post<LinkApiResponse<LinkDetailsResponse>>("/links", body);
+    const data = await postWithIdempotency<LinkApiResponse<LinkDetailsResponse>>("/links", body);
     return data.data;
   },
 
@@ -34,4 +36,9 @@ export default {
     const { data } = await api.post<LinkApiResponse<LinkArchiveResponse>>(`/links/${id}/archive`);
     return data.data;
   },
+
+  async list(params: ListParams): Promise<{ id: number; slug: string }[]> {
+    const { data } = await api.get<Promise<{ id: number; slug: string }[]>>("/links/list", { params });
+    return data;
+  }
 }

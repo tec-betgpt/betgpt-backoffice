@@ -160,11 +160,10 @@ export type LinkCreatePayload = Required<Pick<LinkFormPayloadBase, "project_id" 
 export type LinkUpdatePayload = LinkFormPayloadBase;
 export type LinkArchiveResponse = LinkDetailsResponse;
 
-export const LINK_DESTINATION_STATUS_OPTIONS = [
-  { label: "Ativo", value: "active" },
-  { label: "Instável", value: "unhealthy" },
-  { label: "Desativado", value: "disabled" },
-];
+export interface ListParams {
+  filter_id: string | number;
+  search?: string;
+}
 
 export const LINK_CHANNEL_OPTIONS = [
   { label: "SMS", value: "sms" },

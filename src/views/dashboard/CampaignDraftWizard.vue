@@ -12,43 +12,95 @@
           <Badge v-else-if="campaign" variant="outline">Sincronizado</Badge>
         </div>
         <p class="text-muted-foreground">
-          Configure, estime e valide a campanha SMS usando o estado calculado pelo backend.
+          <template v-if="activeCampaignTab === 'execution'">
+            Acompanhe o estado operacional da execução (run materializado) da campanha.
+          </template>
+          <template v-else>
+            Configure, estime e valide a campanha SMS usando o estado calculado pelo backend.
+          </template>
         </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
         <Button variant="outline" @click="router.push({ name: 'campaign-drafts.index' })">Voltar para lista</Button>
-        <Button variant="outline" :disabled="!campaign?.id || isEstimating" @click="runEstimate()">
-          {{ isEstimating ? "Atualizando estimativa..." : "Atualizar estimativa" }}
-        </Button>
-        <Button variant="outline" :disabled="isReadonly || isSaving" @click="saveDraft(activeStep)">
-          {{ isSaving ? "Salvando..." : "Salvar rascunho" }}
-        </Button>
-        <Button :disabled="!campaign?.id || isValidating" @click="runValidation">
-          {{ isValidating ? "Validando..." : "Validar configuração" }}
-        </Button>
-        <Button
-          v-if="canLaunch"
-          :disabled="isLaunching || isDirty"
-          @click="isLaunchDialogOpen = true"
-        >
-          {{ isLaunching ? "Disparando..." : "Validar e disparar" }}
-        </Button>
-        <Button
-          v-if="campaign?.id && !canLaunch && campaign.status !== 'draft'"
-          variant="outline"
-          @click="router.push({ name: 'campaign-drafts.show', params: { id: campaign.id } })"
-        >
-          Acompanhar disparo
-        </Button>
-        <Button
-          v-if="canDelete"
-          variant="destructive"
-          :disabled="isDeleting"
-          @click="isDeleteDialogOpen = true"
-        >
-          {{ isDeleting ? "Excluindo..." : "Excluir draft" }}
-        </Button>
+        <template v-if="activeCampaignTab === 'configuration'">
+          <Button variant="outline" :disabled="!campaign?.id || isEstimating" @click="runEstimate()">
+            {{ isEstimating ? "Atualizando estimativa..." : "Atualizar estimativa" }}
+          </Button>
+          <Button variant="outline" :disabled="isReadonly || isSaving" @click="saveDraft(activeStep)">
+            {{ isSaving ? "Salvando..." : "Salvar rascunho" }}
+          </Button>
+          <Button :disabled="!campaign?.id || isValidating" @click="runValidation">
+            {{ isValidating ? "Validando..." : "Validar configuração" }}
+          </Button>
+          <Button
+            v-if="canLaunch"
+            :disabled="isLaunching || isDirty"
+            @click="isLaunchDialogOpen = true"
+          >
+            {{ isLaunching ? "Disparando..." : "Validar e disparar" }}
+          </Button>
+          <Button
+            v-if="campaign?.id && !canLaunch && campaign.status !== 'draft'"
+            variant="outline"
+            @click="router.push({ name: 'campaign-drafts.show', params: { id: campaign.id } })"
+          >
+            Acompanhar disparo
+          </Button>
+          <Button
+            v-if="canDelete"
+            variant="destructive"
+            :disabled="isDeleting"
+            @click="isDeleteDialogOpen = true"
+          >
+            {{ isDeleting ? "Excluindo..." : "Excluir draft" }}
+          </Button>
+        </template>
+        <template v-else>
+          <Button
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.prepare"
+            @click="prepareExecution"
+          >
+            {{ campaignExecutionStore.loading.prepare ? "Preparando..." : "Preparar campanha" }}
+          </Button>
+          <Button
+            v-if="campaignExecutionStore.canLaunch"
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.launch"
+            @click="isExecutionLaunchDialogOpen = true"
+          >
+            {{ campaignExecutionStore.loading.launch ? "Lançando..." : "Lançar execução" }}
+          </Button>
+          <Button
+            v-if="campaignExecutionStore.canPause"
+            variant="secondary"
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.pause"
+            @click="pauseExecution"
+          >
+            {{ campaignExecutionStore.loading.pause ? "Pausando..." : "Pausar" }}
+          </Button>
+          <Button
+            v-if="campaignExecutionStore.canResume"
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.resume"
+            @click="resumeExecution"
+          >
+            {{ campaignExecutionStore.loading.resume ? "Retomando..." : "Retomar" }}
+          </Button>
+          <Button
+            v-if="campaignExecutionStore.canCancel"
+            variant="destructive"
+            :disabled="!campaign?.id || isReadonly || isDirty || campaignExecutionStore.loading.cancel"
+            @click="isExecutionCancelDialogOpen = true"
+          >
+            {{ campaignExecutionStore.loading.cancel ? "Cancelando..." : "Cancelar execução" }}
+          </Button>
+          <Button
+            variant="outline"
+            :disabled="!campaign?.id || campaignExecutionStore.loading.refresh"
+            @click="campaign?.id ? campaignExecutionStore.fetchRun(campaign.id).catch(() => {}) : null"
+          >
+            {{ campaignExecutionStore.loading.refresh ? "Atualizando..." : "Atualizar execução" }}
+          </Button>
+        </template>
       </div>
     </div>
 
@@ -71,153 +123,329 @@
       <CardContent class="pt-6 text-sm text-muted-foreground">Carregando campanha...</CardContent>
     </Card>
 
-    <div v-else class="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
-      <Card>
-        <CardHeader>
-          <CardTitle>Progresso do builder</CardTitle>
-          <CardDescription>
-            {{ progressSummary }}
-          </CardDescription>
-        </CardHeader>
-        <CardContent class="space-y-3">
-          <Progress :model-value="progressValue" />
-          <button
-            v-for="(step, index) in steps"
-            :key="step.key"
-            type="button"
-            class="w-full rounded-md border px-3 py-3 text-left transition-colors hover:bg-accent"
-            :class="activeStep === step.key ? 'bg-accent' : ''"
-            @click="activeStep = step.key"
-          >
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <span class="flex size-6 shrink-0 items-center justify-center rounded-full border text-xs">
-                    {{ index + 1 }}
-                  </span>
-                  <span class="truncate text-sm font-medium">{{ step.label }}</span>
+    <Tabs v-else v-model="activeCampaignTab">
+      <TabsList class="w-full justify-start">
+        <TabsTrigger value="configuration">Configuração</TabsTrigger>
+        <TabsTrigger value="execution" :disabled="!campaign?.id">Execução</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="configuration">
+        <div class="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
+          <Card>
+            <CardHeader>
+              <CardTitle>Progresso do builder</CardTitle>
+              <CardDescription>
+                {{ progressSummary }}
+              </CardDescription>
+            </CardHeader>
+            <CardContent class="space-y-3">
+              <Progress :model-value="progressValue" />
+              <button
+                v-for="(step, index) in steps"
+                :key="step.key"
+                type="button"
+                class="w-full rounded-md border px-3 py-3 text-left transition-colors hover:bg-accent"
+                :class="activeStep === step.key ? 'bg-accent' : ''"
+                @click="activeStep = step.key"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="flex size-6 shrink-0 items-center justify-center rounded-full border text-xs">
+                        {{ index + 1 }}
+                      </span>
+                      <span class="truncate text-sm font-medium">{{ step.label }}</span>
+                    </div>
+                    <p v-if="stepSummary(step.key)" class="mt-2 text-xs text-muted-foreground">
+                      {{ stepSummary(step.key) }}
+                    </p>
+                  </div>
+                  <Badge v-if="wizardStepFor(step.key)" :variant="progressVariant(wizardStepFor(step.key)?.status || 'missing')">
+                    {{ progressStatusLabel(wizardStepFor(step.key)?.status || 'missing') }}
+                  </Badge>
+                  <Badge v-else-if="step.key === 'recurrence_policy'" variant="outline">
+                    {{ form.schedule.schedule_type === "recurring" ? "Opcional" : "N/A" }}
+                  </Badge>
                 </div>
-                <p v-if="stepSummary(step.key)" class="mt-2 text-xs text-muted-foreground">
-                  {{ stepSummary(step.key) }}
-                </p>
+              </button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent class="pt-6">
+              <CampaignBasicStep
+                v-if="activeStep === 'basic'"
+                v-model="formModel"
+                :errors="sectionErrors('basic')"
+                :warnings="sectionWarnings('basic')"
+                :loading="stepLoading.basic"
+                :readonly="isReadonly"
+                :on-save="() => saveDraft('basic')"
+                @channel-change="onChannelChange"
+              />
+              <CampaignSingleStageStep
+                v-if="activeStep === 'audience'"
+                v-model="form.single_stage_config"
+                :errors="sectionErrors('audience')"
+                :warnings="sectionWarnings('audience')"
+                :loading="stepLoading.audience"
+                :readonly="isReadonly"
+                :on-save="() => saveDraft('audience')"
+              />
+              <CampaignMessageStep
+                v-if="activeStep === 'message'"
+                v-model="form.message"
+                :errors="sectionErrors('message')"
+                :warnings="sectionWarnings('message')"
+                :loading="stepLoading.message"
+                :readonly="isReadonly"
+                :on-save="() => saveDraft('message')"
+              />
+              <CampaignLinksStep
+                v-if="activeStep === 'links'"
+                v-model="form.links"
+                :detected-links="form.message.detected_links || []"
+                :errors="sectionErrors('links')"
+                :warnings="sectionWarnings('links')"
+                :loading="stepLoading.links"
+                :readonly="isReadonly"
+                :on-save="() => saveDraft('links')"
+              />
+              <CampaignScheduleStep
+                v-if="activeStep === 'schedule'"
+                v-model="form.schedule"
+                :errors="sectionErrors('schedule')"
+                :warnings="sectionWarnings('schedule')"
+                :loading="stepLoading.schedule"
+                :readonly="isReadonly"
+                :on-save="() => saveDraft('schedule')"
+              />
+              <CampaignDeliveryWindowsStep
+                v-if="activeStep === 'delivery_windows'"
+                v-model="form.delivery_windows"
+                :errors="sectionErrors('delivery_windows')"
+                :warnings="sectionWarnings('delivery_windows')"
+                :loading="stepLoading.delivery_windows"
+                :readonly="isReadonly"
+                :on-save="() => saveDraft('delivery_windows')"
+              />
+              <CampaignRecurrenceStep
+                v-if="activeStep === 'recurrence_policy'"
+                v-model="form.recurrence_policy"
+                :errors="sectionErrors('recurrence_policy')"
+                :warnings="sectionWarnings('recurrence_policy')"
+                :loading="stepLoading.recurrence_policy"
+                :readonly="isReadonly"
+                :is-applicable="form.schedule.schedule_type === 'recurring'"
+                :on-save="() => saveDraft('recurrence_policy')"
+              />
+              <CampaignWarmupStep
+                v-if="activeStep === 'warmup_policy'"
+                v-model="form.warmup_policy"
+                :errors="sectionErrors('warmup_policy')"
+                :warnings="sectionWarnings('warmup_policy')"
+                :loading="stepLoading.warmup_policy"
+                :readonly="isReadonly"
+                :on-save="() => saveDraft('warmup_policy')"
+              />
+            </CardContent>
+          </Card>
+
+          <div class="space-y-6">
+            <CampaignEstimatePanel
+              :estimate="campaignEstimate"
+              :loading="isEstimating"
+              :disabled="!campaign?.id"
+              :error-message="estimateErrorMessage"
+              :on-refresh="() => runEstimate()"
+            />
+
+            <CampaignChecklistPanel
+              :validation="validationResult"
+              :loading="isValidating"
+              :disabled="!campaign?.id"
+            />
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-2">
+          <Button variant="outline" :disabled="activeStepIndex === 0" @click="goToStep(activeStepIndex - 1)">Voltar</Button>
+          <div class="flex flex-wrap gap-2">
+            <Button variant="outline" :disabled="isReadonly || isSaving" @click="saveDraft(activeStep)">
+              {{ isSaving ? "Salvando..." : "Salvar" }}
+            </Button>
+            <Button :disabled="activeStepIndex === steps.length - 1" @click="goToStep(activeStepIndex + 1)">Avançar</Button>
+          </div>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="execution">
+        <Alert v-if="campaignExecutionStore.errors.refresh" variant="destructive">
+          <AlertTitle>Não foi possível carregar a execução</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.refresh }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="campaignExecutionStore.errors.prepare" variant="destructive">
+          <AlertTitle>Não foi possível preparar a campanha</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.prepare }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="campaignExecutionStore.errors.launch" variant="destructive">
+          <AlertTitle>Não foi possível lançar a execução</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.launch }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="campaignExecutionStore.errors.pause" variant="destructive">
+          <AlertTitle>Não foi possível pausar a execução</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.pause }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="campaignExecutionStore.errors.resume" variant="destructive">
+          <AlertTitle>Não foi possível retomar a execução</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.resume }}</AlertDescription>
+        </Alert>
+
+        <Alert v-if="campaignExecutionStore.errors.cancel" variant="destructive">
+          <AlertTitle>Não foi possível cancelar a execução</AlertTitle>
+          <AlertDescription>{{ campaignExecutionStore.errors.cancel }}</AlertDescription>
+        </Alert>
+
+        <Card v-if="campaignExecutionStore.loading.refresh && !campaignExecutionStore.hasRun">
+          <CardContent class="pt-6 text-sm text-muted-foreground">Carregando execução...</CardContent>
+        </Card>
+
+        <Card v-else-if="!campaignExecutionStore.hasRun">
+          <CardHeader>
+            <CardTitle>Execução</CardTitle>
+            <CardDescription>Sem execução preparada.</CardDescription>
+          </CardHeader>
+          <CardContent class="text-sm text-muted-foreground">
+            Prepare a campanha para materializar o run e visualizar os dados operacionais.
+          </CardContent>
+        </Card>
+
+        <div v-else class="space-y-6">
+          <Card v-if="campaignExecutionStore.lastPrepareResult">
+            <CardHeader>
+              <CardTitle>Preparação</CardTitle>
+              <CardDescription>
+                Resumo do último preparo realizado nesta sessão.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Status</div>
+                  <div class="text-sm font-medium">
+                    {{ CAMPAIGN_RUN_STATUS_LABELS[campaignExecutionStore.lastPrepareResult.status] }}
+                  </div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Destinatários</div>
+                  <div class="text-sm font-medium">{{ campaignExecutionStore.lastPrepareResult.total_recipients }}</div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Waves</div>
+                  <div class="text-sm font-medium">{{ campaignExecutionStore.lastPrepareResult.waves }}</div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Batches</div>
+                  <div class="text-sm font-medium">{{ campaignExecutionStore.lastPrepareResult.batches }}</div>
+                </div>
               </div>
-              <Badge v-if="wizardStepFor(step.key)" :variant="progressVariant(wizardStepFor(step.key)?.status || 'missing')">
-                {{ progressStatusLabel(wizardStepFor(step.key)?.status || 'missing') }}
-              </Badge>
-              <Badge v-else-if="step.key === 'recurrence_policy'" variant="outline">
-                {{ form.schedule.schedule_type === "recurring" ? "Opcional" : "N/A" }}
-              </Badge>
-            </div>
-          </button>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardContent class="pt-6">
-          <CampaignBasicStep
-            v-if="activeStep === 'basic'"
-            v-model="formModel"
-            :errors="sectionErrors('basic')"
-            :warnings="sectionWarnings('basic')"
-            :loading="stepLoading.basic"
-            :readonly="isReadonly"
-            :on-save="() => saveDraft('basic')"
-            @channel-change="onChannelChange"
-          />
-          <CampaignSingleStageStep
-            v-if="activeStep === 'audience'"
-            v-model="form.single_stage_config"
-            :errors="sectionErrors('audience')"
-            :warnings="sectionWarnings('audience')"
-            :loading="stepLoading.audience"
-            :readonly="isReadonly"
-            :on-save="() => saveDraft('audience')"
-          />
-          <CampaignMessageStep
-            v-if="activeStep === 'message'"
-            v-model="form.message"
-            :errors="sectionErrors('message')"
-            :warnings="sectionWarnings('message')"
-            :loading="stepLoading.message"
-            :readonly="isReadonly"
-            :on-save="() => saveDraft('message')"
-          />
-          <CampaignLinksStep
-            v-if="activeStep === 'links'"
-            v-model="form.links"
-            :detected-links="form.message.detected_links || []"
-            :errors="sectionErrors('links')"
-            :warnings="sectionWarnings('links')"
-            :loading="stepLoading.links"
-            :readonly="isReadonly"
-            :on-save="() => saveDraft('links')"
-          />
-          <CampaignScheduleStep
-            v-if="activeStep === 'schedule'"
-            v-model="form.schedule"
-            :errors="sectionErrors('schedule')"
-            :warnings="sectionWarnings('schedule')"
-            :loading="stepLoading.schedule"
-            :readonly="isReadonly"
-            :on-save="() => saveDraft('schedule')"
-          />
-          <CampaignDeliveryWindowsStep
-            v-if="activeStep === 'delivery_windows'"
-            v-model="form.delivery_windows"
-            :errors="sectionErrors('delivery_windows')"
-            :warnings="sectionWarnings('delivery_windows')"
-            :loading="stepLoading.delivery_windows"
-            :readonly="isReadonly"
-            :on-save="() => saveDraft('delivery_windows')"
-          />
-          <CampaignRecurrenceStep
-            v-if="activeStep === 'recurrence_policy'"
-            v-model="form.recurrence_policy"
-            :errors="sectionErrors('recurrence_policy')"
-            :warnings="sectionWarnings('recurrence_policy')"
-            :loading="stepLoading.recurrence_policy"
-            :readonly="isReadonly"
-            :is-applicable="form.schedule.schedule_type === 'recurring'"
-            :on-save="() => saveDraft('recurrence_policy')"
-          />
-          <CampaignWarmupStep
-            v-if="activeStep === 'warmup_policy'"
-            v-model="form.warmup_policy"
-            :errors="sectionErrors('warmup_policy')"
-            :warnings="sectionWarnings('warmup_policy')"
-            :loading="stepLoading.warmup_policy"
-            :readonly="isReadonly"
-            :on-save="() => saveDraft('warmup_policy')"
-          />
-        </CardContent>
-      </Card>
+          <CampaignRunProgressPanel v-if="campaignExecutionStore.run" :run="campaignExecutionStore.run" />
 
-      <div class="space-y-6">
-        <CampaignEstimatePanel
-          :estimate="campaignEstimate"
-          :loading="isEstimating"
-          :disabled="!campaign?.id"
-          :error-message="estimateErrorMessage"
-          :on-refresh="() => runEstimate()"
-        />
+          <CampaignWavesBatchesPanel
+            :campaign-id="campaign?.id ?? null"
+            :waves="campaignExecutionStore.waves"
+            :loading="campaignExecutionStore.loading.refresh"
+            :on-refresh-batches="() => (campaign?.id ? campaignExecutionStore.fetchRunBatches(campaign.id) : undefined)"
+          />
 
-        <CampaignChecklistPanel
-          :validation="validationResult"
-          :loading="isValidating"
-          :disabled="!campaign?.id"
-        />
-      </div>
-    </div>
+          <CampaignRecipientsPanel
+            :campaign-id="campaign?.id ?? null"
+            :active="activeCampaignTab === 'execution'"
+          />
 
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <Button variant="outline" :disabled="activeStepIndex === 0" @click="goToStep(activeStepIndex - 1)">Voltar</Button>
-      <div class="flex flex-wrap gap-2">
-        <Button variant="outline" :disabled="isReadonly || isSaving" @click="saveDraft(activeStep)">
-          {{ isSaving ? "Salvando..." : "Salvar" }}
-        </Button>
-        <Button :disabled="activeStepIndex === steps.length - 1" @click="goToStep(activeStepIndex + 1)">Avançar</Button>
-      </div>
-    </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Timestamps</CardTitle>
+              <CardDescription>Marcos principais do run.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Preparada em</div>
+                  <div class="text-sm">{{ formatDateTime(campaignExecutionStore.run?.prepared_at ?? null) }}</div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Iniciada em</div>
+                  <div class="text-sm">{{ formatDateTime(campaignExecutionStore.run?.started_at ?? null) }}</div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Pausada em</div>
+                  <div class="text-sm">{{ formatDateTime(campaignExecutionStore.run?.paused_at ?? null) }}</div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Retomada em</div>
+                  <div class="text-sm">{{ formatDateTime(campaignExecutionStore.run?.resumed_at ?? null) }}</div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Cancelada em</div>
+                  <div class="text-sm">{{ formatDateTime(campaignExecutionStore.run?.canceled_at ?? null) }}</div>
+                </div>
+                <div class="rounded-md border p-3">
+                  <div class="text-xs text-muted-foreground">Finalizada em</div>
+                  <div class="text-sm">{{ formatDateTime(campaignExecutionStore.run?.finished_at ?? null) }}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>
+    </Tabs>
+
+    <AlertDialog :open="isExecutionLaunchDialogOpen" @update:open="isExecutionLaunchDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Lançar execução</AlertDialogTitle>
+          <AlertDialogDescription>
+            Isto irá iniciar o processamento assíncrono da execução (run) da campanha.
+            Confirme apenas se você já preparou a campanha e deseja iniciar o envio.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction :disabled="campaignExecutionStore.loading.launch" @click="confirmExecutionLaunch">
+            {{ campaignExecutionStore.loading.launch ? "Lançando..." : "Confirmar lançamento" }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog :open="isExecutionCancelDialogOpen" @update:open="isExecutionCancelDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Cancelar execução</AlertDialogTitle>
+          <AlertDialogDescription>
+            Atenção: o cancelamento interrompe a execução e pode cancelar/envio pendente.
+            Mensagens já processadas não serão revertidas. Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Voltar</AlertDialogCancel>
+          <AlertDialogAction
+            :disabled="campaignExecutionStore.loading.cancel"
+            @click="confirmExecutionCancel"
+          >
+            {{ campaignExecutionStore.loading.cancel ? "Cancelando..." : "Confirmar cancelamento" }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     <AlertDialog :open="isLaunchDialogOpen" @update:open="isLaunchDialogOpen = $event">
       <AlertDialogContent>
@@ -265,7 +493,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -283,6 +511,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
 import CampaignBasicStep from "@/components/campaigns/CampaignBasicStep.vue";
 import CampaignChecklistPanel from "@/components/campaigns/CampaignChecklistPanel.vue";
@@ -319,6 +548,13 @@ import {
   CAMPAIGN_PROGRESS_STATUS_LABELS,
   CAMPAIGN_STATUS_LABELS,
 } from "@/contracts/campaigns";
+import {
+  CAMPAIGN_RUN_STATUS_LABELS,
+} from "@/contracts/campaignExecution";
+import { useCampaignExecutionStore } from "@/stores/campaignExecution";
+import CampaignRunProgressPanel from "@/components/campaigns/CampaignRunProgressPanel.vue";
+import CampaignWavesBatchesPanel from "@/components/campaigns/CampaignWavesBatchesPanel.vue";
+import CampaignRecipientsPanel from "@/components/campaigns/CampaignRecipientsPanel.vue";
 
 type StepKey =
   | "basic"
@@ -362,12 +598,14 @@ const steps: StepDefinition[] = [
 const route = useRoute();
 const router = useRouter();
 const workspaceStore = useWorkspaceStore();
+const campaignExecutionStore = useCampaignExecutionStore();
 
 const campaign = ref<CampaignDetail | null>(null);
 const configurationProgress = ref<CampaignConfigurationProgress | null>(null);
 const campaignEstimate = ref<CampaignEstimateResponse | null>(null);
 const validationResult = ref<CampaignValidationResponse | null>(null);
 const activeStep = ref<StepKey>("basic");
+const activeCampaignTab = ref<"configuration" | "execution">("configuration");
 const isDirty = ref(false);
 const isSaving = ref(false);
 const isValidating = ref(false);
@@ -377,11 +615,23 @@ const isLaunching = ref(false);
 const isInitialLoading = ref(false);
 const isDeleteDialogOpen = ref(false);
 const isLaunchDialogOpen = ref(false);
+const isExecutionLaunchDialogOpen = ref(false);
+const isExecutionCancelDialogOpen = ref(false);
 const errorMessage = ref("");
 const estimateErrorMessage = ref("");
 const suppressDirty = ref(false);
 const validationErrors = ref<Record<string, { field: string; message: string }[]>>({});
 const validationWarnings = ref<Record<string, { field: string; message: string }[]>>({});
+let executionPollTimeout: number | null = null;
+let executionPollInFlight = false;
+const handleVisibilityChange = () => {
+  if (typeof document === "undefined") return;
+  if (document.hidden) {
+    stopExecutionPolling();
+  } else {
+    scheduleExecutionPolling();
+  }
+};
 
 const stepLoading = reactive<Record<StepKey, boolean>>({
   basic: false,
@@ -417,6 +667,130 @@ const campaignId = computed(() => {
   const id = Number(route.params.id);
   return Number.isFinite(id) && id > 0 ? id : null;
 });
+
+function formatDateTime(value: string | null) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
+}
+
+async function prepareExecution() {
+  if (!campaign.value?.id) return;
+
+  try {
+    const result = await campaignExecutionStore.prepare(campaign.value.id);
+    toast({
+      title: "Campanha preparada.",
+      description: `${result.total_recipients} destinatário(s) · ${result.waves} wave(s) · ${result.batches} batch(es).`,
+    });
+  } catch {
+    // erro já foi mapeado no store (errors.prepare)
+  }
+}
+
+function desiredExecutionPollMs(): number | null {
+  if (typeof document === "undefined") return null;
+  if (document.hidden) return null;
+  if (activeCampaignTab.value !== "execution") return null;
+  if (!campaign.value?.id) return null;
+  if (!campaignExecutionStore.hasRun) return null;
+  if (campaignExecutionStore.isRunFinal) return null;
+
+  const status = campaignExecutionStore.runStatus;
+  if (status === "running") return 5000;
+  if (status === "paused" || status === "prepared") return 20000;
+  return null;
+}
+
+function scheduleExecutionPolling() {
+  if (executionPollTimeout) {
+    window.clearTimeout(executionPollTimeout);
+    executionPollTimeout = null;
+  }
+
+  const ms = desiredExecutionPollMs();
+  if (!ms) return;
+
+  executionPollTimeout = window.setTimeout(async () => {
+    executionPollTimeout = null;
+    const campaignId = campaign.value?.id;
+    if (!campaignId) return;
+    if (!desiredExecutionPollMs()) return;
+
+    if (executionPollInFlight) {
+      scheduleExecutionPolling();
+      return;
+    }
+
+    executionPollInFlight = true;
+    try {
+      await campaignExecutionStore.fetchRun(campaignId);
+    } catch {
+      // erros já são armazenados no store (errors.refresh)
+    } finally {
+      executionPollInFlight = false;
+    }
+
+    scheduleExecutionPolling();
+  }, ms);
+}
+
+function stopExecutionPolling() {
+  if (!executionPollTimeout) return;
+  window.clearTimeout(executionPollTimeout);
+  executionPollTimeout = null;
+}
+
+async function confirmExecutionLaunch() {
+  if (!campaign.value?.id) return;
+
+  try {
+    await campaignExecutionStore.launch(campaign.value.id);
+    toast({
+      title: "Execução lançada.",
+      description: "O processamento assíncrono foi iniciado.",
+    });
+    isExecutionLaunchDialogOpen.value = false;
+    scheduleExecutionPolling();
+  } catch {
+    // erro já foi mapeado no store (errors.launch)
+    isExecutionLaunchDialogOpen.value = false;
+  }
+}
+
+async function pauseExecution() {
+  if (!campaign.value?.id) return;
+
+  try {
+    await campaignExecutionStore.pause(campaign.value.id);
+    toast({ title: "Execução pausada." });
+  } catch {
+    // erro já foi mapeado no store (errors.pause)
+  }
+}
+
+async function resumeExecution() {
+  if (!campaign.value?.id) return;
+
+  try {
+    await campaignExecutionStore.resume(campaign.value.id);
+    toast({ title: "Execução retomada." });
+  } catch {
+    // erro já foi mapeado no store (errors.resume)
+  }
+}
+
+async function confirmExecutionCancel() {
+  if (!campaign.value?.id) return;
+
+  try {
+    await campaignExecutionStore.cancel(campaign.value.id);
+    toast({ title: "Execução cancelada." });
+    isExecutionCancelDialogOpen.value = false;
+  } catch {
+    // erro já foi mapeado no store (errors.cancel)
+    isExecutionCancelDialogOpen.value = false;
+  }
+}
 
 const activeProjectId = computed(() => {
   const numeric = Number(workspaceStore.activeGroupProject?.project_id);
@@ -461,6 +835,46 @@ watch(
 onMounted(async () => {
   if (campaignId.value) {
     await loadCampaignContext(campaignId.value);
+  }
+});
+
+onMounted(() => {
+  if (typeof document === "undefined") return;
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+});
+
+watch(
+  [activeCampaignTab, () => campaign.value?.id],
+  async ([tab, id]) => {
+    if (tab !== "execution") return;
+    if (!id) return;
+    try {
+      await campaignExecutionStore.fetchRun(id);
+    } catch {
+      // erros já são armazenados no store (errors.refresh)
+    }
+  },
+  { immediate: false },
+);
+
+watch(
+  [
+    activeCampaignTab,
+    () => campaign.value?.id,
+    () => campaignExecutionStore.hasRun,
+    () => campaignExecutionStore.runStatus,
+    () => campaignExecutionStore.isRunFinal,
+  ],
+  () => {
+    scheduleExecutionPolling();
+  },
+  { immediate: false },
+);
+
+onBeforeUnmount(() => {
+  stopExecutionPolling();
+  if (typeof document !== "undefined") {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
   }
 });
 

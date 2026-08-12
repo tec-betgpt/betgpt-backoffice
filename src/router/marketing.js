@@ -8,7 +8,10 @@ import SmsTestMessage from "@/views/dashboard/SmsTestMessage.vue";
 import SmsProviderLists from "@/views/dashboard/SmsProviderLists.vue";
 import SmsProviderAutomations from "@/views/dashboard/SmsProviderAutomations.vue";
 import SmsProviderBroadcasts from "@/views/dashboard/SmsProviderBroadcasts.vue";
+import SmsDirectSend from "@/views/dashboard/SmsDirectSend.vue";
+import SmsHistory from "@/views/dashboard/SmsHistory.vue";
 import CampaignMailSettings from "@/views/dashboard/CampaignMailSettings.vue";
+import CampaignMonitor from "@/views/dashboard/CampaignMonitor.vue";
 
 const marketingMeta = {
   layout: DefaultLayout,
@@ -101,6 +104,24 @@ export default [
         },
       },
       {
+        path: "sms/direct-send",
+        name: "sms.direct-send",
+        component: SmsDirectSend,
+        meta: {
+          ...marketingMeta,
+          title: "Envio Direto de SMS",
+        },
+      },
+      {
+        path: "sms/history",
+        name: "sms.history",
+        component: SmsHistory,
+        meta: {
+          ...marketingMeta,
+          title: "Histórico de SMS",
+        },
+      },
+      {
         path: "links",
         name: "links",
         component: Links,
@@ -116,6 +137,15 @@ export default [
         meta: {
           ...marketingMeta,
           title: "Link Engine",
+        },
+      },
+      {
+        path: "monitor/de-campanha",
+        name: "campaign-monitor",
+        component: CampaignMonitor,
+        meta: {
+          ...marketingMeta,
+          title: "Monitor de Campanha",
         },
       },
       {
