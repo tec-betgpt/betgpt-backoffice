@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Separator } from "@/components/ui/separator";
 import CompositionActiveClientsChart from "@/components/analytics_retention/CompositionActiveClientsChart.vue";
 import NewRecoveredRetainedChart from "@/components/analytics_retention/NewRecoveredRetainedChart.vue";
+import DailySegmentEntriesChart from "@/components/analytics_retention/DailySegmentEntriesChart.vue";
 
 const workspaceStore = useWorkspaceStore();
 const { toast } = useToast();
@@ -30,6 +31,11 @@ const chartRetentionData = computed(() =>
     'Clientes Retidos': Number(row['Clientes Retidos']) || 0,
     Churn: Number(row['Churn']) || 0,
     'Total Ativos': Number(row['Total Ativos']) || 0,
+    'Novos no Dia': Number(row['Novos no Dia']) || 0,
+    'Novos D0 no Dia': Number(row['Novos D0 no Dia']) || 0,
+    'Recuperados no Dia': Number(row['Recuperados no Dia']) || 0,
+    'Retidos no Dia': Number(row['Retidos no Dia']) || 0,
+    'Churn no Dia': Number(row['Churn no Dia']) || 0,
   })),
 );
 
@@ -124,13 +130,14 @@ useScreenContext(
     <div class="grid grid-cols-1 gap-4">
       <CompositionActiveClientsChart :data="chartRetentionData" :is-loading="isLoading" />
       <NewRecoveredRetainedChart :data="chartRetentionData" :is-loading="isLoading" />
+      <DailySegmentEntriesChart :data="chartRetentionData" :is-loading="isLoading" />
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4" v-if="!isLoading && retentionData.length > 0">
       <Card class="overflow-hidden flex flex-col lg:col-span-3">
         <CardHeader class="py-4 shrink-0">
           <CardTitle>Detalhamento Diário</CardTitle>
-        </CardHeader>z
+        </CardHeader>
         <Separator class="shrink-0" />
         <CardContent class="p-0 flex-1 max-h-[350px]">
           <div class="overflow-x-auto overflow-y-auto h-full p-6 pt-0 custom-scrollbar">
