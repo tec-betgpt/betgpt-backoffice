@@ -90,6 +90,9 @@ export const useSmsIntegrationsStore = defineStore("smsIntegrations", {
     loadFailed: false,
     error: null as string | null,
     fieldErrors: {} as ElevateSmsFieldErrors,
+    /** URL do webhook em claro, exibida uma única vez após gerar/rotacionar. */
+    callbackUrl: null as string | null,
+    rotatingCallbackToken: false,
   }),
 
   getters: {
@@ -98,6 +101,10 @@ export const useSmsIntegrationsStore = defineStore("smsIntegrations", {
         return "not_configured";
       }
       return state.form.is_active ? "active" : "inactive";
+    },
+    /** Token presente (mascarado) no GET → tratar como "configurado". */
+    callbackTokenConfigured(state): boolean {
+      return Boolean(state.form.metadata?.callback_token);
     },
   },
 
@@ -108,6 +115,7 @@ export const useSmsIntegrationsStore = defineStore("smsIntegrations", {
       this.error = null;
       this.saved = false;
       this.loadFailed = false;
+      this.callbackUrl = null;
 
       try {
         const config = await elevateSmsIntegrationService.getElevateSmsConfig(projectId);
@@ -158,6 +166,8 @@ export const useSmsIntegrationsStore = defineStore("smsIntegrations", {
         this.configured = true;
         this.form = formFromConfig(config);
         this.saved = true;
+        // Presente apenas no primeiro upsert (exibição única).
+        this.callbackUrl = config.callback_url ?? null;
         return config;
       } catch (error) {
         const status = (error as { response?: { status?: number } })?.response?.status;
@@ -176,6 +186,36 @@ export const useSmsIntegrationsStore = defineStore("smsIntegrations", {
       }
     },
 
+    async rotateCallbackToken() {
+      if (!this.projectId) {
+        return;
+      }
+
+      this.rotatingCallbackToken = true;
+      this.error = null;
+
+      try {
+        const rotation = await elevateSmsIntegrationService.rotateElevateSmsCallbackToken(
+          this.projectId,
+        );
+        // Exibição única: o token antigo já está inválido no backend.
+        this.callbackUrl = rotation.callback_url;
+        return rotation;
+      } catch (error) {
+        this.error = extractErrorMessage(
+          error,
+          "Não foi possível rotacionar o token de callback.",
+        );
+        throw error;
+      } finally {
+        this.rotatingCallbackToken = false;
+      }
+    },
+
+    clearCallbackUrl() {
+      this.callbackUrl = null;
+    },
+
     reset() {
       this.projectId = null;
       this.configured = false;
@@ -186,6 +226,8 @@ export const useSmsIntegrationsStore = defineStore("smsIntegrations", {
       this.loadFailed = false;
       this.error = null;
       this.fieldErrors = {};
+      this.callbackUrl = null;
+      this.rotatingCallbackToken = false;
     },
   },
 });

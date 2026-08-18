@@ -23,6 +23,21 @@ export interface ElevateSmsIntegrationConfig {
   sender: string | null;
   status_callback_url: string | null;
   metadata: Record<string, unknown> | null;
+  /**
+   * URL completa do webhook com o token em claro. Presente apenas na resposta
+   * do primeiro upsert (exibição única); nunca retorna no GET nem em upserts
+   * seguintes — `metadata.callback_token`/`callback_secret` vêm mascarados.
+   */
+  callback_url?: string | null;
+}
+
+/**
+ * Resposta do POST .../callback-token/rotate. O novo token invalida o anterior
+ * imediatamente e é exibido em claro uma única vez.
+ */
+export interface ElevateSmsCallbackTokenRotation {
+  callback_token: string;
+  callback_url: string;
 }
 
 /**

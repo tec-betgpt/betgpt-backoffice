@@ -125,6 +125,69 @@
         </Button>
       </div>
     </form>
+
+    <div
+      v-if="store.configured && !store.loading && !loadError"
+      class="mt-5 space-y-3 border-t pt-5"
+    >
+      <div class="flex items-start justify-between gap-3">
+        <div class="space-y-1">
+          <p class="text-sm font-medium">Webhook de status (callback)</p>
+          <p class="text-xs text-muted-foreground">
+            URL que o supplier chama para reportar o status das mensagens. O
+            token é gerado pela plataforma e exibido uma única vez — após gerar
+            ou rotacionar, atualize a URL no painel do supplier.
+          </p>
+          <p class="text-xs text-muted-foreground">
+            Status do token:
+            <span v-if="store.callbackTokenConfigured" class="text-green-600">
+              Configurado
+            </span>
+            <span v-else>Não configurado</span>
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          class="shrink-0"
+          :disabled="store.rotatingCallbackToken"
+          @click="rotateDialogOpen = true"
+        >
+          <LucideSpinner
+            v-if="store.rotatingCallbackToken"
+            class="mr-2 h-4 w-4 animate-spin"
+          />
+          <RefreshCw v-else class="mr-2 h-4 w-4" />
+          Rotacionar token
+        </Button>
+      </div>
+      <p class="text-xs text-muted-foreground">
+        Se a URL for perdida, rotacione o token — não é possível recuperar o
+        token atual.
+      </p>
+    </div>
+
+    <AlertDialog v-model:open="rotateDialogOpen">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Rotacionar token do callback?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Um novo token será gerado e o anterior será invalidado
+            imediatamente — callbacks com a URL antiga passarão a ser
+            rejeitados. Você precisará atualizar a URL no painel do supplier.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction @click="confirmRotate">Rotacionar</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <ElevateSmsCallbackUrlDialog
+      :url="store.callbackUrl"
+      @close="store.clearCallbackUrl()"
+    />
   </Card>
 </template>
 
@@ -145,6 +208,17 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import ElevateSmsCallbackUrlDialog from "@/components/integrations/ElevateSmsCallbackUrlDialog.vue";
 import { useSmsIntegrationsStore } from "@/stores/smsIntegrations";
 import type { ElevateSmsFieldErrors } from "@/stores/smsIntegrations";
 
@@ -155,6 +229,7 @@ const store = useSmsIntegrationsStore();
 
 const showApiKey = ref(false);
 const localErrors = ref<ElevateSmsFieldErrors>({});
+const rotateDialogOpen = ref(false);
 
 const loadError = computed(() => (store.loadFailed ? store.error : null));
 
@@ -223,6 +298,25 @@ async function submit() {
       title: "Sucesso",
       description: "Integração Elevate SMS salva com sucesso.",
     });
+  } catch {
+    if (!store.error) {
+      return;
+    }
+
+    toast({
+      title: "Erro",
+      description: store.error,
+      variant: "destructive",
+    });
+  }
+}
+
+async function confirmRotate() {
+  rotateDialogOpen.value = false;
+
+  try {
+    // Em caso de sucesso, a nova callback_url abre o dialog de exibição única.
+    await store.rotateCallbackToken();
   } catch {
     if (!store.error) {
       return;
