@@ -21,7 +21,6 @@ export interface ElevateSmsIntegrationConfig {
   email: string;
   is_active: boolean;
   sender: string | null;
-  base_url: string | null;
   status_callback_url: string | null;
   metadata: Record<string, unknown> | null;
 }
@@ -38,7 +37,6 @@ export interface ElevateSmsIntegrationPayload {
   email: string;
   is_active: boolean;
   sender?: string | null;
-  base_url?: string | null;
   status_callback_url?: string | null;
   metadata?: Record<string, unknown>;
 }

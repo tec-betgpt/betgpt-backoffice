@@ -95,23 +95,6 @@
       </div>
 
       <div class="space-y-2">
-        <Label for="elevate-sms-base-url">URL base</Label>
-        <Input
-          id="elevate-sms-base-url"
-          v-model="store.form.base_url"
-          type="url"
-          maxlength="255"
-          placeholder="https://"
-        />
-        <p class="text-xs text-muted-foreground">
-          Opcional. Deixe vazio para usar o endereço oficial padrão.
-        </p>
-        <p v-if="fieldError('base_url')" class="text-xs text-destructive">
-          {{ fieldError("base_url") }}
-        </p>
-      </div>
-
-      <div class="space-y-2">
         <Label for="elevate-sms-callback-url">URL de callback de status</Label>
         <Input
           id="elevate-sms-callback-url"
@@ -203,15 +186,6 @@ function fieldError(field: keyof ElevateSmsFieldErrors) {
   return localErrors.value[field] ?? store.fieldErrors[field] ?? null;
 }
 
-function isValidUrl(value: string): boolean {
-  try {
-    new URL(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function validate(): boolean {
   const errors: ElevateSmsFieldErrors = {};
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -232,10 +206,6 @@ function validate(): boolean {
 
   if (store.form.sender.length > 20) {
     errors.sender = "O remetente deve ter no máximo 20 caracteres.";
-  }
-
-  if (store.form.base_url.trim() && !isValidUrl(store.form.base_url.trim())) {
-    errors.base_url = "Informe uma URL válida.";
   }
 
   localErrors.value = errors;

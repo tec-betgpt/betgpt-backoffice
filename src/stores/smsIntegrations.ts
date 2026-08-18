@@ -11,7 +11,6 @@ export type ElevateSmsFormState = {
   email: string;
   is_active: boolean;
   sender: string;
-  base_url: string;
   status_callback_url: string;
   metadata: Record<string, unknown>;
 };
@@ -24,7 +23,6 @@ function emptyForm(): ElevateSmsFormState {
     email: "",
     is_active: true,
     sender: "",
-    base_url: "",
     status_callback_url: "",
     metadata: {},
   };
@@ -36,7 +34,6 @@ function formFromConfig(config: ElevateSmsIntegrationConfig): ElevateSmsFormStat
     email: config.email ?? "",
     is_active: Boolean(config.is_active),
     sender: config.sender ?? "",
-    base_url: config.base_url ?? "",
     status_callback_url: config.status_callback_url ?? "",
     metadata:
       config.metadata && typeof config.metadata === "object" && !Array.isArray(config.metadata)
@@ -154,7 +151,6 @@ export const useSmsIntegrationsStore = defineStore("smsIntegrations", {
           email: this.form.email,
           is_active: this.form.is_active,
           sender: this.form.sender.trim() || null,
-          base_url: this.form.base_url.trim() || null,
           status_callback_url: this.form.status_callback_url.trim() || null,
           metadata: this.form.metadata,
         });
