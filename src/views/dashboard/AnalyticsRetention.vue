@@ -33,6 +33,7 @@ const chartRetentionData = computed(() =>
     'Total Ativos': Number(row['Total Ativos']) || 0,
     'Novos no Dia': Number(row['Novos no Dia']) || 0,
     'Novos D0 no Dia': Number(row['Novos D0 no Dia']) || 0,
+    'Novos Pós D0 no Dia': Number(row['Novos Pós D0 no Dia']) || 0,
     'Recuperados no Dia': Number(row['Recuperados no Dia']) || 0,
     'Retidos no Dia': Number(row['Retidos no Dia']) || 0,
     'Churn no Dia': Number(row['Churn no Dia']) || 0,

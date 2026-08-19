@@ -65,6 +65,10 @@
           <span><strong>Novos D0:</strong> FTD neste dia no mesmo dia do cadastro.</span>
         </div>
         <div class="flex items-start gap-2">
+          <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #dda15e"></div>
+          <span><strong>Novos Pós D0:</strong> FTD neste dia em dia posterior ao cadastro.</span>
+        </div>
+        <div class="flex items-start gap-2">
           <div class="mt-1 min-w-3 h-3 rounded-full" style="background-color: #2a9d8f"></div>
           <span><strong>Recuperados:</strong> voltaram a depositar neste dia após ficarem fora da janela anterior.</span>
         </div>
@@ -152,11 +156,12 @@ function handlePointClick() {
 const chartCategories = [
   { key: 'Novos no Dia', label: 'Novos Clientes' },
   { key: 'Novos D0 no Dia', label: 'Novos Clientes D0' },
+  { key: 'Novos Pós D0 no Dia', label: 'Novos Clientes Pós D0' },
   { key: 'Recuperados no Dia', label: 'Clientes Recuperados' },
   { key: 'Retidos no Dia', label: 'Clientes Retidos' },
   { key: 'Churn no Dia', label: 'Churn' },
 ]
-const chartColors = ['#f4a261', '#e9c46a', '#2a9d8f', '#457b9d', '#e63946']
+const chartColors = ['#f4a261', '#e9c46a', '#dda15e', '#2a9d8f', '#457b9d', '#e63946']
 
 const sortedData = computed(() => {
   return [...props.data].sort((a, b) => {
