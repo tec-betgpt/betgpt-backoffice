@@ -8,6 +8,14 @@
         </DialogDescription>
       </DialogHeader>
 
+      <Alert v-if="isEdit" class="border-yellow-500/50 bg-yellow-500/10 [&>svg]:text-yellow-600">
+        <TriangleAlert class="h-4 w-4" />
+        <AlertTitle class="text-yellow-700">Atenção</AlertTitle>
+        <AlertDescription class="text-yellow-700">
+          As alterações nesta tag serão refletidas em todos os locais onde ela é utilizada (segmentos, jogadores, CRMs, etc.).
+        </AlertDescription>
+      </Alert>
+
       <Tabs default-value="general" class="w-full">
         <TabsList class="grid w-full grid-cols-2">
           <TabsTrigger value="general">Geral</TabsTrigger>
@@ -342,7 +350,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { Check, ChevronsUpDown, X, Plus, Loader2 } from 'lucide-vue-next';
+import { Check, ChevronsUpDown, X, Plus, Loader2, TriangleAlert } from 'lucide-vue-next';
 import { useToast } from '@/components/ui/toast/use-toast';
 import {
   Dialog,
@@ -384,6 +392,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import TagsService from '@/services/tags';
 import { Tag } from '@/contracts/tag';
 import {useWorkspaceStore} from "@/stores/workspace";
