@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { Loader2, Plus, Tag as TagIcon, X, Info, Globe, Bell } from 'lucide-vue-next';
+import { Loader2, Plus, Tag as TagIcon, X, Info, Globe, Bell, Pencil } from 'lucide-vue-next';
 import { useToast } from '@/components/ui/toast/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ let searchTimeout: any = null;
 const isViewOpen = ref(false);
 const selectedTag = ref<Tag | null>(null);
 
-// Estados para Criação de Tag
+// Estados para Criação/Edição de Tag
 const isCreateDialogOpen = ref(false);
 const tagToCreate = ref<Tag | null>(null);
 const handleViewTag = (tag: Tag) => {
@@ -63,13 +63,25 @@ const openCreateDialog = () => {
   isCreateDialogOpen.value = true;
 };
 
-const handleTagCreated = async () => {
+const handleEditTag = (tag: Tag) => {
+  isViewOpen.value = false;
+  selectedTag.value = null;
+  tagToCreate.value = tag;
+  isCreateDialogOpen.value = true;
+};
+
+const handleTagSaved = async () => {
+  const wasCreate = !tagToCreate.value?.id;
+  await fetchModelTags();
   await fetchAvailableTags(searchQuery.value);
-  // Tenta vincular automaticamente a tag recém criada
-  const newTag = availableTags.value.find(t => t.name.toLowerCase() === searchQuery.value.toLowerCase());
-  if (newTag) {
-    await handleAttach(newTag);
+  if (wasCreate) {
+    // Tenta vincular automaticamente a tag recém criada
+    const newTag = availableTags.value.find(t => t.name.toLowerCase() === searchQuery.value.toLowerCase());
+    if (newTag) {
+      await handleAttach(newTag);
+    }
   }
+  tagToCreate.value = null;
 };
 
 const fetchModelTags = async () => {
@@ -216,18 +228,20 @@ watch(() => props.modelId, () => {
               
               <div v-else class="flex flex-col items-center gap-2 py-6 px-4 text-center">
                 <p class="text-sm text-muted-foreground">Nenhuma tag encontrada.</p>
-                <Button
-                    v-if="searchQuery"
-                    variant="secondary"
-                    size="sm"
-                    class="h-7 text-xs"
-                    @click="openCreateDialog"
-                >
-                  Criar tag "{{ searchQuery }}"
-                </Button>
               </div>
             </template>
           </CommandList>
+          <div class="border-t p-2">
+            <Button
+                variant="secondary"
+                size="sm"
+                class="w-full h-8 text-xs"
+                @click="openCreateDialog"
+            >
+              <Plus class="h-3.5 w-3.5 mr-1" />
+              {{ searchQuery ? `Criar tag "${searchQuery}"` : 'Nova Tag' }}
+            </Button>
+          </div>
         </Command>
       </PopoverContent>
     </Popover>
@@ -289,6 +303,9 @@ watch(() => props.modelId, () => {
         </div>
         <DialogFooter>
           <Button variant="secondary" @click="isViewOpen = false">Fechar</Button>
+          <Button v-if="selectedTag" @click="handleEditTag(selectedTag)">
+            <Pencil class="h-4 w-4 mr-1" /> Editar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -297,7 +314,7 @@ watch(() => props.modelId, () => {
     <TagDialog
       v-model:open="isCreateDialogOpen"
       :tag="tagToCreate"
-      @saved="handleTagCreated"
+      @saved="handleTagSaved"
     />
   </div>
 </template>
