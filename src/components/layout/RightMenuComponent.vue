@@ -667,13 +667,12 @@ watch(() => iaAnaliseStore.error, (errorMessage) => {
   iaAnaliseStore.error = null;
 })
 
-watch(() => iaAnaliseStore.isLoading, async (newVal, oldVal) => {
-  if (oldVal === false && newVal === true) {
+watch(() => iaAnaliseStore.pendingChatId, async (newChatId) => {
+  if (newChatId) {
     analysisErrorMessage.value = "";
-  }
-  if (oldVal === true && newVal === false && iaAnaliseStore.chatId) {
-    selectedChatId.value = parseInt(iaAnaliseStore.chatId);
-    localStorage.setItem("chatId", iaAnaliseStore.chatId);
+    selectedChatId.value = parseInt(newChatId);
+    localStorage.setItem("chatId", newChatId);
+    iaAnaliseStore.pendingChatId = null;
     await loadMessages();
   }
 });
