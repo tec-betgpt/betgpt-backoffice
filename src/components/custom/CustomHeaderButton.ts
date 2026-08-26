@@ -1,8 +1,6 @@
 import {h} from "vue";
 import {Button} from "@/components/ui/button";
-import {ArrowDown, ArrowUp} from "lucide-vue-next";
-import {CaretSortIcon} from "@radix-icons/vue";
-
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-vue-next'
 export function createHeaderButton(label: string, columnKey: string,order:string,direction:boolean,onClick:void) {
     return h(
         Button,
@@ -20,8 +18,8 @@ export function createHeaderButton(label: string, columnKey: string,order:string
                     ? direction
                         ? ArrowDown
                         : ArrowUp
-                    : CaretSortIcon,
-                { class: "" }
+                    : ChevronsUpDown,
+                { class: "ml-1 h-4 w-4" }
             ),
         ]
     );

@@ -479,7 +479,7 @@
 import { ref, watch } from "vue";
 import TargetAudience from "@/services/targetAudience";
 import Tags from "@/services/tags";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -527,7 +527,6 @@ import {Checkbox} from "@/components/ui/checkbox";
 
 const emit = defineEmits(["saved"]);
 
-const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 
 const isOpen = ref(false);
@@ -657,11 +656,7 @@ const removeConditionGroup = (groupIndex: number, formIndex: number) => {
   if (form.value[formIndex].condition_groups.length > 1) {
     form.value[formIndex].condition_groups.splice(groupIndex, 1);
   } else {
-    toast({
-      title: "Aviso",
-      description: "Você deve ter pelo menos um grupo de condições",
-      variant: "destructive",
-    });
+    toast.error("Aviso", { description: "Você deve ter pelo menos um grupo de condições" });
   }
 };
 
@@ -675,11 +670,7 @@ const removeCondition = (groupIndex: number, conditionIndex: number, formIndex: 
   if (form.value[formIndex].condition_groups[groupIndex].conditions.length > 1) {
     form.value[formIndex].condition_groups[groupIndex].conditions.splice(conditionIndex, 1);
   } else {
-    toast({
-      title: "Aviso",
-      description: "Você deve ter pelo menos uma condição no grupo",
-      variant: "destructive",
-    });
+    toast.error("Aviso", { description: "Você deve ter pelo menos uma condição no grupo" });
   }
 };
 
@@ -753,11 +744,7 @@ const loadSavedSegment = async (segmentId: number, formIndex: number) => {
     parseDataToForm(data, formIndex);
   } catch (error) {
     console.error("Error loading segment:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar o segmento salvo",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar o segmento salvo" });
   }
 };
 
@@ -832,18 +819,11 @@ const saveSegment = async () => {
       await TargetAudience.store(payload);
     }
 
-    toast({
-      title: "Sucesso",
-      description: isEditing.value ? "Segmento atualizado com sucesso" : "Segmento criado com sucesso",
-    });
+    toast("Sucesso", { description: isEditing.value ? "Segmento atualizado com sucesso" : "Segmento criado com sucesso" });
     isOpen.value = false;
     emit("saved");
   } catch (error: any) {
-    toast({
-      title: "Erro",
-      description: error.message || "Ocorreu um erro ao salvar o segmento",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: error.message || "Ocorreu um erro ao salvar o segmento" });
   } finally {
     isProcessing.value = false;
   }
@@ -893,11 +873,7 @@ const open = async (segment: any = null, allSegments: any[] = []) => {
 
     } catch (error) {
       console.error("Error loading segment:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os dados do segmento",
-        variant: "destructive",
-      });
+      toast.error("Erro", { description: "Não foi possível carregar os dados do segmento" });
       return;
     } finally {
       isProcessing.value = false;

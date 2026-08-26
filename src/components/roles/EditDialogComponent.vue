@@ -75,7 +75,7 @@
 
 <script setup lang="ts">
 import { ref, defineProps } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { PenLine, Search } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -85,7 +85,6 @@ import { watchDebounced } from "@vueuse/core/index";
 import Roles from '@/services/roles'
 import Permissions from '@/services/permissions'
 
-const { toast } = useToast();
 const { permissionLabel } = usePermissionLabel();
 const props = defineProps<{
   reload: () => void,
@@ -139,11 +138,7 @@ const fetchPermissions = async (params = {}) => {
   try {
     permissions.value = await Permissions.list(params);
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 
   isLoading.value = false;
@@ -181,17 +176,10 @@ const onSubmit = async () => {
     await Roles.update(props.row.id, payload);
     await props.reload()
 
-    toast({
-      title: "Sucesso",
-      description: "Perfil atualizado com sucesso.",
-    });
+    toast("Sucesso", { description: "Perfil atualizado com sucesso." });
     showModal.value = false;
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao atualizar o perfil.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao atualizar o perfil." });
   }
 
   isProcessing.value = false;

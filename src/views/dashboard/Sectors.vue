@@ -79,7 +79,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { X } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -118,16 +118,9 @@ const remove = async (id: number) => {
     await Sector.destroy(id)
     await fetchSectors();
 
-    toast({
-      title: "Apagado",
-      description: "Setor removido com sucesso.",
-    });
+    toast("Apagado", { description: "Setor removido com sucesso." });
   } catch (error) {
-    toast({
-      title: "Erro ao apagar",
-      description: "Não foi possível remover, tente novamente mais tarde.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao apagar", { description: "Não foi possível remover, tente novamente mais tarde." });
   }
 }
 

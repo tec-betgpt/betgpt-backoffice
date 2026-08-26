@@ -232,7 +232,7 @@
 import { ref, onMounted, watch } from "vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import {
   Loader2 as LucideSpinner,
   ExternalLink,
@@ -268,7 +268,6 @@ import ElevateSmsIntegrationCard from "@/components/integrations/ElevateSmsInteg
 import { useSmsIntegrationsStore } from "@/stores/smsIntegrations";
 import { Settings2 } from "lucide-vue-next";
 
-const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 const smsIntegrationsStore = useSmsIntegrationsStore();
 const loading = ref(false);
@@ -359,11 +358,7 @@ async function fetchIntegrations() {
       }
     }
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar as fontes de dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar as fontes de dados." });
   }
 
   loading.value = false;
@@ -513,18 +508,11 @@ async function saveAllIntegrations() {
       integrations.value,
     );
 
-    toast({
-      title: "Sucesso",
-      description: "Fontes de Dados salvas com sucesso.",
-    });
+    toast("Sucesso", { description: "Fontes de Dados salvas com sucesso." });
     propetyList.value = [];
   } catch (error) {
     console.error(error);
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar as Fontes de Dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar as Fontes de Dados." });
   }
 
   saving.value = false;

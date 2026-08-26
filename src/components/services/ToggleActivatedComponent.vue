@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
-import { useToast} from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import Services from "@/services/services";
 import {Spinner} from "@/components/ui/spinner";
 
@@ -16,7 +16,6 @@ const props = defineProps<{
   reload: () => Promise<void>
 }>();
 
-const { toast } = useToast();
 
 const isLoading = ref(false);
 const isActive = ref(false);
@@ -28,17 +27,9 @@ const onSubmit = async () => {
     await Services.toggle(props.row.id, { is_active: isActive.value })
     await props.reload();
 
-    toast({
-      title: "Sucesso",
-      description: "Disponibilidade atualizado com sucesso.",
-    });
+    toast("Sucesso", { description: "Disponibilidade atualizado com sucesso." });
   } catch (error: any) {
-    toast({
-      title: "Ops!",
-      description: error.response.data.message,
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error("Ops!", { description: error.response.data.message, duration: 3000 });
   }
 
   isLoading.value = false;

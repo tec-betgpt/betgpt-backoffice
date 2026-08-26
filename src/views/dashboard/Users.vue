@@ -30,7 +30,7 @@
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <Button variant="outline" class="ml-auto">
-                Acesso <ChevronDownIcon class="ml-2 h-4 w-4" />
+                Acesso <ChevronDown class="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -52,7 +52,7 @@
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <Button variant="outline" class="ml-auto">
-                Status <ChevronDownIcon class="ml-2 h-4 w-4" />
+                Status <ChevronDown class="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -263,7 +263,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, h, watch, computed } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -276,20 +276,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  MoreHorizontal,
-  ChevronDownIcon,
-  ArrowDown,
-  ArrowUp,
-  Plus,
-} from "lucide-vue-next";
+import { MoreHorizontal, ChevronDown, ArrowDown, ArrowUp, Plus, ChevronsUpDown } from 'lucide-vue-next'
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import Users from "@/services/users";
 import Projects from "@/services/projects";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import { CaretSortIcon } from "@radix-icons/vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useAuthStore } from "@/stores/auth";
@@ -297,7 +290,6 @@ import { useRouter } from "vue-router";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import moment from "moment";
 
-const { toast } = useToast();
 const processingAction = ref(null);
 const users = ref<User[]>([]);
 const projects = ref([]);
@@ -494,11 +486,7 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
 
     projects.value = projectResponse.data;
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 
   isLoading.value = false;
@@ -550,18 +538,10 @@ const createUser = async () => {
     const data = await Users.storeUser(form.value);
 
     users.value.push(data.data);
-    toast({
-      title: "Sucesso",
-      description: "Usuário criado com sucesso.",
-      variant: "success",
-    });
+    toast.success("Sucesso", { description: "Usuário criado com sucesso." });
     showModal.value = false;
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao criar o usuário.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao criar o usuário." });
   } finally {
     await fetchUsersAndProjects();
   }
@@ -577,18 +557,10 @@ const updateUser = async () => {
     const index = users.value.findIndex((u) => u.id === form.value.id);
 
     users.value[index] = data.data;
-    toast({
-      title: "Sucesso",
-      description: "Usuário atualizado com sucesso.",
-      variant: "success",
-    });
+    toast.success("Sucesso", { description: "Usuário atualizado com sucesso." });
     showModal.value = false;
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao atualizar o usuário.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao atualizar o usuário." });
   } finally {
     isProcessing.value = false;
     await fetchUsersAndProjects();
@@ -601,17 +573,9 @@ const resetPassword = async (user) => {
   try {
     await Users.resetPassword(user.id);
 
-    toast({
-      title: "Senha Resetada",
-      description: `Uma nova senha foi enviada para o email de ${user.first_name} ${user.last_name}.`,
-      variant: "success",
-    });
+    toast.success("Senha Resetada", { description: `Uma nova senha foi enviada para o email de ${user.first_name} ${user.last_name}.` });
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Não foi possível resetar a senha. Tente novamente.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível resetar a senha. Tente novamente." });
   }
 
   processingAction.value = null;
@@ -626,19 +590,11 @@ const toggleStatus = async (user) => {
     const newStatus = currentStatus === "active" ? "inactive" : "active";
 
     user.statuses[0].name = newStatus;
-    toast({
-      title: "Sucesso",
-      description: `Usuário ${
+    toast.success("Sucesso", { description: `Usuário ${
         newStatus === "active" ? "ativado" : "inativado"
-      } com sucesso.`,
-      variant: "success",
-    });
+      } com sucesso.` });
   } catch (_) {
-    toast({
-      title: "Erro",
-      description: "Erro ao alterar o status do usuário.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao alterar o status do usuário." });
   }
 
   processingAction.value = null;
@@ -664,18 +620,10 @@ const simulateClient = async (user) => {
         "_blank",
         "noopener,noreferrer",
       );
-      toast({
-        title: "Simulação iniciada",
-        description: "Uma nova aba foi aberta com o acesso deste usuário.",
-        variant: "success",
-      });
+      toast.success("Simulação iniciada", { description: "Uma nova aba foi aberta com o acesso deste usuário." });
     }
   } catch {
-    toast({
-      title: "Erro",
-      description: "Não foi possível simular o acesso deste usuário.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível simular o acesso deste usuário." });
   } finally {
     processingAction.value = null;
   }
@@ -687,19 +635,11 @@ const removeTwoFactor = async (user) => {
   try {
     await Users.removeTwoFactor(user.id);
 
-    toast({
-      title: "Sucesso",
-      description: "2FA removido com sucesso.",
-      variant: "success",
-    });
+    toast.success("Sucesso", { description: "2FA removido com sucesso." });
 
     await fetchUsersAndProjects();
   } catch {
-    toast({
-      title: "Erro",
-      description: "Não foi possível remover o 2FA.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível remover o 2FA." });
   }
 
   processingAction.value = null;
@@ -743,7 +683,7 @@ function createHeaderButton(label: string, columnKey: string) {
           ? direction.value
             ? ArrowDown
             : ArrowUp
-          : CaretSortIcon,
+          : ChevronsUpDown,
         { class: "" },
       ),
     ],
@@ -871,12 +811,12 @@ const columns = [
             { size: "icon", variant: "ghost", disabled: isProcessing.value },
             [
               h(MoreHorizontal, { class: "h-4 w-4" }),
-              h("span", { class: "sr-only" }, "Ações"),
+              h("span", { class: "sr-only" }, () => "Ações"),
             ],
           ),
         ),
         h(DropdownMenuContent, { align: "end" }, [
-          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuLabel, {}, () => "Ações"),
           h(DropdownMenuSeparator, {}),
           h(
             DropdownMenuItem,

@@ -101,7 +101,7 @@
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Search } from "lucide-vue-next";
 import { Card } from "@/components/ui/card";
 import Permissions from "@/services/permissions";
@@ -110,7 +110,6 @@ import CreateDialogComponent from "@/components/permissions/CreateDialogComponen
 import EditDialogComponent from "@/components/permissions/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 
-const { toast } = useToast();
 const { t, te } = useI18n();
 
 const permissions = ref();
@@ -140,11 +139,7 @@ const fetchPermissions = async (page = 1) => {
       total: response.total,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 }
 
@@ -156,11 +151,7 @@ const destroy = async (id: number) => {
   try {
     await Permissions.destroy(id);
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Verifique se essa permissão está em uso",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Verifique se essa permissão está em uso" });
   }
 }
 

@@ -351,7 +351,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { Check, ChevronsUpDown, X, Plus, Loader2, TriangleAlert } from 'lucide-vue-next';
-import { useToast } from '@/components/ui/toast/use-toast';
+import { toast } from "vue-sonner";
 import {
   Dialog,
   DialogContent,
@@ -404,7 +404,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:open', 'saved']);
 
-const { toast } = useToast();
 const isLoading = ref(false);
 const isOpen = computed({
   get: () => props.open,
@@ -665,19 +664,12 @@ const onSubmit = async () => {
       await TagsService.store(payload);
     }
 
-    toast({
-      title: "Sucesso",
-      description: `Tag ${isEdit.value ? 'atualizada' : 'criada'} com sucesso.`,
-    });
+    toast("Sucesso", { description: `Tag ${isEdit.value ? 'atualizada' : 'criada'} com sucesso.` });
 
     emit('saved');
     isOpen.value = false;
   } catch (error: any) {
-    toast({
-      title: "Erro",
-      description: error.response?.data?.message || "Ocorreu um erro ao salvar a tag.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: error.response?.data?.message || "Ocorreu um erro ao salvar a tag." });
   } finally {
     isLoading.value = false;
   }

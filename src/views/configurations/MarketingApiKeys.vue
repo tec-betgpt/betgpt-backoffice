@@ -6,7 +6,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useMarketingApiKeysStore } from "@/stores/marketingApiKeys";
 import { normalizeMarketingApiKeyError } from "@/services/marketingApiKeys";
 import { showApiErrorToast } from "@/lib/apiErrorFeedback";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,7 +40,6 @@ import type {
 import type { MarketingApiKeyStatusFilter } from "@/stores/marketingApiKeys";
 
 const { t } = useI18n();
-const { toast } = useToast();
 
 const workspaceStore = useWorkspaceStore();
 const store = useMarketingApiKeysStore();
@@ -104,7 +103,7 @@ async function handleFormSubmit(payload: CreateMarketingApiKeyPayload) {
     if (editingKey.value) {
       // Atualização somente após confirmação do backend (sem optimistic update).
       await store.updateApiKey(editingKey.value.uuid, payload);
-      toast({ description: t("marketing_api_keys.update_success") });
+      toast(t("marketing_api_keys.update_success"));
     } else {
       // O secret retornado vai apenas para o estado volátil da store; o modal
       // bloqueante de exibição única abre em seguida via `ephemeralSecret`.
@@ -134,7 +133,7 @@ async function confirmRotate() {
   try {
     await store.rotateApiKey(rotateTarget.value.uuid);
     rotateTarget.value = null;
-    toast({ description: t("marketing_api_keys.rotate_success") });
+    toast(t("marketing_api_keys.rotate_success"));
   } catch (err) {
     showApiErrorToast(err, { fallbackKey: "marketing_api_keys.rotate_error" });
   } finally {
@@ -166,7 +165,7 @@ async function confirmRevoke() {
   try {
     await store.revokeApiKey(revokeTarget.value.uuid);
     revokeTarget.value = null;
-    toast({ description: t("marketing_api_keys.revoke_success") });
+    toast(t("marketing_api_keys.revoke_success"));
   } catch (err) {
     showApiErrorToast(err, { fallbackKey: "marketing_api_keys.revoke_error" });
   } finally {

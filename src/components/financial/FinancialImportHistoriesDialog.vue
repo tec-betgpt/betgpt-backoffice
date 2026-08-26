@@ -154,7 +154,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 
 type Step = "upload" | "preview" | "processing";
 
@@ -211,11 +211,7 @@ const normalizeProjectId = (projectId: string | number | null) => {
 
 const openDialog = () => {
   if (!normalizeProjectId(props.projectId)) {
-    toast({
-      title: "Projeto obrigatório",
-      description: "Selecione um projeto antes de importar transações financeiras.",
-      variant: "destructive",
-    });
+    toast.error("Projeto obrigatório", { description: "Selecione um projeto antes de importar transações financeiras." });
     return;
   }
 
@@ -243,16 +239,9 @@ const downloadTemplate = async () => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    toast({
-      title: "Modelo solicitado",
-      description: "O download do modelo foi iniciado.",
-    });
+    toast("Modelo solicitado", { description: "O download do modelo foi iniciado." });
   } catch (error) {
-    toast({
-      title: "Erro ao baixar modelo",
-      description: "Tente novamente mais tarde.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao baixar modelo", { description: "Tente novamente mais tarde." });
   }
 
   templateLoading.value = false;
@@ -277,11 +266,7 @@ const onDropFile = (event: DragEvent) => {
 
 const handleFile = async (file: File) => {
   if (!isAcceptedFile(file)) {
-    toast({
-      title: "Formato inválido",
-      description: "Envie um arquivo .xlsx ou .csv.",
-      variant: "destructive",
-    });
+    toast.error("Formato inválido", { description: "Envie um arquivo .xlsx ou .csv." });
     return;
   }
 
@@ -295,11 +280,7 @@ const handleFile = async (file: File) => {
     preview.value = await financialImportHistories.preview(formData);
     step.value = "preview";
   } catch (error) {
-    toast({
-      title: "Erro ao validar arquivo",
-      description: "Confira a planilha e tente novamente.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao validar arquivo", { description: "Confira a planilha e tente novamente." });
   }
 
   previewLoading.value = false;
@@ -322,17 +303,10 @@ const confirmImport = async () => {
     await financialImportHistories.process(formData);
 
     isDialogOpen.value = false;
-    toast({
-      title: "Importação concluída!",
-      description: "As transações financeiras foram importadas com sucesso.",
-    });
+    toast("Importação concluída!", { description: "As transações financeiras foram importadas com sucesso." });
     await props.reload();
   } catch (error) {
-    toast({
-      title: "Erro ao importar arquivo",
-      description: "Tente novamente mais tarde.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao importar arquivo", { description: "Tente novamente mais tarde." });
     step.value = "preview";
   }
 

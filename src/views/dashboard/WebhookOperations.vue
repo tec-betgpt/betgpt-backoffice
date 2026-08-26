@@ -483,7 +483,7 @@ import {
   Settings2,
   Webhook,
 } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -523,7 +523,6 @@ interface ProjectWebhookItem {
 
 const outboxStore = useWebhooksStore();
 const workspaceStore = useWorkspaceStore();
-const { toast } = useToast();
 
 const activeTab = ref("subscriptions");
 const errorMessage = ref("");
@@ -677,10 +676,7 @@ async function doReplay(ids: number[]) {
 
   try {
     const response = await outboxStore.replayOutbox(ids);
-    toast({
-      title: "Replay",
-      description: response.message,
-    });
+    toast("Replay", { description: response.message });
     selectedOutboxIds.value = [];
     await Promise.all([fetchOutbox(1), fetchDeliveryLogs(1)]);
   } catch (error) {
@@ -716,10 +712,7 @@ async function saveSubscription() {
       event_types: editingEventTypes.value,
     });
 
-    toast({
-      title: "Sucesso",
-      description: `Webhook ${selectedSubscription.value.name} atualizado com sucesso.`,
-    });
+    toast("Sucesso", { description: `Webhook ${selectedSubscription.value.name} atualizado com sucesso.` });
     subscriptionDialogOpen.value = false;
     await fetchSubscriptions();
   } catch (error) {

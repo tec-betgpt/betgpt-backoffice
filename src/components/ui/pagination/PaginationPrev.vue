@@ -3,8 +3,8 @@ import {
   Button,
 } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { ChevronLeftIcon } from '@radix-icons/vue'
-import { PaginationPrev, type PaginationPrevProps } from 'radix-vue'
+import { ChevronLeft } from 'lucide-vue-next'
+import { PaginationPrev, type PaginationPrevProps } from 'reka-ui'
 import { computed, type HTMLAttributes } from 'vue'
 
 const props = withDefaults(defineProps<PaginationPrevProps & { class?: HTMLAttributes['class'] }>(), {
@@ -22,7 +22,7 @@ const delegatedProps = computed(() => {
   <PaginationPrev v-bind="delegatedProps">
     <Button :class="cn('w-9 h-9 p-0', props.class)" variant="outline">
       <slot>
-        <ChevronLeftIcon />
+        <ChevronLeft class="h-4 w-4" />
       </slot>
     </Button>
   </PaginationPrev>

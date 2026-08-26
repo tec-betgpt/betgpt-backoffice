@@ -362,7 +362,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import Home from "@/services/home";
-import type { DateRange } from "radix-vue";
+import type { DateRange } from "reka-ui";
 import CustomChartTooltipRealPrice from "@/components/custom/CustomChartTooltipRealPrice.vue";
 import moment from "moment";
 import {
@@ -395,7 +395,7 @@ import {
   EyeClosed,
   LucideLockOpen,
 } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
@@ -404,7 +404,6 @@ import { useAuthStore } from "@/stores/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import SkeletonCustom from "@/components/custom/SkeletonCustom.vue";
 
-const { toast } = useToast();
 const props = defineProps({
   isShowValues: {
     type: Boolean,
@@ -784,12 +783,7 @@ const editLayout = (value: string) => {
   const card = cards.value.find((groupCard) => groupCard.id === value);
 
       if (card) {
-        toast({
-          title: card.edit ? "Editando layout" : "Layout editado",
-          description: `Editando layout de ${card.title}`,
-          variant: "default",
-          duration: 1000,
-        });
+        toast(card.edit ? "Editando layout" : "Layout editado", { description: `Editando layout de ${card.title}`, duration: 1000 });
       }
   if (card && !card.edit) {
     const save = cards.value.map((group) => {
@@ -816,11 +810,7 @@ const applyFilter = async () => {
   loading.value = true;
 
   if (!workspaceStore.activeGroupProject?.id) {
-    toast({
-      title: "Erro",
-      description: "Selecione um grupo ou projeto antes de filtrar.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione um grupo ou projeto antes de filtrar." });
     loading.value = false;
     return;
   }
@@ -879,11 +869,7 @@ const applyFilter = async () => {
           ];
     }
   } catch (_) {
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Não foi possível aplicar o filtro selecionado.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar dados", { description: "Não foi possível aplicar o filtro selecionado." });
   }
 
   loading.value = false;
@@ -1327,21 +1313,12 @@ const refreshMetrics = async () => {
 
       try {
         if (!workspaceStore.activeGroupProject?.id) {
-          toast({
-            title: "Erro",
-            description: "Selecione um projeto antes de atualizar.",
-            variant: "destructive",
-          });
+          toast.error("Erro", { description: "Selecione um projeto antes de atualizar." });
           return;
         }
 
         if (!isToday()) {
-          toast({
-            title: "Aviso",
-            description:
-              "A atualização manual só está disponível para a data atual.",
-            variant: "default",
-          });
+          toast("Aviso", { description: "A atualização manual só está disponível para a data atual." });
           return;
         }
 
@@ -1351,25 +1328,15 @@ const refreshMetrics = async () => {
           filter_id: workspaceStore.activeGroupProject.id,
         });
 
-        toast({
-          title: "Sucesso",
-          description:
-            "As métricas estão sendo atualizadas. Isso pode levar alguns minutos.",
-          variant: "default",
-        });
+        toast("Sucesso", { description: "As métricas estão sendo atualizadas. Isso pode levar alguns minutos." });
 
         setTimeout(() => {
           applyFilter();
         }, 5000);
       } catch (error) {
         const typedError = error as any;
-        toast({
-          title: "Erro",
-          description:
-            typedError.response?.data?.message ||
-            "Ocorreu um erro ao solicitar a atualização.",
-          variant: "destructive",
-        });
+        toast.error("Erro", { description: typedError.response?.data?.message ||
+            "Ocorreu um erro ao solicitar a atualização." });
       } finally {
         isRefreshing.value = false;
       }

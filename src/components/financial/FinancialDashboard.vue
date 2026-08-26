@@ -92,7 +92,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import type { DateRange } from "radix-vue";
+import type { DateRange } from "reka-ui";
 import VueApexCharts from "vue3-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import financialTransactionsApi from "@/services/financialTransactions";

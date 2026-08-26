@@ -98,14 +98,13 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { Loader2 as LucideSpinner, X } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import Pin from "@/components/custom/CustomPinInput.vue";
 import ClipboardButton from "@/components/custom/ClipboardButton.vue";
 import Users from "@/services/users";
 
 import i18n from "@/i18n";
 import auth from "@/services/auth";
-const { toast } = useToast();
 const isDialogOpen = ref(false);
 const step = ref({ type: "", step: true });
 const loading = ref(false);
@@ -166,12 +165,7 @@ const active2fa = async () => {
 
 const validate2fa = async (code: Array<string>) => {
   if (code.length < 6) {
-    toast({
-      title: i18n.global.t("warning"),
-      description: i18n.global.t("error_not_code"),
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error(i18n.global.t("warning"), { description: i18n.global.t("error_not_code"), duration: 3000 });
     return;
   }
   loading.value = true;
@@ -180,11 +174,7 @@ const validate2fa = async (code: Array<string>) => {
     form2fa.value.two_factor_code = code.join("");
     const data = await auth.validateTwoFactor(form2fa.value);
 
-    toast({
-      title: i18n.global.t("success"),
-      description: i18n.global.t(data.message),
-      duration: 3000,
-    });
+    toast(i18n.global.t("success"), { description: i18n.global.t(data.message), duration: 3000 });
 
     finish.value = false;
     securityCode.value = data.data;

@@ -512,7 +512,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import CampaignBasicStep from "@/components/campaigns/CampaignBasicStep.vue";
 import CampaignChecklistPanel from "@/components/campaigns/CampaignChecklistPanel.vue";
 import CampaignDeliveryWindowsStep from "@/components/campaigns/CampaignDeliveryWindowsStep.vue";
@@ -678,10 +678,7 @@ async function prepareExecution() {
 
   try {
     const result = await campaignExecutionStore.prepare(campaign.value.id);
-    toast({
-      title: "Campanha preparada.",
-      description: `${result.total_recipients} destinatário(s) · ${result.waves} wave(s) · ${result.batches} batch(es).`,
-    });
+    toast("Campanha preparada.", { description: `${result.total_recipients} destinatário(s) · ${result.waves} wave(s) · ${result.batches} batch(es).` });
   } catch {
     // erro já foi mapeado no store (errors.prepare)
   }
@@ -745,10 +742,7 @@ async function confirmExecutionLaunch() {
 
   try {
     await campaignExecutionStore.launch(campaign.value.id);
-    toast({
-      title: "Execução lançada.",
-      description: "O processamento assíncrono foi iniciado.",
-    });
+    toast("Execução lançada.", { description: "O processamento assíncrono foi iniciado." });
     isExecutionLaunchDialogOpen.value = false;
     scheduleExecutionPolling();
   } catch {
@@ -762,7 +756,7 @@ async function pauseExecution() {
 
   try {
     await campaignExecutionStore.pause(campaign.value.id);
-    toast({ title: "Execução pausada." });
+    toast("Execução pausada.");
   } catch {
     // erro já foi mapeado no store (errors.pause)
   }
@@ -773,7 +767,7 @@ async function resumeExecution() {
 
   try {
     await campaignExecutionStore.resume(campaign.value.id);
-    toast({ title: "Execução retomada." });
+    toast("Execução retomada.");
   } catch {
     // erro já foi mapeado no store (errors.resume)
   }
@@ -784,7 +778,7 @@ async function confirmExecutionCancel() {
 
   try {
     await campaignExecutionStore.cancel(campaign.value.id);
-    toast({ title: "Execução cancelada." });
+    toast("Execução cancelada.");
     isExecutionCancelDialogOpen.value = false;
   } catch {
     // erro já foi mapeado no store (errors.cancel)
@@ -1019,12 +1013,12 @@ async function saveDraft(step: StepKey) {
       applyCampaignDetail(detail);
       await router.replace({ name: "campaign-drafts.edit", params: { id: detail.id } });
       await runEstimate(detail.id, false);
-      toast({ title: "Campanha criada como draft." });
+      toast("Campanha criada como draft.");
     } else {
       await updateCampaign(campaign.value.id, buildUpdatePayload());
       await loadCampaignContext(campaign.value.id);
       clearValidationState();
-      toast({ title: "Rascunho salvo." });
+      toast("Rascunho salvo.");
     }
     isDirty.value = false;
   } catch (error) {
@@ -1073,7 +1067,7 @@ async function runValidation() {
       activeStep.value = firstStep.key;
     }
 
-    toast({ title: result.valid ? "Configuração válida." : "Configuração inválida." });
+    toast(result.valid ? "Configuração válida." : "Configuração inválida.");
   } catch (error) {
     handleHttpError(error);
   } finally {
@@ -1089,7 +1083,7 @@ async function confirmLaunch() {
 
   try {
     await launchCampaign(campaign.value.id);
-    toast({ title: "Campanha enviada para disparo." });
+    toast("Campanha enviada para disparo.");
     isLaunchDialogOpen.value = false;
     await router.push({ name: "campaign-drafts.show", params: { id: campaign.value.id } });
   } catch (error) {
@@ -1129,7 +1123,7 @@ async function confirmDelete() {
   errorMessage.value = "";
   try {
     await deleteCampaign(campaign.value.id);
-    toast({ title: "Campanha draft excluída." });
+    toast("Campanha draft excluída.");
     await router.push({ name: "campaign-drafts.index" });
   } catch (error) {
     handleHttpError(error);

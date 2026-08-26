@@ -193,7 +193,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import {
   Loader2 as LucideSpinner,
   Eye,
@@ -224,7 +224,6 @@ import type { ElevateSmsFieldErrors } from "@/stores/smsIntegrations";
 
 const emit = defineEmits<{ (e: "retry"): void }>();
 
-const { toast } = useToast();
 const store = useSmsIntegrationsStore();
 
 const showApiKey = ref(false);
@@ -294,20 +293,13 @@ async function submit() {
 
   try {
     await store.saveConfig();
-    toast({
-      title: "Sucesso",
-      description: "Integração Elevate SMS salva com sucesso.",
-    });
+    toast("Sucesso", { description: "Integração Elevate SMS salva com sucesso." });
   } catch {
     if (!store.error) {
       return;
     }
 
-    toast({
-      title: "Erro",
-      description: store.error,
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: store.error });
   }
 }
 
@@ -322,11 +314,7 @@ async function confirmRotate() {
       return;
     }
 
-    toast({
-      title: "Erro",
-      description: store.error,
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: store.error });
   }
 }
 </script>

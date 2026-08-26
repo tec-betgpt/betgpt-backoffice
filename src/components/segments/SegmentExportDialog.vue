@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useWorkspaceStore } from "@/stores/workspace";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import TargetAudience from "@/services/targetAudience";
 import {
   Dialog,
@@ -27,7 +27,6 @@ const isExporting = ref(false);
 const selectProjects = ref<number[]>([]);
 
 const workspaceStore = useWorkspaceStore();
-const { toast } = useToast();
 
 const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id);
 
@@ -53,27 +52,15 @@ const exportSegment = async () => {
       target_project_ids: selectProjects.value,
     });
 
-    toast({
-      title: "Exportação iniciada",
-      description: "Exportação do Segmento em andamento...",
-      variant: "default",
-    });
+    toast("Exportação iniciada", { description: "Exportação do Segmento em andamento..." });
 
     open.value = false;
     emit("exported");
 
-    toast({
-      title: "Sucesso",
-      description: "Segmento exportado com sucesso",
-      variant: "default",
-    });
+    toast("Sucesso", { description: "Segmento exportado com sucesso" });
   } catch (error) {
     console.error("Error exporting segment:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível exportar o segmento",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível exportar o segmento" });
   } finally {
     isExporting.value = false;
   }

@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
-import { ArrowDown, ArrowUp } from "lucide-vue-next";
-import { CaretSortIcon } from "@radix-icons/vue";
-
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-vue-next'
 const props = defineProps<{
   label: string
   column: string
@@ -28,6 +26,6 @@ const props = defineProps<{
     {{ label }}
     <ArrowDown v-if="orderId === column && order" class="ml-1 h-4 w-4" />
     <ArrowUp v-if="orderId === column && !order" class="ml-1 h-4 w-4" />
-    <CaretSortIcon v-if="orderId !== column" class="ml-1 h-4 w-4" />
+    <ChevronsUpDown v-if="orderId !== column" class="ml-1 h-4 w-4" />
   </Button>
 </template>

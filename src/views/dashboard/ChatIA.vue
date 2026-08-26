@@ -360,7 +360,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useScreenContext } from "@/composables/useScreenContext";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 import { marked } from "marked";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWindowSize } from '@vueuse/core';
 import { useRoute } from 'vue-router';
 
@@ -401,7 +401,6 @@ import {
 const { width } = useWindowSize();
 const isMobile = computed(() => width.value < 768);
 const isSidebarOpen = ref(!isMobile.value);
-const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
 const activeGroupProject = computed(() => workspaceStore.activeGroupProject);
@@ -523,7 +522,7 @@ const startRecording = async () => {
       recognition.start();
     } else {
       console.warn("Web Speech API not supported in this browser.");
-      toast({ variant: 'destructive', title: 'Erro', description: 'Navegador sem suporte.' });
+      toast.error('Erro', { description: 'Navegador sem suporte.' });
 
     }
 
@@ -554,7 +553,7 @@ const startRecording = async () => {
 
   } catch (error) {
     console.error("Error accessing microphone:", error);
-    toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível acessar o microfone.' });
+    toast.error('Erro', { description: 'Não foi possível acessar o microfone.' });
   }
 };
 
@@ -656,7 +655,7 @@ const loadChats = async () => {
     chats.value = response.data || [];
   } catch (error) {
     console.error("Failed to load chats", error);
-    toast({ variant: 'destructive', title: 'Erro', description: 'Falha ao carregar histórico de conversas.' });
+    toast.error('Erro', { description: 'Falha ao carregar histórico de conversas.' });
   } finally {
     loadingChats.value = false;
   }
@@ -697,7 +696,7 @@ const selectChat = async (chatId: number) => {
     scrollToBottom();
   } catch (error) {
     console.error("Failed to load messages", error);
-    toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível carregar a conversa.' });
+    toast.error('Erro', { description: 'Não foi possível carregar a conversa.' });
   } finally {
     loadingMessages.value = false;
   }
@@ -715,7 +714,7 @@ const createNewChat = async (select = true) => {
     }
   } catch (error) {
     console.error("Failed to create chat", error);
-    toast({ variant: 'destructive', title: 'Erro', description: 'Falha ao iniciar nova conversa.' });
+    toast.error('Erro', { description: 'Falha ao iniciar nova conversa.' });
   }
 };
 
@@ -729,10 +728,10 @@ const deleteChat = async (chatId: number) => {
       selectedChatId.value = null;
       messages.value = [];
     }
-    toast({ title: 'Conversa excluída com sucesso.' });
+    toast('Conversa excluída com sucesso.');
   } catch (error) {
     console.error("Failed to delete chat", error);
-    toast({ variant: 'destructive', title: 'Erro', description: 'Falha ao excluir conversa.' });
+    toast.error('Erro', { description: 'Falha ao excluir conversa.' });
   }
 };
 
@@ -798,7 +797,7 @@ const sendMessage = async () => {
     scrollToBottom();
   } catch (error) {
     console.error("Failed to send message", error);
-    toast({ variant: 'destructive', title: 'Erro', description: 'Falha ao enviar mensagem.' });
+    toast.error('Erro', { description: 'Falha ao enviar mensagem.' });
     // Remove the optimistic message or show error state?
   } finally {
     sendingMessage.value = false;
@@ -824,10 +823,10 @@ const submitFeedback = async () => {
       score: currentRating.value,
       feedback: feedbackText.value
     });
-    toast({ title: 'Obrigado!', description: 'Seu feedback foi enviado.' });
+    toast('Obrigado!', { description: 'Seu feedback foi enviado.' });
     feedbackText.value = '';
   } catch (error) {
-    toast({ variant: 'destructive', title: 'Erro', description: 'Falha ao enviar feedback.' });
+    toast.error('Erro', { description: 'Falha ao enviar feedback.' });
   }
 };
 

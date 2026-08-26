@@ -123,7 +123,7 @@
 <script setup lang="ts">
 import {ref} from "vue";
 import {Check, ChevronsUpDown, Plus} from "lucide-vue-next";
-import {useToast} from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import ProtectionLists from "@/services/protectionLists";
 import Projects from "@/services/projects";
 import {
@@ -146,7 +146,6 @@ import {useWorkspaceStore} from "@/stores/workspace";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 
 const props = defineProps<{ reload: () => Promise<void> }>();
-const { toast } = useToast();
 
 const isLoading = ref(false);
 const isLoadingPlayers = ref(false);
@@ -261,17 +260,9 @@ const onSubmit = async () => {
     await ProtectionLists.store(payload)
     await props.reload();
     isDialog.value = false;
-    toast({
-      title: "Sucesso",
-      description: "Proteção salva com sucesso.",
-    });
+    toast("Sucesso", { description: "Proteção salva com sucesso." });
   } catch (error: any) {
-    toast({
-      title: "Ops!",
-      description: error.response?.data?.message || "Erro ao salvar.",
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error("Ops!", { description: error.response?.data?.message || "Erro ao salvar.", duration: 3000 });
   }
 
   isLoading.value = false;

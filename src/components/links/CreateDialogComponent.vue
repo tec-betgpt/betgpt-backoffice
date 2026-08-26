@@ -164,7 +164,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import linksService from "@/services/links";
 import { Button } from "@/components/ui/button";
 import {
@@ -242,7 +242,7 @@ async function submitForm() {
 
   try {
     await linksService.store(sanitizePayload(form) as unknown as LinkCreatePayload);
-    toast({ title: "Link criado com sucesso!" });
+    toast("Link criado com sucesso!");
     emit("update:open", false);
     await props.refreshList(1);
     resetForm();
@@ -250,11 +250,7 @@ async function submitForm() {
     fieldErrors.value = mapApiErrors(error);
 
     if (error?.response?.status === 403) {
-      toast({
-        title: "Acesso negado",
-        description: error.response?.data?.message || "Você não tem acesso a esse projeto ou link.",
-        variant: "destructive",
-      });
+      toast.error("Acesso negado", { description: error.response?.data?.message || "Você não tem acesso a esse projeto ou link." });
     }
   } finally {
     isSubmitting.value = false;

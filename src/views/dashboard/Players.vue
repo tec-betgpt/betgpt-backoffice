@@ -51,7 +51,7 @@
                   Criado em
                   <ArrowUp v-if="order === 'created_at' && direction" class="ml-2 h-4 w-4" />
                   <ArrowDown v-else-if="order === 'created_at' && !direction" class="ml-2 h-4 w-4" />
-                  <CaretSortIcon v-else class="ml-2 h-4 w-4" />
+                  <ChevronsUpDown v-else class="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
               <TableHead class="text-right">Ações</TableHead>
@@ -128,11 +128,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { ArrowDown, ArrowUp, Eye, ChevronsUpDown } from "lucide-vue-next";
-import { CaretSortIcon } from "@radix-icons/vue";
+import { ArrowDown, ArrowUp, Eye, ChevronsUpDown } from 'lucide-vue-next'
 import Players from "@/services/players";
 import TagsService from "@/services/tags";
 import { Tag } from "@/contracts/tag";
@@ -142,7 +141,6 @@ import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
 
-const { toast } = useToast();
 const router = useRouter();
 const authStore = useAuthStore();
 const hasPermission = (permissionName: string) =>
@@ -224,11 +222,7 @@ const fetchPlayers = async (page = currentPage.value) => {
     perPage.value = Number(response.per_page ?? perPage.value);
     hasNextPage.value = Boolean(response.next_page_url);
   } catch (error) {
-    toast({
-      title: "Ops",
-      description: "Não foi possível carregar os dados dos Clientes",
-      variant: "destructive",
-    });
+    toast.error("Ops", { description: "Não foi possível carregar os dados dos Clientes" });
   }
 };
 

@@ -86,7 +86,7 @@
 import { h, ref, onMounted, watch } from "vue";
 import { useRoute } from 'vue-router';
 import TargetAudience from "@/services/targetAudience";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -120,7 +120,6 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 const route = useRoute();
-const { toast } = useToast();
 const isLoading = ref(false);
 const targetAudienceDialogRef = ref();
 const showDeleteDialog = ref(false);
@@ -169,11 +168,7 @@ const fetchMetaAudiences = async (page:number = 1) => {
     perPageMeta.value = response.per_page;
   } catch (error) {
     console.error("Error loading Meta audiences:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os públicos do Meta Ads.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os públicos do Meta Ads." });
   } finally {
     isLoadingMeta.value = false;
   }
@@ -197,11 +192,7 @@ const fetchAudiences = async (current = pages.value.current) => {
     };
   } catch (error) {
     console.error("Error loading target audiences:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os públicos alvo.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os públicos alvo." });
   } finally {
     isLoading.value = false;
   }
@@ -228,13 +219,10 @@ const confirmDelete = (id: number) => {
 const reloadTargetAudience = async (id: number) => {
   try {
     await TargetAudience.reload({id})
-    toast({title:'Sucesso!',description:'Publico alvo recarregado'})
+    toast('Sucesso!', { description: 'Publico alvo recarregado' })
   }catch (error) {
     console.error(error);
-    toast({
-      title: "Erro",
-      description: "Falha ao recarregar o Publicdo alvo",
-    })
+    toast("Erro", { description: "Falha ao recarregar o Publicdo alvo" })
   }
 
 }
@@ -244,15 +232,11 @@ const deleteTargetAudience = async () => {
   try {
     isLoading.value = true;
     await TargetAudience.destroy(audienceToDelete.value);
-    toast({ title: "Sucesso!", description: "Público alvo excluído com sucesso." });
+    toast("Sucesso!", { description: "Público alvo excluído com sucesso." });
     await fetchAudiences();
   } catch (error) {
     console.error("Error deleting target audience:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível excluir o público alvo.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível excluir o público alvo." });
   } finally {
     isLoading.value = false;
     showDeleteDialog.value = false;

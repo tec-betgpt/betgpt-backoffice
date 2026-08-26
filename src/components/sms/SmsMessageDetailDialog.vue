@@ -186,7 +186,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Loader2 as LucideSpinner, Copy, RefreshCw } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -212,7 +212,6 @@ import { useSmsHistoryStore } from "@/stores/smsHistory";
 defineProps<{ open: boolean }>();
 const emit = defineEmits<{ (e: "update:open", value: boolean): void }>();
 
-const { toast } = useToast();
 const store = useSmsHistoryStore();
 
 const eventsWithPayload = computed(() =>
@@ -256,11 +255,7 @@ async function sync() {
   try {
     await store.syncStatus();
   } catch {
-    toast({
-      title: "Erro",
-      description: "Não foi possível consultar o status no supplier.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível consultar o status no supplier." });
   }
 }
 
@@ -271,13 +266,9 @@ function eventSourceLabel(source: SmsMessageEventSource) {
 async function copyPayload(event: SmsMessageEvent) {
   try {
     await navigator.clipboard.writeText(prettyJson(event.payload));
-    toast({ title: "Payload copiado para a área de transferência." });
+    toast("Payload copiado para a área de transferência.");
   } catch {
-    toast({
-      title: "Erro",
-      description: "Não foi possível copiar o payload.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível copiar o payload." });
   }
 }
 

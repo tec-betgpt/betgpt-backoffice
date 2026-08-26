@@ -1,8 +1,7 @@
 import axios from "axios";
 import qs from "qs";
 import i18n from "@/i18n";
-import { useToast } from "@/components/ui/toast/use-toast";
-const { toast } = useToast();
+import { toast } from "vue-sonner";
 
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_PUBLIC_API_URL}/v1`,
@@ -17,11 +16,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 500) {
-      toast({
-        title: i18n.global.t("internal_error"),
-        description: i18n.global.t("try_again_later"),
-        variant: "destructive",
-      });
+      toast.error(i18n.global.t("internal_error"), { description: i18n.global.t("try_again_later") });
     }
 
     if (error.response && error.response.status === 422) {
@@ -34,20 +29,12 @@ api.interceptors.response.use(
       });
 
       if (fields.length) {
-        toast({
-          title: i18n.global.t("attention"),
-          description: fields.join("<br>"),
-          variant: "destructive",
-        });
+        toast.error(i18n.global.t("attention"), { description: fields.join("<br>") });
       }
     }
 
     if (error.code === "ERR_NETWORK") {
-      toast({
-        title: i18n.global.t("connection_error"),
-        description: i18n.global.t("please_verify_connection"),
-        variant: "destructive",
-      });
+      toast.error(i18n.global.t("connection_error"), { description: i18n.global.t("please_verify_connection") });
     }
 
     if (
@@ -56,11 +43,7 @@ api.interceptors.response.use(
       !error.response.data.errors &&
       error.response.data.message
     ) {
-      toast({
-        title: i18n.global.t("error_ocurried"),
-        description: i18n.global.t(error.response.data.message),
-        variant: "destructive",
-      });
+      toast.error(i18n.global.t("error_ocurried"), { description: i18n.global.t(error.response.data.message) });
     }
 
     return Promise.reject(error);

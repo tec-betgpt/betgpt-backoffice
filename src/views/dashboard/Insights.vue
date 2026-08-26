@@ -76,7 +76,7 @@ import { useScreenContext } from "@/composables/useScreenContext";
 import { Button } from "@/components/ui/button";
 import Insights from "@/services/insights";
 import { X } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import i18n from "@/i18n";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -85,7 +85,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import EditDialogComponent from "@/components/insights/EditDialogComponent.vue";
 
-const { toast } = useToast();
 
 interface Insight {
   id: number;
@@ -134,18 +133,9 @@ watch(perPage,()=>fetchMessages(1))
 async function remove(id: number) {
   try {
     const data = await Insights.destroy(id)
-    toast({
-      title: i18n.global.t("success"),
-      description: i18n.global.t(data.message),
-      duration: 3000,
-    });
+    toast(i18n.global.t("success"), { description: i18n.global.t(data.message), duration: 3000 });
   } catch (error) {
-    toast({
-      title: i18n.global.t("error"),
-      description: i18n.global.t(error.response.data.message),
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error(i18n.global.t("error"), { description: i18n.global.t(error.response.data.message), duration: 3000 });
   }
 }
 

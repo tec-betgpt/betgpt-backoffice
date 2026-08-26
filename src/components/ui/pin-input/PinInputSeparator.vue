@@ -1,6 +1,6 @@
 <script setup>
-import { DashIcon } from '@radix-icons/vue';
-import { Primitive, useForwardProps } from 'radix-vue';
+import { Minus } from 'lucide-vue-next'
+import { Primitive, useForwardProps } from 'reka-ui';
 
 const props = defineProps({
   asChild: { type: Boolean, required: false },
@@ -12,7 +12,7 @@ const forwardedProps = useForwardProps(props);
 <template>
   <Primitive v-bind="forwardedProps">
     <slot>
-      <DashIcon />
+      <Minus class="h-4 w-4" />
     </slot>
   </Primitive>
 </template>

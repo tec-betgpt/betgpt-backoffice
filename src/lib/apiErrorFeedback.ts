@@ -1,7 +1,5 @@
-import { h } from "vue";
+import { toast } from "vue-sonner";
 import i18n from "@/i18n";
-import { useToast } from "@/components/ui/toast/use-toast";
-import { ToastAction } from "@/components/ui/toast";
 import { normalizeApiError } from "@/lib/apiError";
 import type { NormalizedApiError } from "@/lib/apiError";
 
@@ -61,12 +59,11 @@ export function resolveApiErrorMessage(
 }
 
 async function copyRequestId(requestId: string) {
-  const { toast } = useToast();
   const t = i18n.global.t;
 
   try {
     await navigator.clipboard.writeText(requestId);
-    toast({ description: t("api_errors.request_id_copied") });
+    toast(t("api_errors.request_id_copied"));
   } catch {
     // Clipboard indisponível (contexto inseguro): o ID já está visível no
     // corpo do toast para cópia manual.
@@ -89,7 +86,6 @@ export function showApiErrorToast(
   options: ApiErrorToastOptions = {},
 ): void {
   const normalized = normalizeApiError(error);
-  const { toast } = useToast();
   const t = i18n.global.t;
 
   const message = resolveApiErrorMessage(normalized, options.fallbackKey);
@@ -97,20 +93,14 @@ export function showApiErrorToast(
     ? `${message}\n${t("api_errors.request_id_label")}: ${normalized.requestId}`
     : message;
 
-  toast({
-    title: options.title ?? t("api_errors.generic_title"),
+  toast.error(options.title ?? t("api_errors.generic_title"), {
     description,
-    variant: "destructive",
     ...(normalized.requestId
       ? {
-          action: h(
-            ToastAction,
-            {
-              altText: t("api_errors.copy_request_id"),
-              onClick: () => copyRequestId(normalized.requestId as string),
-            },
-            { default: () => t("api_errors.copy_request_id") },
-          ),
+          action: {
+            label: t("api_errors.copy_request_id"),
+            onClick: () => copyRequestId(normalized.requestId as string),
+          },
         }
       : {}),
   });

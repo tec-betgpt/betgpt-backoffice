@@ -3,7 +3,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useIAAnaliseStore } from "@/stores/iaAnalise";
 import { useRoute } from "vue-router";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-vue-next";
 
@@ -26,27 +26,16 @@ const openSidebar = () => {
 
 const handleClick = async () => {
   if (!workspaceStore.activeGroupProject?.id) {
-    toast({
-      title: "Erro",
-      description: "Selecione um projeto antes de usar o Assistant IA.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione um projeto antes de usar o Assistant IA." });
     return;
   }
 
   if (iaAnaliseStore.isLoading) {
-    toast({
-      title: "Aguarde",
-      description: "Já tem uma análise em andamento.",
-      variant: "destructive",
-    });
+    toast.error("Aguarde", { description: "Já tem uma análise em andamento." });
     return;
   }
 
-  toast({
-    title: "IA Analise",
-    description: "Dados enviados para análise.",
-  });
+  toast("IA Analise", { description: "Dados enviados para análise." });
 
   try {
     const newChat = await IntelligenceArtificial.createSession({
@@ -79,11 +68,7 @@ const handleClick = async () => {
 
   } catch (error) {
     console.error("Erro ao enviar para IA:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível enviar os dados para análise.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível enviar os dados para análise." });
     iaAnaliseStore.setError("Não foi possível concluir a análise. Tente novamente.");
     iaAnaliseStore.finishAnalise();
   }

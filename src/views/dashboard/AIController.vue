@@ -205,10 +205,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
 
-const { toast } = useToast();
 const isSaving = ref(false);
 const isLoading = ref(true);
 
@@ -253,7 +252,7 @@ const fetchSettings = async () => {
     mcpTools.value = tools;
     } catch (error) {
     console.error(error);
-    toast({ title: "Erro", description: "Não foi possível carregar as configurações da IA.", variant: "destructive" });
+    toast.error("Erro", { description: "Não foi possível carregar as configurações da IA." });
     } finally {
     isLoading.value = false;
     }
@@ -280,10 +279,10 @@ const fetchSettings = async () => {
         await IntelligenceArtificial.createQuestion({ text: newQuestion.value.trim() });
         newQuestion.value = "";
         await fetchQuestions();
-        toast({ title: "Pergunta salva", description: "Nova pergunta padrão adicionada com sucesso." });
+        toast("Pergunta salva", { description: "Nova pergunta padrão adicionada com sucesso." });
       } catch (error) {
         console.error(error);
-        toast({ title: "Erro", description: "Não foi possível salvar a pergunta.", variant: "destructive" });
+        toast.error("Erro", { description: "Não foi possível salvar a pergunta." });
       } finally {
         isAddingQuestion.value = false;
       }
@@ -293,16 +292,16 @@ const fetchSettings = async () => {
       try {
         await IntelligenceArtificial.deleteQuestion(id);
         await fetchQuestions();
-        toast({ title: "Removido", description: "Pergunta removida com sucesso." });
+        toast("Removido", { description: "Pergunta removida com sucesso." });
       } catch (error) {
         console.error(error);
-        toast({ title: "Erro", description: "Não foi possível remover a pergunta.", variant: "destructive" });
+        toast.error("Erro", { description: "Não foi possível remover a pergunta." });
       }
     };
 
     const selectQuestion = (question: string) => {
       navigator.clipboard.writeText(question);
-      toast({ title: "Copiado", description: "Pergunta copiada para a área de transferência." });
+      toast("Copiado", { description: "Pergunta copiada para a área de transferência." });
     };
 
     const toggleTool = (name: any) => {
@@ -321,7 +320,7 @@ const fetchSettings = async () => {
 
     const resetConfig = () => {
     fetchSettings();
-    toast({ title: "Restaurado", description: "Configurações recarregadas do servidor." });
+    toast("Restaurado", { description: "Configurações recarregadas do servidor." });
     };
 
     const saveConfig = async () => {
@@ -340,13 +339,10 @@ const fetchSettings = async () => {
     };
 
     await IntelligenceArtificial.saveAiSettings(payload);
-    toast({
-      title: "Configurações Salvas",
-      description: "O controlador de IA foi atualizado com sucesso.",
-    });
+    toast("Configurações Salvas", { description: "O controlador de IA foi atualizado com sucesso." });
     } catch (error) {
     console.error(error);
-    toast({ title: "Erro ao salvar", description: "Falha ao persistir as configurações no servidor.", variant: "destructive" });
+    toast.error("Erro ao salvar", { description: "Falha ao persistir as configurações no servidor." });
     } finally {
     isSaving.value = false;
     }

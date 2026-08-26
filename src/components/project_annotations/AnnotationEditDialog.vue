@@ -84,7 +84,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import ProjectAnnotations from '@/services/projectAnnotations'
-import { useToast } from '@/components/ui/toast/use-toast'
+import { toast } from "vue-sonner";
 import moment from 'moment'
 
 const props = defineProps<{
@@ -94,7 +94,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:open', 'saved'])
 
-const { toast } = useToast()
 
 const loading = ref(false)
 const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#6b7280']
@@ -120,20 +119,12 @@ watch(() => props.open, (newVal) => {
 
 async function save() {
   if (!form.value.title) {
-    toast({
-      title: 'Erro',
-      description: 'O título é obrigatório.',
-      variant: 'destructive'
-    })
+    toast.error('Erro', { description: 'O título é obrigatório.' })
     return
   }
 
   if (!form.value.date) {
-    toast({
-      title: 'Erro',
-      description: 'A data de início é obrigatória.',
-      variant: 'destructive'
-    })
+    toast.error('Erro', { description: 'A data de início é obrigatória.' })
     return
   }
 
@@ -149,19 +140,12 @@ async function save() {
       chart_name: form.value.is_global ? null : props.annotation.chart_name,
     })
     
-    toast({
-      title: 'Sucesso',
-      description: 'Anotação atualizada com sucesso.'
-    })
+    toast('Sucesso', { description: 'Anotação atualizada com sucesso.' })
     emit('saved')
     emit('update:open', false)
   } catch (error) {
     console.error(error)
-    toast({
-      title: 'Erro',
-      description: 'Não foi possível atualizar a anotação.',
-      variant: 'destructive'
-    })
+    toast.error('Erro', { description: 'Não foi possível atualizar a anotação.' })
   }
 
   loading.value = false

@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, h, watch } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
   import { useScreenContext } from "@/composables/useScreenContext";
 import { Button } from "@/components/ui/button";
@@ -66,24 +66,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  MoreHorizontal,
-  ChevronDownIcon,
-  ArrowDown,
-  ArrowUp, Trash, Pencil,
-} from "lucide-vue-next";
+import { MoreHorizontal, ChevronDown, ArrowDown, ArrowUp, Trash, Pencil, ChevronsUpDown } from 'lucide-vue-next'
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import { CaretSortIcon } from "@radix-icons/vue";
 import CreateDialogComponent from "@/components/conversion_definitions/CreateDialogComponent.vue";
 
 import EditDialogComponent from "@/components/conversion_definitions/EditDialogComponent.vue";
 import ConversionDefinitions from "@/services/conversionDefinitions";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 
-const { toast } = useToast();
 const isLoading = ref(false);
 const isProcessing = ref(false);
 const conversionType = ref("primary");
@@ -155,11 +148,7 @@ const fetchConversionDefinitions = async (current = pages.value.current) => {
     };
   } catch (error) {
     console.error("Error loading conversion definitions:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar as definições de conversão",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar as definições de conversão" });
   } finally {
     isLoading.value = false;
   }
@@ -172,16 +161,9 @@ const destroy = async (id: number) => {
     await ConversionDefinitions.destroy(id);
     await fetchConversionDefinitions(pages.value.current);
 
-    toast({
-      title: "Sucesso",
-      description: "Definição de conversão removida com sucesso",
-    });
+    toast("Sucesso", { description: "Definição de conversão removida com sucesso" });
   } catch (_) {
-    toast({
-      title: "Erro",
-      description: "Não foi possível remover a definição de conversão",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível remover a definição de conversão" });
   }
 
   isProcessing.value = false;
@@ -212,7 +194,7 @@ function createHeaderButton(label: string, columnKey: string) {
           ? direction.value
             ? ArrowDown
             : ArrowUp
-          : CaretSortIcon,
+          : ChevronsUpDown,
         { class: "" },
       ),
     ],
@@ -279,14 +261,14 @@ const columns = [
                   {
                     default: () => [
                       h(MoreHorizontal, { class: "h-4 w-4" }),
-                      h("span", { class: "sr-only" }, "Ações"),
+                      h("span", { class: "sr-only" }, () => "Ações"),
                     ]
                   }
               )
             }
         ),
         h(DropdownMenuContent, { align: "end" }, () => [
-          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuLabel, {}, () => "Ações"),
           h(DropdownMenuSeparator),
           h(
               EditDialogComponent,

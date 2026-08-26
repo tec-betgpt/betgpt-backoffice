@@ -81,7 +81,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import DatePicker from '@/components/custom/DatePicker.vue';
 import ReportsService from '@/services/reports';
-import { useToast } from '@/components/ui/toast';
+import { toast } from "vue-sonner";
 import { Plus, Loader2 as LucideSpinner } from 'lucide-vue-next';
 import { useWorkspaceStore } from '@/stores/workspace';
 import moment from 'moment';
@@ -97,7 +97,6 @@ import {
 } from "@/components/ui/select";
 
 const emit = defineEmits(['report-generated']);
-const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 const channelGroups = ref([]);
 
@@ -128,11 +127,7 @@ const openDialog = () => {
 
 const handleGenerate = async () => {
   if (!form.value.start_date || !form.value.end_date) {
-    toast({
-      title: "Erro de Validação",
-      description: "As datas de início e fim são obrigatórias.",
-      variant: "destructive",
-    });
+    toast.error("Erro de Validação", { description: "As datas de início e fim são obrigatórias." });
     return;
   }
   
@@ -147,18 +142,11 @@ const handleGenerate = async () => {
     };
 
     await ReportsService.store(payload);
-    toast({
-      title: "Sucesso",
-      description: "Relatório está sendo processado e logo aparecerá na lista.",
-    });
+    toast("Sucesso", { description: "Relatório está sendo processado e logo aparecerá na lista." });
     emit('report-generated');
     isDialogOpen.value = false;
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Falha ao gerar o relatório.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Falha ao gerar o relatório." });
   } finally {
     isGenerating.value = false;
   }
@@ -168,11 +156,7 @@ const fetchChannelGroups = async () => {
     const response = await ConversionDefinitions.channelGroups({ project_id: activeProjectId.value });
     channelGroups.value = response.data;
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Falha ao buscar os grupos de canal.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Falha ao buscar os grupos de canal." });
   }
 };
 

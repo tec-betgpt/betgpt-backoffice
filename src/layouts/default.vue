@@ -151,7 +151,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import Projects from "@/services/projects";
 import Auth from "@/services/auth";
 import LeftMenuComponent from "@/components/layout/LeftMenuComponent.vue";
@@ -356,12 +356,7 @@ const fetchStatusOAuth2 = async () => {
     if (response.data.length === 0) return;
     const status = response.data
     status.forEach((item) => {
-      toast({
-        variant:'destructive',
-        description:item.status_description,
-        duration:3000,
-        title:item.name,
-      })
+      toast.error(item.name, { description: item.status_description, duration: 3000 })
     })
   } catch (e) {
     console.error(e)

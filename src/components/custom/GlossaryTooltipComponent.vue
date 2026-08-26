@@ -16,7 +16,7 @@
 </template>
 <script>
 import { CircleQuestionMark } from 'lucide-vue-next'
-import { useToast } from '@/components/ui/toast/use-toast'
+import { toast } from "vue-sonner";
 
 export default {
   components: {
@@ -33,12 +33,8 @@ export default {
     },
 
     open() {
-      const { toast } = useToast()
 
-      toast({
-        description: this.description,
-        class: 'bg-yellow-300/10 backdrop-blur-md text-primary'
-      })
+      toast(this.description, { class: 'bg-yellow-300/10 backdrop-blur-md text-primary' })
     }
   },
 

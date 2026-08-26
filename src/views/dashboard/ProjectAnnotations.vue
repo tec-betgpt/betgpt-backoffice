@@ -125,7 +125,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import ProjectAnnotations from "@/services/projectAnnotations";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
@@ -149,7 +149,6 @@ import { Eye, Pencil, Plus } from "lucide-vue-next";
 import moment from "moment";
 import { ProjectAnnotation } from "@/contracts/projectAnnotation";
 
-const { toast } = useToast();
 const isLoading = ref(true);
 const projectAnnotations = ref<ProjectAnnotation[]>([]);
 const pages = ref({
@@ -193,11 +192,7 @@ const fetchProjectAnnotations = async (current = 1) => {
       total: response.total,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 
   isLoading.value = false;
@@ -213,16 +208,9 @@ useScreenContext("Marcos", () => ({
 const deleteAnnotation = async (id: number) => {
   try {
     await ProjectAnnotations.destroy(id);
-    toast({
-      title: "Sucesso",
-      description: "Anotação removida com sucesso.",
-    });
+    toast("Sucesso", { description: "Anotação removida com sucesso." });
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao remover a anotação.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao remover a anotação." });
     throw error;
   }
 };

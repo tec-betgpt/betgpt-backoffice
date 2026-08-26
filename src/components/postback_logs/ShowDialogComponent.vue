@@ -57,9 +57,8 @@
 import {Eye} from "lucide-vue-next";
 import {computed, defineProps, ref} from "vue";
 import PostbackLogService from "@/services/postbackLog";
-import {useToast} from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 
-const { toast } = useToast();
 
 const props = defineProps<{ row: any }>()
 const dialog = ref(false);
@@ -82,11 +81,7 @@ const show = async (logId: number) => {
     selectedPayload.value = data.payload;
     isPayloadModalOpen.value = true;
   } catch (error) {
-    toast({
-      title: "Erro ao carregar payload",
-      description: "Não foi possível carregar o payload do postback.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar payload", { description: "Não foi possível carregar o payload do postback." });
   }
 };
 </script>

@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { CopyIcon, TriangleAlertIcon } from "lucide-vue-next";
 
 const props = defineProps<{
@@ -22,7 +22,6 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-const { toast } = useToast();
 
 const open = computed(() => props.url !== null);
 
@@ -49,12 +48,9 @@ async function copyUrl() {
 
   try {
     await navigator.clipboard.writeText(props.url);
-    toast({ description: "URL de callback copiada." });
+    toast("URL de callback copiada.");
   } catch {
-    toast({
-      title: "Não foi possível copiar a URL.",
-      variant: "destructive",
-    });
+    toast.error("Não foi possível copiar a URL.");
   }
 }
 </script>

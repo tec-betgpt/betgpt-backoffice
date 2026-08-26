@@ -33,12 +33,11 @@
 </template>
 <script setup lang="ts">
 import { ref } from "vue";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import Sector from "@/services/sector"
 import { Plus } from "lucide-vue-next";
 
-const { toast } = useToast();
 const props = defineProps<{ reload: () => void }>();
 const dialog = ref(false);
 const workspaceStore = useWorkspaceStore();
@@ -63,11 +62,7 @@ const onSubmit = async () => {
     dialog.value = false;
     props.reload();
 
-    toast({
-      title: "Sucesso",
-      description: "Setor criado com sucesso.",
-      duration: 3000,
-    });
+    toast("Sucesso", { description: "Setor criado com sucesso.", duration: 3000 });
   } catch (error) {
     console.error("Erro ao salvar setor:", error);
   }

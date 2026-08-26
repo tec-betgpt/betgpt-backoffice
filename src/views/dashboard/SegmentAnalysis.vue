@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import VueApexCharts from "vue3-apexcharts";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Analytics from "@/services/analytics";
@@ -47,7 +47,6 @@ type AnalysisPayload = {
 
 const apexchart = VueApexCharts;
 const workspaceStore = useWorkspaceStore();
-const { toast } = useToast();
 
 const selectedRange = ref<{ start: any; end: any }>({ start: null, end: null });
 const sourceType = ref<SourceType>("segment");
@@ -300,11 +299,7 @@ async function loadSources() {
     }));
   } catch (error) {
     console.error(error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar segmentos/tags.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar segmentos/tags." });
     sourceOptions.value = [];
   } finally {
     isLoadingSources.value = false;
@@ -313,11 +308,7 @@ async function loadSources() {
 
 async function applyFilter() {
   if (!workspaceStore.activeGroupProject?.id) {
-    toast({
-      title: "Erro",
-      description: "Selecione um grupo ou projeto antes de filtrar.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione um grupo ou projeto antes de filtrar." });
     return;
   }
 
@@ -345,11 +336,7 @@ async function applyFilter() {
     analysis.value = data as AnalysisPayload;
   } catch (error: any) {
     console.error(error);
-    toast({
-      title: "Erro ao carregar análise",
-      description: error?.response?.data?.message || "Não foi possível aplicar o filtro selecionado.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar análise", { description: error?.response?.data?.message || "Não foi possível aplicar o filtro selecionado." });
     analysis.value = null;
   } finally {
     isLoading.value = false;
