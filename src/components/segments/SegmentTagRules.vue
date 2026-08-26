@@ -67,6 +67,7 @@ const tagsByCategory = reactive<Record<string, Tag[]>>({
 
 const availableTags = ref<Tag[]>([]);
 const isSearching = ref(false);
+const isLoadingConfig = ref(false);
 const isSaving = ref(false);
 const searchQuery = ref('');
 const openCategory = ref<string | null>(null);
@@ -74,11 +75,57 @@ const showDuplicateDialog = ref(false);
 const pendingDuplicateTag = ref<Tag | null>(null);
 let searchTimeout: any = null;
 
+const allTagsMap = new Map<number, Tag>();
+
 const resetCategories = () => {
   tagsByCategory.enter_add = [...(props.existingTags || [])];
   tagsByCategory.enter_remove = [];
   tagsByCategory.exit_add = [];
   tagsByCategory.exit_remove = [];
+};
+
+const fetchAllTags = async () => {
+  try {
+    const response = await TagsService.index({
+      filter_id: workspace.activeGroupProject?.id,
+      per_page: 200,
+    });
+    const list = Array.isArray(response) ? response : (response.data || []);
+    allTagsMap.clear();
+    list.forEach((tag: Tag) => allTagsMap.set(tag.id, tag));
+  } catch (error) {
+    console.error('Error fetching all tags:', error);
+  }
+};
+
+const loadConfig = async () => {
+  if (!props.modelId) return;
+  isLoadingConfig.value = true;
+  try {
+    const response = await TargetAudience.getTags(props.modelId);
+    const config = response?.data ?? response ?? null;
+
+    if (!config) {
+      resetCategories();
+      return;
+    }
+
+    const idsToTags = (ids: any) =>
+      Array.isArray(ids)
+        ? ids
+            .map((id: number) => allTagsMap.get(id))
+            .filter((t): t is Tag => Boolean(t))
+        : [];
+
+    tagsByCategory.enter_add = idsToTags(config.enter_enter);
+    tagsByCategory.enter_remove = idsToTags(config.enter_exit);
+    tagsByCategory.exit_add = idsToTags(config.exit_enter);
+    tagsByCategory.exit_remove = idsToTags(config.exit_exit);
+  } catch (error) {
+    console.error('Error loading tag transitions:', error);
+  } finally {
+    isLoadingConfig.value = false;
+  }
 };
 
 const fetchAvailableTags = async (search = '') => {
@@ -173,19 +220,27 @@ const save = async () => {
   }
 };
 
-onMounted(() => {
-  resetCategories();
+onMounted(async () => {
+  await fetchAllTags();
+  await loadConfig();
 });
 
 watch(
-  () => [props.modelId, props.existingTags],
-  () => resetCategories(),
+  () => props.modelId,
+  async () => {
+    await fetchAllTags();
+    await loadConfig();
+  },
 );
 </script>
 
 <template>
   <div class="space-y-4">
-    <Tabs default-value="enter_add" class="w-full">
+    <div v-if="isLoadingConfig" class="flex items-center justify-center py-4">
+      <Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
+    </div>
+
+    <Tabs v-else default-value="enter_add" class="w-full">
       <TabsList class="grid w-full grid-cols-4 h-auto">
         <TabsTrigger
           v-for="cat in categories"
