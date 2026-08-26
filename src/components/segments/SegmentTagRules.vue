@@ -72,7 +72,7 @@ const tagsByCategory = reactive<Record<string, Tag[]>>({
 
 const availableTags = ref<Tag[]>([]);
 const isSearching = ref(false);
-const isLoadingConfig = ref(false);
+const isLoadingConfig = ref(true);
 const isSaving = ref(false);
 const searchQuery = ref('');
 const openCategory = ref<string | null>(null);
