@@ -7,6 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import TagsService from '@/services/tags';
 import TargetAudience from '@/services/targetAudience';
 import { Tag } from '@/contracts/tag';
@@ -15,6 +25,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 const props = defineProps<{
   modelId: string | number;
   modelType: string;
+  existingTags?: Tag[];
 }>();
 
 const { toast } = useToast();
@@ -54,47 +65,20 @@ const tagsByCategory = reactive<Record<string, Tag[]>>({
   exit_remove: [],
 });
 
-const allTags = ref<Tag[]>([]);
 const availableTags = ref<Tag[]>([]);
 const isSearching = ref(false);
-const isLoadingConfig = ref(false);
 const isSaving = ref(false);
 const searchQuery = ref('');
 const openCategory = ref<string | null>(null);
+const showDuplicateDialog = ref(false);
+const pendingDuplicateTag = ref<Tag | null>(null);
 let searchTimeout: any = null;
 
-const fetchAllTags = async () => {
-  try {
-    const response = await TagsService.index({
-      filter_id: workspace.activeGroupProject?.id,
-      per_page: 200,
-    });
-    allTags.value = Array.isArray(response) ? response : (response.data || []);
-  } catch (error) {
-    console.error('Error fetching all tags:', error);
-  }
-};
-
-const loadExistingConfig = async () => {
-  if (!props.modelId) return;
-  isLoadingConfig.value = true;
-  try {
-    const response = await TargetAudience.getTags(props.modelId);
-    const config = response?.data ?? response ?? {};
-    const idsToTags = (ids: any) =>
-      Array.isArray(ids)
-        ? ids
-            .map((id) => allTags.value.find((t) => t.id === id))
-            .filter((t): t is Tag => Boolean(t))
-        : [];
-    categories.forEach((cat) => {
-      tagsByCategory[cat.key] = idsToTags(config[cat.field]);
-    });
-  } catch (error) {
-    console.error('Error loading tag transitions:', error);
-  } finally {
-    isLoadingConfig.value = false;
-  }
+const resetCategories = () => {
+  tagsByCategory.enter_add = [...(props.existingTags || [])];
+  tagsByCategory.enter_remove = [];
+  tagsByCategory.exit_add = [];
+  tagsByCategory.exit_remove = [];
 };
 
 const fetchAvailableTags = async (search = '') => {
@@ -121,6 +105,13 @@ const onSearch = (e: any) => {
   searchTimeout = setTimeout(() => fetchAvailableTags(query), 400);
 };
 
+const handlePopoverOpen = (categoryKey: string, value: boolean) => {
+  openCategory.value = value ? categoryKey : null;
+  if (value && availableTags.value.length === 0) {
+    fetchAvailableTags();
+  }
+};
+
 const availableFor = (categoryKey: string) =>
   availableTags.value.filter(
     (tag) => !tagsByCategory[categoryKey].some((t) => t.id === tag.id),
@@ -131,6 +122,25 @@ const addTag = (categoryKey: string, tag: Tag) => {
     tagsByCategory[categoryKey].push(tag);
   }
   openCategory.value = null;
+
+  if (categoryKey === 'enter_add') {
+    pendingDuplicateTag.value = tag;
+    showDuplicateDialog.value = true;
+  }
+};
+
+const confirmDuplicate = () => {
+  const tag = pendingDuplicateTag.value;
+  if (tag && !tagsByCategory.enter_remove.some((t) => t.id === tag.id)) {
+    tagsByCategory.enter_remove.push(tag);
+  }
+  showDuplicateDialog.value = false;
+  pendingDuplicateTag.value = null;
+};
+
+const cancelDuplicate = () => {
+  showDuplicateDialog.value = false;
+  pendingDuplicateTag.value = null;
 };
 
 const removeTag = (categoryKey: string, tag: Tag) => {
@@ -163,27 +173,19 @@ const save = async () => {
   }
 };
 
-onMounted(async () => {
-  await fetchAllTags();
-  await Promise.all([loadExistingConfig(), fetchAvailableTags()]);
+onMounted(() => {
+  resetCategories();
 });
 
 watch(
-  () => props.modelId,
-  async () => {
-    await fetchAllTags();
-    await Promise.all([loadExistingConfig(), fetchAvailableTags()]);
-  },
+  () => [props.modelId, props.existingTags],
+  () => resetCategories(),
 );
 </script>
 
 <template>
   <div class="space-y-4">
-    <div v-if="isLoadingConfig" class="flex items-center justify-center py-4">
-      <Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
-    </div>
-
-    <Tabs v-else default-value="enter_add" class="w-full">
+    <Tabs default-value="enter_add" class="w-full">
       <TabsList class="grid w-full grid-cols-4 h-auto">
         <TabsTrigger
           v-for="cat in categories"
@@ -232,7 +234,7 @@ watch(
 
         <Popover
           :open="openCategory === cat.key"
-          @update:open="(v) => (openCategory = v ? cat.key : null)"
+          @update:open="(v) => handlePopoverOpen(cat.key, v)"
         >
           <PopoverTrigger as-child>
             <Button variant="outline" size="sm">
@@ -284,5 +286,22 @@ watch(
         Salvar
       </Button>
     </div>
+
+    <AlertDialog :open="showDuplicateDialog" @update:open="showDuplicateDialog = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Duplicar tag?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Deseja também remover a tag
+            <strong>{{ pendingDuplicateTag?.name }}</strong> quando o player
+            entrar no segmento?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="cancelDuplicate">Não</AlertDialogCancel>
+          <AlertDialogAction @click="confirmDuplicate">Sim</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>

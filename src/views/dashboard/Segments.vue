@@ -76,6 +76,7 @@
             v-if="segmentForTags"
             :model-id="segmentForTags.id"
             model-type="targetAudience"
+            :existing-tags="segmentForTags.tags || []"
           />
         </div>
         <DialogFooter>
