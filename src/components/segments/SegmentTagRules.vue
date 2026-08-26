@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { Loader2, Plus, Save, X } from 'lucide-vue-next';
 import { useToast } from '@/components/ui/toast/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -25,11 +25,16 @@ import { useWorkspaceStore } from "@/stores/workspace";
 const props = defineProps<{
   modelId: string | number;
   modelType: string;
+  projectId?: string | number;
   existingTags?: Tag[];
 }>();
 
 const { toast } = useToast();
 const workspace = useWorkspaceStore();
+
+const activeProjectId = computed<string | number>(
+  () => (props.projectId ?? workspace.activeGroupProject?.project_id) as string | number,
+);
 
 const categories = [
   {
@@ -102,7 +107,7 @@ const loadConfig = async () => {
   if (!props.modelId) return;
   isLoadingConfig.value = true;
   try {
-    const response = await TargetAudience.getTags(props.modelId);
+    const response = await TargetAudience.getTags(props.modelId, activeProjectId.value);
     const config = response?.data ?? response ?? null;
 
     if (!config) {
@@ -199,7 +204,7 @@ const removeTag = (categoryKey: string, tag: Tag) => {
 const save = async () => {
   isSaving.value = true;
   try {
-    await TargetAudience.updateTags(props.modelId, {
+    await TargetAudience.updateTags(props.modelId, activeProjectId.value, {
       enter_enter: tagsByCategory.enter_add.map((t) => t.id),
       enter_exit: tagsByCategory.enter_remove.map((t) => t.id),
       exit_enter: tagsByCategory.exit_add.map((t) => t.id),

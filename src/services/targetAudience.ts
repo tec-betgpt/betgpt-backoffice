@@ -80,20 +80,27 @@ export default {
 
   /**
    * GET /v1/target-audiences/{id}/tags
-   * @param {number} id
+   * @param {string|number} id
+   * @param {string|number} projectId
    */
-  async getTags (id: string | number) {
-    const { data } = await api.get(`/target-audiences/${id}/tags`)
+  async getTags (id: string | number, projectId: string | number) {
+    const { data } = await api.get(`/target-audiences/${id}/tags`, {
+      params: { project_id: projectId },
+    })
     return data
   },
 
   /**
    * PUT /v1/target-audiences/{id}/tags
-   * @param {number} id
+   * @param {string|number} id
+   * @param {string|number} projectId
    * @param {object} payload - { enter_enter, enter_exit, exit_enter, exit_exit }
    */
-  async updateTags (id: string | number, payload: object) {
-    const { data } = await api.put(`/target-audiences/${id}/tags`, payload)
+  async updateTags (id: string | number, projectId: string | number, payload: object) {
+    const { data } = await api.put(`/target-audiences/${id}/tags`, {
+      project_id: projectId,
+      ...payload,
+    })
     return data
   },
 

@@ -76,6 +76,7 @@
             v-if="segmentForTags"
             :model-id="segmentForTags.id"
             model-type="targetAudience"
+            :project-id="segmentForTags.project_id"
             :existing-tags="segmentForTags.tags || []"
           />
         </div>
