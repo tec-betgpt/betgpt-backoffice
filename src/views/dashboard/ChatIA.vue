@@ -783,15 +783,17 @@ const sendMessage = async () => {
       file: file,
     });
 
-    const parsedResponse = await marked.parse(response.data.message);
+    const rawResponse = response.data?.message;
+    const textResponse = Array.isArray(rawResponse) ? rawResponse[0] : rawResponse;
+    const parsedResponse = await marked.parse(textResponse ?? '');
     
     messages.value.push({
-      id: response.data.id,
+      id: response.data?.id,
       role: 'assistant',
-      rawMessage: response.data.message,
+      rawMessage: textResponse ?? '',
       message: parsedResponse,
       file: null,
-      timestamp: response.data.timestamp ?? new Date().toISOString()
+      timestamp: response.data?.timestamp ?? new Date().toISOString()
     });
     
     isAnimating.value = true;

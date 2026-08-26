@@ -888,12 +888,14 @@ const sendMessage = async () => {
     newMessage.value = { id: 0, role: "user", message: "", file: null };
     const response = await IntelligenceArtificial.sendMessage(userMessage);
     file.value = undefined;
+    const rawMessage = response.data?.message;
+    const textMessage = Array.isArray(rawMessage) ? rawMessage[0] : rawMessage;
     const assistantMessage: Message = {
       id: messages.value.length,
       role: "assistant",
-      message: await marked.parse(response.data.message),
+      message: await marked.parse(textMessage ?? ""),
       file: null,
-      timestamp: response.data.timestamp,
+      timestamp: response.data?.timestamp ?? new Date().toISOString(),
     };
 
     messages.value.push(assistantMessage);
