@@ -78,6 +78,25 @@ export default {
     const { data } = await api.get('/target-audiences/reload/' + params.id)
   },
 
+  /**
+   * GET /v1/target-audiences/{id}/tags
+   * @param {number} id
+   */
+  async getTags (id: string | number) {
+    const { data } = await api.get(`/target-audiences/${id}/tags`)
+    return data
+  },
+
+  /**
+   * PUT /v1/target-audiences/{id}/tags
+   * @param {number} id
+   * @param {object} payload - { enter_enter, enter_exit, exit_enter, exit_exit }
+   */
+  async updateTags (id: string | number, payload: object) {
+    const { data } = await api.put(`/target-audiences/${id}/tags`, payload)
+    return data
+  },
+
 
   /**
    * GET /v1/target-audiences/projects/{projectId}/providers/meta/list
@@ -101,13 +120,20 @@ export default {
     return data
   },
   /**
+   * GET /v1/target-audiences/players
    *
-   * @param params
-   * @param params.audience_id
+   * @param {object} params
+   * @param {number} params.audience_id
+   * @param {number} [params.page]
+   * @param {number} [params.perPage]
+   * @param {Array<string>} [params.search]
+   * @param {string} [params.orderBy]
+   * @param {string} [params.orderDirection]
+   * @param {boolean} [params.export]
    * @returns {Promise<any>}
    */
   async getPlayersResult(params = {}) {
-    const { data } = await api.get(`/target-audiences/players-results`,{params:params})
+    const { data } = await api.get(`/target-audiences/players`,{params:params})
     return data
   },
   /**

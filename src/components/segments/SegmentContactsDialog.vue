@@ -170,11 +170,11 @@ const fetchContacts = async (page: number) => {
 
     const response = await TargetAudience.getPlayersResult({
       audience_id: segmentId.value,
-  /**    page,
+      page,
       perPage: 20,
-      ...searchParams,
+      search: searchParams,
       orderBy: orderField.value,
-      orderDirection: orderDirection.value ? "asc" : "desc",*/
+      orderDirection: orderDirection.value ? "asc" : "desc",
     });
 
     const newPlayers = response.data.players || [];

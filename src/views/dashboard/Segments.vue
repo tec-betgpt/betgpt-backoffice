@@ -63,15 +63,16 @@
     />
 
     <Dialog v-model:open="showTagsDialog">
-      <DialogContent class="sm:max-w-md">
+      <DialogContent class="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Gerenciar Tags do Segmento</DialogTitle>
           <DialogDescription>
-            Adicione ou remova etiquetas para organizar seus segmentos.
+            Configure as tags aplicadas ou removidas conforme o player entra ou
+            sai do segmento.
           </DialogDescription>
         </DialogHeader>
         <div class="py-4">
-          <TagManager
+          <SegmentTagRules
             v-if="segmentForTags"
             :model-id="segmentForTags.id"
             model-type="targetAudience"
@@ -124,7 +125,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import SegmentDialog from "@/components/segments/SegmentDialog.vue";
 import SegmentExportDialog from "@/components/segments/SegmentExportDialog.vue";
-import TagManager from "@/components/custom/TagManager.vue";
+import SegmentTagRules from "@/components/segments/SegmentTagRules.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { createColumnHelper } from "@tanstack/vue-table";

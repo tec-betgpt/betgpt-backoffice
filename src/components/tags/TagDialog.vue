@@ -122,22 +122,6 @@
             <div class="space-y-4">
               <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
                 <Checkbox
-                  id="sync_with_segments"
-                  :checked="form.metadata.triggers.includes('sync_with_segments')"
-                  @update:checked="(checked) => onTriggerChange('sync_with_segments', checked)"
-                  :disabled="isSegmentsTriggerRequired"
-                />
-                <div class="grid gap-1.5 leading-none">
-                  <Label for="sync_with_segments" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Sincronizar com Segmentos
-                  </Label>
-                  <p class="text-xs text-muted-foreground">
-                    Ao vincular esta tag a um jogador, ele será automaticamente sincronizado com os segmentos que contem essa tag.
-                  </p>
-                </div>
-              </div>
-              <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                <Checkbox
                   id="sync_with_crms"
                   :checked="form.metadata.triggers.includes('sync_with_crms')"
                   @update:checked="(checked) => onTriggerChange('sync_with_crms', checked)"
