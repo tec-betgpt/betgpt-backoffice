@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Settings2 } from "lucide-vue-next";
 import ProjectPreferencesService from "@/services/projectPreferences";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 const workspaceStore = useWorkspaceStore();
@@ -43,17 +43,10 @@ const handleSave = async () => {
 
     await ProjectPreferencesService.store(payload);
 
-    toast({
-      title: "Sucesso",
-      description: "Preferências do projeto salvas com sucesso.",
-    });
+    toast("Sucesso", { description: "Preferências do projeto salvas com sucesso." });
   } catch (error) {
     console.error("Erro ao salvar preferências do projeto:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível salvar as preferências do projeto.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível salvar as preferências do projeto." });
   } finally {
     saving.value = false;
   }

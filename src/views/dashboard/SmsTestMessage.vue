@@ -131,7 +131,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import {
   SMS_MESSAGE_STATUS_LABELS,
   type SmsBroadcastStatus,
@@ -244,7 +244,7 @@ async function send() {
     }));
 
     sentMessages.value = [...items, ...sentMessages.value];
-    toast({ title: `Mensagem de teste enviada para ${items.length} telefone(s).` });
+    toast(`Mensagem de teste enviada para ${items.length} telefone(s).`);
 
     if (broadcastId) {
       await refreshBroadcast(broadcastId, filter_id);

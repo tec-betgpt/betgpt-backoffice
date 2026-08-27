@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {PinInputInput} from "radix-vue";
+import {PinInputInput} from "reka-ui";
 import {PinInput, PinInputGroup} from "@/components/ui/pin-input";
 import {ref} from "vue";
 import { Button } from '@/components/ui/button'

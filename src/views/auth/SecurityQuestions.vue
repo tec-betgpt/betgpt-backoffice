@@ -87,7 +87,7 @@
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "@/stores/auth"
-import { useToast } from "@/components/ui/toast/use-toast"
+import { toast } from "vue-sonner";
 import { useColorMode } from "@vueuse/core"
 import { Loader2 as LucideSpinner } from "lucide-vue-next"
 import { Button } from "@/components/ui/button"
@@ -96,7 +96,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Auth from "@/services/auth"
 
-const { toast } = useToast()
 const router = useRouter()
 const authStore = useAuthStore()
 const mode = useColorMode()
@@ -119,11 +118,7 @@ onMounted(async () => {
 
 async function saveQuestions() {
   if (!question1.value || !answer1.value || !question2.value || !answer2.value) {
-    toast({
-      title: "Aviso",
-      description: "Preencha todas as perguntas e respostas.",
-      variant: "destructive",
-    })
+    toast.error("Aviso", { description: "Preencha todas as perguntas e respostas." })
     return
   }
   isSaving.value = true
@@ -135,17 +130,10 @@ async function saveQuestions() {
       answer2: answer2.value,
     })
     authStore.setRequiresSecurityQuestions(false)
-    toast({
-      title: "Sucesso",
-      description: "Perguntas de segurança salvas com sucesso.",
-    })
+    toast("Sucesso", { description: "Perguntas de segurança salvas com sucesso." })
     router.push("/")
   } catch {
-    toast({
-      title: "Erro",
-      description: "Erro ao salvar perguntas de segurança.",
-      variant: "destructive",
-    })
+    toast.error("Erro", { description: "Erro ao salvar perguntas de segurança." })
   } finally {
     isSaving.value = false
   }

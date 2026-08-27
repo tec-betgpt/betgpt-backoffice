@@ -285,7 +285,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Loader2Icon, PlusIcon, Search, Trash2Icon, Pencil } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import ConversionDefinitions from "@/services/conversionDefinitions";
@@ -301,7 +301,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 const props = defineProps<{ row: object, reload: (() => Promise<void>) }>();
 
-const { toast } = useToast();
 const open = ref(false);
 const errors = ref([]);
 const workspaceStore = useWorkspaceStore();
@@ -451,11 +450,7 @@ const onSubmit = async () => {
 
     open.value = false;
 
-    toast({
-      title: "Sucesso",
-      description: "Definição de conversão atualizada com sucesso",
-      variant: "default",
-    });
+    toast("Sucesso", { description: "Definição de conversão atualizada com sucesso" });
   } catch (error: any) {
     if (error.response && error.response.data) {
       errors.value = error.response.data.errors;

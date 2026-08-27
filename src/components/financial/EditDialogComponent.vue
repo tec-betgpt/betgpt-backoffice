@@ -143,7 +143,7 @@
 import { ref, watch, computed } from "vue";
 import { Pencil } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { Dialog } from "@/components/ui/dialog";
 import DatePicker from "@/components/custom/DatePicker.vue";
 import FinancialTransactions from "@/services/financialTransactions";
@@ -241,10 +241,7 @@ const onSubmit = async () => {
     });
 
     isDialog.value = false;
-    toast({
-      title: "Custo Atualizado!",
-      description: "Registro atualizado com sucesso",
-    });
+    toast("Custo Atualizado!", { description: "Registro atualizado com sucesso" });
 
     await props.reload();
   } catch (error) {

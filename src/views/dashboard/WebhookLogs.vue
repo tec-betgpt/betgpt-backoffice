@@ -129,7 +129,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, watch } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import WebhookLogs from "@/services/webhooks";
@@ -143,7 +143,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RefreshCw } from "lucide-vue-next";
 
-const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 
 const logs = ref([]);
@@ -186,11 +185,7 @@ const fetchLogs = async (page = 1) => {
       total: response.total,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar logs de webhook.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar logs de webhook." });
   } finally {
     isLoading.value = false;
   }
@@ -200,17 +195,10 @@ const retryWebhook = async (id: number) => {
   retrying.value = id;
   try {
     await WebhookLogs.retry(id);
-    toast({
-      title: "Sucesso",
-      description: "Reenvio agendado com sucesso.",
-    });
+    toast("Sucesso", { description: "Reenvio agendado com sucesso." });
     // Não recarrega a lista propositalmente (UX: processamento em background)
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Falha ao agendar reenvio.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Falha ao agendar reenvio." });
   } finally {
     retrying.value = null;
   }

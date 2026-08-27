@@ -160,7 +160,7 @@ import { cn } from "@/lib/utils";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { Progress } from '@/components/ui/progress'
 import {useColorMode} from "@vueuse/core";
-import {useToast} from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 
 const router = useRouter();
 const step = ref(1);
@@ -249,10 +249,7 @@ const recover = async () => {
     });
     setStep(2);
   } catch (error) {
-    useToast().toast({
-      title:"Falha na solicitação",
-      description: error.message,
-    })
+    toast("Falha na solicitação", { description: error.message })
   } finally {
     loading.value = false;
   }
@@ -291,10 +288,7 @@ const confirmNewPassword = async () => {
     await Recover.finish(formStep3.value);
     setStep(4);
   } catch (error) {
-    useToast().toast({
-      title:"Falha na solicitação",
-      description: error.response.data.message,
-    })
+    toast("Falha na solicitação", { description: error.response.data.message })
   } finally {
     loading.value = false;
   }

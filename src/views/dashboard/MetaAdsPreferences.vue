@@ -21,7 +21,7 @@ import {
 import { Settings2, Check, Plus, Copy, CheckCheck } from "lucide-vue-next";
 import ProjectPreferences from "@/services/projectPreferences";
 import MetaAds from "@/services/metaAds";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 const workspaceStore = useWorkspaceStore();
@@ -70,11 +70,7 @@ const loadPixels = async () => {
     pixels.value = response || [];
   } catch (error) {
     console.error("Erro ao carregar pixels:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os pixels da Meta Ads.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os pixels da Meta Ads." });
   } finally {
     loading.value = false;
   }
@@ -114,21 +110,14 @@ const handleCreatePixel = async () => {
       name: newPixelName.value.trim(),
     });
 
-    toast({
-      title: "Sucesso",
-      description: "Pixel criado com sucesso.",
-    });
+    toast("Sucesso", { description: "Pixel criado com sucesso." });
 
     showCreatePixelDialog.value = false;
     newPixelName.value = "";
     await loadPixels();
   } catch (error) {
     console.error("Erro ao criar pixel:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível criar o pixel.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível criar o pixel." });
   } finally {
     creatingPixel.value = false;
   }
@@ -140,20 +129,13 @@ const handleCopyCode = async () => {
   try {
     await navigator.clipboard.writeText(selectedPixelCode.value);
     copied.value = true;
-    toast({
-      title: "Copiado",
-      description: "Código do pixel copiado para a área de transferência.",
-    });
+    toast("Copiado", { description: "Código do pixel copiado para a área de transferência." });
     setTimeout(() => {
       copied.value = false;
     }, 2000);
   } catch (error) {
     console.error("Erro ao copiar:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível copiar o código.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível copiar o código." });
   }
 };
 
@@ -162,11 +144,7 @@ const addEvent = () => {
   
   const exists = selectedEvents.value.some(e => e.event === newEventName.value.trim());
   if (exists) {
-    toast({
-      title: "Aviso",
-      description: "Este evento já foi adicionado.",
-      variant: "destructive",
-    });
+    toast.error("Aviso", { description: "Este evento já foi adicionado." });
     return;
   }
 
@@ -197,17 +175,10 @@ const handleSave = async () => {
 
     await ProjectPreferences.store(payload);
 
-    toast({
-      title: "Sucesso",
-      description: "Preferências salvas com sucesso.",
-    });
+    toast("Sucesso", { description: "Preferências salvas com sucesso." });
   } catch (error) {
     console.error("Erro ao salvar preferências:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível salvar as preferências.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível salvar as preferências." });
   } finally {
     saving.value = false;
   }

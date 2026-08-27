@@ -376,7 +376,7 @@
 import { ref, onMounted } from "vue";
 import TargetAudience from "@/services/targetAudience";
 import Tags from "@/services/tags";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -427,7 +427,6 @@ import { useWorkspaceStore } from "@/stores/workspace";
 
 const emit = defineEmits(['saved']);
 
-const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 
 const isOpen = ref(false);
@@ -537,7 +536,7 @@ const openWithSegment = async (segment,audienceId=null) => {
       const data = await TargetAudience.show({ id: audienceId });
       parseDataToForm(data);
     } catch (error) {
-      toast({ title: 'Erro', description: 'Não foi possível carregar os dados.', variant: 'destructive' });
+      toast.error('Erro', { description: 'Não foi possível carregar os dados.' });
       return;
     } finally {
       isProcessing.value = false;
@@ -559,7 +558,7 @@ const open = async (audienceId = null) => {
       const data = await TargetAudience.show({ id: audienceId });
       parseDataToForm(data);
     } catch (error) {
-      toast({ title: 'Erro', description: 'Não foi possível carregar os dados.', variant: 'destructive' });
+      toast.error('Erro', { description: 'Não foi possível carregar os dados.' });
       return;
     } finally {
       isProcessing.value = false;
@@ -742,11 +741,11 @@ const save = async () => {
             await TargetAudience.store(payload);
         }
 
-        toast({ title: "Sucesso!", description: `Público alvo ${isEditing.value ? 'atualizado' : 'salvo'} com sucesso.` });
+        toast("Sucesso!", { description: `Público alvo ${isEditing.value ? 'atualizado' : 'salvo'} com sucesso.` });
         isOpen.value = false;
         emit('saved');
     } catch(e) {
-        toast({ title: "Erro", description: e.message, variant: "destructive" });
+        toast.error("Erro", { description: e.message });
     } finally {
         isProcessing.value = false;
     }

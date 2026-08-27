@@ -855,7 +855,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import {
@@ -886,7 +886,6 @@ import { useScreenContext } from "@/composables/useScreenContext";
 
 import {gaNicknameStorageKey} from "@/composables/useProjectPreferences";
 const workspaceStore = useWorkspaceStore();
-const { toast } = useToast();
 
 const currentDate = today(getLocalTimeZone());
 const startDate = currentDate.subtract({ days: 28 });
@@ -1053,11 +1052,7 @@ const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
 
   if (!workspaceStore.activeGroupProject?.id) {
-    toast({
-      title: "Erro",
-      description: "Selecione um grupo ou projeto antes de filtrar.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione um grupo ou projeto antes de filtrar." });
     loading.value = false;
     return;
   }
@@ -1166,11 +1161,7 @@ const applyFilter = async (current = pages.value.current) => {
     arpuPeriod.value = [{ name: "ARPU", value: data.arpu || [] }];
   } catch (error) {
     console.error("Erro ao carregar dados:", error);
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Não foi possível aplicar o filtro selecionado.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar dados", { description: "Não foi possível aplicar o filtro selecionado." });
   } finally {
     loading.value = false;
     isFirstLoad.value = false;

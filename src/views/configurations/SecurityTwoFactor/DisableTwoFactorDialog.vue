@@ -42,8 +42,7 @@ import {Loader2 as LucideSpinner, X} from "lucide-vue-next";
 import Users from '@/services/users'
 import Auth from '@/services/auth'
 import Form from "vform";
-import { useToast } from "@/components/ui/toast/use-toast";
-const { toast } = useToast();
+import { toast } from "vue-sonner";
 import i18n from "@/i18n";
 import {useAuthStore} from "@/stores/auth";
 import CustomPinInput from "@/components/custom/CustomPinInput.vue";
@@ -71,12 +70,7 @@ const form2fa = ref(new Form({
 
 const disable2fa = async (code: Array<string>) => {
   if (code.length < 6) {
-    toast({
-      title: i18n.global.t("warning"),
-      description:  i18n.global.t("error_not_code"),
-      duration:3000,
-      variant:'destructive'
-    });
+    toast.error(i18n.global.t("warning"), { description: i18n.global.t("error_not_code"), duration: 3000 });
     return
   }
   loading.value = true;
@@ -88,11 +82,7 @@ const disable2fa = async (code: Array<string>) => {
 
     step.value = true;
 
-    toast({
-      title: i18n.global.t("success"),
-      description:  i18n.global.t(data.message),
-      duration:3000
-    });
+    toast(i18n.global.t("success"), { description: i18n.global.t(data.message), duration: 3000 });
 
   } catch (error: any) {
     console.error("Erro ao desativar 2FA:", error);
@@ -118,12 +108,7 @@ const nextStep = async () => {
     step.value = false;
   } catch (error: any) {
     closeDialog()
-    toast({
-      title: i18n.global.t("warning"),
-      description: "Falha ao desativar 2FA: ",
-      duration:3000,
-      variant:'destructive'
-    });
+    toast.error(i18n.global.t("warning"), { description: "Falha ao desativar 2FA: ", duration: 3000 });
   }
 
   loading.value = false;

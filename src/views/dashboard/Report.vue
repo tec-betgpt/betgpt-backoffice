@@ -121,10 +121,9 @@
 <script setup lang="ts">
 import { ref, onMounted, h, watch } from "vue";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { createColumnHelper } from "@tanstack/vue-table";
-import { MoreHorizontal, Download, Trash, ArrowDown, ArrowUp } from "lucide-vue-next";
-import { CaretSortIcon } from "@radix-icons/vue";
+import { MoreHorizontal, Download, Trash, ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-vue-next'
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import ReportsService from "@/services/reports";
@@ -168,7 +167,6 @@ import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
 import { getLocalTimeZone, today } from "@internationalized/date";
 
-const { toast } = useToast();
 
 type Report = {
   id: number;
@@ -259,7 +257,7 @@ function createHeaderButton(label: string, columnKey: string, currentOrder: any,
           ? currentDirection.value
             ? ArrowDown
             : ArrowUp
-          : CaretSortIcon,
+          : ChevronsUpDown,
         { class: "" },
       ),
     ],
@@ -287,12 +285,7 @@ const fetchProjectReturnReports = async (page = 1) => {
       last: data.last_page,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description:
-        "Não foi possível carregar os relatórios de retorno do projeto.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os relatórios de retorno do projeto." });
   } finally {
     projectReturnLoading.value = false;
   }
@@ -328,11 +321,7 @@ const fetchReports = async (page = 1) => {
       last: data.last_page,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os relatórios.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os relatórios." });
   } finally {
     loading.value = false;
   }
@@ -344,20 +333,13 @@ const fetchChannelGroups = async () => {
     });
     channelGroups.value = response.data.map( ch => { return {value: ch.displayName,label:channelTranslations[ch.displayName] || ch.displayName}; } );
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Falha ao buscar os grupos de canal.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Falha ao buscar os grupos de canal." });
   }
 };
 
 const downloadReport = (url: string) => {
   ReportsService.download(url);
-  toast({
-    title: "Download Iniciado",
-    description: `O download do relatório foi iniciado.`,
-  });
+  toast("Download Iniciado", { description: `O download do relatório foi iniciado.` });
 };
 
 const promptDelete = (id: number) => {
@@ -369,17 +351,10 @@ const confirmDelete = async () => {
   if (reportToDeleteId.value === null) return;
   try {
     await ReportsService.destroy(reportToDeleteId.value);
-    toast({
-      title: "Sucesso",
-      description: "Relatório removido com sucesso.",
-    });
+    toast("Sucesso", { description: "Relatório removido com sucesso." });
     await fetchReports(pages.value.current);
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Não foi possível remover o relatório.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível remover o relatório." });
   } finally {
     showDeleteDialog.value = false;
     reportToDeleteId.value = null;
@@ -469,7 +444,7 @@ const columns = [
   }),
   columnHelper.display({
     id: "actions",
-    header: () => h("div", { class: "text-right" }, "Ações"),
+    header: () => h("div", { class: "text-right" }, () => "Ações"),
     cell: ({ row }) =>
       h("div", { class: "relative text-right" }, [
         h(DropdownMenu, {}, () => [
@@ -481,7 +456,7 @@ const columns = [
             ]),
           ),
           h(DropdownMenuContent, { align: "end" }, () => [
-            h(DropdownMenuLabel, {}, "Ações"),
+            h(DropdownMenuLabel, {}, () => "Ações"),
             h(DropdownMenuSeparator),
             h(
               DropdownMenuItem,

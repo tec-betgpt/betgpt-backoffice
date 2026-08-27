@@ -215,7 +215,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import {
   CAMPAIGN_DISPATCH_STATUS_LABELS,
   CAMPAIGN_STATUS_LABELS,
@@ -332,10 +332,10 @@ async function doAction(action: "pause" | "resume") {
   try {
     if (action === "pause") {
       await pauseCampaign(campaignId.value);
-      toast({ title: "Campanha pausada." });
+      toast("Campanha pausada.");
     } else {
       await resumeCampaign(campaignId.value);
-      toast({ title: "Campanha retomada." });
+      toast("Campanha retomada.");
     }
     campaign.value = null;
     await refresh();
@@ -354,7 +354,7 @@ async function confirmCancel() {
 
   try {
     await cancelCampaign(campaignId.value);
-    toast({ title: "Campanha cancelada." });
+    toast("Campanha cancelada.");
     isCancelDialogOpen.value = false;
     campaign.value = null;
     await refresh();

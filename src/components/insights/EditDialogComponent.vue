@@ -50,7 +50,7 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import { PenLine } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -63,7 +63,6 @@ const props = defineProps<{
   reload: Function
 }>();
 
-const { toast } = useToast();
 const isDialog = ref(false);
 const isLoading = ref(false);
 const form = ref({
@@ -77,23 +76,14 @@ const onSubmit = async () => {
   try {
     const data = await Insights.update(props.row.id, form.value)
 
-    toast({
-      title: i18n.global.t("success"),
-      description: i18n.global.t(data.message),
-      duration: 3000,
-    });
+    toast(i18n.global.t("success"), { description: i18n.global.t(data.message), duration: 3000 });
 
     reset()
     props.reload();
     isDialog.value = false;
   } catch (error) {
     console.error("Erro ao editar mensagem:", error);
-    toast({
-      title: i18n.global.t("error"),
-      description: i18n.global.t(error.response.data.message),
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error(i18n.global.t("error"), { description: i18n.global.t(error.response.data.message), duration: 3000 });
   }
 
   isLoading.value = false;

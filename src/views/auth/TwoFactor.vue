@@ -156,7 +156,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import Auth from '@/services/auth';
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import i18n from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -170,7 +170,6 @@ import {useColorMode} from "@vueuse/core";
 import {useWorkspaceStore} from "@/stores/workspace";
 import TwoFactorDialog from "@/views/configurations/SecurityTwoFactor/TwoFactorDialog.vue";
 
-const { toast } = useToast();
 const router = useRouter();
 const authStore = useAuthStore();
 const token = computed(() => authStore.twoFactorData.token);
@@ -228,10 +227,7 @@ async function handleCreateSuccess() {
  */
 const twoFactorLogin = async (code: Array<string>) => {
   if (code.length < 6) {
-    toast({
-      title: i18n.global.t("warning"), description: i18n.global.t("error_not_code"),
-      duration: 3000, variant: "destructive",
-    });
+    toast.error(i18n.global.t("warning"), { description: i18n.global.t("error_not_code"), duration: 3000 });
     return;
   }
   loading.value = true;
@@ -260,7 +256,7 @@ const twoFactorLogin = async (code: Array<string>) => {
 
       router.push("/");
     } else {
-      toast({ title: "Erro", description: "Resposta inesperada do servidor.", variant: "destructive" });
+      toast.error("Erro", { description: "Resposta inesperada do servidor." });
     }
   } catch (error) {
     console.error("Erro ao fazer login com dois fatores:", error);
@@ -278,11 +274,7 @@ const resendTwoFactorLogin = async () => {
     const data = await Auth.getResendTwoFactor();
     time.value = 60;
     startResendTimer();
-    toast({
-      title: i18n.global.t("success"),
-      description: data.message,
-      duration: 3000,
-    });
+    toast(i18n.global.t("success"), { description: data.message, duration: 3000 });
   } catch (error) {
     console.error("Erro ao reenviar o código:", error);
   }
@@ -308,10 +300,7 @@ const getRecoveryCode = async () => {
  */
 const submitRecoveryCode = async () => {
   if (securityCode.value.length < 10) {
-    toast({
-      title: i18n.global.t("warning"), description: i18n.global.t("error_not_code"),
-      duration: 3000, variant: "destructive",
-    });
+    toast.error(i18n.global.t("warning"), { description: i18n.global.t("error_not_code"), duration: 3000 });
     return;
   }
 

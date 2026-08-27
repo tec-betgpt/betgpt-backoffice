@@ -163,7 +163,7 @@
 
 <script setup lang="ts">
 import {ref, watch, onMounted, computed} from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useWorkspaceStore } from "@/stores/workspace";
 import "moment/dist/locale/pt-br";
@@ -185,7 +185,6 @@ import {Skeleton} from "@/components/ui/skeleton";
 import {Separator} from "@/components/ui/separator";
 
 const workspaceStore = useWorkspaceStore();
-const { toast } = useToast();
 
 
 const selectedRange = ref({
@@ -278,11 +277,7 @@ const formatDateForAPI = (date: any): string => {
 const applyFilter = async () => {
   if (!workspaceStore.activeGroupProject?.id) {
     if (!isFirstLoad.value) {
-      toast({
-        title: "Erro",
-        description: "Selecione um grupo ou projeto antes de filtrar.",
-        variant: "destructive",
-      });
+      toast.error("Erro", { description: "Selecione um grupo ou projeto antes de filtrar." });
     }
     return;
   }
@@ -326,11 +321,7 @@ const applyFilter = async () => {
     channelGroups.value = data.channel_groups
   } catch (error) {
     console.error("Erro ao carregar dados de resultados:", error);
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Não foi possível buscar os dados de resultados.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar dados", { description: "Não foi possível buscar os dados de resultados." });
   } finally {
     loading.value = false;
     isFirstLoad.value = false;

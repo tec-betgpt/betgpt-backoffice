@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import UserProjectGroup from "@/services/userProjectGroup";
-import type { DateRange } from "radix-vue";
+import type { DateRange } from "reka-ui";
 
 interface ActiveGroupProject {
   id: string

@@ -63,7 +63,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CostCenter from "@/services/costCenters";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -129,18 +129,9 @@ const remove = async (id: number) => {
     await CostCenter.destroy(id)
     await fetchCosts();
 
-    toast({
-      title: "Removido",
-      description: "Centro de custo removido com sucesso",
-      duration: 3000
-    })
+    toast("Removido", { description: "Centro de custo removido com sucesso", duration: 3000 })
   } catch (error) {
-    toast({
-      title: "Falha",
-      description: "Não foi possível remover o centro de custo.",
-      duration: 3000,
-      variant: "destructive"
-    });
+    toast.error("Falha", { description: "Não foi possível remover o centro de custo.", duration: 3000 });
   }
 }
 

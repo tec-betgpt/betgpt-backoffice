@@ -69,10 +69,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  UsersIcon, Download, Loader2Icon, Eye, ArrowDown, ArrowUp 
-} from "lucide-vue-next";
-import { CaretSortIcon } from "@radix-icons/vue";
+import { UsersIcon, Download, Loader2Icon, Eye, ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-vue-next'
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import Segments from "@/services/segments";
 import { createColumnHelper } from "@tanstack/vue-table";
@@ -149,7 +146,7 @@ function createHeaderButton(label: string, key: string) {
     },
     () => [
       label,
-      h(active ? (orderDirection.value ? ArrowDown : ArrowUp) : CaretSortIcon, { class: "ml-2 h-4 w-4" }),
+      h(active ? (orderDirection.value ? ArrowDown : ArrowUp) : ChevronsUpDown, { class: "ml-2 h-4 w-4" }),
     ]
   );
 }

@@ -45,7 +45,7 @@
                   Entrou em
                   <ArrowUp v-if="order === 'created_at' && direction" class="ml-2 h-4 w-4" />
                   <ArrowDown v-else-if="order === 'created_at' && !direction" class="ml-2 h-4 w-4" />
-                  <CaretSortIcon v-else class="ml-2 h-4 w-4" />
+                  <ChevronsUpDown v-else class="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
             </TableRow>
@@ -108,8 +108,7 @@ import { useScreenContext } from "@/composables/useScreenContext";
 import FilterDialogComponent from "@/components/user_logins/FilterDialogComponent.vue";
 import UserLogins from '@/services/userLogins';
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
-import { CaretSortIcon } from "@radix-icons/vue";
-import { ArrowDown, ArrowUp } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-vue-next'
 
 import {
   Select,

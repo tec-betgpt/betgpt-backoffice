@@ -244,7 +244,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import {
   CAMPAIGN_CHANNEL_OPTIONS,
   CAMPAIGN_STATUS_LABELS,
@@ -381,7 +381,7 @@ async function confirmDelete() {
 
   try {
     await deleteCampaign(selectedCampaign.value.id);
-    toast({ title: "Campanha draft excluída." });
+    toast("Campanha draft excluída.");
     isDeleteDialogOpen.value = false;
 
     const nextPage =

@@ -84,7 +84,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Trash } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -95,7 +95,6 @@ import CreateDialogComponent from "@/components/projects/CreateDialogComponent.v
 import EditDialogComponent from "@/components/projects/EditDialogComponent.vue";
 import UserProjectGroup from '@/services/userProjectGroup'
 
-const { toast } = useToast();
 
 const workspaceStore = useWorkspaceStore();
 const loading = ref(false);
@@ -108,11 +107,7 @@ const fetchUserProjectGroups = async () => {
     const groupsResponse = await UserProjectGroup.index()
     groups.value = groupsResponse.data;
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 
   loading.value = false;
@@ -123,16 +118,9 @@ const deleteGroup = async (groupId: number) => {
     await UserProjectGroup.destroy(groupId)
     groups.value = groups.value.filter((group) => group.id !== groupId);
 
-    toast({
-      title: "Sucesso",
-      description: "Grupo excluído com sucesso.",
-    });
+    toast("Sucesso", { description: "Grupo excluído com sucesso." });
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao excluir o grupo.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao excluir o grupo." });
   }
 };
 

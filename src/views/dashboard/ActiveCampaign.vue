@@ -213,23 +213,11 @@ import { getLocalTimeZone, today } from "@internationalized/date";
 import { Button } from "@/components/ui/button";
 import moment from "moment";
 import "moment/dist/locale/pt-br";
-import { useToast } from "@/components/ui/toast/use-toast";
-import { CaretSortIcon } from "@radix-icons/vue";
-
+import { toast } from "vue-sonner";
 import { createColumnHelper } from "@tanstack/vue-table";
 import DateRangePicker from "@/components/custom/DateRangePicker.vue";
 
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowLeft,
-  ArrowRight,
-  MoreHorizontal,
-  ChevronDownIcon,
-  ExternalLink,
-  Eye,
-  Loader2 as LucideSpinner,
-} from "lucide-vue-next";
+import { ArrowDown, ArrowUp, ArrowLeft, ArrowRight, MoreHorizontal, ChevronDown, ExternalLink, Eye, Loader2 as LucideSpinner, ChevronsUpDown } from 'lucide-vue-next'
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
@@ -247,7 +235,6 @@ import { useScreenContext } from "@/composables/useScreenContext";
 const currentDate = today(getLocalTimeZone()).subtract({ days: 0 });
 const startDate = currentDate.subtract({ days: 28 });
 const selectedRange = ref({ start: startDate, end: currentDate });
-const { toast } = useToast();
 
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
@@ -434,19 +421,11 @@ const navigateEmail = async (direction: "prev" | "next") => {
     if (response.data && response.data.body) {
       emailHtml.value = response.data.body;
     } else {
-      toast({
-        title: "Aviso",
-        description: "Nenhum conteúdo disponível para este e-mail.",
-        variant: "default",
-      });
+      toast("Aviso", { description: "Nenhum conteúdo disponível para este e-mail." });
     }
   } catch (error) {
     console.error("Erro ao carregar preview do e-mail:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar o preview do e-mail.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar o preview do e-mail." });
   } finally {
     loadingEmail.value = false;
   }
@@ -493,19 +472,11 @@ const openEmailPreview = async (campaign: CampaignMetrics) => {
     if (response.data && response.data.body) {
       emailHtml.value = response.data.body;
     } else {
-      toast({
-        title: "Aviso",
-        description: "Nenhum conteúdo disponível para este e-mail.",
-        variant: "default",
-      });
+      toast("Aviso", { description: "Nenhum conteúdo disponível para este e-mail." });
     }
   } catch (error) {
     console.error("Erro ao carregar preview do e-mail:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar o preview do e-mail.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar o preview do e-mail." });
   } finally {
     loadingEmail.value = false;
   }
@@ -530,11 +501,7 @@ const applyFilter = async (current = pages.value.current) => {
   loading.value = true;
 
   if (!workspaceStore.activeGroupProject?.id) {
-    toast({
-      title: "Erro",
-      description: "Selecione um grupo ou projeto antes de filtrar.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione um grupo ou projeto antes de filtrar." });
     return;
   }
 
@@ -575,11 +542,7 @@ const applyFilter = async (current = pages.value.current) => {
       last: data.campaigns.pagination.last_page,
     };
   } catch (error) {
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Não foi possível aplicar o filtro selecionado.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar dados", { description: "Não foi possível aplicar o filtro selecionado." });
   }
 
   loading.value = false;
@@ -649,7 +612,7 @@ const actionColumn = columnHelper.accessor("id", {
     }
 
     if (menuItems.length === 0) {
-      return h("span", { class: "text-muted-foreground text-sm" }, "—");
+      return h("span", { class: "text-muted-foreground text-sm" }, () => "—");
     }
 
     return h(DropdownMenu, {}, [
@@ -658,11 +621,11 @@ const actionColumn = columnHelper.accessor("id", {
         { asChild: true },
         h(Button, { size: "icon", variant: "ghost" }, [
           h(MoreHorizontal, { class: "h-4 w-4" }),
-          h("span", { class: "sr-only" }, "Ações"),
+          h("span", { class: "sr-only" }, () => "Ações"),
         ]),
       ),
       h(DropdownMenuContent, { align: "end" }, [
-        h(DropdownMenuLabel, {}, "Ações"),
+        h(DropdownMenuLabel, {}, () => "Ações"),
         h(DropdownMenuSeparator, {}),
         ...menuItems,
       ]),
@@ -673,7 +636,7 @@ const actionColumn = columnHelper.accessor("id", {
 const columns = computed(() => [
   columnHelper.accessor("name", {
     header() {
-      return h("div", { class: "text-pretty text-left py-3 pr-20" }, "Título");
+      return h("div", { class: "text-pretty text-left py-3 pr-20" }, () => "Título");
     },
     cell: ({ row }) =>
       h("div", { class: "font-medium" }, row.getValue("name") || "-"),
@@ -681,7 +644,7 @@ const columns = computed(() => [
 
   columnHelper.accessor("subject", {
     header() {
-      return h("div", { class: "text-pretty text-left py-3 pr-20" }, "Assunto");
+      return h("div", { class: "text-pretty text-left py-3 pr-20" }, () => "Assunto");
     },
     cell: ({ row }) =>
       h("div", { class: "font-medium" }, row.getValue("subject") || "-"),
@@ -831,7 +794,7 @@ function createHeaderButton(label: string, columnKey: string) {
             ? order.value
               ? ArrowDown
               : ArrowUp
-            : CaretSortIcon,
+            : ChevronsUpDown,
           { class: "h-4 w-4" },
         ),
       ],

@@ -100,7 +100,7 @@
 <script setup lang="ts">
 import { ref, onMounted, defineProps, computed } from "vue";
 import { watchDebounced } from "@vueuse/core";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Plus, Search } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -120,7 +120,6 @@ const props = defineProps<{
   reload: () => void
 }>()
 
-const { toast } = useToast();
 const { permissionLabel } = usePermissionLabel();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
@@ -156,11 +155,7 @@ const fetchPermissions = async (params = {}) => {
   try {
     permissions.value = await Permissions.list(params);
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar as permissões.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar as permissões." });
   }
 }
 
@@ -184,11 +179,7 @@ const onSubmit = async () => {
 
   const titleTrimmed = (form.value.title ?? "").trim();
   if (!titleTrimmed) {
-    toast({
-      title: "Validação",
-      description: "Informe o título do perfil.",
-      variant: "destructive",
-    });
+    toast.error("Validação", { description: "Informe o título do perfil." });
     isProcessing.value = false;
     return;
   }
@@ -199,12 +190,7 @@ const onSubmit = async () => {
     const filterId = form.value.filter_id ?? activeGroupProjectId;
 
     if (wantsClientScope && (filterId == null || filterId === "")) {
-      toast({
-        title: "Validação",
-        description:
-          "Selecione um projeto no workspace ou vincule o perfil a um projeto.",
-        variant: "destructive",
-      });
+      toast.error("Validação", { description: "Selecione um projeto no workspace ou vincule o perfil a um projeto." });
       isProcessing.value = false;
       return;
     }
@@ -225,16 +211,9 @@ const onSubmit = async () => {
     const data = await Roles.store(payload);
     await props.reload();
     showModal.value = false;
-    toast({
-      title: "Sucesso",
-      description: "Perfil criado com sucesso.",
-    });
+    toast("Sucesso", { description: "Perfil criado com sucesso." });
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao criar perfil.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao criar perfil." });
   }
 
   isProcessing.value = false;

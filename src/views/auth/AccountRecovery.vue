@@ -95,7 +95,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { useRouter } from "vue-router"
-import { useToast } from "@/components/ui/toast/use-toast"
+import { toast } from "vue-sonner";
 import { useColorMode } from "@vueuse/core"
 import { Loader2 as LucideSpinner } from "lucide-vue-next"
 import { Button } from "@/components/ui/button"
@@ -103,7 +103,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Auth from "@/services/auth"
 
-const { toast } = useToast()
 const router = useRouter()
 const mode = useColorMode()
 
@@ -121,11 +120,7 @@ const lookupCpf = async () => {
     questions.value = response.data.questions
     step.value = 2
   } catch(erro) {
-    toast({
-      title: "Erro",
-      description: erro.data.message,
-      variant: "destructive",
-    })
+    toast.error("Erro", { description: erro.data.message })
   } finally {
     isLoading.value = false
   }
@@ -141,11 +136,7 @@ const submitAnswers = async () => {
     })
     step.value = 3
   } catch {
-    toast({
-      title: "Erro",
-      description: "Respostas incorretas. Tente novamente.",
-      variant: "destructive",
-    })
+    toast.error("Erro", { description: "Respostas incorretas. Tente novamente." })
   } finally {
     isLoading.value = false
   }

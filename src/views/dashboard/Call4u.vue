@@ -369,7 +369,7 @@
                       class="h-fit p-0 text-xs"
                       @click="toggleCallsSort('status')"
                     >
-                      Status <CaretSortIcon class="ml-1" />
+                      Status <ChevronsUpDown class="ml-1 h-4 w-4" />
                     </Button>
                   </TableHead>
                   <TableHead class="text-right whitespace-nowrap">
@@ -378,7 +378,7 @@
                       class="h-fit p-0 text-xs"
                       @click="toggleCallsSort('percentage_heard')"
                     >
-                      % Ouvido <CaretSortIcon class="ml-1" />
+                      % Ouvido <ChevronsUpDown class="ml-1 h-4 w-4" />
                     </Button>
                   </TableHead>
                   <TableHead class="text-right whitespace-nowrap">
@@ -387,7 +387,7 @@
                       class="h-fit p-0 text-xs"
                       @click="toggleCallsSort('seconds_duration')"
                     >
-                      Duração <CaretSortIcon class="ml-1" />
+                      Duração <ChevronsUpDown class="ml-1 h-4 w-4" />
                     </Button>
                   </TableHead>
                   <TableHead class="text-center whitespace-nowrap">Tentativa</TableHead>
@@ -397,7 +397,7 @@
                       class="h-fit p-0 text-xs"
                       @click="toggleCallsSort('tried_at')"
                     >
-                      Data/Hora <CaretSortIcon class="ml-1" />
+                      Data/Hora <ChevronsUpDown class="ml-1 h-4 w-4" />
                     </Button>
                   </TableHead>
                 </TableRow>
@@ -483,24 +483,12 @@ import { getLocalTimeZone, today } from "@internationalized/date";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { createColumnHelper } from "@tanstack/vue-table";
-import { CaretSortIcon } from "@radix-icons/vue";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
-import {
-  Phone,
-  PhoneCall,
-  PhoneMissed,
-  Clock3,
-  Download,
-  ArrowDown,
-  ArrowUp,
-  MoreHorizontal,
-  Search,
-  Loader2,
-} from "lucide-vue-next";
+import { Phone, PhoneCall, PhoneMissed, Clock3, Download, ArrowDown, ArrowUp, MoreHorizontal, Search, Loader2, ChevronsUpDown } from 'lucide-vue-next'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -544,7 +532,6 @@ import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipCompone
 // ── Stores & utils ─────────────────────────────────────────────────────────────
 const authStore = useAuthStore();
 const workspaceStore = useWorkspaceStore();
-const { toast } = useToast();
 
 // ── Date range ─────────────────────────────────────────────────────────────────
 
@@ -673,11 +660,7 @@ const loadData = async () => {
   loading.value = true;
 
   if (!workspaceStore.activeGroupProject?.id) {
-    toast({
-      title: "Erro",
-      description: "Selecione um grupo ou projeto antes de filtrar.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione um grupo ou projeto antes de filtrar." });
     loading.value = false;
     return;
   }
@@ -732,11 +715,7 @@ const loadData = async () => {
       };
     }
   } catch {
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Não foi possível carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar dados", { description: "Não foi possível carregar os dados." });
   }
 
   loading.value = false;
@@ -793,11 +772,7 @@ const loadCalls = async (page = callsPages.value.current) => {
       last: data.pagination.last_page,
     };
   } catch {
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar as ligações.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar as ligações." });
   }
 
   loadingCalls.value = false;
@@ -843,7 +818,7 @@ function createSortButton(label: string, columnKey: string) {
             ? campaignOrder.value
               ? ArrowDown
               : ArrowUp
-            : CaretSortIcon,
+            : ChevronsUpDown,
           { class: "ml-2" },
         ),
       ]),
@@ -974,11 +949,11 @@ const campaignColumns = computed(() => [
           { asChild: true },
           h(Button, { size: "icon", variant: "ghost" }, [
             h(MoreHorizontal, { class: "h-4 w-4" }),
-            h("span", { class: "sr-only" }, "Ações"),
+            h("span", { class: "sr-only" }, () => "Ações"),
           ]),
         ),
         h(DropdownMenuContent, { align: "end" }, [
-          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuLabel, {}, () => "Ações"),
           h(DropdownMenuSeparator, {}),
           h(
             DropdownMenuItem,

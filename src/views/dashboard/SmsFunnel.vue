@@ -475,27 +475,12 @@ import { ref, h, watch, computed } from "vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { createColumnHelper } from "@tanstack/vue-table";
-import { CaretSortIcon } from "@radix-icons/vue";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
-import {
-  Mail,
-  MailCheck,
-  MailPlus,
-  Download,
-  ArrowDown,
-  ArrowUp,
-  ArrowLeft,
-  ArrowRight,
-  ExternalLink,
-  CirclePercent,
-  Eye,
-  MoreHorizontal,
-  Loader2 as LucideSpinner,
-} from "lucide-vue-next";
+import { Mail, MailCheck, MailPlus, Download, ArrowDown, ArrowUp, ArrowLeft, ArrowRight, ExternalLink, CirclePercent, Eye, MoreHorizontal, Loader2 as LucideSpinner, ChevronsUpDown } from 'lucide-vue-next'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -552,7 +537,6 @@ const responsiveClass =
   "grid gap-4 min-[720px]:grid-cols-2 md:gap-8  lg:grid-cols-3 xl:grid-cols-3 mb-3";
 
 const selectedRange = ref({ start: null, end: null });
-const { toast } = useToast();
 
 const workspaceStore = useWorkspaceStore();
 
@@ -772,11 +756,7 @@ const loadData = async (
   }
 
   if (!workspaceStore.activeGroupProject?.id) {
-    toast({
-      title: "Erro",
-      description: "Selecione um grupo ou projeto antes de filtrar.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione um grupo ou projeto antes de filtrar." });
     loading.value = false;
     loadingCampaigns.value = false;
     loadingBroadcasts.value = false;
@@ -852,11 +832,7 @@ const loadData = async (
       };
     }
   } catch (error) {
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Não foi possível aplicar o filtro selecionado.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar dados", { description: "Não foi possível aplicar o filtro selecionado." });
   }
 
   if (isFullLoad) {
@@ -912,7 +888,7 @@ function createHeaderButton(
               )
               ? ArrowDown
               : ArrowUp
-            : CaretSortIcon,
+            : ChevronsUpDown,
           { class: "ml-2" },
         ),
       ]),
@@ -948,11 +924,11 @@ const createActionsColumn = (source: "campaigns" | "broadcasts") =>
           { asChild: true },
           h(Button, { size: "icon", variant: "ghost" }, [
             h(MoreHorizontal, { class: "h-4 w-4" }),
-            h("span", { class: "sr-only" }, "Ações"),
+            h("span", { class: "sr-only" }, () => "Ações"),
           ]),
         ),
         h(DropdownMenuContent, { align: "end" }, [
-          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuLabel, {}, () => "Ações"),
           h(DropdownMenuSeparator, {}),
           h(
             DropdownMenuItem,

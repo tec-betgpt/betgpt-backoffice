@@ -49,13 +49,12 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { PenLine, X } from "lucide-vue-next";
 import Permissions from "@/services/permissions"
 import {Spinner} from "@/components/ui/spinner";
 
 const props = defineProps<{ reload: () => void, row: any }>();
-const { toast } = useToast();
 const dialog = ref(false);
 const isLoading = ref({
   dialog: false,
@@ -83,17 +82,9 @@ const onSubmit = async () => {
     await Permissions.update(props.row.id, form.value)
     dialog.value = false;
     props.reload();
-    toast({
-      title: "Sucesso",
-      description: "Permissão atualizada com sucesso.",
-      duration: 3000,
-    });
+    toast("Sucesso", { description: "Permissão atualizada com sucesso.", duration: 3000 });
   } catch (error) {
-    toast({
-      title: "Ops!",
-      description: error.response.data.message,
-      variant: "destructive",
-    });
+    toast.error("Ops!", { description: error.response.data.message });
   }
 
   isLoading.value.submit = false;
@@ -103,12 +94,7 @@ const show = async () => {
   try {
     form.value = await Permissions.show(props.row.id)
   } catch (e) {
-    toast({
-      title: "Error",
-      description: "Permissão não encontrada",
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error("Error", { description: "Permissão não encontrada", duration: 3000 });
   }
 }
 </script>

@@ -96,7 +96,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import ProtectionListReports from "@/services/protectionListReports";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
@@ -109,7 +109,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, FileChartColumn } from "lucide-vue-next";
 
-const { toast } = useToast();
 
 const workspaceStore = useWorkspaceStore();
 const reports = ref([]);
@@ -137,11 +136,7 @@ const fetchReports = async (page = 1) => {
       total: response.total,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os relatórios.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os relatórios." });
   } finally {
     isLoading.value = false;
   }
@@ -151,11 +146,7 @@ const destroy = async (id: number) => {
   try {
     await ProtectionListReports.destroy(id);
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao remover o relatório.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao remover o relatório." });
   }
 }
 

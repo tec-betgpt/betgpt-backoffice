@@ -21,6 +21,7 @@ if (typeof window !== "undefined") {
 }
 
 import "tippy.js/dist/tippy.css";
+import "vue-sonner/style.css";
 import "./styles/base.css";
 
 const app = createApp(App);

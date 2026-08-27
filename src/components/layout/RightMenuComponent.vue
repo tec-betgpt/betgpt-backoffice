@@ -431,7 +431,7 @@ import { marked } from "marked";
 import { computed, nextTick, onMounted, onUnmounted, ref, toRefs, watch } from "vue";
 import {useRoute, useRouter} from "vue-router";
 import IntelligenceArtificial from "@/services/intelligenceArtificial";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import CustomTextChart from "@/components/custom/CustomTextChart.vue";
 import { Badge } from "@/components/ui/badge";
@@ -609,7 +609,7 @@ const startRecording = async () => {
 
   } catch (error) {
     console.error("Error accessing microphone:", error);
-    toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível acessar o microfone.' });
+    toast.error('Erro', { description: 'Não foi possível acessar o microfone.' });
   }
 };
 
@@ -850,9 +850,7 @@ const sendMessage = async () => {
   analysisErrorMessage.value = "";
 
   if (!newMessage.value.message) {
-    toast({
-      title: "Adicione um Texto",
-    });
+    toast("Adicione um Texto");
     return;
   }
 
@@ -916,11 +914,7 @@ const sendFeed = async () => {
       feedback: feedback.value,
       score: star.value
     })
-    toast({
-      title: "Feedback",
-      description:"Feedback enviado com sucesso!",
-      duration: 2000
-    })
+    toast("Feedback", { description: "Feedback enviado com sucesso!", duration: 2000 })
   }catch (error) {
     console.error("Erro ao enviar mensagem:", error);
   }

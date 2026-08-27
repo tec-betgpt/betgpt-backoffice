@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, watch, onMounted, computed} from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Analytics from "@/services/analytics";
@@ -15,7 +15,6 @@ import NewRecoveredRetainedChart from "@/components/analytics_retention/NewRecov
 import DailySegmentEntriesChart from "@/components/analytics_retention/DailySegmentEntriesChart.vue";
 
 const workspaceStore = useWorkspaceStore();
-const { toast } = useToast();
 
 const selectedRange = ref({ start: null, end: null });
 const isLoading = ref(true);
@@ -69,11 +68,7 @@ const applyFilter = async () => {
   isLoading.value = true;
 
   if (!workspaceStore.activeGroupProject?.id) {
-    toast({
-      title: "Erro",
-      description: "Selecione um grupo ou projeto antes de filtrar.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione um grupo ou projeto antes de filtrar." });
 
     isLoading.value = false;
     return;
@@ -88,11 +83,7 @@ const applyFilter = async () => {
 
     retentionData.value = data.client_classification_period || [];
   } catch (error) {
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Não foi possível aplicar o filtro selecionado.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar dados", { description: "Não foi possível aplicar o filtro selecionado." });
   }
 
   isLoading.value = false;

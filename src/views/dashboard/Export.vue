@@ -102,7 +102,7 @@ import { useRoute } from "vue-router";
 
 import { createHeaderButton } from "@/components/custom/CustomHeaderButton";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import Segments from "@/services/segments";
 import { Sheet } from "@/components/ui/sheet";
@@ -188,20 +188,12 @@ const exportData = async () => {
       target_id: targetId.value,
     });
 
-    toast({
-      title: "Sucesso",
-      description: "Exportação iniciada...",
-      variant: "default",
-    });
+    toast("Sucesso", { description: "Exportação iniciada..." });
 
     openDialog.value = false;
     await loadExportsHistory();
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Falha ao iniciar exportação",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Falha ao iniciar exportação" });
   } finally {
     isExporting.value = false;
   }
@@ -220,11 +212,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
     values.value = response.data.segments || [];
   } catch (error) {
     console.error("Error loading segments:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os segmentos",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os segmentos" });
   } finally {
     isLoadingSeg.value = false;
   }
@@ -383,11 +371,7 @@ watch(
       );
       if (!exists) {
         targetId.value = [];
-        toast({
-          title: "Aviso",
-          description: "O segmento selecionado não foi encontrado",
-          variant: "default",
-        });
+        toast("Aviso", { description: "O segmento selecionado não foi encontrado" });
       }
     }
   },

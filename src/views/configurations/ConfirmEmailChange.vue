@@ -26,12 +26,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useAuthStore } from "@/stores/auth";
 import Users from '@/services/users'
 
-const { toast } = useToast();
 const loading = ref(true);
 const success = ref(false);
 const router = useRouter();
@@ -53,11 +52,7 @@ const verifyEmailChange = async () => {
       authStore.user.email = data.email;
       authStore.user.email_change_request = null;
 
-      toast({
-        title: "Sucesso",
-        description: "E-mail alterado com sucesso.",
-        variant: "success",
-      });
+      toast.success("Sucesso", { description: "E-mail alterado com sucesso." });
 
       goBack();
     } else {
@@ -65,11 +60,7 @@ const verifyEmailChange = async () => {
     }
   } catch (error) {
     console.error("Erro ao confirmar alteração de e-mail:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível confirmar a alteração do e-mail.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível confirmar a alteração do e-mail." });
   }
 
   loading.value = false;

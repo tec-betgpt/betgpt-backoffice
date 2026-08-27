@@ -23,7 +23,7 @@ import {
 import { Settings2, Check, Plus } from "lucide-vue-next";
 import ProjectPreferences from "@/services/projectPreferences";
 import GoogleAnalytics from "@/services/googleAnalytics";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 const workspaceStore = useWorkspaceStore();
@@ -78,11 +78,7 @@ const loadGroups = async () => {
     groups.value = response.data || [];
   } catch (error) {
     console.error("Erro ao carregar grupos:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os grupos do Google Analytics.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os grupos do Google Analytics." });
   } finally {
     loading.value = false;
   }
@@ -97,11 +93,7 @@ const loadMeasurements = async () => {
     measurements.value = response.data || [];
   } catch (error) {
     console.error("Erro ao carregar measurements:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar as propriedades do Google Analytics.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar as propriedades do Google Analytics." });
   } finally {
     loading.value = false;
   }
@@ -116,11 +108,7 @@ const loadKeyEvents = async () => {
     keyEvents.value = response.data || [];
   } catch (error) {
     console.error("Erro ao carregar keyEvents:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os eventos-chave do Google Analytics.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os eventos-chave do Google Analytics." });
   } finally {
     loading.value = false;
   }
@@ -135,11 +123,7 @@ const loadMeasurementSecrets = async () => {
     measurementSecrets.value = response.data || [];
   } catch (error) {
     console.error("Erro ao carregar secrets:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os secrets do Google Analytics.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os secrets do Google Analytics." });
   } finally {
     loading.value = false;
   }
@@ -214,21 +198,14 @@ const handleCreateEvent = async () => {
       event_name: newEventName.value.trim(),
     });
 
-    toast({
-      title: "Sucesso",
-      description: "Evento-chave criado com sucesso.",
-    });
+    toast("Sucesso", { description: "Evento-chave criado com sucesso." });
 
     showCreateEventDialog.value = false;
     newEventName.value = "";
     await loadKeyEvents();
   } catch (error) {
     console.error("Erro ao criar evento:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível criar o evento-chave.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível criar o evento-chave." });
   } finally {
     creatingEvent.value = false;
   }
@@ -244,10 +221,7 @@ const handleCreateSecret = async () => {
       project_id: projectIdNumber.value,
     });
 
-    toast({
-      title: "Sucesso",
-      description: "Secret criado com sucesso.",
-    });
+    toast("Sucesso", { description: "Secret criado com sucesso." });
 
     showCreateSecretDialog.value = false;
     newSecretName.value = "";
@@ -255,11 +229,7 @@ const handleCreateSecret = async () => {
     await loadMeasurementSecrets();
   } catch (error) {
     console.error("Erro ao criar secret:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível criar o secret.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível criar o secret." });
   } finally {
     creatingSecret.value = false;
   }
@@ -285,17 +255,10 @@ const handleSave = async () => {
 
     await ProjectPreferences.store(payload);
 
-    toast({
-      title: "Sucesso",
-      description: "Preferências salvas com sucesso.",
-    });
+    toast("Sucesso", { description: "Preferências salvas com sucesso." });
   } catch (error) {
     console.error("Erro ao salvar preferências:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível salvar as preferências.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível salvar as preferências." });
   } finally {
     saving.value = false;
   }

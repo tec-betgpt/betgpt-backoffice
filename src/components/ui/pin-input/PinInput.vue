@@ -1,6 +1,6 @@
 <script setup>
 import { cn } from '@/lib/utils';
-import { PinInputRoot, useForwardPropsEmits } from 'radix-vue';
+import { PinInputRoot, useForwardPropsEmits } from 'reka-ui';
 import { computed } from 'vue';
 
 const props = defineProps({

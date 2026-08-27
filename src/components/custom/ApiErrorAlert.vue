@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import {
   CircleAlertIcon,
   CopyIcon,
@@ -34,7 +34,6 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { toast } = useToast();
 
 const normalized = computed(() => normalizeApiError(props.error));
 const message = computed(() => resolveApiErrorMessage(normalized.value));
@@ -79,7 +78,7 @@ async function copyRequestId() {
 
   try {
     await navigator.clipboard.writeText(normalized.value.requestId);
-    toast({ description: t("api_errors.request_id_copied") });
+    toast(t("api_errors.request_id_copied"));
   } catch {
     // Clipboard indisponível: o ID permanece visível para cópia manual.
   }

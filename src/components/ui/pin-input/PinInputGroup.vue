@@ -1,6 +1,6 @@
 <script setup>
 import { cn } from '@/lib/utils';
-import { Primitive, useForwardProps } from 'radix-vue';
+import { Primitive, useForwardProps } from 'reka-ui';
 import { computed } from 'vue';
 
 const props = defineProps({

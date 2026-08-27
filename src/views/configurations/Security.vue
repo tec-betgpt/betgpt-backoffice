@@ -56,12 +56,11 @@
 import { ref } from "vue";
 import Users from '@/services/users'
 
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 
 import TwoFactorAuth from "@/views/configurations/SecurityTwoFactor/TwoFactorAuth.vue";
 
-const { toast } = useToast();
 const loading = ref(false);
 
 const form = ref({
@@ -74,29 +73,18 @@ const submit = async () => {
   loading.value = true;
   try {
     if (form.value.new_password !== form.value.new_password_confirmation) {
-      toast({
-        title: "Erro",
-        description: "Confirme a nova senha.",
-        variant: "destructive"
-      });
+      toast.error("Erro", { description: "Confirme a nova senha." });
       loading.value = false;
       return
     }
     await Users.changePassword(form.value)
 
-    toast({
-      title: "Sucesso",
-      description: "Senha alterada com sucesso.",
-    });
+    toast("Sucesso", { description: "Senha alterada com sucesso." });
 
     reset();
   } catch (error) {
     console.error("Erro ao alterar senha:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível alterar sua senha. Verifique os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível alterar sua senha. Verifique os dados." });
   }
 
   loading.value = false;
