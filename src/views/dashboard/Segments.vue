@@ -96,6 +96,13 @@ import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
 import { CaretSortIcon } from "@radix-icons/vue";
 import { ArrowDown, ArrowUp, RefreshCcw, Download, ChevronsUpDown } from 'lucide-vue-next'
