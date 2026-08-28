@@ -39,7 +39,7 @@
           :columns="columns"
           :find="fetchSegments"
           :update-text="handleName"
-          :search-fields="[{ key: 'name', placeholder: 'Buscar por nome...' }]"
+          :search-fields="searchFields"
         />
 
         <CustomPagination
@@ -96,6 +96,13 @@ import { useToast } from "@/components/ui/toast/use-toast";
 import { Button } from "@/components/ui/button";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import {
   ArrowDown,
   ArrowUp,
@@ -136,6 +143,7 @@ import { useRouter } from "vue-router";
 import SegmentContactsDialog from "@/components/segments/SegmentContactsDialog.vue";
 import { useAuthStore } from "@/stores/auth";
 import TargetAudience from "@/services/targetAudience";
+import TagsService from "@/services/tags";
 
 const { t } = useI18n();
 const { toast } = useToast();
@@ -160,7 +168,8 @@ const contactsDialogRef = ref();
 
 const exportSeg = ref([]);
 const segments = ref<Array<any>>([]);
-const nameSegment = ref<Record<string, string>>({});
+const nameSegment = ref<Record<string, any>>({});
+const tagOptions = ref<Array<{ value: string; label: string }>>([]);
 const orderId = ref("");
 const order = ref(false);
 const segmentColumnHelper = createColumnHelper<SegmentData>();
@@ -181,6 +190,7 @@ interface SegmentData {
   updated_at: string;
   audiences: any[];
   initial_contacts: any[];
+  tags: any[];
 }
 
 const onSelectedChanged = (value) => {
@@ -195,8 +205,35 @@ const openExportModal = () => {
   segmentExportDialogRef.value.open();
 };
 
-const handleName = (values: Record<string, string>) => {
+const searchFields = computed(() => [
+  { key: "name", placeholder: "Buscar por nome..." },
+  {
+    key: "tags",
+    placeholder: "Filtrar por tag...",
+    type: "select",
+    options: tagOptions.value,
+    multiple: true,
+  },
+]);
+
+const handleName = (values: Record<string, any>) => {
   nameSegment.value = values;
+};
+
+const fetchTags = async () => {
+  try {
+    const response = await TagsService.index({
+      filter_id: activeGroupProjectId.value,
+      per_page: 200,
+    });
+    const list = Array.isArray(response) ? response : response.data || [];
+    tagOptions.value = list.map((tag: any) => ({
+      value: String(tag.id),
+      label: tag.name,
+    }));
+  } catch (error) {
+    console.error("Error loading tags:", error);
+  }
 };
 
 function handlerOrder(column: string, direction: boolean) {
@@ -216,7 +253,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
           acc[key] = nameSegment.value[key];
           return acc;
         },
-        {} as Record<string, string>,
+        {} as Record<string, any>,
     );
     const params = {
       is_segment: true,
@@ -509,6 +546,50 @@ const columns = [
     },
   },
   {
+    accessorKey: "tags",
+    header: "Tags",
+    cell: ({ row }) => {
+      const tags = row.original.tags || [];
+      const hasTags = tags.length > 0;
+
+      return h(TooltipProvider, {}, [
+        h(
+          Tooltip,
+          { delayDuration: 150 },
+          [
+            h(
+              TooltipTrigger,
+              { asChild: true },
+              h("span", { class: "cursor-default" }, hasTags ? "Sim" : "Não"),
+            ),
+            hasTags &&
+              h(TooltipContent, { class: "max-w-xs" }, [
+                h("div", { class: "mb-2 text-sm font-semibold" }, "Tags do segmento"),
+                h(
+                  "div",
+                  { class: "flex flex-wrap gap-1" },
+                  tags.map((tag) =>
+                    h(
+                      Badge,
+                      {
+                        variant: "secondary",
+                        style: {
+                          backgroundColor: tag.color ? `${tag.color}20` : undefined,
+                          color: tag.color || undefined,
+                          borderColor: tag.color ? `${tag.color}40` : undefined,
+                        },
+                      },
+                      () => tag.name,
+                    ),
+                  ),
+                ),
+              ]),
+          ],
+        ),
+      ]);
+    },
+  },
+  {
     accessorKey: "actions",
     header: "Ações",
     cell: ({ row }) => {
@@ -564,7 +645,10 @@ const columns = [
   },
 ];
 
-onMounted(async () => await fetchSegments());
+onMounted(async () => {
+  await fetchTags();
+  await fetchSegments();
+});
 
 useScreenContext(
   "Tela de segmentos - Gerencia segmentos de audiência",
@@ -582,5 +666,8 @@ useScreenContext(
 );
 
 watch(perPage, () => fetchSegments(1));
-watch(activeGroupProjectId, () => fetchSegments(1));
+watch(activeGroupProjectId, () => {
+  fetchTags();
+  fetchSegments(1);
+});
 </script>

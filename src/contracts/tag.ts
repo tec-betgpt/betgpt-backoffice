@@ -12,6 +12,7 @@ export interface Tag {
   expires_at: string | null; // ISO 8601
   parent?: Tag;
   children?: Tag[];
+  players_count?: number;
 }
 
 export interface TagMetadata {

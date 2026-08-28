@@ -436,6 +436,12 @@ const navMenu = computed(() => {
           show: canAccess("view-segments"),
         },
         {
+          name: "Análise de Segmentos",
+          url: { name: "segment-analysis" },
+          icon: PieChart,
+          show: canAccess("access-to-reports"),
+        },
+        {
           name: "Publico Alvo",
           url: { name: "target-audiences" },
           icon: Target,
@@ -483,12 +489,6 @@ const navMenu = computed(() => {
           name: "Retenção",
           url: { name: "retention" },
           icon: LucideUserRoundCog,
-          show: canAccess("access-to-reports"),
-        },
-        {
-          name: "Análise de Segmentos",
-          url: { name: "segment-analysis" },
-          icon: PieChart,
           show: canAccess("access-to-reports"),
         },
         {

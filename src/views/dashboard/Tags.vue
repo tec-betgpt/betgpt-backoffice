@@ -39,13 +39,14 @@
             <TableHead class="w-[250px]">Nome</TableHead>
             <TableHead>Slug</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Players</TableHead>
             <TableHead>Criado em</TableHead>
             <TableHead class="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow v-if="loading && !tags.length">
-            <TableCell colspan="5" class="h-24 text-center">
+            <TableCell colspan="6" class="h-24 text-center">
               <div class="flex items-center justify-center gap-2">
                 <Spinner class="h-4 w-4" />
                 Carregando tags...
@@ -53,7 +54,7 @@
             </TableCell>
           </TableRow>
           <TableRow v-else-if="!tags.length">
-            <TableCell colspan="5" class="h-24 text-center">
+            <TableCell colspan="6" class="h-24 text-center">
               Nenhuma tag encontrada.
             </TableCell>
           </TableRow>
@@ -76,6 +77,9 @@
               <Badge :variant="tag.is_active ? 'default' : 'secondary'">
                 {{ tag.is_active ? 'Ativa' : 'Inativa' }}
               </Badge>
+            </TableCell>
+            <TableCell class="font-medium">
+              {{ tag.players_count ?? 0 }}
             </TableCell>
             <TableCell class="text-xs">
               {{ formatDate(tag.created_at) }}
