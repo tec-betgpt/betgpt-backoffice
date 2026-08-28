@@ -1,11 +1,10 @@
 import { ref, onMounted, onUnmounted } from "vue"
-import { useToast } from "@/components/ui/toast/use-toast"
+import { toast } from "vue-sonner";
 import axios from "axios"
 import { sendPendingErrors } from "./useErrorTracker"
 
 export function useInternetConnection(checkInterval = 5000) {
     const isOnline = ref(true)
-    const { toast } = useToast()
     let intervalId: ReturnType<typeof setInterval> | null = null
 
     const checkConnection = async () => {
@@ -41,21 +40,12 @@ export function useInternetConnection(checkInterval = 5000) {
             isOnline.value = false
 
             const isNetworkError = errorType === 'network'
-            toast({
-                title: isNetworkError ? "Sem conexão" : "Erro no Servidor",
-                description: isNetworkError
+            toast.error(isNetworkError ? "Sem conexão" : "Erro no Servidor", { description: isNetworkError
                     ? "Verifique sua internet."
-                    : "Nosso serviço está instável no momento.",
-                variant: "destructive",
-                duration: 5000,
-            })
+                    : "Nosso serviço está instável no momento.", duration: 5000 })
         } else if (!wasOnline && effectivelyOnline) {
             isOnline.value = true
-            toast({
-                title: "Conectado",
-                description: "Sua conexão foi restaurada.",
-                duration: 5000,
-            })
+            toast("Conectado", { description: "Sua conexão foi restaurada.", duration: 5000 })
             
             sendPendingErrors()
         }

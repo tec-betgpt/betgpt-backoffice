@@ -82,12 +82,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useAuthStore } from "@/stores/auth";
 import Users from '@/services/users'
 
-const { toast } = useToast();
 const authStore = useAuthStore();
 
 const loading = ref(false);
@@ -115,17 +114,9 @@ const submit = async () => {
   try {
     await Users.updateNotifications(form.value)
 
-    toast({
-      title: "Sucesso",
-      description: "Configurações de notificações atualizadas.",
-      variant: "success",
-    });
+    toast.success("Sucesso", { description: "Configurações de notificações atualizadas." });
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao atualizar as configurações de notificações.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao atualizar as configurações de notificações." });
   }
 
   loading.value = false;

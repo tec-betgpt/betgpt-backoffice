@@ -256,7 +256,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import {
   SMS_BROADCAST_STATUS_LABELS,
   SMS_MESSAGE_STATUS_LABELS,
@@ -405,7 +405,7 @@ async function cancelBroadcast(item: SmsBroadcast) {
 
   try {
     await cancelSmsBroadcast(item.id, { filter_id });
-    toast({ title: "Broadcast cancelado (mensagens pendentes não serão enviadas)." });
+    toast("Broadcast cancelado (mensagens pendentes não serão enviadas).");
     await fetchBroadcasts(page.value);
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível cancelar o broadcast.");

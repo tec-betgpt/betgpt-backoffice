@@ -99,11 +99,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import ServiceConsumeds from "@/services/serviceConsumeds";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 
-const { toast } = useToast();
 
 const services = ref();
 const isLoading = ref(true);
@@ -131,11 +130,7 @@ const fetchServiceConsumeds = async (page = 1) => {
       total: response.total,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 }
 

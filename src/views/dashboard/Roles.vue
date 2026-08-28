@@ -85,7 +85,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Roles from '@/services/roles'
@@ -95,7 +95,6 @@ import CreateDialogComponent from "@/components/roles/CreateDialogComponent.vue"
 import EditDialogComponent from "@/components/roles/EditDialogComponent.vue";
 import {Card, CardContent} from "@/components/ui/card";
 
-const { toast } = useToast();
 const roles = ref([]);
 const isLoading = ref(true);
 const pages = ref({
@@ -121,11 +120,7 @@ const fetchRoles = async (current = pages.value.current) => {
       total: data.pagination.total,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import { Loader2, Plus, Tag as TagIcon, X, Info, Globe, Bell, Pencil } from 'lucide-vue-next';
-import { useToast } from '@/components/ui/toast/use-toast';
+import { toast } from "vue-sonner";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -26,7 +26,6 @@ const props = defineProps<{
   projectId?: string | number;
 }>();
 
-const { toast } = useToast();
 const modelTags = ref<Tag[]>([]);
 const availableTags = ref<Tag[]>([]);
 const isLoading = ref(false);
@@ -126,18 +125,11 @@ const handleAttach = async (tag: Tag) => {
       taggable_id: Number(props.modelId),
       taggable_type: props.modelType
     });
-    toast({
-      title: "Tag vinculada",
-      description: `A tag "${tag.name}" foi vinculada com sucesso.`,
-    });
+    toast("Tag vinculada", { description: `A tag "${tag.name}" foi vinculada com sucesso.` });
     await fetchModelTags();
     open.value = false;
   } catch (error: any) {
-    toast({
-      title: "Erro ao vincular tag",
-      description: error.response?.data?.message || "Ocorreu um erro.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao vincular tag", { description: error.response?.data?.message || "Ocorreu um erro." });
   } finally {
     isAttaching.value = false;
   }
@@ -151,17 +143,10 @@ const handleDetach = async (tag: Tag) => {
       taggable_id: Number(props.modelId),
       taggable_type: props.modelType
     });
-    toast({
-      title: "Tag desvinculada",
-      description: `A tag "${tag.name}" foi removida com sucesso.`,
-    });
+    toast("Tag desvinculada", { description: `A tag "${tag.name}" foi removida com sucesso.` });
     await fetchModelTags();
   } catch (error: any) {
-    toast({
-      title: "Erro ao desvincular tag",
-      description: error.response?.data?.message || "Ocorreu um erro.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao desvincular tag", { description: error.response?.data?.message || "Ocorreu um erro." });
   } finally {
     isDetaching.value = null;
   }

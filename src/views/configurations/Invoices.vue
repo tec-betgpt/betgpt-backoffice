@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import Auth from "@/services/auth";
 import Invoices from "@/services/invoices";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -71,7 +71,6 @@ import ShowComponent from "@/components/invoices/ShowComponent.vue";
 import GetLinkComponent from "@/components/invoices/GetLinkComponent.vue";
 import currencyFilter from "@/filters/currencyFilter";
 
-const { toast } = useToast();
 
 const user = ref<any>(null);
 const services = ref<any>(null);
@@ -101,11 +100,7 @@ const fetchInvoices = async (page = 1) => {
       total: response.total,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar as faturas.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar as faturas." });
   }
 
   isLoading.value = false;

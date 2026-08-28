@@ -30,7 +30,7 @@
             <DropdownMenuTrigger as-child>
               <Button variant="outline" class="ml-auto">
                 Status
-                <ChevronDownIcon class="ml-2 h-4 w-4" />
+                <ChevronDown class="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -134,7 +134,7 @@
 import { ref, onMounted, h, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useAuthStore } from "@/stores/auth";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Badge } from "@/components/ui/badge";
@@ -149,18 +149,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  MoreHorizontal,
-  ChevronDownIcon,
-  ArrowDown,
-  ArrowUp,
-} from "lucide-vue-next";
+import { MoreHorizontal, ChevronDown, ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-vue-next'
 import { Loader2 as LucideSpinner, Plus, KeyIcon } from "lucide-vue-next";
 import { createColumnHelper } from "@tanstack/vue-table";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import moment from "moment";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import { CaretSortIcon } from "@radix-icons/vue";
 import Projects from '@/services/projects'
 import {Dialog} from "@/components/ui/dialog";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
@@ -174,7 +168,6 @@ const statusFilter = ref<Array<string>>(["active"]);
 watch(statusFilter.value, () => {
   fetchProjects(1);
 });
-const { toast } = useToast();
 const router = useRouter();
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -308,11 +301,7 @@ const fetchProjects = async (current = pages.value.current) => {
       total: data.total,
     };
   } catch {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os projetos.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os projetos." });
   } finally {
     isLoading.value = false;
   }
@@ -331,19 +320,11 @@ const toggleStatus = async (project) => {
     const newStatus = currentStatus === "active" ? "inactive" : "active";
     project.statuses[0].name = newStatus;
 
-    toast({
-      title: "Sucesso",
-      description: `Projeto ${
+    toast("Sucesso", { description: `Projeto ${
         newStatus === "active" ? "ativado" : "inativado"
-      } com sucesso.`,
-      variant: "default",
-    });
+      } com sucesso.` });
   } catch (_) {
-    toast({
-      title: "Erro",
-      description: "Erro ao alterar o status do projeto.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao alterar o status do projeto." });
   }
 
   isProcessing.value = false;
@@ -381,18 +362,10 @@ const createProject = async () => {
     })
 
     projects.value.push(data.data);
-    toast({
-      title: "Sucesso",
-      description: "Projeto criado com sucesso.",
-      variant: "default",
-    });
+    toast("Sucesso", { description: "Projeto criado com sucesso." });
     showModal.value = false;
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao criar o projeto.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao criar o projeto." });
   }
 
   isProcessing.value = false;
@@ -410,19 +383,11 @@ const updateProject = async () => {
       (p) => p.id === form.value.id
     );
     projects.value[projectIndex] = data.data;
-    toast({
-      title: "Sucesso",
-      description: "Projeto atualizado com sucesso.",
-      variant: "default",
-    });
+    toast("Sucesso", { description: "Projeto atualizado com sucesso." });
 
     showModal.value = false;
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao atualizar o projeto.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao atualizar o projeto." });
   }
 
   isProcessing.value = false;
@@ -450,7 +415,7 @@ function createHeaderButton(label: string, columnKey: string) {
           ? direction.value
             ? ArrowDown
             : ArrowUp
-          : CaretSortIcon,
+          : ChevronsUpDown,
         { class: "" }
       ),
     ]
@@ -556,12 +521,12 @@ const columns = [
             { size: "icon", variant: "ghost", disabled: isProcessing.value },
             [
               h(MoreHorizontal, { class: "h-4 w-4" }),
-              h("span", { class: "sr-only" }, "Ações"),
+              h("span", { class: "sr-only" }, () => "Ações"),
             ]
           )
         ),
         h(DropdownMenuContent, { align: "end" }, [
-          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuLabel, {}, () => "Ações"),
           h(DropdownMenuSeparator, {}),
           ...(hasPermission("manage-project-api-keys")
             ? [

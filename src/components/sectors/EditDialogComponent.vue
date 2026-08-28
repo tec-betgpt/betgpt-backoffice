@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { PenLine, X } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import Sector from "@/services/sector"
@@ -48,7 +48,6 @@ const props = withDefaults(
   defineProps<{ reload: () => void; row: any; hideTrigger?: boolean }>(),
   { hideTrigger: false },
 );
-const { toast } = useToast();
 const dialog = ref(false);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
@@ -71,18 +70,9 @@ const submitSector = async () => {
   try {
     await Sector.update(props.row.id, form.value)
     dialog.value = false;
-    toast({
-      title: i18n.global.t("success"),
-      description: "Setor atualizado com sucesso.",
-      duration: 3000,
-    });
+    toast(i18n.global.t("success"), { description: "Setor atualizado com sucesso.", duration: 3000 });
   } catch (error) {
-    toast({
-      title: i18n.global.t("error"),
-      description: i18n.global.t(error.response.data.message),
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error(i18n.global.t("error"), { description: i18n.global.t(error.response.data.message), duration: 3000 });
   }
 
   props.reload();

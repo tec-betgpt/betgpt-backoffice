@@ -6,11 +6,10 @@
 </template>
 <script setup lang="ts">
 import { ref } from "vue";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { Spinner } from "@/components/ui/spinner";
 import Invoices from "@/services/invoices";
 
-const { toast } = useToast();
 
 const props = defineProps<{ row: any, user: any }>();
 const dialog = ref(false);
@@ -26,10 +25,7 @@ const open = () => {
 
 const verifyAccount = () => {
   if (props.user && props.user.asaas_costumer === null) {
-    toast({
-      title: "Ops! Conta incompleta",
-      description: "Atualize suas informações em seu Perfil",
-    });
+    toast("Ops! Conta incompleta", { description: "Atualize suas informações em seu Perfil" });
 
     return false
   }
@@ -47,11 +43,7 @@ const getLink = async () => {
     openNewWindow(data.external.invoiceUrl)
   } catch (e) {
     console.error(e)
-    toast({
-      title: "Ops! Houve um problema",
-      description: "Tente novamente mais tarde",
-      variant: "destructive"
-    });
+    toast.error("Ops! Houve um problema", { description: "Tente novamente mais tarde" });
   }
 };
 </script>

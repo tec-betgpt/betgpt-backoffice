@@ -57,7 +57,7 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { ref } from "vue";
 import Insights from "@/services/insights";
 import i18n from "@/i18n";
@@ -66,7 +66,6 @@ import { Dialog, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 
-const { toast } = useToast();
 const props = defineProps<{ reload: () => void }>();
 
 const form = ref({
@@ -89,19 +88,10 @@ async function onSubmit() {
     const data = await Insights.store(form.value)
 
     reset();
-    toast({
-      title: i18n.global.t("success"),
-      description: i18n.global.t(data.message),
-      duration: 3000,
-    });
+    toast(i18n.global.t("success"), { description: i18n.global.t(data.message), duration: 3000 });
     props.reload();
   } catch (error) {
-    toast({
-      title: i18n.global.t("error"),
-      description: i18n.global.t(error.response.data.message),
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error(i18n.global.t("error"), { description: i18n.global.t(error.response.data.message), duration: 3000 });
   }
 
   isLoading.value = false;

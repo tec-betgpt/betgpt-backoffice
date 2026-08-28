@@ -104,10 +104,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import CampaignMailSettingsService, { type CampaignMailSettings } from "@/services/campaignMailSettings";
 
-const { toast } = useToast();
 const loading = ref(false);
 const saving = ref(false);
 const errorMessage = ref("");
@@ -192,10 +191,7 @@ async function save() {
       throw new Error("Resposta vazia ao salvar configuração SMTP.");
     }
     applyData(data);
-    toast({
-      title: "Configuração SMTP salva.",
-      description: isEnabled.value ? "Envio de campanhas por e-mail habilitado." : "Envio SMTP desabilitado.",
-    });
+    toast("Configuração SMTP salva.", { description: isEnabled.value ? "Envio de campanhas por e-mail habilitado." : "Envio SMTP desabilitado." });
   } catch (error: any) {
     const apiMessage = error?.response?.data?.message;
     const validationErrors = error?.response?.data?.errors;

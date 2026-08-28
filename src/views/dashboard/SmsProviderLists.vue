@@ -234,7 +234,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import type { SmsLead, SmsLeadPayload, SmsList } from "@/contracts/smsProvider";
 import {
   addSmsLeads,
@@ -327,10 +327,10 @@ async function saveList() {
   try {
     if (editingList.value) {
       await updateSmsList(editingList.value.id, listName.value.trim(), { filter_id });
-      toast({ title: "Lista renomeada." });
+      toast("Lista renomeada.");
     } else {
       await createSmsList(listName.value.trim(), { filter_id });
-      toast({ title: "Lista criada no SMS Funnel." });
+      toast("Lista criada no SMS Funnel.");
     }
     isFormDialogOpen.value = false;
     await fetchLists(page.value);
@@ -360,7 +360,7 @@ async function confirmDelete() {
 
   try {
     await deleteSmsList(selectedList.value.id, { filter_id });
-    toast({ title: "Lista excluída." });
+    toast("Lista excluída.");
     isDeleteDialogOpen.value = false;
     await fetchLists(1);
   } catch (error) {
@@ -420,10 +420,8 @@ async function submitLeads() {
 
   try {
     const result = await addSmsLeads(selectedList.value.id, parsed, { filter_id });
-    toast({
-      title: `${result.accepted_count} lead(s) aceitos` +
-        (result.blacklisted_count ? `, ${result.blacklisted_count} em blacklist.` : "."),
-    });
+    toast(`${result.accepted_count} lead(s) aceitos` +
+        (result.blacklisted_count ? `, ${result.blacklisted_count} em blacklist.` : "."));
     leadsInput.value = "";
     await fetchLeads(leadsPage.value);
     await fetchLists(page.value);
@@ -458,7 +456,7 @@ async function removeLead(lead: SmsLead) {
 
   try {
     await removeSmsLead(selectedList.value.id, lead.id, { filter_id });
-    toast({ title: "Lead removido." });
+    toast("Lead removido.");
     await fetchLeads(leadsPage.value);
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível remover o lead.");

@@ -141,7 +141,7 @@
 import { h, ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { useRoute } from 'vue-router';
 import TargetAudience from "@/services/targetAudience";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 
 import { Badge } from "@/components/ui/badge";
@@ -189,7 +189,6 @@ import { useAuthStore } from "@/stores/auth";
 const { t } = useI18n();
 const route = useRoute();
 const authStore = useAuthStore();
-const { toast } = useToast();
 const isLoading = ref(false);
 const targetAudienceDialogRef = ref();
 const detailsDialogRef = ref();
@@ -351,7 +350,7 @@ const fetchMetaAudiences = async (page:number = 1, showLoading = true) => {
   } catch (error) {
     console.error("Error loading Meta audiences:", error);
     if (showLoading) {
-      toast({ title: "Erro", description: "Não foi possível carregar os públicos do Meta Ads.", variant: "destructive" });
+      toast.error("Erro", { description: "Não foi possível carregar os públicos do Meta Ads." });
     }
   } finally {
     if (showLoading) isLoadingMeta.value = false;
@@ -371,7 +370,7 @@ const fetchAudiences = async (current = pages.value.current, showLoading = true)
  } catch (error) {
     console.error("Error loading target audiences:", error);
     if (showLoading) {
-      toast({ title: "Erro", description: "Não foi possível carregar os públicos alvo.", variant: "destructive" });
+      toast.error("Erro", { description: "Não foi possível carregar os públicos alvo." });
     }
   } finally {
     if (showLoading) isLoading.value = false;
@@ -432,15 +431,11 @@ const openEditSheet = (audience) => {
 const reloadTargetAudience = async (id: number) => {
   try {
     await TargetAudience.reload({id})
-    toast({title:'Sucesso!',description:'Publico alvo recarregado'})
+    toast('Sucesso!', { description: 'Publico alvo recarregado' })
   }catch (error: any) {
     console.error(error);
     const message = error.response?.data.message || "Falha ao recarregar o Público alvo";
-    toast({ 
-      title: "Aviso", 
-      description: message,
-      variant: "destructive"
-    });
+    toast.error("Aviso", { description: message });
   }
 }
 
@@ -449,11 +444,11 @@ const deleteTargetAudience = async () => {
   try {
     isLoading.value = true;
     await TargetAudience.destroy(audienceToDelete.value);
-    toast({ title: "Sucesso!", description: "Público alvo excluído com sucesso." });
+    toast("Sucesso!", { description: "Público alvo excluído com sucesso." });
     await fetchAudiences();
   } catch (error) {
     console.error("Error deleting target audience:", error);
-    toast({ title: "Erro", description: "Não foi possível excluir o público alvo.", variant: "destructive" });
+    toast.error("Erro", { description: "Não foi possível excluir o público alvo." });
   } finally {
     isLoading.value = false;
     showDeleteDialog.value = false;
@@ -520,7 +515,7 @@ const columns = [
       const hasSyncError = syncs.some((s: any) => s.status === 'error');
 
       return h("div", { class: "flex items-center gap-2" }, [
-        hasSyncError ? h(Badge, { variant: "destructive", class: "h-5 px-1.5 text-[10px] uppercase animate-pulse shrink-0" }, "Erro Sync") : null,
+        hasSyncError ? h(Badge, { variant: "destructive", class: "h-5 px-1.5 text-[10px] uppercase animate-pulse shrink-0" }, () => "Erro Sync") : null,
         h("span", { class: "text-xs text-slate-500 dark:text-slate-400 truncate" }, formattedDate),
         h(Button, {
           variant: "outline",
@@ -537,14 +532,14 @@ const columns = [
     header: "",
     cell: ({ row }) => {
       if (!canEditSegment.value) {
-        return h("span", { class: "text-muted-foreground text-sm" }, "—");
+        return h("span", { class: "text-muted-foreground text-sm" }, () => "—");
       }
       return h(DropdownMenu, {}, [
-        h(DropdownMenuTrigger, { asChild: true }, h(Button, { onClick: (e) => e.stopPropagation(), size: "icon", variant: "ghost", class: "h-8 w-8" }, [h(MoreHorizontalIcon, { class: "h-4 w-4" }), h("span", { class: "sr-only" }, "Ações")])),
+        h(DropdownMenuTrigger, { asChild: true }, h(Button, { onClick: (e) => e.stopPropagation(), size: "icon", variant: "ghost", class: "h-8 w-8" }, [h(MoreHorizontalIcon, { class: "h-4 w-4" }), h("span", { class: "sr-only" }, () => "Ações")])),
         h(DropdownMenuContent, { align: "end" }, [
-          h(DropdownMenuLabel, {}, "Ações"),
-          h(DropdownMenuItem, { onClick: () => openEditSheet(row.original) }, "Editar Público"),
-          h(DropdownMenuItem, { onClick: () => { audienceToDelete.value = row.original.id; showDeleteDialog.value = true; }, class: "text-destructive" }, "Excluir Definitivamente"),
+          h(DropdownMenuLabel, {}, () => "Ações"),
+          h(DropdownMenuItem, { onClick: () => openEditSheet(row.original) }, () => "Editar Público"),
+          h(DropdownMenuItem, { onClick: () => { audienceToDelete.value = row.original.id; showDeleteDialog.value = true; }, class: "text-destructive" }, () => "Excluir Definitivamente"),
         ]),
       ]);
     },
@@ -562,7 +557,7 @@ const metaColumns = [
     cell: ({ row }) => {
       const lower = row.original.approximate_count_lower_bound;
       const upper = row.original.approximate_count_upper_bound;
-      if(lower === -1 || upper === -1) return h("div", { class: "text-slate-500 dark:text-slate-400 italic text-xs" }, "Processando / Indisponível");
+      if(lower === -1 || upper === -1) return h("div", { class: "text-slate-500 dark:text-slate-400 italic text-xs" }, () => "Processando / Indisponível");
       return h("div", { class: "font-semibold text-indigo-700 dark:text-indigo-400" }, `${lower.toLocaleString('pt-BR')} - ${upper.toLocaleString('pt-BR')}`);
     },
   }),

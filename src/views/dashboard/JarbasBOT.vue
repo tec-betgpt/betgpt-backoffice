@@ -206,7 +206,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Loader2, ChevronDown, Star , Power,Settings2} from "lucide-vue-next";
 import moment from "moment";
 import "moment/locale/pt-br";
@@ -228,7 +228,6 @@ import {Input} from "@/components/ui/input";
 import {Checkbox} from "@/components/ui/checkbox";
 
 
-const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 const step = ref(1);
 const maxStep = ref(3);
@@ -272,20 +271,12 @@ const form = ref({
 
 const nextStep = () => {
   if (step.value === 1 && (!formattedWhatsappNumber.value || !form.value.user_name)) {
-    toast({
-      title: "Atenção",
-      description: "Por favor, preencha todos os campos da primeira etapa.",
-      variant: "destructive",
-    });
+    toast.error("Atenção", { description: "Por favor, preencha todos os campos da primeira etapa." });
     return;
   }
 
   if (step.value === 2 && !form.value.user_role) {
-    toast({
-      title: "Atenção",
-      description: "Por favor, preencha todos os campos da segunda etapa.",
-      variant: "destructive",
-    });
+    toast.error("Atenção", { description: "Por favor, preencha todos os campos da segunda etapa." });
     return;
   }
 
@@ -383,14 +374,9 @@ const loadConfig = async () => {
     pendingFeedback.value = response.data.hasPendingFeedback || false;
   } catch (error) {
     console.error("Erro ao carregar configurações:", error);
-    toast({
-      title: "Erro",
-      description:
-        error instanceof Error
+    toast.error("Erro", { description: error instanceof Error
           ? error.message
-          : "Falha ao carregar as configurações.",
-      variant: "destructive",
-    });
+          : "Falha ao carregar as configurações." });
   } finally {
     loading.value = false;
   }
@@ -398,12 +384,7 @@ const loadConfig = async () => {
 
 const submit = async () => {
   if (pendingFeedback.value) {
-    toast({
-      title: "Atenção",
-      description:
-        "Você precisa responder o feedback pendente antes de salvar as configurações.",
-      variant: "destructive",
-    });
+    toast.error("Atenção", { description: "Você precisa responder o feedback pendente antes de salvar as configurações." });
     return;
   }
 
@@ -415,81 +396,47 @@ const submit = async () => {
     loading.value = true;
     await Jarbas.updateConfig(activeGroupProject.id, form.value);
 
-    toast({
-      title: "Sucesso",
-      description: "Configurações do Jarbas atualizadas com sucesso.",
-      variant: "default",
-    });
+    toast("Sucesso", { description: "Configurações do Jarbas atualizadas com sucesso." });
   } catch (error) {
     console.error("Erro ao salvar configurações:", error);
-    toast({
-      title: "Erro",
-      description:
-        error instanceof Error
+    toast.error("Erro", { description: error instanceof Error
           ? error.message
-          : "Falha ao atualizar as configurações.",
-      variant: "destructive",
-    });
+          : "Falha ao atualizar as configurações." });
   } finally {
     loading.value = false;
   }
 };
 const handleActive = async (value)=>{
   if (!activeGroupProject?.project_id) {
-    toast({
-      title: "Erro",
-      description: "Project ID não encontrado",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Project ID não encontrado" });
     return;
   }
 
   try {
     await Jarbas.updateConfig(activeGroupProject.id, form.value);
     if (form.value.bot_active) {
-      toast({
-        title: "Sucesso",
-        description: "Jarbas BOT ativado com sucesso!",
-        variant: "default",
-      });
+      toast("Sucesso", { description: "Jarbas BOT ativado com sucesso!" });
     }else{
-      toast({
-        title: "Sucesso",
-        description: "Jarbas BOT desativado com sucesso!",
-        variant: "default",
-      });
+      toast("Sucesso", { description: "Jarbas BOT desativado com sucesso!" });
     }
 
 
     await loadConfig();
   } catch (error) {
     console.error("Erro ao ativar Jarbas BOT:", error);
-    toast({
-      title: "Erro",
-      description:
-        error instanceof Error ? error.message : "Falha  no Jarbas BOT.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: error instanceof Error ? error.message : "Falha  no Jarbas BOT." });
   } finally {
     loading.value = false;
   }
 }
 const submitFeedback = async () => {
   if (!feedbackForm.value.rating) {
-    toast({
-      title: "Atenção",
-      description: "Por favor, forneça uma avaliação.",
-      variant: "warning",
-    });
+    toast.warning("Atenção", { description: "Por favor, forneça uma avaliação." });
     return;
   }
 
   if (!activeGroupProject?.project_id) {
-    toast({
-      title: "Erro",
-      description: "Project ID não encontrado",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Project ID não encontrado" });
     return;
   }
 
@@ -500,22 +447,13 @@ const submitFeedback = async () => {
       was_helpful: feedbackForm.value.was_helpful === "true",
     });
 
-    toast({
-      title: "Sucesso",
-      description: "Feedback enviado e bot reativado com sucesso!",
-      variant: "success",
-    });
+    toast.success("Sucesso", { description: "Feedback enviado e bot reativado com sucesso!" });
 
     await loadConfig();
     feedbackForm.value = { rating: null, was_helpful: null, suggestions: "" };
   } catch (error) {
     console.error("Erro ao enviar feedback:", error);
-    toast({
-      title: "Erro",
-      description:
-        error instanceof Error ? error.message : "Falha ao enviar o feedback.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: error instanceof Error ? error.message : "Falha ao enviar o feedback." });
   } finally {
     feedbackLoading.value = false;
   }
@@ -533,14 +471,9 @@ onMounted(async () => {
     await loadConfig();
   } catch (error) {
     console.error("Erro na inicialização:", error);
-    toast({
-      title: "Erro",
-      description:
-        error instanceof Error
+    toast.error("Erro", { description: error instanceof Error
           ? error.message
-          : "Erro ao carregar as configurações do Jarbas BOT.",
-      variant: "destructive",
-    });
+          : "Erro ao carregar as configurações do Jarbas BOT." });
   }
 });
 </script>

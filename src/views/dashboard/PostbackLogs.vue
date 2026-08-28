@@ -121,7 +121,7 @@
                     Recebido em
                     <ArrowUp v-if="order === 'created_at' && direction" class="ml-2 h-4 w-4" />
                     <ArrowDown v-else-if="order === 'created_at' && !direction" class="ml-2 h-4 w-4" />
-                    <CaretSortIcon v-else class="ml-2 h-4 w-4" />
+                    <ChevronsUpDown v-else class="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
                 <TableHead class="text-right">
@@ -129,7 +129,7 @@
                     Processado em
                     <ArrowUp v-if="order === 'processed_at' && direction" class="ml-2 h-4 w-4" />
                     <ArrowDown v-else-if="order === 'processed_at' && !direction" class="ml-2 h-4 w-4" />
-                    <CaretSortIcon v-else class="ml-2 h-4 w-4" />
+                    <ChevronsUpDown v-else class="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
                 <TableHead class="text-right">Ações</TableHead>
@@ -182,11 +182,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
-import {ArrowDown, ArrowUp, Check, Hourglass, Mail, Search, CircleX } from "lucide-vue-next";
-import { CaretSortIcon } from "@radix-icons/vue";
+import { ArrowDown, ArrowUp, Check, Hourglass, Mail, Search, CircleX, ChevronsUpDown } from 'lucide-vue-next'
 import "moment/dist/locale/pt-br";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import PostbackLogService from "@/services/postbackLog";
@@ -194,7 +193,6 @@ import CustomSimplePagination from "@/components/custom/CustomSimplePagination.v
 import ShowDialogComponent from "@/components/postback_logs/ShowDialogComponent.vue";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const { toast } = useToast();
 
 const selectedRange = ref({ start: null, end: null });
 const selectedType = ref<string>("all");
@@ -265,11 +263,7 @@ const fetchPostbackLogs = async (page = 1) => {
       failed: response.total.failed || 0,
     };
   } catch (error) {
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Não foi possível aplicar o filtro selecionado.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar dados", { description: "Não foi possível aplicar o filtro selecionado." });
   }
 
   loading.value = false;

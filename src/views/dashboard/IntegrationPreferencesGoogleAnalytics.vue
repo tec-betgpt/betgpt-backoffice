@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Check, Settings2 } from "lucide-vue-next";
 import ProjectPreferences from "@/services/projectPreferences";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 
 const props = defineProps<{
   open: boolean;
@@ -43,11 +43,7 @@ const loadGroups = async () => {
     groups.value = response.data || [];
   } catch (error) {
     console.error("Erro ao carregar grupos:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os grupos do Google Analytics.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os grupos do Google Analytics." });
   } finally {
     loading.value = false;
   }
@@ -84,20 +80,13 @@ const handleSave = async () => {
 
     const response = await ProjectPreferences.store(payload);
 
-    toast({
-      title: "Sucesso",
-      description: "Preferências salvas com sucesso.",
-    });
+    toast("Sucesso", { description: "Preferências salvas com sucesso." });
 
     emit("save");
     emit("update:open", false);
   } catch (error) {
     console.error("Erro ao salvar preferências:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível salvar as preferências.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível salvar as preferências." });
   } finally {
     saving.value = false;
   }

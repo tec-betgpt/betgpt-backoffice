@@ -407,7 +407,7 @@ import {
   Send,
   Users,
 } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -440,7 +440,6 @@ import type { CanonicalEvent, CampaignBatch, CampaignForecast } from "@/contract
 const apexchart = VueApexCharts;
 const monitorStore = useMonitorStore();
 const workspaceStore = useWorkspaceStore();
-const { toast } = useToast();
 
 const POLLING_INTERVAL_MS = 15_000;
 const THROUGHPUT_WINDOW_MINUTES = 30;
@@ -671,11 +670,7 @@ async function loadCampaigns() {
     const response = await listCampaigns({ filter_id: filterId, per_page: 100 });
     campaigns.value = response.data ?? [];
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar a lista de campanhas.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar a lista de campanhas." });
   }
 }
 
@@ -794,11 +789,7 @@ async function loadRecipients(batch: CampaignBatch) {
       lastEvent,
     }));
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os recipients da campanha.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os recipients da campanha." });
   } finally {
     isRecipientsLoading.value = false;
   }

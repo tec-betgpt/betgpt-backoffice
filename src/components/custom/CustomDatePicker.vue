@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DateRange } from "radix-vue";
+import type { DateRange } from "reka-ui";
 import {
   Popover,
   PopoverContent,
@@ -111,11 +111,24 @@ const applyPreset = (preset: string) => {
   value.value = { start, end };
 };
 
+// reka-ui 2.x: ao fechar, o Select devolve o foco ao trigger (focusin fora do
+// Popover), o que faz o DismissableLayer fechar o Popover recém-aberto.
+// Prevenimos o retorno de foco apenas nessa transição para o modo customizado.
+const preventSelectFocusReturn = ref(false);
+
+const onSelectCloseAutoFocus = (event: Event) => {
+  if (preventSelectFocusReturn.value) {
+    preventSelectFocusReturn.value = false;
+    event.preventDefault();
+  }
+};
+
 const triggerSelection = (preset: string) => {
   selectedPreset.value = preset;
   localStorage.setItem(STORAGE_KEY, preset);
 
   if (preset === "custom") {
+    preventSelectFocusReturn.value = true;
     popoverOpen.value = true;
     const saved = localStorage.getItem(RANGE_KEY);
     if (saved) {
@@ -228,7 +241,7 @@ watch(openS, (newV) => {
             </template>
           </template>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent @close-auto-focus="onSelectCloseAutoFocus">
           <SelectItem value="custom">Personalizado</SelectItem>
           <SelectItem value="today">Hoje</SelectItem>
           <SelectItem value="yesterday">Ontem</SelectItem>

@@ -75,7 +75,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { PencilLine } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import ProtectionLists from "@/services/protectionLists";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -91,7 +91,6 @@ const props = defineProps<{
   row: any,
   reload: () => Promise<void>
 }>();
-const { toast } = useToast();
 
 const isLoading = ref({
   onSubmit: false,
@@ -121,17 +120,9 @@ const onSubmit = async () => {
     await ProtectionLists.update(props.row.id, payload)
     await props.reload();
     isDialog.value = false;
-    toast({
-      title: "Sucesso",
-      description: "Proteção atualizada com sucesso.",
-    });
+    toast("Sucesso", { description: "Proteção atualizada com sucesso." });
   } catch (error: any) {
-    toast({
-      title: "Ops!",
-      description: error.response?.data?.message || "Erro ao atualizar.",
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error("Ops!", { description: error.response?.data?.message || "Erro ao atualizar.", duration: 3000 });
   }
 
   isLoading.value.onSubmit = false;
@@ -157,11 +148,7 @@ const show = async () => {
     }
   } catch (e) {
     console.error(e)
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar dados." });
   }
 
   isLoading.value.show = false

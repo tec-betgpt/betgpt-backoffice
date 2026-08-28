@@ -64,7 +64,7 @@ import ProjectAnnotations from '@/services/projectAnnotations'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Trash2, Plus } from 'lucide-vue-next'
-import { useToast } from '@/components/ui/toast/use-toast'
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from '@/stores/workspace'
 import moment from 'moment'
 
@@ -76,7 +76,6 @@ const props = defineProps<{
 
 const annotations = ref<any[]>([])
 const loading = ref(false)
-const { toast } = useToast()
 const workspaceStore = useWorkspaceStore()
 
 const dialogOpen = ref(false)
@@ -117,19 +116,12 @@ async function fetchAnnotations() {
 async function deleteAnnotation(id: number) {
   try {
     await ProjectAnnotations.destroy(id)
-    toast({
-      title: 'Sucesso',
-      description: 'Anotação removida com sucesso.'
-    })
+    toast('Sucesso', { description: 'Anotação removida com sucesso.' })
 
     await fetchAnnotations()
     workspaceStore.notifyAnnotationUpdate()
   } catch (error) {
-    toast({
-      title: 'Erro',
-      description: 'Não foi possível remover a anotação.',
-      variant: 'destructive'
-    })
+    toast.error('Erro', { description: 'Não foi possível remover a anotação.' })
   }
 }
 

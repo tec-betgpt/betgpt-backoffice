@@ -174,7 +174,7 @@
 <script setup lang="ts">
 import {ref, watch} from "vue";
 import { Plus } from "lucide-vue-next";
-import { useToast} from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import Services from "@/services/services";
 import {
   NumberField,
@@ -185,7 +185,6 @@ import {
 import {Dialog} from "@/components/ui/dialog";
 
 const props = defineProps<{ reload: () => Promise<void> }>();
-const { toast } = useToast();
 
 const isLoading = ref(false);
 const isDialog = ref(false);
@@ -208,17 +207,9 @@ const onSubmit = async () => {
     await Services.store(form.value)
     await props.reload();
     isDialog.value = false;
-    toast({
-      title: "Sucesso",
-      description: "Serviço salvo com sucesso.",
-    });
+    toast("Sucesso", { description: "Serviço salvo com sucesso." });
   } catch (error) {
-    toast({
-      title: "Ops!",
-      description: error.response.data.message,
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error("Ops!", { description: error.response.data.message, duration: 3000 });
   }
 
   isLoading.value = false;

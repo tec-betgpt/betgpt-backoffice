@@ -307,7 +307,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import {
   SMS_INTERVAL_TYPE_FALLBACK,
   type SmsIntervalType,
@@ -447,7 +447,7 @@ async function saveCampaign() {
       sequences: sequencesPayload.length ? sequencesPayload : undefined,
     });
 
-    toast({ title: "Automação criada no SMS Funnel." });
+    toast("Automação criada no SMS Funnel.");
     isFormDialogOpen.value = false;
     await fetchCampaigns(1);
   } catch (error) {
@@ -469,7 +469,7 @@ async function toggleActive(item: SmsProviderCampaign) {
 
   try {
     await updateSmsCampaign(item.id, { filter_id, active: !item.active });
-    toast({ title: item.active ? "Automação desativada." : "Automação ativada." });
+    toast(item.active ? "Automação desativada." : "Automação ativada.");
     await fetchCampaigns(page.value);
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível atualizar a automação.");
@@ -497,7 +497,7 @@ async function confirmDelete() {
 
   try {
     await deleteSmsCampaign(selectedCampaign.value.id, { filter_id });
-    toast({ title: "Automação excluída." });
+    toast("Automação excluída.");
     isDeleteDialogOpen.value = false;
     await fetchCampaigns(1);
   } catch (error) {
@@ -551,7 +551,7 @@ async function submitSequence() {
       active: true,
       url: newSequence.url.trim() || undefined,
     });
-    toast({ title: "Sequência adicionada." });
+    toast("Sequência adicionada.");
     Object.assign(newSequence, createSequenceForm());
     await fetchSequences();
   } catch (error) {
@@ -587,7 +587,7 @@ async function removeSequence(sequence: SmsSequence) {
 
   try {
     await deleteSmsSequence(sequence.id, { filter_id });
-    toast({ title: "Sequência excluída." });
+    toast("Sequência excluída.");
     await fetchSequences();
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível excluir a sequência.");

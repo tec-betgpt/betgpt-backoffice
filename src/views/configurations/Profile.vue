@@ -190,13 +190,12 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
 import Users from '@/services/users'
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useAuthStore } from "@/stores/auth";
 
 import { Loader2 as LucideSpinner, Pencil } from "lucide-vue-next";
 import { useColorMode } from "@vueuse/core";
 const theme = ref(localStorage.getItem("theme") || "auto");
-const { toast } = useToast();
 const authStore = useAuthStore();
 const loading = ref(false);
 const loadingCancelEmailChange = ref(false);
@@ -229,18 +228,9 @@ const submit = async () => {
 
     if (data.has_change_email) {
       emailChangeRequest.value = true;
-      toast({
-        title: "Sucesso",
-        description:
-          "Perfil atualizado e a solicitação de troca de e-mail enviada. Verifique seu e-mail.",
-        variant: "success",
-      });
+      toast.success("Sucesso", { description: "Perfil atualizado e a solicitação de troca de e-mail enviada. Verifique seu e-mail." });
     } else {
-      toast({
-        title: "Sucesso",
-        description: "Perfil atualizado com sucesso.",
-        variant: "success",
-      });
+      toast.success("Sucesso", { description: "Perfil atualizado com sucesso." });
     }
   } catch (error) {
     console.error("Erro ao enviar requisição:", error);
@@ -270,11 +260,7 @@ const cancelEmailChange = async () => {
     emailChangeRequest.value = false;
     form.value.email = authStore.user.email;
 
-    toast({
-      title: "Sucesso",
-      description: "Solicitação de troca de e-mail cancelada.",
-      variant: "success",
-    });
+    toast.success("Sucesso", { description: "Solicitação de troca de e-mail cancelada." });
   } catch (error) {
     console.error("Erro ao cancelar a solicitação:", error);
   } finally {
@@ -358,12 +344,9 @@ const updateImage = async () => {
   try {
     await Users.updatePhoto({ image: form.value.image });
 
-    toast({
-      title: "Sucesso",
-      description: hasImage
+    toast("Sucesso", { description: hasImage
         ? "Imagem atualizada com sucesso."
-        : "Imagem adicionada com sucesso.",
-    });
+        : "Imagem adicionada com sucesso." });
 
     // Refresh user data or update authStore.avatar...
     authStore.fetchUser();

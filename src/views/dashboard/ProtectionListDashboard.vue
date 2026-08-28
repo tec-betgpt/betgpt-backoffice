@@ -8,7 +8,7 @@ import { DonutChart } from '@/components/ui/chart-donut';
 import { BarChart } from '@/components/ui/chart-bar';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { ArrowUpIcon, ArrowDownIcon, MinusIcon, ExclamationTriangleIcon, InfoCircledIcon } from '@radix-icons/vue';
+import { ArrowUp, ArrowDown, Minus, TriangleAlert, Info } from 'lucide-vue-next'
 import ProtectionLists from "@/services/protectionLists";
 import {useWorkspaceStore} from "@/stores/workspace";
 
@@ -92,9 +92,9 @@ const byScopeData = computed(() => {
 });
 
 const getTrendIcon = (trend) => {
-  if (trend === 'growth') return ArrowUpIcon;
-  if (trend === 'reduction') return ArrowDownIcon;
-  return MinusIcon;
+  if (trend === 'growth') return ArrowUp;
+  if (trend === 'reduction') return ArrowDown;
+  return Minus;
 };
 
 const getTrendColor = (trend) => {
@@ -115,8 +115,8 @@ const getAlertVariant = (type) => {
 }
 
 const getAlertIcon = (type) => {
-    if (type === 'critical') return ExclamationTriangleIcon;
-    return InfoCircledIcon;
+    if (type === 'critical') return TriangleAlert;
+    return Info;
 }
 
 </script>

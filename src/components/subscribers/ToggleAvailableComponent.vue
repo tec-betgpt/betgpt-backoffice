@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useToast} from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { Spinner } from "@/components/ui/spinner";
 import Users from "@/services/users";
 
@@ -16,7 +16,6 @@ const props = defineProps<{
   reload: () => Promise<void>
 }>();
 
-const { toast } = useToast();
 
 const isLoading = ref(false);
 const isAvailable = ref(false);
@@ -28,17 +27,9 @@ const onSubmit = async () => {
     await Users.toggleAvailable(props.row.id, { is_available: isAvailable.value })
     await props.reload();
 
-    toast({
-      title: "Sucesso",
-      description: "Autorização de uso atualizada.",
-    });
+    toast("Sucesso", { description: "Autorização de uso atualizada." });
   } catch (error: any) {
-    toast({
-      title: "Ops!",
-      description: error.response.data.message,
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error("Ops!", { description: error.response.data.message, duration: 3000 });
   }
 
   isLoading.value = false;

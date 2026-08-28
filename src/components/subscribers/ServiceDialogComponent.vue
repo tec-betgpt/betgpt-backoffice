@@ -54,7 +54,7 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted, defineProps } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Briefcase } from "lucide-vue-next";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import Users from '@/services/users'
@@ -70,7 +70,6 @@ const props = defineProps<{
   row: any
 }>()
 
-const { toast } = useToast();
 
 const isProcessing = ref(false);
 const showModal = ref(false);
@@ -98,16 +97,9 @@ const onSubmit = async () => {
     const data = await Users.changeService(props.row.id, { service_id: service_id.value });
     await props.reload();
     showModal.value = false;
-    toast({
-      title: "Sucesso",
-      description: "Serviço aplicado com sucesso.",
-    });
+    toast("Sucesso", { description: "Serviço aplicado com sucesso." });
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao modificar a conta.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao modificar a conta." });
   }
 
   isProcessing.value = false;

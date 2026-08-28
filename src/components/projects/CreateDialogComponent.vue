@@ -63,7 +63,7 @@
 <script setup lang="ts">
 import {Dialog} from "@/components/ui/dialog";
 import { ref, defineProps, onMounted } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Plus, Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import Projects from '@/services/projects'
@@ -71,7 +71,6 @@ import UserProjectGroup from '@/services/userProjectGroup'
 
 const props = defineProps<{ reload: () => Promise<void> }>();
 
-const { toast } = useToast();
 
 const workspaceStore = useWorkspaceStore();
 const isDialog = ref(false);
@@ -94,11 +93,7 @@ const fetchProjects = async () => {
     const { data } = await Projects.index()
     projects.value = data
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 
   loading.value = false;
@@ -114,11 +109,7 @@ const onCheckboxChange = (id: any, checked: any) => {
 
 const createGroup = async () => {
   if (selectedProjects.value.length < 2) {
-    toast({
-      title: "Erro",
-      description: "Selecione no mínimo dois projetos para criar o grupo.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione no mínimo dois projetos para criar o grupo." });
     return;
   }
 
@@ -135,16 +126,9 @@ const createGroup = async () => {
     selectedProjects.value = [];
     isDialog.value = false;
     props.reload();
-    toast({
-      title: "Sucesso",
-      description: "Grupo criado com sucesso.",
-    });
+    toast("Sucesso", { description: "Grupo criado com sucesso." });
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao criar grupo.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao criar grupo." });
   }
 
   creatingGroup.value = false;

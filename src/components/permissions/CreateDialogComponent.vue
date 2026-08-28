@@ -45,11 +45,10 @@
 </template>
 <script setup lang="ts">
 import { ref } from "vue";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { Plus } from "lucide-vue-next";
 import Permissions from "@/services/permissions"
 
-const { toast } = useToast();
 
 const props = defineProps<{ reload: () => void }>();
 const dialog = ref(false);
@@ -70,18 +69,10 @@ const onSubmit = async () => {
     dialog.value = false;
     props.reload();
 
-    toast({
-      title: "Sucesso",
-      description: "Permissão salvo com sucesso.",
-      duration: 3000,
-    });
+    toast("Sucesso", { description: "Permissão salvo com sucesso.", duration: 3000 });
   } catch (error) {
     console.error(error)
-    toast({
-      title: "Erro",
-      description: error.response.data.message,
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: error.response.data.message });
   }
 
   isLoading.value = false;

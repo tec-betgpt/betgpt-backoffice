@@ -212,7 +212,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, watch, nextTick } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useAuthStore } from "@/stores/auth";
@@ -261,7 +261,6 @@ import {
   Eye,
 } from "lucide-vue-next";
 
-const { toast } = useToast();
 
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
@@ -362,11 +361,7 @@ const fetchProtectionLists = async (page = 1) => {
       total: response.total,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   } finally {
     isLoading.value = false;
   }
@@ -376,11 +371,7 @@ const destroy = async (id: number) => {
   try {
     await ProtectionLists.destroy(id);
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao remover os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao remover os dados." });
   }
 };
 

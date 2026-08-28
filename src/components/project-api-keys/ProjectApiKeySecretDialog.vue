@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { CopyIcon, DownloadIcon, TriangleAlertIcon } from "lucide-vue-next";
 import type { EphemeralProjectApiSecret } from "@/stores/projectApiKeys";
 
@@ -26,7 +26,6 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { toast } = useToast();
 
 const open = computed(() => props.secret !== null);
 
@@ -79,12 +78,9 @@ async function copySecret() {
 
   try {
     await navigator.clipboard.writeText(props.secret.secret);
-    toast({ description: t("project_api_keys.secret_copied") });
+    toast(t("project_api_keys.secret_copied"));
   } catch {
-    toast({
-      title: t("error_ocurried"),
-      variant: "destructive",
-    });
+    toast.error(t("error_ocurried"));
   }
 }
 
@@ -100,7 +96,7 @@ function downloadSecret() {
   anchor.click();
   URL.revokeObjectURL(url);
 
-  toast({ description: t("project_api_keys.secret_downloaded") });
+  toast(t("project_api_keys.secret_downloaded"));
 }
 </script>
 

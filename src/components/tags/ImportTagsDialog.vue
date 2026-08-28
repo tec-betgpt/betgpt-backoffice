@@ -72,7 +72,7 @@ Churn Risco,churn-risco,Risco de abandono,#FF0000,false,</pre>
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Upload, FileSpreadsheet, Info } from 'lucide-vue-next';
-import { useToast } from '@/components/ui/toast/use-toast';
+import { toast } from "vue-sonner";
 import {
   Dialog,
   DialogContent,
@@ -93,7 +93,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:open', 'imported']);
 
-const { toast } = useToast();
 const workspaceStore = useWorkspaceStore();
 const isLoading = ref(false);
 const selectedFile = ref<File | null>(null);
@@ -126,20 +125,13 @@ const handleImport = async () => {
 
     await TagsService.importTags(formData);
 
-    toast({
-      title: "Sucesso",
-      description: "Tags importadas com sucesso.",
-    });
+    toast("Sucesso", { description: "Tags importadas com sucesso." });
 
     emit('imported');
     isOpen.value = false;
     selectedFile.value = null;
   } catch (error: any) {
-    toast({
-      title: "Erro na Importação",
-      description: error.response?.data?.message || "Ocorreu um erro ao processar o arquivo.",
-      variant: "destructive",
-    });
+    toast.error("Erro na Importação", { description: error.response?.data?.message || "Ocorreu um erro ao processar o arquivo." });
   } finally {
     isLoading.value = false;
   }

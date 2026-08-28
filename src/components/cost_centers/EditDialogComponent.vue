@@ -70,14 +70,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { PenLine } from "lucide-vue-next";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CostCenter from '@/services/costCenters'
 import Sector from "@/services/sector"
 import i18n from "@/i18n";
 import {Spinner} from "@/components/ui/spinner";
 
-const { toast } = useToast();
 
 const props = withDefaults(
   defineProps<{ reload: () => Promise<void>; row: any; hideTrigger?: boolean }>(),
@@ -99,11 +98,7 @@ const onSubmit = async () => {
     await CostCenter.update(props.row.id, costForm.value)
     await props.reload();
     isDialog.value = false;
-    toast({
-      title: i18n.global.t("success"),
-      description: "Centro de custo atualizado com sucesso.",
-      duration: 3000,
-    });
+    toast(i18n.global.t("success"), { description: "Centro de custo atualizado com sucesso.", duration: 3000 });
   } catch (error) {
     console.error("Erro ao salvar centro de custo:", error);
   }

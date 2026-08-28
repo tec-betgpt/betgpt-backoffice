@@ -159,7 +159,7 @@ import {
   RefreshCw,
   Upload,
 } from 'lucide-vue-next';
-import { useToast } from '@/components/ui/toast/use-toast';
+import { toast } from "vue-sonner";
 import { Button } from '@/components/ui/button';
 
 import { Input } from '@/components/ui/input';
@@ -200,7 +200,6 @@ import { Tag } from '@/contracts/tag';
 import moment from 'moment';
 import {useWorkspaceStore} from "@/stores/workspace";
 
-const { toast } = useToast();
 const loading = ref(false);
 const tags = ref<Tag[]>([]);
 const searchQuery = ref('');
@@ -238,11 +237,7 @@ const fetchTags = async () => {
     };
   } catch (error) {
     console.error(error);
-    toast({
-      title: "Erro",
-      description: "Falha ao carregar as tags.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Falha ao carregar as tags." });
   } finally {
     loading.value = false;
   }
@@ -280,17 +275,10 @@ const handleDelete = async () => {
   if (!tagToDelete.value) return;
   try {
     await TagsService.destroy(tagToDelete.value.id);
-    toast({
-      title: "Sucesso",
-      description: "Tag excluída com sucesso.",
-    });
+    toast("Sucesso", { description: "Tag excluída com sucesso." });
     fetchTags();
   } catch (error: any) {
-    toast({
-      title: "Erro",
-      description: error.response?.data?.message || "Erro ao excluir a tag.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: error.response?.data?.message || "Erro ao excluir a tag." });
   } finally {
     isDeleteDialogOpen.value = false;
     tagToDelete.value = null;

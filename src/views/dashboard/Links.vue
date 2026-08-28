@@ -242,7 +242,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import linksService from "@/services/links";
 import ProjectPreferencesService from "@/services/projectPreferences";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -418,17 +418,13 @@ async function confirmArchive() {
 
   try {
     await linksService.archive(selectedLinkForArchive.value.id);
-    toast({ title: "Link arquivado com sucesso!" });
+    toast("Link arquivado com sucesso!");
     isArchiveDialogOpen.value = false;
     selectedLinkForArchive.value = null;
     await fetchLinks(pages.value.current);
   } catch (error: any) {
     if (error?.response?.status === 403) {
-      toast({
-        title: "Acesso negado",
-        description: error.response?.data?.message || "Você não tem acesso a esse link.",
-        variant: "destructive",
-      });
+      toast.error("Acesso negado", { description: error.response?.data?.message || "Você não tem acesso a esse link." });
     }
   } finally {
     isArchiving.value = false;

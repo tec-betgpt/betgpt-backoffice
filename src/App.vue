@@ -23,7 +23,7 @@ import { useConfigStore } from "@/stores/config";
 import { useInternetConnection } from "@/composables/useInternetConnection";
 import { useErrorTracker } from "@/composables/useErrorTracker";
 import { storeToRefs } from "pinia";
-import { Toaster } from "@/components/ui/toast";
+import { Toaster } from "@/components/ui/sonner";
 import {useProjectPreferences} from "@/composables/useProjectPreferences.ts";
 import { useIAAnaliseStore } from "@/stores/iaAnalise";
 

@@ -76,7 +76,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import {
   Dialog,
   DialogContent,
@@ -91,7 +91,6 @@ import Webhooks from "@/services/webhooks";
 import {useWorkspaceStore} from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 
-const { toast } = useToast();
 const loading = ref(false);
 const webhooks = ref<Array<{ id: number; slug: string; name: string; description: string; webhook?: {webhook_url: string} }>>([]);
 const isDialogOpen = ref(false);
@@ -110,11 +109,7 @@ async function fetchWebhooks() {
      }))
   } catch (error) {
     console.error(error);
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os webhooks.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os webhooks." });
   }
 
   loading.value = false;
@@ -132,10 +127,7 @@ async function saveWebhookUrl(webhook:any) {
 
   const response = Webhooks.update(workspaceStore.activeGroupProject.project_id,{webhook_url:editingUrl.value,webhook_id:webhook.id});
 
-  toast({
-    title: "Sucesso",
-    description: `URL do webhook ${selectedWebhook.value.name} atualizada com sucesso.`,
-  });
+  toast("Sucesso", { description: `URL do webhook ${selectedWebhook.value.name} atualizada com sucesso.` });
 
   isDialogOpen.value = false;
 }

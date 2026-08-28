@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import Services from "@/services/services";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/services/CreateDialogComponent.vue";
@@ -90,7 +90,6 @@ import EditDialogComponent from "@/components/services/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import ToggleActivatedComponent from "@/components/services/ToggleActivatedComponent.vue";
 
-const { toast } = useToast();
 
 const services = ref();
 const isLoading = ref(true);
@@ -119,11 +118,7 @@ const fetchServices = async (page = 1) => {
       total: response.total,
     };
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 }
 
@@ -131,11 +126,7 @@ const destroy = async (id: number) => {
   try {
     await Services.destroy(id);
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Erro ao remover os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao remover os dados." });
   }
 }
 

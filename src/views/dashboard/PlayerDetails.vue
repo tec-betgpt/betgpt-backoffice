@@ -314,7 +314,7 @@ import {
   SmartphoneIcon, TagIcon, FilterIcon 
 } from "lucide-vue-next";
 import Players from "@/services/players";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -340,7 +340,6 @@ import {
 } from "@/components/ui/dialog";
 
 const route = useRoute();
-const { toast } = useToast();
 const authStore = useAuthStore();
 const hasPermission = (permissionName: string) =>
   Boolean((authStore.user as any)?.roles?.some((role: any) =>
@@ -443,7 +442,7 @@ const fetchHistory = async (page = 1) => {
     lastPage.value = data.history.last_page;
   } catch (e) {
     console.error(e);
-    toast({ title: "Erro", description: "Falha ao carregar dados do cliente.", variant: "destructive" });
+    toast.error("Erro", { description: "Falha ao carregar dados do cliente." });
   } finally {
     isLoading.value = false;
     isHistoryLoading.value = false;
@@ -513,7 +512,7 @@ const formatCurrency = (value: any) => {
 const copyPayload = () => {
   if (selectedHistoryEvent.value?.payload) {
     navigator.clipboard.writeText(JSON.stringify(selectedHistoryEvent.value.payload, null, 2));
-    toast({ title: "Copiado!", description: "Payload copiado para a área de transferência." });
+    toast("Copiado!", { description: "Payload copiado para a área de transferência." });
   }
 };
 </script>

@@ -415,7 +415,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Loader2Icon, PlusIcon, Search, Trash2Icon } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
@@ -434,7 +434,6 @@ import { Select } from "@/components/ui/select";
 
 const props = defineProps<{ reload: () => Promise<void> }>();
 
-const { toast } = useToast();
 const errors = ref([]);
 const modal = ref(false);
 const workspaceStore = useWorkspaceStore();
@@ -585,11 +584,7 @@ const onSubmit = async () => {
       payload.is_return_report = form.value.is_return_report;
       payload.is_primary = form.value.is_primary;
     } else {
-      toast({
-        title: "Erro",
-        description: "Selecione um tipo de criação.",
-        variant: "destructive",
-      });
+      toast.error("Erro", { description: "Selecione um tipo de criação." });
       isProcessing.value = false;
       return;
     }
@@ -600,11 +595,7 @@ const onSubmit = async () => {
 
     modal.value = false;
 
-    toast({
-      title: "Sucesso",
-      description: "Definição de conversão criada com sucesso",
-      variant: "default",
-    });
+    toast("Sucesso", { description: "Definição de conversão criada com sucesso" });
   } catch (error: any) {
     if (error.response && error.response.data) {
       errors.value = error.response.data.errors;
@@ -624,11 +615,7 @@ const openModal = async () => {
     await Promise.all([fetchValues(), fetchSegments(), fetchChannelGroups()]);
   } catch (error) {
     console.error("Error loading initial data:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os dados necessários.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os dados necessários." });
   } finally {
     isLoading.value = false;
   }

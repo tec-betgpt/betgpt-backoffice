@@ -58,10 +58,10 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type { DateRange } from "radix-vue";
+import type { DateRange } from "reka-ui";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import financialTransactionsApi from "@/services/financialTransactions";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
@@ -132,16 +132,9 @@ const deleteFinancial = async (id: number) => {
     await financialTransactionsApi.destroy(id);
     await fetchFinancials(pages.value.current, { refresh: true });
 
-    toast({
-      title: "Removido com sucesso!",
-      description: `Transação financeira foi excluída.`,
-    });
+    toast("Removido com sucesso!", { description: `Transação financeira foi excluída.` });
   } catch (error) {
-    toast({
-      title: "Erro ao remover item",
-      description: "Tente novamente mais tarde.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao remover item", { description: "Tente novamente mais tarde." });
   }
 }
 

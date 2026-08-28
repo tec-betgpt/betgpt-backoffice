@@ -75,7 +75,7 @@
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
                 <Button variant="outline" class="ml-auto">
-                  Tipo de parâmetro <ChevronDownIcon class="ml-2 h-4 w-4" />
+                  Tipo de parâmetro <ChevronDown class="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -144,7 +144,7 @@
 
 <script setup lang="ts">
 import {computed, h, onMounted, ref, watch} from "vue";
-import {useToast} from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import {Button} from "@/components/ui/button";
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
 import {
@@ -153,11 +153,10 @@ import {
   DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {ArrowDown, ArrowUp, ChevronDownIcon, Loader2 as LucideSpinner, MoreHorizontal} from "lucide-vue-next";
+import { ArrowDown, ArrowUp, ChevronDown, Loader2 as LucideSpinner, MoreHorizontal, ChevronsUpDown } from 'lucide-vue-next'
 import UtmTracks from "@/services/utmTracks";
 import {createColumnHelper} from "@tanstack/vue-table";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
-import {CaretSortIcon} from "@radix-icons/vue";
 import {useWorkspaceStore} from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import moment from "moment";
@@ -178,7 +177,6 @@ const order = ref();
 const direction = ref(false);
 const columnHelper = createColumnHelper<any>();
 
-const { toast } = useToast();
 const hasMore = ref(true);
 const utmTracks = ref<UtmTrack[]>([]);
 const chartRegistersUtmSource = ref<any>({
@@ -260,11 +258,7 @@ const fetchUtmTracks = async (current = pages.value.current) => {
       data: data.deposits_utm_tracks.data || []
     }]
   } catch (_) {
-    toast({
-      title: "Erro",
-      description: "Erro ao carregar os dados.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Erro ao carregar os dados." });
   }
 
   isLoading.value = false;
@@ -279,11 +273,7 @@ const openDialogAndFetchTrack = async (trackValue: string) => {
    selectedTrackData.value = response.data;
   } catch (error) {
     console.error("Erro ao buscar detalhes da atribuição:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os detalhes da atribuição.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os detalhes da atribuição." });
     isDialogOpen.value = false;
   } finally {
     isDialogLoading.value = false;
@@ -348,7 +338,7 @@ function createHeaderButton(label: string, columnKey: string) {
           ? direction.value
             ? ArrowDown
             : ArrowUp
-          : CaretSortIcon,
+          : ChevronsUpDown,
         { class: "" }
       ),
     ]
@@ -402,12 +392,12 @@ const columns = [
                   { size: "icon", variant: "ghost"},
                   [
                     h(MoreHorizontal, { class: "h-4 w-4" }),
-                    h("span", { class: "sr-only" }, "Ações"),
+                    h("span", { class: "sr-only" }, () => "Ações"),
                   ]
               )
           ),
           h(DropdownMenuContent, { align: "end" }, [
-            h(DropdownMenuLabel, {}, "Ações"),
+            h(DropdownMenuLabel, {}, () => "Ações"),
             h(DropdownMenuSeparator, {}),
             h(
                 DropdownMenuItem,

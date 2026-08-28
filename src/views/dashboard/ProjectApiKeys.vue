@@ -11,7 +11,7 @@ import {
 } from "@/stores/projectApiKeys";
 import { normalizeProjectApiKeyError } from "@/services/projectApiKeys";
 import { showApiErrorToast } from "@/lib/apiErrorFeedback";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,7 +49,6 @@ type FormServerErrors = Partial<
 >;
 
 const { t } = useI18n();
-const { toast } = useToast();
 const route = useRoute();
 const router = useRouter();
 
@@ -155,7 +154,7 @@ async function handleFormSubmit(payload: IssueProjectApiKeyRequest) {
     if (editingKey.value) {
       // Atualização somente após confirmação do backend (sem optimistic update).
       await store.updateKey(editingKey.value.uuid, payload);
-      toast({ description: t("project_api_keys.update_success") });
+      toast(t("project_api_keys.update_success"));
     } else {
       // O secret retornado vai apenas para o estado volátil da store; o modal
       // bloqueante de exibição única abre em seguida via `ephemeralSecret`.
@@ -192,7 +191,7 @@ async function confirmRotate() {
   try {
     await store.rotateKey(rotateTarget.value.uuid);
     rotateTarget.value = null;
-    toast({ description: t("project_api_keys.rotate_success") });
+    toast(t("project_api_keys.rotate_success"));
   } catch (err) {
     showApiErrorToast(err, { fallbackKey: "project_api_keys.rotate_error" });
   } finally {
@@ -224,7 +223,7 @@ async function confirmRevoke() {
   try {
     await store.revokeKey(revokeTarget.value.uuid);
     revokeTarget.value = null;
-    toast({ description: t("project_api_keys.revoke_success") });
+    toast(t("project_api_keys.revoke_success"));
   } catch (err) {
     showApiErrorToast(err, { fallbackKey: "project_api_keys.revoke_error" });
   } finally {

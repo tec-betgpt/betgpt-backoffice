@@ -173,7 +173,7 @@ import financialTransactionsApi from "@/services/financialTransactions";
 import DatePicker from "@/components/custom/DatePicker.vue";
 import { Dialog } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 
 const props = defineProps<{
   reload: () => void,
@@ -232,11 +232,7 @@ const openDialog = () => {
     return;
   }
 
-  toast({
-    title: "Apenas projetos",
-    description: "Selecione um Projeto invés de Grupo",
-    variant: "destructive",
-  });
+  toast.error("Apenas projetos", { description: "Selecione um Projeto invés de Grupo" });
 }
 
 watch(
@@ -272,10 +268,7 @@ const onSubmit = async () => {
     });
 
     isDialog.value = false;
-    toast({
-      title: "Novo Custo Adicionado!",
-      description: "Registro salvo com sucesso",
-    });
+    toast("Novo Custo Adicionado!", { description: "Registro salvo com sucesso" });
 
     await props.reload();
   } catch (error) {

@@ -92,24 +92,13 @@
 
 <script setup lang="ts">
 import { h, ref, onMounted, watch, computed } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import {
-  ArrowDown,
-  ArrowUp,
-  RefreshCcw,
-  Download,
-} from "lucide-vue-next";
+
 import { CaretSortIcon } from "@radix-icons/vue";
+import { ArrowDown, ArrowUp, RefreshCcw, Download, ChevronsUpDown } from 'lucide-vue-next'
 import {
   Dialog,
   DialogContent,
@@ -146,7 +135,6 @@ import TargetAudience from "@/services/targetAudience";
 import TagsService from "@/services/tags";
 
 const { t } = useI18n();
-const { toast } = useToast();
 const router = useRouter();
 const isLoading = ref(false);
 const showTagsDialog = ref(false);
@@ -276,11 +264,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
     };
   } catch (error) {
     console.error("Error loading segments:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível carregar os segmentos",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível carregar os segmentos" });
   }
 
   isLoading.value = false;
@@ -291,17 +275,9 @@ const deleteSegment = async (segmentId: number) => {
     isLoading.value = true;
     await TargetAudience.destroy(segmentId);
     await fetchSegments();
-    toast({
-      title: "Sucesso",
-      description: "Segmento removido com sucesso",
-      variant: "default",
-    });
+    toast("Sucesso", { description: "Segmento removido com sucesso" });
   } catch (error) {
-    toast({
-      title: "Erro",
-      description: "Não foi possível remover o segmento",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível remover o segmento" });
   } finally {
     isLoading.value = false;
   }
@@ -326,11 +302,7 @@ const openContactsDialog = (segmentId: number) => {
   const segment = segments.value.find((s) => s.id === segmentId);
 
   if (!segment || segment.total_contacts <= 0) {
-    toast({
-      title: "Aviso",
-      description: "Este segmento não possui contatos",
-      variant: "default",
-    });
+    toast("Aviso", { description: "Este segmento não possui contatos" });
     return;
   }
 
@@ -378,11 +350,7 @@ const importSegment = async (event: Event) => {
     segmentDialogRef.value.importData(importedForms);
   } catch (error) {
     console.error("Error importing segment:", error);
-    toast({
-      title: "Erro",
-      description: "Não foi possível importar o segmento. Verifique o arquivo.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Não foi possível importar o segmento. Verifique o arquivo." });
   } finally {
     input.value = "";
   }
@@ -405,7 +373,7 @@ function createHeaderButton(label: string, columnKey: string, activeId: string, 
           ? activeOrder
             ? ArrowDown
             : ArrowUp
-          : CaretSortIcon,
+          : ChevronsUpDown,
         { class: "ml-2 h-4 w-4" },
       ),
     ],
@@ -415,19 +383,10 @@ function createHeaderButton(label: string, columnKey: string, activeId: string, 
 const forceSegmentUpdate = async (segmentId: number) => {
   isUpdating.value = segmentId;
   try {
-    toast({
-      title: "Sucesso",
-      description: "Atualização do segmento iniciada...",
-      variant: "default",
-    });
+    toast("Sucesso", { description: "Atualização do segmento iniciada..." });
     await TargetAudience.reload({ id: segmentId });
   } catch (error) {
-    toast({
-      title: "Erro",
-      description:
-        error.response?.data?.message || "Falha ao forçar atualização",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: error.response?.data?.message || "Falha ao forçar atualização" });
   } finally {
     isUpdating.value = null;
   }
@@ -596,26 +555,26 @@ const columns = [
       const menuItems: any[] = [];
       if (canEditSegment.value) {
         menuItems.push(
-          h(DropdownMenuItem, { onClick: () => handleEdit(row.original) }, "Editar"),
+          h(DropdownMenuItem, { onClick: () => handleEdit(row.original) }, () => "Editar"),
         );
       }
       if (row.original.audiences && row.original.audiences.length > 0) {
         menuItems.push(
-          h(DropdownMenuItem, { onClick: () => viewTargetAudience(row.original) }, "Ver Publico Alvo"),
+          h(DropdownMenuItem, { onClick: () => viewTargetAudience(row.original) }, () => "Ver Publico Alvo"),
         );
       }
       if (canEditSegment.value) {
         menuItems.push(
-          h(DropdownMenuItem, { onClick: () => openTagsManager(row.original) }, "Gerenciar Tags"),
+          h(DropdownMenuItem, { onClick: () => openTagsManager(row.original) }, () => "Gerenciar Tags"),
           h(
             DropdownMenuItem,
             { onClick: () => deleteSegment(row.original.id) },
-            h("div", { class: "flex items-center text-destructive" }, "Remover"),
+            h("div", { class: "flex items-center text-destructive" }, () => "Remover"),
           ),
         );
       }
       if (menuItems.length === 0) {
-        return h("span", { class: "text-muted-foreground text-sm" }, "—");
+        return h("span", { class: "text-muted-foreground text-sm" }, () => "—");
       }
       return h(DropdownMenu, {}, [
         h(
@@ -631,12 +590,12 @@ const columns = [
             },
             [
               h(MoreHorizontalIcon, { class: "h-4 w-4" }),
-              h("span", { class: "sr-only" }, "Ações"),
+              h("span", { class: "sr-only" }, () => "Ações"),
             ],
           ),
         ),
         h(DropdownMenuContent, { align: "end" }, [
-          h(DropdownMenuLabel, {}, "Ações"),
+          h(DropdownMenuLabel, {}, () => "Ações"),
           h(DropdownMenuSeparator, {}),
           ...menuItems,
         ]),

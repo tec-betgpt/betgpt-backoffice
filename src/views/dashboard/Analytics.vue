@@ -153,7 +153,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useToast } from "@/components/ui/toast/use-toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Analytics from "@/services/analytics";
@@ -162,7 +162,6 @@ import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 
 const workspaceStore = useWorkspaceStore();
-const { toast } = useToast();
 
 const uniquePlayerLoginsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const uniquePlayerLoginsMovingAveragePeriod = ref<{ name: string; value: number[] }[]>([]);
@@ -186,11 +185,7 @@ const applyFilter = async () => {
   isLoading.value = true;
 
   if (!workspaceStore.activeGroupProject?.id) {
-    toast({
-      title: "Erro",
-      description: "Selecione um grupo ou projeto antes de filtrar.",
-      variant: "destructive",
-    });
+    toast.error("Erro", { description: "Selecione um grupo ou projeto antes de filtrar." });
 
     isLoading.value = false;
     return;
@@ -250,11 +245,7 @@ const applyFilter = async () => {
       {name:"28 Dias",value:unique_logins_moving_average},
     ];
   } catch (error) {
-    toast({
-      title: "Erro ao carregar dados",
-      description: "Não foi possível aplicar o filtro selecionado.",
-      variant: "destructive",
-    });
+    toast.error("Erro ao carregar dados", { description: "Não foi possível aplicar o filtro selecionado." });
   }
 
   isLoading.value = false;

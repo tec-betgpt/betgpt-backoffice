@@ -73,14 +73,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Plus } from "lucide-vue-next";
-import { useToast} from "@/components/ui/toast";
+import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { Spinner } from "@/components/ui/spinner";
 import CostCenter from "@/services/costCenters";
 import Sector from "@/services/sector";
 
 const props = defineProps<{ reload: () => Promise<void> }>();
-const { toast } = useToast();
 
 const sectors = ref<{ id: number; name: string; }[]>([]);
 const workspaceStore = useWorkspaceStore();
@@ -101,11 +100,7 @@ const loadingSub = ref(false);
 
 const onSubmit = async () => {
   if (costForm.value.project_id == null) {
-    toast({
-      title: "Projeto não selecionado",
-      description: "Selecione um workspace com projeto ativo.",
-      variant: "destructive",
-    });
+    toast.error("Projeto não selecionado", { description: "Selecione um workspace com projeto ativo." });
     return;
   }
   try {
@@ -116,17 +111,9 @@ const onSubmit = async () => {
     })
     await props.reload();
     isDialog.value = false;
-    toast({
-      title: "Sucesso",
-      description: "Centro de custo salvo com sucesso.",
-    });
+    toast("Sucesso", { description: "Centro de custo salvo com sucesso." });
   } catch (error) {
-    toast({
-      title: "Ops!",
-      description: error.response.data.message,
-      duration: 3000,
-      variant: "destructive",
-    });
+    toast.error("Ops!", { description: error.response.data.message, duration: 3000 });
   }
 
   loadingSub.value = false;
