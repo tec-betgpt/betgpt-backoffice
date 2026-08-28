@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { Loader2, Plus, Save, X } from 'lucide-vue-next';
-import { useToast } from '@/components/ui/toast/use-toast';
+import { toast } from 'vue-sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -29,7 +29,6 @@ const props = defineProps<{
   existingTags?: Tag[];
 }>();
 
-const { toast } = useToast();
 const workspace = useWorkspaceStore();
 
 const activeProjectId = computed<string | number>(
@@ -210,15 +209,12 @@ const save = async () => {
       exit_enter: tagsByCategory.exit_add.map((t) => t.id),
       exit_exit: tagsByCategory.exit_remove.map((t) => t.id),
     });
-    toast({
-      title: 'Sucesso',
+    toast.success('Sucesso', {
       description: 'Tags de transição atualizadas com sucesso.',
     });
   } catch (error: any) {
-    toast({
-      title: 'Erro ao salvar tags',
+    toast.error('Erro ao salvar tags', {
       description: error.response?.data?.message || 'Não foi possível salvar as tags.',
-      variant: 'destructive',
     });
   } finally {
     isSaving.value = false;
