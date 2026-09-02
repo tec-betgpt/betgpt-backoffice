@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { Loader2, Plus, Save, X } from 'lucide-vue-next';
+import { Loader2, Save, X } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
@@ -21,6 +19,7 @@ import TagsService from '@/services/tags';
 import TargetAudience from '@/services/targetAudience';
 import { Tag } from '@/contracts/tag';
 import { useWorkspaceStore } from "@/stores/workspace";
+import TagManager from '@/components/custom/TagManager.vue';
 
 const props = defineProps<{
   modelId: string | number;
@@ -69,15 +68,10 @@ const tagsByCategory = reactive<Record<string, Tag[]>>({
   exit_remove: [],
 });
 
-const availableTags = ref<Tag[]>([]);
-const isSearching = ref(false);
 const isLoadingConfig = ref(true);
 const isSaving = ref(false);
-const searchQuery = ref('');
-const openCategory = ref<string | null>(null);
 const showDuplicateDialog = ref(false);
 const pendingDuplicateTag = ref<Tag | null>(null);
-let searchTimeout: any = null;
 
 const allTagsMap = new Map<number, Tag>();
 
@@ -132,47 +126,10 @@ const loadConfig = async () => {
   }
 };
 
-const fetchAvailableTags = async (search = '') => {
-  isSearching.value = true;
-  try {
-    const response = await TagsService.index({
-      search,
-      filter_id: workspace.activeGroupProject?.id,
-      per_page: 20,
-    });
-    availableTags.value = Array.isArray(response) ? response : (response.data || []);
-  } catch (error) {
-    console.error('Error fetching available tags:', error);
-  } finally {
-    isSearching.value = false;
-  }
-};
-
-const onSearch = (e: any) => {
-  const query = typeof e === 'string' ? e : e.target?.value;
-  if (query === undefined) return;
-  searchQuery.value = query;
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => fetchAvailableTags(query), 400);
-};
-
-const handlePopoverOpen = (categoryKey: string, value: boolean) => {
-  openCategory.value = value ? categoryKey : null;
-  if (value && availableTags.value.length === 0) {
-    fetchAvailableTags();
-  }
-};
-
-const availableFor = (categoryKey: string) =>
-  availableTags.value.filter(
-    (tag) => !tagsByCategory[categoryKey].some((t) => t.id === tag.id),
-  );
-
 const addTag = (categoryKey: string, tag: Tag) => {
   if (!tagsByCategory[categoryKey].some((t) => t.id === tag.id)) {
     tagsByCategory[categoryKey].push(tag);
   }
-  openCategory.value = null;
 
   if (categoryKey === 'enter_add') {
     pendingDuplicateTag.value = tag;
@@ -288,50 +245,14 @@ watch(
           </p>
         </div>
 
-        <Popover
-          :open="openCategory === cat.key"
-          @update:open="(v) => handlePopoverOpen(cat.key, v)"
-        >
-          <PopoverTrigger as-child>
-            <Button variant="outline" size="sm">
-              <Plus class="h-3.5 w-3.5 mr-1" />
-              Adicionar tag
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent class="w-[250px] p-0" align="start">
-            <Command :filter-results="false">
-              <CommandInput placeholder="Buscar tag..." @input="onSearch" />
-              <CommandList>
-                <div
-                  v-if="isSearching"
-                  class="flex items-center justify-center p-4"
-                >
-                  <Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
-                </div>
-
-                <CommandEmpty v-else-if="availableFor(cat.key).length === 0">
-                  Nenhuma tag encontrada.
-                </CommandEmpty>
-
-                <CommandGroup v-else>
-                  <CommandItem
-                    v-for="tag in availableFor(cat.key)"
-                    :key="tag.id"
-                    :value="tag.name"
-                    @select="() => addTag(cat.key, tag)"
-                    class="flex items-center gap-2"
-                  >
-                    <div
-                      class="w-2 h-2 rounded-full"
-                      :style="{ backgroundColor: tag.color || '#e2e8f0' }"
-                    ></div>
-                    <span>{{ tag.name }}</span>
-                  </CommandItem>
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <TagManager
+          mode="picker"
+          :project-id="activeProjectId"
+          :selected-ids="tagsByCategory[cat.key].map((t) => t.id)"
+          trigger-variant="button"
+          hide-tags
+          @select="(tag: Tag) => addTag(cat.key, tag)"
+        />
       </TabsContent>
     </Tabs>
 

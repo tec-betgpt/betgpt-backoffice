@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { Loader2, Plus, Tag as TagIcon, X, Info, Globe, Bell, Pencil } from 'lucide-vue-next';
 import { toast } from "vue-sonner";
 import { Badge } from '@/components/ui/badge';
@@ -20,10 +20,24 @@ import { Tag } from '@/contracts/tag';
 import { useWorkspaceStore } from "@/stores/workspace";
 import TagDialog from '@/components/tags/TagDialog.vue';
 
-const props = defineProps<{
-  modelId: string | number;
-  modelType: string;
+const props = withDefaults(defineProps<{
+  modelId?: string | number;
+  modelType?: string;
   projectId?: string | number;
+  mode?: 'attach' | 'picker';
+  selectedIds?: number[];
+  triggerVariant?: 'icon' | 'button';
+  triggerLabel?: string;
+  hideTags?: boolean;
+}>(), {
+  mode: 'attach',
+  triggerVariant: undefined,
+  triggerLabel: undefined,
+  hideTags: false,
+});
+
+const emit = defineEmits<{
+  (e: 'select', tag: Tag): void;
 }>();
 
 const modelTags = ref<Tag[]>([]);
@@ -71,10 +85,11 @@ const handleEditTag = (tag: Tag) => {
 
 const handleTagSaved = async () => {
   const wasCreate = !tagToCreate.value?.id;
-  await fetchModelTags();
+  if (props.mode !== 'picker') {
+    await fetchModelTags();
+  }
   await fetchAvailableTags(searchQuery.value);
   if (wasCreate) {
-    // Tenta vincular automaticamente a tag recém criada
     const newTag = availableTags.value.find(t => t.name.toLowerCase() === searchQuery.value.toLowerCase());
     if (newTag) {
       await handleAttach(newTag);
@@ -84,6 +99,8 @@ const handleTagSaved = async () => {
 };
 
 const fetchModelTags = async () => {
+  if (props.mode === 'picker') return;
+  if (!props.modelId || !props.modelType) return;
   isLoading.value = true;
   try {
     const response = await TagsService.getModelTags({ 
@@ -103,13 +120,18 @@ const fetchAvailableTags = async (search = '') => {
   try {
     const response = await TagsService.index({
       search,
-      filter_id: props.projectId || workspace.activeGroupProject.id,
+      filter_id: props.projectId || workspace.activeGroupProject?.id,
       per_page: 20
     });
     const allTags = Array.isArray(response) ? response : (response.data || []);
-    availableTags.value = allTags.filter(
-      (tag: Tag) => !modelTags.value.some(pt => pt.id === tag.id)
-    );
+    if (props.mode === 'picker') {
+      const exclude = new Set(props.selectedIds || []);
+      availableTags.value = allTags.filter((tag: Tag) => !exclude.has(tag.id));
+    } else {
+      availableTags.value = allTags.filter(
+        (tag: Tag) => !modelTags.value.some(pt => pt.id === tag.id)
+      );
+    }
   } catch (error) {
     console.error('Error fetching available tags:', error);
   } finally {
@@ -118,6 +140,11 @@ const fetchAvailableTags = async (search = '') => {
 };
 
 const handleAttach = async (tag: Tag) => {
+  if (props.mode === 'picker') {
+    emit('select', tag);
+    open.value = false;
+    return;
+  }
   isAttaching.value = true;
   try {
     await TagsService.attach({
@@ -163,25 +190,39 @@ const onSearch = (e: any) => {
   }, 400);
 };
 
+const resolvedTriggerVariant = computed(() => props.triggerVariant ?? (props.mode === 'picker' ? 'button' : 'icon'));
+
 onMounted(() => {
-  fetchModelTags();
+  if (props.mode !== 'picker') fetchModelTags();
   fetchAvailableTags();
 });
 
 watch(() => props.modelId, () => {
-  fetchModelTags();
+  if (props.mode !== 'picker') fetchModelTags();
   fetchAvailableTags();
+});
+
+watch(() => props.selectedIds, () => {
+  if (props.mode === 'picker') fetchAvailableTags(searchQuery.value);
+}, { deep: true });
+
+watch(open, (val) => {
+  if (val) fetchAvailableTags(searchQuery.value);
 });
 </script>
 
 <template>
   <div class="flex flex-wrap gap-2 items-center">
-    <div v-if="isLoading" class="flex gap-2">
+    <div v-if="isLoading && mode !== 'picker'" class="flex gap-2">
       <div v-for="i in 2" :key="i" class="h-6 w-16 bg-muted animate-pulse rounded-full"></div>
     </div>
     <Popover v-model:open="open">
       <PopoverTrigger as-child>
-        <Button variant="ghost" size="icon" class="h-7 w-7 rounded-full border border-dashed hover:border-primary">
+        <Button v-if="resolvedTriggerVariant === 'button'" variant="outline" size="sm">
+          <Plus class="h-3.5 w-3.5 mr-1" />
+          {{ triggerLabel || 'Adicionar tag' }}
+        </Button>
+        <Button v-else variant="ghost" size="icon" class="h-7 w-7 rounded-full border border-dashed hover:border-primary">
           <Plus class="h-3.5 w-3.5" />
           <span class="sr-only">Adicionar tag</span>
         </Button>
@@ -230,7 +271,7 @@ watch(() => props.modelId, () => {
         </Command>
       </PopoverContent>
     </Popover>
-    <template v-if="modelTags.length > 0">
+    <template v-if="!hideTags && mode !== 'picker' && modelTags.length > 0">
       <Badge
         v-for="tag in modelTags"
         :key="tag.id"
