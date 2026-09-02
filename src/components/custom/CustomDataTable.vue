@@ -40,6 +40,15 @@
         </SelectContent>
       </Select>
 
+      <SearchableCombobox
+        v-else-if="field.type === 'combobox'"
+        v-model="searchValues[`search[${index}][${field.key}]`]"
+        :options="field.options"
+        :placeholder="field.placeholder"
+        :search-placeholder="field.searchPlaceholder || 'Buscar...'"
+        :empty-text="field.emptyText || 'Nenhum resultado encontrado.'"
+      />
+
       <Select
         v-else-if="field.type === 'date-range'"
         v-model="searchValues[`search[${index}][${field.key}]`]"
@@ -187,6 +196,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import SearchableCombobox from "@/components/custom/SearchableCombobox.vue";
 
 const props = defineProps({
   columns: {
@@ -215,9 +225,11 @@ const props = defineProps({
         label?: string;
         placeholder: string;
         type?: string;
-        options?: Array<{ value: string; label: string }>;
+        options?: Array<{ value: string; label: string; color?: string }>;
         default?: string;
         multiple?: boolean;
+        searchPlaceholder?: string;
+        emptyText?: string;
       }>
     >,
     required: false,

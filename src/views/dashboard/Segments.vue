@@ -164,7 +164,7 @@ const contactsDialogRef = ref();
 const exportSeg = ref([]);
 const segments = ref<Array<any>>([]);
 const nameSegment = ref<Record<string, any>>({});
-const tagOptions = ref<Array<{ value: string; label: string }>>([]);
+const tagOptions = ref<Array<{ value: string; label: string; color?: string }>>([]);
 const orderId = ref("");
 const order = ref(false);
 const segmentColumnHelper = createColumnHelper<SegmentData>();
@@ -205,9 +205,10 @@ const searchFields = computed(() => [
   {
     key: "tags",
     placeholder: "Filtrar por tag...",
-    type: "select",
+    type: "combobox",
     options: tagOptions.value,
-    multiple: true,
+    searchPlaceholder: "Buscar tag...",
+    emptyText: "Nenhuma tag encontrada.",
   },
 ]);
 
@@ -225,6 +226,7 @@ const fetchTags = async () => {
     tagOptions.value = list.map((tag: any) => ({
       value: String(tag.id),
       label: tag.name,
+      color: tag.color || undefined,
     }));
   } catch (error) {
     console.error("Error loading tags:", error);

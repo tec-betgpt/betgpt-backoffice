@@ -8,6 +8,7 @@ import Analytics from "@/services/analytics";
 import TargetAudience from "@/services/targetAudience";
 import Tags from "@/services/tags";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import SearchableCombobox from "@/components/custom/SearchableCombobox.vue";
 import currencyFilter from "@/filters/currencyFilter";
 import { formatMinifiedNumber, numberLocale } from "@/filters/formatNumbers";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +52,14 @@ const workspaceStore = useWorkspaceStore();
 const selectedRange = ref<{ start: any; end: any }>({ start: null, end: null });
 const sourceType = ref<SourceType>("segment");
 const sourceId = ref<string>("");
-const sourceOptions = ref<Array<{ id: number; name: string }>>([]);
+const sourceOptions = ref<Array<{ id: number; name: string; color?: string }>>([]);
+const sourceComboboxOptions = computed(() =>
+  sourceOptions.value.map((option) => ({
+    value: String(option.id),
+    label: option.name,
+    color: option.color || undefined,
+  }))
+);
 const isLoadingSources = ref(false);
 const isLoading = ref(false);
 const analysis = ref<AnalysisPayload | null>(null);
@@ -296,6 +304,7 @@ async function loadSources() {
     sourceOptions.value = (Array.isArray(list) ? list : []).map((item: any) => ({
       id: item.id,
       name: item.name,
+      color: item.color,
     }));
   } catch (error) {
     console.error(error);
@@ -396,20 +405,14 @@ useScreenContext(
 
         <div class="space-y-1.5 min-w-[220px]">
           <Label>{{ sourceType === "segment" ? "Segmento" : "Tag" }}</Label>
-          <Select v-model="sourceId" :disabled="isLoadingSources || sourceOptions.length === 0">
-            <SelectTrigger>
-              <SelectValue :placeholder="isLoadingSources ? 'Carregando...' : 'Selecione'" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem
-                v-for="option in sourceOptions"
-                :key="option.id"
-                :value="String(option.id)"
-              >
-                {{ option.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <SearchableCombobox
+            v-model="sourceId"
+            :options="sourceComboboxOptions"
+            :placeholder="isLoadingSources ? 'Carregando...' : 'Selecione'"
+            :search-placeholder="sourceType === 'segment' ? 'Buscar segmento...' : 'Buscar tag...'"
+            :empty-text="sourceType === 'segment' ? 'Nenhum segmento encontrado.' : 'Nenhuma tag encontrada.'"
+            :disabled="isLoadingSources || sourceOptions.length === 0"
+          />
         </div>
 
         <div class="space-y-1.5">
