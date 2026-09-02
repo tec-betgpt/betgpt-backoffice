@@ -19,11 +19,6 @@
           </div>
 
           <div class="space-y-2">
-            <Label>Slug</Label>
-            <Input v-model="form.slug" placeholder="minha-oferta" />
-          </div>
-
-          <div class="space-y-2">
             <Label>Status</Label>
             <Select v-model="form.status">
               <SelectTrigger>

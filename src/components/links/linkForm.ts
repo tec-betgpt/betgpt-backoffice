@@ -30,7 +30,6 @@ export interface DestinationState {
 export interface LinkFormState {
   project_id: string | number;
   code: string;
-  slug: string;
   status: string;
   type: string;
   fallback_url: string;
@@ -61,7 +60,6 @@ export function createDefaultForm(): LinkFormState {
   return {
     project_id: getActiveProjectId(),
     code: "",
-    slug: "",
     status: SELECT_NONE_VALUE,
     type: SELECT_NONE_VALUE,
     fallback_url: "",
@@ -122,7 +120,6 @@ export function sanitizePayload(form: LinkFormState) {
   const payload: Record<string, unknown> = {
     project_id: Number(form.project_id),
     code: form.code.trim(),
-    slug: form.slug || null,
     status: denormalizeSelectValue(form.status),
     type: denormalizeSelectValue(form.type),
     fallback_url: form.fallback_url || null,
@@ -191,7 +188,6 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
 
   form.project_id = String(link.project_id || getActiveProjectId());
   form.code = link.code || "";
-  form.slug = link.slug || "";
   form.status = normalizeSelectValue(link.status);
   form.type = normalizeSelectValue(link.type);
   form.fallback_url = link.fallback_url || "";
