@@ -33,6 +33,8 @@ export interface LinkFormState {
   status: string;
   type: string;
   fallback_url: string;
+  domain: string;
+  customDomainEnabled: boolean;
   reason: string;
   destinations: DestinationState[];
   utm: UtmGroup;
@@ -63,6 +65,8 @@ export function createDefaultForm(): LinkFormState {
     status: SELECT_NONE_VALUE,
     type: SELECT_NONE_VALUE,
     fallback_url: "",
+    domain: "",
+    customDomainEnabled: false,
     reason: "",
     destinations: [defaultDestination()],
     utm: defaultUtmGroup(),
@@ -123,6 +127,7 @@ export function sanitizePayload(form: LinkFormState) {
     status: denormalizeSelectValue(form.status),
     type: denormalizeSelectValue(form.type),
     fallback_url: form.fallback_url || null,
+    domain: form.customDomainEnabled && form.domain.trim() ? form.domain.trim() : null,
     reason: form.reason || null,
     preserve_original: form.preserve_original,
     channel: denormalizeSelectValue(form.channel),
@@ -191,6 +196,9 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
   form.status = normalizeSelectValue(link.status);
   form.type = normalizeSelectValue(link.type);
   form.fallback_url = link.fallback_url || "";
+  const domainValue = String((link as any).domain ?? link.domain ?? "");
+  form.domain = domainValue;
+  form.customDomainEnabled = Boolean(domainValue);
   form.reason = String(link.reason || "");
 
   const linkDests = (link as LinkDetailsResponse).destinations as LinkDestination[] | undefined

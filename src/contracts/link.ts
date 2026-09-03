@@ -62,6 +62,7 @@ export interface LinkListItem {
   type?: string | null;
   archived_at?: string | null;
   fallback_url?: string | null;
+  domain?: string | null;
   reason?: string | null;
   destination?: LinkDestination | null;
   versions?: LinkVersion[];
@@ -136,6 +137,7 @@ export interface LinkFormPayloadBase {
   status?: string | null;
   type?: string | null;
   fallback_url?: string | null;
+  domain?: string | null;
   reason?: string | null;
   destination?: LinkDestination;
   destinations?: LinkDestination[];

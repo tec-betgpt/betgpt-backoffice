@@ -52,6 +52,16 @@
             <Label>Fallback URL</Label>
             <Input v-model="form.fallback_url" placeholder="https://site.com/fallback" />
           </div>
+
+          <div class="flex items-center space-x-2 md:col-span-2">
+            <Checkbox id="customDomainEdit" :checked="form.customDomainEnabled" @update:checked="(val) => (form.customDomainEnabled = val as boolean)" />
+            <Label for="customDomainEdit" class="cursor-pointer">Domínio customizado</Label>
+          </div>
+
+          <div v-if="form.customDomainEnabled" class="space-y-2 md:col-span-2">
+            <Label>Domínio</Label>
+            <Input v-model="form.domain" placeholder="ex: meudominio.com" />
+          </div>
         </div>
 
         <div class="space-y-4 rounded-lg border p-4">
@@ -188,7 +198,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown } from "lucide-vue-next";
 import {
   LINK_CHANNEL_OPTIONS,
