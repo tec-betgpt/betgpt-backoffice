@@ -601,7 +601,15 @@ const campaignsStats = computed(() => {
     s.total_sent > 0
       ? ((s.total_answered / s.total_sent) * 100).toFixed(2)
       : "0.00";
-  s.unique_answer_rate = totalUniqueAnswerRate.value ?? "0.00";
+  const backendUniqueRate = String(totalUniqueAnswerRate.value ?? "0.00");
+  const hasBackendRate = backendUniqueRate !== "0.00" && backendUniqueRate !== "0" && backendUniqueRate !== "";
+  if (hasBackendRate) {
+    s.unique_answer_rate = backendUniqueRate;
+  } else if (s.total_unique_attempts > 0) {
+    s.unique_answer_rate = ((s.total_answered / s.total_unique_attempts) * 100).toFixed(2);
+  } else {
+    s.unique_answer_rate = s.answer_rate;
+  }
   return s;
 });
 
