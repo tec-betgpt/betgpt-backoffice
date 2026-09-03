@@ -54,7 +54,7 @@
           </div>
 
           <div class="flex items-center space-x-2 md:col-span-2">
-            <Checkbox id="customDomainEdit" :checked="form.customDomainEnabled" @update:checked="(val) => (form.customDomainEnabled = val as boolean)" />
+            <Checkbox id="customDomainEdit" v-model:checked="form.customDomainEnabled" />
             <Label for="customDomainEdit" class="cursor-pointer">Domínio customizado</Label>
           </div>
 
