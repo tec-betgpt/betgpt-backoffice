@@ -15,28 +15,15 @@
 
           <div class="flex items-center gap-2">
             <Label class="text-nowrap">Filtrar por Tag:</Label>
-            <Combobox v-model="selectedTagName">
-              <ComboboxAnchor class="relative w-[200px] flex items-center">
-                <ComboboxInput placeholder="Selecione uma tag" />
-                <ComboboxTrigger class="absolute right-2 h-full flex items-center">
-                  <ChevronsUpDown class="h-4 w-4 opacity-50" />
-                </ComboboxTrigger>
-              </ComboboxAnchor>
-              <ComboboxList>
-                <ComboboxEmpty>Nenhuma tag encontrada.</ComboboxEmpty>
-                <ComboboxGroup>
-                  <ComboboxItem value="Todas as Tags">
-                    Todas as Tags
-                  </ComboboxItem>
-                  <ComboboxItem v-for="tag in tags" :key="tag.id" :value="tag.name">
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: tag.color || '#e2e8f0' }"></div>
-                      {{ tag.name }}
-                    </div>
-                  </ComboboxItem>
-                </ComboboxGroup>
-              </ComboboxList>
-            </Combobox>
+            <SearchableCombobox
+              v-model="selectedTagName"
+              :load-options="loadTagOptions"
+              placeholder="Selecione uma tag"
+              search-placeholder="Buscar tag..."
+              empty-text="Nenhuma tag encontrada."
+              class="w-[200px]"
+              content-class="w-[250px]"
+            />
           </div>
         </div>
 
@@ -137,6 +124,7 @@ import TagsService from "@/services/tags";
 import { Tag } from "@/contracts/tag";
 import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
+import SearchableCombobox from "@/components/custom/SearchableCombobox.vue";
 import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
@@ -174,7 +162,6 @@ const canAccessClientManagement = ref(
 );
 
 const players = ref<Player[]>([]);
-const tags = ref<Tag[]>([]);
 const selectedTagName = ref('Todas as Tags');
 const isLoading = ref(true);
 const currentPage = ref(1);
@@ -187,15 +174,26 @@ const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const searchInput = ref('');
 
-const fetchTags = async () => {
+const loadTagOptions = async (search = '') => {
   try {
     const response = await TagsService.index({
       filter_id: activeGroupProjectId,
-      per_page: 100
+      per_page: 20,
+      search,
     });
-    tags.value = response.data || [];
+    const list: Tag[] = response.data || [];
+    const options = list.map((tag: Tag) => ({
+      value: tag.name,
+      label: tag.name,
+      color: tag.color || undefined,
+    }));
+
+    return search
+      ? options
+      : [{ value: 'Todas as Tags', label: 'Todas as Tags' }, ...options];
   } catch (error) {
     console.error("Error loading tags:", error);
+    return [];
   }
 };
 
@@ -256,10 +254,7 @@ const handleSort = (column: string) => {
 
 onMounted(async () => {
   isLoading.value = true
-  await Promise.all([
-    fetchPlayers(),
-    fetchTags()
-  ]);
+  await fetchPlayers();
   isLoading.value = false
 });
 
