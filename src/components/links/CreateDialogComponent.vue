@@ -52,7 +52,7 @@
           </div>
 
           <div class="flex items-center space-x-2 md:col-span-2">
-            <Checkbox id="customDomainCreate" v-model:checked="form.customDomainEnabled" />
+            <input type="checkbox" id="customDomainCreate" v-model="form.customDomainEnabled" class="h-4 w-4 rounded border border-primary text-primary focus:ring-1 focus:ring-ring" />
             <Label for="customDomainCreate" class="cursor-pointer">Domínio customizado</Label>
           </div>
 
