@@ -6,7 +6,6 @@ import SmsFunnel from "@/views/dashboard/SmsFunnel.vue";
 import Call4u from "@/views/dashboard/Call4u.vue";
 import PostbackLogs from "@/views/dashboard/PostbackLogs.vue";
 import AnalyticsRetention from "@/views/dashboard/AnalyticsRetention.vue";
-import SegmentAnalysis from "@/views/dashboard/SegmentAnalysis.vue";
 
 export default [
   {
@@ -39,18 +38,6 @@ export default [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Análise de Retenção",
-          roles: "member|client",
-          permissions: "access-to-reports",
-        },
-      },
-      {
-        path: "segment-analysis",
-        name: "segment-analysis",
-        component: SegmentAnalysis,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: "Análise de Segmentos",
           roles: "member|client",
           permissions: "access-to-reports",
         },

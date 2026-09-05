@@ -5,6 +5,7 @@ import Players from "@/views/dashboard/Players.vue";
 import UtmTracks from "@/views/dashboard/UtmTracks.vue";
 import Export from "@/views/dashboard/Export.vue";
 import Tags from "@/views/dashboard/Tags.vue";
+import SegmentAnalysis from "@/views/dashboard/SegmentAnalysis.vue";
 
 export default [
   {
@@ -39,6 +40,18 @@ export default [
           roles: "member",
           permissions: "view-segments",
           title: "Segmentos",
+        },
+      },
+      {
+        path: "segment-analysis",
+        name: "segment-analysis",
+        component: SegmentAnalysis,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Análise de Segmentos",
+          roles: "member|client",
+          permissions: "access-to-reports",
         },
       },
       {
