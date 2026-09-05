@@ -320,9 +320,9 @@ async function fetchIntegrations() {
 
     const { data } = await Projects.integrations(activeGroupProject.project_id);
 
-    // O supplier smsfunnel é detalhe técnico interno e nunca aparece como
-    // integração separada no painel (o catálogo já não o expõe — filtro defensivo).
-    const hiddenSupplierSlugs = ["smsfunnel", "sms-funnel"];
+    // dual: elevate-sms (dedicado) + smsfunnel (genérico) re-exposto para consumo
+    // o catálogo volta a expor smsfunnel e o painel deve renderizar ambos.
+    const hiddenSupplierSlugs: string[] = [];
 
     integrations.value = data
       .map((integration: any) => {
@@ -493,14 +493,16 @@ function getApplicationDetail(name: string) {
 
 async function saveAllIntegrations() {
   saving.value = true;
-  if (propetySelect.value) {
-    integrations.value[1].config.property_id = propetySelect.value;
-    integrations.value[1].config.property_name = propetyList.value.find(
+  const googleIntegration = integrations.value.find((i: any) => i.slug === "google-analytics");
+  const metaIntegration = integrations.value.find((i: any) => i.slug === "meta");
+  if (propetySelect.value && googleIntegration) {
+    googleIntegration.config.property_id = propetySelect.value;
+    googleIntegration.config.property_name = propetyList.value.find(
       (property) => property.id === propetySelect.value,
-    ).name;
+    )?.name;
   }
-  if (adAccountSelect.value) {
-    integrations.value[3].config.ad_account = adAccountSelect.value;
+  if (adAccountSelect.value && metaIntegration) {
+    metaIntegration.config.ad_account = adAccountSelect.value;
   }
   try {
     await Projects.bulkUpdate(
