@@ -33,6 +33,8 @@ export const PROJECT_API_SCOPES = [
   "campaigns:execute",
   "links:read",
   "links:write",
+  "tags:read",
+  "tags:write",
   "sms:read",
   "sms:send",
   "financial:read",
@@ -45,6 +47,7 @@ export type ProjectApiScope = (typeof PROJECT_API_SCOPES)[number];
 export type ProjectApiScopeDomain =
   | "campaigns"
   | "links"
+  | "tags"
   | "sms"
   | "financial"
   | "events";
@@ -61,6 +64,7 @@ export const PROJECT_API_SCOPE_GROUPS: readonly ProjectApiScopeGroup[] = [
     scopes: ["campaigns:read", "campaigns:write", "campaigns:execute"],
   },
   { domain: "links", scopes: ["links:read", "links:write"] },
+  { domain: "tags", scopes: ["tags:read", "tags:write"] },
   { domain: "sms", scopes: ["sms:read", "sms:send"] },
   { domain: "financial", scopes: ["financial:read"] },
   { domain: "events", scopes: ["conversions:write", "optouts:write"] },
