@@ -397,6 +397,7 @@
       "tags:write": "Tags — criação, edição e vínculo",
       "sms:read": "SMS — leitura",
       "sms:send": "SMS — envio",
+      "sms:webhook": "SMS — webhook de status",
       "financial:read": "Financeiro — leitura",
       "conversions:write": "Conversões — registro",
       "optouts:write": "Opt-outs — registro"

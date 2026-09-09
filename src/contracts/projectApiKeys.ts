@@ -37,6 +37,7 @@ export const PROJECT_API_SCOPES = [
   "tags:write",
   "sms:read",
   "sms:send",
+  "sms:webhook",
   "financial:read",
   "conversions:write",
   "optouts:write",
@@ -65,7 +66,7 @@ export const PROJECT_API_SCOPE_GROUPS: readonly ProjectApiScopeGroup[] = [
   },
   { domain: "links", scopes: ["links:read", "links:write"] },
   { domain: "tags", scopes: ["tags:read", "tags:write"] },
-  { domain: "sms", scopes: ["sms:read", "sms:send"] },
+  { domain: "sms", scopes: ["sms:read", "sms:send", "sms:webhook"] },
   { domain: "financial", scopes: ["financial:read"] },
   { domain: "events", scopes: ["conversions:write", "optouts:write"] },
 ] as const;
