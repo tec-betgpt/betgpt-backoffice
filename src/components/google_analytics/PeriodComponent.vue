@@ -185,7 +185,7 @@ export default defineComponent({
     },
     yFormatter(): (tick: number) => string {
       if (this.type === 'percent') {
-        return (tick: number) => `${(tick).toFixed(0)}%`
+        return (tick: number) => `${Number(tick).toFixed(this.percentDecimals)}%`
       }
       if (this.type ==='currency'){
         return (tick:number) => formatMinifiedCurrency(tick)
@@ -210,7 +210,15 @@ export default defineComponent({
       }, 0) / values.length
       if(this.type == "percent")
       {
-        return {max: (max ).toFixed(0), min: (min ).toFixed(0), avg: (avg).toFixed(0)}
+        const numericValues = values.map((val: any) => Number(val) || 0)
+        max = Math.max(...numericValues)
+        min = Math.min(...numericValues)
+        avg = numericValues.reduce((acc: number, val: number) => acc + val, 0) / numericValues.length
+        return {
+          max: max.toFixed(this.percentDecimals),
+          min: min.toFixed(this.percentDecimals),
+          avg: avg.toFixed(this.percentDecimals)
+        }
       }
       if (this.type =="currency")
       {
@@ -272,6 +280,10 @@ export default defineComponent({
     type: {
       type: String as () => 'numeric' | 'percent' | 'currency',
       default: 'numeric'
+    },
+    percentDecimals: {
+      type: Number,
+      default: 0
     },
     glossary:{
       type: String,

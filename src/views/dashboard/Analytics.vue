@@ -35,9 +35,9 @@
         chart-name="unique_logins"
         chart-resource="Controls"
         :period="uniquePlayerLoginsPeriod"
-        title="Logins únicos"
+        title="Logins únicos e depositantes únicos"
         :isLoading="isLoading"
-        :glossary="meta['unique_player_logins_period'] || 'Usuários únicos que entraram no sistema por dia'"
+        :glossary="meta['unique_player_logins_period'] || 'Logins únicos e depositantes únicos por dia'"
       />
 
       <PeriodComponent
@@ -47,6 +47,28 @@
         title="Média móvel - Logins únicos"
         :isLoading="isLoading"
         :glossary="meta['unique_player_logins_moving_average_period'] || 'Média móvel de logins únicos em janelas de 7, 14 e 28 dias'"
+      />
+
+      <PeriodComponent
+        chart-name="login_deposit_conversion"
+        chart-resource="Controls"
+        :period="loginToDepositConversionRatePeriod"
+        title="Taxa de Conversão Login → Depósito"
+        type="percent"
+        :percent-decimals="2"
+        :isLoading="isLoading"
+        :glossary="meta['login_to_deposit_conversion_rate_period'] || 'Percentual diário de depositantes únicos sobre logins únicos'"
+      />
+
+      <PeriodComponent
+        chart-name="login_deposit_conversion_moving_average"
+        chart-resource="Controls"
+        :period="loginToDepositConversionRateMovingAveragePeriod"
+        title="Média móvel - Conversão Login → Depósito"
+        type="percent"
+        :percent-decimals="2"
+        :isLoading="isLoading"
+        :glossary="meta['login_to_deposit_conversion_rate_moving_average_period'] || 'Média móvel da taxa de conversão login único para depositante único em janelas de 7, 14 e 28 dias'"
       />
 
       <PeriodComponent
@@ -165,6 +187,8 @@ const workspaceStore = useWorkspaceStore();
 
 const uniquePlayerLoginsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const uniquePlayerLoginsMovingAveragePeriod = ref<{ name: string; value: number[] }[]>([]);
+const loginToDepositConversionRatePeriod = ref<{ name: string; value: number[] }[]>([]);
+const loginToDepositConversionRateMovingAveragePeriod = ref<{ name: string; value: number[] }[]>([]);
 const selectedRange = ref({ start: null, end: null });
 const depositsPeriod = ref<{ name: string; value: number[] }[]>([]);
 const loginsDays = ref<{ name: string; value: number[] }[]>([]);
@@ -208,7 +232,11 @@ const applyFilter = async () => {
     let ftd = data.percent_ftd_day_period.map(deposit => {
       return {date:deposit.date,["FTD/Dia"]:deposit["FTD/Dia"]/100}  })
     let unique_logins = data.unique_player_logins_period.map(login => {
-      return {date:login.date,["Logins únicos"]:login["Logins"]}
+      return {
+        date: login.date,
+        ["Logins únicos"]: login["Logins"],
+        ["Depositantes únicos"]: login["Depositantes"] ?? 0,
+      }
     })
     let unique_logins_moving_average = (data.unique_player_logins_moving_average_period || []).map((login: any) => {
       return {
@@ -216,6 +244,17 @@ const applyFilter = async () => {
         ["7 Dias"]: login["7 Dias"],
         ["14 Dias"]: login["14 Dias"],
         ["28 Dias"]: login["28 Dias"],
+      }
+    })
+    let login_deposit_conversion = (data.login_to_deposit_conversion_rate_period || []).map((item: any) => {
+      return { date: item.date, ["% Conversão"]: item["% Conversão"] / 100 }
+    })
+    let login_deposit_conversion_moving_average = (data.login_to_deposit_conversion_rate_moving_average_period || []).map((item: any) => {
+      return {
+        date: item.date,
+        ["7 Dias"]: item["7 Dias"] / 100,
+        ["14 Dias"]: item["14 Dias"] / 100,
+        ["28 Dias"]: item["28 Dias"] / 100,
       }
     })
     depositsPeriod.value = [{name:"7 Dias",value:data.deposits_period},{name:"14 Dias",value:data.deposits_period}, {name:"28 Dias",value:data.deposits_period}];
@@ -238,11 +277,20 @@ const applyFilter = async () => {
     registrationDepositRatePeriod.value = [{name:"% Entrada",value:registration_deposit}];
     depositConversionRatePeriod.value = [{name:"% Conversão",value:deposit_conversion}];
     loginsDays.value = [{name:"Logins",value:data.player_logins_period}];
-    uniquePlayerLoginsPeriod.value = [{name:"Logins únicos",value:unique_logins}];
+    uniquePlayerLoginsPeriod.value = [
+      {name:"Logins únicos",value:unique_logins},
+      {name:"Depositantes únicos",value:unique_logins},
+    ];
     uniquePlayerLoginsMovingAveragePeriod.value = [
       {name:"7 Dias",value:unique_logins_moving_average},
       {name:"14 Dias",value:unique_logins_moving_average},
       {name:"28 Dias",value:unique_logins_moving_average},
+    ];
+    loginToDepositConversionRatePeriod.value = [{name:"% Conversão",value:login_deposit_conversion}];
+    loginToDepositConversionRateMovingAveragePeriod.value = [
+      {name:"7 Dias",value:login_deposit_conversion_moving_average},
+      {name:"14 Dias",value:login_deposit_conversion_moving_average},
+      {name:"28 Dias",value:login_deposit_conversion_moving_average},
     ];
   } catch (error) {
     toast.error("Erro ao carregar dados", { description: "Não foi possível aplicar o filtro selecionado." });
