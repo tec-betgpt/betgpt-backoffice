@@ -711,9 +711,13 @@ const loadData = async () => {
           c.total_sent > 0
             ? ((c.total_answered / c.total_sent) * 100).toFixed(2)
             : "0.00",
+        unique_answer_rate:
+          c.total_unique_attempts > 0
+            ? ((c.total_answered / c.total_unique_attempts) * 100).toFixed(2)
+            : "0.00",
       }));
       totalUniqueAnswerRate.value = String(
-        data.campaigns.total_unique_answer_rate ?? "0.00",
+        data.campaigns.total?.unique_answer_rate ?? "0.00",
       );
       totalCampaigns.value = data.campaigns.total;
       campaignPages.value = {
