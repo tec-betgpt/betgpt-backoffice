@@ -131,15 +131,15 @@
             <CardContent class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 md:gap-y-6 gap-x-4">
               <div class="space-y-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">CEP</p>
-                <p class="text-sm font-medium">{{ player.zip || player.cep || 'Não informado' }}</p>
+                <p class="text-sm font-medium">{{ player.zip_code || player.zip || player.cep || 'Não informado' }}</p>
               </div>
               <div class="space-y-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Rua</p>
-                <p class="text-sm font-medium">{{ player.address || player.street || 'Não informado' }}</p>
+                <p class="text-sm font-medium">{{ player.street || player.address || 'Não informado' }}</p>
               </div>
               <div class="space-y-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Número</p>
-                <p class="text-sm font-medium">{{ player.number || '---' }}</p>
+                <p class="text-sm font-medium">{{ player.address_number || player.number || '---' }}</p>
               </div>
               <div class="space-y-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Bairro</p>
