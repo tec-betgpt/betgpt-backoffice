@@ -246,8 +246,8 @@
         </div>
 
         <!-- Coluna Direita: Histórico (Linha do Tempo) -->
-        <div class="lg:col-span-8">
-          <Card class="shadow-sm border-none md:border h-full">
+        <div class="lg:col-span-8 space-y-6">
+          <Card class="shadow-sm border-none md:border">
             <CardHeader class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
               <div>
                 <CardTitle class="text-lg md:text-xl">Linha do Tempo</CardTitle>

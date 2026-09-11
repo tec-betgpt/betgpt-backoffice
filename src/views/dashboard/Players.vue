@@ -227,7 +227,7 @@ const fetchPlayers = async (page = currentPage.value) => {
 const handleSearch = async () => {
   isLoading.value = true
   players.value = []
-  searchValues.value = { search: searchInput.value };
+  searchValues.value = { search: searchInput.value.trim() };
   await fetchPlayers(1);
 
   if (players.value.length === 1 && canAccessClientManagement.value) {
