@@ -229,6 +229,12 @@ const handleSearch = async () => {
   players.value = []
   searchValues.value = { search: searchInput.value };
   await fetchPlayers(1);
+
+  if (players.value.length === 1 && canAccessClientManagement.value) {
+    showPlayer(players.value[0].id);
+    return;
+  }
+
   isLoading.value = false
 };
 
