@@ -69,15 +69,22 @@
                 Status consultado pelo broadcast_id do envio. Atualiza a cada 10 segundos.
               </CardDescription>
             </div>
-            <Button
-              v-if="sentMessages.length"
-              variant="outline"
-              size="sm"
-              :disabled="isRefreshing"
-              @click="refreshStatuses"
-            >
-              {{ isRefreshing ? "Atualizando..." : "Atualizar status" }}
-            </Button>
+            <div class="flex items-center gap-2">
+              <ColumnVisibilityToggle
+                v-if="sentMessages.length"
+                v-model="sentMessagesColumnVisibility"
+                :columns="sentMessagesColumns"
+              />
+              <Button
+                v-if="sentMessages.length"
+                variant="outline"
+                size="sm"
+                :disabled="isRefreshing"
+                @click="refreshStatuses"
+              >
+                {{ isRefreshing ? "Atualizando..." : "Atualizar status" }}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -87,24 +94,24 @@
           <Table v-else>
             <TableHeader>
               <TableRow>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Broadcast</TableHead>
-                <TableHead>Atualizado</TableHead>
+                <TableHead v-if="sentMessagesColumnVisibility.phone !== false">Telefone</TableHead>
+                <TableHead v-if="sentMessagesColumnVisibility.status !== false">Status</TableHead>
+                <TableHead v-if="sentMessagesColumnVisibility.broadcast !== false">Broadcast</TableHead>
+                <TableHead v-if="sentMessagesColumnVisibility.updatedAt !== false">Atualizado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow v-for="item in sentMessages" :key="item.id">
-                <TableCell class="font-mono text-sm">{{ item.phone }}</TableCell>
-                <TableCell>
+                <TableCell v-if="sentMessagesColumnVisibility.phone !== false" class="font-mono text-sm">{{ item.phone }}</TableCell>
+                <TableCell v-if="sentMessagesColumnVisibility.status !== false">
                   <Badge :variant="statusVariant(item.status)">
                     {{ SMS_MESSAGE_STATUS_LABELS[item.status] || item.status }}
                   </Badge>
                 </TableCell>
-                <TableCell class="font-mono text-xs text-muted-foreground">
+                <TableCell v-if="sentMessagesColumnVisibility.broadcast !== false" class="font-mono text-xs text-muted-foreground">
                   {{ item.broadcast_status || "—" }}
                 </TableCell>
-                <TableCell>{{ formatDateTime(item.updated_at) }}</TableCell>
+                <TableCell v-if="sentMessagesColumnVisibility.updatedAt !== false">{{ formatDateTime(item.updated_at) }}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -131,6 +138,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { toast } from "vue-sonner";
 import {
   SMS_MESSAGE_STATUS_LABELS,
@@ -160,6 +168,17 @@ const isRefreshing = ref(false);
 const errorMessage = ref("");
 const sentMessages = ref<SentMessage[]>([]);
 let pollTimer: number | null = null;
+
+const sentMessagesColumns = [
+  { id: "phone", label: "Telefone" },
+  { id: "status", label: "Status" },
+  { id: "broadcast", label: "Broadcast" },
+  { id: "updatedAt", label: "Atualizado" },
+];
+const sentMessagesColumnVisibility = ref<Record<string, boolean>>({});
+const visibleSentMessagesColumns = computed(() =>
+  sentMessagesColumns.filter((c) => sentMessagesColumnVisibility.value[c.id] !== false)
+);
 
 const hasMeuLink = computed(() => message.value.includes("{meu_link}"));
 const segmentsCount = computed(() => Math.max(Math.ceil(message.value.length / 160), 1));

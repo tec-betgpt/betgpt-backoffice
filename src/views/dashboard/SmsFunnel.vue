@@ -386,64 +386,73 @@
       <Separator />
 
       <CardContent>
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="rechargesColumnVisibility" :columns="rechargesColumns" />
+        </div>
         <Table class="min-w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Serviço</TableHead>
-              <TableHead class="text-right">Créditos</TableHead>
-              <TableHead class="text-right">Preço</TableHead>
-              <TableHead class="text-right">Valor</TableHead>
-              <TableHead class="text-right">Situação</TableHead>
-              <TableHead class="text-right">Nota Fiscal</TableHead>
+              <TableHead v-if="rechargesColumnVisibility.data !== false">Data</TableHead>
+              <TableHead v-if="rechargesColumnVisibility.descricao !== false">Descrição</TableHead>
+              <TableHead v-if="rechargesColumnVisibility.servico !== false">Serviço</TableHead>
+              <TableHead v-if="rechargesColumnVisibility.creditos !== false" class="text-right">Créditos</TableHead>
+              <TableHead v-if="rechargesColumnVisibility.preco !== false" class="text-right">Preço</TableHead>
+              <TableHead v-if="rechargesColumnVisibility.valor !== false" class="text-right">Valor</TableHead>
+              <TableHead v-if="rechargesColumnVisibility.situacao !== false" class="text-right">Situação</TableHead>
+              <TableHead v-if="rechargesColumnVisibility.notaFiscal !== false" class="text-right">Nota Fiscal</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <template v-if="loading">
               <TableRow v-for="n in 5" :key="`loading-${n}`">
-                <TableCell v-for="j in 8" :key="j">
-                  <Skeleton class="h-4 w-full bg-gray-300" />
-                </TableCell>
+                <template v-for="col in rechargesColumns" :key="col.id">
+                  <TableCell v-if="rechargesColumnVisibility[col.id] !== false">
+                    <Skeleton class="h-4 w-full bg-gray-300" />
+                  </TableCell>
+                </template>
               </TableRow>
             </template>
 
             <template v-else>
               <TableRow class="font-bold">
-                <TableCell colspan="3"></TableCell>
-                <TableCell class="text-right">{{
+                <TableCell v-if="rechargesColumnVisibility.data !== false"></TableCell>
+                <TableCell v-if="rechargesColumnVisibility.descricao !== false"></TableCell>
+                <TableCell v-if="rechargesColumnVisibility.servico !== false"></TableCell>
+                <TableCell v-if="rechargesColumnVisibility.creditos !== false" class="text-right">{{
                   rechargesTotal.credits
                 }}</TableCell>
-                <TableCell class="text-right">{{
+                <TableCell v-if="rechargesColumnVisibility.preco !== false" class="text-right">{{
                   $toCurrency(rechargesTotal.price)
                 }}</TableCell>
-                <TableCell class="text-right">{{
+                <TableCell v-if="rechargesColumnVisibility.valor !== false" class="text-right">{{
                   $toCurrency(rechargesTotal.total)
                 }}</TableCell>
-                <TableCell class="text-right" colspan="2"></TableCell>
+                <TableCell v-if="rechargesColumnVisibility.situacao !== false" class="text-right"></TableCell>
+                <TableCell v-if="rechargesColumnVisibility.notaFiscal !== false" class="text-right"></TableCell>
               </TableRow>
               <TableRow v-for="(recharge, index) in recharges" :key="index">
-                <TableCell>{{
+                <TableCell v-if="rechargesColumnVisibility.data !== false">{{
                   recharge.created_at
                     ? $moment(recharge.created_at).format(
                         "DD/MM/YYYY HH:mm:ss",
                       )
                     : ""
                 }}</TableCell>
-                <TableCell>{{ recharge.description }}</TableCell>
-                <TableCell>{{ recharge.service }}</TableCell>
-                <TableCell class="text-right">{{
+                <TableCell v-if="rechargesColumnVisibility.descricao !== false">{{ recharge.description }}</TableCell>
+                <TableCell v-if="rechargesColumnVisibility.servico !== false">{{ recharge.service }}</TableCell>
+                <TableCell v-if="rechargesColumnVisibility.creditos !== false" class="text-right">{{
                   recharge.credits
                 }}</TableCell>
                 <TableCell
+                  v-if="rechargesColumnVisibility.preco !== false"
                   class="text-right"
                   :title="'R$ ' + recharge.total / recharge.credits"
                   >{{ $toCurrency(recharge.price) }}</TableCell
                 >
-                <TableCell class="text-right">{{
+                <TableCell v-if="rechargesColumnVisibility.valor !== false" class="text-right">{{
                   $toCurrency(recharge.total)
                 }}</TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="rechargesColumnVisibility.situacao !== false" class="text-right">
                   <span
                     class="text-green-600"
                     v-if="recharge.situation == 'APPROVED'"
@@ -451,7 +460,7 @@
                   >
                   <span class="text-red-600" v-else>Pendente</span>
                 </TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="rechargesColumnVisibility.notaFiscal !== false" class="text-right">
                   <Button
                     v-if="recharge.invoice_url"
                     variant="outline"
@@ -513,6 +522,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+
+const rechargesColumns = [
+  { id: "data", label: "Data" },
+  { id: "descricao", label: "Descrição" },
+  { id: "servico", label: "Serviço" },
+  { id: "creditos", label: "Créditos" },
+  { id: "preco", label: "Preço" },
+  { id: "valor", label: "Valor" },
+  { id: "situacao", label: "Situação" },
+  { id: "notaFiscal", label: "Nota Fiscal" },
+];
+const rechargesColumnVisibility = ref<Record<string, boolean>>({});
+const visibleRechargesColumns = computed(() =>
+  rechargesColumns.filter((c) => rechargesColumnVisibility.value[c.id] !== false)
+);
 
 const authStore = useAuthStore();
 

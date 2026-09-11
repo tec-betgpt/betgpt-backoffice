@@ -18,9 +18,12 @@
       </CardContent>
 
       <CardContent>
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        </div>
         <Table v-if="isLoading">
           <TableRow v-for="a in 10" :key="a">
-            <TableCell v-for="b in 3" :key="b">
+            <TableCell v-for="col in visibleTableColumns" :key="col.id">
               <Skeleton class="h-4 w-full dark:bg-gray-600 bg-gray-500 my-2" />
             </TableCell>
           </TableRow>
@@ -29,20 +32,20 @@
         <Table v-else class="w-full overflow-hidden">
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Setor</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.nome !== false">Nome</TableHead>
+              <TableHead v-if="columnVisibility.setor !== false">Setor</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="(row, index) in costs" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.nome !== false">
                 {{ row.name }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.setor !== false">
                 {{ row.sector?.name ?? "—" }}
               </TableCell>
-              <CostCenterRowActions :row="row" :reload="fetchCosts" :destroy="remove" />
+              <CostCenterRowActions v-if="columnVisibility.acoes !== false" :row="row" :reload="fetchCosts" :destroy="remove" />
             </TableRow>
           </TableBody>
         </Table>
@@ -61,12 +64,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CostCenter from "@/services/costCenters";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import CreateDialogComponent from "@/components/cost_centers/CreateDialogComponent.vue";
 import CostCenterRowActions from "@/components/cost_centers/CostCenterRowActions.vue";
 
@@ -87,6 +91,16 @@ const pages = ref({
   total: 0,
   last: 0,
 });
+
+const tableColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "setor", label: "Setor" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 watch(perPages, (newPerPage) => {
   if (newPerPage) {

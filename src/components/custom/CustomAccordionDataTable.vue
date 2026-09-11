@@ -44,6 +44,17 @@
     </Button>
     <div class="flex flex-1 gap-2"></div>
     <slot></slot>
+    <ColumnVisibilityToggle
+      v-model="columnVisibility"
+      :columns="hideableColumns"
+    />
+  </div>
+
+  <div v-if="!updateText" class="flex justify-end">
+    <ColumnVisibilityToggle
+      v-model="columnVisibility"
+      :columns="hideableColumns"
+    />
   </div>
 
   <Table class="w-full my-2">
@@ -88,7 +99,7 @@
     <TableBody>
       <template v-if="loading">
         <TableRow>
-          <TableCell :colspan="columns.length + 1">
+          <TableCell :colspan="visibleColumns.length + 1">
             <div class="flex justify-center items-center h-24">
               <Skeleton v-for="index in 5" class="h-4 w-full bg-gray-300 my-4" />
             </div>
@@ -120,7 +131,7 @@
         </template>
       </template>
       <TableRow v-else>
-        <TableCell :colspan="columns.length + (props.select ? 1 : 0)" class="h-24 text-center">
+        <TableCell :colspan="visibleColumns.length + (props.select ? 1 : 0)" class="h-24 text-center">
           Nenhum resultado.
         </TableCell>
       </TableRow>
@@ -129,7 +140,7 @@
     <TableFooter v-if="footer">
       <TableRow>
         <TableCell
-          v-for="(column, index) in columns"
+          v-for="(column, index) in visibleColumns"
           :key="column.accessorKey"
           :class="index === 0 ? 'text-left font-bold' : 'text-right font-bold'"
         >
@@ -186,6 +197,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-vue-next";
 
 const props = defineProps({
@@ -261,6 +273,28 @@ const emit = defineEmits(["update:selected", "update:perPages"]);
 const dataTable = ref([...props.data]);
 const searchValues = ref<Record<string, string>>({});
 const expanded = ref({});
+const columnVisibility = ref<Record<string, boolean>>({});
+
+const columnId = (col: any) => col.accessorKey ?? col.id;
+
+const hideableColumns = computed(() =>
+  props.columns.map((col: any) => {
+    const id = columnId(col);
+    return {
+      id,
+      label: typeof col.header === "string" ? col.header : id,
+    };
+  })
+);
+
+const visibleColumns = computed(() =>
+  props.columns.filter((col: any) => columnVisibility.value[columnId(col)] !== false)
+);
+
+const onColumnVisibilityChange = (updater: any) => {
+  columnVisibility.value =
+    typeof updater === "function" ? updater(columnVisibility.value) : updater;
+};
 
 const tableColumns = computed(() => [
   {
@@ -288,7 +322,11 @@ const table = ref(
       get expanded() {
         return expanded.value
       },
+      get columnVisibility() {
+        return columnVisibility.value
+      },
     },
+    onColumnVisibilityChange,
     onExpandedChange: updater => {
       expanded.value = typeof updater === 'function' ? updater(expanded.value) : updater
     },
@@ -450,7 +488,11 @@ watch(
         get expanded() {
           return expanded.value
         },
+        get columnVisibility() {
+          return columnVisibility.value
+        },
       },
+      onColumnVisibilityChange,
       onExpandedChange: updater => {
         expanded.value = typeof updater === 'function' ? updater(expanded.value) : updater
       },

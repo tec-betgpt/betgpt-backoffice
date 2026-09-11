@@ -87,38 +87,41 @@
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="dispatchesColumnVisibility" :columns="dispatchesColumns" />
+        </div>
         <div class="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Ocorrência</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Agendado para</TableHead>
-                <TableHead class="text-right">Destinatários</TableHead>
-                <TableHead class="text-right">Enviadas</TableHead>
-                <TableHead class="text-right">Entregues</TableHead>
-                <TableHead class="text-right">Falhas</TableHead>
-                <TableHead>Progresso</TableHead>
-                <TableHead>Broadcasts</TableHead>
+                <TableHead v-if="dispatchesColumnVisibility.occurrence !== false">Ocorrência</TableHead>
+                <TableHead v-if="dispatchesColumnVisibility.status !== false">Status</TableHead>
+                <TableHead v-if="dispatchesColumnVisibility.scheduledFor !== false">Agendado para</TableHead>
+                <TableHead v-if="dispatchesColumnVisibility.recipients !== false" class="text-right">Destinatários</TableHead>
+                <TableHead v-if="dispatchesColumnVisibility.sent !== false" class="text-right">Enviadas</TableHead>
+                <TableHead v-if="dispatchesColumnVisibility.delivered !== false" class="text-right">Entregues</TableHead>
+                <TableHead v-if="dispatchesColumnVisibility.failed !== false" class="text-right">Falhas</TableHead>
+                <TableHead v-if="dispatchesColumnVisibility.progress !== false">Progresso</TableHead>
+                <TableHead v-if="dispatchesColumnVisibility.broadcasts !== false">Broadcasts</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow v-if="isLoading && dispatches.length === 0">
-                <TableCell colspan="9" class="py-8 text-center text-muted-foreground">
+                <TableCell :colspan="visibleDispatchesColumns.length" class="py-8 text-center text-muted-foreground">
                   Carregando disparos...
                 </TableCell>
               </TableRow>
               <TableRow v-else-if="dispatches.length === 0">
-                <TableCell colspan="9" class="py-8 text-center text-muted-foreground">
+                <TableCell :colspan="visibleDispatchesColumns.length" class="py-8 text-center text-muted-foreground">
                   Nenhum disparo criado ainda. Dispare a campanha pelo builder.
                 </TableCell>
               </TableRow>
               <TableRow v-for="dispatch in dispatches" :key="dispatch.id">
-                <TableCell>
+                <TableCell v-if="dispatchesColumnVisibility.occurrence !== false">
                   <div class="font-medium">{{ dispatch.occurrence_key }}</div>
                   <div class="text-xs text-muted-foreground">#{{ dispatch.id }}</div>
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="dispatchesColumnVisibility.status !== false">
                   <Badge :variant="dispatchStatusVariant(dispatch.status)">
                     {{ CAMPAIGN_DISPATCH_STATUS_LABELS[dispatch.status] }}
                   </Badge>
@@ -126,16 +129,16 @@
                     {{ dispatch.error }}
                   </div>
                 </TableCell>
-                <TableCell>{{ formatDateTime(dispatch.scheduled_for) }}</TableCell>
-                <TableCell class="text-right">{{ dispatch.total_recipients }}</TableCell>
-                <TableCell class="text-right">{{ dispatch.sent_count }}</TableCell>
-                <TableCell class="text-right">{{ dispatch.delivered_count }}</TableCell>
-                <TableCell class="text-right">{{ dispatch.failed_count }}</TableCell>
-                <TableCell class="min-w-[140px]">
+                <TableCell v-if="dispatchesColumnVisibility.scheduledFor !== false">{{ formatDateTime(dispatch.scheduled_for) }}</TableCell>
+                <TableCell v-if="dispatchesColumnVisibility.recipients !== false" class="text-right">{{ dispatch.total_recipients }}</TableCell>
+                <TableCell v-if="dispatchesColumnVisibility.sent !== false" class="text-right">{{ dispatch.sent_count }}</TableCell>
+                <TableCell v-if="dispatchesColumnVisibility.delivered !== false" class="text-right">{{ dispatch.delivered_count }}</TableCell>
+                <TableCell v-if="dispatchesColumnVisibility.failed !== false" class="text-right">{{ dispatch.failed_count }}</TableCell>
+                <TableCell v-if="dispatchesColumnVisibility.progress !== false" class="min-w-[140px]">
                   <Progress :model-value="dispatchProgress(dispatch)" />
                   <div class="mt-1 text-xs text-muted-foreground">{{ dispatchProgress(dispatch).toFixed(0) }}%</div>
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="dispatchesColumnVisibility.broadcasts !== false">
                   <div v-if="dispatch.provider_broadcasts?.length" class="space-y-1">
                     <div
                       v-for="broadcast in dispatch.provider_broadcasts"
@@ -226,6 +229,7 @@ import {
 } from "@/contracts/campaigns";
 import { FINANCIAL_STATUS_LABELS, type FinancialStatus } from "@/contracts/financialLedger";
 import CampaignCostsPanel from "@/components/campaigns/CampaignCostsPanel.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import {
   cancelCampaign,
   getCampaign,
@@ -247,6 +251,22 @@ const errorMessage = ref("");
 const financialStatus = ref<FinancialStatus | null>(null);
 const costsPanel = ref<InstanceType<typeof CampaignCostsPanel> | null>(null);
 let pollTimer: number | null = null;
+
+const dispatchesColumns = [
+  { id: "occurrence", label: "Ocorrência" },
+  { id: "status", label: "Status" },
+  { id: "scheduledFor", label: "Agendado para" },
+  { id: "recipients", label: "Destinatários" },
+  { id: "sent", label: "Enviadas" },
+  { id: "delivered", label: "Entregues" },
+  { id: "failed", label: "Falhas" },
+  { id: "progress", label: "Progresso" },
+  { id: "broadcasts", label: "Broadcasts" },
+];
+const dispatchesColumnVisibility = ref<Record<string, boolean>>({});
+const visibleDispatchesColumns = computed(() =>
+  dispatchesColumns.filter((c) => dispatchesColumnVisibility.value[c.id] !== false)
+);
 
 const campaignId = computed(() => {
   const id = Number(route.params.id);

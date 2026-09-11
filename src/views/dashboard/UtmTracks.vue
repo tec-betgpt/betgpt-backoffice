@@ -80,15 +80,17 @@
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuCheckboxItem
-                    :checked="typeFilter.includes('deposit')"
-                    @update:checked="setType('deposit')"
+                    :model-value="typeFilter.includes('deposit')"
+                    @select.prevent
+                    @update:model-value="setType('deposit')"
                     class="capitalize"
                 >
                   Entrada
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                    :checked="typeFilter.includes('player')"
-                    @update:checked="setType('player')"
+                    :model-value="typeFilter.includes('player')"
+                    @select.prevent
+                    @update:model-value="setType('player')"
                 >
                   Cadastro
                 </DropdownMenuCheckboxItem>

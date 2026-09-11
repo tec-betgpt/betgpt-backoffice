@@ -11,34 +11,37 @@
 
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
+        <div class="flex justify-end">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        </div>
         <Table class="w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Nome do Arquivo</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Criado em</TableHead>
-              <TableHead class="text-right">Downloads / Ações</TableHead>
+              <TableHead v-if="columnVisibility.id !== false">ID</TableHead>
+              <TableHead v-if="columnVisibility.nomeArquivo !== false">Nome do Arquivo</TableHead>
+              <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
+              <TableHead v-if="columnVisibility.criadoEm !== false">Criado em</TableHead>
+              <TableHead v-if="columnVisibility.downloadsAcoes !== false" class="text-right">Downloads / Ações</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             <TableRow v-for="row in reports" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.id !== false">
                 {{ row.id }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.nomeArquivo !== false">
                 {{ row.file_name }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.status !== false">
                 <Badge :variant="getStatusVariant(row.status)">
                   {{ formatStatus(row.status) }}
                 </Badge>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.criadoEm !== false">
                 {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm') }}
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.downloadsAcoes !== false" class="text-right">
                 <div class="flex justify-end gap-2">
                   <Button
                     v-if="row.file_path_csv"
@@ -67,7 +70,7 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
-                <TableCell v-for="j in 5" :key="i">
+                <TableCell v-for="j in visibleTableColumns.length" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
@@ -75,7 +78,7 @@
 
             <template v-if="!isLoading && (!reports || !reports.length)">
               <TableRow>
-                <TableCell :colspan="5" class="text-center py-5">
+                <TableCell :colspan="visibleTableColumns.length" class="text-center py-5">
                   Nenhum relatório encontrado.
                 </TableCell>
               </TableRow>
@@ -95,12 +98,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { toast } from "vue-sonner";
 import ProtectionListReports from "@/services/protectionListReports";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -113,6 +117,18 @@ import { FileSpreadsheet, FileChartColumn } from "lucide-vue-next";
 const workspaceStore = useWorkspaceStore();
 const reports = ref([]);
 const isLoading = ref(true);
+
+const tableColumns = [
+  { id: "id", label: "ID" },
+  { id: "nomeArquivo", label: "Nome do Arquivo" },
+  { id: "status", label: "Status" },
+  { id: "criadoEm", label: "Criado em" },
+  { id: "downloadsAcoes", label: "Downloads / Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 const perPage = ref(15);
 const pages = ref({
   current: 1,

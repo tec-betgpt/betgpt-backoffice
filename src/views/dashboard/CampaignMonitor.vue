@@ -320,31 +320,37 @@
           Nenhum recipient identificado nos eventos desta campanha.
         </div>
 
-        <Table v-else>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Recipient</TableHead>
-              <TableHead>Último evento</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="item in recipientItems" :key="item.recipientId">
-              <TableCell class="font-medium">#{{ item.recipientId }}</TableCell>
-              <TableCell>{{ formatDateTime(item.lastEvent.occurred_at) }}</TableCell>
-              <TableCell>
-                <Badge variant="outline">{{ item.lastEvent.event_type }}</Badge>
-              </TableCell>
-              <TableCell class="text-right">
-                <Button variant="outline" size="sm" @click="openRecipientTimeline(item.recipientId)">
-                  <History class="mr-2 h-3.5 w-3.5" />
-                  Timeline
-                </Button>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <template v-else>
+          <div class="flex justify-end mb-2">
+            <ColumnVisibilityToggle v-model="recipientsColumnVisibility" :columns="recipientsColumns" />
+          </div>
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead v-if="recipientsColumnVisibility.recipient !== false">Recipient</TableHead>
+                <TableHead v-if="recipientsColumnVisibility.lastEvent !== false">Último evento</TableHead>
+                <TableHead v-if="recipientsColumnVisibility.status !== false">Status</TableHead>
+                <TableHead v-if="recipientsColumnVisibility.actions !== false" class="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-for="item in recipientItems" :key="item.recipientId">
+                <TableCell v-if="recipientsColumnVisibility.recipient !== false" class="font-medium">#{{ item.recipientId }}</TableCell>
+                <TableCell v-if="recipientsColumnVisibility.lastEvent !== false">{{ formatDateTime(item.lastEvent.occurred_at) }}</TableCell>
+                <TableCell v-if="recipientsColumnVisibility.status !== false">
+                  <Badge variant="outline">{{ item.lastEvent.event_type }}</Badge>
+                </TableCell>
+                <TableCell v-if="recipientsColumnVisibility.actions !== false" class="text-right">
+                  <Button variant="outline" size="sm" @click="openRecipientTimeline(item.recipientId)">
+                    <History class="mr-2 h-3.5 w-3.5" />
+                    Timeline
+                  </Button>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </template>
       </DialogContent>
     </Dialog>
 
@@ -425,6 +431,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { listCampaigns } from "@/services/campaigns";
 import type { CampaignListItem } from "@/contracts/campaigns";
 import {
@@ -465,6 +472,17 @@ const activeRecipientId = ref<number | null>(null);
 const recipientTimelineLoading = ref(false);
 const recipientTimelineError = ref("");
 const recipientEvents = ref<CanonicalEvent[]>([]);
+
+const recipientsColumns = [
+  { id: "recipient", label: "Recipient" },
+  { id: "lastEvent", label: "Último evento" },
+  { id: "status", label: "Status" },
+  { id: "actions", label: "Ações" },
+];
+const recipientsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleRecipientsColumns = computed(() =>
+  recipientsColumns.filter((c) => recipientsColumnVisibility.value[c.id] !== false)
+);
 
 const monitor = computed(() => monitorStore.monitor);
 const forecast = computed<CampaignForecast | null>(() => monitorStore.forecast);

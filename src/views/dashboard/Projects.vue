@@ -35,15 +35,17 @@
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuCheckboxItem
-                :checked="statusFilter.includes('active')"
-                @update:checked="setStatus('active')"
+                :model-value="statusFilter.includes('active')"
+                @select.prevent
+                @update:model-value="setStatus('active')"
                 class="capitalize"
               >
                 Ativo
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                :checked="statusFilter.includes('inactive')"
-                @update:checked="setStatus('inactive')"
+                :model-value="statusFilter.includes('inactive')"
+                @select.prevent
+                @update:model-value="setStatus('inactive')"
               >
                 Inativo
               </DropdownMenuCheckboxItem>

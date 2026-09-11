@@ -106,6 +106,7 @@
                 <Search />
               </Button>
             </div>
+            <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
 
           </div>
         </CardContent>
@@ -114,9 +115,9 @@
           <Table class="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead class="text-right">
+                <TableHead v-if="columnVisibility.tipo !== false">Tipo</TableHead>
+                <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
+                <TableHead v-if="columnVisibility.recebidoEm !== false" class="text-right">
                   <Button class="p-0" variant="ghost" @click="handleSort('created_at')">
                     Recebido em
                     <ArrowUp v-if="order === 'created_at' && direction" class="ml-2 h-4 w-4" />
@@ -124,7 +125,7 @@
                     <ChevronsUpDown v-else class="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead class="text-right">
+                <TableHead v-if="columnVisibility.processadoEm !== false" class="text-right">
                   <Button class="p-0" variant="ghost" @click="handleSort('processed_at')">
                     Processado em
                     <ArrowUp v-if="order === 'processed_at' && direction" class="ml-2 h-4 w-4" />
@@ -132,12 +133,12 @@
                     <ChevronsUpDown v-else class="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead class="text-right">Ações</TableHead>
+                <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody v-if="loading">
               <TableRow v-for="i in perPage" :key="i">
-                <TableCell v-for="j in 5" :key="i">
+                <TableCell v-for="j in visibleTableColumns.length" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
@@ -145,21 +146,21 @@
 
             <TableBody v-else>
               <TableRow v-for="row in logs" :key="row.id">
-                <TableCell>
+                <TableCell v-if="columnVisibility.tipo !== false">
                   {{ getType(row.type) }}
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="columnVisibility.status !== false">
                   <Badge variant="secondary" :class="getStatus(row.status).color">
                     {{ getStatus(row.status).name }}
                   </Badge>
                 </TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="columnVisibility.recebidoEm !== false" class="text-right">
                   {{ $moment(row.created_at).format("DD/MM/YYYY HH:mm:ss") }}
                 </TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="columnVisibility.processadoEm !== false" class="text-right">
                   {{ row.processed_at ? $moment(row.processed_at).format("DD/MM/YYYY HH:mm:ss") : "-" }}
                 </TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
                   <ShowDialogComponent :row="row" />
                 </TableCell>
               </TableRow>
@@ -191,6 +192,7 @@ import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import PostbackLogService from "@/services/postbackLog";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 import ShowDialogComponent from "@/components/postback_logs/ShowDialogComponent.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -209,6 +211,18 @@ const currentPage = ref(1);
 const order = ref('id');
 const direction = ref(false);
 const perPage = ref(15);
+
+const tableColumns = [
+  { id: "tipo", label: "Tipo" },
+  { id: "status", label: "Status" },
+  { id: "recebidoEm", label: "Recebido em" },
+  { id: "processadoEm", label: "Processado em" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const handleSort = (column: string) => {
   if (order.value === column) {

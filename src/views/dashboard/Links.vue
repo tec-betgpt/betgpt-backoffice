@@ -94,41 +94,44 @@
 
     <Card>
       <CardContent class="pt-6">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        </div>
         <div class="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Encurtador</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Destino</TableHead>
-                <TableHead class="text-right">Ações</TableHead>
+                <TableHead v-if="columnVisibility.codigo !== false">Código</TableHead>
+                <TableHead v-if="columnVisibility.encurtador !== false">Encurtador</TableHead>
+                <TableHead v-if="columnVisibility.slug !== false">Slug</TableHead>
+                <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
+                <TableHead v-if="columnVisibility.tipo !== false">Tipo</TableHead>
+                <TableHead v-if="columnVisibility.destino !== false">Destino</TableHead>
+                <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow v-if="isLoading">
-                <TableCell colspan="7" class="py-8 text-center text-muted-foreground">
+                <TableCell :colspan="visibleTableColumns.length" class="py-8 text-center text-muted-foreground">
                   Carregando links...
                 </TableCell>
               </TableRow>
               <TableRow v-else-if="links.length === 0">
-                <TableCell colspan="7" class="py-8 text-center text-muted-foreground">
+                <TableCell :colspan="visibleTableColumns.length" class="py-8 text-center text-muted-foreground">
                   Nenhum link encontrado para os filtros selecionados.
                 </TableCell>
               </TableRow>
               <TableRow v-for="link in links" :key="link.id">
-                <TableCell class="font-medium">{{ link.code }}</TableCell>
-                <TableCell class="font-medium">{{ link.short_url }}</TableCell>
+                <TableCell v-if="columnVisibility.codigo !== false" class="font-medium">{{ link.code }}</TableCell>
+                <TableCell v-if="columnVisibility.encurtador !== false" class="font-medium">{{ link.short_url }}</TableCell>
 
-                <TableCell>{{ link.slug || "—" }}</TableCell>
-                <TableCell>
+                <TableCell v-if="columnVisibility.slug !== false">{{ link.slug || "—" }}</TableCell>
+                <TableCell v-if="columnVisibility.status !== false">
                   <Badge variant="outline">{{ link.status || "—" }}</Badge>
                 </TableCell>
-                <TableCell>{{ link.type || "—" }}</TableCell>
-                <TableCell class="max-w-[280px] truncate">{{ getDestinationUrl(link) }}</TableCell>
-                <TableCell>
+                <TableCell v-if="columnVisibility.tipo !== false">{{ link.type || "—" }}</TableCell>
+                <TableCell v-if="columnVisibility.destino !== false" class="max-w-[280px] truncate">{{ getDestinationUrl(link) }}</TableCell>
+                <TableCell v-if="columnVisibility.acoes !== false">
                   <div class="flex justify-end gap-2">
                     <Button variant="outline" size="sm" @click="openDetails(link.id)">Detalhes</Button>
                     <Button variant="outline" size="sm" @click="openEditDialog(link.id)">Editar</Button>
@@ -246,6 +249,7 @@ import { toast } from "vue-sonner";
 import linksService from "@/services/links";
 import ProjectPreferencesService from "@/services/projectPreferences";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useRouter } from "vue-router";
 import CreateDialogComponent from "@/components/links/CreateDialogComponent.vue";
@@ -318,6 +322,20 @@ const checkSlug = async () => {
 
 const links = ref<LinkListItem[]>([]);
 const isLoading = ref(false);
+
+const tableColumns = [
+  { id: "codigo", label: "Código" },
+  { id: "encurtador", label: "Encurtador" },
+  { id: "slug", label: "Slug" },
+  { id: "status", label: "Status" },
+  { id: "tipo", label: "Tipo" },
+  { id: "destino", label: "Destino" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 const isLoadingDetails = ref(false);
 const isArchiving = ref(false);
 const isCreateDialogOpen = ref(false);

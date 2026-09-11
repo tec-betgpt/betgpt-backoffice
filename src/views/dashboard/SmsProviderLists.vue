@@ -20,34 +20,37 @@
 
     <Card>
       <CardContent class="pt-6">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="listsColumnVisibility" :columns="listsColumns" />
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead class="text-right">Leads</TableHead>
-              <TableHead class="text-right">Campanhas</TableHead>
-              <TableHead>Criada em</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="listsColumnVisibility.nome !== false">Nome</TableHead>
+              <TableHead v-if="listsColumnVisibility.leads !== false" class="text-right">Leads</TableHead>
+              <TableHead v-if="listsColumnVisibility.campanhas !== false" class="text-right">Campanhas</TableHead>
+              <TableHead v-if="listsColumnVisibility.criadaEm !== false">Criada em</TableHead>
+              <TableHead v-if="listsColumnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-if="isLoading">
-              <TableCell colspan="5" class="py-8 text-center text-muted-foreground">Carregando listas...</TableCell>
+              <TableCell :colspan="visibleListsColumns.length" class="py-8 text-center text-muted-foreground">Carregando listas...</TableCell>
             </TableRow>
             <TableRow v-else-if="lists.length === 0">
-              <TableCell colspan="5" class="py-8 text-center text-muted-foreground">
+              <TableCell :colspan="visibleListsColumns.length" class="py-8 text-center text-muted-foreground">
                 Nenhuma lista encontrada no SMS Funnel.
               </TableCell>
             </TableRow>
             <TableRow v-for="list in lists" :key="list.id">
-              <TableCell>
+              <TableCell v-if="listsColumnVisibility.nome !== false">
                 <div class="font-medium">{{ list.name }}</div>
                 <div class="font-mono text-xs text-muted-foreground">{{ list.id }}</div>
               </TableCell>
-              <TableCell class="text-right">{{ list.leads_count }}</TableCell>
-              <TableCell class="text-right">{{ list.campaigns_count }}</TableCell>
-              <TableCell>{{ formatDateTime(list.created_at) }}</TableCell>
-              <TableCell>
+              <TableCell v-if="listsColumnVisibility.leads !== false" class="text-right">{{ list.leads_count }}</TableCell>
+              <TableCell v-if="listsColumnVisibility.campanhas !== false" class="text-right">{{ list.campaigns_count }}</TableCell>
+              <TableCell v-if="listsColumnVisibility.criadaEm !== false">{{ formatDateTime(list.created_at) }}</TableCell>
+              <TableCell v-if="listsColumnVisibility.acoes !== false">
                 <div class="flex justify-end gap-2">
                   <Button variant="outline" size="sm" @click="openLeads(list)">Leads</Button>
                   <Button variant="outline" size="sm" @click="openRenameDialog(list)">Renomear</Button>
@@ -139,34 +142,37 @@
             </CardContent>
           </Card>
 
+          <div class="flex justify-end mb-2">
+            <ColumnVisibilityToggle v-model="leadsColumnVisibility" :columns="leadsColumns" />
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Lead</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Blacklist</TableHead>
-                <TableHead class="text-right">Ações</TableHead>
+                <TableHead v-if="leadsColumnVisibility.lead !== false">Lead</TableHead>
+                <TableHead v-if="leadsColumnVisibility.telefone !== false">Telefone</TableHead>
+                <TableHead v-if="leadsColumnVisibility.blacklist !== false">Blacklist</TableHead>
+                <TableHead v-if="leadsColumnVisibility.acoes !== false" class="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow v-if="isLoadingLeads">
-                <TableCell colspan="4" class="py-6 text-center text-muted-foreground">Carregando leads...</TableCell>
+                <TableCell :colspan="visibleLeadsColumns.length" class="py-6 text-center text-muted-foreground">Carregando leads...</TableCell>
               </TableRow>
               <TableRow v-else-if="leads.length === 0">
-                <TableCell colspan="4" class="py-6 text-center text-muted-foreground">Nenhum lead nesta lista.</TableCell>
+                <TableCell :colspan="visibleLeadsColumns.length" class="py-6 text-center text-muted-foreground">Nenhum lead nesta lista.</TableCell>
               </TableRow>
               <TableRow v-for="lead in leads" :key="lead.id">
-                <TableCell>
+                <TableCell v-if="leadsColumnVisibility.lead !== false">
                   <div class="font-medium">{{ lead.name }}</div>
                   <div class="text-xs text-muted-foreground">{{ lead.email || "—" }}</div>
                 </TableCell>
-                <TableCell class="font-mono text-sm">{{ lead.phone }}</TableCell>
-                <TableCell>
+                <TableCell v-if="leadsColumnVisibility.telefone !== false" class="font-mono text-sm">{{ lead.phone }}</TableCell>
+                <TableCell v-if="leadsColumnVisibility.blacklist !== false">
                   <Badge :variant="lead.blacklisted ? 'destructive' : 'outline'">
                     {{ lead.blacklisted ? "Sim" : "Não" }}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="leadsColumnVisibility.acoes !== false">
                   <div class="flex justify-end">
                     <Button variant="destructive" size="sm" :disabled="isSaving" @click="removeLead(lead)">
                       Remover
@@ -193,7 +199,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -234,6 +240,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { toast } from "vue-sonner";
 import type { SmsLead, SmsLeadPayload, SmsList } from "@/contracts/smsProvider";
 import {
@@ -266,6 +273,29 @@ const selectedList = ref<SmsList | null>(null);
 const editingList = ref<SmsList | null>(null);
 const listName = ref("");
 const leadsInput = ref("");
+
+const listsColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "leads", label: "Leads" },
+  { id: "campanhas", label: "Campanhas" },
+  { id: "criadaEm", label: "Criada em" },
+  { id: "acoes", label: "Ações" },
+];
+const listsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleListsColumns = computed(() =>
+  listsColumns.filter((c) => listsColumnVisibility.value[c.id] !== false)
+);
+
+const leadsColumns = [
+  { id: "lead", label: "Lead" },
+  { id: "telefone", label: "Telefone" },
+  { id: "blacklist", label: "Blacklist" },
+  { id: "acoes", label: "Ações" },
+];
+const leadsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleLeadsColumns = computed(() =>
+  leadsColumns.filter((c) => leadsColumnVisibility.value[c.id] !== false)
+);
 
 onMounted(() => fetchLists(1));
 

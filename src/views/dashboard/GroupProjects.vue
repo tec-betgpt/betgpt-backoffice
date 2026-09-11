@@ -16,21 +16,24 @@
     <div class="space-y-4">
       <Card>
         <CardContent class="py-4">
+          <div class="flex justify-end mb-2">
+            <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+          </div>
           <Table class="w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Projetos</TableHead>
-                <TableHead class="text-right">Criado em</TableHead>
-                <TableHead class="text-right">Ações</TableHead>
+                <TableHead v-if="columnVisibility.nome !== false">Nome</TableHead>
+                <TableHead v-if="columnVisibility.projetos !== false">Projetos</TableHead>
+                <TableHead v-if="columnVisibility.criadoEm !== false" class="text-right">Criado em</TableHead>
+                <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody v-if="groups.length">
               <TableRow v-for="row in groups" :key="row.id">
-                <TableCell>
+                <TableCell v-if="columnVisibility.nome !== false">
                   {{ row.name }}
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="columnVisibility.projetos !== false">
                   <Badge variant="secondary" class="m-1 py-2 " v-for="(item, index) in row.projects.slice(0, 3)" :key="index">
                     {{ item.name }}
                   </Badge>
@@ -49,10 +52,10 @@
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
-                <TableCell class="text-right text-nowrap">
+                <TableCell v-if="columnVisibility.criadoEm !== false" class="text-right text-nowrap">
                   {{ $moment(row.created_at).format('DD/MM/YYYY') }}
                 </TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
                   <EditDialogComponent :row="row" :reload="fetchUserProjectGroups" />
 
                   <DestroyDialogComponent
@@ -70,7 +73,7 @@
 
             <TableBody v-else>
               <TableRow>
-                <TableCell :colspan="4" class="text-center py-5">
+                <TableCell :colspan="visibleTableColumns.length" class="text-center py-5">
                   Nenhum grupo encontrado.
                 </TableCell>
               </TableRow>
@@ -83,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { toast } from "vue-sonner";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Trash } from "lucide-vue-next";
@@ -94,11 +97,23 @@ import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.v
 import CreateDialogComponent from "@/components/projects/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/projects/EditDialogComponent.vue";
 import UserProjectGroup from '@/services/userProjectGroup'
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
 
 const workspaceStore = useWorkspaceStore();
 const loading = ref(false);
 const groups: any = ref([]);
+
+const tableColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "projetos", label: "Projetos" },
+  { id: "criadoEm", label: "Criado em" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const fetchUserProjectGroups = async () => {
   loading.value = true;

@@ -89,24 +89,27 @@
 
         <section class="space-y-2">
           <h4 class="text-sm font-medium">Breakdown por dispatch</h4>
+          <div v-if="costs.breakdown_by_dispatch.length" class="flex justify-end">
+            <ColumnVisibilityToggle v-model="dispatchColumnVisibility" :columns="dispatchColumns" />
+          </div>
           <div v-if="costs.breakdown_by_dispatch.length" class="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Dispatch</TableHead>
-                  <TableHead class="text-right">Quantidade</TableHead>
-                  <TableHead class="text-right">Valor ao cliente</TableHead>
-                  <TableHead class="text-right">Custo supplier</TableHead>
-                  <TableHead class="text-right">Margem</TableHead>
+                  <TableHead v-if="dispatchColumnVisibility.dispatch !== false">Dispatch</TableHead>
+                  <TableHead v-if="dispatchColumnVisibility.quantidade !== false" class="text-right">Quantidade</TableHead>
+                  <TableHead v-if="dispatchColumnVisibility.valorCliente !== false" class="text-right">Valor ao cliente</TableHead>
+                  <TableHead v-if="dispatchColumnVisibility.custoSupplier !== false" class="text-right">Custo supplier</TableHead>
+                  <TableHead v-if="dispatchColumnVisibility.margem !== false" class="text-right">Margem</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow v-for="row in costs.breakdown_by_dispatch" :key="row.campaign_dispatch_id">
-                  <TableCell>#{{ row.campaign_dispatch_id }}</TableCell>
-                  <TableCell class="text-right">{{ formatNumber(row.quantity) }} {{ row.unit }}</TableCell>
-                  <TableCell class="text-right">{{ formatCents(row.customer_amount_cents) }}</TableCell>
-                  <TableCell class="text-right">{{ formatCents(row.supplier_amount_cents) }}</TableCell>
-                  <TableCell class="text-right">{{ formatCents(row.margin_amount_cents) }}</TableCell>
+                  <TableCell v-if="dispatchColumnVisibility.dispatch !== false">#{{ row.campaign_dispatch_id }}</TableCell>
+                  <TableCell v-if="dispatchColumnVisibility.quantidade !== false" class="text-right">{{ formatNumber(row.quantity) }} {{ row.unit }}</TableCell>
+                  <TableCell v-if="dispatchColumnVisibility.valorCliente !== false" class="text-right">{{ formatCents(row.customer_amount_cents) }}</TableCell>
+                  <TableCell v-if="dispatchColumnVisibility.custoSupplier !== false" class="text-right">{{ formatCents(row.supplier_amount_cents) }}</TableCell>
+                  <TableCell v-if="dispatchColumnVisibility.margem !== false" class="text-right">{{ formatCents(row.margin_amount_cents) }}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -116,26 +119,29 @@
 
         <section class="space-y-2">
           <h4 class="text-sm font-medium">Breakdown por recurso</h4>
+          <div v-if="costs.breakdown_by_resource.length" class="flex justify-end">
+            <ColumnVisibilityToggle v-model="resourceColumnVisibility" :columns="resourceColumns" />
+          </div>
           <div v-if="costs.breakdown_by_resource.length" class="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Recurso</TableHead>
-                  <TableHead>Canal</TableHead>
-                  <TableHead class="text-right">Quantidade</TableHead>
-                  <TableHead class="text-right">Valor ao cliente</TableHead>
-                  <TableHead class="text-right">Custo supplier</TableHead>
-                  <TableHead class="text-right">Margem</TableHead>
+                  <TableHead v-if="resourceColumnVisibility.recurso !== false">Recurso</TableHead>
+                  <TableHead v-if="resourceColumnVisibility.canal !== false">Canal</TableHead>
+                  <TableHead v-if="resourceColumnVisibility.quantidade !== false" class="text-right">Quantidade</TableHead>
+                  <TableHead v-if="resourceColumnVisibility.valorCliente !== false" class="text-right">Valor ao cliente</TableHead>
+                  <TableHead v-if="resourceColumnVisibility.custoSupplier !== false" class="text-right">Custo supplier</TableHead>
+                  <TableHead v-if="resourceColumnVisibility.margem !== false" class="text-right">Margem</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow v-for="row in costs.breakdown_by_resource" :key="row.billable_resource_id ?? row.billable_resource">
-                  <TableCell>{{ row.billable_resource || "desconhecido" }}</TableCell>
-                  <TableCell>{{ row.channel || "—" }}</TableCell>
-                  <TableCell class="text-right">{{ formatNumber(row.quantity) }} {{ row.unit }}</TableCell>
-                  <TableCell class="text-right">{{ formatCents(row.customer_amount_cents) }}</TableCell>
-                  <TableCell class="text-right">{{ formatCents(row.supplier_amount_cents) }}</TableCell>
-                  <TableCell class="text-right">{{ formatCents(row.margin_amount_cents) }}</TableCell>
+                  <TableCell v-if="resourceColumnVisibility.recurso !== false">{{ row.billable_resource || "desconhecido" }}</TableCell>
+                  <TableCell v-if="resourceColumnVisibility.canal !== false">{{ row.channel || "—" }}</TableCell>
+                  <TableCell v-if="resourceColumnVisibility.quantidade !== false" class="text-right">{{ formatNumber(row.quantity) }} {{ row.unit }}</TableCell>
+                  <TableCell v-if="resourceColumnVisibility.valorCliente !== false" class="text-right">{{ formatCents(row.customer_amount_cents) }}</TableCell>
+                  <TableCell v-if="resourceColumnVisibility.custoSupplier !== false" class="text-right">{{ formatCents(row.supplier_amount_cents) }}</TableCell>
+                  <TableCell v-if="resourceColumnVisibility.margem !== false" class="text-right">{{ formatCents(row.margin_amount_cents) }}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -161,6 +167,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import {
   FINANCIAL_STATUS_LABELS,
   deriveFinancialStatus,
@@ -185,6 +192,31 @@ const errorMessage = ref("");
 const financialStatus = computed(() => deriveFinancialStatus(costs.value));
 
 const reservationStatuses = ["reserved", "partially_consumed", "consumed", "released"] as const;
+
+const dispatchColumns = [
+  { id: "dispatch", label: "Dispatch" },
+  { id: "quantidade", label: "Quantidade" },
+  { id: "valorCliente", label: "Valor ao cliente" },
+  { id: "custoSupplier", label: "Custo supplier" },
+  { id: "margem", label: "Margem" },
+];
+const dispatchColumnVisibility = ref<Record<string, boolean>>({});
+const visibleDispatchColumns = computed(() =>
+  dispatchColumns.filter((c) => dispatchColumnVisibility.value[c.id] !== false)
+);
+
+const resourceColumns = [
+  { id: "recurso", label: "Recurso" },
+  { id: "canal", label: "Canal" },
+  { id: "quantidade", label: "Quantidade" },
+  { id: "valorCliente", label: "Valor ao cliente" },
+  { id: "custoSupplier", label: "Custo supplier" },
+  { id: "margem", label: "Margem" },
+];
+const resourceColumnVisibility = ref<Record<string, boolean>>({});
+const visibleResourceColumns = computed(() =>
+  resourceColumns.filter((c) => resourceColumnVisibility.value[c.id] !== false)
+);
 
 const reservedTotal = computed(() => {
   if (!costs.value) return 0;

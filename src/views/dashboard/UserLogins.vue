@@ -23,24 +23,25 @@
             </SelectContent>
           </Select>
           <FilterDialogComponent :setFilters="setFilters" />
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
         </div>
 
         <Table class="w-full overflow-hidden">
           <TableHeader>
             <TableRow>
-              <TableHead>
+              <TableHead v-if="columnVisibility.usuario !== false">
                 Usuário
               </TableHead>
-              <TableHead>
+              <TableHead v-if="columnVisibility.tipo !== false">
                 Tipo
               </TableHead>
-              <TableHead class="text-right">
+              <TableHead v-if="columnVisibility.email !== false" class="text-right">
                 E-mail
               </TableHead>
-              <TableHead class="text-right">
+              <TableHead v-if="columnVisibility.ip !== false" class="text-right">
                 IP
               </TableHead>
-              <TableHead class="text-right">
+              <TableHead v-if="columnVisibility.entrouEm !== false" class="text-right">
                 <Button class="p-0" variant="ghost" @click="handleSort('created_at')">
                   Entrou em
                   <ArrowUp v-if="order === 'created_at' && direction" class="ml-2 h-4 w-4" />
@@ -53,36 +54,36 @@
 
           <TableBody>
             <TableRow v-for="(row, index) in userLogins" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.usuario !== false">
                 {{ row.user.first_name }} {{ row.user.last_name }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.tipo !== false">
                 <Badge >
                   {{ row.type === 'login' ? 'Login' : 'Acesso' }}
                 </Badge>
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.email !== false" class="text-right">
                 {{ row.user.email }}
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.ip !== false" class="text-right">
                 {{ row.ip }}
               </TableCell>
-              <TableCell class="text-right text-nowrap">
+              <TableCell v-if="columnVisibility.entrouEm !== false" class="text-right text-nowrap">
                 {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm:ss') }}
               </TableCell>
             </TableRow>
 
             <template v-if="isLoading">
               <TableRow v-for="i in perPage" :key="i">
-                <TableCell v-for="j in 5" :key="i">
-                  <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
+                <TableCell v-for="column in visibleTableColumns" :key="column.id">
+                  <Skeleton class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
             </template>
 
             <template v-if="!isLoading && (!userLogins || !userLogins.length)">
               <TableRow>
-                <TableCell :colspan="5" class="text-center pt-5">
+                <TableCell :colspan="visibleTableColumns.length" class="text-center pt-5">
                   Nenhum histórico de login encontrado.
                 </TableCell>
               </TableRow>
@@ -103,11 +104,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import FilterDialogComponent from "@/components/user_logins/FilterDialogComponent.vue";
 import UserLogins from '@/services/userLogins';
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-vue-next'
 
 import {
@@ -128,6 +130,18 @@ const filters = ref({});
 const order = ref("id");
 const direction = ref(false);
 const selectedType = ref("all");
+
+const tableColumns = [
+  { id: "usuario", label: "Usuário" },
+  { id: "tipo", label: "Tipo" },
+  { id: "email", label: "E-mail" },
+  { id: "ip", label: "IP" },
+  { id: "entrouEm", label: "Entrou em" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const fetchUserLogins = async (page = currentPage.value) => {
   currentPage.value = page;

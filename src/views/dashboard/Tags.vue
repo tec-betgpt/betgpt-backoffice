@@ -30,23 +30,24 @@
       <Button variant="outline" @click="fetchTags" :disabled="loading">
         <RefreshCw :class="cn('h-4 w-4', loading && 'animate-spin')" />
       </Button>
+      <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
     </div>
 
     <div class="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead class="w-[250px]">Nome</TableHead>
-            <TableHead>Slug</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Players</TableHead>
-            <TableHead>Criado em</TableHead>
-            <TableHead class="text-right">Ações</TableHead>
+            <TableHead v-if="columnVisibility.nome !== false" class="w-[250px]">Nome</TableHead>
+            <TableHead v-if="columnVisibility.slug !== false">Slug</TableHead>
+            <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
+            <TableHead v-if="columnVisibility.players !== false">Players</TableHead>
+            <TableHead v-if="columnVisibility.criadoEm !== false">Criado em</TableHead>
+            <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow v-if="loading && !tags.length">
-            <TableCell colspan="6" class="h-24 text-center">
+            <TableCell :colspan="visibleTableColumns.length" class="h-24 text-center">
               <div class="flex items-center justify-center gap-2">
                 <Spinner class="h-4 w-4" />
                 Carregando tags...
@@ -54,12 +55,12 @@
             </TableCell>
           </TableRow>
           <TableRow v-else-if="!tags.length">
-            <TableCell colspan="6" class="h-24 text-center">
+            <TableCell :colspan="visibleTableColumns.length" class="h-24 text-center">
               Nenhuma tag encontrada.
             </TableCell>
           </TableRow>
           <TableRow v-for="tag in tags" :key="tag.id">
-            <TableCell>
+            <TableCell v-if="columnVisibility.nome !== false">
               <div class="flex items-center gap-2">
                 <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: tag.color || '#cbd5e1' }"></div>
                 <span class="font-medium">{{ tag.name }}</span>
@@ -68,23 +69,23 @@
                 ↳ Subtag de: {{ tag.parent.name }}
               </p>
             </TableCell>
-            <TableCell>
+            <TableCell v-if="columnVisibility.slug !== false">
               <code class="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
                 {{ tag.slug }}
               </code>
             </TableCell>
-            <TableCell>
+            <TableCell v-if="columnVisibility.status !== false">
               <Badge :variant="tag.is_active ? 'default' : 'secondary'">
                 {{ tag.is_active ? 'Ativa' : 'Inativa' }}
               </Badge>
             </TableCell>
-            <TableCell class="font-medium">
+            <TableCell v-if="columnVisibility.players !== false" class="font-medium">
               {{ tag.players_count ?? 0 }}
             </TableCell>
-            <TableCell class="text-xs">
+            <TableCell v-if="columnVisibility.criadoEm !== false" class="text-xs">
               {{ formatDate(tag.created_at) }}
             </TableCell>
-            <TableCell class="text-right">
+            <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <Button variant="ghost" class="h-8 w-8 p-0">
@@ -148,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useScreenContext } from "@/composables/useScreenContext";
 import {
   Plus,
@@ -196,6 +197,7 @@ import { cn } from '@/lib/utils';
 import TagsService from '@/services/tags';
 import TagDialog from '@/components/tags/TagDialog.vue';
 import ImportTagsDialog from '@/components/tags/ImportTagsDialog.vue';
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { Tag } from '@/contracts/tag';
 import moment from 'moment';
 import {useWorkspaceStore} from "@/stores/workspace";
@@ -216,6 +218,19 @@ const selectedTag = ref<Tag | null>(null);
 
 const isDeleteDialogOpen = ref(false);
 const tagToDelete = ref<Tag | null>(null);
+
+const tableColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "slug", label: "Slug" },
+  { id: "status", label: "Status" },
+  { id: "players", label: "Players" },
+  { id: "criadoEm", label: "Criado em" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 let searchTimeout: any = null;
 

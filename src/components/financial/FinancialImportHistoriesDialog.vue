@@ -73,19 +73,24 @@
               {{ validRowsCount }} de {{ previewRows.length }} linhas prontas para importação.
             </p>
           </div>
-          <Badge v-if="hasErrors" variant="destructive">
-            {{ errorRowsCount }} linha(s) com erro
-          </Badge>
+          <div class="flex items-center gap-2">
+            <ColumnVisibilityToggle v-model="previewColumnVisibility" :columns="previewColumns" />
+            <Badge v-if="hasErrors" variant="destructive">
+              {{ errorRowsCount }} linha(s) com erro
+            </Badge>
+          </div>
         </div>
 
         <div class="max-h-[420px] overflow-auto rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead class="w-[120px]">Status</TableHead>
-                <TableHead v-for="header in previewHeaders" :key="header">
-                  {{ header }}
-                </TableHead>
+                <TableHead v-if="previewColumnVisibility.status !== false" class="w-[120px]">Status</TableHead>
+                <template v-for="header in previewHeaders" :key="header">
+                  <TableHead v-if="previewColumnVisibility[headerKey(header)] !== false">
+                    {{ header }}
+                  </TableHead>
+                </template>
               </TableRow>
             </TableHeader>
 
@@ -95,7 +100,7 @@
                 :key="rowIndex"
                 :class="row.errors.length ? 'bg-red-50 hover:bg-red-50/80 dark:bg-red-950/20' : ''"
               >
-                <TableCell>
+                <TableCell v-if="previewColumnVisibility.status !== false">
                   <Badge v-if="row.errors.length" variant="destructive" :title="row.errors.join('\n')">
                     <AlertCircle class="mr-1 h-3 w-3" />
                     Erro
@@ -104,13 +109,15 @@
                     OK
                   </Badge>
                 </TableCell>
-                <TableCell v-for="header in previewHeaders" :key="`${rowIndex}-${header}`">
-                  {{ formatCell(row.data[headerKey(header)]) }}
-                </TableCell>
+                <template v-for="header in previewHeaders" :key="`${rowIndex}-${header}`">
+                  <TableCell v-if="previewColumnVisibility[headerKey(header)] !== false">
+                    {{ formatCell(row.data[headerKey(header)]) }}
+                  </TableCell>
+                </template>
               </TableRow>
 
               <TableRow v-if="!previewRows.length">
-                <TableCell :colspan="previewHeaders.length + 1" class="h-24 text-center text-muted-foreground">
+                <TableCell :colspan="visiblePreviewColumns.length" class="h-24 text-center text-muted-foreground">
                   Nenhuma linha encontrada no arquivo.
                 </TableCell>
               </TableRow>
@@ -154,6 +161,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { toast } from "vue-sonner";
 
 type Step = "upload" | "preview" | "processing";
@@ -201,6 +209,15 @@ const headerKey = (header: string) => header
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, "_")
   .replace(/^_+|_+$/g, "");
+
+const previewColumns = computed(() => [
+  { id: "status", label: "Status" },
+  ...previewHeaders.value.map((header) => ({ id: headerKey(header), label: header })),
+]);
+const previewColumnVisibility = ref<Record<string, boolean>>({});
+const visiblePreviewColumns = computed(() =>
+  previewColumns.value.filter((c) => previewColumnVisibility.value[c.id] !== false)
+);
 
 const normalizeProjectId = (projectId: string | number | null) => {
   if (typeof projectId === "number") return String(projectId);

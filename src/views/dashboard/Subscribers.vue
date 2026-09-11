@@ -13,31 +13,34 @@
 
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        </div>
         <Table class="w-full'">
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead class="text-right">Workspaces</TableHead>
-              <TableHead class="text-right">Plano/Serviço</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.nome !== false">Nome</TableHead>
+              <TableHead v-if="columnVisibility.email !== false">Email</TableHead>
+              <TableHead v-if="columnVisibility.workspaces !== false" class="text-right">Workspaces</TableHead>
+              <TableHead v-if="columnVisibility.planoServico !== false" class="text-right">Plano/Serviço</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             <TableRow v-for="row in users" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.nome !== false">
                 {{ row.first_name }} {{ row.last_name }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.email !== false">
                 {{ row.email }}
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.workspaces !== false" class="text-right">
                 <Badge variant="outline">
                   {{ row.projects_count }} workspaces
                 </Badge>
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.planoServico !== false" class="text-right">
                 <Badge variant="outline" v-if="row.service">
                   {{ row.service.name }}
                 </Badge>
@@ -45,7 +48,7 @@
                   -
                 </span>
               </TableCell>
-              <TableCell class="text-right flex flex-row justify-end gap-2">
+              <TableCell v-if="columnVisibility.acoes !== false" class="text-right flex flex-row justify-end gap-2">
                 <ToggleAvailableComponent :row="row" :reload="fetchUsers" />
                 <SettingsDialogComponent :reload="fetchUsers" :row="row" />
                 <ServiceDialogComponent :reload="fetchUsers" :row="row" />
@@ -66,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table } from "@/components/ui/table";
@@ -75,6 +78,19 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ServiceDialogComponent from "@/components/subscribers/ServiceDialogComponent.vue";
 import SettingsDialogComponent from "@/components/subscribers/SettingsDialogComponent.vue";
 import ToggleAvailableComponent from "@/components/subscribers/ToggleAvailableComponent.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+
+const tableColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "email", label: "Email" },
+  { id: "workspaces", label: "Workspaces" },
+  { id: "planoServico", label: "Plano/Serviço" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 type User = {
   id: string;

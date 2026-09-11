@@ -142,7 +142,10 @@
           <CardHeader class="pb-2">
             <div class="flex items-center justify-between">
               <CardTitle>Outbox</CardTitle>
-              <Badge variant="outline">{{ outbox?.total ?? 0 }} linhas</Badge>
+              <div class="flex items-center gap-2">
+                <Badge variant="outline">{{ outbox?.total ?? 0 }} linhas</Badge>
+                <ColumnVisibilityToggle v-model="outboxColumnVisibility" :columns="outboxColumns" />
+              </div>
             </div>
           </CardHeader>
           <CardContent class="overflow-x-auto">
@@ -155,24 +158,24 @@
                       @update:checked="toggleSelectAll"
                     />
                   </TableHead>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Evento</TableHead>
-                  <TableHead>Webhook</TableHead>
-                  <TableHead>Tentativas</TableHead>
-                  <TableHead>Último erro</TableHead>
-                  <TableHead class="text-right">Processado em</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead class="text-right">Ações</TableHead>
+                  <TableHead v-if="outboxColumnVisibility.id !== false">ID</TableHead>
+                  <TableHead v-if="outboxColumnVisibility.evento !== false">Evento</TableHead>
+                  <TableHead v-if="outboxColumnVisibility.webhook !== false">Webhook</TableHead>
+                  <TableHead v-if="outboxColumnVisibility.tentativas !== false">Tentativas</TableHead>
+                  <TableHead v-if="outboxColumnVisibility.ultimoErro !== false">Último erro</TableHead>
+                  <TableHead v-if="outboxColumnVisibility.processadoEm !== false" class="text-right">Processado em</TableHead>
+                  <TableHead v-if="outboxColumnVisibility.status !== false">Status</TableHead>
+                  <TableHead v-if="outboxColumnVisibility.acoes !== false" class="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow v-if="outboxLoading && !outbox">
-                  <TableCell colspan="9" class="py-8 text-center text-muted-foreground">
+                  <TableCell :colspan="visibleOutboxColumns.length + 1" class="py-8 text-center text-muted-foreground">
                     Carregando outbox...
                   </TableCell>
                 </TableRow>
                 <TableRow v-else-if="outboxRows.length === 0">
-                  <TableCell colspan="9" class="py-8 text-center text-muted-foreground">
+                  <TableCell :colspan="visibleOutboxColumns.length + 1" class="py-8 text-center text-muted-foreground">
                     Nenhuma linha no outbox para os filtros selecionados.
                   </TableCell>
                 </TableRow>
@@ -183,29 +186,29 @@
                       @update:checked="toggleSelect(row.id)"
                     />
                   </TableCell>
-                  <TableCell class="font-medium">#{{ row.id }}</TableCell>
-                  <TableCell>
+                  <TableCell v-if="outboxColumnVisibility.id !== false" class="font-medium">#{{ row.id }}</TableCell>
+                  <TableCell v-if="outboxColumnVisibility.evento !== false">
                     <Badge variant="outline">{{ row.event_type }}</Badge>
                     <div class="mt-0.5 font-mono text-xs text-muted-foreground">{{ shortId(row.event_id) }}</div>
                   </TableCell>
-                  <TableCell>{{ row.project_webhook_id ?? "—" }}</TableCell>
-                  <TableCell>
+                  <TableCell v-if="outboxColumnVisibility.webhook !== false">{{ row.project_webhook_id ?? "—" }}</TableCell>
+                  <TableCell v-if="outboxColumnVisibility.tentativas !== false">
                     <span :class="row.attempts > 1 ? 'font-medium text-destructive' : ''">
                       {{ row.attempts }}
                     </span>
                   </TableCell>
-                  <TableCell class="max-w-[220px] truncate" :title="row.last_error || ''">
+                  <TableCell v-if="outboxColumnVisibility.ultimoErro !== false" class="max-w-[220px] truncate" :title="row.last_error || ''">
                     {{ row.last_error || "—" }}
                   </TableCell>
-                  <TableCell class="text-right text-nowrap">
+                  <TableCell v-if="outboxColumnVisibility.processadoEm !== false" class="text-right text-nowrap">
                     {{ formatNullableDateTime(row.processed_at) }}
                   </TableCell>
-                  <TableCell>
+                  <TableCell v-if="outboxColumnVisibility.status !== false">
                     <Badge v-if="row.dlq" variant="destructive">DLQ</Badge>
                     <Badge v-else-if="row.processed_at" variant="secondary">Processado</Badge>
                     <Badge v-else variant="outline">Pendente</Badge>
                   </TableCell>
-                  <TableCell class="text-right">
+                  <TableCell v-if="outboxColumnVisibility.acoes !== false" class="text-right">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -235,45 +238,48 @@
           <CardHeader class="pb-2">
             <div class="flex items-center justify-between">
               <CardTitle>Logs de entrega</CardTitle>
-              <Badge variant="outline">{{ deliveryLogs?.total ?? 0 }} registros</Badge>
+              <div class="flex items-center gap-2">
+                <Badge variant="outline">{{ deliveryLogs?.total ?? 0 }} registros</Badge>
+                <ColumnVisibilityToggle v-model="deliveryLogsColumnVisibility" :columns="deliveryLogsColumns" />
+              </div>
             </div>
           </CardHeader>
           <CardContent class="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Evento</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>HTTP</TableHead>
-                  <TableHead>Motivo</TableHead>
-                  <TableHead class="text-right">Data</TableHead>
+                  <TableHead v-if="deliveryLogsColumnVisibility.id !== false">ID</TableHead>
+                  <TableHead v-if="deliveryLogsColumnVisibility.evento !== false">Evento</TableHead>
+                  <TableHead v-if="deliveryLogsColumnVisibility.status !== false">Status</TableHead>
+                  <TableHead v-if="deliveryLogsColumnVisibility.http !== false">HTTP</TableHead>
+                  <TableHead v-if="deliveryLogsColumnVisibility.motivo !== false">Motivo</TableHead>
+                  <TableHead v-if="deliveryLogsColumnVisibility.data !== false" class="text-right">Data</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow v-if="logsLoading && !deliveryLogs">
-                  <TableCell colspan="6" class="py-8 text-center text-muted-foreground">
+                  <TableCell :colspan="visibleDeliveryLogsColumns.length" class="py-8 text-center text-muted-foreground">
                     Carregando logs...
                   </TableCell>
                 </TableRow>
                 <TableRow v-else-if="deliveryLogRows.length === 0">
-                  <TableCell colspan="6" class="py-8 text-center text-muted-foreground">
+                  <TableCell :colspan="visibleDeliveryLogsColumns.length" class="py-8 text-center text-muted-foreground">
                     Nenhum log de entrega registrado.
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="row in deliveryLogRows" :key="row.id">
-                  <TableCell class="font-medium">#{{ row.id }}</TableCell>
-                  <TableCell>{{ row.event_type || "—" }}</TableCell>
-                  <TableCell>
+                  <TableCell v-if="deliveryLogsColumnVisibility.id !== false" class="font-medium">#{{ row.id }}</TableCell>
+                  <TableCell v-if="deliveryLogsColumnVisibility.evento !== false">{{ row.event_type || "—" }}</TableCell>
+                  <TableCell v-if="deliveryLogsColumnVisibility.status !== false">
                     <Badge :variant="row.success ? 'default' : 'destructive'">
                       {{ row.success ? "Sucesso" : "Falha" }}
                     </Badge>
                   </TableCell>
-                  <TableCell>{{ row.response_status ?? "—" }}</TableCell>
-                  <TableCell class="max-w-[260px] truncate" :title="row.reason || ''">
+                  <TableCell v-if="deliveryLogsColumnVisibility.http !== false">{{ row.response_status ?? "—" }}</TableCell>
+                  <TableCell v-if="deliveryLogsColumnVisibility.motivo !== false" class="max-w-[260px] truncate" :title="row.reason || ''">
                     {{ row.reason || "—" }}
                   </TableCell>
-                  <TableCell class="text-right text-nowrap">
+                  <TableCell v-if="deliveryLogsColumnVisibility.data !== false" class="text-right text-nowrap">
                     {{ formatDateTime(row.created_at) }}
                   </TableCell>
                 </TableRow>
@@ -363,45 +369,48 @@
 
         <Card>
           <CardContent class="overflow-x-auto py-4">
+            <div class="flex justify-end mb-2">
+              <ColumnVisibilityToggle v-model="incomingColumnVisibility" :columns="incomingColumns" />
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Projeto</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Erro</TableHead>
-                  <TableHead class="text-right">Processado em</TableHead>
-                  <TableHead class="text-right">Recebido em</TableHead>
+                  <TableHead v-if="incomingColumnVisibility.id !== false">ID</TableHead>
+                  <TableHead v-if="incomingColumnVisibility.projeto !== false">Projeto</TableHead>
+                  <TableHead v-if="incomingColumnVisibility.tipo !== false">Tipo</TableHead>
+                  <TableHead v-if="incomingColumnVisibility.status !== false">Status</TableHead>
+                  <TableHead v-if="incomingColumnVisibility.erro !== false">Erro</TableHead>
+                  <TableHead v-if="incomingColumnVisibility.processadoEm !== false" class="text-right">Processado em</TableHead>
+                  <TableHead v-if="incomingColumnVisibility.recebidoEm !== false" class="text-right">Recebido em</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow v-if="incomingLoading && !incoming">
-                  <TableCell colspan="7" class="py-8 text-center text-muted-foreground">
+                  <TableCell :colspan="visibleIncomingColumns.length" class="py-8 text-center text-muted-foreground">
                     Carregando postbacks...
                   </TableCell>
                 </TableRow>
                 <TableRow v-else-if="incomingLogRows.length === 0">
-                  <TableCell colspan="7" class="py-8 text-center text-muted-foreground">
+                  <TableCell :colspan="visibleIncomingColumns.length" class="py-8 text-center text-muted-foreground">
                     Nenhum postback para os filtros selecionados.
                   </TableCell>
                 </TableRow>
                 <TableRow v-for="row in incomingLogRows" :key="row.id">
-                  <TableCell class="font-medium">#{{ row.id }}</TableCell>
-                  <TableCell>{{ row.project?.name ?? `#${row.project_id}` }}</TableCell>
-                  <TableCell><Badge variant="outline">{{ row.type }}</Badge></TableCell>
-                  <TableCell>
+                  <TableCell v-if="incomingColumnVisibility.id !== false" class="font-medium">#{{ row.id }}</TableCell>
+                  <TableCell v-if="incomingColumnVisibility.projeto !== false">{{ row.project?.name ?? `#${row.project_id}` }}</TableCell>
+                  <TableCell v-if="incomingColumnVisibility.tipo !== false"><Badge variant="outline">{{ row.type }}</Badge></TableCell>
+                  <TableCell v-if="incomingColumnVisibility.status !== false">
                     <Badge :variant="row.status === 'processed' ? 'default' : row.error ? 'destructive' : 'secondary'">
                       {{ row.status }}
                     </Badge>
                   </TableCell>
-                  <TableCell class="max-w-[240px] truncate" :title="row.error || ''">
+                  <TableCell v-if="incomingColumnVisibility.erro !== false" class="max-w-[240px] truncate" :title="row.error || ''">
                     {{ row.error || "—" }}
                   </TableCell>
-                  <TableCell class="text-right text-nowrap">
+                  <TableCell v-if="incomingColumnVisibility.processadoEm !== false" class="text-right text-nowrap">
                     {{ formatNullableDateTime(row.processed_at) }}
                   </TableCell>
-                  <TableCell class="text-right text-nowrap">
+                  <TableCell v-if="incomingColumnVisibility.recebidoEm !== false" class="text-right text-nowrap">
                     {{ formatDateTime(row.created_at) }}
                   </TableCell>
                 </TableRow>
@@ -504,6 +513,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import WebhooksService from "@/services/webhooks";
 import { EVENT_TYPES } from "@/contracts/observability";
 import { useWebhooksStore } from "@/stores/webhooks";
@@ -543,6 +553,48 @@ const selectedOutboxIds = ref<number[]>([]);
 const incomingFilters = ref({ type: "all", status: "all" });
 
 const pollTimer = ref<number | null>(null);
+
+const outboxColumns = [
+  { id: "id", label: "ID" },
+  { id: "evento", label: "Evento" },
+  { id: "webhook", label: "Webhook" },
+  { id: "tentativas", label: "Tentativas" },
+  { id: "ultimoErro", label: "Último erro" },
+  { id: "processadoEm", label: "Processado em" },
+  { id: "status", label: "Status" },
+  { id: "acoes", label: "Ações" },
+];
+const outboxColumnVisibility = ref<Record<string, boolean>>({});
+const visibleOutboxColumns = computed(() =>
+  outboxColumns.filter((c) => outboxColumnVisibility.value[c.id] !== false)
+);
+
+const deliveryLogsColumns = [
+  { id: "id", label: "ID" },
+  { id: "evento", label: "Evento" },
+  { id: "status", label: "Status" },
+  { id: "http", label: "HTTP" },
+  { id: "motivo", label: "Motivo" },
+  { id: "data", label: "Data" },
+];
+const deliveryLogsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleDeliveryLogsColumns = computed(() =>
+  deliveryLogsColumns.filter((c) => deliveryLogsColumnVisibility.value[c.id] !== false)
+);
+
+const incomingColumns = [
+  { id: "id", label: "ID" },
+  { id: "projeto", label: "Projeto" },
+  { id: "tipo", label: "Tipo" },
+  { id: "status", label: "Status" },
+  { id: "erro", label: "Erro" },
+  { id: "processadoEm", label: "Processado em" },
+  { id: "recebidoEm", label: "Recebido em" },
+];
+const incomingColumnVisibility = ref<Record<string, boolean>>({});
+const visibleIncomingColumns = computed(() =>
+  incomingColumns.filter((c) => incomingColumnVisibility.value[c.id] !== false)
+);
 
 const projectId = computed(() => Number(workspaceStore.activeGroupProject?.project_id ?? 0));
 

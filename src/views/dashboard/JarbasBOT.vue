@@ -19,13 +19,16 @@
 
     </div>
     <div class="rounded-lg border p-4">
+      <div class="flex justify-end mb-2">
+        <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Período</TableHead>
-            <TableHead>Avaliação</TableHead>
-            <TableHead>O bot ajudou?</TableHead>
-            <TableHead>Sugestões</TableHead>
+            <TableHead v-if="columnVisibility.periodo !== false">Período</TableHead>
+            <TableHead v-if="columnVisibility.avaliacao !== false">Avaliação</TableHead>
+            <TableHead v-if="columnVisibility.botAjudou !== false">O bot ajudou?</TableHead>
+            <TableHead v-if="columnVisibility.sugestoes !== false">Sugestões</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -33,10 +36,10 @@
               v-for="feedback in feedbackHistory"
               :key="feedback.id"
           >
-            <TableCell>{{
+            <TableCell v-if="columnVisibility.periodo !== false">{{
                 formatWeekPeriod(feedback.created_at)
               }}</TableCell>
-            <TableCell>
+            <TableCell v-if="columnVisibility.avaliacao !== false">
               <div class="flex items-center">
                 <div class="flex">
                   <Star
@@ -52,15 +55,15 @@
                 </div>
               </div>
             </TableCell>
-            <TableCell>{{
+            <TableCell v-if="columnVisibility.botAjudou !== false">{{
                 feedback.was_helpful ? "Sim" : "Não"
               }}</TableCell>
-            <TableCell class="max-w-[200px] truncate">{{
+            <TableCell v-if="columnVisibility.sugestoes !== false" class="max-w-[200px] truncate">{{
                 feedback.suggestions
               }}</TableCell>
           </TableRow>
           <TableRow v-if="feedbackHistory.length === 0">
-            <TableCell colspan="4" class="text-center py-4"
+            <TableCell :colspan="visibleTableColumns.length" class="text-center py-4"
             >Nenhum feedback registrado ainda.</TableCell
             >
           </TableRow>
@@ -226,6 +229,7 @@ import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTr
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import {Checkbox} from "@/components/ui/checkbox";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
 
 const workspaceStore = useWorkspaceStore();
@@ -247,6 +251,17 @@ const pendingFeedback = ref(false);
 const activeGroupProject = workspaceStore.activeGroupProject;
 const botStatusActive = ref(false);
 const openDialog = ref(false);
+
+const tableColumns = [
+  { id: "periodo", label: "Período" },
+  { id: "avaliacao", label: "Avaliação" },
+  { id: "botAjudou", label: "O bot ajudou?" },
+  { id: "sugestoes", label: "Sugestões" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 // Screen Context
 useScreenContext("Jarbas BOT", () => ({

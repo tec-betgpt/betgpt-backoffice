@@ -205,51 +205,58 @@
         </CardHeader>
         <Separator />
         <CardContent>
+          <div class="flex justify-end mb-2">
+            <ColumnVisibilityToggle v-model="rechargesColumnVisibility" :columns="rechargesColumns" />
+          </div>
           <Table class="min-w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Serviço</TableHead>
-                <TableHead class="text-right">Créditos</TableHead>
-                <TableHead class="text-right">Preço</TableHead>
-                <TableHead class="text-right">Valor</TableHead>
-                <TableHead class="text-right">Situação</TableHead>
-                <TableHead class="text-right">Nota Fiscal</TableHead>
+                <TableHead v-if="rechargesColumnVisibility.data !== false">Data</TableHead>
+                <TableHead v-if="rechargesColumnVisibility.descricao !== false">Descrição</TableHead>
+                <TableHead v-if="rechargesColumnVisibility.servico !== false">Serviço</TableHead>
+                <TableHead v-if="rechargesColumnVisibility.creditos !== false" class="text-right">Créditos</TableHead>
+                <TableHead v-if="rechargesColumnVisibility.preco !== false" class="text-right">Preço</TableHead>
+                <TableHead v-if="rechargesColumnVisibility.valor !== false" class="text-right">Valor</TableHead>
+                <TableHead v-if="rechargesColumnVisibility.situacao !== false" class="text-right">Situação</TableHead>
+                <TableHead v-if="rechargesColumnVisibility.notaFiscal !== false" class="text-right">Nota Fiscal</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow class="font-bold">
-                <TableCell colspan="3" />
-                <TableCell class="text-right">{{
+                <TableCell v-if="rechargesColumnVisibility.data !== false" />
+                <TableCell v-if="rechargesColumnVisibility.descricao !== false" />
+                <TableCell v-if="rechargesColumnVisibility.servico !== false" />
+                <TableCell v-if="rechargesColumnVisibility.creditos !== false" class="text-right">{{
                   rechargesTotal.credits
                 }}</TableCell>
-                <TableCell class="text-right">{{
+                <TableCell v-if="rechargesColumnVisibility.preco !== false" class="text-right">{{
                   $toCurrency(rechargesTotal.price)
                 }}</TableCell>
-                <TableCell class="text-right">{{
+                <TableCell v-if="rechargesColumnVisibility.valor !== false" class="text-right">{{
                   $toCurrency(rechargesTotal.total)
                 }}</TableCell>
-                <TableCell class="text-right" colspan="2" />
+                <TableCell v-if="rechargesColumnVisibility.situacao !== false" class="text-right" />
+                <TableCell v-if="rechargesColumnVisibility.notaFiscal !== false" class="text-right" />
               </TableRow>
               <TableRow v-for="(recharge, index) in recharges" :key="index">
-                <TableCell>{{
+                <TableCell v-if="rechargesColumnVisibility.data !== false">{{
                   recharge.created_at
                     ? $moment(recharge.created_at).format("DD/MM/YYYY HH:mm:ss")
                     : ""
                 }}</TableCell>
-                <TableCell>{{ recharge.description }}</TableCell>
-                <TableCell>{{ recharge.service }}</TableCell>
-                <TableCell class="text-right">{{ recharge.credits }}</TableCell>
+                <TableCell v-if="rechargesColumnVisibility.descricao !== false">{{ recharge.description }}</TableCell>
+                <TableCell v-if="rechargesColumnVisibility.servico !== false">{{ recharge.service }}</TableCell>
+                <TableCell v-if="rechargesColumnVisibility.creditos !== false" class="text-right">{{ recharge.credits }}</TableCell>
                 <TableCell
+                  v-if="rechargesColumnVisibility.preco !== false"
                   class="text-right"
                   :title="'R$ ' + recharge.total / recharge.credits"
                   >{{ $toCurrency(recharge.price) }}</TableCell
                 >
-                <TableCell class="text-right">{{
+                <TableCell v-if="rechargesColumnVisibility.valor !== false" class="text-right">{{
                   $toCurrency(recharge.total)
                 }}</TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="rechargesColumnVisibility.situacao !== false" class="text-right">
                   <span
                     class="text-green-600"
                     v-if="recharge.situation === 'APPROVED'"
@@ -257,7 +264,7 @@
                   >
                   <span class="text-red-600" v-else>Pendente</span>
                 </TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="rechargesColumnVisibility.notaFiscal !== false" class="text-right">
                   <Button
                     v-if="recharge.invoice_url"
                     variant="outline"
@@ -358,12 +365,16 @@
               <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
 
+            <div class="flex justify-end mb-2">
+              <ColumnVisibilityToggle v-model="callsColumnVisibility" :columns="callsColumns" />
+            </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead class="whitespace-nowrap">Cliente</TableHead>
-                  <TableHead class="whitespace-nowrap">Número</TableHead>
-                  <TableHead>
+                  <TableHead v-if="callsColumnVisibility.cliente !== false" class="whitespace-nowrap">Cliente</TableHead>
+                  <TableHead v-if="callsColumnVisibility.numero !== false" class="whitespace-nowrap">Número</TableHead>
+                  <TableHead v-if="callsColumnVisibility.status !== false">
                     <Button
                       variant="ghost"
                       class="h-fit p-0 text-xs"
@@ -372,7 +383,7 @@
                       Status <ChevronsUpDown class="ml-1 h-4 w-4" />
                     </Button>
                   </TableHead>
-                  <TableHead class="text-right whitespace-nowrap">
+                  <TableHead v-if="callsColumnVisibility.percentualOuvido !== false" class="text-right whitespace-nowrap">
                     <Button
                       variant="ghost"
                       class="h-fit p-0 text-xs"
@@ -381,7 +392,7 @@
                       % Ouvido <ChevronsUpDown class="ml-1 h-4 w-4" />
                     </Button>
                   </TableHead>
-                  <TableHead class="text-right whitespace-nowrap">
+                  <TableHead v-if="callsColumnVisibility.duracao !== false" class="text-right whitespace-nowrap">
                     <Button
                       variant="ghost"
                       class="h-fit p-0 text-xs"
@@ -390,8 +401,8 @@
                       Duração <ChevronsUpDown class="ml-1 h-4 w-4" />
                     </Button>
                   </TableHead>
-                  <TableHead class="text-center whitespace-nowrap">Tentativa</TableHead>
-                  <TableHead class="text-right whitespace-nowrap">
+                  <TableHead v-if="callsColumnVisibility.tentativa !== false" class="text-center whitespace-nowrap">Tentativa</TableHead>
+                  <TableHead v-if="callsColumnVisibility.dataHora !== false" class="text-right whitespace-nowrap">
                     <Button
                       variant="ghost"
                       class="h-fit p-0 text-xs"
@@ -406,7 +417,7 @@
                 <template v-if="calls.length === 0 && !loadingCalls">
                   <TableRow>
                     <TableCell
-                      colspan="7"
+                      :colspan="visibleCallsColumns.length"
                       class="text-center text-muted-foreground py-8"
                     >
                       Nenhuma ligação encontrada.
@@ -414,9 +425,9 @@
                   </TableRow>
                 </template>
                 <TableRow v-for="call in calls" :key="call.call_id">
-                  <TableCell class="whitespace-nowrap">{{ call.client_name || "—" }}</TableCell>
-                  <TableCell class="whitespace-nowrap">{{ call.phone_number }}</TableCell>
-                  <TableCell>
+                  <TableCell v-if="callsColumnVisibility.cliente !== false" class="whitespace-nowrap">{{ call.client_name || "—" }}</TableCell>
+                  <TableCell v-if="callsColumnVisibility.numero !== false" class="whitespace-nowrap">{{ call.phone_number }}</TableCell>
+                  <TableCell v-if="callsColumnVisibility.status !== false">
                     <span
                       :class="statusClass(call.status)"
                       class="text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
@@ -424,18 +435,18 @@
                       {{ call.status }}
                     </span>
                   </TableCell>
-                  <TableCell class="text-right whitespace-nowrap"
+                  <TableCell v-if="callsColumnVisibility.percentualOuvido !== false" class="text-right whitespace-nowrap"
                     >{{ call.percentage_heard.toFixed(2) }}%</TableCell
                   >
-                  <TableCell class="text-right whitespace-nowrap">{{
+                  <TableCell v-if="callsColumnVisibility.duracao !== false" class="text-right whitespace-nowrap">{{
                     formatDuration(call.seconds_duration)
                   }}</TableCell>
-                  <TableCell class="text-center whitespace-nowrap"
+                  <TableCell v-if="callsColumnVisibility.tentativa !== false" class="text-center whitespace-nowrap"
                     >{{ call.actual_attempt }}/{{
                       call.configured_attempts
                     }}</TableCell
                   >
-                  <TableCell class="text-right text-xs whitespace-nowrap">
+                  <TableCell v-if="callsColumnVisibility.dataHora !== false" class="text-right text-xs whitespace-nowrap">
                     {{
                       call.tried_at
                         ? $moment(call.tried_at).format("DD/MM/YYYY HH:mm:ss")
@@ -528,6 +539,36 @@ import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 
 import PeriodComponent from "@/components/google_analytics/PeriodComponent.vue";
 import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipComponent.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+
+const rechargesColumns = [
+  { id: "data", label: "Data" },
+  { id: "descricao", label: "Descrição" },
+  { id: "servico", label: "Serviço" },
+  { id: "creditos", label: "Créditos" },
+  { id: "preco", label: "Preço" },
+  { id: "valor", label: "Valor" },
+  { id: "situacao", label: "Situação" },
+  { id: "notaFiscal", label: "Nota Fiscal" },
+];
+const rechargesColumnVisibility = ref<Record<string, boolean>>({});
+const visibleRechargesColumns = computed(() =>
+  rechargesColumns.filter((c) => rechargesColumnVisibility.value[c.id] !== false)
+);
+
+const callsColumns = [
+  { id: "cliente", label: "Cliente" },
+  { id: "numero", label: "Número" },
+  { id: "status", label: "Status" },
+  { id: "percentualOuvido", label: "% Ouvido" },
+  { id: "duracao", label: "Duração" },
+  { id: "tentativa", label: "Tentativa" },
+  { id: "dataHora", label: "Data/Hora" },
+];
+const callsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleCallsColumns = computed(() =>
+  callsColumns.filter((c) => callsColumnVisibility.value[c.id] !== false)
+);
 
 // ── Stores & utils ─────────────────────────────────────────────────────────────
 const authStore = useAuthStore();

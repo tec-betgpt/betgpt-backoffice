@@ -15,33 +15,36 @@
 
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        </div>
         <Table class="w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead class="text-right">Contratado por</TableHead>
-              <TableHead class="text-right">Criado em</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.nome !== false">Nome</TableHead>
+              <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
+              <TableHead v-if="columnVisibility.contratadoPor !== false" class="text-right">Contratado por</TableHead>
+              <TableHead v-if="columnVisibility.criadoEm !== false" class="text-right">Criado em</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             <TableRow v-for="row in services" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.nome !== false">
                 {{ row.name }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.status !== false">
                 <Badge variant="secondary" v-if="row.is_active" class="bg-green-200 text-green-800">Ativo</Badge>
                 <Badge variant="secondary" v-else class="bg-red-200 text-red-800">Inativo</Badge>
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.contratadoPor !== false" class="text-right">
                 -
               </TableCell>
-              <TableCell class="text-right text-nowrap">
+              <TableCell v-if="columnVisibility.criadoEm !== false" class="text-right text-nowrap">
                 {{ $moment(row.created_at).format('DD/MM/YYYY') }}
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
                 <div class="gap-1 flex flex-nowrap justify-end">
                   <ToggleActivatedComponent :row="row" :reload="fetchServices" class="mr-1" />
                   <EditDialogComponent :row="row" :reload="fetchServices" />
@@ -52,15 +55,15 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
-                <TableCell v-for="j in 4" :key="i">
-                  <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
+                <TableCell v-for="column in visibleTableColumns" :key="column.id">
+                  <Skeleton class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
             </template>
 
             <template v-if="!isLoading && (!services || !services.length)">
               <TableRow>
-                <TableCell :colspan="4" class="text-center py-5">
+                <TableCell :colspan="visibleTableColumns.length" class="text-center py-5">
                   Nenhum serviço encontrado.
                 </TableCell>
               </TableRow>
@@ -80,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { toast } from "vue-sonner";
 import Services from "@/services/services";
@@ -89,7 +92,19 @@ import CreateDialogComponent from "@/components/services/CreateDialogComponent.v
 import EditDialogComponent from "@/components/services/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import ToggleActivatedComponent from "@/components/services/ToggleActivatedComponent.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
+const tableColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "status", label: "Status" },
+  { id: "contratadoPor", label: "Contratado por" },
+  { id: "criadoEm", label: "Criado em" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const services = ref();
 const isLoading = ref(true);

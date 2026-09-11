@@ -118,6 +118,10 @@
           </div>
         </div>
 
+        <div v-if="hasProject" class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="historyColumnVisibility" :columns="historyColumns" />
+        </div>
+
         <p v-if="!hasProject" class="text-sm text-muted-foreground">
           Selecione um projeto para consultar o histórico.
         </p>
@@ -126,52 +130,55 @@
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>UUID</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>supplier_status</TableHead>
-                <TableHead>supplier_message_id</TableHead>
-                <TableHead>supplier_dispatch_id</TableHead>
-                <TableHead>Solicitado em</TableHead>
-                <TableHead class="text-right">Ações</TableHead>
+                <TableHead v-if="historyColumnVisibility.uuid !== false">UUID</TableHead>
+                <TableHead v-if="historyColumnVisibility.status !== false">Status</TableHead>
+                <TableHead v-if="historyColumnVisibility.supplierStatus !== false">supplier_status</TableHead>
+                <TableHead v-if="historyColumnVisibility.supplierMessageId !== false">supplier_message_id</TableHead>
+                <TableHead v-if="historyColumnVisibility.supplierDispatchId !== false">supplier_dispatch_id</TableHead>
+                <TableHead v-if="historyColumnVisibility.solicitadoEm !== false">Solicitado em</TableHead>
+                <TableHead v-if="historyColumnVisibility.acoes !== false" class="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow v-if="store.loadingList && store.items.length === 0">
-                <TableCell colspan="7" class="h-24 text-center text-muted-foreground">
+                <TableCell :colspan="visibleHistoryColumns.length" class="h-24 text-center text-muted-foreground">
                   Carregando histórico...
                 </TableCell>
               </TableRow>
               <TableRow v-else-if="store.items.length === 0">
-                <TableCell colspan="7" class="h-24 text-center text-muted-foreground">
+                <TableCell :colspan="visibleHistoryColumns.length" class="h-24 text-center text-muted-foreground">
                   Nenhuma mensagem encontrada.
                 </TableCell>
               </TableRow>
 
               <TableRow v-for="item in store.items" :key="item.id">
                 <TableCell
+                  v-if="historyColumnVisibility.uuid !== false"
                   class="max-w-[120px] truncate font-mono text-xs"
                   :title="item.uuid"
                 >
                   {{ item.uuid }}
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="historyColumnVisibility.status !== false">
                   <SmsStatusBadge :status="item.status" />
                 </TableCell>
-                <TableCell class="font-mono text-xs">{{ item.supplier_status || "—" }}</TableCell>
+                <TableCell v-if="historyColumnVisibility.supplierStatus !== false" class="font-mono text-xs">{{ item.supplier_status || "—" }}</TableCell>
                 <TableCell
+                  v-if="historyColumnVisibility.supplierMessageId !== false"
                   class="max-w-[140px] truncate font-mono text-xs text-muted-foreground"
                   :title="item.supplier_message_id || undefined"
                 >
                   {{ item.supplier_message_id || "—" }}
                 </TableCell>
                 <TableCell
+                  v-if="historyColumnVisibility.supplierDispatchId !== false"
                   class="max-w-[140px] truncate font-mono text-xs text-muted-foreground"
                   :title="item.supplier_dispatch_id || undefined"
                 >
                   {{ item.supplier_dispatch_id || "—" }}
                 </TableCell>
-                <TableCell class="text-xs">{{ formatDateTime(item.requested_at) }}</TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="historyColumnVisibility.solicitadoEm !== false" class="text-xs">{{ formatDateTime(item.requested_at) }}</TableCell>
+                <TableCell v-if="historyColumnVisibility.acoes !== false" class="text-right">
                   <Button size="sm" variant="outline" @click="openDetails(item)">
                     Detalhes
                   </Button>
@@ -250,6 +257,7 @@ import {
 } from "@/components/ui/table";
 import SmsMessageDetailDialog from "@/components/sms/SmsMessageDetailDialog.vue";
 import SmsStatusBadge from "@/components/sms/SmsStatusBadge.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import {
   SMS_MESSAGE_STATUS_LABELS,
   type SmsMessageListItem,
@@ -277,6 +285,20 @@ const filterForm = reactive({
 
 const dateRangeError = ref("");
 const isDetailsOpen = ref(false);
+
+const historyColumns = [
+  { id: "uuid", label: "UUID" },
+  { id: "status", label: "Status" },
+  { id: "supplierStatus", label: "supplier_status" },
+  { id: "supplierMessageId", label: "supplier_message_id" },
+  { id: "supplierDispatchId", label: "supplier_dispatch_id" },
+  { id: "solicitadoEm", label: "Solicitado em" },
+  { id: "acoes", label: "Ações" },
+];
+const historyColumnVisibility = ref<Record<string, boolean>>({});
+const visibleHistoryColumns = computed(() =>
+  historyColumns.filter((c) => historyColumnVisibility.value[c.id] !== false)
+);
 
 const activeGroupProject = computed(() => workspaceStore.activeGroupProject);
 const isSingleProject = computed(() => activeGroupProject.value?.type === "project");
