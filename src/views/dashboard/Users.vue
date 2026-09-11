@@ -27,50 +27,32 @@
             { key: 'name', placeholder: 'Buscar por nome do usuário...' },
           ]"
         >
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child>
-              <Button variant="outline" class="ml-auto">
-                Acesso <ChevronDown class="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem
-                :checked="accessFilter.includes('member')"
-                @update:checked="setAccess('member')"
-                class="capitalize"
-              >
-                Membro
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                :checked="accessFilter.includes('client')"
-                @update:checked="setAccess('client')"
-              >
-                Cliente
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child>
-              <Button variant="outline" class="ml-auto">
-                Status <ChevronDown class="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem
-                :checked="statusFilter.includes('active')"
-                @update:checked="setStatus('active')"
-                class="capitalize"
-              >
-                Ativo
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                :checked="statusFilter.includes('inactive')"
-                @update:checked="setStatus('inactive')"
-              >
-                Inativo
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div class="flex items-center gap-2">
+            <Label>Acesso</Label>
+            <Select v-model="accessFilter">
+              <SelectTrigger class="w-[180px]">
+                <SelectValue placeholder="Acesso" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="member">Membro</SelectItem>
+                <SelectItem value="client">Cliente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="flex items-center gap-2">
+            <Label>Status</Label>
+            <Select v-model="statusFilter">
+              <SelectTrigger class="w-[180px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="active">Ativo</SelectItem>
+                <SelectItem value="inactive">Inativo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CustomDataTable>
 
         <CustomPagination
@@ -289,6 +271,13 @@ import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import moment from "moment";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const processingAction = ref(null);
 const users = ref<User[]>([]);
@@ -339,28 +328,18 @@ if (activeGroupProjectId) {
   form.value.filter_id = activeGroupProjectId;
 }
 
-const accessFilter = ref<Array<String>>(["client", "member"]);
-const statusFilter = ref<Array<string>>(["active"]);
-const setStatus = (status: any) => {
-  const index = statusFilter.value.indexOf(status);
-  if (index === -1) {
-    statusFilter.value.push(status);
-  } else {
-    statusFilter.value.splice(index, 1);
-  }
-};
-const setAccess = (access: any) => {
-  const index = accessFilter.value.indexOf(access);
-  if (index === -1) {
-    accessFilter.value.push(access);
-  } else {
-    accessFilter.value.splice(index, 1);
-  }
-};
-watch(statusFilter.value, () => {
+const accessFilter = ref<string>("all");
+const statusFilter = ref<string>("active");
+const accessQuery = computed<string[]>(() =>
+  accessFilter.value === "all" ? ["client", "member"] : [accessFilter.value],
+);
+const statusQuery = computed<string[]>(() =>
+  statusFilter.value === "all" ? ["active", "inactive"] : [statusFilter.value],
+);
+watch(statusFilter, () => {
   fetchUsersAndProjects(1);
 });
-watch(accessFilter.value, () => {
+watch(accessFilter, () => {
   fetchUsersAndProjects(1);
 });
 watch(
@@ -468,10 +447,10 @@ const fetchUsersAndProjects = async (current = pages.value.current) => {
         page: current,
         filter_id: form.value.filter_id,
         ...searchParams,
-        status: statusFilter.value,
+        status: statusQuery.value,
         orderBy: order.value,
         orderDirection: direction.value ? "asc" : "desc",
-        access: accessFilter.value,
+        access: accessQuery.value,
         per_page: perPage.value,
       }),
       Projects.index({}),
@@ -531,6 +510,17 @@ const openCreateModal = () => {
   showModal.value = true;
 };
 
+const getServerErrorMessage = (error: any, fallback: string) => {
+  const data = error?.response?.data;
+  if (data?.message) return data.message;
+  const errors = data?.errors;
+  if (errors && typeof errors === "object") {
+    const fields = Object.values(errors).flat().map(String);
+    if (fields.length) return fields.join(" ");
+  }
+  return fallback;
+};
+
 const createUser = async () => {
   isProcessing.value = true;
 
@@ -540,8 +530,11 @@ const createUser = async () => {
     users.value.push(data.data);
     toast.success("Sucesso", { description: "Usuário criado com sucesso." });
     showModal.value = false;
-  } catch (error) {
-    toast.error("Erro", { description: "Erro ao criar o usuário." });
+  } catch (error: any) {
+    if (error?.response?.status === 422 && error?.response?.data?.errors) return;
+    toast.error("Erro", {
+      description: getServerErrorMessage(error, "Erro ao criar o usuário."),
+    });
   } finally {
     await fetchUsersAndProjects();
   }
@@ -559,8 +552,11 @@ const updateUser = async () => {
     users.value[index] = data.data;
     toast.success("Sucesso", { description: "Usuário atualizado com sucesso." });
     showModal.value = false;
-  } catch (error) {
-    toast.error("Erro", { description: "Erro ao atualizar o usuário." });
+  } catch (error: any) {
+    if (error?.response?.status === 422 && error?.response?.data?.errors) return;
+    toast.error("Erro", {
+      description: getServerErrorMessage(error, "Erro ao atualizar o usuário."),
+    });
   } finally {
     isProcessing.value = false;
     await fetchUsersAndProjects();
@@ -920,8 +916,8 @@ const columns = [
 useScreenContext(
     "Tela de usuários - Lista todos os usuários do sistema",
     () => ({
-      "access": accessFilter.value?.join(", ") || "Todos",
-      "status": statusFilter.value?.join(", ") || "Todos",
+      "access": accessFilter.value || "Todos",
+      "status": statusFilter.value || "Todos",
       "orderBy": order.value || "Padrão",
       "orderDirection": direction.value ? "asc" : "desc",
       "page": pages.value.current,

@@ -9,7 +9,7 @@
       <CardContent class="py-4 flex flex-col gap-4">
         <div class="flex w-full items-center justify-between gap-4 flex-wrap">
           <div class="flex items-center gap-2">
-            <Input v-model="searchInput" type="text" placeholder="Pesquisar por nome ou e-mail..." class="w-[300px]" @keydown.enter="handleSearch" />
+            <Input v-model="searchInput" type="text" placeholder="Pesquisar por nome, e-mail ou external id..." class="w-[300px]" @keydown.enter="handleSearch" />
             <Button @click="handleSearch">Pesquisar</Button>
           </div>
 
@@ -229,6 +229,12 @@ const handleSearch = async () => {
   players.value = []
   searchValues.value = { search: searchInput.value };
   await fetchPlayers(1);
+
+  if (players.value.length === 1 && canAccessClientManagement.value) {
+    showPlayer(players.value[0].id);
+    return;
+  }
+
   isLoading.value = false
 };
 

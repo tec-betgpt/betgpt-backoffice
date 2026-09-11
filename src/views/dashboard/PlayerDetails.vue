@@ -9,6 +9,42 @@
         <h2 class="text-xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">Perfil do Cliente</h2>
         <p class="text-xs md:text-sm text-muted-foreground line-clamp-1">Gerenciamento detalhado e histórico de atividade.</p>
       </div>
+
+      <div ref="playerSearchRef" class="relative ml-auto w-full max-w-xs md:max-w-sm">
+        <div class="relative">
+          <SearchIcon class="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            v-model="playerSearchQuery"
+            type="text"
+            placeholder="Pesquisar outro cliente..."
+            class="pl-8"
+            @input="onPlayerSearchInput"
+            @focus="onPlayerSearchFocus"
+          />
+          <Loader2Icon v-if="isSearchingPlayers" class="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-400" />
+        </div>
+
+        <div
+          v-if="playerSearchOpen"
+          class="absolute z-50 mt-1 w-full rounded-md border bg-background shadow-md overflow-hidden"
+        >
+          <template v-if="!isSearchingPlayers">
+            <p v-if="!playerSearchQuery.trim()" class="p-3 text-sm text-muted-foreground text-center">Digite para pesquisar...</p>
+            <p v-else-if="!playerSearchResults.length" class="p-3 text-sm text-muted-foreground text-center">Nenhum cliente encontrado.</p>
+            <ul v-else class="max-h-72 overflow-y-auto py-1">
+              <li
+                v-for="result in playerSearchResults"
+                :key="result.id"
+                @click="selectPlayer(result)"
+                class="flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <span class="truncate font-medium">{{ result.name || 'Não Informado' }}</span>
+                <span class="truncate text-xs text-muted-foreground">{{ result.email }}</span>
+              </li>
+            </ul>
+          </template>
+        </div>
+      </div>
     </div>
 
     <div v-if="isLoading && !player" class="space-y-6">
@@ -308,11 +344,12 @@
 import { ref, computed, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useScreenContext } from "@/composables/useScreenContext";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { 
   ChevronLeft, Loader2Icon, MapPinIcon, 
-  SmartphoneIcon, TagIcon, FilterIcon 
+  SmartphoneIcon, TagIcon, FilterIcon, SearchIcon 
 } from "lucide-vue-next";
+import { onClickOutside } from "@vueuse/core";
 import Players from "@/services/players";
 import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
@@ -330,16 +367,17 @@ import PlayerSmarticoInsights from "@/components/players/PlayerSmarticoInsights.
 import PlayerTimeline from "@/components/players/PlayerTimeline.vue";
 import ContactTimeline from "@/components/observability/ContactTimeline.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
-import {
-  Dialog,
+import { Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const route = useRoute();
+const router = useRouter();
 const authStore = useAuthStore();
 const hasPermission = (permissionName: string) =>
   Boolean((authStore.user as any)?.roles?.some((role: any) =>
@@ -371,6 +409,63 @@ const playerContact = computed(() => {
 const projectIdForTimeline = computed(() =>
   Number(workspaceStore.activeGroupProject?.project_id ?? 0),
 );
+
+const playerSearchQuery = ref('');
+const playerSearchResults = ref<any[]>([]);
+const isSearchingPlayers = ref(false);
+const playerSearchOpen = ref(false);
+const playerSearchRef = ref<HTMLElement | null>(null);
+let playerSearchTimeout: any = null;
+
+const fetchPlayerSearch = async (query: string) => {
+  const q = String(query ?? '').trim();
+  if (!q) {
+    playerSearchResults.value = [];
+    isSearchingPlayers.value = false;
+    return;
+  }
+
+  isSearchingPlayers.value = true;
+  try {
+    const response = await Players.index({
+      search: q,
+      filter_id: activeGroupProjectId,
+      per_page: 10,
+    });
+    playerSearchResults.value = response.data ?? [];
+  } catch (error) {
+    console.error(error);
+    playerSearchResults.value = [];
+  } finally {
+    isSearchingPlayers.value = false;
+  }
+};
+
+const onPlayerSearchInput = () => {
+  playerSearchOpen.value = true;
+  clearTimeout(playerSearchTimeout);
+  playerSearchTimeout = setTimeout(() => {
+    fetchPlayerSearch(playerSearchQuery.value);
+  }, 400);
+};
+
+const onPlayerSearchFocus = () => {
+  playerSearchOpen.value = true;
+  if (!playerSearchQuery.value.trim()) return;
+  clearTimeout(playerSearchTimeout);
+  fetchPlayerSearch(playerSearchQuery.value);
+};
+
+const selectPlayer = (result: any) => {
+  playerSearchQuery.value = '';
+  playerSearchResults.value = [];
+  playerSearchOpen.value = false;
+  router.push({ name: 'clients.show', params: { id: String(result.id) } });
+};
+
+onClickOutside(playerSearchRef, () => {
+  playerSearchOpen.value = false;
+});
 
 // Screen Context
 useScreenContext("Perfil do Cliente", () => ({
