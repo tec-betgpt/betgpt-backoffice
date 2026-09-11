@@ -17,11 +17,16 @@
             v-model="playerSearchQuery"
             type="text"
             placeholder="Pesquisar outro cliente..."
-            class="pl-8"
+            class="pl-8 pr-8"
             @input="onPlayerSearchInput"
             @focus="onPlayerSearchFocus"
           />
-          <Loader2Icon v-if="isSearchingPlayers" class="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-400" />
+          <span class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center">
+            <Loader2Icon
+              v-show="isSearchingPlayers"
+              class="h-4 w-4 shrink-0 animate-spin text-slate-400"
+            />
+          </span>
         </div>
 
         <div
@@ -49,8 +54,8 @@
 
     <div v-if="isLoading && !player" class="space-y-6">
       <Skeleton class="h-32 w-full rounded-xl" />
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Skeleton v-for="i in 4" :key="i" class="h-20 md:h-24 w-full rounded-xl" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Skeleton v-for="i in 9" :key="i" class="h-24 w-full rounded-xl" />
       </div>
       <Skeleton class="h-96 w-full rounded-xl" />
     </div>
@@ -152,39 +157,6 @@
               <div class="space-y-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Estado</p>
                 <p class="text-sm font-medium">{{ player.state || '---' }}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <!-- Atividade e FTD -->
-          <Card class="shadow-sm border-none md:border">
-            <CardHeader>
-              <CardTitle class="text-lg">Atividade e FTD</CardTitle>
-            </CardHeader>
-            <CardContent class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 md:gap-y-6 gap-x-4">
-              <div class="space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total Logins</p>
-                <p class="text-sm font-medium">{{ player.total_logins || 0 }}</p>
-              </div>
-              <div class="space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Último Login</p>
-                <p class="text-sm font-medium">{{ formatDateTime(player.last_login_at) }}</p>
-              </div>
-              <div class="space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Data FTD</p>
-                <p class="text-sm font-medium">{{ formatDate(player.first_deposit_at) }}</p>
-              </div>
-              <div class="space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Valor FTD</p>
-                <p class="text-sm font-medium text-emerald-600 dark:text-emerald-400">{{ formatCurrency(player.first_deposit_value) }}</p>
-              </div>
-              <div class="space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Último Depósito</p>
-                <p class="text-sm font-medium">{{ formatDateTime(player.last_deposit_at) }}</p>
-              </div>
-              <div class="space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Último Saque</p>
-                <p class="text-sm font-medium">{{ formatDateTime(player.last_withdrawal_at) }}</p>
               </div>
             </CardContent>
           </Card>
@@ -475,15 +447,34 @@ useScreenContext("Perfil do Cliente", () => ({
 
 // KPIs financeiros (Idealmente viriam do backend, senão calculamos do histórico se houver tudo lá)
 const financialStats = computed(() => {
-  if (!player.value) return { total_deposits: 0, total_withdrawals: 0, deposits_count: 0, withdrawals_count: 0, ggr: 0, current_balance: 0 };
-  
+  if (!player.value) {
+    return {
+      total_deposits: 0,
+      total_withdrawals: 0,
+      deposits_count: 0,
+      withdrawals_count: 0,
+      ggr: 0,
+      total_logins: 0,
+      last_login_at: null,
+      first_deposit_at: null,
+      first_deposit_value: 0,
+      last_deposit_at: null,
+      last_withdrawal_at: null,
+    };
+  }
+
   return {
     total_deposits: player.value.total_deposits || 0,
     total_withdrawals: player.value.total_withdrawals || 0,
     deposits_count: player.value.deposits_count || 0,
     withdrawals_count: player.value.withdrawals_count || 0,
     ggr: (player.value.total_deposits || 0) - (player.value.total_withdrawals || 0),
-    current_balance: player.value.current_balance || 0
+    total_logins: player.value.total_logins || 0,
+    last_login_at: player.value.last_login_at || null,
+    first_deposit_at: player.value.first_deposit_at || null,
+    first_deposit_value: player.value.first_deposit_value || 0,
+    last_deposit_at: player.value.last_deposit_at || null,
+    last_withdrawal_at: player.value.last_withdrawal_at || null,
   };
 });
 
@@ -594,14 +585,6 @@ const formatDate = (date: any) => {
 const formatDateTime = (date: any) => {
   if (!date) return '---';
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'medium',timeZone: 'UTC' }).format(new Date(date));
-};
-
-const formatCurrency = (value: any) => {
-  if (value === null || value === undefined) return 'R$ 0,00';
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(Number(value));
 };
 
 const copyPayload = () => {
