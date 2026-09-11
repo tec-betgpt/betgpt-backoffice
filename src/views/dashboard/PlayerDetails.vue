@@ -54,8 +54,8 @@
 
     <div v-if="isLoading && !player" class="space-y-6">
       <Skeleton class="h-32 w-full rounded-xl" />
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Skeleton v-for="i in 9" :key="i" class="h-24 w-full rounded-xl" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <Skeleton v-for="i in 5" :key="i" class="h-28 w-full rounded-xl" />
       </div>
       <Skeleton class="h-96 w-full rounded-xl" />
     </div>

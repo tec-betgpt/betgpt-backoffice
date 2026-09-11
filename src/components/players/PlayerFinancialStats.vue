@@ -1,32 +1,102 @@
 <template>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
     <Card class="shadow-sm">
       <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Total Depositado</CardTitle>
-        <ArrowDownCircleIcon class="h-4 w-4 text-emerald-500" />
+        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">FTD</CardTitle>
+        <BanknoteIcon class="h-4 w-4 text-emerald-500" />
       </CardHeader>
       <CardContent>
-        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-          {{ formatCurrency(stats?.total_deposits || 0) }}
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-tight">Valor</p>
+            <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400 leading-tight">
+              {{ formatCurrency(stats?.first_deposit_value || 0) }}
+            </div>
+          </div>
+          <div>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-tight">Data</p>
+            <div class="text-xl font-bold text-slate-900 dark:text-white leading-tight">
+              {{ formatDate(stats?.first_deposit_at) }}
+            </div>
+          </div>
         </div>
-        <p class="text-[10px] text-muted-foreground mt-1">
-          {{ stats?.deposits_count || 0 }} transações realizadas
-        </p>
+        <p class="text-[10px] text-muted-foreground mt-2">Primeiro depósito aprovado</p>
       </CardContent>
     </Card>
 
     <Card class="shadow-sm">
       <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Total Sacado</CardTitle>
+        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Depósitos</CardTitle>
+        <ArrowDownCircleIcon class="h-4 w-4 text-emerald-500" />
+      </CardHeader>
+      <CardContent>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-tight">Total Depositado</p>
+            <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400 leading-tight">
+              {{ formatCurrency(stats?.total_deposits || 0) }}
+            </div>
+            <p class="text-[10px] text-muted-foreground mt-1">
+              {{ stats?.deposits_count || 0 }} transações
+            </p>
+          </div>
+          <div>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-tight">Último depósito</p>
+            <div class="text-sm md:text-base font-bold text-slate-900 dark:text-white leading-tight">
+              {{ formatDateTime(stats?.last_deposit_at) }}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
+    <Card class="shadow-sm">
+      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Saques</CardTitle>
         <ArrowUpCircleIcon class="h-4 w-4 text-rose-500" />
       </CardHeader>
       <CardContent>
-        <div class="text-2xl font-bold text-rose-600 dark:text-rose-400">
-          {{ formatCurrency(stats?.total_withdrawals || 0) }}
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-tight">Total Sacado</p>
+            <div class="text-xl font-bold text-rose-600 dark:text-rose-400 leading-tight">
+              {{ formatCurrency(stats?.total_withdrawals || 0) }}
+            </div>
+            <p class="text-[10px] text-muted-foreground mt-1">
+              {{ stats?.withdrawals_count || 0 }} saques aprovados
+            </p>
+          </div>
+          <div>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-tight">Último saque</p>
+            <div class="text-sm md:text-base font-bold text-slate-900 dark:text-white leading-tight">
+              {{ formatDateTime(stats?.last_withdrawal_at) }}
+            </div>
+          </div>
         </div>
-        <p class="text-[10px] text-muted-foreground mt-1">
-          {{ stats?.withdrawals_count || 0 }} saques aprovados
-        </p>
+      </CardContent>
+    </Card>
+
+    <Card class="shadow-sm">
+      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Logins</CardTitle>
+        <LogInIcon class="h-4 w-4 text-slate-400" />
+      </CardHeader>
+      <CardContent>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-tight">Total</p>
+            <div class="text-xl font-bold text-slate-900 dark:text-white leading-tight">
+              {{ stats?.total_logins || 0 }}
+            </div>
+            <p class="text-[10px] text-muted-foreground mt-1">Acessos registrados</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-muted-foreground uppercase tracking-tight">Último login</p>
+            <div class="text-sm md:text-base font-bold text-slate-900 dark:text-white leading-tight">
+              {{ formatDateTime(stats?.last_login_at) }}
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
 
@@ -44,84 +114,6 @@
         </p>
       </CardContent>
     </Card>
-
-    <Card class="shadow-sm">
-      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Total Logins</CardTitle>
-        <LogInIcon class="h-4 w-4 text-slate-400" />
-      </CardHeader>
-      <CardContent>
-        <div class="text-2xl font-bold text-slate-900 dark:text-white">
-          {{ stats?.total_logins || 0 }}
-        </div>
-        <p class="text-[10px] text-muted-foreground mt-1">Acessos registrados</p>
-      </CardContent>
-    </Card>
-
-    <Card class="shadow-sm">
-      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Último Login</CardTitle>
-        <ClockIcon class="h-4 w-4 text-slate-400" />
-      </CardHeader>
-      <CardContent>
-        <div class="text-lg md:text-xl font-bold text-slate-900 dark:text-white leading-tight">
-          {{ formatDateTime(stats?.last_login_at) }}
-        </div>
-        <p class="text-[10px] text-muted-foreground mt-1">Último acesso ao sistema</p>
-      </CardContent>
-    </Card>
-
-    <Card class="shadow-sm">
-      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Data FTD</CardTitle>
-        <CalendarIcon class="h-4 w-4 text-slate-400" />
-      </CardHeader>
-      <CardContent>
-        <div class="text-lg md:text-xl font-bold text-slate-900 dark:text-white leading-tight">
-          {{ formatDate(stats?.first_deposit_at) }}
-        </div>
-        <p class="text-[10px] text-muted-foreground mt-1">Primeiro depósito aprovado</p>
-      </CardContent>
-    </Card>
-
-    <Card class="shadow-sm">
-      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Valor FTD</CardTitle>
-        <BanknoteIcon class="h-4 w-4 text-emerald-500" />
-      </CardHeader>
-      <CardContent>
-        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-          {{ formatCurrency(stats?.first_deposit_value || 0) }}
-        </div>
-        <p class="text-[10px] text-muted-foreground mt-1">Valor do primeiro depósito</p>
-      </CardContent>
-    </Card>
-
-    <Card class="shadow-sm">
-      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Último Depósito</CardTitle>
-        <WalletIcon class="h-4 w-4 text-emerald-500" />
-      </CardHeader>
-      <CardContent>
-        <div class="text-lg md:text-xl font-bold text-slate-900 dark:text-white leading-tight">
-          {{ formatDateTime(stats?.last_deposit_at) }}
-        </div>
-        <p class="text-[10px] text-muted-foreground mt-1">Última entrada aprovada</p>
-      </CardContent>
-    </Card>
-
-    <Card class="shadow-sm">
-      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle class="text-xs font-semibold text-muted-foreground uppercase">Último Saque</CardTitle>
-        <WalletIcon class="h-4 w-4 text-rose-500" />
-      </CardHeader>
-      <CardContent>
-        <div class="text-lg md:text-xl font-bold text-slate-900 dark:text-white leading-tight">
-          {{ formatDateTime(stats?.last_withdrawal_at) }}
-        </div>
-        <p class="text-[10px] text-muted-foreground mt-1">Última saída aprovada</p>
-      </CardContent>
-    </Card>
   </div>
 </template>
 
@@ -131,11 +123,8 @@ import {
   ArrowDownCircleIcon,
   ArrowUpCircleIcon,
   BanknoteIcon,
-  CalendarIcon,
-  ClockIcon,
   LogInIcon,
   TrendingUpIcon,
-  WalletIcon,
 } from "lucide-vue-next";
 
 defineProps<{
