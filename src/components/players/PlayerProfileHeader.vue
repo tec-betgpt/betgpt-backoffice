@@ -7,8 +7,8 @@
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 flex-wrap mb-1">
           <h2 class="text-lg md:text-2xl font-bold truncate max-w-[180px] sm:max-w-none">{{ player?.name || 'Cliente Sem Nome' }}</h2>
-          <Badge :variant="getStatusVariant(player?.status)" class="capitalize text-[10px] md:text-xs">
-            {{ player?.status || 'Ativo' }}
+          <Badge :variant="getStatusVariant(player?.status)" class="text-[10px] md:text-xs">
+            {{ formatStatus(player?.status) }}
           </Badge>
           <Badge v-if="player?.is_vip" variant="default" class="bg-amber-500 hover:bg-amber-600 text-white border-none text-[10px] md:text-xs px-1.5 py-0">
             <CrownIcon class="h-3 w-3 mr-1" /> VIP
@@ -20,6 +20,20 @@
           </p>
           <p class="text-muted-foreground flex items-center gap-1.5 text-[11px] md:text-sm">
             <PhoneIcon class="h-3 w-3 shrink-0" /> {{ formatPhone(player?.phone) }}
+          </p>
+          <p class="text-muted-foreground flex items-center gap-1.5 text-[11px] md:text-sm">
+            <CalendarIcon class="h-3 w-3 shrink-0" />
+            {{ formatDate(player?.birthday) }} ({{ getAge(player?.birthday) }} anos)
+          </p>
+          <p class="text-muted-foreground flex items-center gap-1.5 text-[11px] md:text-sm">
+            <MarsIcon v-if="normalizedGender(player?.gender) === 'm'" class="h-3 w-3 shrink-0" />
+            <VenusIcon v-else-if="normalizedGender(player?.gender) === 'f'" class="h-3 w-3 shrink-0" />
+            <VenusAndMarsIcon v-else class="h-3 w-3 shrink-0" />
+            {{ formatGender(player?.gender) }}
+          </p>
+          <p class="text-muted-foreground flex items-center gap-1.5 text-[11px] md:text-sm">
+            <CalendarPlusIcon class="h-3 w-3 shrink-0" />
+            Membro desde {{ formatDate(player?.created_at) }}
           </p>
         </div>
       </div>
@@ -38,7 +52,7 @@
 
 <script setup lang="ts">
 import { 
-  UserIcon, MailIcon, PhoneIcon, CrownIcon
+  UserIcon, MailIcon, PhoneIcon, CrownIcon, CalendarIcon, CalendarPlusIcon, MarsIcon, VenusIcon, VenusAndMarsIcon
 } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
@@ -58,11 +72,51 @@ const getStatusVariant = (status: string) => {
   }
 };
 
+const formatStatus = (status?: string | null) => {
+  switch (String(status || '').toLowerCase()) {
+    case 'active': return 'Ativo';
+    case 'inactive': return 'Inativo';
+    case 'blocked': return 'Bloqueado';
+    default: return status || 'Inativo';
+  }
+};
+
 const formatPhone = (phone: string) => {
   if (!phone) return 'N/A';
   const cleaned = ('' + phone).replace(/\D/g, '');
   const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
   if (match) return `(${match[1]}) ${match[2]}-${match[3]}`;
   return phone;
+};
+
+const formatDate = (date?: string | null) => {
+  if (!date) return '---';
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'UTC',
+  }).format(new Date(date));
+};
+
+const getAge = (value?: string | null) => {
+  if (!value) return 0;
+  const today = new Date();
+  const birthDate = new Date(value);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+  return age;
+};
+
+const formatGender = (gender?: string | null) => {
+  const value = normalizedGender(gender);
+  if (value === 'm') return 'Masculino';
+  if (value === 'f') return 'Feminino';
+  return gender || 'Não informado';
+};
+
+const normalizedGender = (gender?: string | null) => {
+  const value = String(gender || '').toLowerCase().trim();
+  if (value === 'm' || value === 'male' || value === 'masculino') return 'm';
+  if (value === 'f' || value === 'female' || value === 'feminino') return 'f';
+  return '';
 };
 </script>

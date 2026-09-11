@@ -22,7 +22,7 @@
         
         <div class="flex items-center gap-2">
           <Badge variant="outline" class="text-[10px] h-5 px-1.5 font-semibold uppercase tracking-tighter">
-            {{ event.type }}
+            {{ eventTypeLabel(event.type) }}
           </Badge>
           <Button 
             v-if="event.payload" 
@@ -66,6 +66,19 @@ const formatDate = (date: any) => {
   }).format(new Date(date));
 };
 
+const eventTypeLabels: Record<string, string> = {
+  call: 'Ligação',
+  deposit: 'Depósito',
+  withdrawal: 'Saque',
+  login: 'Login',
+  segment: 'Segmento',
+  protection_list: 'Lista de proteção',
+  profile_update: 'Perfil',
+  tag: 'Tag',
+};
+
+const eventTypeLabel = (type: string) => eventTypeLabels[type] || type;
+
 const getEventConfig = (type: string) => {
   const configs: any = {
     deposit: { icon: ArrowDownCircleIcon, bgColor: 'bg-emerald-100 dark:bg-emerald-900/30', iconColor: 'text-emerald-600 dark:text-emerald-400' },
@@ -75,6 +88,7 @@ const getEventConfig = (type: string) => {
     segment: { icon: FilterIcon, bgColor: 'bg-purple-100 dark:bg-purple-900/30', iconColor: 'text-purple-600 dark:text-purple-400' },
     status_change: { icon: HistoryIcon, bgColor: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-600 dark:text-slate-400' },
     call: { icon: PhoneIncomingIcon, bgColor: 'bg-cyan-100 dark:bg-cyan-900/30', iconColor: 'text-cyan-600 dark:text-cyan-400' },
-  };  return configs[type] || { icon: CircleIcon, bgColor: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-500' };
+  };
+  return configs[type] || { icon: CircleIcon, bgColor: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-500' };
 };
 </script>

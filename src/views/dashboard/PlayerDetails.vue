@@ -87,44 +87,29 @@
             </CardHeader>
             <CardContent class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 md:gap-y-6 gap-x-4">
               <div class="space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Data de Nascimento</p>
-                <p class="text-sm font-medium">{{ formatDate(player.birthday) }} ({{ getAge(player.birthday) }} anos)</p>
-              </div>
-              <div class="space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Membro desde</p>
-                <p class="text-sm font-medium">{{ formatDate(player.created_at) }}</p>
-              </div>
-              <div class="space-y-1">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">CPF / Documento</p>
                 <p class="text-sm font-medium">{{ player.document || player.cpf || 'Não informado' }}</p>
               </div>
               <div class="space-y-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Gênero</p>
-                <p class="text-sm font-medium capitalize">{{ player.gender || 'Não informado' }}</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">EXTERNAL_ID</p>
+                <p class="text-sm font-medium">{{ player.external_id || 'Não informado' }}</p>
               </div>
-              <div class="flex flex-col space-y-6">
-                <div class="space-y-1">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">EXTERNAL_ID</p>
-                  <p class="text-sm font-medium">{{ player.external_id || 'Não informado' }}</p>
-                </div>
-                <div class="space-y-1">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">REFERRER_ID</p>
-                  <p class="text-sm font-medium">
-                    <template v-if="player.referrer_id">
-                      <router-link
-                        v-if="canAccessClientManagement && player.referrer_player"
-                        :to="{ name: 'clients.show', params: { id: String(player.referrer_player.id) } }"
-                        class="text-primary hover:underline"
-                      >
-                        {{ player.referrer_id }}
-                      </router-link>
-                      <span v-else>{{ player.referrer_id }}</span>
-                    </template>
-                    <span v-else>Não informado</span>
-                  </p>
-                </div>
+              <div class="space-y-1 sm:col-span-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">REFERRER_ID</p>
+                <p class="text-sm font-medium">
+                  <template v-if="player.referrer_id">
+                    <router-link
+                      v-if="canAccessClientManagement && player.referrer_player"
+                      :to="{ name: 'clients.show', params: { id: String(player.referrer_player.id) } }"
+                      class="text-primary hover:underline"
+                    >
+                      {{ player.referrer_id }}
+                    </router-link>
+                    <span v-else>{{ player.referrer_id }}</span>
+                  </template>
+                  <span v-else>Não informado</span>
+                </p>
               </div>
-
             </CardContent>
           </Card>
 
@@ -285,7 +270,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div class="p-3 rounded-lg border dark:border-slate-800">
               <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Tipo de Evento</p>
-              <Badge variant="outline" class="text-xs">{{ selectedHistoryEvent.type }}</Badge>
+              <Badge variant="outline" class="text-xs">{{ eventTypeLabels[selectedHistoryEvent.type] || selectedHistoryEvent.type }}</Badge>
             </div>
             <div class="p-3 rounded-lg border dark:border-slate-800">
               <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Descrição</p>
@@ -368,7 +353,7 @@ const timelineContainer = ref(null);
 const activeTab = ref('activity');
 
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id ?? null);
 
 const playerContact = computed(() => {
   if (!player.value) return null;
@@ -401,7 +386,7 @@ const fetchPlayerSearch = async (query: string) => {
   try {
     const response = await Players.index({
       search: q,
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       per_page: 10,
     });
     playerSearchResults.value = response.data ?? [];
@@ -488,11 +473,22 @@ const showHistoryEventDetails = (event) => {
 
 const selectedEventType = ref('all');
 
+const eventTypeLabels: Record<string, string> = {
+  call: 'Ligação',
+  deposit: 'Depósito',
+  withdrawal: 'Saque',
+  login: 'Login',
+  segment: 'Segmento',
+  protection_list: 'Lista de proteção',
+  profile_update: 'Perfil',
+  tag: 'Tag',
+};
+
 const filterOptions = computed(() => {
   const uniqueTypes = new Set(history.value.map(event => event.type));
   return Array.from(uniqueTypes).map(type => ({
     value: type,
-    label: type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' '),
+    label: eventTypeLabels[type] || type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' '),
   }));
 });
 
@@ -511,7 +507,7 @@ const fetchHistory = async (page = 1) => {
 
   try {
     const params = {
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       include: 'history',
       page: page,
     };
@@ -526,8 +522,15 @@ const fetchHistory = async (page = 1) => {
 
     currentPage.value = data.history.current_page;
     lastPage.value = data.history.last_page;
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
+    if (e?.response?.status === 404) {
+      toast.error("Cliente não encontrado", {
+        description: "Este cliente não pertence ao projeto ou grupo selecionado.",
+      });
+      router.push({ name: "clients" });
+      return;
+    }
     toast.error("Erro", { description: "Falha ao carregar dados do cliente." });
   } finally {
     isLoading.value = false;
@@ -556,31 +559,14 @@ function resetProfileStateForNewClient() {
 }
 
 watch(
-  () => route.params.id,
-  (newId) => {
+  [() => route.params.id, activeGroupProjectId],
+  ([newId]) => {
     if (newId === undefined || newId === "") return;
     resetProfileStateForNewClient();
     fetchHistory(1);
   },
   { immediate: true },
 );
-
-const getAge = (value: string) => {
-  if (!value) return 0;
-  const today = new Date();
-  const birthDate = new Date(value);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-  return age;
-};
-
-const formatDate = (date: any) => {
-  if (!date) return '---';
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    timeZone: 'UTC'
-  }).format(new Date(date));};
 
 const formatDateTime = (date: any) => {
   if (!date) return '---';
