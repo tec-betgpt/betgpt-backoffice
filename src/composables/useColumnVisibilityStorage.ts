@@ -31,8 +31,8 @@ function writeStore(store: Store): void {
   }
 }
 
-function resolveTableKey(table?: string): string {
-  return table?.trim() || "default";
+function resolveTableKey(table?: unknown): string {
+  return typeof table === "string" && table.trim() ? table.trim() : "default";
 }
 
 export function loadColumnVisibility(

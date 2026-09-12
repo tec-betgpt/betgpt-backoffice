@@ -75,7 +75,7 @@
     <ColumnVisibilityToggle
       v-model="columnVisibility"
       :columns="hideableColumns"
-      :table="table"
+      :table="props.table"
     />
   </div>
 
@@ -83,7 +83,7 @@
     <ColumnVisibilityToggle
       v-model="columnVisibility"
       :columns="hideableColumns"
-      :table="table"
+      :table="props.table"
     />
   </div>
 
