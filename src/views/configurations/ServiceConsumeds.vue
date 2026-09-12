@@ -10,76 +10,81 @@
     <Separator class="mb-3" />
 
     <div class="flex justify-start items-start  gap-8 flex-wrap w-full border rounded-lg">
+      <div class="flex justify-end mb-2 w-full">
+        <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+      </div>
       <Table class="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead>Plano</TableHead>
-            <TableHead class="text-right">ActiveCampaign</TableHead>
-            <TableHead class="text-right">AI</TableHead>
-            <TableHead class="text-right">Entradas</TableHead>
-            <TableHead class="text-right">E-mail</TableHead>
-            <TableHead class="text-right">GoogleAnalytics</TableHead>
-            <TableHead class="text-right">SMS Funnel</TableHead>
-            <TableHead class="text-right">Workspaces</TableHead>
-            <TableHead class="text-right">Referente a</TableHead>
+            <TableHead v-if="columnVisibility.plano !== false">Plano</TableHead>
+            <TableHead v-if="columnVisibility.activeCampaign !== false" class="text-right">ActiveCampaign</TableHead>
+            <TableHead v-if="columnVisibility.ai !== false" class="text-right">AI</TableHead>
+            <TableHead v-if="columnVisibility.entradas !== false" class="text-right">Entradas</TableHead>
+            <TableHead v-if="columnVisibility.email !== false" class="text-right">E-mail</TableHead>
+            <TableHead v-if="columnVisibility.googleAnalytics !== false" class="text-right">GoogleAnalytics</TableHead>
+            <TableHead v-if="columnVisibility.smsFunnel !== false" class="text-right">SMS Funnel</TableHead>
+            <TableHead v-if="columnVisibility.workspaces !== false" class="text-right">Workspaces</TableHead>
+            <TableHead v-if="columnVisibility.referenteA !== false" class="text-right">Referente a</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow v-for="row in services" :key="row.id">
-            <TableCell>
+            <TableCell v-if="columnVisibility.plano !== false">
               {{ row.service ? row.service.name : '-' }}
             </TableCell>
-            <TableCell class="text-right">
+            <TableCell v-if="columnVisibility.activeCampaign !== false" class="text-right">
               <Badge variant="secondary">
                 {{ row.active_campaign }}
               </Badge>
             </TableCell>
-            <TableCell class="text-right">
+            <TableCell v-if="columnVisibility.ai !== false" class="text-right">
               <Badge variant="secondary">
                 {{ row.ai_token }}
               </Badge>
             </TableCell>
-            <TableCell class="text-right">
+            <TableCell v-if="columnVisibility.entradas !== false" class="text-right">
               <Badge variant="secondary">
                 {{ row.deposits }}
               </Badge>
             </TableCell>
-            <TableCell class="text-right">
+            <TableCell v-if="columnVisibility.email !== false" class="text-right">
               <Badge variant="secondary">
                 {{ row.email }}
               </Badge>
             </TableCell>
-            <TableCell class="text-right">
+            <TableCell v-if="columnVisibility.googleAnalytics !== false" class="text-right">
               <Badge variant="secondary">
                 {{ row.google_analytics }}
               </Badge>
             </TableCell>
-            <TableCell class="text-right">
+            <TableCell v-if="columnVisibility.smsFunnel !== false" class="text-right">
               <Badge variant="secondary">
                 {{ row.sms_funnel }}
               </Badge>
             </TableCell>
-            <TableCell class="text-right">
+            <TableCell v-if="columnVisibility.workspaces !== false" class="text-right">
               <Badge variant="secondary">
                 {{ row.project }}
               </Badge>
             </TableCell>
-            <TableCell class="text-right text-nowrap capitalize">
+            <TableCell v-if="columnVisibility.referenteA !== false" class="text-right text-nowrap capitalize">
               {{ $moment(row.created_at).format('MMM/YYYY') }}
             </TableCell>
           </TableRow>
 
           <template v-if="isLoading">
             <TableRow v-for="i in 5" :key="i">
-              <TableCell v-for="j in 9" :key="i">
-                <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
-              </TableCell>
+              <template v-for="col in tableColumns" :key="col.id">
+                <TableCell v-if="columnVisibility[col.id] !== false">
+                  <Skeleton class="h-4 w-full bg-gray-300 my-1" />
+                </TableCell>
+              </template>
             </TableRow>
           </template>
 
           <template v-if="!isLoading && (!services || !services.length)">
             <TableRow>
-              <TableCell :colspan="4" class="text-center py-5">
+              <TableCell :colspan="visibleTableColumns.length" class="text-center py-5">
                 Nenhum serviço encontrado.
               </TableCell>
             </TableRow>
@@ -98,11 +103,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { toast } from "vue-sonner";
 import ServiceConsumeds from "@/services/serviceConsumeds";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
+
+const tableColumns = [
+  { id: "plano", label: "Plano" },
+  { id: "activeCampaign", label: "ActiveCampaign" },
+  { id: "ai", label: "AI" },
+  { id: "entradas", label: "Entradas" },
+  { id: "email", label: "E-mail" },
+  { id: "googleAnalytics", label: "GoogleAnalytics" },
+  { id: "smsFunnel", label: "SMS Funnel" },
+  { id: "workspaces", label: "Workspaces" },
+  { id: "referenteA", label: "Referente a" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const services = ref();
 const isLoading = ref(true);

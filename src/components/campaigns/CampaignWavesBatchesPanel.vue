@@ -53,44 +53,47 @@
           </AccordionTrigger>
 
           <AccordionContent>
+            <div class="flex justify-end mb-2">
+              <ColumnVisibilityToggle v-model="batchesColumnVisibility" :columns="batchesColumns" />
+            </div>
             <div class="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Batch</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead class="text-right">Tentativas</TableHead>
-                    <TableHead>Próx. retry</TableHead>
-                    <TableHead>Agendado</TableHead>
-                    <TableHead>Iniciado</TableHead>
-                    <TableHead>Finalizado</TableHead>
-                    <TableHead>Progresso</TableHead>
-                    <TableHead>Erro</TableHead>
+                    <TableHead v-if="batchesColumnVisibility.batch !== false">Batch</TableHead>
+                    <TableHead v-if="batchesColumnVisibility.status !== false">Status</TableHead>
+                    <TableHead v-if="batchesColumnVisibility.tentativas !== false" class="text-right">Tentativas</TableHead>
+                    <TableHead v-if="batchesColumnVisibility.proxRetry !== false">Próx. retry</TableHead>
+                    <TableHead v-if="batchesColumnVisibility.agendado !== false">Agendado</TableHead>
+                    <TableHead v-if="batchesColumnVisibility.iniciado !== false">Iniciado</TableHead>
+                    <TableHead v-if="batchesColumnVisibility.finalizado !== false">Finalizado</TableHead>
+                    <TableHead v-if="batchesColumnVisibility.progresso !== false">Progresso</TableHead>
+                    <TableHead v-if="batchesColumnVisibility.erro !== false">Erro</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow v-if="batchesSorted(wave).length === 0">
-                    <TableCell colspan="9" class="py-6 text-center text-muted-foreground">
+                    <TableCell :colspan="visibleBatchesColumns.length" class="py-6 text-center text-muted-foreground">
                       Nenhum batch.
                     </TableCell>
                   </TableRow>
 
                   <TableRow v-for="batch in batchesSorted(wave)" :key="batch.id">
-                    <TableCell>
+                    <TableCell v-if="batchesColumnVisibility.batch !== false">
                       <div class="font-medium">#{{ batch.sequence }}</div>
                       <div class="text-xs text-muted-foreground">id {{ batch.id }}</div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell v-if="batchesColumnVisibility.status !== false">
                       <Badge :variant="batchStatusVariant(batch.status)">
                         {{ batch.status }}
                       </Badge>
                     </TableCell>
-                    <TableCell class="text-right">{{ batch.attempts }}</TableCell>
-                    <TableCell>{{ formatDateTime(batch.next_retry_at) }}</TableCell>
-                    <TableCell>{{ formatDateTime(batch.scheduled_at) }}</TableCell>
-                    <TableCell>{{ formatDateTime(batch.started_at) }}</TableCell>
-                    <TableCell>{{ formatDateTime(batch.finished_at) }}</TableCell>
-                    <TableCell class="min-w-[160px]">
+                    <TableCell v-if="batchesColumnVisibility.tentativas !== false" class="text-right">{{ batch.attempts }}</TableCell>
+                    <TableCell v-if="batchesColumnVisibility.proxRetry !== false">{{ formatDateTime(batch.next_retry_at) }}</TableCell>
+                    <TableCell v-if="batchesColumnVisibility.agendado !== false">{{ formatDateTime(batch.scheduled_at) }}</TableCell>
+                    <TableCell v-if="batchesColumnVisibility.iniciado !== false">{{ formatDateTime(batch.started_at) }}</TableCell>
+                    <TableCell v-if="batchesColumnVisibility.finalizado !== false">{{ formatDateTime(batch.finished_at) }}</TableCell>
+                    <TableCell v-if="batchesColumnVisibility.progresso !== false" class="min-w-[160px]">
                       <div v-if="batchPercent(batch) !== null">
                         <Progress :model-value="batchPercent(batch) || 0" />
                         <div class="mt-1 text-xs text-muted-foreground">
@@ -99,7 +102,7 @@
                       </div>
                       <span v-else class="text-xs text-muted-foreground">—</span>
                     </TableCell>
-                    <TableCell class="min-w-[220px]">
+                    <TableCell v-if="batchesColumnVisibility.erro !== false" class="min-w-[220px]">
                       <details v-if="batch.last_error" class="text-xs">
                         <summary class="cursor-pointer text-destructive">
                           Ver erro
@@ -122,13 +125,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import type { CampaignBatch, CampaignWave } from "@/contracts/campaignExecution";
 
 const props = defineProps<{
@@ -139,6 +143,22 @@ const props = defineProps<{
 }>();
 
 const loading = computed(() => Boolean(props.loading));
+
+const batchesColumns = [
+  { id: "batch", label: "Batch" },
+  { id: "status", label: "Status" },
+  { id: "tentativas", label: "Tentativas" },
+  { id: "proxRetry", label: "Próx. retry" },
+  { id: "agendado", label: "Agendado" },
+  { id: "iniciado", label: "Iniciado" },
+  { id: "finalizado", label: "Finalizado" },
+  { id: "progresso", label: "Progresso" },
+  { id: "erro", label: "Erro" },
+];
+const batchesColumnVisibility = ref<Record<string, boolean>>({});
+const visibleBatchesColumns = computed(() =>
+  batchesColumns.filter((c) => batchesColumnVisibility.value[c.id] !== false)
+);
 
 const wavesSorted = computed(() =>
   [...(props.waves || [])].sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)),

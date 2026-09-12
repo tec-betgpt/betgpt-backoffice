@@ -26,40 +26,41 @@
           <Button size="icon" @click="find()">
             <Search />
           </Button>
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
         </div>
 
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Guarda</TableHead>
-              <TableHead>Escopo/Acesso</TableHead>
-              <TableHead>Escopo/Ordem</TableHead>
-              <TableHead class="text-right">Criado em</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.nome !== false">Nome</TableHead>
+              <TableHead v-if="columnVisibility.guarda !== false">Guarda</TableHead>
+              <TableHead v-if="columnVisibility.escopoAcesso !== false">Escopo/Acesso</TableHead>
+              <TableHead v-if="columnVisibility.escopoOrdem !== false">Escopo/Ordem</TableHead>
+              <TableHead v-if="columnVisibility.criadoEm !== false" class="text-right">Criado em</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             <TableRow v-for="row in permissions" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.nome !== false">
                 {{ te(row.name) ? t(row.name) : row.name }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.guarda !== false">
                 <Badge variant="outline">
                   {{ row.guard_name ?? '-' }}
                 </Badge>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.escopoAcesso !== false">
                 {{ row.scope_access ?? '-' }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.escopoOrdem !== false">
                 {{ row.scope_order ?? '-' }}
               </TableCell>
-              <TableCell class="text-right text-nowrap">
+              <TableCell v-if="columnVisibility.criadoEm !== false" class="text-right text-nowrap">
                 {{ $moment(row.created_at).format('DD/MM/YYYY') }}
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
                 <div class="gap-1 flex flex-nowrap justify-end">
                   <EditDialogComponent :row="row" :reload="fetchPermissions" />
                   <DestroyDialogComponent :destroy="destroy" :row="row" :reload="fetchPermissions" />
@@ -69,15 +70,15 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
-                <TableCell v-for="j in 4" :key="i">
-                  <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
+                <TableCell v-for="column in visibleTableColumns" :key="column.id">
+                  <Skeleton class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
             </template>
 
             <template v-if="!isLoading && (!permissions || !permissions.length)">
               <TableRow>
-                <TableCell :colspan="4" class="text-center py-5">
+                <TableCell :colspan="visibleTableColumns.length" class="text-center py-5">
                   Nenhum serviço encontrado.
                 </TableCell>
               </TableRow>
@@ -98,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { toast } from "vue-sonner";
@@ -109,8 +110,22 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/permissions/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/permissions/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
 const { t, te } = useI18n();
+
+const tableColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "guarda", label: "Guarda" },
+  { id: "escopoAcesso", label: "Escopo/Acesso" },
+  { id: "escopoOrdem", label: "Escopo/Ordem" },
+  { id: "criadoEm", label: "Criado em" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const permissions = ref();
 const isLoading = ref(true);

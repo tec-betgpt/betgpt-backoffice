@@ -57,49 +57,52 @@
 
     <Card>
       <CardContent class="pt-6">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="broadcastsColumnVisibility" :columns="broadcastsColumns" />
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Broadcast</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead class="text-right">Leads</TableHead>
-              <TableHead>Métricas</TableHead>
-              <TableHead>Agendado / criado</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="broadcastsColumnVisibility.broadcast !== false">Broadcast</TableHead>
+              <TableHead v-if="broadcastsColumnVisibility.status !== false">Status</TableHead>
+              <TableHead v-if="broadcastsColumnVisibility.leads !== false" class="text-right">Leads</TableHead>
+              <TableHead v-if="broadcastsColumnVisibility.metricas !== false">Métricas</TableHead>
+              <TableHead v-if="broadcastsColumnVisibility.agendadoCriado !== false">Agendado / criado</TableHead>
+              <TableHead v-if="broadcastsColumnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-if="isLoading">
-              <TableCell colspan="6" class="py-8 text-center text-muted-foreground">Carregando broadcasts...</TableCell>
+              <TableCell :colspan="visibleBroadcastsColumns.length" class="py-8 text-center text-muted-foreground">Carregando broadcasts...</TableCell>
             </TableRow>
             <TableRow v-else-if="broadcasts.length === 0">
-              <TableCell colspan="6" class="py-8 text-center text-muted-foreground">
+              <TableCell :colspan="visibleBroadcastsColumns.length" class="py-8 text-center text-muted-foreground">
                 Nenhum broadcast encontrado com os filtros atuais.
               </TableCell>
             </TableRow>
             <TableRow v-for="item in broadcasts" :key="item.id">
-              <TableCell class="max-w-[320px]">
+              <TableCell v-if="broadcastsColumnVisibility.broadcast !== false" class="max-w-[320px]">
                 <div class="font-medium">{{ item.name || "Sem nome" }}</div>
                 <div class="truncate text-xs text-muted-foreground">{{ item.message }}</div>
                 <div class="font-mono text-xs text-muted-foreground">{{ item.id }}</div>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="broadcastsColumnVisibility.status !== false">
                 <Badge :variant="statusVariant(item.status)">
                   {{ SMS_BROADCAST_STATUS_LABELS[item.status] || item.status }}
                 </Badge>
               </TableCell>
-              <TableCell class="text-right">{{ item.leads_count }}</TableCell>
-              <TableCell>
+              <TableCell v-if="broadcastsColumnVisibility.leads !== false" class="text-right">{{ item.leads_count }}</TableCell>
+              <TableCell v-if="broadcastsColumnVisibility.metricas !== false">
                 <span v-if="item.metrics" class="text-sm">
                   {{ item.metrics.sent }}/{{ item.metrics.total }} enviadas
                   <span v-if="item.metrics.failed" class="text-destructive">• {{ item.metrics.failed }} falhas</span>
                 </span>
                 <span v-else class="text-sm text-muted-foreground">—</span>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="broadcastsColumnVisibility.agendadoCriado !== false">
                 <div class="text-sm">{{ formatDateTime(item.scheduled_date || item.created_at) }}</div>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="broadcastsColumnVisibility.acoes !== false">
                 <div class="flex justify-end gap-2">
                   <Button variant="outline" size="sm" @click="openDetail(item)">Detalhes</Button>
                   <Button
@@ -166,37 +169,40 @@
 
           <div class="flex items-center justify-between">
             <Label>Contatos</Label>
-            <Input
-              v-model="contactsPhoneFilter"
-              class="max-w-[200px]"
-              placeholder="Filtrar por telefone"
-              @keydown.enter="fetchContacts(1)"
-            />
+            <div class="flex items-center gap-2">
+              <ColumnVisibilityToggle v-model="contactsColumnVisibility" :columns="contactsColumns" />
+              <Input
+                v-model="contactsPhoneFilter"
+                class="max-w-[200px]"
+                placeholder="Filtrar por telefone"
+                @keydown.enter="fetchContacts(1)"
+              />
+            </div>
           </div>
 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Cancelada</TableHead>
+                <TableHead v-if="contactsColumnVisibility.telefone !== false">Telefone</TableHead>
+                <TableHead v-if="contactsColumnVisibility.status !== false">Status</TableHead>
+                <TableHead v-if="contactsColumnVisibility.cancelada !== false">Cancelada</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow v-if="isLoadingContacts">
-                <TableCell colspan="3" class="py-6 text-center text-muted-foreground">Carregando contatos...</TableCell>
+                <TableCell :colspan="visibleContactsColumns.length" class="py-6 text-center text-muted-foreground">Carregando contatos...</TableCell>
               </TableRow>
               <TableRow v-else-if="contacts.length === 0">
-                <TableCell colspan="3" class="py-6 text-center text-muted-foreground">Nenhum contato encontrado.</TableCell>
+                <TableCell :colspan="visibleContactsColumns.length" class="py-6 text-center text-muted-foreground">Nenhum contato encontrado.</TableCell>
               </TableRow>
               <TableRow v-for="contact in contacts" :key="contact.id">
-                <TableCell class="font-mono text-sm">{{ contact.phone }}</TableCell>
-                <TableCell>
+                <TableCell v-if="contactsColumnVisibility.telefone !== false" class="font-mono text-sm">{{ contact.phone }}</TableCell>
+                <TableCell v-if="contactsColumnVisibility.status !== false">
                   <Badge :variant="messageStatusVariant(contact.status)">
                     {{ SMS_MESSAGE_STATUS_LABELS[contact.status] || contact.status }}
                   </Badge>
                 </TableCell>
-                <TableCell>{{ contact.cancelled ? "Sim" : "Não" }}</TableCell>
+                <TableCell v-if="contactsColumnVisibility.cancelada !== false">{{ contact.cancelled ? "Sim" : "Não" }}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -227,7 +233,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -256,6 +262,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { toast } from "vue-sonner";
 import {
   SMS_BROADCAST_STATUS_LABELS,
@@ -289,6 +296,29 @@ const hasNextPage = ref(false);
 const contactsPage = ref(1);
 const hasNextContactsPage = ref(false);
 const contactsPhoneFilter = ref("");
+
+const broadcastsColumns = [
+  { id: "broadcast", label: "Broadcast" },
+  { id: "status", label: "Status" },
+  { id: "leads", label: "Leads" },
+  { id: "metricas", label: "Métricas" },
+  { id: "agendadoCriado", label: "Agendado / criado" },
+  { id: "acoes", label: "Ações" },
+];
+const broadcastsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleBroadcastsColumns = computed(() =>
+  broadcastsColumns.filter((c) => broadcastsColumnVisibility.value[c.id] !== false)
+);
+
+const contactsColumns = [
+  { id: "telefone", label: "Telefone" },
+  { id: "status", label: "Status" },
+  { id: "cancelada", label: "Cancelada" },
+];
+const contactsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleContactsColumns = computed(() =>
+  contactsColumns.filter((c) => contactsColumnVisibility.value[c.id] !== false)
+);
 
 const filters = reactive({
   status: SELECT_ALL_VALUE as string,

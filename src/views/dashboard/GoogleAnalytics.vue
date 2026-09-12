@@ -31,8 +31,9 @@
                   v-for="column in columnsList"
                   :key="column.id"
                   class="capitalize"
-                  :checked="columnVisibility[column.id]"
-                  @update:checked="
+                  :model-value="columnVisibility[column.id]"
+                  @select.prevent
+                  @update:model-value="
                     (value) => (columnVisibility[column.id] = value)
                   "
                 >

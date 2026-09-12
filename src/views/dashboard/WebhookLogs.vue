@@ -43,25 +43,28 @@
         </div>
       </CardHeader>
       <CardContent class="py-4 flex flex-col gap-4">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        </div>
         <Table class="w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Entidade</TableHead>
-              <TableHead>Status HTTP</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Erro/Motivo</TableHead>
-              <TableHead class="text-right">Data</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.id !== false">ID</TableHead>
+              <TableHead v-if="columnVisibility.entidade !== false">Entidade</TableHead>
+              <TableHead v-if="columnVisibility.statusHttp !== false">Status HTTP</TableHead>
+              <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
+              <TableHead v-if="columnVisibility.erroMotivo !== false">Erro/Motivo</TableHead>
+              <TableHead v-if="columnVisibility.data !== false" class="text-right">Data</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             <TableRow v-for="row in logs" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.id !== false">
                 {{ row.id }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.entidade !== false">
                 <div v-if="row.webhookable">
                   <span class="font-medium">{{ row.webhookable_type.split('\\').pop() }}</span>
                   <span class="text-xs text-muted-foreground block">#{{ row.webhookable.id }} - {{ row.webhookable.name || 'Sem Nome' }}</span>
@@ -70,20 +73,20 @@
                   <span class="text-muted-foreground text-xs">Entidade removida</span>
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.statusHttp !== false">
                 <Badge variant="outline">{{ row.response_status ?? 'N/A' }}</Badge>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.status !== false">
                 <Badge v-if="row.success" class="bg-green-100 text-green-800 hover:bg-green-100">Sucesso</Badge>
                 <Badge v-else variant="destructive">Falha</Badge>
               </TableCell>
-              <TableCell class="max-w-[200px] truncate" :title="row.reason">
+              <TableCell v-if="columnVisibility.erroMotivo !== false" class="max-w-[200px] truncate" :title="row.reason">
                 {{ row.reason || '-' }}
               </TableCell>
-              <TableCell class="text-right text-nowrap">
+              <TableCell v-if="columnVisibility.data !== false" class="text-right text-nowrap">
                 {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm:ss') }}
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
                 <Button
                   v-if="!row.success"
                   variant="ghost"
@@ -100,7 +103,7 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
-                <TableCell v-for="j in 7" :key="j">
+                <TableCell v-for="col in visibleTableColumns" :key="col.id">
                   <Skeleton class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
@@ -108,7 +111,7 @@
 
             <template v-if="!isLoading && (!logs || !logs.length)">
               <TableRow>
-                <TableCell :colspan="7" class="text-center py-5">
+                <TableCell :colspan="visibleTableColumns.length" class="text-center py-5">
                   Nenhum log encontrado.
                 </TableCell>
               </TableRow>
@@ -128,12 +131,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, watch } from "vue";
+import { ref, computed, onMounted, reactive, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import WebhookLogs from "@/services/webhooks";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -159,6 +163,20 @@ const filters = reactive({
   status: 'all',
   order: 'desc'
 });
+
+const tableColumns = [
+  { id: "id", label: "ID" },
+  { id: "entidade", label: "Entidade" },
+  { id: "statusHttp", label: "Status HTTP" },
+  { id: "status", label: "Status" },
+  { id: "erroMotivo", label: "Erro/Motivo" },
+  { id: "data", label: "Data" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const fetchLogs = async (page = 1) => {
   // Aguarda o workspace carregar se necessário

@@ -7,36 +7,45 @@
       </p>
     </div>
 
+    <div v-if="isLoading" class="flex justify-end mb-2">
+      <ColumnVisibilityToggle v-model="loadingColumnVisibility" :columns="loadingColumns" />
+    </div>
+
     <Table v-if="isLoading">
       <TableRow v-for="i in 5" :key="i">
-        <TableCell v-for="j in 5" :key="i">
-          <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
-        </TableCell>
+        <template v-for="col in loadingColumns" :key="col.id">
+          <TableCell v-if="loadingColumnVisibility[col.id] !== false">
+            <Skeleton class="h-4 w-full bg-gray-300 my-1" />
+          </TableCell>
+        </template>
       </TableRow>
     </Table>
 
     <div class="flex justify-start items-start  gap-8 flex-wrap w-full border rounded-lg">
+      <div class="flex justify-end mb-2 w-full">
+        <ColumnVisibilityToggle v-model="invoicesColumnVisibility" :columns="invoicesColumns" />
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Período</TableHead>
-            <TableHead class="text-right">Valor</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead class="text-right">Ações</TableHead>
+            <TableHead v-if="invoicesColumnVisibility.nome !== false">Nome</TableHead>
+            <TableHead v-if="invoicesColumnVisibility.periodo !== false">Período</TableHead>
+            <TableHead v-if="invoicesColumnVisibility.valor !== false" class="text-right">Valor</TableHead>
+            <TableHead v-if="invoicesColumnVisibility.status !== false">Status</TableHead>
+            <TableHead v-if="invoicesColumnVisibility.acoes !== false" class="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody v-if="services && services.data && services.data.length > 0">
           <TableRow v-for="row in services.data" :key="row.id">
-            <TableCell>{{ row.name }}</TableCell>
-            <TableCell>{{ formatDate(row.period_started_at) }} - {{ formatDate(row.period_ended_at) }}</TableCell>
-            <TableCell class="text-right">{{ currencyFilter(row.amount) }}</TableCell>
-            <TableCell>
+            <TableCell v-if="invoicesColumnVisibility.nome !== false">{{ row.name }}</TableCell>
+            <TableCell v-if="invoicesColumnVisibility.periodo !== false">{{ formatDate(row.period_started_at) }} - {{ formatDate(row.period_ended_at) }}</TableCell>
+            <TableCell v-if="invoicesColumnVisibility.valor !== false" class="text-right">{{ currencyFilter(row.amount) }}</TableCell>
+            <TableCell v-if="invoicesColumnVisibility.status !== false">
               <Badge :variant="getStatusVariant(row.status)">
                 {{ row.status }}
               </Badge>
             </TableCell>
-            <TableCell class="flex items-center justify-end space-x-2">
+            <TableCell v-if="invoicesColumnVisibility.acoes !== false" class="flex items-center justify-end space-x-2">
               <ShowComponent :row="row" />
               <GetLinkComponent :row="row" :user="user" />
             </TableCell>
@@ -44,7 +53,7 @@
         </TableBody>
         <TableBody v-else>
           <TableRow>
-            <TableCell :colspan="4" class="text-center py-5">
+            <TableCell :colspan="visibleInvoicesColumns.length" class="text-center py-5">
               Nenhuma fatura encontrada.
             </TableCell>
           </TableRow>
@@ -62,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { toast } from "vue-sonner";
 import Auth from "@/services/auth";
 import Invoices from "@/services/invoices";
@@ -70,7 +79,32 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ShowComponent from "@/components/invoices/ShowComponent.vue";
 import GetLinkComponent from "@/components/invoices/GetLinkComponent.vue";
 import currencyFilter from "@/filters/currencyFilter";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
+
+const loadingColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "periodo", label: "Período" },
+  { id: "valor", label: "Valor" },
+  { id: "status", label: "Status" },
+  { id: "acoes", label: "Ações" },
+];
+const loadingColumnVisibility = ref<Record<string, boolean>>({});
+const visibleLoadingColumns = computed(() =>
+  loadingColumns.filter((c) => loadingColumnVisibility.value[c.id] !== false)
+);
+
+const invoicesColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "periodo", label: "Período" },
+  { id: "valor", label: "Valor" },
+  { id: "status", label: "Status" },
+  { id: "acoes", label: "Ações" },
+];
+const invoicesColumnVisibility = ref<Record<string, boolean>>({});
+const visibleInvoicesColumns = computed(() =>
+  invoicesColumns.filter((c) => invoicesColumnVisibility.value[c.id] !== false)
+);
 
 const user = ref<any>(null);
 const services = ref<any>(null);

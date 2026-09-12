@@ -29,25 +29,26 @@
           <Button @click="fetchMessages()">
             Buscar
           </Button>
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
         </div>
 
         <Table class="w-full overflow-hidden">
           <TableHeader>
             <TableRow>
-              <TableHead>Texto</TableHead>
-              <TableHead>Assinatura</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.texto !== false">Texto</TableHead>
+              <TableHead v-if="columnVisibility.assinatura !== false">Assinatura</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="(row, index) in valuesTable" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.texto !== false">
                 {{ row.message }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.assinatura !== false">
                 {{ row.signature }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.acoes !== false">
                 <div class="flex flex-nowrap">
                   <EditDialogComponent :row="row" :reload="fetchMessages" />
                   <DestroyDialogComponent :reload="fetchMessages" :destroy="remove" :row="row" />
@@ -71,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref, computed, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Button } from "@/components/ui/button";
 import Insights from "@/services/insights";
@@ -84,6 +85,7 @@ import CreateDialogComponent from "@/components/insights/CreateDialogComponent.v
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import EditDialogComponent from "@/components/insights/EditDialogComponent.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
 
 interface Insight {
@@ -104,6 +106,16 @@ const pages = ref({
 });
 const perPage = ref(10);
 const isLoading = ref(true);
+
+const tableColumns = [
+  { id: "texto", label: "Texto" },
+  { id: "assinatura", label: "Assinatura" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 async function fetchMessages(pageId: number = pages.value.current) {
   isLoading.value = true;

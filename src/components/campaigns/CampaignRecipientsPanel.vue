@@ -93,8 +93,11 @@
         <Button variant="outline" :disabled="!campaignId || store.loading.recipients" @click="clearFilters">
           Limpar
         </Button>
-        <div class="ml-auto text-sm text-muted-foreground">
-          {{ store.recipientsPagination.total }} resultado(s)
+        <div class="ml-auto flex items-center gap-2">
+          <ColumnVisibilityToggle v-model="recipientsColumnVisibility" :columns="recipientsColumns" />
+          <span class="text-sm text-muted-foreground">
+            {{ store.recipientsPagination.total }} resultado(s)
+          </span>
         </div>
       </div>
 
@@ -102,47 +105,48 @@
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>player_id</TableHead>
-              <TableHead>phone</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>ID supplier</TableHead>
-              <TableHead class="text-right">Tentativas</TableHead>
-              <TableHead>Próx. retry</TableHead>
-              <TableHead>Erro</TableHead>
-              <TableHead>queued_at</TableHead>
-              <TableHead>sent_at</TableHead>
-              <TableHead>failed_at</TableHead>
-              <TableHead>canceled_at</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.playerId !== false">player_id</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.phone !== false">phone</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.status !== false">Status</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.supplierId !== false">ID supplier</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.tentativas !== false" class="text-right">Tentativas</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.proxRetry !== false">Próx. retry</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.erro !== false">Erro</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.queuedAt !== false">queued_at</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.sentAt !== false">sent_at</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.failedAt !== false">failed_at</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.canceledAt !== false">canceled_at</TableHead>
+              <TableHead v-if="recipientsColumnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-if="store.loading.recipients && store.recipients.length === 0">
-              <TableCell colspan="12" class="h-24 text-center text-muted-foreground">
+              <TableCell :colspan="visibleRecipientsColumns.length" class="h-24 text-center text-muted-foreground">
                 Carregando recipients...
               </TableCell>
             </TableRow>
             <TableRow v-else-if="store.recipients.length === 0">
-              <TableCell colspan="12" class="h-24 text-center text-muted-foreground">
+              <TableCell :colspan="visibleRecipientsColumns.length" class="h-24 text-center text-muted-foreground">
                 Nenhum recipient encontrado.
               </TableCell>
             </TableRow>
 
             <TableRow v-for="recipient in store.recipients" :key="recipient.id">
-              <TableCell class="font-mono text-xs">{{ recipient.player_id || "—" }}</TableCell>
-              <TableCell class="font-mono text-xs">{{ recipient.phone || "—" }}</TableCell>
-              <TableCell>
+              <TableCell v-if="recipientsColumnVisibility.playerId !== false" class="font-mono text-xs">{{ recipient.player_id || "—" }}</TableCell>
+              <TableCell v-if="recipientsColumnVisibility.phone !== false" class="font-mono text-xs">{{ recipient.phone || "—" }}</TableCell>
+              <TableCell v-if="recipientsColumnVisibility.status !== false">
                 <RecipientStatusBadge :status="recipient.status" />
               </TableCell>
               <TableCell
+                v-if="recipientsColumnVisibility.supplierId !== false"
                 class="max-w-[140px] truncate font-mono text-xs text-muted-foreground"
                 :title="recipient.provider_message_id || undefined"
               >
                 {{ recipient.provider_message_id || "—" }}
               </TableCell>
-              <TableCell class="text-right">{{ recipient.attempts }}</TableCell>
-              <TableCell>{{ formatDateTime(recipient.next_retry_at) }}</TableCell>
-              <TableCell class="min-w-[220px]">
+              <TableCell v-if="recipientsColumnVisibility.tentativas !== false" class="text-right">{{ recipient.attempts }}</TableCell>
+              <TableCell v-if="recipientsColumnVisibility.proxRetry !== false">{{ formatDateTime(recipient.next_retry_at) }}</TableCell>
+              <TableCell v-if="recipientsColumnVisibility.erro !== false" class="min-w-[220px]">
                 <details v-if="recipient.last_error" class="text-xs">
                   <summary class="cursor-pointer text-destructive">Ver erro</summary>
                   <pre class="mt-2 whitespace-pre-wrap break-words rounded bg-muted p-3 text-xs text-destructive">{{
@@ -151,11 +155,11 @@
                 </details>
                 <span v-else class="text-xs text-muted-foreground">—</span>
               </TableCell>
-              <TableCell>{{ formatDateTime(recipient.queued_at) }}</TableCell>
-              <TableCell>{{ formatDateTime(recipient.sent_at) }}</TableCell>
-              <TableCell>{{ formatDateTime(recipient.failed_at) }}</TableCell>
-              <TableCell>{{ formatDateTime(recipient.canceled_at) }}</TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="recipientsColumnVisibility.queuedAt !== false">{{ formatDateTime(recipient.queued_at) }}</TableCell>
+              <TableCell v-if="recipientsColumnVisibility.sentAt !== false">{{ formatDateTime(recipient.sent_at) }}</TableCell>
+              <TableCell v-if="recipientsColumnVisibility.failedAt !== false">{{ formatDateTime(recipient.failed_at) }}</TableCell>
+              <TableCell v-if="recipientsColumnVisibility.canceledAt !== false">{{ formatDateTime(recipient.canceled_at) }}</TableCell>
+              <TableCell v-if="recipientsColumnVisibility.acoes !== false" class="text-right">
                 <Button size="sm" variant="outline" @click="openDetails(recipient)">
                   Detalhes
                 </Button>
@@ -281,18 +285,21 @@
                   </div>
                 </div>
 
+                <div v-if="store.recipientDispatches.dispatches.length" class="flex justify-end mb-2">
+                  <ColumnVisibilityToggle v-model="dispatchesColumnVisibility" :columns="dispatchesColumns" />
+                </div>
                 <div v-if="store.recipientDispatches.dispatches.length" class="overflow-x-auto rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead class="text-right">Tentativa</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>supplier_status</TableHead>
-                        <TableHead>supplier_message_id</TableHead>
-                        <TableHead>supplier_dispatch_id</TableHead>
-                        <TableHead>Erro</TableHead>
-                        <TableHead>dispatched_at</TableHead>
-                        <TableHead>responded_at</TableHead>
+                        <TableHead v-if="dispatchesColumnVisibility.tentativa !== false" class="text-right">Tentativa</TableHead>
+                        <TableHead v-if="dispatchesColumnVisibility.status !== false">Status</TableHead>
+                        <TableHead v-if="dispatchesColumnVisibility.supplierStatus !== false">supplier_status</TableHead>
+                        <TableHead v-if="dispatchesColumnVisibility.supplierMessageId !== false">supplier_message_id</TableHead>
+                        <TableHead v-if="dispatchesColumnVisibility.supplierDispatchId !== false">supplier_dispatch_id</TableHead>
+                        <TableHead v-if="dispatchesColumnVisibility.erro !== false">Erro</TableHead>
+                        <TableHead v-if="dispatchesColumnVisibility.dispatchedAt !== false">dispatched_at</TableHead>
+                        <TableHead v-if="dispatchesColumnVisibility.respondedAt !== false">responded_at</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -300,32 +307,34 @@
                         v-for="dispatch in store.recipientDispatches.dispatches"
                         :key="dispatch.id"
                       >
-                        <TableCell class="text-right font-mono text-xs">{{ dispatch.attempt }}</TableCell>
-                        <TableCell>
+                        <TableCell v-if="dispatchesColumnVisibility.tentativa !== false" class="text-right font-mono text-xs">{{ dispatch.attempt }}</TableCell>
+                        <TableCell v-if="dispatchesColumnVisibility.status !== false">
                           <RecipientStatusBadge :status="dispatch.status" />
                         </TableCell>
-                        <TableCell class="font-mono text-xs">{{ dispatch.supplier_status || "—" }}</TableCell>
+                        <TableCell v-if="dispatchesColumnVisibility.supplierStatus !== false" class="font-mono text-xs">{{ dispatch.supplier_status || "—" }}</TableCell>
                         <TableCell
+                          v-if="dispatchesColumnVisibility.supplierMessageId !== false"
                           class="max-w-[140px] truncate font-mono text-xs text-muted-foreground"
                           :title="dispatch.supplier_message_id || undefined"
                         >
                           {{ dispatch.supplier_message_id || "—" }}
                         </TableCell>
                         <TableCell
+                          v-if="dispatchesColumnVisibility.supplierDispatchId !== false"
                           class="max-w-[140px] truncate font-mono text-xs text-muted-foreground"
                           :title="dispatch.supplier_dispatch_id || undefined"
                         >
                           {{ dispatch.supplier_dispatch_id || "—" }}
                         </TableCell>
-                        <TableCell class="min-w-[180px]">
+                        <TableCell v-if="dispatchesColumnVisibility.erro !== false" class="min-w-[180px]">
                           <div v-if="dispatch.error_code || dispatch.error_message" class="text-xs text-destructive">
                             <span v-if="dispatch.error_code" class="font-mono">{{ dispatch.error_code }}</span>
                             {{ dispatch.error_message }}
                           </div>
                           <span v-else class="text-xs text-muted-foreground">—</span>
                         </TableCell>
-                        <TableCell class="text-xs">{{ formatDateTime(dispatch.dispatched_at) }}</TableCell>
-                        <TableCell class="text-xs">{{ formatDateTime(dispatch.responded_at) }}</TableCell>
+                        <TableCell v-if="dispatchesColumnVisibility.dispatchedAt !== false" class="text-xs">{{ formatDateTime(dispatch.dispatched_at) }}</TableCell>
+                        <TableCell v-if="dispatchesColumnVisibility.respondedAt !== false" class="text-xs">{{ formatDateTime(dispatch.responded_at) }}</TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
@@ -400,6 +409,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipientStatusBadge from "@/components/campaigns/RecipientStatusBadge.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import type { CampaignRunRecipient, CampaignRunRecipientStatus, CampaignRunRecipientsFilters } from "@/contracts/campaignExecution";
 import {
   CAMPAIGN_RUN_RECIPIENT_PER_PAGE_OPTIONS,
@@ -417,6 +427,40 @@ const props = defineProps<{
 const store = useCampaignExecutionStore();
 const errorMessage = ref("");
 const hasLoadedOnce = ref(false);
+
+const recipientsColumns = [
+  { id: "playerId", label: "player_id" },
+  { id: "phone", label: "phone" },
+  { id: "status", label: "Status" },
+  { id: "supplierId", label: "ID supplier" },
+  { id: "tentativas", label: "Tentativas" },
+  { id: "proxRetry", label: "Próx. retry" },
+  { id: "erro", label: "Erro" },
+  { id: "queuedAt", label: "queued_at" },
+  { id: "sentAt", label: "sent_at" },
+  { id: "failedAt", label: "failed_at" },
+  { id: "canceledAt", label: "canceled_at" },
+  { id: "acoes", label: "Ações" },
+];
+const recipientsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleRecipientsColumns = computed(() =>
+  recipientsColumns.filter((c) => recipientsColumnVisibility.value[c.id] !== false)
+);
+
+const dispatchesColumns = [
+  { id: "tentativa", label: "Tentativa" },
+  { id: "status", label: "Status" },
+  { id: "supplierStatus", label: "supplier_status" },
+  { id: "supplierMessageId", label: "supplier_message_id" },
+  { id: "supplierDispatchId", label: "supplier_dispatch_id" },
+  { id: "erro", label: "Erro" },
+  { id: "dispatchedAt", label: "dispatched_at" },
+  { id: "respondedAt", label: "responded_at" },
+];
+const dispatchesColumnVisibility = ref<Record<string, boolean>>({});
+const visibleDispatchesColumns = computed(() =>
+  dispatchesColumns.filter((c) => dispatchesColumnVisibility.value[c.id] !== false)
+);
 
 const filterForm = reactive({
   status: SELECT_ALL_VALUE as string,

@@ -24,16 +24,17 @@
               class="w-[200px]"
               content-class="w-[250px]"
             />
+            <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
           </div>
         </div>
 
         <Table class="w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>E-mail</TableHead>
-              <TableHead>Referrer ID</TableHead>
-              <TableHead class="text-right">
+              <TableHead v-if="columnVisibility.nome !== false">Nome</TableHead>
+              <TableHead v-if="columnVisibility.email !== false">E-mail</TableHead>
+              <TableHead v-if="columnVisibility.referrerId !== false">Referrer ID</TableHead>
+              <TableHead v-if="columnVisibility.criadoEm !== false" class="text-right">
                 <Button class="p-0" variant="ghost" @click="handleSort('created_at')">
                   Criado em
                   <ArrowUp v-if="order === 'created_at' && direction" class="ml-2 h-4 w-4" />
@@ -41,18 +42,18 @@
                   <ChevronsUpDown v-else class="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="row in players" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.nome !== false">
                 {{ row.name ?? 'Não Informado'}}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.email !== false">
                 {{ row.email }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.referrerId !== false">
                 <template v-if="row.referrer_id">
                   <router-link
                     v-if="canAccessClientManagement && row.referrer_player"
@@ -65,10 +66,10 @@
                 </template>
                 <span v-else class="text-muted-foreground">—</span>
               </TableCell>
-              <TableCell class="text-right text-nowrap">
+              <TableCell v-if="columnVisibility.criadoEm !== false" class="text-right text-nowrap">
                 {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm') }}h
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
                 <div class="gap-1 flex flex-nowrap justify-end">
                   <Button
                     v-if="canAccessClientManagement"
@@ -85,7 +86,7 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in perPage" :key="i">
-                <TableCell v-for="j in 5" :key="i">
+                <TableCell v-for="j in visibleTableColumns.length" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
@@ -93,7 +94,7 @@
 
             <template v-if="!isLoading && (!players || !players.length)">
               <TableRow>
-                <TableCell :colspan="5" class="text-center py-5">
+                <TableCell :colspan="visibleTableColumns.length" class="text-center py-5">
                   Nenhum cliente encontrado.
                 </TableCell>
               </TableRow>
@@ -114,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
@@ -125,6 +126,7 @@ import { Tag } from "@/contracts/tag";
 import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 import SearchableCombobox from "@/components/custom/SearchableCombobox.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
@@ -173,6 +175,18 @@ const perPage = ref(15);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const searchInput = ref('');
+
+const tableColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "email", label: "E-mail" },
+  { id: "referrerId", label: "Referrer ID" },
+  { id: "criadoEm", label: "Criado em" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const loadTagOptions = async (search = '') => {
   try {

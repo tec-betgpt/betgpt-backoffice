@@ -16,17 +16,20 @@
 
     <Card>
       <CardContent class="pt-6">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        </div>
         <Table class="w-full">
           <TableHeader>
             <TableRow>
-              <TableHead v-if="activeGroupProjectType == 'group'">Logo</TableHead>
-              <TableHead>Título</TableHead>
-              <TableHead>Recurso</TableHead>
-              <TableHead>Gráfico</TableHead>
-              <TableHead>Cor</TableHead>
-              <TableHead>Data Início</TableHead>
-              <TableHead>Data Fim</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="activeGroupProjectType == 'group' && columnVisibility.logo !== false">Logo</TableHead>
+              <TableHead v-if="columnVisibility.titulo !== false">Título</TableHead>
+              <TableHead v-if="columnVisibility.recurso !== false">Recurso</TableHead>
+              <TableHead v-if="columnVisibility.grafico !== false">Gráfico</TableHead>
+              <TableHead v-if="columnVisibility.cor !== false">Cor</TableHead>
+              <TableHead v-if="columnVisibility.dataInicio !== false">Data Início</TableHead>
+              <TableHead v-if="columnVisibility.dataFim !== false">Data Fim</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -37,7 +40,7 @@
             </TableRow>
             <template v-else>
               <TableRow v-for="annotation in projectAnnotations" :key="annotation.id">
-                <TableCell v-if="activeGroupProjectType == 'group'">
+                <TableCell v-if="activeGroupProjectType == 'group' && columnVisibility.logo !== false">
                   <Avatar class="h-10 w-10 rounded-lg">
                     <AvatarImage :src="annotation.project.logo_url || undefined" />
                     <AvatarFallback class="p-10 rounded-lg">
@@ -45,19 +48,19 @@
                     </AvatarFallback>
                   </Avatar>
                 </TableCell>
-                <TableCell class="font-medium">{{ annotation.title }}</TableCell>
-                <TableCell>{{ annotation.resource || "N/A" }}</TableCell>
-                <TableCell>{{ annotation.chart_name || "Global" }}</TableCell>
-                <TableCell>
+                <TableCell v-if="columnVisibility.titulo !== false" class="font-medium">{{ annotation.title }}</TableCell>
+                <TableCell v-if="columnVisibility.recurso !== false">{{ annotation.resource || "N/A" }}</TableCell>
+                <TableCell v-if="columnVisibility.grafico !== false">{{ annotation.chart_name || "Global" }}</TableCell>
+                <TableCell v-if="columnVisibility.cor !== false">
                   <div
                     v-if="annotation.color"
                     class="w-4 h-4 rounded-full border"
                     :style="{ backgroundColor: annotation.color }">
                   </div>
                 </TableCell>
-                <TableCell>{{ formatDate(annotation.date) }}</TableCell>
-                <TableCell>{{ formatDate(annotation.date_end) }}</TableCell>
-                <TableCell class="text-right">
+                <TableCell v-if="columnVisibility.dataInicio !== false">{{ formatDate(annotation.date) }}</TableCell>
+                <TableCell v-if="columnVisibility.dataFim !== false">{{ formatDate(annotation.date_end) }}</TableCell>
+                <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
                   <div class="flex justify-end gap-2">
                     <Button
                       variant="ghost"
@@ -129,6 +132,7 @@ import { toast } from "vue-sonner";
 import ProjectAnnotations from "@/services/projectAnnotations";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import AnnotationDetailsDialog from "@/components/project_annotations/AnnotationDetailsDialog.vue";
 import AnnotationEditDialog from "@/components/project_annotations/AnnotationEditDialog.vue";
@@ -161,9 +165,25 @@ const perPage = ref(15);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id ?? "");
 const activeGroupProjectType = computed(() => workspaceStore.activeGroupProject?.type ?? "project");
-const tableColumnCount = computed(() =>
-  activeGroupProjectType.value === "group" ? 8 : 7
+const tableColumns = [
+  { id: "logo", label: "Logo" },
+  { id: "titulo", label: "Título" },
+  { id: "recurso", label: "Recurso" },
+  { id: "grafico", label: "Gráfico" },
+  { id: "cor", label: "Cor" },
+  { id: "dataInicio", label: "Data Início" },
+  { id: "dataFim", label: "Data Fim" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter(
+    (c) =>
+      columnVisibility.value[c.id] !== false &&
+      (c.id !== "logo" || activeGroupProjectType.value === "group"),
+  ),
 );
+const tableColumnCount = computed(() => visibleTableColumns.value.length);
 const isDetailsOpen = ref(false);
 const isEditOpen = ref(false);
 const isDialogOpen = ref(false);

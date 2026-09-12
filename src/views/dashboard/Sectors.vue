@@ -34,12 +34,13 @@
           <Button @click="fetchSectors()">
             Buscar
           </Button>
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
         </div>
       </CardContent>
       <CardContent>
         <Table v-if="isLoading">
           <TableRow v-for="a in 10" :key="a">
-            <TableCell v-for="b in 3" :key="b">
+            <TableCell v-for="col in visibleTableColumns" :key="col.id">
               <Skeleton class="h-4 w-full dark:bg-gray-600 bg-gray-500 my-2" />
             </TableCell>
           </TableRow>
@@ -48,20 +49,20 @@
         <Table v-else class="w-full overflow-hidden">
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Projeto</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.nome !== false">Nome</TableHead>
+              <TableHead v-if="columnVisibility.projeto !== false">Projeto</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="(row, index) in sectors" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.nome !== false">
                 {{ row.name }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.projeto !== false">
                 {{ row.project?.name }}
               </TableCell>
-              <SectorRowActions :row="row" :reload="fetchSectors" :destroy="remove" />
+              <SectorRowActions v-if="columnVisibility.acoes !== false" :row="row" :reload="fetchSectors" :destroy="remove" />
             </TableRow>
           </TableBody>
         </Table>
@@ -78,7 +79,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { X } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Sector from "@/services/sector"
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import CreateDialogComponent from "@/components/sectors/CreateDialogComponent.vue";
 import SectorRowActions from "@/components/sectors/SectorRowActions.vue";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -107,6 +109,16 @@ const pages = ref({
   total: 0,
   last: 0,
 });
+
+const tableColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "projeto", label: "Projeto" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const clearSearch = () => {
   search.value = null;

@@ -14,20 +14,23 @@
 
     <Card>
       <CardContent class="py-4 flex flex-col gap-4">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        </div>
         <Table class="w-full'">
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Acesso</TableHead>
-              <TableHead class="text-right">Criado em</TableHead>
-              <TableHead class="text-right">Ultima atualização</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.nome !== false">Nome</TableHead>
+              <TableHead v-if="columnVisibility.acesso !== false">Acesso</TableHead>
+              <TableHead v-if="columnVisibility.criadoEm !== false" class="text-right">Criado em</TableHead>
+              <TableHead v-if="columnVisibility.ultimaAtualizacao !== false" class="text-right">Ultima atualização</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             <TableRow v-for="(row, index) in roles" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.nome !== false">
                 {{
                   row.title &&
                   String(row.title).trim() !== "" &&
@@ -36,18 +39,18 @@
                     : $t("role-" + row.name)
                 }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.acesso !== false">
                 <Badge variant="secondary">
                   {{ $t("role-" + row.scope_access) }}
                 </Badge>
               </TableCell>
-              <TableCell class="text-right text-nowrap">
+              <TableCell v-if="columnVisibility.criadoEm !== false" class="text-right text-nowrap">
                 {{ $moment(row.created_at).format('DD/MM/YYYY') }}
               </TableCell>
-              <TableCell class="text-right text-nowrap">
+              <TableCell v-if="columnVisibility.ultimaAtualizacao !== false" class="text-right text-nowrap">
                 {{ $moment(row.updated_at).format('DD/MM/YYYY') }}
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
                 <div class="gap-1 flex flex-nowrap justify-end">
                   <EditDialogComponent :row="row" :reload="fetchRoles" />
                 </div>
@@ -56,15 +59,15 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
-                <TableCell v-for="j in 4" :key="i">
-                  <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
+                <TableCell v-for="column in visibleTableColumns" :key="column.id">
+                  <Skeleton class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
             </template>
 
             <template v-if="!isLoading && (!roles || !roles.length)">
               <TableRow>
-                <TableCell :colspan="4" class="text-center py-5">
+                <TableCell :colspan="visibleTableColumns.length" class="text-center py-5">
                   Nenhum perfil encontrado.
                 </TableCell>
               </TableRow>
@@ -84,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
@@ -94,6 +97,19 @@ import CreateDialogComponent from "@/components/roles/CreateDialogComponent.vue"
 
 import EditDialogComponent from "@/components/roles/EditDialogComponent.vue";
 import {Card, CardContent} from "@/components/ui/card";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+
+const tableColumns = [
+  { id: "nome", label: "Nome" },
+  { id: "acesso", label: "Acesso" },
+  { id: "criadoEm", label: "Criado em" },
+  { id: "ultimaAtualizacao", label: "Ultima atualização" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const roles = ref([]);
 const isLoading = ref(true);

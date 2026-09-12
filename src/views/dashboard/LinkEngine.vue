@@ -175,26 +175,29 @@
               {{ formatNullableDateTime(monitor.canonical_clicks.since) }}
             </p>
           </div>
-          <Badge variant="outline">{{ formatInteger(monitor.canonical_clicks.by_campaign.length) }} campanhas</Badge>
+          <div class="flex items-center gap-2">
+            <Badge variant="outline">{{ formatInteger(monitor.canonical_clicks.by_campaign.length) }} campanhas</Badge>
+            <ColumnVisibilityToggle v-model="campaignsColumnVisibility" :columns="campaignsColumns" />
+          </div>
         </CardHeader>
         <CardContent>
           <div class="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Campanha</TableHead>
-                  <TableHead>Link</TableHead>
-                  <TableHead class="text-right">Cliques</TableHead>
+                  <TableHead v-if="campaignsColumnVisibility.campanha !== false">Campanha</TableHead>
+                  <TableHead v-if="campaignsColumnVisibility.link !== false">Link</TableHead>
+                  <TableHead v-if="campaignsColumnVisibility.cliques !== false" class="text-right">Cliques</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow v-for="item in monitor.canonical_clicks.by_campaign" :key="`${item.campaign_id}-${item.link_id}`">
-                  <TableCell class="font-mono text-xs">{{ shortUuid(item.campaign_id) }}</TableCell>
-                  <TableCell>#{{ item.link_id }}</TableCell>
-                  <TableCell class="text-right font-medium">{{ formatInteger(item.clicks) }}</TableCell>
+                  <TableCell v-if="campaignsColumnVisibility.campanha !== false" class="font-mono text-xs">{{ shortUuid(item.campaign_id) }}</TableCell>
+                  <TableCell v-if="campaignsColumnVisibility.link !== false">#{{ item.link_id }}</TableCell>
+                  <TableCell v-if="campaignsColumnVisibility.cliques !== false" class="text-right font-medium">{{ formatInteger(item.clicks) }}</TableCell>
                 </TableRow>
                 <TableRow v-if="monitor.canonical_clicks.by_campaign.length === 0">
-                  <TableCell :colspan="3" class="py-8 text-center text-muted-foreground">
+                  <TableCell :colspan="visibleCampaignsColumns.length" class="py-8 text-center text-muted-foreground">
                     Nenhum clique canonico registrado.
                   </TableCell>
                 </TableRow>
@@ -212,48 +215,51 @@
               Destinos que retornaram timeout, erro ou indisponibilidade.
             </p>
           </div>
-          <Badge :variant="monitor.unhealthy_links.length > 0 ? 'destructive' : 'outline'">
-            {{ formatInteger(monitor.unhealthy_links.length) }} links
-          </Badge>
+          <div class="flex items-center gap-2">
+            <Badge :variant="monitor.unhealthy_links.length > 0 ? 'destructive' : 'outline'">
+              {{ formatInteger(monitor.unhealthy_links.length) }} links
+            </Badge>
+            <ColumnVisibilityToggle v-model="unhealthyColumnVisibility" :columns="unhealthyColumns" />
+          </div>
         </CardHeader>
         <CardContent>
           <div class="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Link</TableHead>
-                  <TableHead>Destino</TableHead>
-                  <TableHead>URL</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>HTTP</TableHead>
-                  <TableHead>Tempo</TableHead>
-                  <TableHead>Erro</TableHead>
-                  <TableHead class="text-right">Checado em</TableHead>
+                  <TableHead v-if="unhealthyColumnVisibility.link !== false">Link</TableHead>
+                  <TableHead v-if="unhealthyColumnVisibility.destino !== false">Destino</TableHead>
+                  <TableHead v-if="unhealthyColumnVisibility.url !== false">URL</TableHead>
+                  <TableHead v-if="unhealthyColumnVisibility.status !== false">Status</TableHead>
+                  <TableHead v-if="unhealthyColumnVisibility.http !== false">HTTP</TableHead>
+                  <TableHead v-if="unhealthyColumnVisibility.tempo !== false">Tempo</TableHead>
+                  <TableHead v-if="unhealthyColumnVisibility.erro !== false">Erro</TableHead>
+                  <TableHead v-if="unhealthyColumnVisibility.checadoEm !== false" class="text-right">Checado em</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow v-for="link in monitor.unhealthy_links" :key="`${link.link_id}-${link.link_destination_id}`">
-                  <TableCell class="font-medium">#{{ link.link_id }}</TableCell>
-                  <TableCell>#{{ link.link_destination_id }}</TableCell>
-                  <TableCell class="max-w-[320px] truncate" :title="link.url">
+                  <TableCell v-if="unhealthyColumnVisibility.link !== false" class="font-medium">#{{ link.link_id }}</TableCell>
+                  <TableCell v-if="unhealthyColumnVisibility.destino !== false">#{{ link.link_destination_id }}</TableCell>
+                  <TableCell v-if="unhealthyColumnVisibility.url !== false" class="max-w-[320px] truncate" :title="link.url">
                     {{ link.url }}
                   </TableCell>
-                  <TableCell>
+                  <TableCell v-if="unhealthyColumnVisibility.status !== false">
                     <Badge :variant="isCriticalLinkStatus(link.status) ? 'destructive' : 'outline'">
                       {{ link.status || "—" }}
                     </Badge>
                   </TableCell>
-                  <TableCell>{{ link.http_status ?? "—" }}</TableCell>
-                  <TableCell>{{ formatMilliseconds(link.response_time_ms) }}</TableCell>
-                  <TableCell class="max-w-[260px] truncate" :title="link.error_message || ''">
+                  <TableCell v-if="unhealthyColumnVisibility.http !== false">{{ link.http_status ?? "—" }}</TableCell>
+                  <TableCell v-if="unhealthyColumnVisibility.tempo !== false">{{ formatMilliseconds(link.response_time_ms) }}</TableCell>
+                  <TableCell v-if="unhealthyColumnVisibility.erro !== false" class="max-w-[260px] truncate" :title="link.error_message || ''">
                     {{ link.error_message || "—" }}
                   </TableCell>
-                  <TableCell class="text-right text-nowrap">
+                  <TableCell v-if="unhealthyColumnVisibility.checadoEm !== false" class="text-right text-nowrap">
                     {{ formatNullableDateTime(link.checked_at) }}
                   </TableCell>
                 </TableRow>
                 <TableRow v-if="monitor.unhealthy_links.length === 0">
-                  <TableCell :colspan="8" class="py-8 text-center text-muted-foreground">
+                  <TableCell :colspan="visibleUnhealthyColumns.length" class="py-8 text-center text-muted-foreground">
                     Nenhum link degradado encontrado.
                   </TableCell>
                 </TableRow>
@@ -299,6 +305,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
 const apexchart = VueApexCharts;
 const workspaceStore = useWorkspaceStore();
@@ -308,6 +315,31 @@ const EXPECTED_POINTS = 1440;
 
 const monitor = ref<LinkEngineMonitorResponse | null>(null);
 const isFetching = ref(false);
+
+const campaignsColumns = [
+  { id: "campanha", label: "Campanha" },
+  { id: "link", label: "Link" },
+  { id: "cliques", label: "Cliques" },
+];
+const campaignsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleCampaignsColumns = computed(() =>
+  campaignsColumns.filter((c) => campaignsColumnVisibility.value[c.id] !== false),
+);
+
+const unhealthyColumns = [
+  { id: "link", label: "Link" },
+  { id: "destino", label: "Destino" },
+  { id: "url", label: "URL" },
+  { id: "status", label: "Status" },
+  { id: "http", label: "HTTP" },
+  { id: "tempo", label: "Tempo" },
+  { id: "erro", label: "Erro" },
+  { id: "checadoEm", label: "Checado em" },
+];
+const unhealthyColumnVisibility = ref<Record<string, boolean>>({});
+const visibleUnhealthyColumns = computed(() =>
+  unhealthyColumns.filter((c) => unhealthyColumnVisibility.value[c.id] !== false),
+);
 const hasFetchError = ref(false);
 const errorMessage = ref("");
 const lastUpdatedAt = ref<Date | null>(null);

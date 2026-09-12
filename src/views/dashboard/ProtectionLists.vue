@@ -62,16 +62,19 @@
         </div>
       </CardHeader>
       <CardContent class="py-4 flex flex-col gap-4">
+        <div class="flex justify-end">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        </div>
         <Table class="w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>Jogador</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Movimentação</TableHead>
-              <TableHead>Canal</TableHead>
-              <TableHead>Período</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead class="cursor-pointer select-none" @click="toggleSort">
+              <TableHead v-if="columnVisibility.jogador !== false">Jogador</TableHead>
+              <TableHead v-if="columnVisibility.tipo !== false">Tipo</TableHead>
+              <TableHead v-if="columnVisibility.movimentacao !== false">Movimentação</TableHead>
+              <TableHead v-if="columnVisibility.canal !== false">Canal</TableHead>
+              <TableHead v-if="columnVisibility.periodo !== false">Período</TableHead>
+              <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
+              <TableHead v-if="columnVisibility.criadoEm !== false" class="cursor-pointer select-none" @click="toggleSort">
                 <div class="flex items-center gap-1">
                   Criado em
                   <ArrowUpDown v-if="!filters.orderDirection" class="h-4 w-4" />
@@ -82,19 +85,19 @@
                   <ArrowDown v-else class="h-4 w-4" />
                 </div>
               </TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             <TableRow v-for="row in protectionLists" :key="row.id">
-              <TableCell>
+              <TableCell v-if="columnVisibility.jogador !== false">
                 {{ row.player?.name }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.tipo !== false">
                 {{ eventTypeMap[row.event_type] || row.event_type }}
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.movimentacao !== false">
                 <Badge
                   :variant="
                     row.dispatch_type === 'LP_ENTERED' ? 'default' : 'outline'
@@ -110,27 +113,27 @@
                   }}
                 </Badge>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.canal !== false">
                 {{ row.channel || "-" }}
               </TableCell>
-              <TableCell class="whitespace-nowrap">
+              <TableCell v-if="columnVisibility.periodo !== false" class="whitespace-nowrap">
                 <span v-if="row.start_at"
                   >{{ $moment(row.start_at).format("DD/MM/YYYY") }} -
                   {{ $moment(row.end_at).format("DD/MM/YYYY") }}</span
                 >
                 <span v-else class="text-muted-foreground italic"> - </span>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.status !== false">
                 <Badge variant="secondary" class="bg-blue-200 text-blue-800">
                   {{
                     row.user_id === null ? "Regra do Sistema" : "Regra Manual"
                   }}</Badge
                 >
               </TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.criadoEm !== false">
                 {{ $moment(row.created_at).format("DD/MM/YYYY HH:mm") }}
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.acoes !== false" class="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger as-child>
                     <Button variant="ghost" class="h-8 w-8 p-0">
@@ -169,7 +172,7 @@
 
             <template v-if="isLoading">
               <TableRow v-for="i in 5" :key="i">
-                <TableCell v-for="j in 8" :key="i">
+                <TableCell v-for="j in visibleTableColumns.length" :key="i">
                   <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
@@ -179,7 +182,7 @@
               v-if="!isLoading && (!protectionLists || !protectionLists.length)"
             >
               <TableRow>
-                <TableCell :colspan="8" class="text-center py-5">
+                <TableCell :colspan="visibleTableColumns.length" class="text-center py-5">
                   Nenhum registro encontrado.
                 </TableCell>
               </TableRow>
@@ -211,13 +214,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, watch, nextTick } from "vue";
+import { ref, computed, onMounted, reactive, watch, nextTick } from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useAuthStore } from "@/stores/auth";
 import ProtectionLists from "@/services/protectionLists";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import CreateDialogComponent from "@/components/protection-lists/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/protection-lists/EditDialogComponent.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
@@ -273,6 +277,21 @@ const canAccessClientManagement = ref(
 );
 const protectionLists = ref([]);
 const isLoading = ref(true);
+
+const tableColumns = [
+  { id: "jogador", label: "Jogador" },
+  { id: "tipo", label: "Tipo" },
+  { id: "movimentacao", label: "Movimentação" },
+  { id: "canal", label: "Canal" },
+  { id: "periodo", label: "Período" },
+  { id: "status", label: "Status" },
+  { id: "criadoEm", label: "Criado em" },
+  { id: "acoes", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 const perPage = ref(15);
 const pages = ref({
   current: 1,

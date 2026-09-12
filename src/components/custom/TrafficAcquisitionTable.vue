@@ -15,8 +15,9 @@
                 v-for="column in columns"
                 :key="column.id"
                 class="capitalize"
-                :checked="columnVisibility[column.id]"
-                @update:checked="(value) => $emit('update:columnVisibility', { ...columnVisibility, [column.id]: value })"
+                :model-value="columnVisibility[column.id]"
+                @select.prevent
+                @update:model-value="(value) => $emit('update:columnVisibility', { ...columnVisibility, [column.id]: value })"
             >
               {{ column.label }}
             </DropdownMenuCheckboxItem>

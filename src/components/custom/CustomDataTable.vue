@@ -72,6 +72,17 @@
     </Button>
     <div class="flex flex-1 gap-2 min-w-0"></div>
     <slot></slot>
+    <ColumnVisibilityToggle
+      v-model="columnVisibility"
+      :columns="hideableColumns"
+    />
+  </div>
+
+  <div v-if="!updateText" class="flex justify-end">
+    <ColumnVisibilityToggle
+      v-model="columnVisibility"
+      :columns="hideableColumns"
+    />
   </div>
 
   <Table class="w-full my-2" v-dragscroll>
@@ -153,7 +164,7 @@
     <TableFooter v-if="footer">
       <TableRow>
         <TableCell
-          v-for="(column, index) in columns"
+          v-for="(column, index) in visibleColumns"
           :key="column.accessorKey"
           :class="index === 0 ? 'text-left font-bold' : 'text-right font-bold'"
         >
@@ -197,6 +208,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SearchableCombobox from "@/components/custom/SearchableCombobox.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
 const props = defineProps({
   columns: {
@@ -272,10 +284,39 @@ function handleRowClick(row) {
 
 const dataTable = ref([...props.data]);
 const searchValues = ref<Record<string, string>>({});
+const columnVisibility = ref<Record<string, boolean>>({});
+
+const columnId = (col: any) => col.accessorKey ?? col.id;
+
+const hideableColumns = computed(() =>
+  props.columns.map((col: any) => {
+    const id = columnId(col);
+    return {
+      id,
+      label: typeof col.header === "string" ? col.header : id,
+    };
+  })
+);
+
+const visibleColumns = computed(() =>
+  props.columns.filter((col: any) => columnVisibility.value[columnId(col)] !== false)
+);
+
+const onColumnVisibilityChange = (updater: any) => {
+  columnVisibility.value =
+    typeof updater === "function" ? updater(columnVisibility.value) : updater;
+};
+
 const table = ref(
   useVueTable({
     data: dataTable.value,
     columns: props.columns,
+    state: {
+      get columnVisibility() {
+        return columnVisibility.value;
+      },
+    },
+    onColumnVisibilityChange,
     getCoreRowModel: getCoreRowModel(),
   })
 );
@@ -430,6 +471,12 @@ watch(
     table.value = useVueTable({
       data: dataTable.value,
       columns: props.columns,
+      state: {
+        get columnVisibility() {
+          return columnVisibility.value;
+        },
+      },
+      onColumnVisibilityChange,
       getCoreRowModel: getCoreRowModel(),
     });
   },

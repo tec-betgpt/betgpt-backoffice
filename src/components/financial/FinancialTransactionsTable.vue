@@ -59,40 +59,43 @@
         </Button>
       </div>
 
-      <FinancialImportHistoriesDialog
-        :project-id="projectId"
-        :reload="reloadFinancialsAfterMutation"
-      />
+      <div class="flex items-center gap-2">
+        <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+        <FinancialImportHistoriesDialog
+          :project-id="projectId"
+          :reload="reloadFinancialsAfterMutation"
+        />
+      </div>
     </div>
 
     <div class="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Centro de custo</TableHead>
-            <TableHead>Setor</TableHead>
-            <TableHead>Categoria</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Data</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead class="text-right">Valor</TableHead>
-            <TableHead class="text-right">Ações</TableHead>
+            <TableHead v-if="columnVisibility.costCenter !== false">Centro de custo</TableHead>
+            <TableHead v-if="columnVisibility.sector !== false">Setor</TableHead>
+            <TableHead v-if="columnVisibility.category !== false">Categoria</TableHead>
+            <TableHead v-if="columnVisibility.description !== false">Descrição</TableHead>
+            <TableHead v-if="columnVisibility.date !== false">Data</TableHead>
+            <TableHead v-if="columnVisibility.type !== false">Tipo</TableHead>
+            <TableHead v-if="columnVisibility.amount !== false" class="text-right">Valor</TableHead>
+            <TableHead v-if="columnVisibility.actions !== false" class="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           <TableRow class="bg-gray-50/10 font-bold">
-            <TableCell>Total Geral</TableCell>
-            <TableCell colspan="5"></TableCell>
-            <TableCell class="text-right" :class="globalTotals.balance < 0 ? 'text-red-600' : 'text-green-600'">
+            <TableCell v-if="columnVisibility.costCenter !== false">Total Geral</TableCell>
+            <TableCell v-if="visibleMiddleColumnsCount > 0" :colspan="visibleMiddleColumnsCount"></TableCell>
+            <TableCell v-if="columnVisibility.amount !== false" class="text-right" :class="globalTotals.balance < 0 ? 'text-red-600' : 'text-green-600'">
               {{ formatCurrency(globalTotals.balance) }}
             </TableCell>
-            <TableCell></TableCell>
+            <TableCell v-if="columnVisibility.actions !== false"></TableCell>
           </TableRow>
 
           <template v-if="isLoading">
             <TableRow v-for="row in 7" :key="row">
-              <TableCell v-for="col in 8" :key="col">
+              <TableCell v-for="col in visibleTableColumns.length" :key="col">
                 <Skeleton class="h-4 w-full bg-gray-300 my-4" />
               </TableCell>
             </TableRow>
@@ -100,10 +103,10 @@
 
           <template v-else>
             <TableRow v-for="transaction in transactions" :key="transaction.id">
-              <TableCell>{{ transaction.costCenter }}</TableCell>
-              <TableCell>{{ transaction.sectorName }}</TableCell>
-              <TableCell>{{ formatCategory(transaction.category_type) }}</TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.costCenter !== false">{{ transaction.costCenter }}</TableCell>
+              <TableCell v-if="columnVisibility.sector !== false">{{ transaction.sectorName }}</TableCell>
+              <TableCell v-if="columnVisibility.category !== false">{{ formatCategory(transaction.category_type) }}</TableCell>
+              <TableCell v-if="columnVisibility.description !== false">
                 <div
                   :title="transaction.description || '—'"
                   class="text-ellipsis overflow-hidden whitespace-nowrap max-w-[240px]"
@@ -111,8 +114,8 @@
                   {{ transaction.description || "—" }}
                 </div>
               </TableCell>
-              <TableCell>{{ formatDate(transaction.date) }}</TableCell>
-              <TableCell>
+              <TableCell v-if="columnVisibility.date !== false">{{ formatDate(transaction.date) }}</TableCell>
+              <TableCell v-if="columnVisibility.type !== false">
                 <Badge v-if="transaction.type === 'revenue'" class="bg-green-500 text-white hover:bg-green-500">
                   Entrada
                 </Badge>
@@ -120,10 +123,10 @@
                   Saída
                 </Badge>
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.amount !== false" class="text-right">
                 {{ formatCurrency(transaction.amount) }}
               </TableCell>
-              <TableCell class="text-right">
+              <TableCell v-if="columnVisibility.actions !== false" class="text-right">
                 <div class="flex items-center justify-end gap-1">
                   <EditDialogComponent
                     :reload="reloadFinancialsAfterMutation"
@@ -142,20 +145,20 @@
             </TableRow>
 
             <TableRow v-if="!transactions.length">
-              <TableCell colspan="8" class="h-24 text-center text-muted-foreground">
+              <TableCell :colspan="visibleTableColumns.length" class="h-24 text-center text-muted-foreground">
                 Nenhuma transação financeira encontrada.
               </TableCell>
             </TableRow>
 
             <TableRow class="font-medium bg-muted/30">
-              <TableCell>Subtotal da Página</TableCell>
-              <TableCell colspan="5" class="text-muted-foreground">
+              <TableCell v-if="columnVisibility.costCenter !== false">Subtotal da Página</TableCell>
+              <TableCell v-if="visibleMiddleColumnsCount > 0" :colspan="visibleMiddleColumnsCount" class="text-muted-foreground">
                 Soma dos itens renderizados nesta página
               </TableCell>
-              <TableCell class="text-right" :class="pageSubtotal < 0 ? 'text-red-600' : 'text-green-600'">
+              <TableCell v-if="columnVisibility.amount !== false" class="text-right" :class="pageSubtotal < 0 ? 'text-red-600' : 'text-green-600'">
                 {{ formatCurrency(pageSubtotal) }}
               </TableCell>
-              <TableCell></TableCell>
+              <TableCell v-if="columnVisibility.actions !== false"></TableCell>
             </TableRow>
           </template>
         </TableBody>
@@ -165,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -175,6 +178,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
 import EditDialogComponent from "@/components/financial/EditDialogComponent.vue";
 import FinancialImportHistoriesDialog from "@/components/financial/FinancialImportHistoriesDialog.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
 export interface FinancialTransactionTableItem {
   id: number;
@@ -241,6 +245,24 @@ const props = withDefaults(defineProps<{
   costs: () => [],
   sectors: () => [],
 });
+
+const tableColumns = [
+  { id: "costCenter", label: "Centro de custo" },
+  { id: "sector", label: "Setor" },
+  { id: "category", label: "Categoria" },
+  { id: "description", label: "Descrição" },
+  { id: "date", label: "Data" },
+  { id: "type", label: "Tipo" },
+  { id: "amount", label: "Valor" },
+  { id: "actions", label: "Ações" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
+const visibleMiddleColumnsCount = computed(() =>
+  visibleTableColumns.value.filter((c) => !["costCenter", "amount", "actions"].includes(c.id)).length
+);
 
 const pageSubtotal = computed(() => props.transactions.reduce((total, transaction) => {
   const amount = Number(transaction.amount) || 0;

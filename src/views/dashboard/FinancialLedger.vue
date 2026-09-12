@@ -79,30 +79,34 @@
           <AlertDescription>{{ errorMessage }}</AlertDescription>
         </Alert>
 
+        <div class="flex justify-end">
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="ledgerColumns" />
+        </div>
+
         <div class="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead class="w-10"></TableHead>
-                <TableHead>Data/hora</TableHead>
-                <TableHead>Campanha</TableHead>
-                <TableHead>Dispatch</TableHead>
-                <TableHead>Recurso</TableHead>
-                <TableHead>Tipo de entrada</TableHead>
-                <TableHead>Origem</TableHead>
-                <TableHead class="text-right">Quantidade</TableHead>
-                <TableHead class="text-right">Valor</TableHead>
-                <TableHead>Moeda</TableHead>
+                <TableHead v-if="columnVisibility.dataHora !== false">Data/hora</TableHead>
+                <TableHead v-if="columnVisibility.campanha !== false">Campanha</TableHead>
+                <TableHead v-if="columnVisibility.dispatch !== false">Dispatch</TableHead>
+                <TableHead v-if="columnVisibility.recurso !== false">Recurso</TableHead>
+                <TableHead v-if="columnVisibility.tipoEntrada !== false">Tipo de entrada</TableHead>
+                <TableHead v-if="columnVisibility.origem !== false">Origem</TableHead>
+                <TableHead v-if="columnVisibility.quantidade !== false" class="text-right">Quantidade</TableHead>
+                <TableHead v-if="columnVisibility.valor !== false" class="text-right">Valor</TableHead>
+                <TableHead v-if="columnVisibility.moeda !== false">Moeda</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow v-if="loading && entries.length === 0">
-                <TableCell colspan="10" class="py-8 text-center text-muted-foreground">
+                <TableCell :colspan="visibleLedgerColumns.length + 1" class="py-8 text-center text-muted-foreground">
                   Carregando extrato...
                 </TableCell>
               </TableRow>
               <TableRow v-else-if="entries.length === 0">
-                <TableCell colspan="10" class="py-8 text-center text-muted-foreground">
+                <TableCell :colspan="visibleLedgerColumns.length + 1" class="py-8 text-center text-muted-foreground">
                   Nenhum movimento para os filtros selecionados.
                 </TableCell>
               </TableRow>
@@ -114,8 +118,8 @@
                       :class="expandedIds.has(entry.id) ? 'rotate-90' : ''"
                     />
                   </TableCell>
-                  <TableCell>{{ formatDateTime(entry.occurred_at) }}</TableCell>
-                  <TableCell>
+                  <TableCell v-if="columnVisibility.dataHora !== false">{{ formatDateTime(entry.occurred_at) }}</TableCell>
+                  <TableCell v-if="columnVisibility.campanha !== false">
                     <button
                       v-if="entry.campaign"
                       class="text-left font-medium text-primary hover:underline"
@@ -125,33 +129,33 @@
                     </button>
                     <span v-else>—</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell v-if="columnVisibility.dispatch !== false">
                     <span v-if="dispatchIdOf(entry)">#{{ dispatchIdOf(entry) }}</span>
                     <span v-else>—</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell v-if="columnVisibility.recurso !== false">
                     <template v-if="entry.billable_resource">
                       {{ entry.billable_resource.code }} ({{ entry.billable_resource.channel }})
                     </template>
                     <span v-else>desconhecido</span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell v-if="columnVisibility.tipoEntrada !== false">
                     <Badge :variant="entryTypeVariant(entry.entry_type)">
                       {{ LEDGER_ENTRY_TYPE_LABELS[entry.entry_type] }}
                     </Badge>
                   </TableCell>
-                  <TableCell>{{ LEDGER_SOURCE_TYPE_LABELS[entry.source_type] }}</TableCell>
-                  <TableCell class="text-right">{{ formatNumber(entry.quantity) }} {{ entry.unit }}</TableCell>
-                  <TableCell class="text-right">
+                  <TableCell v-if="columnVisibility.origem !== false">{{ LEDGER_SOURCE_TYPE_LABELS[entry.source_type] }}</TableCell>
+                  <TableCell v-if="columnVisibility.quantidade !== false" class="text-right">{{ formatNumber(entry.quantity) }} {{ entry.unit }}</TableCell>
+                  <TableCell v-if="columnVisibility.valor !== false" class="text-right">
                     <span :class="entry.signed_amount_cents !== null && entry.signed_amount_cents < 0 ? 'text-destructive' : ''">
                       {{ formatSignedCents(entry.signed_amount_cents, entry.currency) }}
                     </span>
                   </TableCell>
-                  <TableCell>{{ entry.currency }}</TableCell>
+                  <TableCell v-if="columnVisibility.moeda !== false">{{ entry.currency }}</TableCell>
                 </TableRow>
                 <TableRow v-if="expandedIds.has(entry.id)" class="bg-muted/30">
                   <TableCell></TableCell>
-                  <TableCell colspan="9">
+                  <TableCell :colspan="visibleLedgerColumns.length">
                     <div class="space-y-2 py-2 text-sm">
                       <div v-if="entry.description" class="text-muted-foreground">{{ entry.description }}</div>
                       <div class="flex flex-wrap gap-x-6 gap-y-1">
@@ -201,7 +205,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ChevronRight } from "lucide-vue-next";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -219,6 +223,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import {
   LEDGER_ENTRY_TYPE_LABELS,
   LEDGER_ENTRY_TYPE_OPTIONS,
@@ -251,6 +256,22 @@ const pages = ref({
   total: 0,
   last: 0,
 });
+
+const ledgerColumns = [
+  { id: "dataHora", label: "Data/hora" },
+  { id: "campanha", label: "Campanha" },
+  { id: "dispatch", label: "Dispatch" },
+  { id: "recurso", label: "Recurso" },
+  { id: "tipoEntrada", label: "Tipo de entrada" },
+  { id: "origem", label: "Origem" },
+  { id: "quantidade", label: "Quantidade" },
+  { id: "valor", label: "Valor" },
+  { id: "moeda", label: "Moeda" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleLedgerColumns = computed(() =>
+  ledgerColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const filters = reactive<{
   campaign_id: string;

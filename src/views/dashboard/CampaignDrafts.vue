@@ -102,26 +102,29 @@
 
     <Card v-else>
       <CardContent class="pt-6">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="campaignsColumnVisibility" :columns="campaignsColumns" />
+        </div>
         <div class="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Campanha</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Projeto</TableHead>
-                <TableHead>Agendamento</TableHead>
-                <TableHead>Atualização</TableHead>
-                <TableHead class="text-right">Ações</TableHead>
+                <TableHead v-if="campaignsColumnVisibility.campaign !== false">Campanha</TableHead>
+                <TableHead v-if="campaignsColumnVisibility.status !== false">Status</TableHead>
+                <TableHead v-if="campaignsColumnVisibility.project !== false">Projeto</TableHead>
+                <TableHead v-if="campaignsColumnVisibility.schedule !== false">Agendamento</TableHead>
+                <TableHead v-if="campaignsColumnVisibility.updatedAt !== false">Atualização</TableHead>
+                <TableHead v-if="campaignsColumnVisibility.actions !== false" class="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow v-if="isLoading">
-                <TableCell colspan="6" class="py-8 text-center text-muted-foreground">
+                <TableCell :colspan="visibleCampaignsColumns.length" class="py-8 text-center text-muted-foreground">
                   Carregando campanhas...
                 </TableCell>
               </TableRow>
               <TableRow v-for="item in campaigns" :key="item.id">
-                <TableCell class="min-w-[280px]">
+                <TableCell v-if="campaignsColumnVisibility.campaign !== false" class="min-w-[280px]">
                   <div class="space-y-1">
                     <div class="font-medium">{{ item.name }}</div>
                     <div class="text-xs text-muted-foreground">
@@ -134,11 +137,11 @@
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="campaignsColumnVisibility.status !== false">
                   <Badge :variant="statusVariant(item.status)">{{ CAMPAIGN_STATUS_LABELS[item.status] }}</Badge>
                 </TableCell>
-                <TableCell>{{ item.project?.name || `#${item.project_id}` }}</TableCell>
-                <TableCell>
+                <TableCell v-if="campaignsColumnVisibility.project !== false">{{ item.project?.name || `#${item.project_id}` }}</TableCell>
+                <TableCell v-if="campaignsColumnVisibility.schedule !== false">
                   <div class="space-y-1 text-sm">
                     <div>{{ item.schedule?.schedule_type || "—" }}</div>
                     <div class="text-xs text-muted-foreground">
@@ -146,13 +149,13 @@
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="campaignsColumnVisibility.updatedAt !== false">
                   <div class="space-y-1 text-sm">
                     <div>{{ formatDateTime(item.updated_at) }}</div>
                     <div class="text-xs text-muted-foreground">{{ authorLabel(item) }}</div>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell v-if="campaignsColumnVisibility.actions !== false">
                   <div class="flex justify-end gap-2">
                     <Button
                       v-if="item.status !== 'draft' && item.status !== 'validation_failed'"
@@ -227,6 +230,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -268,6 +272,19 @@ const isDeleting = ref(false);
 const errorMessage = ref("");
 const isDeleteDialogOpen = ref(false);
 const selectedCampaign = ref<CampaignListItem | null>(null);
+
+const campaignsColumns = [
+  { id: "campaign", label: "Campanha" },
+  { id: "status", label: "Status" },
+  { id: "project", label: "Projeto" },
+  { id: "schedule", label: "Agendamento" },
+  { id: "updatedAt", label: "Atualização" },
+  { id: "actions", label: "Ações" },
+];
+const campaignsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleCampaignsColumns = computed(() =>
+  campaignsColumns.filter((c) => campaignsColumnVisibility.value[c.id] !== false)
+);
 
 const filters = reactive<CampaignListParams & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: "sms" | "email" | typeof SELECT_ALL_VALUE | null; type: "broadcast" | typeof SELECT_ALL_VALUE | null }>({
   filter_id: null,

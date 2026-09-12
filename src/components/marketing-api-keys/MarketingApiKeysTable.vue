@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import moment from "moment";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ import type {
   MarketingApiKey,
   MarketingApiKeyStatus,
 } from "@/contracts/marketingApiKeys";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
 const props = defineProps<{
   apiKeys: MarketingApiKey[];
@@ -49,7 +51,20 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const COLUMN_COUNT = 8;
+const tableColumns = computed(() => [
+  { id: "name", label: t("marketing_api_keys.column_name") },
+  { id: "key", label: t("marketing_api_keys.column_key") },
+  { id: "status", label: t("marketing_api_keys.column_status") },
+  { id: "scopes", label: t("marketing_api_keys.column_scopes") },
+  { id: "rateLimit", label: t("marketing_api_keys.column_rate_limit") },
+  { id: "expiresAt", label: t("marketing_api_keys.column_expires_at") },
+  { id: "lastUsed", label: t("marketing_api_keys.column_last_used") },
+  { id: "created", label: t("marketing_api_keys.column_created") },
+]);
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.value.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const statusVariant: Record<
   MarketingApiKeyStatus,
@@ -97,20 +112,23 @@ function hasAnyAction(apiKey: MarketingApiKey): boolean {
 </script>
 
 <template>
+  <div class="flex justify-end mb-2">
+    <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
+  </div>
   <div class="w-full border rounded-lg overflow-x-auto">
     <Table class="w-full">
       <TableHeader>
         <TableRow>
-          <TableHead>{{ t("marketing_api_keys.column_name") }}</TableHead>
-          <TableHead>{{ t("marketing_api_keys.column_key") }}</TableHead>
-          <TableHead>{{ t("marketing_api_keys.column_status") }}</TableHead>
-          <TableHead>{{ t("marketing_api_keys.column_scopes") }}</TableHead>
-          <TableHead class="text-right">
+          <TableHead v-if="columnVisibility.name !== false">{{ t("marketing_api_keys.column_name") }}</TableHead>
+          <TableHead v-if="columnVisibility.key !== false">{{ t("marketing_api_keys.column_key") }}</TableHead>
+          <TableHead v-if="columnVisibility.status !== false">{{ t("marketing_api_keys.column_status") }}</TableHead>
+          <TableHead v-if="columnVisibility.scopes !== false">{{ t("marketing_api_keys.column_scopes") }}</TableHead>
+          <TableHead v-if="columnVisibility.rateLimit !== false" class="text-right">
             {{ t("marketing_api_keys.column_rate_limit") }}
           </TableHead>
-          <TableHead>{{ t("marketing_api_keys.column_expires_at") }}</TableHead>
-          <TableHead>{{ t("marketing_api_keys.column_last_used") }}</TableHead>
-          <TableHead>{{ t("marketing_api_keys.column_created") }}</TableHead>
+          <TableHead v-if="columnVisibility.expiresAt !== false">{{ t("marketing_api_keys.column_expires_at") }}</TableHead>
+          <TableHead v-if="columnVisibility.lastUsed !== false">{{ t("marketing_api_keys.column_last_used") }}</TableHead>
+          <TableHead v-if="columnVisibility.created !== false">{{ t("marketing_api_keys.column_created") }}</TableHead>
           <TableHead v-if="canManage" class="w-12" />
         </TableRow>
       </TableHeader>
@@ -118,7 +136,7 @@ function hasAnyAction(apiKey: MarketingApiKey): boolean {
         <template v-if="loading">
           <TableRow v-for="i in 5" :key="`skeleton-${i}`">
             <TableCell
-              v-for="j in canManage ? COLUMN_COUNT + 1 : COLUMN_COUNT"
+              v-for="j in visibleTableColumns.length + (canManage ? 1 : 0)"
               :key="j"
             >
               <Skeleton class="h-4 w-full bg-gray-300 my-1" />
@@ -128,20 +146,20 @@ function hasAnyAction(apiKey: MarketingApiKey): boolean {
 
         <template v-else-if="apiKeys.length">
           <TableRow v-for="apiKey in apiKeys" :key="apiKey.uuid">
-            <TableCell class="font-medium max-w-48 truncate">
+            <TableCell v-if="columnVisibility.name !== false" class="font-medium max-w-48 truncate">
               {{ apiKey.name }}
             </TableCell>
-            <TableCell>
+            <TableCell v-if="columnVisibility.key !== false">
               <code class="text-xs bg-muted px-1.5 py-0.5 rounded">
                 {{ apiKey.key_prefix }}
               </code>
             </TableCell>
-            <TableCell>
+            <TableCell v-if="columnVisibility.status !== false">
               <Badge :variant="statusVariant[apiKey.status]">
                 {{ statusLabel(apiKey.status) }}
               </Badge>
             </TableCell>
-            <TableCell class="max-w-56">
+            <TableCell v-if="columnVisibility.scopes !== false" class="max-w-56">
               <div class="flex flex-wrap gap-1">
                 <Badge
                   v-for="scope in apiKey.scopes.slice(0, 2)"
@@ -164,10 +182,10 @@ function hasAnyAction(apiKey: MarketingApiKey): boolean {
                 </Badge>
               </div>
             </TableCell>
-            <TableCell class="text-right">
+            <TableCell v-if="columnVisibility.rateLimit !== false" class="text-right">
               {{ apiKey.rate_limit_per_minute }}
             </TableCell>
-            <TableCell class="text-nowrap">
+            <TableCell v-if="columnVisibility.expiresAt !== false" class="text-nowrap">
               <TooltipProvider v-if="isExpiringSoon(apiKey)">
                 <Tooltip>
                   <TooltipTrigger class="text-amber-600 font-medium">
@@ -185,10 +203,10 @@ function hasAnyAction(apiKey: MarketingApiKey): boolean {
                 {{ t("marketing_api_keys.no_expiration") }}
               </span>
             </TableCell>
-            <TableCell class="text-nowrap">
+            <TableCell v-if="columnVisibility.lastUsed !== false" class="text-nowrap">
               {{ formatLastUsed(apiKey) }}
             </TableCell>
-            <TableCell class="text-nowrap">
+            <TableCell v-if="columnVisibility.created !== false" class="text-nowrap">
               {{ formatDate(apiKey.created_at) }}
               <span
                 v-if="apiKey.created_by"
@@ -235,7 +253,7 @@ function hasAnyAction(apiKey: MarketingApiKey): boolean {
 
         <TableRow v-else>
           <TableCell
-            :colspan="canManage ? COLUMN_COUNT + 1 : COLUMN_COUNT"
+            :colspan="visibleTableColumns.length + (canManage ? 1 : 0)"
             class="text-center py-8 text-muted-foreground"
           >
             {{ t("marketing_api_keys.empty") }}

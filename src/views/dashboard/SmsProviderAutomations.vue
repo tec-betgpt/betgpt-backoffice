@@ -20,38 +20,41 @@
 
     <Card>
       <CardContent class="pt-6">
+        <div class="flex justify-end mb-2">
+          <ColumnVisibilityToggle v-model="campaignsColumnVisibility" :columns="campaignsColumns" />
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Automação</TableHead>
-              <TableHead>Ativa</TableHead>
-              <TableHead>Lista vinculada</TableHead>
-              <TableHead>Criada em</TableHead>
-              <TableHead class="text-right">Ações</TableHead>
+              <TableHead v-if="campaignsColumnVisibility.automacao !== false">Automação</TableHead>
+              <TableHead v-if="campaignsColumnVisibility.ativa !== false">Ativa</TableHead>
+              <TableHead v-if="campaignsColumnVisibility.listaVinculada !== false">Lista vinculada</TableHead>
+              <TableHead v-if="campaignsColumnVisibility.criadaEm !== false">Criada em</TableHead>
+              <TableHead v-if="campaignsColumnVisibility.acoes !== false" class="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-if="isLoading">
-              <TableCell colspan="5" class="py-8 text-center text-muted-foreground">Carregando automações...</TableCell>
+              <TableCell :colspan="visibleCampaignsColumns.length" class="py-8 text-center text-muted-foreground">Carregando automações...</TableCell>
             </TableRow>
             <TableRow v-else-if="campaigns.length === 0">
-              <TableCell colspan="5" class="py-8 text-center text-muted-foreground">
+              <TableCell :colspan="visibleCampaignsColumns.length" class="py-8 text-center text-muted-foreground">
                 Nenhuma automação encontrada no SMS Funnel.
               </TableCell>
             </TableRow>
             <TableRow v-for="item in campaigns" :key="item.id">
-              <TableCell>
+              <TableCell v-if="campaignsColumnVisibility.automacao !== false">
                 <div class="font-medium">{{ item.name }}</div>
                 <div class="font-mono text-xs text-muted-foreground">{{ item.id }}</div>
               </TableCell>
-              <TableCell>
+              <TableCell v-if="campaignsColumnVisibility.ativa !== false">
                 <Badge :variant="item.active ? 'default' : 'secondary'">
                   {{ item.active ? "Ativa" : "Inativa" }}
                 </Badge>
               </TableCell>
-              <TableCell class="font-mono text-xs">{{ item.lead_list_id || "—" }}</TableCell>
-              <TableCell>{{ formatDateTime(item.created_at) }}</TableCell>
-              <TableCell>
+              <TableCell v-if="campaignsColumnVisibility.listaVinculada !== false" class="font-mono text-xs">{{ item.lead_list_id || "—" }}</TableCell>
+              <TableCell v-if="campaignsColumnVisibility.criadaEm !== false">{{ formatDateTime(item.created_at) }}</TableCell>
+              <TableCell v-if="campaignsColumnVisibility.acoes !== false">
                 <div class="flex justify-end gap-2">
                   <Button variant="outline" size="sm" @click="openSequences(item)">Sequências</Button>
                   <Button variant="outline" size="sm" :disabled="isSaving" @click="toggleActive(item)">
@@ -259,7 +262,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -307,6 +310,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { toast } from "vue-sonner";
 import {
   SMS_INTERVAL_TYPE_FALLBACK,
@@ -354,6 +358,18 @@ const formName = ref("");
 const formListId = ref("");
 const formSequences = ref<SequenceForm[]>([]);
 const newSequence = reactive<SequenceForm>(createSequenceForm());
+
+const campaignsColumns = [
+  { id: "automacao", label: "Automação" },
+  { id: "ativa", label: "Ativa" },
+  { id: "listaVinculada", label: "Lista vinculada" },
+  { id: "criadaEm", label: "Criada em" },
+  { id: "acoes", label: "Ações" },
+];
+const campaignsColumnVisibility = ref<Record<string, boolean>>({});
+const visibleCampaignsColumns = computed(() =>
+  campaignsColumns.filter((c) => campaignsColumnVisibility.value[c.id] !== false)
+);
 
 function requireFilterId(): string | null {
   const id = workspaceStore.activeGroupProject?.id;

@@ -87,30 +87,33 @@
           <section class="space-y-2">
             <div class="flex items-center justify-between">
               <h4 class="text-sm font-medium">Por recurso</h4>
-              <span v-if="usage.timestamps.last_event_at" class="text-xs text-muted-foreground">
-                Último evento: {{ formatDateTime(usage.timestamps.last_event_at) }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span v-if="usage.timestamps.last_event_at" class="text-xs text-muted-foreground">
+                  Último evento: {{ formatDateTime(usage.timestamps.last_event_at) }}
+                </span>
+                <ColumnVisibilityToggle v-model="resourceColumnVisibility" :columns="resourceColumns" />
+              </div>
             </div>
             <div v-if="usage.by_resource.length" class="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Recurso</TableHead>
-                    <TableHead>Canal</TableHead>
-                    <TableHead class="text-right">Quantidade</TableHead>
-                    <TableHead class="text-right">Valor ao cliente</TableHead>
-                    <TableHead class="text-right">Custo supplier</TableHead>
-                    <TableHead class="text-right">Margem</TableHead>
+                    <TableHead v-if="resourceColumnVisibility.recurso !== false">Recurso</TableHead>
+                    <TableHead v-if="resourceColumnVisibility.canal !== false">Canal</TableHead>
+                    <TableHead v-if="resourceColumnVisibility.quantidade !== false" class="text-right">Quantidade</TableHead>
+                    <TableHead v-if="resourceColumnVisibility.valorCliente !== false" class="text-right">Valor ao cliente</TableHead>
+                    <TableHead v-if="resourceColumnVisibility.custoSupplier !== false" class="text-right">Custo supplier</TableHead>
+                    <TableHead v-if="resourceColumnVisibility.margem !== false" class="text-right">Margem</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow v-for="row in usage.by_resource" :key="row.billable_resource">
-                    <TableCell>{{ row.billable_resource || "desconhecido" }}</TableCell>
-                    <TableCell>{{ row.channel || "—" }}</TableCell>
-                    <TableCell class="text-right">{{ formatNumber(row.quantity) }}</TableCell>
-                    <TableCell class="text-right">{{ formatCents(row.customer_amount_cents) }}</TableCell>
-                    <TableCell class="text-right">{{ formatCents(row.supplier_amount_cents) }}</TableCell>
-                    <TableCell class="text-right">{{ formatCents(row.margin_amount_cents) }}</TableCell>
+                    <TableCell v-if="resourceColumnVisibility.recurso !== false">{{ row.billable_resource || "desconhecido" }}</TableCell>
+                    <TableCell v-if="resourceColumnVisibility.canal !== false">{{ row.channel || "—" }}</TableCell>
+                    <TableCell v-if="resourceColumnVisibility.quantidade !== false" class="text-right">{{ formatNumber(row.quantity) }}</TableCell>
+                    <TableCell v-if="resourceColumnVisibility.valorCliente !== false" class="text-right">{{ formatCents(row.customer_amount_cents) }}</TableCell>
+                    <TableCell v-if="resourceColumnVisibility.custoSupplier !== false" class="text-right">{{ formatCents(row.supplier_amount_cents) }}</TableCell>
+                    <TableCell v-if="resourceColumnVisibility.margem !== false" class="text-right">{{ formatCents(row.margin_amount_cents) }}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -121,25 +124,28 @@
           </section>
 
           <section class="space-y-2">
-            <h4 class="text-sm font-medium">Por provider</h4>
+            <div class="flex items-center justify-between">
+              <h4 class="text-sm font-medium">Por provider</h4>
+              <ColumnVisibilityToggle v-model="providerColumnVisibility" :columns="providerColumns" />
+            </div>
             <div v-if="usage.by_provider.length" class="overflow-x-auto rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Provider</TableHead>
-                    <TableHead class="text-right">Quantidade</TableHead>
-                    <TableHead class="text-right">Valor ao cliente</TableHead>
-                    <TableHead class="text-right">Custo supplier</TableHead>
-                    <TableHead class="text-right">Margem</TableHead>
+                    <TableHead v-if="providerColumnVisibility.provider !== false">Provider</TableHead>
+                    <TableHead v-if="providerColumnVisibility.quantidade !== false" class="text-right">Quantidade</TableHead>
+                    <TableHead v-if="providerColumnVisibility.valorCliente !== false" class="text-right">Valor ao cliente</TableHead>
+                    <TableHead v-if="providerColumnVisibility.custoSupplier !== false" class="text-right">Custo supplier</TableHead>
+                    <TableHead v-if="providerColumnVisibility.margem !== false" class="text-right">Margem</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow v-for="row in usage.by_provider" :key="row.provider">
-                    <TableCell>{{ row.provider || "desconhecido" }}</TableCell>
-                    <TableCell class="text-right">{{ formatNumber(row.quantity) }}</TableCell>
-                    <TableCell class="text-right">{{ formatCents(row.customer_amount_cents) }}</TableCell>
-                    <TableCell class="text-right">{{ formatCents(row.supplier_amount_cents) }}</TableCell>
-                    <TableCell class="text-right">{{ formatCents(row.margin_amount_cents) }}</TableCell>
+                    <TableCell v-if="providerColumnVisibility.provider !== false">{{ row.provider || "desconhecido" }}</TableCell>
+                    <TableCell v-if="providerColumnVisibility.quantidade !== false" class="text-right">{{ formatNumber(row.quantity) }}</TableCell>
+                    <TableCell v-if="providerColumnVisibility.valorCliente !== false" class="text-right">{{ formatCents(row.customer_amount_cents) }}</TableCell>
+                    <TableCell v-if="providerColumnVisibility.custoSupplier !== false" class="text-right">{{ formatCents(row.supplier_amount_cents) }}</TableCell>
+                    <TableCell v-if="providerColumnVisibility.margem !== false" class="text-right">{{ formatCents(row.margin_amount_cents) }}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -178,6 +184,7 @@ import {
 } from "@/components/ui/table";
 import { formatCents, type FinancialChannel, type ResourceUsageParams, type ResourceUsageResponse } from "@/contracts/financialLedger";
 import { getResourceUsage } from "@/services/financialLedger";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 
@@ -188,6 +195,31 @@ const workspaceStore = useWorkspaceStore();
 const usage = ref<ResourceUsageResponse | null>(null);
 const loading = ref(false);
 const errorMessage = ref("");
+
+const resourceColumns = [
+  { id: "recurso", label: "Recurso" },
+  { id: "canal", label: "Canal" },
+  { id: "quantidade", label: "Quantidade" },
+  { id: "valorCliente", label: "Valor ao cliente" },
+  { id: "custoSupplier", label: "Custo supplier" },
+  { id: "margem", label: "Margem" },
+];
+const resourceColumnVisibility = ref<Record<string, boolean>>({});
+const visibleResourceColumns = computed(() =>
+  resourceColumns.filter((c) => resourceColumnVisibility.value[c.id] !== false)
+);
+
+const providerColumns = [
+  { id: "provider", label: "Provider" },
+  { id: "quantidade", label: "Quantidade" },
+  { id: "valorCliente", label: "Valor ao cliente" },
+  { id: "custoSupplier", label: "Custo supplier" },
+  { id: "margem", label: "Margem" },
+];
+const providerColumnVisibility = ref<Record<string, boolean>>({});
+const visibleProviderColumns = computed(() =>
+  providerColumns.filter((c) => providerColumnVisibility.value[c.id] !== false)
+);
 
 const filters = reactive<{
   campaign_id: string;

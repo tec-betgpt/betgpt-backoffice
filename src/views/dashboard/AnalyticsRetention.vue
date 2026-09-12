@@ -5,6 +5,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Analytics from "@/services/analytics";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 
 import { formatMinifiedNumber, numberLocale } from "@/filters/formatNumbers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,22 @@ const workspaceStore = useWorkspaceStore();
 const selectedRange = ref({ start: null, end: null });
 const isLoading = ref(true);
 const retentionData = ref<any[]>([]);
+
+const tableColumns = [
+  { id: "data", label: "Data" },
+  { id: "totalAtivos", label: "Total Ativos" },
+  { id: "novos", label: "Novos" },
+  { id: "novosD0", label: "Novos D0" },
+  { id: "novosPosD0", label: "Novos Pós D0" },
+  { id: "recuperados", label: "Recuperados" },
+  { id: "retidos", label: "Retidos" },
+  { id: "churn", label: "Churn" },
+  { id: "inativos", label: "Inativos" },
+];
+const columnVisibility = ref<Record<string, boolean>>({});
+const visibleTableColumns = computed(() =>
+  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+);
 
 const chartRetentionData = computed(() =>
   retentionData.value.map((row) => ({
@@ -127,8 +144,9 @@ useScreenContext(
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4" v-if="!isLoading && retentionData.length > 0">
       <Card class="overflow-hidden flex flex-col lg:col-span-3">
-        <CardHeader class="py-4 shrink-0">
+        <CardHeader class="py-4 shrink-0 flex flex-row items-center justify-between space-y-0">
           <CardTitle>Detalhamento Diário</CardTitle>
+          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
         </CardHeader>
         <Separator class="shrink-0" />
         <CardContent class="p-0 flex-1 max-h-[350px]">
@@ -136,28 +154,28 @@ useScreenContext(
             <Table>
               <TableHeader class="sticky top-0 bg-background z-10 shadow-sm">
                 <TableRow>
-                  <TableHead class="font-bold text-nowrap">Data</TableHead>
-                  <TableHead class="text-right font-bold text-nowrap">Total Ativos</TableHead>
-                  <TableHead class="text-right font-bold text-[#f4a261] text-nowrap">Novos</TableHead>
-                  <TableHead class="text-right font-bold text-[#e9c46a] text-nowrap">Novos D0</TableHead>
-                  <TableHead class="text-right font-bold text-[#dda15e] text-nowrap">Novos Pós D0</TableHead>
-                  <TableHead class="text-right font-bold text-[#2a9d8f] text-nowrap">Recuperados</TableHead>
-                  <TableHead class="text-right font-bold text-[#457b9d] text-nowrap">Retidos</TableHead>
-                  <TableHead class="text-right font-bold text-[#e63946] text-nowrap">Churn</TableHead>
-                  <TableHead class="text-right font-bold text-[#22577a] text-nowrap">Inativos</TableHead>
+                  <TableHead v-if="columnVisibility.data !== false" class="font-bold text-nowrap">Data</TableHead>
+                  <TableHead v-if="columnVisibility.totalAtivos !== false" class="text-right font-bold text-nowrap">Total Ativos</TableHead>
+                  <TableHead v-if="columnVisibility.novos !== false" class="text-right font-bold text-[#f4a261] text-nowrap">Novos</TableHead>
+                  <TableHead v-if="columnVisibility.novosD0 !== false" class="text-right font-bold text-[#e9c46a] text-nowrap">Novos D0</TableHead>
+                  <TableHead v-if="columnVisibility.novosPosD0 !== false" class="text-right font-bold text-[#dda15e] text-nowrap">Novos Pós D0</TableHead>
+                  <TableHead v-if="columnVisibility.recuperados !== false" class="text-right font-bold text-[#2a9d8f] text-nowrap">Recuperados</TableHead>
+                  <TableHead v-if="columnVisibility.retidos !== false" class="text-right font-bold text-[#457b9d] text-nowrap">Retidos</TableHead>
+                  <TableHead v-if="columnVisibility.churn !== false" class="text-right font-bold text-[#e63946] text-nowrap">Churn</TableHead>
+                  <TableHead v-if="columnVisibility.inativos !== false" class="text-right font-bold text-[#22577a] text-nowrap">Inativos</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow v-for="(row, index) in retentionData" :key="index">
-                  <TableCell class="font-medium text-nowrap">{{ row.date }}</TableCell>
-                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Total Ativos']) }}</TableCell>
-                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Novos Clientes']) }}</TableCell>
-                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Novos Clientes D0']) }}</TableCell>
-                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Novos Clientes Pós D0']) }}</TableCell>
-                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Clientes Recuperados']) }}</TableCell>
-                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Clientes Retidos']) }}</TableCell>
-                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Churn']) }}</TableCell>
-                  <TableCell class="text-right">{{ formatMinifiedNumber(row['Inativos']) }}</TableCell>
+                  <TableCell v-if="columnVisibility.data !== false" class="font-medium text-nowrap">{{ row.date }}</TableCell>
+                  <TableCell v-if="columnVisibility.totalAtivos !== false" class="text-right">{{ formatMinifiedNumber(row['Total Ativos']) }}</TableCell>
+                  <TableCell v-if="columnVisibility.novos !== false" class="text-right">{{ formatMinifiedNumber(row['Novos Clientes']) }}</TableCell>
+                  <TableCell v-if="columnVisibility.novosD0 !== false" class="text-right">{{ formatMinifiedNumber(row['Novos Clientes D0']) }}</TableCell>
+                  <TableCell v-if="columnVisibility.novosPosD0 !== false" class="text-right">{{ formatMinifiedNumber(row['Novos Clientes Pós D0']) }}</TableCell>
+                  <TableCell v-if="columnVisibility.recuperados !== false" class="text-right">{{ formatMinifiedNumber(row['Clientes Recuperados']) }}</TableCell>
+                  <TableCell v-if="columnVisibility.retidos !== false" class="text-right">{{ formatMinifiedNumber(row['Clientes Retidos']) }}</TableCell>
+                  <TableCell v-if="columnVisibility.churn !== false" class="text-right">{{ formatMinifiedNumber(row['Churn']) }}</TableCell>
+                  <TableCell v-if="columnVisibility.inativos !== false" class="text-right">{{ formatMinifiedNumber(row['Inativos']) }}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
