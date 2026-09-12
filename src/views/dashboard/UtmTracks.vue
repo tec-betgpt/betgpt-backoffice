@@ -380,7 +380,8 @@ const columns = [
       ),
   }),
 
-  columnHelper.accessor("statuses", {
+  columnHelper.display({
+    id: "actions",
     header({ header }) {
       return "Ações";
     },

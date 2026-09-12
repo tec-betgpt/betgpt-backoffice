@@ -209,6 +209,7 @@ import {
 } from "@/components/ui/select";
 import SearchableCombobox from "@/components/custom/SearchableCombobox.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import { resolveColumnLabel } from "@/components/custom/columnLabel";
 
 const props = defineProps({
   columns: {
@@ -293,7 +294,7 @@ const hideableColumns = computed(() =>
     const id = columnId(col);
     return {
       id,
-      label: typeof col.header === "string" ? col.header : id,
+      label: resolveColumnLabel(col),
     };
   })
 );

@@ -133,6 +133,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-vue-next";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import { resolveColumnLabel } from "@/components/custom/columnLabel";
 
 const props = defineProps({
   columns: {
@@ -190,7 +191,7 @@ const hideableColumns = computed(() =>
     const id = columnId(col);
     return {
       id,
-      label: typeof col.header === "string" ? col.header : id,
+      label: resolveColumnLabel(col),
     };
   })
 );
