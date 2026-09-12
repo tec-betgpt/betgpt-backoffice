@@ -90,7 +90,7 @@
         <section class="space-y-2">
           <h4 class="text-sm font-medium">Breakdown por dispatch</h4>
           <div v-if="costs.breakdown_by_dispatch.length" class="flex justify-end">
-            <ColumnVisibilityToggle v-model="dispatchColumnVisibility" :columns="dispatchColumns" />
+            <ColumnVisibilityToggle v-model="dispatchColumnVisibility" :columns="dispatchColumns" table="dispatch" />
           </div>
           <div v-if="costs.breakdown_by_dispatch.length" class="overflow-x-auto rounded-md border">
             <Table>
@@ -120,7 +120,7 @@
         <section class="space-y-2">
           <h4 class="text-sm font-medium">Breakdown por recurso</h4>
           <div v-if="costs.breakdown_by_resource.length" class="flex justify-end">
-            <ColumnVisibilityToggle v-model="resourceColumnVisibility" :columns="resourceColumns" />
+            <ColumnVisibilityToggle v-model="resourceColumnVisibility" :columns="resourceColumns" table="resource" />
           </div>
           <div v-if="costs.breakdown_by_resource.length" class="overflow-x-auto rounded-md border">
             <Table>

@@ -94,7 +94,7 @@
           Limpar
         </Button>
         <div class="ml-auto flex items-center gap-2">
-          <ColumnVisibilityToggle v-model="recipientsColumnVisibility" :columns="recipientsColumns" />
+          <ColumnVisibilityToggle v-model="recipientsColumnVisibility" :columns="recipientsColumns" table="recipients" />
           <span class="text-sm text-muted-foreground">
             {{ store.recipientsPagination.total }} resultado(s)
           </span>
@@ -286,7 +286,7 @@
                 </div>
 
                 <div v-if="store.recipientDispatches.dispatches.length" class="flex justify-end mb-2">
-                  <ColumnVisibilityToggle v-model="dispatchesColumnVisibility" :columns="dispatchesColumns" />
+                  <ColumnVisibilityToggle v-model="dispatchesColumnVisibility" :columns="dispatchesColumns" table="recipient-dispatches" />
                 </div>
                 <div v-if="store.recipientDispatches.dispatches.length" class="overflow-x-auto rounded-md border">
                   <Table>

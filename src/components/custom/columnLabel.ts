@@ -1,3 +1,25 @@
+function normalizeColumnLabel(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+export function isActionsColumn(column: {
+  id?: string;
+  accessorKey?: string;
+  label?: string;
+  header?: unknown;
+  meta?: { label?: string };
+}): boolean {
+  const id = String(column.id ?? column.accessorKey ?? "").toLowerCase();
+  if (id === "actions" || id === "acoes") return true;
+
+  const label = column.label ?? resolveColumnLabel(column);
+  return normalizeColumnLabel(String(label)) === "acoes";
+}
+
 function decodeJsString(value: string): string {
   return value
     .replace(/\\u\{([0-9A-Fa-f]+)\}/g, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))

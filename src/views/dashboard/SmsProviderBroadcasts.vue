@@ -58,7 +58,7 @@
     <Card>
       <CardContent class="pt-6">
         <div class="flex justify-end mb-2">
-          <ColumnVisibilityToggle v-model="broadcastsColumnVisibility" :columns="broadcastsColumns" />
+          <ColumnVisibilityToggle v-model="broadcastsColumnVisibility" :columns="broadcastsColumns" table="broadcasts" />
         </div>
         <Table>
           <TableHeader>
@@ -170,7 +170,7 @@
           <div class="flex items-center justify-between">
             <Label>Contatos</Label>
             <div class="flex items-center gap-2">
-              <ColumnVisibilityToggle v-model="contactsColumnVisibility" :columns="contactsColumns" />
+              <ColumnVisibilityToggle v-model="contactsColumnVisibility" :columns="contactsColumns" table="contacts" />
               <Input
                 v-model="contactsPhoneFilter"
                 class="max-w-[200px]"

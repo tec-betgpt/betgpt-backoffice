@@ -144,7 +144,7 @@
               <CardTitle>Outbox</CardTitle>
               <div class="flex items-center gap-2">
                 <Badge variant="outline">{{ outbox?.total ?? 0 }} linhas</Badge>
-                <ColumnVisibilityToggle v-model="outboxColumnVisibility" :columns="outboxColumns" />
+                <ColumnVisibilityToggle v-model="outboxColumnVisibility" :columns="outboxColumns" table="outbox" />
               </div>
             </div>
           </CardHeader>
@@ -240,7 +240,7 @@
               <CardTitle>Logs de entrega</CardTitle>
               <div class="flex items-center gap-2">
                 <Badge variant="outline">{{ deliveryLogs?.total ?? 0 }} registros</Badge>
-                <ColumnVisibilityToggle v-model="deliveryLogsColumnVisibility" :columns="deliveryLogsColumns" />
+                <ColumnVisibilityToggle v-model="deliveryLogsColumnVisibility" :columns="deliveryLogsColumns" table="delivery-logs" />
               </div>
             </div>
           </CardHeader>
@@ -370,7 +370,7 @@
         <Card>
           <CardContent class="overflow-x-auto py-4">
             <div class="flex justify-end mb-2">
-              <ColumnVisibilityToggle v-model="incomingColumnVisibility" :columns="incomingColumns" />
+              <ColumnVisibilityToggle v-model="incomingColumnVisibility" :columns="incomingColumns" table="incoming" />
             </div>
             <Table>
               <TableHeader>

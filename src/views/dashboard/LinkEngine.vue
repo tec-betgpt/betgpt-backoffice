@@ -177,7 +177,7 @@
           </div>
           <div class="flex items-center gap-2">
             <Badge variant="outline">{{ formatInteger(monitor.canonical_clicks.by_campaign.length) }} campanhas</Badge>
-            <ColumnVisibilityToggle v-model="campaignsColumnVisibility" :columns="campaignsColumns" />
+            <ColumnVisibilityToggle v-model="campaignsColumnVisibility" :columns="campaignsColumns" table="campaigns" />
           </div>
         </CardHeader>
         <CardContent>
@@ -219,7 +219,7 @@
             <Badge :variant="monitor.unhealthy_links.length > 0 ? 'destructive' : 'outline'">
               {{ formatInteger(monitor.unhealthy_links.length) }} links
             </Badge>
-            <ColumnVisibilityToggle v-model="unhealthyColumnVisibility" :columns="unhealthyColumns" />
+            <ColumnVisibilityToggle v-model="unhealthyColumnVisibility" :columns="unhealthyColumns" table="unhealthy" />
           </div>
         </CardHeader>
         <CardContent>

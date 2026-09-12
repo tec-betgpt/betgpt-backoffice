@@ -75,6 +75,7 @@
     <ColumnVisibilityToggle
       v-model="columnVisibility"
       :columns="hideableColumns"
+      :table="table"
     />
   </div>
 
@@ -82,6 +83,7 @@
     <ColumnVisibilityToggle
       v-model="columnVisibility"
       :columns="hideableColumns"
+      :table="table"
     />
   </div>
 
@@ -209,7 +211,7 @@ import {
 } from "@/components/ui/select";
 import SearchableCombobox from "@/components/custom/SearchableCombobox.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
-import { resolveColumnLabel } from "@/components/custom/columnLabel";
+import { isActionsColumn, resolveColumnLabel } from "@/components/custom/columnLabel";
 
 const props = defineProps({
   columns: {
@@ -268,6 +270,10 @@ const props = defineProps({
     type: Object as PropType<Record<string, Function>>,
     default: () => ({}),
   },
+  table: {
+    type: String,
+    default: undefined,
+  },
 });
 
 const emit = defineEmits(["update:selected"]);
@@ -290,22 +296,28 @@ const columnVisibility = ref<Record<string, boolean>>({});
 const columnId = (col: any) => col.accessorKey ?? col.id;
 
 const hideableColumns = computed(() =>
-  props.columns.map((col: any) => {
-    const id = columnId(col);
-    return {
-      id,
-      label: resolveColumnLabel(col),
-    };
-  })
+  props.columns
+    .filter((col: any) => !isActionsColumn(col))
+    .map((col: any) => {
+      const id = columnId(col);
+      return {
+        id,
+        label: resolveColumnLabel(col),
+      };
+    })
 );
 
 const visibleColumns = computed(() =>
-  props.columns.filter((col: any) => columnVisibility.value[columnId(col)] !== false)
+  props.columns.filter((col: any) => isActionsColumn(col) || columnVisibility.value[columnId(col)] !== false)
 );
 
 const onColumnVisibilityChange = (updater: any) => {
-  columnVisibility.value =
+  const next =
     typeof updater === "function" ? updater(columnVisibility.value) : updater;
+  for (const col of props.columns) {
+    if (isActionsColumn(col)) next[columnId(col)] = true;
+  }
+  columnVisibility.value = next;
 };
 
 const table = ref(

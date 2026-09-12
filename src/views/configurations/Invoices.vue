@@ -8,7 +8,7 @@
     </div>
 
     <div v-if="isLoading" class="flex justify-end mb-2">
-      <ColumnVisibilityToggle v-model="loadingColumnVisibility" :columns="loadingColumns" />
+      <ColumnVisibilityToggle v-model="loadingColumnVisibility" :columns="loadingColumns" table="loading" />
     </div>
 
     <Table v-if="isLoading">
@@ -23,7 +23,7 @@
 
     <div class="flex justify-start items-start  gap-8 flex-wrap w-full border rounded-lg">
       <div class="flex justify-end mb-2 w-full">
-        <ColumnVisibilityToggle v-model="invoicesColumnVisibility" :columns="invoicesColumns" />
+        <ColumnVisibilityToggle v-model="invoicesColumnVisibility" :columns="invoicesColumns" table="invoices" />
       </div>
       <Table>
         <TableHeader>

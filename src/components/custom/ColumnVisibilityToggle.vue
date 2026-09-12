@@ -11,11 +11,11 @@
         <span class="hidden sm:inline">Colunas</span>
       </Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end">
+    <DropdownMenuContent align="end" class="max-h-80 overflow-y-auto">
       <DropdownMenuLabel>Exibir colunas</DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuCheckboxItem
-        v-for="column in columns"
+        v-for="column in toggleableColumns"
         :key="column.id"
         :model-value="modelValue[column.id] !== false"
         @select.prevent
@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { PropType } from "vue";
+import { computed, toRef, type PropType } from "vue";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -39,6 +39,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal } from "lucide-vue-next";
+import { useColumnVisibilityStorage } from "@/composables/useColumnVisibilityStorage";
+import { isActionsColumn } from "@/components/custom/columnLabel";
 
 const props = defineProps({
   columns: {
@@ -49,11 +51,29 @@ const props = defineProps({
     type: Object as PropType<Record<string, boolean>>,
     default: () => ({}),
   },
+  table: {
+    type: String,
+    default: undefined,
+  },
 });
 
 const emit = defineEmits(["update:modelValue"]);
 
+const columnsRef = computed(() => props.columns);
+const modelValueRef = computed(() => props.modelValue);
+const toggleableColumns = computed(() => props.columns.filter((column) => !isActionsColumn(column)));
+const { persist } = useColumnVisibilityStorage(
+  columnsRef,
+  modelValueRef,
+  (value) => emit("update:modelValue", value),
+  toRef(props, "table"),
+);
+
 function toggle(id: string, value: boolean) {
-  emit("update:modelValue", { ...props.modelValue, [id]: value });
+  const column = props.columns.find((item) => item.id === id);
+  if (column && isActionsColumn(column)) return;
+  const next = { ...props.modelValue, [id]: value };
+  emit("update:modelValue", next);
+  persist(next);
 }
 </script>

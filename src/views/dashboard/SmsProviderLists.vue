@@ -21,7 +21,7 @@
     <Card>
       <CardContent class="pt-6">
         <div class="flex justify-end mb-2">
-          <ColumnVisibilityToggle v-model="listsColumnVisibility" :columns="listsColumns" />
+          <ColumnVisibilityToggle v-model="listsColumnVisibility" :columns="listsColumns" table="lists" />
         </div>
         <Table>
           <TableHeader>
@@ -143,7 +143,7 @@
           </Card>
 
           <div class="flex justify-end mb-2">
-            <ColumnVisibilityToggle v-model="leadsColumnVisibility" :columns="leadsColumns" />
+            <ColumnVisibilityToggle v-model="leadsColumnVisibility" :columns="leadsColumns" table="leads" />
           </div>
           <Table>
             <TableHeader>

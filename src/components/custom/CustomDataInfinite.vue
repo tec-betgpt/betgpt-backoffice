@@ -39,6 +39,7 @@
         <ColumnVisibilityToggle
           v-model="columnVisibility"
           :columns="hideableColumns"
+          :table="table"
         />
       </div>
 
@@ -49,6 +50,7 @@
       <ColumnVisibilityToggle
         v-model="columnVisibility"
         :columns="hideableColumns"
+        :table="table"
       />
     </div>
 
@@ -117,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, type PropType } from "vue";
 import {
   Table,
   TableBody,
@@ -133,7 +135,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-vue-next";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
-import { resolveColumnLabel } from "@/components/custom/columnLabel";
+import { isActionsColumn, resolveColumnLabel } from "@/components/custom/columnLabel";
 
 const props = defineProps({
   columns: {
@@ -175,6 +177,10 @@ const props = defineProps({
     required: true,
   },
   exportable: Boolean,
+  table: {
+    type: String,
+    default: undefined,
+  },
 });
 
 const emit = defineEmits(["load-more", "reset", "export"]);
@@ -187,17 +193,19 @@ const columnVisibility = ref<Record<string, boolean>>({});
 const columnId = (col: any) => col.accessorKey ?? col.id;
 
 const hideableColumns = computed(() =>
-  props.columns.map((col: any) => {
-    const id = columnId(col);
-    return {
-      id,
-      label: resolveColumnLabel(col),
-    };
-  })
+  props.columns
+    .filter((col: any) => !isActionsColumn(col))
+    .map((col: any) => {
+      const id = columnId(col);
+      return {
+        id,
+        label: resolveColumnLabel(col),
+      };
+    })
 );
 
 const visibleColumns = computed(() =>
-  props.columns.filter((col: any) => columnVisibility.value[columnId(col)] !== false)
+  props.columns.filter((col: any) => isActionsColumn(col) || columnVisibility.value[columnId(col)] !== false)
 );
 
 const table = useVueTable({
@@ -209,8 +217,12 @@ const table = useVueTable({
     },
   },
   onColumnVisibilityChange: (updater: any) => {
-    columnVisibility.value =
+    const next =
       typeof updater === "function" ? updater(columnVisibility.value) : updater;
+    for (const col of props.columns) {
+      if (isActionsColumn(col)) next[columnId(col)] = true;
+    }
+    columnVisibility.value = next;
   },
   getCoreRowModel: getCoreRowModel(),
 });

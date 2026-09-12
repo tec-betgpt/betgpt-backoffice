@@ -206,7 +206,7 @@
         <Separator />
         <CardContent>
           <div class="flex justify-end mb-2">
-            <ColumnVisibilityToggle v-model="rechargesColumnVisibility" :columns="rechargesColumns" />
+            <ColumnVisibilityToggle v-model="rechargesColumnVisibility" :columns="rechargesColumns" table="recharges" />
           </div>
           <Table class="min-w-full">
             <TableHeader>
@@ -366,7 +366,7 @@
             </div>
 
             <div class="flex justify-end mb-2">
-              <ColumnVisibilityToggle v-model="callsColumnVisibility" :columns="callsColumns" />
+              <ColumnVisibilityToggle v-model="callsColumnVisibility" :columns="callsColumns" table="calls" />
             </div>
 
             <Table>

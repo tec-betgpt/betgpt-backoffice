@@ -91,7 +91,7 @@
                 <span v-if="usage.timestamps.last_event_at" class="text-xs text-muted-foreground">
                   Último evento: {{ formatDateTime(usage.timestamps.last_event_at) }}
                 </span>
-                <ColumnVisibilityToggle v-model="resourceColumnVisibility" :columns="resourceColumns" />
+                <ColumnVisibilityToggle v-model="resourceColumnVisibility" :columns="resourceColumns" table="resources" />
               </div>
             </div>
             <div v-if="usage.by_resource.length" class="overflow-x-auto rounded-md border">
@@ -126,7 +126,7 @@
           <section class="space-y-2">
             <div class="flex items-center justify-between">
               <h4 class="text-sm font-medium">Por provider</h4>
-              <ColumnVisibilityToggle v-model="providerColumnVisibility" :columns="providerColumns" />
+              <ColumnVisibilityToggle v-model="providerColumnVisibility" :columns="providerColumns" table="providers" />
             </div>
             <div v-if="usage.by_provider.length" class="overflow-x-auto rounded-md border">
               <Table>
