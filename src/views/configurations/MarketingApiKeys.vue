@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/select";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -126,13 +125,24 @@ async function handleFormSubmit(payload: CreateMarketingApiKeyPayload) {
 const rotateTarget = ref<MarketingApiKey | null>(null);
 const isRotating = ref(false);
 
+function onRotateDialogOpen(open: boolean) {
+  if (!open && !isRotating.value) {
+    rotateTarget.value = null;
+  }
+}
+
 async function confirmRotate() {
-  if (!rotateTarget.value) return;
+  const target = rotateTarget.value;
+  if (!target) return;
 
   isRotating.value = true;
   try {
-    await store.rotateApiKey(rotateTarget.value.uuid);
+    await store.rotateApiKey(target.uuid);
+    const pendingSecret = store.ephemeralSecret;
+    store.clearEphemeralSecret();
     rotateTarget.value = null;
+    await nextTick();
+    store.ephemeralSecret = pendingSecret;
     toast(t("marketing_api_keys.rotate_success"));
   } catch (err) {
     showApiErrorToast(err, { fallbackKey: "marketing_api_keys.rotate_error" });
@@ -158,12 +168,19 @@ const canConfirmRevoke = computed(
     revokeConfirmation.value.trim() === revokeTarget.value.name,
 );
 
+function onRevokeDialogOpen(open: boolean) {
+  if (!open && !isRevoking.value) {
+    revokeTarget.value = null;
+  }
+}
+
 async function confirmRevoke() {
-  if (!revokeTarget.value || !canConfirmRevoke.value) return;
+  const target = revokeTarget.value;
+  if (!target || !canConfirmRevoke.value) return;
 
   isRevoking.value = true;
   try {
-    await store.revokeApiKey(revokeTarget.value.uuid);
+    await store.revokeApiKey(target.uuid);
     revokeTarget.value = null;
     toast(t("marketing_api_keys.revoke_success"));
   } catch (err) {
@@ -258,7 +275,7 @@ async function confirmRevoke() {
     <!-- Confirmação explícita de rotação -->
     <AlertDialog
       :open="rotateTarget !== null"
-      @update:open="!$event && (rotateTarget = null)"
+      @update:open="onRotateDialogOpen"
     >
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -277,13 +294,13 @@ async function confirmRevoke() {
           <AlertDialogCancel :disabled="isRotating">
             {{ t("cancel") }}
           </AlertDialogCancel>
-          <AlertDialogAction :disabled="isRotating" @click="confirmRotate">
+          <Button :disabled="isRotating" @click="confirmRotate">
             {{
               isRotating
                 ? t("marketing_api_keys.rotate_loading")
                 : t("marketing_api_keys.rotate_confirm")
             }}
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -291,7 +308,7 @@ async function confirmRevoke() {
     <!-- Revogação com confirmação digitada do nome da chave -->
     <AlertDialog
       :open="revokeTarget !== null"
-      @update:open="!$event && (revokeTarget = null)"
+      @update:open="onRevokeDialogOpen"
     >
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -326,7 +343,7 @@ async function confirmRevoke() {
           <AlertDialogCancel :disabled="isRevoking">
             {{ t("cancel") }}
           </AlertDialogCancel>
-          <AlertDialogAction
+          <Button
             :disabled="isRevoking || !canConfirmRevoke"
             class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             @click="confirmRevoke"
@@ -336,7 +353,7 @@ async function confirmRevoke() {
                 ? t("marketing_api_keys.revoke_loading")
                 : t("marketing_api_keys.revoke_confirm")
             }}
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
