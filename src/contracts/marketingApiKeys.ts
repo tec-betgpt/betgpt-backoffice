@@ -22,6 +22,7 @@ export type MarketingApiKeyRotationPolicy = "immediate" | "overlap";
  * `invalid_scopes`; `*` retorna 422 `wildcard_scope_not_allowed`.
  */
 export const MARKETING_API_SCOPES = [
+  "clients:read",
   "campaigns:read",
   "campaigns:write",
   "campaigns:execute",
@@ -39,6 +40,7 @@ export const MARKETING_API_SCOPES = [
 export type MarketingApiScope = (typeof MARKETING_API_SCOPES)[number];
 
 export type MarketingApiScopeDomain =
+  | "clients"
   | "campaigns"
   | "links"
   | "tags"
@@ -53,6 +55,7 @@ export interface MarketingApiScopeGroup {
 
 /** Catálogo agrupado por domínio, usado pelo formulário de emissão/edição. */
 export const MARKETING_API_SCOPE_GROUPS: readonly MarketingApiScopeGroup[] = [
+  { domain: "clients", scopes: ["clients:read"] },
   {
     domain: "campaigns",
     scopes: ["campaigns:read", "campaigns:write", "campaigns:execute"],

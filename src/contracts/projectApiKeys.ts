@@ -28,6 +28,7 @@ export type ProjectApiKeyRotationPolicy = "immediate" | "overlap";
  * 422 `wildcard_scope_not_allowed`.
  */
 export const PROJECT_API_SCOPES = [
+  "clients:read",
   "campaigns:read",
   "campaigns:write",
   "campaigns:execute",
@@ -46,6 +47,7 @@ export const PROJECT_API_SCOPES = [
 export type ProjectApiScope = (typeof PROJECT_API_SCOPES)[number];
 
 export type ProjectApiScopeDomain =
+  | "clients"
   | "campaigns"
   | "links"
   | "tags"
@@ -60,6 +62,7 @@ export interface ProjectApiScopeGroup {
 
 /** Catálogo agrupado por domínio, usado pelo formulário de emissão/edição. */
 export const PROJECT_API_SCOPE_GROUPS: readonly ProjectApiScopeGroup[] = [
+  { domain: "clients", scopes: ["clients:read"] },
   {
     domain: "campaigns",
     scopes: ["campaigns:read", "campaigns:write", "campaigns:execute"],
