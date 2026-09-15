@@ -1,9 +1,15 @@
-function normalizeColumnLabel(value: string): string {
+export function normalizeColumnLabel(value: string): string {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim();
+}
+
+export function columnMatchesSearch(label: string, search: string): boolean {
+  const query = normalizeColumnLabel(search);
+  if (!query) return true;
+  return normalizeColumnLabel(label).includes(query);
 }
 
 export function isActionsColumn(column: {

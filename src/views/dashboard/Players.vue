@@ -36,15 +36,28 @@
         <Table class="w-full">
           <TableHeader>
             <TableRow>
-              <TableHead v-if="columnVisibility.nome !== false">Nome</TableHead>
-              <TableHead v-if="columnVisibility.email !== false">E-mail</TableHead>
-              <TableHead v-if="columnVisibility.referrerId !== false">Referrer ID</TableHead>
+              <TableHead v-if="columnVisibility.nome !== false">
+                <Button class="p-0" variant="ghost" @click="handleSort('name')">
+                  Nome
+                  <component :is="sortIcon('name')" class="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead v-if="columnVisibility.email !== false">
+                <Button class="p-0" variant="ghost" @click="handleSort('email')">
+                  E-mail
+                  <component :is="sortIcon('email')" class="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead v-if="columnVisibility.referrerId !== false">
+                <Button class="p-0" variant="ghost" @click="handleSort('referrer_id')">
+                  Referrer ID
+                  <component :is="sortIcon('referrer_id')" class="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
               <TableHead v-if="columnVisibility.criadoEm !== false" class="text-right">
                 <Button class="p-0" variant="ghost" @click="handleSort('created_at')">
                   Criado em
-                  <ArrowUp v-if="order === 'created_at' && direction" class="ml-2 h-4 w-4" />
-                  <ArrowDown v-else-if="order === 'created_at' && !direction" class="ml-2 h-4 w-4" />
-                  <ChevronsUpDown v-else class="ml-2 h-4 w-4" />
+                  <component :is="sortIcon('created_at')" class="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
               <template v-for="column in extraColumns" :key="column.id">
@@ -52,7 +65,10 @@
                   v-if="columnVisibility[column.id] === true"
                   :class="column.align === 'right' ? 'text-right' : ''"
                 >
-                  {{ column.label }}
+                  <Button class="p-0" variant="ghost" @click="handleSort(column.key)">
+                    {{ column.label }}
+                    <component :is="sortIcon(column.key)" class="ml-2 h-4 w-4" />
+                  </Button>
                 </TableHead>
               </template>
               <TableHead class="text-right">Ações</TableHead>
@@ -387,7 +403,12 @@ watch(selectedTagName, () => {
   fetchPlayers(1);
 });
 
-const handleSort = (column: string) => {
+const sortIcon = (column: string) => {
+  if (order.value !== column) return ChevronsUpDown;
+  return direction.value ? ArrowUp : ArrowDown;
+};
+
+const handleSort = async (column: string) => {
   if (order.value === column) {
     if (direction.value === false) {
       direction.value = true;
@@ -400,7 +421,10 @@ const handleSort = (column: string) => {
     direction.value = false;
   }
 
-  fetchPlayers(currentPage.value);
+  isLoading.value = true;
+  players.value = [];
+  await fetchPlayers(currentPage.value);
+  isLoading.value = false;
 };
 
 onMounted(async () => {
