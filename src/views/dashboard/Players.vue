@@ -75,6 +75,7 @@
             </TableRow>
           </TableHeader>
           <TableBody>
+            <template v-if="!isLoading">
             <TableRow v-for="row in players" :key="row.id">
               <TableCell v-if="columnVisibility.nome !== false">
                 {{ row.name ?? 'Não Informado'}}
@@ -120,11 +121,12 @@
                 </div>
               </TableCell>
             </TableRow>
+            </template>
 
             <template v-if="isLoading">
-              <TableRow v-for="i in perPage" :key="i">
-                <TableCell v-for="j in visibleTableColumns.length" :key="i">
-                  <Skeleton :key="j" class="h-4 w-full bg-gray-300 my-1" />
+              <TableRow v-for="i in perPage" :key="'sk-'+i">
+                <TableCell v-for="j in visibleTableColumns.length" :key="'sk-'+i+'-'+j">
+                  <Skeleton class="h-4 w-full bg-gray-300 my-1" />
                 </TableCell>
               </TableRow>
             </template>
@@ -360,6 +362,8 @@ const loadTagOptions = async (search = '') => {
 
 const fetchPlayers = async (page = currentPage.value) => {
   currentPage.value = page;
+  isLoading.value = true;
+  players.value = [];
 
   try {
     const params: any = {
@@ -382,21 +386,18 @@ const fetchPlayers = async (page = currentPage.value) => {
     hasNextPage.value = Boolean(response.next_page_url);
   } catch (error) {
     toast.error("Ops", { description: "Não foi possível carregar os dados dos Clientes" });
+  } finally {
+    isLoading.value = false;
   }
 };
 
 const handleSearch = async () => {
-  isLoading.value = true
-  players.value = []
   searchValues.value = { search: searchInput.value.trim() };
   await fetchPlayers(1);
 
   if (players.value.length === 1 && canAccessClientManagement.value) {
     showPlayer(players.value[0].id);
-    return;
   }
-
-  isLoading.value = false
 };
 
 watch(selectedTagName, () => {
@@ -421,16 +422,11 @@ const handleSort = async (column: string) => {
     direction.value = false;
   }
 
-  isLoading.value = true;
-  players.value = [];
   await fetchPlayers(currentPage.value);
-  isLoading.value = false;
 };
 
 onMounted(async () => {
-  isLoading.value = true
   await fetchPlayers();
-  isLoading.value = false
 });
 
 useScreenContext(
