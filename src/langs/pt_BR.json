@@ -415,6 +415,145 @@
     "scopes_removed": "Removidos",
     "impact_warning": "Atenção: a redução de escopos e a antecipação da expiração têm efeito imediato nas integrações que utilizam esta chave."
   },
+  "email_health": {
+    "title": "Email Health",
+    "select_domain": "Domínio",
+    "select_domain_placeholder": "Selecione um domínio",
+    "no_domains_title": "Nenhum domínio disponível",
+    "no_domains_description": "Nenhum domínio do Email Health está associado a este workspace no momento.",
+    "period_label": "Período",
+    "period": { "7d": "7D", "30d": "30D", "60d": "60D", "90d": "90D", "120d": "120D" },
+    "last_update": "Última atualização",
+    "source": { "v1": "API V1", "v2": "API V2" },
+    "source_health": {
+      "title_v1": "Postmaster V1",
+      "title_v2": "Postmaster V2",
+      "ok": "Operacional",
+      "failed": "Indisponível",
+      "no_data": "Sem dados",
+      "last_success": "Último sucesso em {date}",
+      "last_data": "Último dado coletado em {date}"
+    },
+    "empty": "Sem dados",
+    "unavailable": "Não disponibilizado pelo Google",
+    "error_title": "Não foi possível carregar os dados",
+    "legacy_source_down": "Fonte legada indisponível — último dado coletado em {date}",
+    "reputation": {
+      "HIGH": "Alta",
+      "MEDIUM": "Média",
+      "LOW": "Baixa",
+      "BAD": "Ruim"
+    },
+    "ip_reputation": {
+      "title": "Reputação de IP",
+      "subtitle": "Distribuição diária dos IPs por categoria",
+      "latest_label": "Categoria consolidada mais recente",
+      "tooltip_ips": "IPs",
+      "tooltip_share": "do total",
+      "tooltip_samples": "IPs de exemplo"
+    },
+    "domain_reputation": {
+      "title": "Reputação de Domínio",
+      "subtitle": "Avaliação diária do Google para o domínio",
+      "latest_label": "Reputação mais recente"
+    },
+    "spam_rate": {
+      "title": "Taxa de Spam",
+      "subtitle": "Percentual de mensagens marcadas como spam",
+      "healthy": "Saudável",
+      "monitor": "Monitorar",
+      "critical": "Crítico",
+      "recommended": "Recomendado",
+      "policy": "Política"
+    },
+    "compliance": {
+      "title": "Google Compliance",
+      "subtitle": "Requisitos de remetente do Google",
+      "all_compliant": "Todos os requisitos estão em conformidade",
+      "needs_work": "Requer atenção",
+      "compliant": "Conforme",
+      "verdicts_title": "Avaliações do Google",
+      "verdict_one_click_unsubscribe": "One-click Unsubscribe",
+      "verdict_honor_unsubscribe": "Honor Unsubscribe",
+      "verdict_deliverability": "Deliverability",
+      "requirements": {
+        "SPF": "SPF",
+        "DKIM": "DKIM",
+        "SPF_DKIM": "SPF + DKIM",
+        "DMARC_POLICY": "DMARC Policy",
+        "DMARC_ALIGNMENT": "DMARC Alignment",
+        "MESSAGE_FORMATTING": "Formatação da mensagem",
+        "DNS_RECORDS": "Registros DNS",
+        "ENCRYPTION": "Criptografia",
+        "SPAM_RATE": "Taxa de spam",
+        "ONE_CLICK_UNSUBSCRIBE": "One-click Unsubscribe",
+        "HONOR_UNSUBSCRIBE": "Honor Unsubscribe",
+        "DELIVERABILITY_STATUS": "Deliverability"
+      }
+    },
+    "feedback_loop": {
+      "title": "Feedback Loop",
+      "subtitle": "Taxa de spam reportada por identificador de campanha",
+      "empty": "Nenhum dado de Feedback Loop disponível para o período",
+      "column_id": "Feedback ID",
+      "column_spam_rate": "Spam Rate",
+      "column_date": "Data",
+      "show_all": "Ver todos ({count})",
+      "show_less": "Mostrar menos"
+    },
+    "authentication": {
+      "title": "Autenticação",
+      "subtitle": "Taxa de sucesso de SPF, DKIM e DMARC",
+      "spf": "SPF",
+      "dkim": "DKIM",
+      "dmarc": "DMARC"
+    },
+    "encryption": {
+      "title": "Criptografia",
+      "subtitle": "Percentual de tráfego com TLS",
+      "inbound": "TLS Inbound",
+      "outbound": "TLS Outbound"
+    },
+    "delivery_errors": {
+      "title": "Erros de Entrega",
+      "subtitle": "Rejeições e falhas temporárias por dia",
+      "tab_reject": "Rejeições",
+      "tab_temp_fail": "Falhas temporárias",
+      "tab_other": "Outros",
+      "tab_v1": "Legado (API V1)",
+      "column_date": "Data",
+      "column_type": "Tipo",
+      "column_reason": "Motivo",
+      "column_count": "Qtd.",
+      "column_rate": "Taxa",
+      "permanent": "Permanente",
+      "temporary": "Temporário",
+      "empty": "Nenhum erro de entrega no período"
+    },
+    "admin": {
+      "title": "Administração",
+      "subtitle": "Gestão de domínios e sincronização",
+      "sync_now": "Sincronizar agora",
+      "sync_queued": "Sincronização enfileirada",
+      "sync_queued_description": "A coleta foi enviada para a fila. A página será atualizada ao concluir.",
+      "sync_finished": "Sincronização concluída",
+      "sync_failed": "A sincronização falhou. Verifique os detalhes técnicos.",
+      "sync_running": "Sincronização em andamento...",
+      "column_domain": "Domínio",
+      "column_project": "Projeto",
+      "column_active": "Ativo",
+      "column_last_sync": "Última sync",
+      "no_project": "Não associado",
+      "no_permission": "Você não tem permissão para executar as ações administrativas do Email Health.",
+      "update_success": "Domínio atualizado com sucesso.",
+      "update_error": "Não foi possível atualizar o domínio."
+    },
+    "common": {
+      "retry": "Tentar novamente",
+      "latest_value": "Mais recente",
+      "history": "Histórico"
+    }
+  },
   "api_errors": {
     "generic_title": "Algo deu errado",
     "generic": "Não foi possível concluir a operação. Tente novamente.",

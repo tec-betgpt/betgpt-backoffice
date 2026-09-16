@@ -19,6 +19,7 @@ import protection from "@/router/protection.js";
 import financial from "@/router/financial.js";
 import efficiency from "@/router/efficiency.js";
 import updates from "@/router/updates.js";
+import emailHealth from "@/router/emailHealth.js";
 
 const routes = [
   {
@@ -80,6 +81,7 @@ const routes = [
   ...financial,
   ...efficiency,
   ...updates,
+  ...emailHealth,
 ];
 
 const router = createRouter({

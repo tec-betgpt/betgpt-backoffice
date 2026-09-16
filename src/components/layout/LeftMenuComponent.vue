@@ -498,6 +498,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-reports"),
         },
         {
+          name: "Email Health",
+          url: { name: "email-health" },
+          icon: HeartPulse,
+          show: canAccess("access-to-reports"),
+        },
+        {
           name: "SMS Insights",
           url: { name: "sms-insights" },
           icon: Send,
