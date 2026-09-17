@@ -546,7 +546,9 @@
       "no_project": "Não associado",
       "no_permission": "Você não tem permissão para executar as ações administrativas do Email Health.",
       "update_success": "Domínio atualizado com sucesso.",
-      "update_error": "Não foi possível atualizar o domínio."
+      "update_error": "Não foi possível atualizar o domínio.",
+      "connect_hint": "A conexão da conta Google (OAuth) é feita por projeto na tela de Fontes de Dados.",
+      "connect_action": "Abrir Fontes de Dados"
     },
     "common": {
       "retry": "Tentar novamente",

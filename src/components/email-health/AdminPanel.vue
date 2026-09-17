@@ -70,6 +70,16 @@
           </TableRow>
         </TableBody>
       </Table>
+
+      <div class="mt-4 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+        <span>{{ t("email_health.admin.connect_hint") }}</span>
+        <router-link :to="{ name: 'data-sources' }">
+          <Button variant="outline" size="sm">
+            <ExternalLink class="h-3.5 w-3.5 mr-1" />
+            {{ t("email_health.admin.connect_action") }}
+          </Button>
+        </router-link>
+      </div>
     </CardContent>
   </Card>
 </template>
@@ -79,7 +89,7 @@ import { computed, onBeforeUnmount, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import moment from "moment";
 import { toast } from "vue-sonner";
-import { RefreshCw } from "lucide-vue-next";
+import { RefreshCw, ExternalLink } from "lucide-vue-next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
