@@ -157,13 +157,13 @@
                 :id="`${data.slug}-${field.key}`"
                 :disabled="disableBt"
                 @click="
-                  data.config?.email
+                  isOAuthConnected(data)
                     ? confirmLogout(data.integration.integration_id)
                     : initOAuth2(field.description, data.id)
                 "
               >
                 <div
-                  v-if="data.config?.email"
+                  v-if="isOAuthConnected(data)"
                   class="flex items-center justify-between"
                 >
                   <LogOut class="mr-2 h-4 w-4" />
@@ -294,6 +294,33 @@ const openPreferencesDialog = (integration: any) => {
 
 const isLogoutDialogOpen = ref(false);
 const integrationIdToLogout = ref(null);
+
+// Chaves que integrações OAuth gravam no config após o callback
+// (GA/Meta usam "email"; google-postmaster pode usar outra chave de conta
+// ou uma flag). A credencial em si nunca trafega — só metadados.
+const OAUTH_IDENTITY_KEYS = [
+  "email",
+  "google_email",
+  "account_email",
+  "connected_email",
+  "email_address",
+];
+
+function isOAuthConnected(integration: any) {
+  const config = integration?.config;
+  if (!config || typeof config !== "object" || Array.isArray(config)) {
+    return false;
+  }
+
+  if (config.connected === true || config.authorized === true) {
+    return true;
+  }
+
+  return OAUTH_IDENTITY_KEYS.some((key) => {
+    const value = config[key];
+    return typeof value === "string" && value.trim() !== "";
+  });
+}
 
 function confirmLogout(id: any) {
   integrationIdToLogout.value = id;
