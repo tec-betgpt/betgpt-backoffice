@@ -78,7 +78,12 @@ const selectedLabel = computed(() => {
     (option) => String(option.value) === String(props.modelValue)
   );
 
-  return found?.label || '';
+  if (found?.label) return found.label;
+  if (props.modelValue !== null && props.modelValue !== undefined && props.modelValue !== '') {
+    return String(props.modelValue);
+  }
+
+  return '';
 });
 
 const fetchOptions = async (search = '') => {

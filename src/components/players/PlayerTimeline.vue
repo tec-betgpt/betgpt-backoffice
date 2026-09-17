@@ -52,6 +52,7 @@ import {
 } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import moment from "moment";
 
 defineProps<{
   history: any[];
@@ -60,10 +61,9 @@ defineProps<{
 defineEmits(['view-details']);
 
 const formatDate = (date: any) => {
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(new Date(date));
+  if (!date) return '---';
+  const parsed = moment(date);
+  return parsed.isValid() ? parsed.format('DD/MM/YYYY HH:mm') : '---';
 };
 
 const eventTypeLabels: Record<string, string> = {

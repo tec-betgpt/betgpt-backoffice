@@ -127,6 +127,8 @@ import {
   TrendingUpIcon,
 } from "lucide-vue-next";
 
+import moment from "moment";
+
 defineProps<{
   stats: {
     total_deposits: number;
@@ -152,18 +154,19 @@ const formatCurrency = (value: number) => {
 
 const formatDate = (date?: string | null) => {
   if (!date) return '---';
-  return new Intl.DateTimeFormat('pt-BR', {
-    timeZone: 'UTC',
-  }).format(new Date(date));
+  const raw = String(date).trim();
+  const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dateOnly && !raw.includes('T') && raw.length <= 10) {
+    return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+  }
+  const parsed = moment(raw);
+  return parsed.isValid() ? parsed.format('DD/MM/YYYY') : '---';
 };
 
 const formatDateTime = (date?: string | null) => {
   if (!date) return '---';
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'medium',
-    timeZone: 'UTC',
-  }).format(new Date(date));
+  const parsed = moment(date);
+  return parsed.isValid() ? parsed.format('DD/MM/YYYY HH:mm') : '---';
 };
 
 const getGGRColor = (value: number) => {

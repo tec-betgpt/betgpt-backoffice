@@ -170,6 +170,7 @@ import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.v
 import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
+import moment from "moment";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -291,19 +292,19 @@ const formatNumber = (value: number) =>
   new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 4 }).format(value);
 
 const formatDate = (value: string) => {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "—";
-  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(parsed);
+  const raw = value.trim();
+  const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dateOnly && !raw.includes("T") && raw.length <= 10) {
+    return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+  }
+
+  const parsed = moment(raw);
+  return parsed.isValid() ? parsed.format("DD/MM/YYYY") : "—";
 };
 
 const formatDateTime = (value: string) => {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "—";
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "UTC",
-  }).format(parsed);
+  const parsed = moment(value);
+  return parsed.isValid() ? parsed.format("DD/MM/YYYY HH:mm") : "—";
 };
 
 const formatGender = (gender?: string | null) => {

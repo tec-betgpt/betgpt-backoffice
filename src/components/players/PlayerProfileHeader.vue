@@ -56,6 +56,7 @@ import {
 } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
+import moment from "moment";
 
 defineProps<{
   player: any;
@@ -91,15 +92,23 @@ const formatPhone = (phone: string) => {
 
 const formatDate = (date?: string | null) => {
   if (!date) return '---';
-  return new Intl.DateTimeFormat('pt-BR', {
-    timeZone: 'UTC',
-  }).format(new Date(date));
+  const raw = String(date).trim();
+  const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dateOnly && !raw.includes('T') && raw.length <= 10) {
+    return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+  }
+  const parsed = moment(raw);
+  return parsed.isValid() ? parsed.format('DD/MM/YYYY') : '---';
 };
 
 const getAge = (value?: string | null) => {
   if (!value) return 0;
+  const raw = String(value).trim();
+  const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const birthDate = dateOnly && !raw.includes('T') && raw.length <= 10
+    ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+    : new Date(value);
   const today = new Date();
-  const birthDate = new Date(value);
   let age = today.getFullYear() - birthDate.getFullYear();
   const m = today.getMonth() - birthDate.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;

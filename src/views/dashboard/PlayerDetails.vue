@@ -310,6 +310,7 @@ import { onClickOutside } from "@vueuse/core";
 import Players from "@/services/players";
 import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
+import moment from "moment";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -570,7 +571,8 @@ watch(
 
 const formatDateTime = (date: any) => {
   if (!date) return '---';
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'medium',timeZone: 'UTC' }).format(new Date(date));
+  const parsed = moment(date);
+  return parsed.isValid() ? parsed.format('DD/MM/YYYY HH:mm') : '---';
 };
 
 const copyPayload = () => {
