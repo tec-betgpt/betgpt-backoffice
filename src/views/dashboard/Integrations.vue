@@ -482,6 +482,14 @@ function getApplicationDetail(name: string) {
           "Plataforma de CRM e automação de marketing.",
       };
 
+    case "Google Postmaster":
+    case "Google Postmaster Tools":
+      return {
+        logo: "/third-party/google-postmaster.svg",
+        brief:
+          "Monitoramento de entregabilidade de e-mail no Gmail: reputação, taxa de spam, autenticação e compliance.",
+      };
+
     default:
       return {
         logo: "/third-party/unknown-app.png",

@@ -141,7 +141,14 @@ export async function updateDomain(
   return data.data;
 }
 
-export async function getGoogleAuthUrl() {
-  const { data } = await api.get<ApiEnvelope<{ url: string }>>('/email-health/google/auth');
+/**
+ * OAuth por projeto (padrão das demais integrações — slug
+ * google-postmaster na tela de fontes de dados do projeto).
+ */
+export async function getPostmasterAuthUrl(projectId: number, integrationId: number) {
+  const { data } = await api.get<ApiEnvelope<{ url: string }>>(
+    '/projects/integrations/oauth/postmaster',
+    { params: { project_id: projectId, integration_id: integrationId } },
+  );
   return data.data.url; // abrir em popup — o callback fecha a janela
 }
