@@ -58,7 +58,21 @@
 
           <div v-if="form.customDomainEnabled" class="space-y-2 md:col-span-2">
             <Label>Domínio</Label>
-            <Input v-model="form.domain" placeholder="ex: meudominio.com" />
+            <div class="flex gap-2">
+              <Select v-model="form.domain">
+                <SelectTrigger class="flex-1">
+                  <SelectValue placeholder="Selecione um domínio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="option in domainOptions" :key="option" :value="option">
+                    {{ option }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="button" variant="outline" @click="goToProjectPreferences">
+                Adicionar domínio
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -169,8 +183,10 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 import linksService from "@/services/links";
+import LinkDomainsService from "@/services/linkDomains";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -197,6 +213,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown } from "lucide-vue-next";
 import type { LinkCreatePayload } from "@/contracts/link";
+import type { LinkDomain } from "@/contracts/linkDomain";
+import { LinkDomainStatus } from "@/contracts/linkDomain";
 import {
   LINK_CHANNEL_OPTIONS,
   LINK_STATUS_OPTIONS,
@@ -205,6 +223,7 @@ import {
 import {
   addDestination,
   createDefaultForm,
+  getActiveProjectId,
   mapApiErrors,
   MAX_DESTINATIONS,
   removeDestination,
@@ -224,10 +243,37 @@ const emit = defineEmits<{
 const form = reactive(createDefaultForm());
 const isSubmitting = ref(false);
 const fieldErrors = ref<Record<string, string>>({});
+const router = useRouter();
+const domains = ref<LinkDomain[]>([]);
+
+const domainOptions = computed(() => {
+  const options = domains.value
+    .filter((domain) => domain.status === LinkDomainStatus.CONFIGURED)
+    .map((domain) => domain.domain);
+  const current = form.domain.trim();
+  if (current && !options.includes(current)) {
+    options.unshift(current);
+  }
+  return options;
+});
 
 const totalWeight = computed(() =>
   form.destinations.reduce((sum, d) => sum + (Number(d.weight) || 0), 0),
 );
+
+async function fetchDomains() {
+  try {
+    domains.value = await LinkDomainsService.index(Number(getActiveProjectId()));
+  } catch (error) {
+    console.error("Erro ao buscar domínios:", error);
+    domains.value = [];
+  }
+}
+
+function goToProjectPreferences() {
+  emit("update:open", false);
+  router.push({ name: "project-preferences" });
+}
 
 function resetForm() {
   Object.assign(form, createDefaultForm());
@@ -267,6 +313,7 @@ watch(
   (value) => {
     if (value) {
       resetForm();
+      fetchDomains();
     }
   },
 );
