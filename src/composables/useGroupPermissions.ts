@@ -1,11 +1,12 @@
 import { computed, type ComputedRef, type Ref } from "vue";
+import type { Group, GroupRole } from "@/contracts/group";
+import type { GroupMember } from "@/contracts/groupMember";
 
-export type GroupRole = "owner" | "admin" | "editor" | "viewer";
+export type { GroupRole };
 
-export interface GroupPermissionInput {
-  owner_user_id: number;
-  members?: Array<{ user_id: number; role: GroupRole }>;
-}
+export type GroupPermissionInput = Pick<Group, "owner_user_id"> & {
+  members?: Array<Pick<GroupMember, "user_id" | "role">>;
+};
 
 export interface GroupPermissions {
   role: GroupRole | null;
