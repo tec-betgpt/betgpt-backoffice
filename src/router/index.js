@@ -20,6 +20,7 @@ import financial from "@/router/financial.js";
 import efficiency from "@/router/efficiency.js";
 import updates from "@/router/updates.js";
 import emailHealth from "@/router/emailHealth.js";
+import groups from "@/router/groups.js";
 
 const routes = [
   {
@@ -82,6 +83,7 @@ const routes = [
   ...efficiency,
   ...updates,
   ...emailHealth,
+  ...groups,
 ];
 
 const router = createRouter({

@@ -1,4 +1,3 @@
-import GroupProjects from "@/views/dashboard/GroupProjects.vue";
 import DefaultLayout from "@/layouts/default.vue";
 import Projects from "@/views/dashboard/Projects.vue";
 import Insights from "@/views/dashboard/Insights.vue";
@@ -24,15 +23,7 @@ export default [
     children: [
       {
         path: "group-projects",
-        name: "configurations.projects",
-        component: GroupProjects,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: "Grupo de Projetos",
-          roles: "member",
-          permissions: "access-to-project-groups",
-        },
+        redirect: { name: "groups" },
       },
       {
         path: "projects",

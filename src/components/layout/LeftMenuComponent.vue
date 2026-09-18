@@ -558,8 +558,8 @@ const navMenu = computed(() => {
         canAccess("access-to-member-management"),
       children: [
         {
-          name: "Grupo de Projetos",
-          url: { name: "configurations.projects" },
+          name: "Grupos",
+          url: { name: "groups" },
           icon: LayoutList,
           show: canAccess("access-to-project-groups"),
         },
