@@ -71,28 +71,55 @@
               :side-offset="4"
             >
               <ScrollArea class="max-h-[50vh] w-auto overflow-auto">
-                <DropdownMenuLabel class="text-xs text-muted-foreground">
-                  Projetos
-                </DropdownMenuLabel>
-                <DropdownMenuItem
-                  v-for="project in workspaceStore.group_projects"
-                  :key="project.name"
-                  class="gap-2 p-2"
-                  @click="setActiveGroupProject(project)"
-                >
-                  <div
-                    class="flex size-6 items-center justify-center rounded-sm border"
+                <template v-if="projectItems.length">
+                  <DropdownMenuLabel class="text-xs text-muted-foreground">
+                    Projetos
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    v-for="project in projectItems"
+                    :key="project.id"
+                    class="gap-2 p-2"
+                    @click="setActiveGroupProject(project)"
                   >
-                    <Avatar shape="square" class="size-7">
-                      <AvatarImage v-if="project.logo" :src="project.logo" />
-                      <AvatarImage v-else src="/default-project.jpg" />
-                      <AvatarFallback class="uppercase text-white">
-                        {{ project.name.slice(0, 2) }}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                  {{ project.name }}
-                </DropdownMenuItem>
+                    <div
+                      class="flex size-6 items-center justify-center rounded-sm border"
+                    >
+                      <Avatar shape="square" class="size-7">
+                        <AvatarImage v-if="project.logo" :src="project.logo" />
+                        <AvatarImage v-else src="/default-project.jpg" />
+                        <AvatarFallback class="uppercase text-white">
+                          {{ project.name.slice(0, 2) }}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    {{ project.name }}
+                  </DropdownMenuItem>
+                </template>
+
+                <template v-if="groupItems.length">
+                  <DropdownMenuLabel class="text-xs text-muted-foreground">
+                    Grupos
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    v-for="group in groupItems"
+                    :key="group.id"
+                    class="gap-2 p-2"
+                    @click="setActiveGroupProject(group)"
+                  >
+                    <div
+                      class="flex size-6 items-center justify-center rounded-sm border"
+                    >
+                      <Avatar shape="square" class="size-7">
+                        <AvatarImage v-if="group.logo" :src="group.logo" />
+                        <AvatarImage v-else src="/default-project.jpg" />
+                        <AvatarFallback class="uppercase text-white">
+                          {{ group.name.slice(0, 2) }}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    {{ group.name }}
+                  </DropdownMenuItem>
+                </template>
               </ScrollArea>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -389,6 +416,13 @@ const router = useRouter();
 // Computed
 const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null,
+);
+
+const projectItems = computed(() =>
+  workspaceStore.group_projects.filter((item: any) => item.type !== "group"),
+);
+const groupItems = computed(() =>
+  workspaceStore.group_projects.filter((item: any) => item.type === "group"),
 );
 
 const logoSrc = computed(() =>
