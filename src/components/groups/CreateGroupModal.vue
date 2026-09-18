@@ -19,24 +19,32 @@
         <div class="space-y-2">
           <Label>{{ $t("groups_projects") }} *</Label>
           <div class="max-h-72 space-y-2 overflow-y-auto rounded-lg border p-3">
-            <div
-              v-for="project in projects"
-              :key="project.id"
-              class="flex items-center gap-2"
-            >
-              <Checkbox
-                :id="`group-project-${project.id}`"
-                :checked="form.project_ids.includes(project.id)"
-                @update:checked="toggleProject(project.id, $event)"
-              />
-              <Label
-                :for="`group-project-${project.id}`"
-                class="cursor-pointer font-normal"
+            <template v-if="loadingProjects">
+              <Skeleton v-for="n in 5" :key="n" class="h-5 w-full" />
+            </template>
+            <template v-else>
+              <div
+                v-for="project in projects"
+                :key="project.id"
+                class="flex items-center gap-2"
               >
-                {{ project.name }}
-              </Label>
-            </div>
-            <p v-if="!projects.length" class="text-sm text-muted-foreground">
+                <Checkbox
+                  :id="`group-project-${project.id}`"
+                  :checked="form.project_ids.includes(project.id)"
+                  @update:checked="toggleProject(project.id, $event)"
+                />
+                <Label
+                  :for="`group-project-${project.id}`"
+                  class="cursor-pointer font-normal"
+                >
+                  {{ project.name }}
+                </Label>
+              </div>
+            </template>
+            <p
+              v-if="!loadingProjects && !projects.length"
+              class="text-sm text-muted-foreground"
+            >
               {{ $t("groups_empty") }}
             </p>
           </div>
@@ -69,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue";
+import { reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -83,10 +91,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuthStore } from "@/stores/auth";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useGroupsStore } from "@/stores/groups";
+import { useAvailableProjects } from "@/composables/useAvailableProjects";
 import { normalizeApiError } from "@/lib/apiError";
-import type { Project } from "@/contracts/project";
 import type { Group } from "@/contracts/group";
 
 const props = defineProps<{ open: boolean }>();
@@ -96,8 +104,12 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const authStore = useAuthStore();
 const groupsStore = useGroupsStore();
+const {
+  projects,
+  loading: loadingProjects,
+  fetchProjects,
+} = useAvailableProjects();
 
 const form = reactive<{
   name: string;
@@ -108,13 +120,6 @@ const form = reactive<{
 const saving = ref(false);
 const errorMessage = ref("");
 
-const projects = computed<Project[]>(() => {
-  const user = authStore.user as any;
-  return (
-    (user?.ownerProjects?.length ? user.ownerProjects : user?.projects) ?? []
-  );
-});
-
 watch(
   () => props.open,
   (value) => {
@@ -123,6 +128,7 @@ watch(
       form.description = "";
       form.project_ids = [];
       errorMessage.value = "";
+      fetchProjects();
     }
   },
 );
