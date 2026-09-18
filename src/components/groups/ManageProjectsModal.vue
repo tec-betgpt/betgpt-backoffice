@@ -8,31 +8,26 @@
       <div class="space-y-2">
         <Label>{{ $t("groups_projects") }}</Label>
         <div class="max-h-72 space-y-2 overflow-y-auto rounded-lg border p-3">
-          <template v-if="loadingProjects">
-            <Skeleton v-for="n in 5" :key="n" class="h-5 w-full" />
-          </template>
-          <template v-else>
-            <div
-              v-for="project in projects"
-              :key="project.id"
-              class="flex items-center gap-2"
+          <div
+            v-for="project in projects"
+            :key="project.id"
+            class="flex items-center gap-2"
+          >
+            <Checkbox
+              :id="`manage-project-${project.id}`"
+              :checked="selected.includes(project.id)"
+              @update:checked="toggle(project.id, $event)"
+            />
+            <Label
+              :for="`manage-project-${project.id}`"
+              class="cursor-pointer font-normal"
             >
-              <Checkbox
-                :id="`manage-project-${project.id}`"
-                :checked="selected.includes(project.id)"
-                @update:checked="toggle(project.id, $event)"
-              />
-              <Label
-                :for="`manage-project-${project.id}`"
-                class="cursor-pointer font-normal"
-              >
-                {{ project.name }}
-              </Label>
-            </div>
-            <p v-if="!projects.length" class="text-sm text-muted-foreground">
-              {{ $t("groups_empty") }}
-            </p>
-          </template>
+              {{ project.name }}
+            </Label>
+          </div>
+          <p v-if="!projects.length" class="text-sm text-muted-foreground">
+            {{ $t("groups_empty") }}
+          </p>
         </div>
         <p class="text-xs text-muted-foreground">
           {{ $t("groups_select_projects_hint") }}
@@ -76,7 +71,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useGroupsStore } from "@/stores/groups";
 import { useAvailableProjects } from "@/composables/useAvailableProjects";
 import { normalizeApiError } from "@/lib/apiError";
@@ -90,11 +84,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const groupsStore = useGroupsStore();
-const {
-  projects,
-  loading: loadingProjects,
-  fetchProjects,
-} = useAvailableProjects();
+const { projects } = useAvailableProjects();
 
 const selected = ref<number[]>([]);
 const saving = ref(false);
@@ -106,7 +96,6 @@ watch(
     if (!value) return;
     selected.value = props.group.projects.map((project) => project.id);
     errorMessage.value = "";
-    fetchProjects();
   },
 );
 

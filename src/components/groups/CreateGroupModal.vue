@@ -19,32 +19,24 @@
         <div class="space-y-2">
           <Label>{{ $t("groups_projects") }} *</Label>
           <div class="max-h-72 space-y-2 overflow-y-auto rounded-lg border p-3">
-            <template v-if="loadingProjects">
-              <Skeleton v-for="n in 5" :key="n" class="h-5 w-full" />
-            </template>
-            <template v-else>
-              <div
-                v-for="project in projects"
-                :key="project.id"
-                class="flex items-center gap-2"
-              >
-                <Checkbox
-                  :id="`group-project-${project.id}`"
-                  :checked="form.project_ids.includes(project.id)"
-                  @update:checked="toggleProject(project.id, $event)"
-                />
-                <Label
-                  :for="`group-project-${project.id}`"
-                  class="cursor-pointer font-normal"
-                >
-                  {{ project.name }}
-                </Label>
-              </div>
-            </template>
-            <p
-              v-if="!loadingProjects && !projects.length"
-              class="text-sm text-muted-foreground"
+            <div
+              v-for="project in projects"
+              :key="project.id"
+              class="flex items-center gap-2"
             >
+              <Checkbox
+                :id="`group-project-${project.id}`"
+                :checked="form.project_ids.includes(project.id)"
+                @update:checked="toggleProject(project.id, $event)"
+              />
+              <Label
+                :for="`group-project-${project.id}`"
+                class="cursor-pointer font-normal"
+              >
+                {{ project.name }}
+              </Label>
+            </div>
+            <p v-if="!projects.length" class="text-sm text-muted-foreground">
               {{ $t("groups_empty") }}
             </p>
           </div>
@@ -91,7 +83,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useGroupsStore } from "@/stores/groups";
 import { useAvailableProjects } from "@/composables/useAvailableProjects";
 import { normalizeApiError } from "@/lib/apiError";
@@ -105,11 +96,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const groupsStore = useGroupsStore();
-const {
-  projects,
-  loading: loadingProjects,
-  fetchProjects,
-} = useAvailableProjects();
+const { projects } = useAvailableProjects();
 
 const form = reactive<{
   name: string;
@@ -128,35 +115,22 @@ watch(
       form.description = "";
       form.project_ids = [];
       errorMessage.value = "";
-      fetchProjects();
     }
   },
 );
 
 function toggleProject(projectId: number, checked: boolean | "indeterminate") {
-  const next =
-    checked === true
-      ? [...form.project_ids, projectId].filter(
-          (id, index, all) => all.indexOf(id) === index,
-        )
-      : form.project_ids.filter((id) => id !== projectId);
-
-  const selectedProjects = projects.value.filter((project) =>
-    next.includes(project.id),
-  );
-  const ownerIds = new Set(selectedProjects.map((project) => project.user_id));
-
-  if (ownerIds.size > 1) {
-    errorMessage.value = t("groups_same_owner_error");
-    return;
+  if (checked === true) {
+    if (!form.project_ids.includes(projectId)) {
+      form.project_ids = [...form.project_ids, projectId];
+    }
+  } else {
+    form.project_ids = form.project_ids.filter((id) => id !== projectId);
   }
-
   errorMessage.value = "";
-  form.project_ids = next;
 }
 
 async function submit() {
-  if (projects.value.length && errorMessage.value) return;
   saving.value = true;
   try {
     const group = await groupsStore.createGroup({

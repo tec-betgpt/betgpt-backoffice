@@ -1,33 +1,43 @@
-import { ref } from "vue";
-import Projects from "@/services/projects";
-import type { Project } from "@/contracts/project";
+import { computed, type ComputedRef } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import type { WorkspaceGroupProject } from "@/contracts/workspace";
+
+export interface AvailableProject {
+  id: number;
+  name: string;
+  logo: string | null;
+}
+
+function resolveProjectId(item: WorkspaceGroupProject): number {
+  if (typeof item.project_id === "number") return item.project_id;
+  return Number(String(item.id).replace(/^project_/, ""));
+}
 
 /**
- * Lista de projetos disponíveis para compor/selecionar grupos.
+ * Projetos disponíveis para compor/selecionar grupos.
  *
- * Fonte: `GET /projects` (envelope SPA, `data` é o array). O usuário de
- * `/auth/user` NÃO traz `projects`/`ownerProjects`, então não use a store de
- * auth como fonte — foi a causa de a lista vir vazia.
+ * Fonte: `GET /auth/user` → `data.group_projects`, filtrando `type === "project"`.
+ * A rota `/projects` NÃO deve ser usada aqui (o backend já entrega no usuário a
+ * lista de projetos acessíveis, com `project_id`).
  */
-export function useAvailableProjects() {
-  const projects = ref<Project[]>([]);
-  const loading = ref(false);
-  const error = ref<string | null>(null);
+export function useAvailableProjects(): {
+  projects: ComputedRef<AvailableProject[]>;
+} {
+  const authStore = useAuthStore();
 
-  async function fetchProjects(): Promise<Project[]> {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await Projects.index();
-      projects.value = Array.isArray(response?.data) ? response.data : [];
-    } catch (err) {
-      projects.value = [];
-      error.value = err instanceof Error ? err.message : String(err);
-    } finally {
-      loading.value = false;
-    }
-    return projects.value;
-  }
+  const projects = computed<AvailableProject[]>(() => {
+    const items = ((authStore.user as any)?.group_projects ??
+      []) as WorkspaceGroupProject[];
 
-  return { projects, loading, error, fetchProjects };
+    return items
+      .filter((item) => item.type === "project")
+      .map((item) => ({
+        id: resolveProjectId(item),
+        name: item.name,
+        logo: item.logo,
+      }))
+      .filter((project) => Number.isFinite(project.id));
+  });
+
+  return { projects };
 }

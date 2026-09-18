@@ -1,6 +1,6 @@
 export interface WorkspaceGroupProject {
   id: string;
-  project_id?: string;
+  project_id?: number;
   label: string;
   name: string;
   type: "group" | "project";
