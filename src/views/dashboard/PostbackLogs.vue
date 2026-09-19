@@ -86,6 +86,7 @@
                 <SelectItem :value="PostbackLogService.types.WITHDRAW">Saída</SelectItem>
                 <SelectItem :value="PostbackLogService.types.LOGIN">Logins</SelectItem>
                 <SelectItem :value="PostbackLogService.types.STATUS_CHANGE">Alteração de Status</SelectItem>
+                <SelectItem :value="PostbackLogService.types.PRESENCE">Presença</SelectItem>
                 <SelectItem value="all">Todos</SelectItem>
               </SelectContent>
             </Select>
@@ -288,7 +289,11 @@ const getType = (type: string) => {
     deposit: "Depósito",
     withdraw: "Saque",
     player: "Cliente",
+    login: "Login",
     status_change: "Alteração de Status",
+    presence: "Presença",
+    commissions: "Comissões",
+    conset: "Consentimento",
   };
 
   return name[type as keyof typeof name] || type;

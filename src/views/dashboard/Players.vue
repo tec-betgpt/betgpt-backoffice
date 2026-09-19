@@ -252,6 +252,8 @@ const extraColumns: ExtraColumn[] = [
   { id: "ggr", label: "GGR", key: "ggr", type: "currency", align: "right", hiddenByDefault: true },
   { id: "firstLoginAt", label: "Primeiro login", key: "first_login_at", type: "datetime", align: "right", hiddenByDefault: true },
   { id: "lastLoginAt", label: "Último login", key: "last_login_at", type: "datetime", align: "right", hiddenByDefault: true },
+  { id: "isOnline", label: "Online", key: "is_online", type: "boolean", hiddenByDefault: true },
+  { id: "lastPresenceAt", label: "Última presença", key: "last_presence_at", type: "datetime", align: "right", hiddenByDefault: true },
   { id: "firstDepositValue", label: "Valor FTD", key: "first_deposit_value", type: "currency", align: "right", hiddenByDefault: true },
   { id: "firstDepositDate", label: "Data FTD", key: "first_deposit_date", type: "date", align: "right", hiddenByDefault: true },
   { id: "firstWithdrawValue", label: "Valor do primeiro saque", key: "first_withdraw_value", type: "currency", align: "right", hiddenByDefault: true },

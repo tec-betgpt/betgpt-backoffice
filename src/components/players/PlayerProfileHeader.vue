@@ -10,6 +10,13 @@
           <Badge :variant="getStatusVariant(player?.status)" class="text-[10px] md:text-xs">
             {{ formatStatus(player?.status) }}
           </Badge>
+          <Badge
+            :variant="player?.is_online ? 'default' : 'secondary'"
+            class="text-[10px] md:text-xs"
+            :class="player?.is_online ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-none' : ''"
+          >
+            {{ player?.is_online ? 'Online' : 'Offline' }}
+          </Badge>
           <Badge v-if="player?.is_vip" variant="default" class="bg-amber-500 hover:bg-amber-600 text-white border-none text-[10px] md:text-xs px-1.5 py-0">
             <CrownIcon class="h-3 w-3 mr-1" /> VIP
           </Badge>

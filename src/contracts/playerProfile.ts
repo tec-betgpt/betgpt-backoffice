@@ -15,6 +15,8 @@ export interface PlayerProfile {
   withdraw_quantity_pending: number
   first_login_at: string | null
   last_login_at: string | null
+  is_online: boolean
+  last_presence_at: string | null
   first_deposit_value: number | null
   first_deposit_date: string | null
   first_withdraw_value: number | null

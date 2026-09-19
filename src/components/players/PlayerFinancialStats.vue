@@ -95,6 +95,10 @@
             <div class="text-sm md:text-base font-bold text-slate-900 dark:text-white leading-tight">
               {{ formatDateTime(stats?.last_login_at) }}
             </div>
+            <p class="text-[10px] mt-1" :class="stats?.is_online ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'">
+              {{ stats?.is_online ? 'Online agora' : 'Offline' }}
+              <span v-if="stats?.last_presence_at"> · {{ formatDateTime(stats.last_presence_at) }}</span>
+            </p>
           </div>
         </div>
       </CardContent>
@@ -138,6 +142,8 @@ defineProps<{
     ggr: number;
     total_logins?: number;
     last_login_at?: string | null;
+    is_online?: boolean;
+    last_presence_at?: string | null;
     first_deposit_at?: string | null;
     first_deposit_value?: number | null;
     last_deposit_at?: string | null;

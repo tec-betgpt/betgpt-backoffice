@@ -44,6 +44,7 @@ export default {
       WITHDRAW: "3",
       LOGIN: "5",
       STATUS_CHANGE: "6",
+      PRESENCE: "8",
     };
   },
 };

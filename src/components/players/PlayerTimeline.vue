@@ -48,7 +48,7 @@
 import { 
   ArrowDownCircleIcon, ArrowUpCircleIcon, LogInIcon, 
   UserCircleIcon, FilterIcon, HistoryIcon, CodeIcon,
-  CircleIcon, PhoneIncomingIcon, CheckCircleIcon
+  CircleIcon, PhoneIncomingIcon, CheckCircleIcon, RadioIcon
 } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,7 @@ const eventTypeLabels: Record<string, string> = {
   deposit: 'Depósito',
   withdrawal: 'Saque',
   login: 'Login',
+  presence: 'Presença',
   segment: 'Segmento',
   protection_list: 'Lista de proteção',
   profile_update: 'Perfil',
@@ -84,6 +85,7 @@ const getEventConfig = (type: string) => {
     deposit: { icon: ArrowDownCircleIcon, bgColor: 'bg-emerald-100 dark:bg-emerald-900/30', iconColor: 'text-emerald-600 dark:text-emerald-400' },
     withdrawal: { icon: ArrowUpCircleIcon, bgColor: 'bg-rose-100 dark:bg-rose-900/30', iconColor: 'text-rose-600 dark:text-rose-400' },
     login: { icon: LogInIcon, bgColor: 'bg-blue-100 dark:bg-blue-900/30', iconColor: 'text-blue-600 dark:text-blue-400' },
+    presence: { icon: RadioIcon, bgColor: 'bg-emerald-100 dark:bg-emerald-900/30', iconColor: 'text-emerald-600 dark:text-emerald-400' },
     profile_update: { icon: UserCircleIcon, bgColor: 'bg-amber-100 dark:bg-amber-900/30', iconColor: 'text-amber-600 dark:text-amber-400' },
     segment: { icon: FilterIcon, bgColor: 'bg-purple-100 dark:bg-purple-900/30', iconColor: 'text-purple-600 dark:text-purple-400' },
     status_change: { icon: HistoryIcon, bgColor: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-600 dark:text-slate-400' },

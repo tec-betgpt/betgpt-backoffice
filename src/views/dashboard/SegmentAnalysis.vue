@@ -64,6 +64,7 @@ const isLoadingSources = ref(false);
 const isLoading = ref(false);
 const analysis = ref<AnalysisPayload | null>(null);
 const hasLoadedOnce = ref(false);
+let analysisRequestSeq = 0;
 
 const isDark = ref(document.documentElement.classList.contains("dark"));
 
@@ -329,6 +330,12 @@ async function applyFilter() {
     return;
   }
 
+  const seq = ++analysisRequestSeq;
+  const requestedSourceType = sourceType.value;
+  const requestedSourceId = Number(sourceId.value);
+  const requestedStart = selectedRange.value.start?.toString();
+  const requestedEnd = selectedRange.value.end?.toString();
+
   isLoading.value = true;
   hasLoadedOnce.value = true;
   analysis.value = null;
@@ -336,19 +343,24 @@ async function applyFilter() {
   try {
     const { data } = await Analytics.segmentAnalysis({
       filter_id: workspaceStore.activeGroupProject.id,
-      start_date: selectedRange.value.start?.toString(),
-      end_date: selectedRange.value.end?.toString(),
-      source_type: sourceType.value,
-      source_id: Number(sourceId.value),
+      start_date: requestedStart,
+      end_date: requestedEnd,
+      source_type: requestedSourceType,
+      source_id: requestedSourceId,
     });
+
+    if (seq !== analysisRequestSeq) return;
 
     analysis.value = data as AnalysisPayload;
   } catch (error: any) {
+    if (seq !== analysisRequestSeq) return;
     console.error(error);
     toast.error("Erro ao carregar análise", { description: error?.response?.data?.message || "Não foi possível aplicar o filtro selecionado." });
     analysis.value = null;
   } finally {
-    isLoading.value = false;
+    if (seq === analysisRequestSeq) {
+      isLoading.value = false;
+    }
   }
 }
 
@@ -363,9 +375,17 @@ watch(
   },
 );
 
-watch([selectedRange, sourceId], () => {
-  applyFilter();
-}, { deep: true });
+watch(
+  () => [
+    sourceId.value,
+    sourceType.value,
+    selectedRange.value.start?.toString?.() ?? "",
+    selectedRange.value.end?.toString?.() ?? "",
+  ],
+  () => {
+    applyFilter();
+  },
+);
 
 useScreenContext(
   "Análise de Segmentos — métricas de depósito, retenção, LTV e funil por segmento ou tag",

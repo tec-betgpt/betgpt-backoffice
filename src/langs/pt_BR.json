@@ -173,6 +173,8 @@
   "segment_birthday": "Data do Aniversário",
   "segment_first_deposit_date": "Data do FTD",
   "segment_last_login_date": "Data do Último Login",
+  "segment_is_online": "Jogador online",
+  "segment_last_presence_at": "Data da Última Presença",
   "segment_total_deposit_value": "Valor Total de Depósitos",
   "segment_has_tag": "Tem ou Não uma Tag",
   "segment_last_deposit_date": "Data do Último Depósito",
