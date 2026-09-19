@@ -88,6 +88,17 @@ export default {
     return data.data
   },
 
+  /**
+   * GET /v1/projects/integrations/oauth/postmaster/domains
+   * @param {object} params
+   * @param {string} params.integration_id
+   * @param {string} params.project_id
+   */
+  async postmasterDomains(params= {}) {
+    const { data } = await api.get(`/projects/integrations/oauth/postmaster/domains`, { params: params })
+    return data.data
+  },
+
     /**
      * GET /v1/projects/integrations/adaccount
      * @param {object} params

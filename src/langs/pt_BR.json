@@ -422,7 +422,7 @@
     "select_domain": "Domínio",
     "select_domain_placeholder": "Selecione um domínio",
     "no_domains_title": "Nenhum domínio disponível",
-    "no_domains_description": "Nenhum domínio do Email Health está associado a este workspace no momento.",
+    "no_domains_description": "Conecte o Google Postmaster e escolha um domínio em Fontes de Dados. Sem domínio predefinido as rotinas e as métricas não rodam.",
     "period_label": "Período",
     "period": { "7d": "7D", "30d": "30D", "60d": "60D", "90d": "90D", "120d": "120D" },
     "last_update": "Última atualização",

@@ -71,6 +71,26 @@
           </Select>
         </div>
         <div
+          v-if="data.slug === 'google-postmaster' && postmasterDomainList.length > 0"
+          class="mt-4"
+        >
+          <Label for="postmaster-domain" class="mb-1">Domínio do Projeto</Label>
+          <Select id="postmaster-domain" v-model="postmasterDomainSelect" class="my-1">
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o domínio" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                v-for="domain in postmasterDomainList"
+                :key="domain.id"
+                :value="domain.id"
+              >
+                {{ domain.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div
           v-if="data.slug === 'meta' && adAccountMeta.length > 0"
           class="mt-4"
         >
@@ -102,6 +122,15 @@
                 ? data.config.property_name
                 : "Não conectado"
             }}
+          </span>
+        </div>
+        <div
+          class="mt-4 text-sm"
+          v-if="data.slug === 'google-postmaster' && data.config?.domain"
+        >
+          <span>
+            Domínio vinculado:
+            {{ data.config.domain }}
           </span>
         </div>
         <div
@@ -277,6 +306,8 @@ const activeGroupProject = workspaceStore.activeGroupProject;
 const popUp = ref<Window | null>(null);
 const propetyList = ref<Array<{ id: string; name: string }>>([]);
 const propetySelect = ref("");
+const postmasterDomainList = ref<Array<{ id: string; name: string }>>([]);
+const postmasterDomainSelect = ref("");
 const adAccountSelect = ref("");
 const adAccountMeta = ref<Array<{ id: string; name: string }>>([]);
 const disableBt = ref(false);
@@ -370,6 +401,9 @@ async function fetchIntegrations() {
       (value) => value.slug === "google-analytics",
     );
     const meta = integrations.value.find((value) => value.slug === "meta");
+    const postmaster = integrations.value.find(
+      (value) => value.slug === "google-postmaster",
+    );
     if (google) {
       if (google.config !== null) {
         if (google.config.property_id == "" || google.config.property_id == null) {
@@ -383,6 +417,9 @@ async function fetchIntegrations() {
           await getAccountIdMeta();
         }
       }
+    }
+    if (postmaster?.config && isOAuthConnected(postmaster) && !postmaster.config.domain) {
+      await getPostmasterDomains();
     }
   } catch (error) {
     toast.error("Erro", { description: "Erro ao carregar as fontes de dados." });
@@ -421,6 +458,18 @@ async function getProperty() {
     integration_id: integrations.value.find(
       (value) => value.slug === "google-analytics",
     ).id,
+  });
+}
+
+async function getPostmasterDomains() {
+  const postmaster = integrations.value.find(
+    (value) => value.slug === "google-postmaster",
+  );
+  if (!postmaster) return;
+
+  postmasterDomainList.value = await Projects.postmasterDomains({
+    project_id: activeGroupProject.project_id,
+    integration_id: postmaster.id,
   });
 }
 
@@ -530,6 +579,7 @@ async function saveAllIntegrations() {
   saving.value = true;
   const googleIntegration = integrations.value.find((i: any) => i.slug === "google-analytics");
   const metaIntegration = integrations.value.find((i: any) => i.slug === "meta");
+  const postmasterIntegration = integrations.value.find((i: any) => i.slug === "google-postmaster");
   if (propetySelect.value && googleIntegration) {
     googleIntegration.config.property_id = propetySelect.value;
     googleIntegration.config.property_name = propetyList.value.find(
@@ -539,6 +589,9 @@ async function saveAllIntegrations() {
   if (adAccountSelect.value && metaIntegration) {
     metaIntegration.config.ad_account = adAccountSelect.value;
   }
+  if (postmasterDomainSelect.value && postmasterIntegration) {
+    postmasterIntegration.config.domain = postmasterDomainSelect.value;
+  }
   try {
     await Projects.bulkUpdate(
       activeGroupProject.project_id,
@@ -547,6 +600,8 @@ async function saveAllIntegrations() {
 
     toast("Sucesso", { description: "Fontes de Dados salvas com sucesso." });
     propetyList.value = [];
+    postmasterDomainList.value = [];
+    postmasterDomainSelect.value = "";
   } catch (error) {
     console.error(error);
     toast.error("Erro", { description: "Erro ao carregar as Fontes de Dados." });
