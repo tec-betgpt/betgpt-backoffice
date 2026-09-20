@@ -8,7 +8,7 @@
 
 **Tech Stack:** Vue 3 (`<script setup lang="ts">`), TypeScript, Pinia, Vue Router (routes em `.js`), axios (`src/services/base.ts`), vue-sonner, vue-i18n, shadcn-vue, Vitest (novo) + jsdom.
 
-**Spec:** `new-feature.md` (raiz do repo). Este plano argumenta a partir dela; executors devem ler ambos.
+**Spec:** `rota-grupos.md` (raiz do repo; substitui o antigo `new-feature.md`). Este plano argumenta a partir dela; executors devem ler ambos. A spec foi atualizada depois da Fase A: titulares mistos são permitidos, criar/gerenciar projetos exige perfil de gestão (`member-proprietor|member-admin|member-developer`) e há `POST /groups/{group}/transfer`. Fases B (dashboards/listas consolidadas) e C (financeiro do Grupo) ficam em plano separado; inbox (§11) fora de escopo.
 
 ## Global Constraints
 

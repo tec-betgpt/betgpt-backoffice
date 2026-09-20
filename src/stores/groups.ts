@@ -120,6 +120,18 @@ export const useGroupsStore = defineStore("groups", {
       }
     },
 
+    async transferOwnership(groupId: number, userId: number): Promise<Group> {
+      this.saving = true;
+      try {
+        const group = await groupsService.transferGroup(groupId, userId);
+        this.currentGroup = group;
+        this.upsertGroup(group);
+        return group;
+      } finally {
+        this.saving = false;
+      }
+    },
+
     async fetchMembers(groupId: number): Promise<GroupMember[]> {
       this.members = await groupsService.listMembers(groupId);
       return this.members;

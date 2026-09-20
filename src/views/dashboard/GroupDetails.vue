@@ -13,6 +13,7 @@
         @edit="editOpen = true"
         @archive="archive"
         @delete="deleteOpen = true"
+        @transfer="transferOpen = true"
       />
 
       <Tabs v-model="activeTab" class="mt-6">
@@ -83,6 +84,11 @@
         :group="group"
         @invited="reload"
       />
+      <TransferOwnershipModal
+        v-model:open="transferOpen"
+        :group="group"
+        @transferred="reload"
+      />
 
       <AlertDialog v-model:open="deleteOpen">
         <AlertDialogContent>
@@ -133,6 +139,7 @@ import {
 import GroupDetailHeader from "@/components/groups/GroupDetailHeader.vue";
 import EditGroupModal from "@/components/groups/EditGroupModal.vue";
 import InviteMemberModal from "@/components/groups/InviteMemberModal.vue";
+import TransferOwnershipModal from "@/components/groups/TransferOwnershipModal.vue";
 import ProjectsTab from "@/components/groups/ProjectsTab.vue";
 import MembersTab from "@/components/groups/MembersTab.vue";
 import InvitationsTab from "@/components/groups/InvitationsTab.vue";
@@ -152,6 +159,7 @@ const loading = ref(true);
 const activeTab = ref("overview");
 const editOpen = ref(false);
 const inviteOpen = ref(false);
+const transferOpen = ref(false);
 const deleteOpen = ref(false);
 
 const groupId = computed(() => Number(route.params.id));

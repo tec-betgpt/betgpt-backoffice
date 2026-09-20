@@ -31,7 +31,9 @@
       <Button v-if="permissions.canEdit" variant="outline" @click="emit('edit')">
         {{ $t("groups_edit") }}
       </Button>
-      <DropdownMenu v-if="permissions.canEdit || permissions.canDelete">
+      <DropdownMenu
+        v-if="permissions.canEdit || permissions.canDelete || permissions.isOwner"
+      >
         <DropdownMenuTrigger as-child>
           <Button variant="ghost" size="icon">
             <MoreHorizontal class="h-4 w-4" />
@@ -40,6 +42,9 @@
         <DropdownMenuContent align="end">
           <DropdownMenuItem v-if="permissions.canEdit" @click="emit('archive')">
             {{ $t("groups_archive") }}
+          </DropdownMenuItem>
+          <DropdownMenuItem v-if="permissions.isOwner" @click="emit('transfer')">
+            {{ $t("groups_transfer") }}
           </DropdownMenuItem>
           <DropdownMenuItem
             v-if="permissions.canDelete"
@@ -72,5 +77,6 @@ const emit = defineEmits<{
   (event: "edit"): void;
   (event: "archive"): void;
   (event: "delete"): void;
+  (event: "transfer"): void;
 }>();
 </script>

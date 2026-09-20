@@ -9,7 +9,9 @@
         </h2>
         <p class="text-muted-foreground">{{ $t("groups_subtitle") }}</p>
       </div>
-      <Button @click="createOpen = true">{{ $t("groups_new") }}</Button>
+      <Button v-if="canManageGroups" @click="createOpen = true">
+        {{ $t("groups_new") }}
+      </Button>
     </div>
 
     <div
@@ -34,7 +36,9 @@
     <Card v-else>
       <CardContent class="flex flex-col items-center gap-4 py-16 text-center">
         <p class="text-muted-foreground">{{ $t("groups_empty") }}</p>
-        <Button @click="createOpen = true">{{ $t("groups_new") }}</Button>
+        <Button v-if="canManageGroups" @click="createOpen = true">
+          {{ $t("groups_new") }}
+        </Button>
       </CardContent>
     </Card>
 
@@ -52,12 +56,14 @@ import CreateGroupModal from "@/components/groups/CreateGroupModal.vue";
 import { useGroupsStore } from "@/stores/groups";
 import { useAuthStore } from "@/stores/auth";
 import { resolveGroupPermissions } from "@/composables/useGroupPermissions";
+import { useManagementProfile } from "@/composables/useManagementProfile";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { showApiErrorToast } from "@/lib/apiErrorFeedback";
 import type { Group, GroupRole } from "@/contracts/group";
 
 const groupsStore = useGroupsStore();
 const authStore = useAuthStore();
+const { canManageGroups } = useManagementProfile();
 const createOpen = ref(false);
 
 const currentUserId = computed<number | null>(

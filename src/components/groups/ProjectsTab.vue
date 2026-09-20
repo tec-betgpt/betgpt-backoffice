@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between">
         <h3 class="font-medium">{{ $t("groups_projects") }}</h3>
         <Button
-          v-if="permissions.canManageProjects"
+          v-if="permissions.canManageProjects && canManageGroups"
           variant="outline"
           @click="open = true"
         >
@@ -39,11 +39,13 @@ import { ref } from "vue";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ManageProjectsModal from "@/components/groups/ManageProjectsModal.vue";
+import { useManagementProfile } from "@/composables/useManagementProfile";
 import type { Group } from "@/contracts/group";
 import type { GroupPermissions } from "@/composables/useGroupPermissions";
 
 defineProps<{ group: Group; permissions: GroupPermissions }>();
 const emit = defineEmits<{ (event: "changed"): void }>();
 
+const { canManageGroups } = useManagementProfile();
 const open = ref(false);
 </script>

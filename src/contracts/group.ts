@@ -16,7 +16,7 @@ export interface GroupProject extends Project {
 export interface Group {
   id: number;
   uuid: string;
-  owner_user_id: number;
+  owner_user_id: number | null;
   name: string;
   description: string | null;
   status: GroupStatus;

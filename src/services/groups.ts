@@ -70,6 +70,17 @@ export async function replaceGroupProjects(
   return unwrap(data);
 }
 
+export async function transferGroup(
+  groupId: number,
+  userId: number,
+): Promise<Group> {
+  const { data } = await api.post<SpaApiResponse<Group>>(
+    `/groups/${groupId}/transfer`,
+    { user_id: userId },
+  );
+  return unwrap(data);
+}
+
 export async function listMembers(groupId: number): Promise<GroupMember[]> {
   const { data } = await api.get<SpaApiResponse<GroupMember[]>>(
     `/groups/${groupId}/members`,
@@ -142,6 +153,7 @@ const groupsService = {
   updateGroup,
   deleteGroup,
   replaceGroupProjects,
+  transferGroup,
   listMembers,
   updateMember,
   removeMember,

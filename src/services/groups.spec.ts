@@ -4,6 +4,7 @@ import {
   listGroups,
   createGroup,
   updateMember,
+  transferGroup,
   acceptInvitation,
   unwrap,
 } from "@/services/groups";
@@ -62,6 +63,16 @@ describe("groups service", () => {
     expect(mocked.patch).toHaveBeenCalledWith("/groups/10/members/6", {
       role: "editor",
       access_projects: true,
+    });
+  });
+
+  it("transferGroup POSTs /groups/{group}/transfer with user_id", async () => {
+    mocked.post.mockResolvedValue({
+      data: { success: true, data: { id: 10, owner_user_id: 6 } },
+    });
+    await transferGroup(10, 6);
+    expect(mocked.post).toHaveBeenCalledWith("/groups/10/transfer", {
+      user_id: 6,
     });
   });
 
