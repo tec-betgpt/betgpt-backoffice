@@ -419,8 +419,6 @@
   },
   "email_health": {
     "title": "Email Health",
-    "select_domain": "Domínio",
-    "select_domain_placeholder": "Selecione um domínio",
     "no_domains_title": "Nenhum domínio disponível",
     "no_domains_description": "Conecte o Google Postmaster e escolha um domínio em Fontes de Dados. Sem domínio predefinido as rotinas e as métricas não rodam.",
     "period_label": "Período",

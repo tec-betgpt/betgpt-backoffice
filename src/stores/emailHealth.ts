@@ -117,12 +117,6 @@ export const useEmailHealthStore = defineStore("emailHealth", {
       }
     },
 
-    selectDomain(id: number) {
-      if (id === this.selectedDomainId) return;
-      this.selectedDomainId = id;
-      void this.refreshAll();
-    },
-
     setRange(range: EmailHealthRange) {
       if (range === this.range) return;
       this.range = range;

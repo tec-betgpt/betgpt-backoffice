@@ -3,48 +3,24 @@
     <div class="grid min-[900px]:grid-cols-2 gap-4">
       <div>
         <h2 class="text-2xl font-bold tracking-tight">{{ t("email_health.title") }}</h2>
+        <p v-if="domainName" class="text-sm font-medium mt-0.5">{{ domainName }}</p>
         <p class="text-muted-foreground text-sm">
           {{ t("email_health.last_update") }}:
           <span class="font-medium text-foreground">{{ lastUpdateLabel }}</span>
         </p>
       </div>
 
-      <div class="flex flex-col items-start sm:flex-row sm:items-center justify-end gap-3 w-full">
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <span class="text-sm text-muted-foreground text-nowrap">
-            {{ t("email_health.select_domain") }}
-          </span>
-          <Select
-            :model-value="selectedDomainValue"
-            @update:model-value="onDomainChange"
-          >
-            <SelectTrigger class="w-full sm:w-[220px]">
-              <SelectValue :placeholder="t('email_health.select_domain_placeholder')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem
-                v-for="domain in store.domains"
-                :key="domain.id"
-                :value="String(domain.id)"
-              >
-                {{ domain.domain }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div class="flex items-center gap-1">
-          <Button
-            v-for="option in rangeOptions"
-            :key="option"
-            size="sm"
-            :variant="store.range === option ? 'default' : 'outline'"
-            class="px-2.5"
-            @click="store.setRange(option)"
-          >
-            {{ t(`email_health.period.${option}`) }}
-          </Button>
-        </div>
+      <div class="flex items-center justify-end gap-1 w-full">
+        <Button
+          v-for="option in rangeOptions"
+          :key="option"
+          size="sm"
+          :variant="store.range === option ? 'default' : 'outline'"
+          class="px-2.5"
+          @click="store.setRange(option)"
+        >
+          {{ t(`email_health.period.${option}`) }}
+        </Button>
       </div>
     </div>
 
@@ -89,13 +65,6 @@ import { storeToRefs } from "pinia";
 import { useEmailHealthStore } from "@/stores/emailHealth";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -109,9 +78,7 @@ const { overview } = storeToRefs(store);
 
 const rangeOptions: EmailHealthRange[] = ["7d", "30d", "60d", "90d", "120d"];
 
-const selectedDomainValue = computed(() =>
-  store.selectedDomainId ? String(store.selectedDomainId) : "",
-);
+const domainName = computed(() => store.selectedDomain?.domain ?? overview.value?.domain?.domain ?? "");
 
 const sources = computed(() => overview.value?.sources?.v2 ? overview.value.sources : null);
 
@@ -119,11 +86,6 @@ const lastUpdateLabel = computed(() => {
   const value = overview.value?.last_successful_sync_at;
   return value ? formatDateTime(value) : "—";
 });
-
-function onDomainChange(value: unknown) {
-  const id = Number(value);
-  if (Number.isFinite(id)) store.selectDomain(id);
-}
 
 function dotClass(status: SourceHealth["status"]) {
   if (status === "ok") return "bg-green-500";
