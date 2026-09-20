@@ -33,6 +33,12 @@
           <TabsTrigger value="consolidated">
             {{ $t("groups_consolidated") }}
           </TabsTrigger>
+          <TabsTrigger value="analytics">
+            {{ $t("groups_analytics") }}
+          </TabsTrigger>
+          <TabsTrigger value="dre">
+            {{ $t("groups_dre") }}
+          </TabsTrigger>
           <TabsTrigger value="financial">
             {{ $t("groups_financial") }}
           </TabsTrigger>
@@ -85,6 +91,12 @@
         </TabsContent>
         <TabsContent value="consolidated" class="mt-4">
           <GroupConsolidatedTab :group="group" />
+        </TabsContent>
+        <TabsContent value="analytics" class="mt-4">
+          <GroupAnalyticsTab :group="group" />
+        </TabsContent>
+        <TabsContent value="dre" class="mt-4">
+          <GroupDreTab :group="group" />
         </TabsContent>
         <TabsContent value="financial" class="mt-4">
           <GroupFinancialTab :group="group" :permissions="permissions" />
@@ -158,6 +170,8 @@ import MembersTab from "@/components/groups/MembersTab.vue";
 import InvitationsTab from "@/components/groups/InvitationsTab.vue";
 import GroupConsolidatedTab from "@/components/groups/GroupConsolidatedTab.vue";
 import GroupConsolidatedSummary from "@/components/groups/GroupConsolidatedSummary.vue";
+import GroupAnalyticsTab from "@/components/groups/GroupAnalyticsTab.vue";
+import GroupDreTab from "@/components/groups/GroupDreTab.vue";
 import GroupFinancialTab from "@/components/groups/GroupFinancialTab.vue";
 import { useGroupsStore } from "@/stores/groups";
 import { useAuthStore } from "@/stores/auth";

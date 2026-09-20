@@ -44,6 +44,12 @@
       </CardContent>
     </Card>
 
+    <FinancialDonutCharts
+      :sector="charts.sector"
+      :category="charts.category"
+      :is-loading="loading"
+    />
+
     <Card>
       <CardContent class="space-y-4 py-4">
         <Table class="w-full">
@@ -122,6 +128,7 @@ import {
 } from "@/components/ui/table";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import GroupFinancialTransactionDialog from "@/components/groups/GroupFinancialTransactionDialog.vue";
+import FinancialDonutCharts from "@/components/financial/FinancialDonutCharts.vue";
 import {
   deleteGroupFinancialTransaction,
   getGroupFinancialDashboard,
@@ -145,6 +152,11 @@ const selectedRange = ref<any>({
 });
 const transactions = ref<GroupFinancialTransaction[]>([]);
 const summary = ref({ revenue: 0, expense: 0, balance: 0, margin: 0 });
+const charts = ref<{ sector: any[]; category: any[] }>({
+  sector: [],
+  category: [],
+});
+const loading = ref(false);
 const dialogOpen = ref(false);
 const editing = ref<GroupFinancialTransaction | null>(null);
 
@@ -187,6 +199,7 @@ async function remove(row: GroupFinancialTransaction) {
 }
 
 async function reload() {
+  loading.value = true;
   try {
     const [list, dashboard] = await Promise.all([
       listGroupFinancialTransactions(props.group.id, {
@@ -202,8 +215,14 @@ async function reload() {
       balance: dashboard.consolidated?.balance ?? 0,
       margin: dashboard.consolidated?.margin_percentage ?? 0,
     };
+    charts.value = {
+      sector: dashboard.charts?.expenses_by_sector ?? [],
+      category: dashboard.charts?.expenses_by_category ?? [],
+    };
   } catch (error) {
     showApiErrorToast(error);
+  } finally {
+    loading.value = false;
   }
 }
 

@@ -68,12 +68,17 @@ export interface GroupFinancialListResponse {
 }
 
 export interface GroupFinancialOriginBlock {
-  project: { revenue: number; cost: number; investment: number };
-  group: { revenue: number; cost: number; investment: number };
+  project?: { revenue?: number; cost?: number; investment?: number };
+  group?: { revenue?: number; cost?: number; investment?: number };
 }
 
+/**
+ * DRE consolidado (`GET /groups/{group}/financials`). O shape completo ainda
+ * não foi capturado do backend; os campos conhecidos pela spec estão tipados e
+ * o índice permite campos extras sem quebrar a UI (renderização defensiva).
+ */
 export interface GroupFinancialsPayload {
-  period: { start: string; end: string };
+  period?: { start: string; end: string };
   investimentos?: number;
   origin?: GroupFinancialOriginBlock;
   [key: string]: unknown;
