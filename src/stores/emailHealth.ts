@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import {
+  getActiveCampaignSeries,
   getAuthentication,
   getCompliance,
   getDeliveryErrors,
@@ -14,6 +15,7 @@ import {
   type EmailHealthSpamRateResponse,
 } from "@/services/emailHealth";
 import type {
+  ActiveCampaignActivityResponse,
   AuthSeriesPoint,
   DeliveryErrorDay,
   EmailHealthDomain,
@@ -31,7 +33,8 @@ export type EmailHealthSectionKey =
   | "feedbackLoop"
   | "authentication"
   | "encryption"
-  | "deliveryErrors";
+  | "deliveryErrors"
+  | "activeCampaign";
 
 type SectionLoading = Record<EmailHealthSectionKey, boolean>;
 type SectionErrors = Record<EmailHealthSectionKey, string | null>;
@@ -46,6 +49,7 @@ function emptySectionFlags<T>(value: T): Record<EmailHealthSectionKey, T> {
     authentication: value,
     encryption: value,
     deliveryErrors: value,
+    activeCampaign: value,
   };
 }
 
@@ -63,6 +67,7 @@ interface EmailHealthState {
   authentication: EmailHealthSeriesResponse<AuthSeriesPoint> | null;
   encryption: EmailHealthSeriesResponse<TlsSeriesPoint> | null;
   deliveryErrors: EmailHealthSeriesResponse<DeliveryErrorDay> | null;
+  activeCampaign: ActiveCampaignActivityResponse | null;
 }
 
 export const useEmailHealthStore = defineStore("emailHealth", {
@@ -80,6 +85,7 @@ export const useEmailHealthStore = defineStore("emailHealth", {
     authentication: null,
     encryption: null,
     deliveryErrors: null,
+    activeCampaign: null,
   }),
   getters: {
     selectedDomain(state): EmailHealthDomain | null {
@@ -95,6 +101,7 @@ export const useEmailHealthStore = defineStore("emailHealth", {
       this.filterId = filterId;
       this.loading.domains = true;
       this.errors.domains = null;
+      const activeCampaignPromise = this.loadActiveCampaignSeries();
 
       try {
         this.domains = await listDomains(filterId);
@@ -104,14 +111,14 @@ export const useEmailHealthStore = defineStore("emailHealth", {
           this.selectedDomainId = this.domains[0]?.id ?? null;
         }
 
-        if (this.selectedDomainId) {
-          await this.refreshAll();
-        } else {
-          this.clearSectionData();
-        }
+        await Promise.allSettled([
+          activeCampaignPromise,
+          this.selectedDomainId ? this.refreshDomainSections() : Promise.resolve(this.clearDomainSectionData()),
+        ]);
       } catch (error) {
         this.errors.domains = extractErrorMessage(error);
-        this.clearSectionData();
+        this.clearDomainSectionData();
+        await activeCampaignPromise;
       } finally {
         this.loading.domains = false;
       }
@@ -124,6 +131,19 @@ export const useEmailHealthStore = defineStore("emailHealth", {
     },
 
     async refreshAll() {
+      await Promise.allSettled([
+        this.loadActiveCampaignSeries(),
+        this.refreshDomainSections(),
+      ]);
+    },
+
+    async loadActiveCampaignSeries() {
+      const query = this.query;
+      if (!query) return;
+      await this.loadSection("activeCampaign", () => getActiveCampaignSeries(query));
+    },
+
+    async refreshDomainSections() {
       const domainId = this.selectedDomainId;
       const query = this.query;
       if (!domainId || !query) return;
@@ -156,7 +176,7 @@ export const useEmailHealthStore = defineStore("emailHealth", {
       }
     },
 
-    clearSectionData() {
+    clearDomainSectionData() {
       this.overview = null;
       this.spamRate = null;
       this.compliance = null;
@@ -164,6 +184,11 @@ export const useEmailHealthStore = defineStore("emailHealth", {
       this.authentication = null;
       this.encryption = null;
       this.deliveryErrors = null;
+    },
+
+    clearSectionData() {
+      this.clearDomainSectionData();
+      this.activeCampaign = null;
     },
   },
 });

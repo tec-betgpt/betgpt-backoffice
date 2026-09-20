@@ -128,3 +128,18 @@ export interface EmailHealthQuery {
   to?: string;   // Y-m-d
   source_version?: PostmasterSourceVersion;
 }
+
+export interface ActiveCampaignActivityPoint {
+  date: string;
+  sends: number;
+  opens: number;
+  clicks: number;
+  unsubscribes: number;
+  bounces: number;
+}
+
+export interface ActiveCampaignActivityResponse {
+  connected: boolean;
+  series: ActiveCampaignActivityPoint[];
+  period: { from: string; to: string };
+}

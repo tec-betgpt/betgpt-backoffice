@@ -1,5 +1,6 @@
 import api from './base';
 import type {
+  ActiveCampaignActivityResponse,
   ApiEnvelope,
   AuthSeriesPoint,
   ComplianceSnapshot,
@@ -86,6 +87,14 @@ export async function getAuthentication(domainId: number, query: EmailHealthQuer
 export async function getEncryption(domainId: number, query: EmailHealthQuery) {
   const { data } = await api.get<ApiEnvelope<EmailHealthSeriesResponse<TlsSeriesPoint>>>(
     `/email-health/domains/${domainId}/encryption`,
+    { params: query },
+  );
+  return data.data;
+}
+
+export async function getActiveCampaignSeries(query: EmailHealthQuery) {
+  const { data } = await api.get<ApiEnvelope<ActiveCampaignActivityResponse>>(
+    '/email-health/active-campaign/series',
     { params: query },
   );
   return data.data;

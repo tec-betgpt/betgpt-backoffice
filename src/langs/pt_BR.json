@@ -527,6 +527,16 @@
       "outbound": "TLS Outbound",
       "messages": "Mensagens"
     },
+    "active_campaign": {
+      "title": "Atividade de E-mail",
+      "subtitle": "Envios, aberturas, cliques, cancelamentos e bounces do Active Campaign. Clique na legenda para ligar ou desligar uma linha.",
+      "source": "Active Campaign",
+      "sends": "Envios",
+      "opens": "Aberturas",
+      "clicks": "Cliques",
+      "unsubscribes": "Cancelamentos",
+      "bounces": "Bounces"
+    },
     "delivery_errors": {
       "title": "Erros de Entrega",
       "subtitle": "Rejeições e falhas temporárias por dia",

@@ -2,7 +2,7 @@
   <div class="email-health-page p-10 max-[450px]:p-0 pb-16 w-full">
     <EmailHealthHeader />
 
-    <div v-if="loadingDomains" class="space-y-4">
+    <div v-if="loadingDomains && !hasActiveCampaign" class="space-y-4">
       <Skeleton class="h-8 w-1/3" />
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Skeleton v-for="index in 3" :key="index" class="h-80 w-full" />
@@ -10,38 +10,50 @@
       <Skeleton class="h-48 w-full" />
     </div>
 
-    <Card v-else-if="domainsError">
-      <CardContent class="pt-6">
-        <EmailHealthEmptyState variant="error" @retry="reload" />
-      </CardContent>
-    </Card>
-
-    <Card v-else-if="!store.domains.length">
-      <CardContent class="pt-6">
-        <EmailHealthEmptyState :message="t('email_health.no_domains_title')" />
-        <p class="text-center text-xs text-muted-foreground -mt-6 pb-6">
-          {{ t("email_health.no_domains_description") }}
-        </p>
-      </CardContent>
-    </Card>
-
     <template v-else>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <DomainStatusCard />
-        <DeliveryReputationCard />
-        <SpamRateCard />
+      <div class="mb-4">
+        <ActiveCampaignActivityChart />
       </div>
 
-      <div class="mt-4">
-        <CompliancePanel />
+      <div v-if="loadingDomains" class="space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Skeleton v-for="index in 3" :key="index" class="h-80 w-full" />
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <EncryptionPanel />
-        <AuthenticationPanel />
-        <FeedbackLoopPanel />
-        <DeliveryErrorsPanel />
-      </div>
+      <Card v-else-if="domainsError">
+        <CardContent class="pt-6">
+          <EmailHealthEmptyState variant="error" @retry="reload" />
+        </CardContent>
+      </Card>
+
+      <Card v-else-if="!store.domains.length && !hasActiveCampaign">
+        <CardContent class="pt-6">
+          <EmailHealthEmptyState :message="t('email_health.no_domains_title')" />
+          <p class="text-center text-xs text-muted-foreground -mt-6 pb-6">
+            {{ t("email_health.no_domains_description") }}
+          </p>
+        </CardContent>
+      </Card>
+
+      <template v-else-if="store.domains.length">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <DomainStatusCard />
+          <DeliveryReputationCard />
+          <SpamRateCard />
+        </div>
+
+        <div class="mt-4">
+          <CompliancePanel />
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+          <EncryptionPanel />
+          <AuthenticationPanel />
+          <FeedbackLoopPanel />
+          <DeliveryErrorsPanel />
+        </div>
+      </template>
     </template>
   </div>
 </template>
@@ -64,14 +76,21 @@ import FeedbackLoopPanel from "@/components/email-health/FeedbackLoopPanel.vue";
 import AuthenticationPanel from "@/components/email-health/AuthenticationPanel.vue";
 import EncryptionPanel from "@/components/email-health/EncryptionPanel.vue";
 import DeliveryErrorsPanel from "@/components/email-health/DeliveryErrorsPanel.vue";
+import ActiveCampaignActivityChart from "@/components/email-health/ActiveCampaignActivityChart.vue";
 
 const { t } = useI18n();
 const workspaceStore = useWorkspaceStore();
 const store = useEmailHealthStore();
-const { loading, errors } = storeToRefs(store);
+const { loading, errors, activeCampaign } = storeToRefs(store);
 
 const loadingDomains = computed(() => loading.value.domains);
 const domainsError = computed(() => errors.value.domains);
+const hasActiveCampaign = computed(
+  () =>
+    loading.value.activeCampaign ||
+    Boolean(errors.value.activeCampaign) ||
+    activeCampaign.value?.connected === true,
+);
 
 function reload() {
   const filterId = workspaceStore.activeGroupProject?.id;
