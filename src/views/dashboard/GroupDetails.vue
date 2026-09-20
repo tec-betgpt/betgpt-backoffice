@@ -38,7 +38,8 @@
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" class="mt-4">
+        <TabsContent value="overview" class="mt-4 space-y-4">
+          <GroupConsolidatedSummary :group="group" />
           <Card>
             <CardContent class="space-y-2 py-6">
               <p>
@@ -156,6 +157,7 @@ import ProjectsTab from "@/components/groups/ProjectsTab.vue";
 import MembersTab from "@/components/groups/MembersTab.vue";
 import InvitationsTab from "@/components/groups/InvitationsTab.vue";
 import GroupConsolidatedTab from "@/components/groups/GroupConsolidatedTab.vue";
+import GroupConsolidatedSummary from "@/components/groups/GroupConsolidatedSummary.vue";
 import GroupFinancialTab from "@/components/groups/GroupFinancialTab.vue";
 import { useGroupsStore } from "@/stores/groups";
 import { useAuthStore } from "@/stores/auth";
