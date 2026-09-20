@@ -431,7 +431,11 @@ async function fetchIntegrations() {
       }
     }
     if (postmaster?.config && isOAuthConnected(postmaster) && !postmaster.config.domain) {
-      postmasterDomainList.value = [];
+      try {
+        await getPostmasterDomains();
+      } catch {
+        postmasterDomainList.value = [];
+      }
     }
   } catch (error) {
     toast.error("Erro", { description: "Erro ao carregar as fontes de dados." });
@@ -471,6 +475,19 @@ async function getProperty() {
       (value) => value.slug === "google-analytics",
     ).id,
   });
+}
+
+async function getPostmasterDomains() {
+  const postmaster = integrations.value.find(
+    (value) => value.slug === "google-postmaster",
+  );
+  if (!postmaster) return;
+
+  const list = await Projects.postmasterDomains({
+    project_id: activeGroupProject.project_id,
+    integration_id: postmaster.id,
+  });
+  postmasterDomainList.value = Array.isArray(list) ? list : [];
 }
 
 async function getAccountIdMeta() {
