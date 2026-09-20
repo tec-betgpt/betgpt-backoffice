@@ -16,92 +16,18 @@
         @transfer="transferOpen = true"
       />
 
-      <Tabs v-model="activeTab" class="mt-6">
-        <TabsList>
-          <TabsTrigger value="overview">
-            {{ $t("groups_overview") }}
-          </TabsTrigger>
-          <TabsTrigger value="projects">
-            {{ $t("groups_projects") }}
-          </TabsTrigger>
-          <TabsTrigger value="members">
-            {{ $t("groups_members") }}
-          </TabsTrigger>
-          <TabsTrigger value="invitations">
-            {{ $t("groups_invitations") }}
-          </TabsTrigger>
-          <TabsTrigger value="consolidated">
-            {{ $t("groups_consolidated") }}
-          </TabsTrigger>
-          <TabsTrigger value="analytics">
-            {{ $t("groups_analytics") }}
-          </TabsTrigger>
-          <TabsTrigger value="dre">
-            {{ $t("groups_dre") }}
-          </TabsTrigger>
-          <TabsTrigger value="financial">
-            {{ $t("groups_financial") }}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" class="mt-4 space-y-4">
-          <GroupConsolidatedSummary :group="group" />
-          <Card>
-            <CardContent class="space-y-2 py-6">
-              <p>
-                <strong>{{ $t("groups_name") }}:</strong> {{ group.name }}
-              </p>
-              <p>
-                <strong>{{ $t("groups_description") }}:</strong>
-                {{ group.description || "—" }}
-              </p>
-              <p>
-                <strong>{{ $t("groups_projects") }}:</strong>
-                {{ group.projects.length }}
-              </p>
-              <p>
-                <strong>{{ $t("groups_role") }}:</strong>
-                {{ $t(`groups_role_${permissions.role}`) }}
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="projects" class="mt-4">
-          <ProjectsTab
-            :group="group"
-            :permissions="permissions"
-            @changed="reload"
-          />
-        </TabsContent>
-        <TabsContent value="members" class="mt-4">
-          <MembersTab
-            :group="group"
-            :permissions="permissions"
-            @invite="inviteOpen = true"
-          />
-        </TabsContent>
-        <TabsContent value="invitations" class="mt-4">
-          <InvitationsTab
+      <div class="mt-6">
+        <router-view v-slot="{ Component }">
+          <component
+            :is="Component"
             :group="group"
             :permissions="permissions"
             @changed="reload"
             @invite="inviteOpen = true"
+            @transferred="reload"
           />
-        </TabsContent>
-        <TabsContent value="consolidated" class="mt-4">
-          <GroupConsolidatedTab :group="group" />
-        </TabsContent>
-        <TabsContent value="analytics" class="mt-4">
-          <GroupAnalyticsTab :group="group" />
-        </TabsContent>
-        <TabsContent value="dre" class="mt-4">
-          <GroupDreTab :group="group" />
-        </TabsContent>
-        <TabsContent value="financial" class="mt-4">
-          <GroupFinancialTab :group="group" :permissions="permissions" />
-        </TabsContent>
-      </Tabs>
+        </router-view>
+      </div>
 
       <EditGroupModal v-model:open="editOpen" :group="group" @updated="reload" />
       <InviteMemberModal
@@ -144,13 +70,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -165,14 +90,6 @@ import GroupDetailHeader from "@/components/groups/GroupDetailHeader.vue";
 import EditGroupModal from "@/components/groups/EditGroupModal.vue";
 import InviteMemberModal from "@/components/groups/InviteMemberModal.vue";
 import TransferOwnershipModal from "@/components/groups/TransferOwnershipModal.vue";
-import ProjectsTab from "@/components/groups/ProjectsTab.vue";
-import MembersTab from "@/components/groups/MembersTab.vue";
-import InvitationsTab from "@/components/groups/InvitationsTab.vue";
-import GroupConsolidatedTab from "@/components/groups/GroupConsolidatedTab.vue";
-import GroupConsolidatedSummary from "@/components/groups/GroupConsolidatedSummary.vue";
-import GroupAnalyticsTab from "@/components/groups/GroupAnalyticsTab.vue";
-import GroupDreTab from "@/components/groups/GroupDreTab.vue";
-import GroupFinancialTab from "@/components/groups/GroupFinancialTab.vue";
 import { useGroupsStore } from "@/stores/groups";
 import { useAuthStore } from "@/stores/auth";
 import { resolveGroupPermissions } from "@/composables/useGroupPermissions";
@@ -185,38 +102,7 @@ const { t } = useI18n();
 const groupsStore = useGroupsStore();
 const authStore = useAuthStore();
 
-const GROUP_TABS = [
-  "overview",
-  "projects",
-  "members",
-  "invitations",
-  "consolidated",
-  "analytics",
-  "dre",
-  "financial",
-];
-
 const loading = ref(true);
-const activeTab = ref(
-  typeof route.query.tab === "string" && GROUP_TABS.includes(route.query.tab)
-    ? route.query.tab
-    : "overview",
-);
-
-watch(activeTab, (tab) => {
-  if (route.query.tab !== tab) {
-    router.replace({ query: { ...route.query, tab } });
-  }
-});
-
-watch(
-  () => route.query.tab,
-  (tab) => {
-    if (typeof tab === "string" && GROUP_TABS.includes(tab) && tab !== activeTab.value) {
-      activeTab.value = tab;
-    }
-  },
-);
 const editOpen = ref(false);
 const inviteOpen = ref(false);
 const transferOpen = ref(false);

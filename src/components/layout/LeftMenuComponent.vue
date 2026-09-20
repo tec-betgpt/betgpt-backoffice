@@ -447,22 +447,22 @@ const groupNumericId = computed(() => {
 const groupNavMenu = computed<any[]>(() => {
   const id = groupNumericId.value;
   const show = canAccess("access-to-project-groups");
-  const item = (name: string, tab: string, icon: any) => ({
+  const item = (name: string, routeName: string, icon: any) => ({
     name,
     icon,
     show,
-    url: { name: "groups.show", params: { id }, query: { tab } },
+    url: { name: routeName, params: { id } },
   });
 
   return [
-    item("Visão geral", "overview", LayoutDashboard),
-    item("Consolidado", "consolidated", SquareStack),
-    item("Analytics", "analytics", ChartNoAxesColumnIncreasing),
-    item("DRE", "dre", CircleDollarSign),
-    item("Financeiro", "financial", DollarSignIcon),
-    item("Projetos", "projects", Building2),
-    item("Membros", "members", Users2),
-    item("Convites", "invitations", Mail),
+    item("Visão geral", "groups.overview", LayoutDashboard),
+    item("Consolidado", "groups.consolidated", SquareStack),
+    item("Analytics", "groups.analytics", ChartNoAxesColumnIncreasing),
+    item("DRE", "groups.dre", CircleDollarSign),
+    item("Financeiro", "groups.financial", DollarSignIcon),
+    item("Projetos", "groups.projects", Building2),
+    item("Membros", "groups.members", Users2),
+    item("Convites", "groups.invitations", Mail),
   ];
 });
 
