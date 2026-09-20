@@ -71,11 +71,16 @@
           </Select>
         </div>
         <div
-          v-if="data.slug === 'google-postmaster' && postmasterDomainList.length > 0"
+          v-if="data.slug === 'google-postmaster' && isOAuthConnected(data) && !data.config?.domain"
           class="mt-4"
         >
           <Label for="postmaster-domain" class="mb-1">Domínio do Projeto</Label>
-          <Select id="postmaster-domain" v-model="postmasterDomainSelect" class="my-1">
+          <Select
+            v-if="postmasterDomainList.length > 0"
+            id="postmaster-domain"
+            v-model="postmasterDomainSelect"
+            class="my-1"
+          >
             <SelectTrigger>
               <SelectValue placeholder="Selecione o domínio" />
             </SelectTrigger>
@@ -89,6 +94,13 @@
               </SelectItem>
             </SelectContent>
           </Select>
+          <Input
+            v-else
+            id="postmaster-domain"
+            v-model="postmasterDomainSelect"
+            class="my-1"
+            placeholder="exemplo.com"
+          />
         </div>
         <div
           v-if="data.slug === 'meta' && adAccountMeta.length > 0"
@@ -419,7 +431,7 @@ async function fetchIntegrations() {
       }
     }
     if (postmaster?.config && isOAuthConnected(postmaster) && !postmaster.config.domain) {
-      await getPostmasterDomains();
+      postmasterDomainList.value = [];
     }
   } catch (error) {
     toast.error("Erro", { description: "Erro ao carregar as fontes de dados." });
@@ -458,18 +470,6 @@ async function getProperty() {
     integration_id: integrations.value.find(
       (value) => value.slug === "google-analytics",
     ).id,
-  });
-}
-
-async function getPostmasterDomains() {
-  const postmaster = integrations.value.find(
-    (value) => value.slug === "google-postmaster",
-  );
-  if (!postmaster) return;
-
-  postmasterDomainList.value = await Projects.postmasterDomains({
-    project_id: activeGroupProject.project_id,
-    integration_id: postmaster.id,
   });
 }
 
