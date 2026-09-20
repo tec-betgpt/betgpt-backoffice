@@ -72,7 +72,7 @@ const emit = defineEmits<{ retry: [] }>();
 const { t } = useI18n();
 
 const errorMessage = computed(() => {
-  if (props.error === "forbidden") return t("email_health.admin.no_permission");
+  if (props.error === "forbidden") return t("api_errors.forbidden");
   return t("email_health.error_title");
 });
 </script>

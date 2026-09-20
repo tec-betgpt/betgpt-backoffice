@@ -121,43 +121,6 @@ export interface EmailHealthOverview {
   last_successful_sync_at: string | null;
 }
 
-export interface ManualSyncResponse {
-  sync_run_id: number;
-  domains: string[];
-  period: { from: string; to: string };
-  queue: string;
-}
-
-export interface SyncRun {
-  id: number;
-  type: 'backfill_v1' | 'daily' | 'manual';
-  status: 'running' | 'success' | 'partial' | 'failed';
-  api_v1_status: 'ok' | 'partial' | 'failed' | 'skipped' | null;
-  api_v2_status: 'ok' | 'partial' | 'failed' | 'skipped' | null;
-  domains_attempted: number;
-  domains_success: number;
-  domains_failed: number;
-  error_summary: string | null;
-  started_at: string | null;
-  finished_at: string | null;
-  items: SyncRunItem[];
-}
-
-export interface SyncRunItem {
-  id: number;
-  api_version: PostmasterSourceVersion;
-  endpoint: 'domains' | 'trafficStats' | 'domainStats' | 'complianceStatus';
-  domain: string | null;
-  status: 'running' | 'success' | 'failed';
-  http_status: number | null;
-  records_received: number;
-  records_inserted: number;
-  records_updated: number;
-  error: string | null;
-  started_at: string | null;
-  finished_at: string | null;
-}
-
 export interface EmailHealthQuery {
   filter_id: string;
   range?: EmailHealthRange;

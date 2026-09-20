@@ -8,10 +8,8 @@ import type {
   EmailHealthOverview,
   EmailHealthQuery,
   FeedbackLoopItem,
-  ManualSyncResponse,
   SpamRatePoint,
   SpamRateReference,
-  SyncRun,
   TlsSeriesPoint,
 } from '@/contracts/emailHealth';
 
@@ -97,28 +95,6 @@ export async function getDeliveryErrors(domainId: number, query: EmailHealthQuer
   const { data } = await api.get<ApiEnvelope<EmailHealthSeriesResponse<DeliveryErrorDay>>>(
     `/email-health/domains/${domainId}/delivery-errors`,
     { params: query },
-  );
-  return data.data;
-}
-
-/** Ações administrativas (role member — backend responde 401/403 se negado). */
-export async function triggerManualSync(payload: { domain?: string; from?: string; to?: string }) {
-  const { data } = await api.post<ApiEnvelope<ManualSyncResponse>>('/email-health/sync', payload);
-  return data.data; // 202 — sync_run_id para rastreio
-}
-
-export async function listSyncRuns() {
-  const { data } = await api.get<ApiEnvelope<{ sync_runs: SyncRun[] }>>('/email-health/sync-runs');
-  return data.data.sync_runs;
-}
-
-export async function updateDomain(
-  domainId: number,
-  payload: { project_id?: number | null; active?: boolean },
-) {
-  const { data } = await api.patch<ApiEnvelope<EmailHealthDomain>>(
-    `/email-health/domains/${domainId}`,
-    payload,
   );
   return data.data;
 }

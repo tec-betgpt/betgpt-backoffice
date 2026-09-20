@@ -42,10 +42,6 @@
         <FeedbackLoopPanel />
         <DeliveryErrorsPanel />
       </div>
-
-      <div class="mt-4">
-        <AdminPanel />
-      </div>
     </template>
   </div>
 </template>
@@ -68,7 +64,6 @@ import FeedbackLoopPanel from "@/components/email-health/FeedbackLoopPanel.vue";
 import AuthenticationPanel from "@/components/email-health/AuthenticationPanel.vue";
 import EncryptionPanel from "@/components/email-health/EncryptionPanel.vue";
 import DeliveryErrorsPanel from "@/components/email-health/DeliveryErrorsPanel.vue";
-import AdminPanel from "@/components/email-health/AdminPanel.vue";
 
 const { t } = useI18n();
 const workspaceStore = useWorkspaceStore();
