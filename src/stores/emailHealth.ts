@@ -3,10 +3,8 @@ import {
   getAuthentication,
   getCompliance,
   getDeliveryErrors,
-  getDomainReputation,
   getEncryption,
   getFeedbackLoop,
-  getIpReputation,
   getOverview,
   getSpamRate,
   listDomains,
@@ -22,16 +20,12 @@ import type {
   EmailHealthOverview,
   EmailHealthQuery,
   EmailHealthRange,
-  IpReputationDay,
-  MetricPoint,
   TlsSeriesPoint,
 } from "@/contracts/emailHealth";
 
 export type EmailHealthSectionKey =
   | "domains"
   | "overview"
-  | "ipReputation"
-  | "domainReputation"
   | "spamRate"
   | "compliance"
   | "feedbackLoop"
@@ -46,8 +40,6 @@ function emptySectionFlags<T>(value: T): Record<EmailHealthSectionKey, T> {
   return {
     domains: value,
     overview: value,
-    ipReputation: value,
-    domainReputation: value,
     spamRate: value,
     compliance: value,
     feedbackLoop: value,
@@ -65,8 +57,6 @@ interface EmailHealthState {
   loading: SectionLoading;
   errors: SectionErrors;
   overview: EmailHealthOverview | null;
-  ipReputation: EmailHealthSeriesResponse<IpReputationDay> | null;
-  domainReputation: EmailHealthSeriesResponse<MetricPoint<string>> | null;
   spamRate: EmailHealthSpamRateResponse | null;
   compliance: EmailHealthComplianceResponse | null;
   feedbackLoop: EmailHealthFeedbackLoopResponse | null;
@@ -84,8 +74,6 @@ export const useEmailHealthStore = defineStore("emailHealth", {
     loading: emptySectionFlags(false),
     errors: emptySectionFlags<string | null>(null),
     overview: null,
-    ipReputation: null,
-    domainReputation: null,
     spamRate: null,
     compliance: null,
     feedbackLoop: null,
@@ -148,8 +136,6 @@ export const useEmailHealthStore = defineStore("emailHealth", {
 
       await Promise.allSettled([
         this.loadSection("overview", () => getOverview(domainId, query)),
-        this.loadSection("ipReputation", () => getIpReputation(domainId, query)),
-        this.loadSection("domainReputation", () => getDomainReputation(domainId, query)),
         this.loadSection("spamRate", () => getSpamRate(domainId, query)),
         this.loadSection("compliance", () => getCompliance(domainId, query)),
         this.loadSection("feedbackLoop", () => getFeedbackLoop(domainId, query)),
@@ -178,8 +164,6 @@ export const useEmailHealthStore = defineStore("emailHealth", {
 
     clearSectionData() {
       this.overview = null;
-      this.ipReputation = null;
-      this.domainReputation = null;
       this.spamRate = null;
       this.compliance = null;
       this.feedbackLoop = null;

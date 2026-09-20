@@ -8,9 +8,7 @@ import type {
   EmailHealthOverview,
   EmailHealthQuery,
   FeedbackLoopItem,
-  IpReputationDay,
   ManualSyncResponse,
-  MetricPoint,
   SpamRatePoint,
   SpamRateReference,
   SyncRun,
@@ -50,22 +48,6 @@ export async function listDomains(filterId: string) {
 export async function getOverview(domainId: number, query: EmailHealthQuery) {
   const { data } = await api.get<ApiEnvelope<EmailHealthOverview>>(
     `/email-health/domains/${domainId}/overview`,
-    { params: query },
-  );
-  return data.data;
-}
-
-export async function getIpReputation(domainId: number, query: EmailHealthQuery) {
-  const { data } = await api.get<ApiEnvelope<EmailHealthSeriesResponse<IpReputationDay>>>(
-    `/email-health/domains/${domainId}/ip-reputation`,
-    { params: query },
-  );
-  return data.data;
-}
-
-export async function getDomainReputation(domainId: number, query: EmailHealthQuery) {
-  const { data } = await api.get<ApiEnvelope<EmailHealthSeriesResponse<MetricPoint<string>>>>(
-    `/email-health/domains/${domainId}/domain-reputation`,
     { params: query },
   );
   return data.data;

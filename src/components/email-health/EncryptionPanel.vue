@@ -19,6 +19,11 @@
           <span v-if="latestValue(metric.key) !== null">{{ formatRatio(latestValue(metric.key)) }}</span>
           <span v-else class="text-muted-foreground text-sm font-normal">{{ t("email_health.empty") }}</span>
         </p>
+        <p class="text-xs text-muted-foreground mt-1">
+          {{ t("email_health.encryption.messages") }}:
+          <span v-if="latestCount(metric.key) !== null">{{ formatCount(latestCount(metric.key)) }}</span>
+          <span v-else>{{ t("email_health.empty") }}</span>
+        </p>
         <div class="h-12 mt-1">
           <MiniSparkline :points="sparkPoints(metric.key)" :color="metric.color" />
         </div>
@@ -58,7 +63,7 @@ const series = computed<TlsSeriesPoint[]>(() =>
 );
 
 const hasSeries = computed(() =>
-  series.value.some((p) => p.available && (p.inbound !== null || p.outbound !== null)),
+  series.value.some((p) => p.available && (p.inbound !== null || p.outbound !== null || p.inbound_count !== null || p.outbound_count !== null)),
 );
 
 const dominantSource = computed<PostmasterSourceVersion>(
@@ -80,8 +85,24 @@ function sparkPoints(key: TlsKey) {
   }));
 }
 
+function latestCount(key: TlsKey): number | null {
+  const countKey = key === "inbound" ? "inbound_count" : "outbound_count";
+  for (let i = series.value.length - 1; i >= 0; i--) {
+    const point = series.value[i];
+    if (point.available && point[countKey] !== null && point[countKey] !== undefined) {
+      return point[countKey];
+    }
+  }
+  return null;
+}
+
 function formatRatio(value: number | null) {
-  if (value === null) return "—";
+  if (value === null) return t("email_health.empty");
   return `${(value * 100).toFixed(1).replace(".", ",")}%`;
+}
+
+function formatCount(value: number | null) {
+  if (value === null) return t("email_health.empty");
+  return new Intl.NumberFormat("pt-BR").format(value);
 }
 </script>

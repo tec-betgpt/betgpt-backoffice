@@ -439,25 +439,30 @@
     "empty": "Sem dados",
     "unavailable": "Não disponibilizado pelo Google",
     "error_title": "Não foi possível carregar os dados",
-    "legacy_source_down": "Fonte legada indisponível — último dado coletado em {date}",
-    "reputation": {
-      "HIGH": "Alta",
-      "MEDIUM": "Média",
-      "LOW": "Baixa",
-      "BAD": "Ruim"
+    "legacy_source_down": "Fonte legada indisponível. Último dado coletado em {date}",
+    "domain_status": {
+      "title": "Domínio no Google",
+      "subtitle": "Verificação e permissão na conta Postmaster",
+      "permission": "Permissão",
+      "added_at": "Incluído em",
+      "last_verify": "Última verificação",
+      "verification": {
+        "VERIFIED": "Verificado",
+        "UNVERIFIED": "Não verificado",
+        "VERIFICATION_STATE_UNSPECIFIED": "Sem status"
+      },
+      "permission_value": {
+        "OWNER": "Proprietário",
+        "READER": "Leitura",
+        "WRITER": "Escrita",
+        "NONE": "Sem permissão"
+      }
     },
-    "ip_reputation": {
-      "title": "Reputação de IP",
-      "subtitle": "Distribuição diária dos IPs por categoria",
-      "latest_label": "Categoria consolidada mais recente",
-      "tooltip_ips": "IPs",
-      "tooltip_share": "do total",
-      "tooltip_samples": "IPs de exemplo"
-    },
-    "domain_reputation": {
-      "title": "Reputação de Domínio",
-      "subtitle": "Avaliação diária do Google para o domínio",
-      "latest_label": "Reputação mais recente"
+    "reputation_errors": {
+      "title": "Rejeições por reputação",
+      "subtitle": "Erros que o Google atribui a reputação baixa de IP ou domínio",
+      "low_ip": "IP com reputação baixa",
+      "low_domain": "Domínio com reputação baixa"
     },
     "spam_rate": {
       "title": "Taxa de Spam",
@@ -481,7 +486,9 @@
       "requirements": {
         "SPF": "SPF",
         "DKIM": "DKIM",
+        "SPF_AND_DKIM": "SPF + DKIM",
         "SPF_DKIM": "SPF + DKIM",
+        "USER_REPORTED_SPAM_RATE": "Spam reportado pelo usuário",
         "DMARC_POLICY": "DMARC Policy",
         "DMARC_ALIGNMENT": "DMARC Alignment",
         "MESSAGE_FORMATTING": "Formatação da mensagem",
@@ -498,8 +505,13 @@
       "subtitle": "Taxa de spam reportada por identificador de campanha",
       "empty": "Nenhum dado de Feedback Loop disponível para o período",
       "column_id": "Feedback ID",
+      "column_match": "Correspondência",
       "column_spam_rate": "Spam Rate",
       "column_date": "Data",
+      "match": {
+        "FROM_HEADER": "From",
+        "ALL_DKIM": "DKIM"
+      },
       "show_all": "Ver todos ({count})",
       "show_less": "Mostrar menos"
     },
@@ -514,7 +526,8 @@
       "title": "Criptografia",
       "subtitle": "Percentual de tráfego com TLS",
       "inbound": "TLS Inbound",
-      "outbound": "TLS Outbound"
+      "outbound": "TLS Outbound",
+      "messages": "Mensagens"
     },
     "delivery_errors": {
       "title": "Erros de Entrega",
@@ -530,7 +543,18 @@
       "column_rate": "Taxa",
       "permanent": "Permanente",
       "temporary": "Temporário",
-      "empty": "Nenhum erro de entrega no período"
+      "empty": "Nenhum erro de entrega no período",
+      "reasons": {
+        "bad_attachment": "Anexo inválido",
+        "bad_or_missing_ptr_record": "PTR ausente ou inválido",
+        "ip_in_rbls": "IP em lista de bloqueio",
+        "low_domain_reputation": "Reputação baixa do domínio",
+        "low_ip_reputation": "Reputação baixa do IP",
+        "spammy_content": "Conteúdo com cara de spam",
+        "stamp_policy_error": "Política de selo",
+        "other": "Outro",
+        "anomalous_traffic_pattern": "Padrão de tráfego anômalo"
+      }
     },
     "admin": {
       "title": "Administração",

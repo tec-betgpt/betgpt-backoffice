@@ -49,6 +49,21 @@
     <p v-if="latestDate" class="mt-3 text-xs text-muted-foreground">
       {{ t("email_health.common.latest_value") }}: {{ latestDate }}
     </p>
+
+    <div v-if="historyDays.length" class="mt-4 border-t border-border pt-3">
+      <p class="text-xs font-medium mb-2">{{ t("email_health.common.history") }}</p>
+      <ul class="space-y-1.5 text-xs">
+        <li v-for="day in historyDays" :key="day.date" class="flex flex-wrap gap-x-2 gap-y-1">
+          <span class="text-muted-foreground shrink-0">{{ day.date }}</span>
+          <span v-if="!day.needsWork.length" class="text-green-600 dark:text-green-400">
+            {{ t("email_health.compliance.all_compliant") }}
+          </span>
+          <span v-else class="text-amber-600 dark:text-amber-400">
+            {{ day.needsWork.map(requirementLabel).join(", ") }}
+          </span>
+        </li>
+      </ul>
+    </div>
   </EmailHealthBlock>
 </template>
 
@@ -80,6 +95,18 @@ const latestDate = computed(() => {
   const value = latest.value[0]?.metric_date;
   return value ? moment(value).format("DD/MM/YYYY") : null;
 });
+
+const historyDays = computed(() =>
+  [...(compliance.value?.history ?? [])]
+    .sort((a, b) => moment(b.metric_date).valueOf() - moment(a.metric_date).valueOf())
+    .slice(0, 14)
+    .map((day) => ({
+      date: moment(day.metric_date).format("DD/MM/YYYY"),
+      needsWork: (day.requirements ?? [])
+        .filter((item) => item.needs_work)
+        .map((item) => item.requirement),
+    })),
+);
 
 function requirementLabel(requirement: string) {
   const key = `email_health.compliance.requirements.${requirement}`;

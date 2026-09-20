@@ -23,8 +23,11 @@ export interface EmailHealthDomain {
   domain: string;
   project_id: number | null;
   active: boolean;
-  available_v1: boolean;
   available_v2: boolean;
+  google_permission: string | null;
+  verification_state: string | null;
+  google_create_time: string | null;
+  google_last_verify_time: string | null;
   last_successful_sync_at: string | null;
 }
 
@@ -71,6 +74,7 @@ export interface ComplianceSnapshot {
 export interface FeedbackLoopItem {
   metric_date: string;
   feedback_loop_id: string;
+  aggregation_key_type: 'FROM_HEADER' | 'ALL_DKIM' | string;
   spam_ratio: number | null;
   source_version: PostmasterSourceVersion;
 }
@@ -89,6 +93,8 @@ export interface TlsSeriesPoint {
   source_version: PostmasterSourceVersion;
   inbound: number | null;
   outbound: number | null;
+  inbound_count: number | null;
+  outbound_count: number | null;
   available: boolean;
 }
 
@@ -110,14 +116,7 @@ export interface DeliveryErrorDay {
 export interface EmailHealthOverview {
   domain: EmailHealthDomain;
   period: { from: string; to: string };
-  sources: { v1: SourceHealth; v2: SourceHealth };
-  ip_reputation: {
-    available: boolean;
-    metric_date: string | null;
-    categories: Partial<Record<IpReputationCategory, IpReputationCategoryData>>;
-    source_version: 'v1';
-  };
-  domain_reputation: MetricPoint<string>; // categórico — NUNCA converter p/ número
+  sources: { v2: SourceHealth };
   spam_rate: MetricPoint<number>;
   last_successful_sync_at: string | null;
 }

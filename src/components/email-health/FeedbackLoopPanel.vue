@@ -13,6 +13,7 @@
       <TableHeader>
         <TableRow>
           <TableHead>{{ t("email_health.feedback_loop.column_id") }}</TableHead>
+          <TableHead>{{ t("email_health.feedback_loop.column_match") }}</TableHead>
           <TableHead class="text-right">{{ t("email_health.feedback_loop.column_spam_rate") }}</TableHead>
           <TableHead class="text-right">{{ t("email_health.feedback_loop.column_date") }}</TableHead>
         </TableRow>
@@ -20,6 +21,7 @@
       <TableBody>
         <TableRow v-for="(item, index) in visibleItems" :key="`${item.feedback_loop_id}-${item.metric_date}-${index}`">
           <TableCell class="font-medium break-all">{{ item.feedback_loop_id }}</TableCell>
+          <TableCell>{{ matchLabel(item.aggregation_key_type) }}</TableCell>
           <TableCell class="text-right">{{ formatRatio(item.spam_ratio) }}</TableCell>
           <TableCell class="text-right text-nowrap">{{ formatDate(item.metric_date) }}</TableCell>
         </TableRow>
@@ -54,7 +56,7 @@ import type { PostmasterSourceVersion } from "@/contracts/emailHealth";
 
 const COLLAPSED_LIMIT = 5;
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const store = useEmailHealthStore();
 const { feedbackLoop, loading, errors } = storeToRefs(store);
 
@@ -78,6 +80,11 @@ const visibleItems = computed(() =>
 const dominantSource = computed<PostmasterSourceVersion>(
   () => items.value[0]?.source_version ?? "v2",
 );
+
+function matchLabel(value: string | undefined) {
+  const key = `email_health.feedback_loop.match.${value || "FROM_HEADER"}`;
+  return te(key) ? t(key) : value || t("email_health.empty");
+}
 
 function formatRatio(value: number | null) {
   // null ≠ 0 — ausência de dado nunca é renderizada como 0%

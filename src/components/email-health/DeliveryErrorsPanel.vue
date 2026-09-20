@@ -2,7 +2,7 @@
   <EmailHealthBlock
     :title="t('email_health.delivery_errors.title')"
     :subtitle="t('email_health.delivery_errors.subtitle')"
-    :source="activeTab === 'v1' ? 'v1' : 'v2'"
+    source="v2"
     :loading="loadingErrors"
     :error="error"
     :is-empty="!hasAnyData"
@@ -16,12 +16,9 @@
         <TabsTrigger v-if="otherRows.length" value="other">
           {{ t("email_health.delivery_errors.tab_other") }}
         </TabsTrigger>
-        <TabsTrigger v-if="v1Rows.length" value="v1">
-          {{ t("email_health.delivery_errors.tab_v1") }}
-        </TabsTrigger>
       </TabsList>
 
-      <TabsContent v-for="tab in ['reject', 'temp_fail', 'other', 'v1']" :key="tab" :value="tab">
+      <TabsContent v-for="tab in ['reject', 'temp_fail', 'other']" :key="tab" :value="tab">
         <EmailHealthEmptyState
           v-if="!rowsFor(tab).length"
           :message="t('email_health.delivery_errors.empty')"
@@ -30,7 +27,7 @@
           <TableHeader>
             <TableRow>
               <TableHead>{{ t("email_health.delivery_errors.column_date") }}</TableHead>
-              <TableHead>{{ tab === 'v1' ? t("email_health.delivery_errors.column_type") : t("email_health.delivery_errors.column_reason") }}</TableHead>
+              <TableHead>{{ t("email_health.delivery_errors.column_reason") }}</TableHead>
               <TableHead class="text-right">{{ t("email_health.delivery_errors.column_count") }}</TableHead>
               <TableHead class="text-right">{{ t("email_health.delivery_errors.column_rate") }}</TableHead>
             </TableRow>
@@ -75,7 +72,7 @@ interface ErrorRow {
   rate: string;
 }
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const store = useEmailHealthStore();
 const { deliveryErrors, loading, errors } = storeToRefs(store);
 
@@ -102,10 +99,10 @@ const flatEntries = computed<FlatEntry[]>(() => {
 
 const hasAnyData = computed(() => flatEntries.value.length > 0);
 
-function classifyV2(reason: string | null): "reject" | "temp_fail" | "other" {
-  const normalized = (reason ?? "").toLowerCase().replace(/[-\s]/g, "_");
-  if (normalized.startsWith("reject")) return "reject";
-  if (normalized.startsWith("temp")) return "temp_fail";
+function classifyV2(entry: DeliveryErrorEntry): "reject" | "temp_fail" | "other" {
+  const type = (entry.error_type ?? "").toLowerCase();
+  if (type === "reject") return "reject";
+  if (type === "temp_fail") return "temp_fail";
   return "other";
 }
 
@@ -114,43 +111,28 @@ const v2Entries = computed(() =>
 );
 
 const rejectRows = computed(() =>
-  v2Entries.value.filter((item) => classifyV2(item.entry.error_reason) === "reject").map(toV2Row),
+  v2Entries.value.filter((item) => classifyV2(item.entry) === "reject").map(toV2Row),
 );
 
 const tempFailRows = computed(() =>
-  v2Entries.value.filter((item) => classifyV2(item.entry.error_reason) === "temp_fail").map(toV2Row),
+  v2Entries.value.filter((item) => classifyV2(item.entry) === "temp_fail").map(toV2Row),
 );
 
 const otherRows = computed(() =>
-  v2Entries.value.filter((item) => classifyV2(item.entry.error_reason) === "other").map(toV2Row),
+  v2Entries.value.filter((item) => classifyV2(item.entry) === "other").map(toV2Row),
 );
 
-const v1Rows = computed(() =>
-  flatEntries.value
-    .filter((item) => item.entry.source_version === "v1")
-    .map(({ date, entry }) => ({
-      date: moment(date).format("DD/MM/YYYY"),
-      label:
-        [
-          entry.error_class === "PERMANENT_ERROR"
-            ? t("email_health.delivery_errors.permanent")
-            : entry.error_class === "TEMPORARY_ERROR"
-              ? t("email_health.delivery_errors.temporary")
-              : null,
-          entry.error_type,
-        ]
-          .filter(Boolean)
-          .join(" — ") || "—",
-      count: "—", // error_count é exclusivo da v2
-      rate: formatRatio(entry.error_ratio),
-    })),
-);
+function reasonLabel(reason: string | null) {
+  if (!reason) return t("email_health.empty");
+  const key = `email_health.delivery_errors.reasons.${reason}`;
+  return te(key) ? t(key) : reason.replaceAll("_", " ");
+}
 
 function toV2Row({ date, entry }: FlatEntry): ErrorRow {
   return {
     date: moment(date).format("DD/MM/YYYY"),
-    label: entry.error_reason ?? "—",
-    count: entry.error_count !== null ? String(entry.error_count) : "—",
+    label: reasonLabel(entry.error_reason),
+    count: entry.error_count !== null ? String(entry.error_count) : t("email_health.empty"),
     rate: formatRatio(entry.error_ratio),
   };
 }
@@ -159,7 +141,7 @@ function rowsFor(tab: string): ErrorRow[] {
   if (tab === "reject") return rejectRows.value;
   if (tab === "temp_fail") return tempFailRows.value;
   if (tab === "other") return otherRows.value;
-  return v1Rows.value;
+  return [];
 }
 
 function formatRatio(value: number | null) {

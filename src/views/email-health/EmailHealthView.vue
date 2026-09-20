@@ -27,8 +27,8 @@
 
     <template v-else>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <IpReputationCard />
-        <DomainReputationCard />
+        <DomainStatusCard />
+        <DeliveryReputationCard />
         <SpamRateCard />
       </div>
 
@@ -60,8 +60,8 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useEmailHealthStore } from "@/stores/emailHealth";
 import EmailHealthHeader from "@/components/email-health/EmailHealthHeader.vue";
 import EmailHealthEmptyState from "@/components/email-health/EmailHealthEmptyState.vue";
-import IpReputationCard from "@/components/email-health/IpReputationCard.vue";
-import DomainReputationCard from "@/components/email-health/DomainReputationCard.vue";
+import DomainStatusCard from "@/components/email-health/DomainStatusCard.vue";
+import DeliveryReputationCard from "@/components/email-health/DeliveryReputationCard.vue";
 import SpamRateCard from "@/components/email-health/SpamRateCard.vue";
 import CompliancePanel from "@/components/email-health/CompliancePanel.vue";
 import FeedbackLoopPanel from "@/components/email-health/FeedbackLoopPanel.vue";

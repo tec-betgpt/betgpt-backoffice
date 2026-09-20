@@ -50,7 +50,7 @@
 
     <div v-if="sources" class="flex flex-wrap items-center gap-4 text-sm">
       <div
-        v-for="sourceKey in (['v1', 'v2'] as const)"
+        v-for="sourceKey in (['v2'] as const)"
         :key="sourceKey"
         class="flex items-center gap-1.5"
       >
@@ -113,7 +113,7 @@ const selectedDomainValue = computed(() =>
   store.selectedDomainId ? String(store.selectedDomainId) : "",
 );
 
-const sources = computed(() => overview.value?.sources ?? null);
+const sources = computed(() => overview.value?.sources?.v2 ? overview.value.sources : null);
 
 const lastUpdateLabel = computed(() => {
   const value = overview.value?.last_successful_sync_at;
