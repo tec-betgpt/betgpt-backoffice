@@ -416,21 +416,21 @@ async function fetchIntegrations() {
     const postmaster = integrations.value.find(
       (value) => value.slug === "google-postmaster",
     );
-    if (google) {
-      if (google.config !== null) {
-        if (google.config.property_id == "" || google.config.property_id == null) {
-          await getProperty();
-        }
+    if (google?.config && (google.config.property_id == "" || google.config.property_id == null)) {
+      try {
+        await getProperty();
+      } catch {
+        propetyList.value = [];
       }
     }
-    if (meta) {
-      if (meta.config) {
-        if (meta.config.ad_account == "") {
-          await getAccountIdMeta();
-        }
+    if (meta?.config && meta.config.ad_account == "") {
+      try {
+        await getAccountIdMeta();
+      } catch {
+        adAccountMeta.value = [];
       }
     }
-    if (postmaster?.config && isOAuthConnected(postmaster) && !postmaster.config.domain) {
+    if (postmaster && isOAuthConnected(postmaster)) {
       try {
         await getPostmasterDomains();
       } catch {
