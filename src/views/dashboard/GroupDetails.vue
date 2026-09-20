@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -121,6 +121,7 @@ import InviteMemberModal from "@/components/groups/InviteMemberModal.vue";
 import TransferOwnershipModal from "@/components/groups/TransferOwnershipModal.vue";
 import { useGroupsStore } from "@/stores/groups";
 import { useAuthStore } from "@/stores/auth";
+import { useWorkspaceStore } from "@/stores/workspace";
 import { resolveGroupPermissions } from "@/composables/useGroupPermissions";
 import { normalizeApiError } from "@/lib/apiError";
 import { showApiErrorToast } from "@/lib/apiErrorFeedback";
@@ -130,6 +131,7 @@ const router = useRouter();
 const { t } = useI18n();
 const groupsStore = useGroupsStore();
 const authStore = useAuthStore();
+const workspaceStore = useWorkspaceStore();
 
 const loading = ref(true);
 const editOpen = ref(false);
@@ -183,6 +185,19 @@ async function confirmDelete() {
     showApiErrorToast(error);
   }
 }
+
+// As telas do grupo só fazem sentido com um grupo como workspace. Com um
+// projeto ativo, apenas a lista/criação de grupos permanece acessível.
+watch(
+  () => workspaceStore.activeGroupProject,
+  (project) => {
+    if (!project) return;
+    if (project.type !== "group") {
+      router.replace({ name: "groups" });
+    }
+  },
+  { immediate: true },
+);
 
 onMounted(reload);
 </script>
