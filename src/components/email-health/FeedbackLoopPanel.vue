@@ -54,7 +54,7 @@ import EmailHealthBlock from "@/components/email-health/EmailHealthBlock.vue";
 import { useEmailHealthStore } from "@/stores/emailHealth";
 import type { PostmasterSourceVersion } from "@/contracts/emailHealth";
 
-const COLLAPSED_LIMIT = 20;
+const COLLAPSED_LIMIT = 10;
 
 const { t, te } = useI18n();
 const store = useEmailHealthStore();
