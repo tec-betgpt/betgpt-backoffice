@@ -7,16 +7,38 @@
     </div>
 
     <template v-else-if="group">
-      <GroupDetailHeader
-        :group="group"
-        :permissions="permissions"
-        @edit="editOpen = true"
-        @archive="archive"
-        @delete="deleteOpen = true"
-        @transfer="transferOpen = true"
-      />
+      <div
+        v-if="permissions.canEdit || permissions.canDelete || permissions.isOwner"
+        class="mb-4 flex items-center justify-end gap-2"
+      >
+        <Button v-if="permissions.canEdit" variant="outline" @click="editOpen = true">
+          {{ $t("groups_edit") }}
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal class="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem v-if="permissions.canEdit" @click="archive">
+              {{ $t("groups_archive") }}
+            </DropdownMenuItem>
+            <DropdownMenuItem v-if="permissions.isOwner" @click="transferOpen = true">
+              {{ $t("groups_transfer") }}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              v-if="permissions.canDelete"
+              class="text-destructive"
+              @click="deleteOpen = true"
+            >
+              {{ $t("groups_delete") }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-      <div class="mt-6">
+      <div>
         <router-view v-slot="{ Component }">
           <component
             :is="Component"
@@ -74,7 +96,15 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
+import { MoreHorizontal } from "lucide-vue-next";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -86,7 +116,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import GroupDetailHeader from "@/components/groups/GroupDetailHeader.vue";
 import EditGroupModal from "@/components/groups/EditGroupModal.vue";
 import InviteMemberModal from "@/components/groups/InviteMemberModal.vue";
 import TransferOwnershipModal from "@/components/groups/TransferOwnershipModal.vue";
