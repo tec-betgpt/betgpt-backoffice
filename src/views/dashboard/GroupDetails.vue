@@ -144,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -185,8 +185,38 @@ const { t } = useI18n();
 const groupsStore = useGroupsStore();
 const authStore = useAuthStore();
 
+const GROUP_TABS = [
+  "overview",
+  "projects",
+  "members",
+  "invitations",
+  "consolidated",
+  "analytics",
+  "dre",
+  "financial",
+];
+
 const loading = ref(true);
-const activeTab = ref("overview");
+const activeTab = ref(
+  typeof route.query.tab === "string" && GROUP_TABS.includes(route.query.tab)
+    ? route.query.tab
+    : "overview",
+);
+
+watch(activeTab, (tab) => {
+  if (route.query.tab !== tab) {
+    router.replace({ query: { ...route.query, tab } });
+  }
+});
+
+watch(
+  () => route.query.tab,
+  (tab) => {
+    if (typeof tab === "string" && GROUP_TABS.includes(tab) && tab !== activeTab.value) {
+      activeTab.value = tab;
+    }
+  },
+);
 const editOpen = ref(false);
 const inviteOpen = ref(false);
 const transferOpen = ref(false);

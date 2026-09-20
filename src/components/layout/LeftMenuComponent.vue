@@ -131,14 +131,14 @@
       <SidebarGroup>
         <SidebarGroupLabel>Menu</SidebarGroupLabel>
         <SidebarMenu>
-          <template v-for="item in navMenu" :key="item.name">
+          <template v-for="item in displayMenu" :key="item.name">
             <SidebarMenuItem v-if="!item.children && item.show">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger as-child>
                     <SidebarMenuButton
                       as-child
-                      :is-active="route.name === item.url.name"
+                      :is-active="isMenuItemActive(item)"
                       :tooltip="item.name"
                       @click="toggleCollapsed('')"
                     >
@@ -423,6 +423,51 @@ const projectItems = computed(() =>
 );
 const groupItems = computed(() =>
   workspaceStore.group_projects.filter((item: any) => item.type === "group"),
+);
+
+// --- Novo design: menu por tipo de workspace -------------------------------
+const isGroupWorkspace = computed(
+  () => activeGroupProject.value?.type === "group",
+);
+
+/** Id numérico do grupo a partir de `group_10` (fallback: project_id). */
+const groupNumericId = computed(() => {
+  const raw = String(
+    activeGroupProject.value?.id ??
+      activeGroupProject.value?.project_id ??
+      "",
+  );
+  const match = /group_(\d+)/.exec(raw);
+  if (match) return Number(match[1]);
+  const numeric = Number(raw.replace(/\D/g, ""));
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
+});
+
+/** Telas do Grupo (abas do detalhe), usadas quando o workspace é um grupo. */
+const groupNavMenu = computed<any[]>(() => {
+  const id = groupNumericId.value;
+  const show = canAccess("access-to-project-groups");
+  const item = (name: string, tab: string, icon: any) => ({
+    name,
+    icon,
+    show,
+    url: { name: "groups.show", params: { id }, query: { tab } },
+  });
+
+  return [
+    item("Visão geral", "overview", LayoutDashboard),
+    item("Consolidado", "consolidated", SquareStack),
+    item("Analytics", "analytics", ChartNoAxesColumnIncreasing),
+    item("DRE", "dre", CircleDollarSign),
+    item("Financeiro", "financial", DollarSignIcon),
+    item("Projetos", "projects", Building2),
+    item("Membros", "members", Users2),
+    item("Convites", "invitations", Mail),
+  ];
+});
+
+const displayMenu = computed<any[]>(() =>
+  isGroupWorkspace.value ? groupNavMenu.value : navMenu.value,
 );
 
 const logoSrc = computed(() =>
@@ -965,9 +1010,16 @@ const canAccess = (permissionName: string) => {
   );
 };
 
+const isMenuItemActive = (item: any) => {
+  if (route.name !== item.url?.name) return false;
+  const itemTab = item.url?.query?.tab;
+  if (itemTab === undefined) return true;
+  return (route.query.tab ?? "overview") === itemTab;
+};
+
 const getActiveMenuType = () => {
-  const activeGroup = navMenu.value.find((group) => {
-    return group.children?.some((child) => child.url.name === route.name);
+  const activeGroup = displayMenu.value.find((group: any) => {
+    return group.children?.some((child: any) => child.url.name === route.name);
   });
 
   return activeGroup?.type || "";
