@@ -30,6 +30,12 @@
           <TabsTrigger value="invitations">
             {{ $t("groups_invitations") }}
           </TabsTrigger>
+          <TabsTrigger value="consolidated">
+            {{ $t("groups_consolidated") }}
+          </TabsTrigger>
+          <TabsTrigger value="financial">
+            {{ $t("groups_financial") }}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" class="mt-4">
@@ -75,6 +81,12 @@
             @changed="reload"
             @invite="inviteOpen = true"
           />
+        </TabsContent>
+        <TabsContent value="consolidated" class="mt-4">
+          <GroupConsolidatedTab :group="group" />
+        </TabsContent>
+        <TabsContent value="financial" class="mt-4">
+          <GroupFinancialTab :group="group" :permissions="permissions" />
         </TabsContent>
       </Tabs>
 
@@ -143,6 +155,8 @@ import TransferOwnershipModal from "@/components/groups/TransferOwnershipModal.v
 import ProjectsTab from "@/components/groups/ProjectsTab.vue";
 import MembersTab from "@/components/groups/MembersTab.vue";
 import InvitationsTab from "@/components/groups/InvitationsTab.vue";
+import GroupConsolidatedTab from "@/components/groups/GroupConsolidatedTab.vue";
+import GroupFinancialTab from "@/components/groups/GroupFinancialTab.vue";
 import { useGroupsStore } from "@/stores/groups";
 import { useAuthStore } from "@/stores/auth";
 import { resolveGroupPermissions } from "@/composables/useGroupPermissions";

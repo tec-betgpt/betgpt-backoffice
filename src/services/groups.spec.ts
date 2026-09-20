@@ -6,6 +6,11 @@ import {
   updateMember,
   transferGroup,
   acceptInvitation,
+  getGroupHome,
+  getGroupFinancialDashboard,
+  listGroupConsolidated,
+  createGroupFinancialTransaction,
+  deleteGroupFinancialTransaction,
   unwrap,
 } from "@/services/groups";
 
@@ -29,6 +34,66 @@ const mocked = api as unknown as {
 
 describe("groups service", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it("getGroupHome GETs /groups/{group}/home and unwraps", async () => {
+    mocked.get.mockResolvedValue({
+      data: { success: true, data: { players: { count: 1 } } },
+    });
+    await expect(
+      getGroupHome(10, { start_date: "2026-09-01", end_date: "2026-09-10" }),
+    ).resolves.toEqual({ players: { count: 1 } });
+    expect(mocked.get).toHaveBeenCalledWith("/groups/10/home", {
+      params: { start_date: "2026-09-01", end_date: "2026-09-10" },
+    });
+  });
+
+  it("getGroupFinancialDashboard GETs the group dashboard route", async () => {
+    mocked.get.mockResolvedValue({ data: { success: true, data: { period: {} } } });
+    await getGroupFinancialDashboard(10, { start_date: "a", end_date: "b" });
+    expect(mocked.get).toHaveBeenCalledWith(
+      "/groups/10/financial-transactions/dashboard",
+      { params: { start_date: "a", end_date: "b" } },
+    );
+  });
+
+  it("listGroupConsolidated GETs /groups/{group}/{resource}", async () => {
+    mocked.get.mockResolvedValue({ data: { success: true, data: { data: [] } } });
+    await listGroupConsolidated(10, "players", { page: 2 });
+    expect(mocked.get).toHaveBeenCalledWith("/groups/10/players", {
+      params: { page: 2 },
+    });
+  });
+
+  it("createGroupFinancialTransaction POSTs without project/cost/sector", async () => {
+    mocked.post.mockResolvedValue({
+      data: { success: true, data: { id: 1 } },
+    });
+    await createGroupFinancialTransaction(10, {
+      type: "revenue",
+      category_type: "receita_grupo",
+      amount: 500,
+      date: "2026-09-10",
+      description: "Receita consolidada",
+    });
+    expect(mocked.post).toHaveBeenCalledWith(
+      "/groups/10/financial-transactions",
+      {
+        type: "revenue",
+        category_type: "receita_grupo",
+        amount: 500,
+        date: "2026-09-10",
+        description: "Receita consolidada",
+      },
+    );
+  });
+
+  it("deleteGroupFinancialTransaction DELETEs the transaction route", async () => {
+    mocked.delete.mockResolvedValue({ data: {} });
+    await deleteGroupFinancialTransaction(10, 7);
+    expect(mocked.delete).toHaveBeenCalledWith(
+      "/groups/10/financial-transactions/7",
+    );
+  });
 
   it("unwrap extracts data from the SPA envelope", () => {
     expect(unwrap({ success: true, data: [1, 2] })).toEqual([1, 2]);

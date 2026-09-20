@@ -14,6 +14,21 @@ import type {
   CreateGroupInvitationPayload,
   GroupInvitation,
 } from "@/contracts/groupInvitation";
+import type {
+  GroupFinancialDashboard,
+  GroupFinancialListParams,
+  GroupFinancialListResponse,
+  GroupFinancialTransaction,
+  GroupFinancialTransactionPayload,
+  GroupFinancialsPayload,
+} from "@/contracts/groupFinancial";
+
+export type GroupConsolidatedList =
+  | "campaigns"
+  | "players"
+  | "links"
+  | "segments"
+  | "target-audiences";
 
 export function unwrap<T>(payload: SpaApiResponse<T> | T): T {
   if (
@@ -146,6 +161,128 @@ export async function listMyInvitations(): Promise<GroupInvitation[]> {
   return unwrap(data);
 }
 
+// ---------------------------------------------------------------------------
+// Fase B — consolidado do Grupo (dashboards + listas)
+// ---------------------------------------------------------------------------
+
+/** GET /groups/{group}/home — dashboard inicial consolidado. */
+export async function getGroupHome<T = Record<string, unknown>>(
+  groupId: number,
+  params: { start_date?: string; end_date?: string } = {},
+): Promise<T> {
+  const { data } = await api.get<SpaApiResponse<T>>(
+    `/groups/${groupId}/home`,
+    { params },
+  );
+  return unwrap(data);
+}
+
+/** GET /groups/{group}/analytics — KPIs de analytics consolidados. */
+export async function getGroupAnalytics<T = Record<string, unknown>>(
+  groupId: number,
+  params: { start_date?: string; end_date?: string } = {},
+): Promise<T> {
+  const { data } = await api.get<SpaApiResponse<T>>(
+    `/groups/${groupId}/analytics`,
+    { params },
+  );
+  return unwrap(data);
+}
+
+/** GET /groups/{group}/financials — DRE consolidado (máx. 28 dias). */
+export async function getGroupFinancials(
+  groupId: number,
+  params: { start_date?: string; end_date?: string } = {},
+): Promise<GroupFinancialsPayload> {
+  const { data } = await api.get<SpaApiResponse<GroupFinancialsPayload>>(
+    `/groups/${groupId}/financials`,
+    { params },
+  );
+  return unwrap(data);
+}
+
+/**
+ * GET /groups/{group}/financial-transactions/dashboard — dashboard
+ * consolidado dos lançamentos do Grupo.
+ */
+export async function getGroupFinancialDashboard(
+  groupId: number,
+  params: { start_date?: string; end_date?: string } = {},
+): Promise<GroupFinancialDashboard> {
+  const { data } = await api.get<SpaApiResponse<GroupFinancialDashboard>>(
+    `/groups/${groupId}/financial-transactions/dashboard`,
+    { params },
+  );
+  return unwrap(data);
+}
+
+/**
+ * GET /groups/{group}/{resource} — listas consolidadas.
+ * Reusa os mesmos filtros/paginação das rotas originais, sem `filter_id`.
+ */
+export async function listGroupConsolidated<T = Record<string, unknown>>(
+  groupId: number,
+  resource: GroupConsolidatedList,
+  params: Record<string, unknown> = {},
+): Promise<T> {
+  const { data } = await api.get<SpaApiResponse<T>>(
+    `/groups/${groupId}/${resource}`,
+    { params },
+  );
+  return unwrap(data);
+}
+
+// ---------------------------------------------------------------------------
+// Fase C — lançamentos financeiros próprios do Grupo
+// ---------------------------------------------------------------------------
+
+/** GET /groups/{group}/financial-transactions */
+export async function listGroupFinancialTransactions(
+  groupId: number,
+  params: GroupFinancialListParams = {},
+): Promise<GroupFinancialListResponse> {
+  const { data } = await api.get<SpaApiResponse<GroupFinancialListResponse>>(
+    `/groups/${groupId}/financial-transactions`,
+    { params },
+  );
+  return unwrap(data);
+}
+
+/** POST /groups/{group}/financial-transactions — `edit` (editor+). */
+export async function createGroupFinancialTransaction(
+  groupId: number,
+  payload: GroupFinancialTransactionPayload,
+): Promise<GroupFinancialTransaction> {
+  const { data } = await api.post<SpaApiResponse<GroupFinancialTransaction>>(
+    `/groups/${groupId}/financial-transactions`,
+    payload,
+  );
+  return unwrap(data);
+}
+
+/** PATCH /groups/{group}/financial-transactions/{transaction} */
+export async function updateGroupFinancialTransaction(
+  groupId: number,
+  transactionId: number,
+  payload: Partial<GroupFinancialTransactionPayload>,
+): Promise<GroupFinancialTransaction> {
+  const { data } = await api.patch<SpaApiResponse<GroupFinancialTransaction>>(
+    `/groups/${groupId}/financial-transactions/${transactionId}`,
+    payload,
+  );
+  return unwrap(data);
+}
+
+/** DELETE /groups/{group}/financial-transactions/{transaction} */
+export async function deleteGroupFinancialTransaction(
+  groupId: number,
+  transactionId: number,
+): Promise<void> {
+  await api.delete(
+    `/groups/${groupId}/financial-transactions/${transactionId}`,
+  );
+}
+
 const groupsService = {
   listGroups,
   createGroup,
@@ -163,6 +300,15 @@ const groupsService = {
   acceptInvitation,
   declineInvitation,
   listMyInvitations,
+  getGroupHome,
+  getGroupAnalytics,
+  getGroupFinancials,
+  getGroupFinancialDashboard,
+  listGroupConsolidated,
+  listGroupFinancialTransactions,
+  createGroupFinancialTransaction,
+  updateGroupFinancialTransaction,
+  deleteGroupFinancialTransaction,
   unwrap,
 };
 
