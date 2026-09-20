@@ -37,9 +37,9 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-        <FeedbackLoopPanel />
-        <AuthenticationPanel />
         <EncryptionPanel />
+        <AuthenticationPanel />
+        <FeedbackLoopPanel />
         <DeliveryErrorsPanel />
       </div>
 

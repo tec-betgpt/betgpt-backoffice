@@ -30,7 +30,7 @@
 
     <div v-if="items.length > COLLAPSED_LIMIT" class="mt-3">
       <Button variant="ghost" size="sm" @click="expanded = !expanded">
-        {{ expanded ? t("email_health.feedback_loop.show_less") : t("email_health.feedback_loop.show_all", { count: items.length }) }}
+        {{ expanded ? t("email_health.common.show_less") : t("email_health.common.show_all", { count: items.length }) }}
       </Button>
     </div>
   </EmailHealthBlock>
@@ -54,7 +54,7 @@ import EmailHealthBlock from "@/components/email-health/EmailHealthBlock.vue";
 import { useEmailHealthStore } from "@/stores/emailHealth";
 import type { PostmasterSourceVersion } from "@/contracts/emailHealth";
 
-const COLLAPSED_LIMIT = 5;
+const COLLAPSED_LIMIT = 20;
 
 const { t, te } = useI18n();
 const store = useEmailHealthStore();

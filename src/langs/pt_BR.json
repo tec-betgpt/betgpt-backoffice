@@ -579,7 +579,9 @@
     "common": {
       "retry": "Tentar novamente",
       "latest_value": "Mais recente",
-      "history": "Histórico"
+      "history": "Histórico",
+      "show_all": "Ver todos ({count})",
+      "show_less": "Mostrar menos"
     }
   },
   "api_errors": {

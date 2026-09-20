@@ -9,7 +9,7 @@
     :empty-message="t('email_health.delivery_errors.empty')"
     @retry="store.refreshAll()"
   >
-    <Tabs v-model="activeTab">
+    <Tabs v-model="activeTab" @update:model-value="expanded = false">
       <TabsList>
         <TabsTrigger value="reject">{{ t("email_health.delivery_errors.tab_reject") }}</TabsTrigger>
         <TabsTrigger value="temp_fail">{{ t("email_health.delivery_errors.tab_temp_fail") }}</TabsTrigger>
@@ -33,7 +33,7 @@
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="(row, index) in rowsFor(tab)" :key="`${row.date}-${row.label}-${index}`">
+            <TableRow v-for="(row, index) in visibleRowsFor(tab)" :key="`${row.date}-${row.label}-${index}`">
               <TableCell class="text-nowrap">{{ row.date }}</TableCell>
               <TableCell class="break-all">{{ row.label }}</TableCell>
               <TableCell class="text-right">{{ row.count }}</TableCell>
@@ -43,6 +43,12 @@
         </Table>
       </TabsContent>
     </Tabs>
+
+    <div v-if="activeRows.length > COLLAPSED_LIMIT" class="mt-3">
+      <Button variant="ghost" size="sm" @click="expanded = !expanded">
+        {{ expanded ? t("email_health.common.show_less") : t("email_health.common.show_all", { count: activeRows.length }) }}
+      </Button>
+    </div>
   </EmailHealthBlock>
 </template>
 
@@ -51,6 +57,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import moment from "moment";
 import { storeToRefs } from "pinia";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -72,11 +79,14 @@ interface ErrorRow {
   rate: string;
 }
 
+const COLLAPSED_LIMIT = 20;
+
 const { t, te } = useI18n();
 const store = useEmailHealthStore();
 const { deliveryErrors, loading, errors } = storeToRefs(store);
 
 const activeTab = ref("reject");
+const expanded = ref(false);
 
 const loadingErrors = computed(() => loading.value.deliveryErrors);
 const error = computed(() => errors.value.deliveryErrors);
@@ -142,6 +152,13 @@ function rowsFor(tab: string): ErrorRow[] {
   if (tab === "temp_fail") return tempFailRows.value;
   if (tab === "other") return otherRows.value;
   return [];
+}
+
+const activeRows = computed(() => rowsFor(activeTab.value));
+
+function visibleRowsFor(tab: string): ErrorRow[] {
+  const rows = rowsFor(tab);
+  return expanded.value ? rows : rows.slice(0, COLLAPSED_LIMIT);
 }
 
 function formatRatio(value: number | null) {
