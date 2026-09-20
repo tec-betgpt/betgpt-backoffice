@@ -186,18 +186,47 @@ async function confirmDelete() {
   }
 }
 
+/** Id numérico de um workspace `group_31` / `project_12`. */
+function parseWorkspaceId(raw: unknown): number | null {
+  const match = /(?:group|project)_(\d+)/.exec(String(raw ?? ""));
+  if (match) return Number(match[1]);
+  const numeric = Number(String(raw ?? "").replace(/\D/g, ""));
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
+}
+
 // As telas do grupo só fazem sentido com um grupo como workspace. Com um
 // projeto ativo, apenas a lista/criação de grupos permanece acessível.
+// Ao trocar o grupo no seletor, mantém a tela atual mas apontando para o novo
+// grupo (a URL muda e o conteúdo recarrega).
 watch(
   () => workspaceStore.activeGroupProject,
   (project) => {
     if (!project) return;
     if (project.type !== "group") {
       router.replace({ name: "groups" });
+      return;
+    }
+
+    const workspaceGroupId = parseWorkspaceId(
+      project.id ?? project.project_id,
+    );
+    if (
+      workspaceGroupId != null &&
+      String(workspaceGroupId) !== String(route.params.id)
+    ) {
+      router.replace({
+        name: (route.name as string) ?? "groups.overview",
+        params: { id: workspaceGroupId },
+      });
     }
   },
   { immediate: true },
 );
+
+// Navegação entre grupos (mudança do id na rota) recarrega o grupo atual.
+watch(groupId, (id, previous) => {
+  if (id !== previous) reload();
+});
 
 onMounted(reload);
 </script>
