@@ -30,6 +30,8 @@
         :key="group.id"
         :group="group"
         :role="roleFor(group)"
+        :navigate="isGroupWorkspace"
+        @view="openOverview(group)"
       />
     </div>
 
@@ -43,6 +45,8 @@
     </Card>
 
     <CreateGroupModal v-model:open="createOpen" @created="onCreated" />
+
+    <GroupSummaryDialog v-model:open="summaryOpen" :group="selectedGroup" />
   </div>
 </template>
 
@@ -53,8 +57,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import GroupCard from "@/components/groups/GroupCard.vue";
 import CreateGroupModal from "@/components/groups/CreateGroupModal.vue";
+import GroupSummaryDialog from "@/components/groups/GroupSummaryDialog.vue";
 import { useGroupsStore } from "@/stores/groups";
 import { useAuthStore } from "@/stores/auth";
+import { useWorkspaceStore } from "@/stores/workspace";
+import { useRouter } from "vue-router";
 import { resolveGroupPermissions } from "@/composables/useGroupPermissions";
 import { useManagementProfile } from "@/composables/useManagementProfile";
 import { useScreenContext } from "@/composables/useScreenContext";
@@ -63,8 +70,27 @@ import type { Group, GroupRole } from "@/contracts/group";
 
 const groupsStore = useGroupsStore();
 const authStore = useAuthStore();
+const workspaceStore = useWorkspaceStore();
+const router = useRouter();
 const { canManageGroups } = useManagementProfile();
 const createOpen = ref(false);
+
+const selectedGroup = ref<Group | null>(null);
+const summaryOpen = ref(false);
+
+/** Com um grupo como workspace, "Visão geral" navega; com projeto, abre dialog. */
+const isGroupWorkspace = computed(
+  () => workspaceStore.activeGroupProject?.type === "group",
+);
+
+function openOverview(group: Group) {
+  if (isGroupWorkspace.value) {
+    router.push({ name: "groups.show", params: { id: group.id } });
+    return;
+  }
+  selectedGroup.value = group;
+  summaryOpen.value = true;
+}
 
 const currentUserId = computed<number | null>(
   () => (authStore.user as any)?.id ?? null,

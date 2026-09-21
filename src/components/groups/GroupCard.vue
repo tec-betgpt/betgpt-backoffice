@@ -24,10 +24,25 @@
           +{{ group.projects.length - 3 }}
         </Badge>
       </div>
-      <Button as-child variant="outline" size="sm" class="w-full">
+      <Button
+        v-if="navigate"
+        as-child
+        variant="outline"
+        size="sm"
+        class="w-full"
+      >
         <router-link :to="{ name: 'groups.show', params: { id: group.id } }">
           {{ $t("groups_overview") }}
         </router-link>
+      </Button>
+      <Button
+        v-else
+        variant="outline"
+        size="sm"
+        class="w-full"
+        @click="emit('view')"
+      >
+        {{ $t("groups_overview") }}
       </Button>
     </CardContent>
   </Card>
@@ -40,10 +55,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Group, GroupRole } from "@/contracts/group";
 
-const props = defineProps<{
-  group: Group;
-  role: GroupRole | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    group: Group;
+    role: GroupRole | null;
+    navigate?: boolean;
+  }>(),
+  { navigate: true },
+);
+
+const emit = defineEmits<{ (event: "view"): void }>();
 
 const statusKey = computed(() =>
   props.group.status === "archived"

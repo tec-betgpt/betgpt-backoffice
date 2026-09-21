@@ -624,6 +624,8 @@
   "groups_transferred": "Propriedade transferida com sucesso.",
   "groups_no_management_profile": "Apenas perfis member-proprietor, member-admin, member-developer, client-proprietor ou client-admin podem criar ou gerenciar grupos.",
   "groups_management": "Gerenciamento do grupo",
+  "groups_linked_projects": "Projetos vinculados",
+  "groups_close": "Fechar",
   "groups_owner": "Owner",
   "groups_created_at": "Criado em",
   "groups_section_projects": "Projetos vinculados ao grupo.",
