@@ -4,6 +4,15 @@
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 class="font-medium">{{ $t("groups_consolidated") }}</h3>
         <div class="flex items-center gap-2">
+          <Input
+            v-model="search"
+            class="w-[220px]"
+            :placeholder="$t('groups_search_by_name')"
+            @keydown.enter="applySearch"
+          />
+          <Button variant="outline" size="sm" :disabled="loading" @click="applySearch">
+            {{ $t("groups_search") }}
+          </Button>
           <Label class="text-sm text-muted-foreground">
             {{ $t("groups_consolidated_resource") }}
           </Label>
@@ -102,6 +111,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import {
@@ -137,6 +147,7 @@ interface Column {
 }
 
 const resource = ref<GroupConsolidatedList>("players");
+const search = ref("");
 const rows = ref<Row[]>([]);
 const page = ref(1);
 const lastPage = ref(1);
@@ -283,10 +294,16 @@ function extract(payload: any): { rows: Row[]; lastPage: number } {
 async function reload() {
   loading.value = true;
   try {
+    const params: Record<string, unknown> = {
+      page: page.value,
+      per_page: 15,
+    };
+    if (search.value.trim()) params.search = search.value.trim();
+
     const payload = await listGroupConsolidated<Record<string, any>>(
       props.group.id,
       resource.value,
-      { page: page.value, per_page: 15 },
+      params,
     );
     const result = extract(payload);
     rows.value = result.rows;
@@ -305,9 +322,21 @@ function goToPage(next: number) {
   page.value = next;
 }
 
+function applySearch() {
+  if (page.value !== 1) {
+    page.value = 1;
+  } else {
+    reload();
+  }
+}
+
 watch(resource, () => {
-  page.value = 1;
-  reload();
+  search.value = "";
+  if (page.value !== 1) {
+    page.value = 1;
+  } else {
+    reload();
+  }
 });
 watch(page, reload);
 watch(

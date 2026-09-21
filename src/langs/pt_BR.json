@@ -663,6 +663,8 @@
   "groups_consolidated_segments": "Segmentos",
   "groups_consolidated_target_audiences": "Públicos",
   "groups_status": "Status",
+  "groups_search": "Buscar",
+  "groups_search_by_name": "Buscar por nome",
   "groups_col_project": "Projeto",
   "groups_col_channel": "Canal",
   "groups_col_email": "E-mail",
