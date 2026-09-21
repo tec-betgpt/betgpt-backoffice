@@ -47,6 +47,9 @@
             @changed="reload"
             @invite="inviteOpen = true"
             @transferred="reload"
+            @edit="editOpen = true"
+            @transfer="transferOpen = true"
+            @delete="deleteOpen = true"
           />
         </router-view>
       </div>
