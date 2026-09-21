@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Settings2, Plus, Trash2, Globe } from "lucide-vue-next";
+import { Settings2, Plus, Trash2, Globe, HelpCircle, Copy, Check, ShieldCheck } from "lucide-vue-next";
 import ProjectPreferencesService from "@/services/projectPreferences";
 import LinkDomainsService from "@/services/linkDomains";
 import { LinkDomain, LinkDomainSslStatus, LinkDomainStatus } from "@/contracts/linkDomain";
@@ -55,8 +55,30 @@ const addingDomain = ref(false);
 const isDeleteDialogOpen = ref(false);
 const domainToDelete = ref<LinkDomain | null>(null);
 const deletingDomain = ref(false);
+const isTutorialOpen = ref(false);
+const copiedTarget = ref(false);
+
+/**
+ * Host de destino dos links (equivalente ao `SHORT_LINK_DOMAIN` do backend).
+ * O domínio do projeto deve ter um registro A apontando para o mesmo IP deste host.
+ */
+const linkTargetHost = computed(
+  () =>
+    (import.meta.env.VITE_PUBLIC_SHORT_LINK_HOST as string | undefined) ||
+    "le.myelevate.ai",
+);
 
 const projectIdNumber = computed(() => Number(workspaceStore.activeGroupProject?.project_id));
+
+const copyTargetHost = async () => {
+  try {
+    await navigator.clipboard.writeText(linkTargetHost.value);
+    copiedTarget.value = true;
+    setTimeout(() => (copiedTarget.value = false), 2000);
+  } catch {
+    // Clipboard indisponível (contexto inseguro) — o host permanece visível.
+  }
+};
 
 const authUser = computed(() => authStore.user as any);
 
@@ -257,9 +279,14 @@ onMounted(async () => {
             Domínios cadastrados que podem ser usados como domínio próprio dos links do projeto. O domínio deve estar acessível via HTTPS com DNS resolvível.
           </p>
         </div>
-        <Button v-if="canManageDomains" @click="openAddDialog" size="sm">
-          <Plus class="mr-2 h-4 w-4" /> Adicionar Domínio
-        </Button>
+        <div class="flex shrink-0 items-center gap-2">
+          <Button variant="outline" size="sm" @click="isTutorialOpen = true">
+            <HelpCircle class="mr-2 h-4 w-4" /> Como configurar
+          </Button>
+          <Button v-if="canManageDomains" @click="openAddDialog" size="sm">
+            <Plus class="mr-2 h-4 w-4" /> Adicionar Domínio
+          </Button>
+        </div>
       </div>
 
       <div class="rounded-md border bg-background">
@@ -393,5 +420,140 @@ onMounted(async () => {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <Dialog v-model:open="isTutorialOpen">
+      <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-[640px]">
+        <DialogHeader>
+          <DialogTitle class="flex items-center gap-2">
+            <Globe class="h-5 w-5" /> Como configurar seu domínio
+          </DialogTitle>
+          <DialogDescription>
+            O domínio só fica ativo depois de apontar o DNS para o IP dos
+            servidores de links, propagar e responder em HTTPS.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-5 text-sm">
+          <!-- IP/host de destino -->
+          <div class="rounded-lg border bg-muted/40 p-3">
+            <p class="text-xs text-muted-foreground">
+              IP/host de destino (aponte o registro A para este endereço)
+            </p>
+            <div class="mt-1 flex items-center justify-between gap-2">
+              <code
+                class="rounded bg-background px-2 py-1 font-mono text-sm font-semibold"
+              >
+                {{ linkTargetHost }}
+              </code>
+              <Button size="sm" variant="outline" @click="copyTargetHost">
+                <Check v-if="copiedTarget" class="mr-2 h-4 w-4" />
+                <Copy v-else class="mr-2 h-4 w-4" />
+                {{ copiedTarget ? "Copiado" : "Copiar" }}
+              </Button>
+            </div>
+            <p class="mt-2 text-xs text-muted-foreground">
+              Descubra o IP com
+              <code class="rounded bg-background px-1 font-mono">
+                dig +short {{ linkTargetHost }}
+              </code>
+              (ou solicite o IP ao suporte).
+            </p>
+          </div>
+
+          <!-- Passo a passo -->
+          <ol class="space-y-4">
+            <li class="flex gap-3">
+              <span
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+              >
+                1
+              </span>
+              <div class="space-y-1">
+                <p class="font-medium">Crie o registro A no seu provedor de DNS</p>
+                <p class="text-muted-foreground">
+                  No painel do registrador (Registro.br, Cloudflare, GoDaddy…),
+                  crie um registro do tipo <strong>A</strong>:
+                </p>
+                <div class="rounded-md border bg-muted/40 p-2 font-mono text-xs">
+                  <div>Tipo: A</div>
+                  <div>Nome: @ (domínio raiz) ou o subdomínio, ex.: links</div>
+                  <div>Valor/Destino: IP de {{ linkTargetHost }}</div>
+                  <div>TTL: 300 (ou o padrão)</div>
+                </div>
+                <p class="text-muted-foreground">
+                  Se usar <code class="font-mono">www</code>, crie também um
+                  registro A para <code class="font-mono">www</code> com o mesmo
+                  IP.
+                </p>
+              </div>
+            </li>
+
+            <li class="flex gap-3">
+              <span
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+              >
+                2
+              </span>
+              <div class="space-y-1">
+                <p class="font-medium">Aguarde a propagação do DNS</p>
+                <p class="text-muted-foreground">
+                  Pode levar de minutos a algumas horas. Confirme que o domínio
+                  já resolve para o IP correto:
+                </p>
+                <div class="rounded-md border bg-muted/40 p-2 font-mono text-xs">
+                  dig +short seudominio.com.br
+                </div>
+              </div>
+            </li>
+
+            <li class="flex gap-3">
+              <span
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+              >
+                3
+              </span>
+              <div class="space-y-1">
+                <p class="font-medium">Garanta o HTTPS</p>
+                <p class="text-muted-foreground">
+                  O certificado SSL é provisionado automaticamente após o DNS
+                  apontar corretamente. O andamento aparece na coluna
+                  <strong>SSL</strong> da tabela.
+                </p>
+              </div>
+            </li>
+
+            <li class="flex gap-3">
+              <span
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+              >
+                4
+              </span>
+              <div class="space-y-1">
+                <p class="font-medium">Aguarde a verificação automática</p>
+                <p class="text-muted-foreground">
+                  A verificação roda periodicamente. Quando o DNS estiver
+                  correto e o domínio responder em HTTPS, o status muda para
+                  <Badge variant="default">Configurado</Badge>.
+                </p>
+              </div>
+            </li>
+          </ol>
+
+          <div class="flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50 p-3 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+            <ShieldCheck class="mt-0.5 h-4 w-4 shrink-0" />
+            <p class="text-xs">
+              Use um registro <strong>A</strong> (não CNAME). O domínio precisa
+              estar acessível via HTTPS e o IP precisa ser público. Enquanto o
+              status estiver <Badge variant="secondary">Pendente</Badge>, os
+              links ainda não usarão o domínio.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button @click="isTutorialOpen = false">Entendi</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
