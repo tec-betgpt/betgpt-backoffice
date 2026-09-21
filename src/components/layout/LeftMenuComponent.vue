@@ -969,6 +969,21 @@ const navMenu = computed(() => {
   ];
 });
 
+/** Nomes das rotas do menu de projeto (telas padrão de projeto). */
+const projectRouteNames = computed<Set<string>>(() => {
+  const names = new Set<string>();
+  navMenu.value.forEach((item: any) => {
+    if (item.children?.length) {
+      item.children.forEach((child: any) => {
+        if (child.url?.name) names.add(child.url.name);
+      });
+    } else if (item.url?.name) {
+      names.add(item.url.name);
+    }
+  });
+  return names;
+});
+
 // Methods
 const getLogoSrc = (isDarkMode: boolean, isSidebarExpanded: boolean) => {
   const logos = isDarkMode ? DARK_LOGOS : LIGHT_LOGOS;
@@ -1124,6 +1139,27 @@ watch(
       if (!hasAccess) await router.push({ name: "home" });
     }
   },
+  { immediate: true },
+);
+
+// Com workspace de grupo, as telas padrão de projeto ficam inacessíveis:
+// qualquer navegação para elas (inclusive por URL) volta para as telas do grupo.
+const enforceGroupWorkspace = () => {
+  if (!isGroupWorkspace.value) return;
+  if (typeof route.name !== "string") return;
+  if (!projectRouteNames.value.has(route.name)) return;
+
+  const id = groupNumericId.value;
+  if (id != null) {
+    router.replace({ name: "groups.overview", params: { id } });
+  } else {
+    router.replace({ name: "groups" });
+  }
+};
+
+watch(
+  [() => route.name, isGroupWorkspace, groupNumericId],
+  enforceGroupWorkspace,
   { immediate: true },
 );
 </script>
