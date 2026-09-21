@@ -13,8 +13,6 @@ import GroupFinancialView from "@/views/dashboard/group/GroupFinancialView.vue";
 const groupMeta = {
   layout: DefaultLayout,
   requiresAuth: true,
-  roles: "member",
-  permissions: "access-to-project-groups",
 };
 
 export default [

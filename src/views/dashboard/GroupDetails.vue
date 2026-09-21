@@ -154,7 +154,11 @@ async function reload() {
   try {
     await groupsStore.fetchGroup(groupId.value);
     await groupsStore.fetchMembers(groupId.value);
-    await groupsStore.fetchInvitations(groupId.value);
+
+    // Sem permissão de gestão de convites, não busca a lista (evita 403).
+    if (permissions.value.canManageInvitations) {
+      await groupsStore.fetchInvitations(groupId.value);
+    }
   } catch (error) {
     if (normalizeApiError(error).status === 404) {
       toast.error(t("groups_empty"));

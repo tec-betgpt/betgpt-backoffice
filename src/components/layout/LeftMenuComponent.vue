@@ -425,6 +425,19 @@ const groupItems = computed(() =>
   workspaceStore.group_projects.filter((item: any) => item.type === "group"),
 );
 
+/** Perfis de gestão do Grupo (Membros/Convites). */
+const GROUP_MANAGER_ROLES = [
+  "member-proprietor",
+  "member-admin",
+  "member-developer",
+  "client-proprietor",
+  "client-admin",
+];
+
+const canManageGroupRoles = computed<boolean>(() =>
+  GROUP_MANAGER_ROLES.some((role) => hasRole(role)),
+);
+
 // --- Novo design: menu por tipo de workspace -------------------------------
 const isGroupWorkspace = computed(
   () => activeGroupProject.value?.type === "group",
@@ -446,11 +459,20 @@ const groupNumericId = computed(() => {
 /** Telas do Grupo (abas do detalhe), usadas quando o workspace é um grupo. */
 const groupNavMenu = computed<any[]>(() => {
   const id = groupNumericId.value;
-  const show = canAccess("access-to-project-groups");
-  const item = (name: string, routeName: string, icon: any) => ({
+  // Qualquer membro do Grupo (inclusive client, sem acesso a projeto) enxerga
+  // as telas do Grupo; o backend autoriza por papel no Grupo.
+  const show = groupItems.value.length > 0;
+  // Membros/Convites: apenas perfis de gestão do Grupo.
+  const canManageGroup = show && canManageGroupRoles.value;
+  const item = (
+    name: string,
+    routeName: string,
+    icon: any,
+    visible: boolean = show,
+  ) => ({
     name,
     icon,
-    show,
+    show: visible,
     url: { name: routeName, params: { id } },
   });
 
@@ -461,8 +483,8 @@ const groupNavMenu = computed<any[]>(() => {
     item("DRE", "groups.dre", CircleDollarSign),
     item("Financeiro", "groups.financial", DollarSignIcon),
     item("Projetos", "groups.projects", Building2),
-    item("Membros", "groups.members", Users2),
-    item("Convites", "groups.invitations", Mail),
+    item("Membros", "groups.members", Users2, canManageGroup),
+    item("Convites", "groups.invitations", Mail, canManageGroup),
   ];
 });
 
@@ -1121,23 +1143,37 @@ watch(
 watch(
   activeGroupProject,
   async () => {
-    if (activeGroupProject.value) {
-      const is = authStore.user?.roles
-        .filter(
-          (role: any) =>
-            role.pivot.project_id === activeGroupProject.value?.project_id,
-        )
-        .some(
-          (role: any) =>
-            route.meta.permissions?.includes?.(
-              role.permissions.map((p: any) => p.name),
-            ) ?? true,
-        );
+    if (!activeGroupProject.value) return;
 
-      const hasAccess = authStore.user?.access_type === "member" || is;
+    // Workspace de Grupo: o acesso é pela participação no Grupo (owner/membro),
+    // sem exigir permissão/acesso a projeto (client pode não estar no projeto).
+    if (activeGroupProject.value.type === "group") {
+      const groupId = String(activeGroupProject.value.id);
+      const isGroupMember = (
+        (authStore.user as any)?.group_projects ?? []
+      ).some(
+        (groupProject: any) => String(groupProject.id) === groupId,
+      );
 
-      if (!hasAccess) await router.push({ name: "home" });
+      if (!isGroupMember) await router.push({ name: "home" });
+      return;
     }
+
+    const is = authStore.user?.roles
+      .filter(
+        (role: any) =>
+          role.pivot.project_id === activeGroupProject.value?.project_id,
+      )
+      .some(
+        (role: any) =>
+          route.meta.permissions?.includes?.(
+            role.permissions.map((p: any) => p.name),
+          ) ?? true,
+      );
+
+    const hasAccess = authStore.user?.access_type === "member" || is;
+
+    if (!hasAccess) await router.push({ name: "home" });
   },
   { immediate: true },
 );
