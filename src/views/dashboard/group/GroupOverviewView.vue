@@ -113,7 +113,6 @@ import {
   Building2,
   Users2,
   Mail,
-  PieChart,
   CircleDollarSign,
   ChartNoAxesColumnIncreasing,
   Layers,
@@ -165,12 +164,6 @@ const sections = [
     label: "groups_analytics",
     description: "groups_section_analytics",
     icon: ChartNoAxesColumnIncreasing,
-  },
-  {
-    name: "groups.dre",
-    label: "groups_dre",
-    description: "groups_section_dre",
-    icon: PieChart,
   },
   {
     name: "groups.financial",

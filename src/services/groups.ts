@@ -21,7 +21,6 @@ import type {
   GroupFinancialListResponse,
   GroupFinancialTransaction,
   GroupFinancialTransactionPayload,
-  GroupFinancialsPayload,
 } from "@/contracts/groupFinancial";
 
 export type GroupConsolidatedList =
@@ -208,18 +207,6 @@ export async function getGroupAnalytics<T = Record<string, unknown>>(
   return unwrap(data);
 }
 
-/** GET /groups/{group}/financials — DRE consolidado (máx. 28 dias). */
-export async function getGroupFinancials(
-  groupId: number,
-  params: { start_date?: string; end_date?: string } = {},
-): Promise<GroupFinancialsPayload> {
-  const { data } = await api.get<SpaApiResponse<GroupFinancialsPayload>>(
-    `/groups/${groupId}/financials`,
-    { params },
-  );
-  return unwrap(data);
-}
-
 /**
  * GET /groups/{group}/financial-transactions/dashboard — dashboard
  * consolidado dos lançamentos do Grupo.
@@ -321,7 +308,6 @@ const groupsService = {
   listMyInvitations,
   getGroupHome,
   getGroupAnalytics,
-  getGroupFinancials,
   getGroupFinancialDashboard,
   listGroupConsolidated,
   listGroupFinancialTransactions,

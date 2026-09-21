@@ -7,7 +7,6 @@ import GroupMembersView from "@/views/dashboard/group/GroupMembersView.vue";
 import GroupInvitationsView from "@/views/dashboard/group/GroupInvitationsView.vue";
 import GroupConsolidatedView from "@/views/dashboard/group/GroupConsolidatedView.vue";
 import GroupAnalyticsView from "@/views/dashboard/group/GroupAnalyticsView.vue";
-import GroupDreView from "@/views/dashboard/group/GroupDreView.vue";
 import GroupFinancialView from "@/views/dashboard/group/GroupFinancialView.vue";
 
 const groupMeta = {
@@ -64,12 +63,6 @@ export default [
         name: "groups.analytics",
         component: GroupAnalyticsView,
         meta: { ...groupMeta, title: "Analytics" },
-      },
-      {
-        path: "dre",
-        name: "groups.dre",
-        component: GroupDreView,
-        meta: { ...groupMeta, title: "DRE" },
       },
       {
         path: "financial",

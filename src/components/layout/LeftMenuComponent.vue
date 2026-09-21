@@ -480,7 +480,6 @@ const groupNavMenu = computed<any[]>(() => {
     item("Visão geral", "groups.overview", LayoutDashboard),
     item("Consolidado", "groups.consolidated", SquareStack),
     item("Analytics", "groups.analytics", ChartNoAxesColumnIncreasing),
-    item("DRE", "groups.dre", CircleDollarSign),
     item("Financeiro", "groups.financial", DollarSignIcon),
     item("Projetos", "groups.projects", Building2),
     item("Membros", "groups.members", Users2, canManageGroup),
