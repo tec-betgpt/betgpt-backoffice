@@ -477,7 +477,8 @@ const groupNavMenu = computed<any[]>(() => {
   });
 
   return [
-    item("Visão geral", "groups.overview", LayoutDashboard),
+    item("Dashboard", "groups.home", LayoutDashboard),
+    item("Gerenciamento", "groups.overview", Settings2),
     item("Consolidado", "groups.consolidated", SquareStack),
     item("Analytics", "groups.analytics", ChartNoAxesColumnIncreasing),
     item("DRE", "groups.dre", CircleDollarSign),

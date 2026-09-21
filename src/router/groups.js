@@ -1,6 +1,7 @@
 import DefaultLayout from "@/layouts/default.vue";
 import Groups from "@/views/dashboard/Groups.vue";
 import GroupDetails from "@/views/dashboard/GroupDetails.vue";
+import GroupHomeView from "@/views/dashboard/group/GroupHomeView.vue";
 import GroupOverviewView from "@/views/dashboard/group/GroupOverviewView.vue";
 import GroupProjectsView from "@/views/dashboard/group/GroupProjectsView.vue";
 import GroupMembersView from "@/views/dashboard/group/GroupMembersView.vue";
@@ -26,14 +27,20 @@ export default [
     path: "/groups/:id",
     name: "groups.show",
     component: GroupDetails,
-    redirect: (to) => ({ name: "groups.overview", params: to.params }),
+    redirect: (to) => ({ name: "groups.home", params: to.params }),
     meta: { ...groupMeta, title: "Detalhes do Grupo" },
     children: [
+      {
+        path: "home",
+        name: "groups.home",
+        component: GroupHomeView,
+        meta: { ...groupMeta, title: "Dashboard do grupo" },
+      },
       {
         path: "overview",
         name: "groups.overview",
         component: GroupOverviewView,
-        meta: { ...groupMeta, title: "Visão geral" },
+        meta: { ...groupMeta, title: "Gerenciamento" },
       },
       {
         path: "projects",

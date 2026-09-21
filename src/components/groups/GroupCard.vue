@@ -25,7 +25,7 @@
         </Badge>
       </div>
       <Button as-child variant="outline" size="sm" class="w-full">
-        <router-link :to="{ name: 'groups.show', params: { id: group.id } }">
+        <router-link :to="{ name: 'groups.home', params: { id: group.id } }">
           {{ $t("groups_overview") }}
         </router-link>
       </Button>
