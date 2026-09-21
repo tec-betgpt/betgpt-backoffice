@@ -141,11 +141,12 @@ describe("groups service", () => {
     });
   });
 
-  it("acceptInvitation POSTs the uuid accept route without a body", async () => {
+  it("acceptInvitation POSTs the uuid accept route with the token", async () => {
     mocked.post.mockResolvedValue({ data: {} });
-    await acceptInvitation("abc-123");
+    await acceptInvitation("abc-123", "token-xyz");
     expect(mocked.post).toHaveBeenCalledWith(
       "/groups/invitations/abc-123/accept",
+      { token: "token-xyz" },
     );
   });
 });

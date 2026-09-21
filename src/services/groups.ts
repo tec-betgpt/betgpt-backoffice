@@ -13,6 +13,7 @@ import type {
 import type {
   CreateGroupInvitationPayload,
   GroupInvitation,
+  GroupInvitationPublic,
 } from "@/contracts/groupInvitation";
 import type {
   GroupFinancialDashboard,
@@ -146,12 +147,30 @@ export async function revokeInvitation(invitationId: number): Promise<void> {
   await api.delete(`/groups/invitations/${invitationId}`);
 }
 
-export async function acceptInvitation(uuid: string): Promise<void> {
-  await api.post(`/groups/invitations/${uuid}/accept`);
+export async function acceptInvitation(
+  uuid: string,
+  token: string,
+): Promise<void> {
+  await api.post(`/groups/invitations/${uuid}/accept`, { token });
 }
 
-export async function declineInvitation(uuid: string): Promise<void> {
-  await api.post(`/groups/invitations/${uuid}/decline`);
+export async function declineInvitation(
+  uuid: string,
+  token: string,
+): Promise<void> {
+  await api.post(`/groups/invitations/${uuid}/decline`, { token });
+}
+
+/** GET /groups/invitations/{uuid}?token=... — validação pública do convite. */
+export async function validateInvitation(
+  uuid: string,
+  token: string,
+): Promise<GroupInvitationPublic> {
+  const { data } = await api.get<SpaApiResponse<GroupInvitationPublic>>(
+    `/groups/invitations/${uuid}`,
+    { params: { token } },
+  );
+  return unwrap(data);
 }
 
 export async function listMyInvitations(): Promise<GroupInvitation[]> {

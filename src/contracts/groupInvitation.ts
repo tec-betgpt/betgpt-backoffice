@@ -34,3 +34,14 @@ export interface CreateGroupInvitationPayload {
   role: Exclude<GroupRole, "owner">;
   access_projects: boolean;
 }
+
+/** Resposta pública da validação do convite (link do e-mail). */
+export interface GroupInvitationPublic {
+  group: GroupInvitationGroup;
+  role: Exclude<GroupRole, "owner">;
+  access_projects: boolean;
+  status: GroupInvitationStatus;
+  email: string;
+  expires_at: string | null;
+  email_matches_current_user: boolean | null;
+}

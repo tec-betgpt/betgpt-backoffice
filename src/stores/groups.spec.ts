@@ -62,7 +62,7 @@ describe("groups store", () => {
     mocked.acceptInvitation.mockResolvedValue(undefined);
     const store = useGroupsStore();
     store.myInvitations = [{ id: 21, uuid: "abc" }] as any;
-    await store.acceptInvitation("abc");
+    await store.acceptInvitation("abc", "token-123");
     expect(store.myInvitations).toEqual([]);
   });
 });

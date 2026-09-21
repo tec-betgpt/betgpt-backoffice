@@ -8,6 +8,7 @@ import Home from "@/views/dashboard/Home.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
 import AccountRecovery from "@/views/auth/AccountRecovery.vue";
 import SecurityQuestions from "@/views/auth/SecurityQuestions.vue";
+import InviteLanding from "@/views/auth/InviteLanding.vue";
 import configurations from "@/router/configurations.js";
 import elevate_ia from "@/router/elevate_ia.js";
 import performances from "@/router/performances.js";
@@ -59,6 +60,12 @@ const routes = [
     name: "security-questions",
     component: SecurityQuestions,
     meta: { layout: BlankLayout, title: "Perguntas de Segurança" },
+  },
+  {
+    path: "/groups/invitations/:uuid",
+    name: "groups.invitation",
+    component: InviteLanding,
+    meta: { layout: BlankLayout, title: "Convite de Grupo" },
   },
   {
     path: "/home",

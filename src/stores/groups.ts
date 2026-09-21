@@ -180,15 +180,15 @@ export const useGroupsStore = defineStore("groups", {
       return this.myInvitations;
     },
 
-    async acceptInvitation(uuid: string): Promise<void> {
-      await groupsService.acceptInvitation(uuid);
+    async acceptInvitation(uuid: string, token: string): Promise<void> {
+      await groupsService.acceptInvitation(uuid, token);
       this.myInvitations = this.myInvitations.filter(
         (invitation) => invitation.uuid !== uuid,
       );
     },
 
-    async declineInvitation(uuid: string): Promise<void> {
-      await groupsService.declineInvitation(uuid);
+    async declineInvitation(uuid: string, token: string): Promise<void> {
+      await groupsService.declineInvitation(uuid, token);
       this.myInvitations = this.myInvitations.filter(
         (invitation) => invitation.uuid !== uuid,
       );
