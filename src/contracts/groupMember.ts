@@ -12,6 +12,7 @@ export interface GroupMember {
   user_id: number;
   role: GroupRole;
   access_projects: boolean;
+  project_roles?: Record<string, string> | null;
   invited_by: number | null;
   accepted_at: string | null;
   user?: GroupMemberUser;
@@ -22,4 +23,5 @@ export interface GroupMember {
 export interface UpdateGroupMemberPayload {
   role?: Exclude<GroupRole, "owner">;
   access_projects?: boolean;
+  project_roles?: Record<string, string> | null;
 }

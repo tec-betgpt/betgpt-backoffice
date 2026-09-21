@@ -63,6 +63,7 @@
         v-model:open="editOpen"
         :group-id="group.id"
         :member="editing"
+        :projects="projectOptions"
         @updated="reload"
       />
     </CardContent>
@@ -70,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { MoreHorizontal } from "lucide-vue-next";
@@ -98,6 +99,13 @@ const groupsStore = useGroupsStore();
 
 const editing = ref<GroupMember | null>(null);
 const editOpen = ref(false);
+
+const projectOptions = computed(() =>
+  (props.group.projects ?? []).map((project: any) => ({
+    id: project.id,
+    name: project.name,
+  })),
+);
 
 function openEdit(member: GroupMember) {
   editing.value = member;

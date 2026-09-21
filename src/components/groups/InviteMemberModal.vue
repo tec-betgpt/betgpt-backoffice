@@ -59,6 +59,12 @@
           {{ errorMessage }}
         </p>
 
+        <ProjectRolesSelector
+          v-if="form.access_projects"
+          :projects="projectOptions"
+          v-model="form.project_roles"
+        />
+
         <DialogFooter>
           <Button
             type="button"
@@ -77,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
@@ -100,6 +106,7 @@ import {
 } from "@/components/ui/select";
 import { useGroupsStore } from "@/stores/groups";
 import { normalizeApiError } from "@/lib/apiError";
+import ProjectRolesSelector from "@/components/groups/ProjectRolesSelector.vue";
 import type { Group, GroupRole } from "@/contracts/group";
 
 const props = defineProps<{ open: boolean; group: Group }>();
@@ -115,7 +122,15 @@ const form = reactive<{
   email: string;
   role: Exclude<GroupRole, "owner">;
   access_projects: boolean;
-}>({ email: "", role: "viewer", access_projects: false });
+  project_roles: Record<string, string>;
+}>({ email: "", role: "viewer", access_projects: false, project_roles: {} });
+
+const projectOptions = computed(() =>
+  (props.group.projects ?? []).map((project: any) => ({
+    id: project.id,
+    name: project.name,
+  })),
+);
 
 const saving = ref(false);
 const errorMessage = ref("");
@@ -127,6 +142,7 @@ watch(
     form.email = "";
     form.role = "viewer";
     form.access_projects = false;
+    form.project_roles = {};
     errorMessage.value = "";
   },
 );
@@ -138,6 +154,7 @@ async function submit() {
       email: form.email,
       role: form.role,
       access_projects: form.access_projects,
+      project_roles: form.access_projects ? form.project_roles : null,
     });
     toast(t("groups_invite_sent"));
     emit("invited");

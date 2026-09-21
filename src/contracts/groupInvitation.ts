@@ -33,6 +33,7 @@ export interface CreateGroupInvitationPayload {
   email: string;
   role: Exclude<GroupRole, "owner">;
   access_projects: boolean;
+  project_roles?: Record<string, string> | null;
 }
 
 /** Resposta pública da validação do convite (link do e-mail). */

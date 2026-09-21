@@ -43,6 +43,12 @@
           </div>
         </div>
 
+        <ProjectRolesSelector
+          v-if="accessProjects"
+          :projects="projects"
+          v-model="projectRoles"
+        />
+
         <DialogFooter>
           <Button
             type="button"
@@ -83,6 +89,7 @@ import {
 } from "@/components/ui/select";
 import { useGroupsStore } from "@/stores/groups";
 import { showApiErrorToast } from "@/lib/apiErrorFeedback";
+import ProjectRolesSelector from "@/components/groups/ProjectRolesSelector.vue";
 import type { GroupMember } from "@/contracts/groupMember";
 import type { GroupRole } from "@/contracts/group";
 
@@ -90,6 +97,7 @@ const props = defineProps<{
   open: boolean;
   groupId: number;
   member: GroupMember;
+  projects: { id: number; name: string }[];
 }>();
 const emit = defineEmits<{
   (event: "update:open", value: boolean): void;
@@ -101,6 +109,7 @@ const groupsStore = useGroupsStore();
 
 const role = ref<Exclude<GroupRole, "owner">>("viewer");
 const accessProjects = ref(false);
+const projectRoles = ref<Record<string, string>>({});
 
 watch(
   () => props.open,
@@ -108,6 +117,7 @@ watch(
     if (!value) return;
     role.value = props.member.role === "owner" ? "admin" : props.member.role;
     accessProjects.value = props.member.access_projects;
+    projectRoles.value = { ...(props.member.project_roles ?? {}) };
   },
 );
 
@@ -116,6 +126,7 @@ async function submit() {
     await groupsStore.updateMember(props.groupId, props.member.user_id, {
       role: role.value,
       access_projects: accessProjects.value,
+      project_roles: accessProjects.value ? projectRoles.value : null,
     });
     toast(t("groups_member_updated"));
     emit("updated");
