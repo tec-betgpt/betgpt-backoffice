@@ -150,14 +150,17 @@ const permissions = computed(() =>
 );
 
 async function reload() {
+  // Captura o id uma única vez: a rota pode mudar durante os awaits (ex.: troca
+  // de workspace) e todos os fetches devem usar o mesmo grupo.
+  const id = groupId.value;
   loading.value = true;
   try {
-    await groupsStore.fetchGroup(groupId.value);
-    await groupsStore.fetchMembers(groupId.value);
+    await groupsStore.fetchGroup(id);
+    await groupsStore.fetchMembers(id);
 
     // Sem permissão de gestão de convites, não busca a lista (evita 403).
     if (permissions.value.canManageInvitations) {
-      await groupsStore.fetchInvitations(groupId.value);
+      await groupsStore.fetchInvitations(id);
     }
   } catch (error) {
     if (normalizeApiError(error).status === 404) {
@@ -200,16 +203,26 @@ function parseWorkspaceId(raw: unknown): number | null {
 
 // As telas do grupo só fazem sentido com um grupo como workspace. Com um
 // projeto ativo, apenas a lista/criação de grupos permanece acessível.
-// Ao trocar o grupo no seletor, mantém a tela atual mas apontando para o novo
-// grupo (a URL muda e o conteúdo recarrega).
 watch(
   () => workspaceStore.activeGroupProject,
   (project) => {
-    if (!project) return;
-    if (project.type !== "group") {
+    if (project && project.type !== "group") {
       router.replace({ name: "groups" });
-      return;
     }
+  },
+  { immediate: true },
+);
+
+// Ao TROCAR o grupo no seletor de workspace, mantém a tela atual apontando
+// para o novo grupo (a URL muda e o conteúdo recarrega). Não roda no mount,
+// para respeitar o grupo aberto a partir da lista.
+watch(
+  () => workspaceStore.activeGroupProject?.id,
+  (newId, oldId) => {
+    if (oldId === undefined || newId === oldId) return;
+
+    const project = workspaceStore.activeGroupProject;
+    if (!project || project.type !== "group") return;
 
     const workspaceGroupId = parseWorkspaceId(
       project.id ?? project.project_id,
@@ -224,7 +237,6 @@ watch(
       });
     }
   },
-  { immediate: true },
 );
 
 // Navegação entre grupos (mudança do id na rota) recarrega o grupo atual.
