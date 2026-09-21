@@ -622,7 +622,7 @@
   "groups_transfer_description": "Escolha um membro para se tornar o novo owner. Você passará a admin.",
   "groups_transfer_member": "Novo owner",
   "groups_transferred": "Propriedade transferida com sucesso.",
-  "groups_no_management_profile": "Apenas perfis member-proprietor, member-admin ou member-developer podem criar ou gerenciar grupos.",
+  "groups_no_management_profile": "Apenas perfis member-proprietor, member-admin, member-developer, client-proprietor ou client-admin podem criar ou gerenciar grupos.",
   "groups_management": "Gerenciamento do grupo",
   "groups_owner": "Owner",
   "groups_created_at": "Criado em",

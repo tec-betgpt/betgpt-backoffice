@@ -73,7 +73,11 @@
         <CardTitle class="text-base">{{ $t("groups_management") }}</CardTitle>
       </CardHeader>
       <CardContent class="flex flex-wrap gap-2">
-        <Button v-if="permissions.canEdit" variant="outline" @click="emit('edit')">
+        <Button
+          v-if="permissions.canEdit && canManageGroups"
+          variant="outline"
+          @click="emit('edit')"
+        >
           {{ $t("groups_edit") }}
         </Button>
         <Button
@@ -117,6 +121,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useManagementProfile } from "@/composables/useManagementProfile";
 import type { Group } from "@/contracts/group";
 import type { GroupPermissions } from "@/composables/useGroupPermissions";
 
@@ -127,6 +132,8 @@ const emit = defineEmits<{
   (event: "transfer"): void;
   (event: "delete"): void;
 }>();
+
+const { canManageGroups } = useManagementProfile();
 
 const sections = [
   {
@@ -180,7 +187,7 @@ const ownerName = computed(() => {
 
 const hasManagementActions = computed(
   () =>
-    props.permissions.canEdit ||
+    (props.permissions.canEdit && canManageGroups.value) ||
     props.permissions.canManageInvitations ||
     props.permissions.isOwner ||
     props.permissions.canDelete,

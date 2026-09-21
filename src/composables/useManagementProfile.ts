@@ -1,11 +1,13 @@
 import { computed, type ComputedRef } from "vue";
 import { useAuthStore } from "@/stores/auth";
 
-/** Perfis de conta que podem criar grupos e vincular/editar projetos. */
+/** Perfis de conta que podem criar e editar grupos (e vincular projetos). */
 export const MANAGEMENT_PROFILE_ROLES = [
   "member-proprietor",
   "member-admin",
   "member-developer",
+  "client-proprietor",
+  "client-admin",
 ] as const;
 
 export function hasManagementProfile(user: unknown): boolean {

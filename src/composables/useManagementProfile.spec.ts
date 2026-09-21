@@ -10,12 +10,15 @@ function userWithRoles(...names: string[]) {
 describe("useManagementProfile", () => {
   beforeEach(() => setActivePinia(createPinia()));
 
-  it.each(["member-proprietor", "member-admin", "member-developer"])(
-    "grants management profile for %s",
-    (roleName) => {
-      expect(hasManagementProfile(userWithRoles(roleName))).toBe(true);
-    },
-  );
+  it.each([
+    "member-proprietor",
+    "member-admin",
+    "member-developer",
+    "client-proprietor",
+    "client-admin",
+  ])("grants management profile for %s", (roleName) => {
+    expect(hasManagementProfile(userWithRoles(roleName))).toBe(true);
+  });
 
   it("denies non-management roles", () => {
     expect(hasManagementProfile(userWithRoles("member-viewer"))).toBe(false);

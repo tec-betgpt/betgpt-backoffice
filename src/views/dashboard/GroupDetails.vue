@@ -8,10 +8,14 @@
 
     <template v-else-if="group">
       <div
-        v-if="permissions.canEdit || permissions.canDelete || permissions.isOwner"
+        v-if="canEditGroup || permissions.canDelete || permissions.isOwner"
         class="mb-4 flex items-center justify-end gap-2"
       >
-        <Button v-if="permissions.canEdit" variant="outline" @click="editOpen = true">
+        <Button
+          v-if="canEditGroup"
+          variant="outline"
+          @click="editOpen = true"
+        >
           {{ $t("groups_edit") }}
         </Button>
         <DropdownMenu>
@@ -21,7 +25,7 @@
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem v-if="permissions.canEdit" @click="archive">
+            <DropdownMenuItem v-if="canEditGroup" @click="archive">
               {{ $t("groups_archive") }}
             </DropdownMenuItem>
             <DropdownMenuItem v-if="permissions.isOwner" @click="transferOpen = true">
@@ -126,6 +130,7 @@ import { useGroupsStore } from "@/stores/groups";
 import { useAuthStore } from "@/stores/auth";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { resolveGroupPermissions } from "@/composables/useGroupPermissions";
+import { useManagementProfile } from "@/composables/useManagementProfile";
 import { normalizeApiError } from "@/lib/apiError";
 import { showApiErrorToast } from "@/lib/apiErrorFeedback";
 
@@ -150,6 +155,12 @@ const currentUserId = computed<number | null>(
 );
 const permissions = computed(() =>
   resolveGroupPermissions(group.value, currentUserId.value),
+);
+const { canManageGroups } = useManagementProfile();
+
+// Editar/arquivar o grupo exige, além do papel no grupo, um perfil de gestão.
+const canEditGroup = computed(
+  () => permissions.value.canEdit && canManageGroups.value,
 );
 
 async function reload() {
