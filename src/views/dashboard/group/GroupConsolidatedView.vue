@@ -298,7 +298,16 @@ async function reload() {
       page: page.value,
       per_page: 15,
     };
-    if (search.value.trim()) params.search = search.value.trim();
+    const term = search.value.trim();
+    if (term) {
+      // segments/target-audiences usam `search[0][campo]` (array de arrays);
+      // o qs serializa `[{ name }]` para `search[0][name]=valor`.
+      if (resource.value === "segments" || resource.value === "target-audiences") {
+        params.search = [{ name: term }];
+      } else {
+        params.search = term;
+      }
+    }
 
     const payload = await listGroupConsolidated<Record<string, any>>(
       props.group.id,
