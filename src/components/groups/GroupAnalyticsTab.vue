@@ -66,5 +66,9 @@ async function reload() {
 }
 
 watch(selectedRange, reload, { deep: true });
+watch(
+  () => props.group.id,
+  () => reload(),
+);
 onMounted(reload);
 </script>

@@ -6,7 +6,11 @@
         <CustomDatePicker v-model="selectedRange" />
       </div>
 
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div v-if="loading" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Skeleton v-for="n in 4" :key="n" class="h-20 w-full" />
+      </div>
+
+      <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div
           v-for="card in cards"
           :key="card.label"
@@ -25,6 +29,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import { getGroupHome } from "@/services/groups";
 import { showApiErrorToast } from "@/lib/apiErrorFeedback";
@@ -40,6 +45,7 @@ const selectedRange = ref<any>({
 });
 
 const home = ref<any>(null);
+const loading = ref(true);
 
 const cards = computed(() => [
   {
@@ -61,6 +67,7 @@ const cards = computed(() => [
 ]);
 
 async function reload() {
+  loading.value = true;
   try {
     home.value = await getGroupHome(props.group.id, {
       start_date: selectedRange.value.start?.toString(),
@@ -69,9 +76,15 @@ async function reload() {
   } catch (error) {
     home.value = null;
     showApiErrorToast(error);
+  } finally {
+    loading.value = false;
   }
 }
 
 watch(selectedRange, reload, { deep: true });
+watch(
+  () => props.group.id,
+  () => reload(),
+);
 onMounted(reload);
 </script>

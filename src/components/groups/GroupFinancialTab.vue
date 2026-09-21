@@ -15,7 +15,11 @@
           </div>
         </div>
 
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div v-if="loading" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Skeleton v-for="n in 4" :key="n" class="h-20 w-full" />
+        </div>
+
+        <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div class="rounded-lg border p-3">
             <p class="text-xs text-muted-foreground">
               {{ $t("groups_fin_revenue") }}
@@ -65,7 +69,14 @@
               <TableHead class="text-right">{{ $t("groups_cancel") }}</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody v-if="transactions.length">
+          <TableBody v-if="loading">
+            <TableRow v-for="n in 5" :key="n">
+              <TableCell colspan="6">
+                <Skeleton class="h-6 w-full" />
+              </TableCell>
+            </TableRow>
+          </TableBody>
+          <TableBody v-else-if="transactions.length">
             <TableRow v-for="row in transactions" :key="row.id">
               <TableCell>{{ formatDate(row.date) }}</TableCell>
               <TableCell>{{ $t(`groups_fin_type_${row.type}`) }}</TableCell>
@@ -118,6 +129,7 @@ import { toast } from "vue-sonner";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -227,5 +239,9 @@ async function reload() {
 }
 
 watch(rangeParams, reload);
+watch(
+  () => props.group.id,
+  () => reload(),
+);
 onMounted(reload);
 </script>

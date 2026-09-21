@@ -10,7 +10,11 @@
       <CustomDatePicker v-model="selectedRange" />
     </div>
 
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div v-if="loading" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <Skeleton v-for="n in 5" :key="n" class="h-20 w-full" />
+    </div>
+
+    <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       <div class="rounded-lg border p-3">
         <p class="text-xs text-muted-foreground">
           {{ $t("groups_fin_revenue") }}
@@ -49,7 +53,16 @@
       :is-loading="loading"
     />
 
-    <Card v-if="origin">
+    <Card v-if="loading">
+      <CardContent class="py-6">
+        <Skeleton class="h-5 w-40" />
+        <div class="mt-4 space-y-3">
+          <Skeleton v-for="n in 3" :key="n" class="h-8 w-full" />
+        </div>
+      </CardContent>
+    </Card>
+
+    <Card v-else-if="origin">
       <CardHeader>
         <CardTitle>{{ $t("groups_dre_origin") }}</CardTitle>
       </CardHeader>
@@ -125,6 +138,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import FinancialDonutCharts from "@/components/financial/FinancialDonutCharts.vue";
 import {
@@ -198,5 +212,9 @@ async function reload() {
 }
 
 watch(selectedRange, reload, { deep: true });
+watch(
+  () => props.group.id,
+  () => reload(),
+);
 onMounted(reload);
 </script>

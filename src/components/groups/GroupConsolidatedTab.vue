@@ -38,7 +38,14 @@
             <TableHead class="text-right">{{ $t("groups_fin_date") }}</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody v-if="rows.length">
+        <TableBody v-if="loading">
+          <TableRow v-for="n in 6" :key="n">
+            <TableCell colspan="3">
+              <Skeleton class="h-6 w-full" />
+            </TableCell>
+          </TableRow>
+        </TableBody>
+        <TableBody v-else-if="rows.length">
           <TableRow v-for="(row, index) in rows" :key="row.id ?? index">
             <TableCell>{{ row.name ?? row.title ?? "—" }}</TableCell>
             <TableCell>{{ row.status ?? "—" }}</TableCell>
@@ -50,7 +57,7 @@
         <TableBody v-else>
           <TableRow>
             <TableCell :colspan="3" class="py-8 text-center text-muted-foreground">
-              {{ loading ? "…" : $t("groups_consolidated_empty") }}
+              {{ $t("groups_consolidated_empty") }}
             </TableCell>
           </TableRow>
         </TableBody>
@@ -85,6 +92,7 @@
 import { onMounted, ref, watch } from "vue";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -169,6 +177,13 @@ watch(resource, () => {
   reload();
 });
 watch(page, reload);
+watch(
+  () => props.group.id,
+  () => {
+    page.value = 1;
+    reload();
+  },
+);
 
 onMounted(reload);
 </script>
