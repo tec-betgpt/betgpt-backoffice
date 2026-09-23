@@ -123,16 +123,43 @@
               <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
                 <Checkbox
                   id="sync_with_crms"
-                  :checked="form.metadata.triggers.includes('sync_with_crms')"
-                  @update:checked="(checked) => onTriggerChange('sync_with_crms', checked)"
-                />
-                <div class="grid gap-1.5 leading-none">
+                  class="data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground"
+                  :checked="crmParentState"
+                  @update:checked="onCrmParentChange"
+                >
+                  <Minus v-if="crmParentState === 'indeterminate'" class="h-4 w-4" />
+                  <Check v-else class="h-4 w-4" />
+                </Checkbox>
+                <div class="grid gap-1.5 leading-none w-full">
                   <Label for="sync_with_crms" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Sincronizar com CRMs
                   </Label>
                   <p class="text-xs text-muted-foreground">
-                    Os CRMs integrados nas fontes de dados com a sincronização ativa receberão automaticamente as informações, que serão sincronizadas com o perfil do usuário.
+                    Marca Active Campaign e Smartico. Dá para deixar só um deles, e a tag sincroniza apenas no CRM marcado.
                   </p>
+
+                  <div v-if="crmParentState !== false" class="mt-4 space-y-3 border-t pt-4">
+                    <div class="flex items-center space-x-2">
+                      <Checkbox
+                        id="sync_crm_active_campaign"
+                        :checked="crmSelection.activeCampaign"
+                        @update:checked="(checked) => onCrmChildChange('activeCampaign', checked)"
+                      />
+                      <Label for="sync_crm_active_campaign" class="text-sm font-medium leading-none">
+                        Active Campaign
+                      </Label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <Checkbox
+                        id="sync_crm_smartico"
+                        :checked="crmSelection.smartico"
+                        @update:checked="(checked) => onCrmChildChange('smartico', checked)"
+                      />
+                      <Label for="sync_crm_smartico" class="text-sm font-medium leading-none">
+                        Smartico
+                      </Label>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="flex items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
@@ -334,7 +361,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { Check, ChevronsUpDown, X, Plus, Loader2, TriangleAlert } from 'lucide-vue-next';
+import { Check, ChevronsUpDown, Minus, X, Plus, Loader2, TriangleAlert } from 'lucide-vue-next';
 import { toast } from "vue-sonner";
 import {
   Dialog,
@@ -580,6 +607,65 @@ const onNameInput = () => {
 const isSegmentsTriggerRequired = computed(() => {
   return form.value.metadata.triggers.includes('sync_with_protection_list');
 });
+
+const CRM_ACTIVE_CAMPAIGN = 'sync_crm_active_campaign';
+const CRM_SMARTICO = 'sync_crm_smartico';
+const CRM_TRIGGERS = ['sync_with_crms', CRM_ACTIVE_CAMPAIGN, CRM_SMARTICO];
+
+const crmSelection = computed(() => {
+  const triggers = form.value.metadata.triggers;
+  const activeCampaign = triggers.includes(CRM_ACTIVE_CAMPAIGN);
+  const smartico = triggers.includes(CRM_SMARTICO);
+
+  if (!activeCampaign && !smartico && triggers.includes('sync_with_crms')) {
+    return { activeCampaign: true, smartico: true };
+  }
+
+  return { activeCampaign, smartico };
+});
+
+const crmParentState = computed(() => {
+  const { activeCampaign, smartico } = crmSelection.value;
+  if (activeCampaign && smartico) return true;
+  if (activeCampaign || smartico) return 'indeterminate';
+  return false;
+});
+
+const setCrmTriggers = (activeCampaign: boolean, smartico: boolean) => {
+  const kept = form.value.metadata.triggers.filter((trigger) => !CRM_TRIGGERS.includes(trigger));
+  const next = [...kept];
+
+  if (activeCampaign || smartico) {
+    next.push('sync_with_crms');
+  }
+  if (activeCampaign) {
+    next.push(CRM_ACTIVE_CAMPAIGN);
+  }
+  if (smartico) {
+    next.push(CRM_SMARTICO);
+  }
+
+  form.value.metadata.triggers = next;
+};
+
+const onCrmParentChange = (checked: boolean | 'indeterminate') => {
+  if (checked === true) {
+    setCrmTriggers(true, true);
+    return;
+  }
+
+  setCrmTriggers(false, false);
+};
+
+const onCrmChildChange = (crm: 'activeCampaign' | 'smartico', checked: boolean | 'indeterminate') => {
+  const current = crmSelection.value;
+  const enabled = checked === true;
+
+  setCrmTriggers(
+    crm === 'activeCampaign' ? enabled : current.activeCampaign,
+    crm === 'smartico' ? enabled : current.smartico,
+  );
+};
 
 const onTriggerChange = (trigger: string, checked: boolean) => {
   if (checked) {
