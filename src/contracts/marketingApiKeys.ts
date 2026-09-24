@@ -9,9 +9,6 @@
  *   logs, telemetry ou query string).
  */
 
-import type { SpaApiResponse } from "@/contracts/api";
-export type { SpaApiResponse } from "@/contracts/api";
-
 // ---------------------------------------------------------------------------
 // Status, scopes e constantes de validação
 // ---------------------------------------------------------------------------
@@ -155,6 +152,13 @@ export interface UpdateMarketingApiKeyPayload {
 // ---------------------------------------------------------------------------
 // Envelope da SPA e erros estáveis
 // ---------------------------------------------------------------------------
+
+/** Envelope das rotas da SPA: `{ success, message, data }`. */
+export interface SpaApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data: T;
+}
 
 /**
  * Códigos estáveis retornados em `data.code` nas respostas de erro.

@@ -71,55 +71,28 @@
               :side-offset="4"
             >
               <ScrollArea class="max-h-[50vh] w-auto overflow-auto">
-                <template v-if="projectItems.length">
-                  <DropdownMenuLabel class="text-xs text-muted-foreground">
-                    Projetos
-                  </DropdownMenuLabel>
-                  <DropdownMenuItem
-                    v-for="project in projectItems"
-                    :key="project.id"
-                    class="gap-2 p-2"
-                    @click="setActiveGroupProject(project)"
+                <DropdownMenuLabel class="text-xs text-muted-foreground">
+                  Projetos
+                </DropdownMenuLabel>
+                <DropdownMenuItem
+                  v-for="project in workspaceStore.group_projects"
+                  :key="project.name"
+                  class="gap-2 p-2"
+                  @click="setActiveGroupProject(project)"
+                >
+                  <div
+                    class="flex size-6 items-center justify-center rounded-sm border"
                   >
-                    <div
-                      class="flex size-6 items-center justify-center rounded-sm border"
-                    >
-                      <Avatar shape="square" class="size-7">
-                        <AvatarImage v-if="project.logo" :src="project.logo" />
-                        <AvatarImage v-else src="/default-project.jpg" />
-                        <AvatarFallback class="uppercase text-white">
-                          {{ project.name.slice(0, 2) }}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    {{ project.name }}
-                  </DropdownMenuItem>
-                </template>
-
-                <template v-if="groupItems.length">
-                  <DropdownMenuLabel class="text-xs text-muted-foreground">
-                    Grupos
-                  </DropdownMenuLabel>
-                  <DropdownMenuItem
-                    v-for="group in groupItems"
-                    :key="group.id"
-                    class="gap-2 p-2"
-                    @click="setActiveGroupProject(group)"
-                  >
-                    <div
-                      class="flex size-6 items-center justify-center rounded-sm border"
-                    >
-                      <Avatar shape="square" class="size-7">
-                        <AvatarImage v-if="group.logo" :src="group.logo" />
-                        <AvatarImage v-else src="/default-project.jpg" />
-                        <AvatarFallback class="uppercase text-white">
-                          {{ group.name.slice(0, 2) }}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    {{ group.name }}
-                  </DropdownMenuItem>
-                </template>
+                    <Avatar shape="square" class="size-7">
+                      <AvatarImage v-if="project.logo" :src="project.logo" />
+                      <AvatarImage v-else src="/default-project.jpg" />
+                      <AvatarFallback class="uppercase text-white">
+                        {{ project.name.slice(0, 2) }}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  {{ project.name }}
+                </DropdownMenuItem>
               </ScrollArea>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -131,14 +104,14 @@
       <SidebarGroup>
         <SidebarGroupLabel>Menu</SidebarGroupLabel>
         <SidebarMenu>
-          <template v-for="item in displayMenu" :key="item.name">
+          <template v-for="item in navMenu" :key="item.name">
             <SidebarMenuItem v-if="!item.children && item.show">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger as-child>
                     <SidebarMenuButton
                       as-child
-                      :is-active="isMenuItemActive(item)"
+                      :is-active="route.name === item.url.name"
                       :tooltip="item.name"
                       @click="toggleCollapsed('')"
                     >
@@ -418,79 +391,6 @@ const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null,
 );
 
-const projectItems = computed(() =>
-  workspaceStore.group_projects.filter((item: any) => item.type !== "group"),
-);
-const groupItems = computed(() =>
-  workspaceStore.group_projects.filter((item: any) => item.type === "group"),
-);
-
-/** Perfis de gestão do Grupo (Membros/Convites). */
-const GROUP_MANAGER_ROLES = [
-  "member-proprietor",
-  "member-admin",
-  "member-developer",
-  "client-proprietor",
-  "client-admin",
-];
-
-const canManageGroupRoles = computed<boolean>(() =>
-  GROUP_MANAGER_ROLES.some((role) => hasRole(role)),
-);
-
-// --- Novo design: menu por tipo de workspace -------------------------------
-const isGroupWorkspace = computed(
-  () => activeGroupProject.value?.type === "group",
-);
-
-/** Id numérico do grupo a partir de `group_10` (fallback: project_id). */
-const groupNumericId = computed(() => {
-  const raw = String(
-    activeGroupProject.value?.id ??
-      activeGroupProject.value?.project_id ??
-      "",
-  );
-  const match = /group_(\d+)/.exec(raw);
-  if (match) return Number(match[1]);
-  const numeric = Number(raw.replace(/\D/g, ""));
-  return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
-});
-
-/** Telas do Grupo (abas do detalhe), usadas quando o workspace é um grupo. */
-const groupNavMenu = computed<any[]>(() => {
-  const id = groupNumericId.value;
-  // Qualquer membro do Grupo (inclusive client, sem acesso a projeto) enxerga
-  // as telas do Grupo; o backend autoriza por papel no Grupo.
-  const show = groupItems.value.length > 0;
-  // Membros/Convites: apenas perfis de gestão do Grupo.
-  const canManageGroup = show && canManageGroupRoles.value;
-  const item = (
-    name: string,
-    routeName: string,
-    icon: any,
-    visible: boolean = show,
-  ) => ({
-    name,
-    icon,
-    show: visible,
-    url: { name: routeName, params: { id } },
-  });
-
-  return [
-    item("Visão geral", "groups.overview", LayoutDashboard),
-    item("Consolidado", "groups.consolidated", SquareStack),
-    item("Analytics", "groups.analytics", ChartNoAxesColumnIncreasing),
-    item("Financeiro", "groups.financial", DollarSignIcon),
-    item("Projetos", "groups.projects", Building2),
-    item("Membros", "groups.members", Users2, canManageGroup),
-    item("Convites", "groups.invitations", Mail, canManageGroup),
-  ];
-});
-
-const displayMenu = computed<any[]>(() =>
-  isGroupWorkspace.value ? groupNavMenu.value : navMenu.value,
-);
-
 const logoSrc = computed(() =>
   getLogoSrc(mode.value === "dark", sidebarExpanded.value as boolean),
 );
@@ -658,8 +558,8 @@ const navMenu = computed(() => {
         canAccess("access-to-member-management"),
       children: [
         {
-          name: "Grupos",
-          url: { name: "groups" },
+          name: "Grupo de Projetos",
+          url: { name: "configurations.projects" },
           icon: LayoutList,
           show: canAccess("access-to-project-groups"),
         },
@@ -990,21 +890,6 @@ const navMenu = computed(() => {
   ];
 });
 
-/** Nomes das rotas do menu de projeto (telas padrão de projeto). */
-const projectRouteNames = computed<Set<string>>(() => {
-  const names = new Set<string>();
-  navMenu.value.forEach((item: any) => {
-    if (item.children?.length) {
-      item.children.forEach((child: any) => {
-        if (child.url?.name) names.add(child.url.name);
-      });
-    } else if (item.url?.name) {
-      names.add(item.url.name);
-    }
-  });
-  return names;
-});
-
 // Methods
 const getLogoSrc = (isDarkMode: boolean, isSidebarExpanded: boolean) => {
   const logos = isDarkMode ? DARK_LOGOS : LIGHT_LOGOS;
@@ -1046,16 +931,9 @@ const canAccess = (permissionName: string) => {
   );
 };
 
-const isMenuItemActive = (item: any) => {
-  if (route.name !== item.url?.name) return false;
-  const itemTab = item.url?.query?.tab;
-  if (itemTab === undefined) return true;
-  return (route.query.tab ?? "overview") === itemTab;
-};
-
 const getActiveMenuType = () => {
-  const activeGroup = displayMenu.value.find((group: any) => {
-    return group.children?.some((child: any) => child.url.name === route.name);
+  const activeGroup = navMenu.value.find((group) => {
+    return group.children?.some((child) => child.url.name === route.name);
   });
 
   return activeGroup?.type || "";
@@ -1142,59 +1020,24 @@ watch(
 watch(
   activeGroupProject,
   async () => {
-    if (!activeGroupProject.value) return;
+    if (activeGroupProject.value) {
+      const is = authStore.user?.roles
+        .filter(
+          (role: any) =>
+            role.pivot.project_id === activeGroupProject.value?.project_id,
+        )
+        .some(
+          (role: any) =>
+            route.meta.permissions?.includes?.(
+              role.permissions.map((p: any) => p.name),
+            ) ?? true,
+        );
 
-    // Workspace de Grupo: o acesso é pela participação no Grupo (owner/membro),
-    // sem exigir permissão/acesso a projeto (client pode não estar no projeto).
-    if (activeGroupProject.value.type === "group") {
-      const groupId = String(activeGroupProject.value.id);
-      const isGroupMember = (
-        (authStore.user as any)?.group_projects ?? []
-      ).some(
-        (groupProject: any) => String(groupProject.id) === groupId,
-      );
+      const hasAccess = authStore.user?.access_type === "member" || is;
 
-      if (!isGroupMember) await router.push({ name: "home" });
-      return;
+      if (!hasAccess) await router.push({ name: "home" });
     }
-
-    const is = authStore.user?.roles
-      .filter(
-        (role: any) =>
-          role.pivot.project_id === activeGroupProject.value?.project_id,
-      )
-      .some(
-        (role: any) =>
-          route.meta.permissions?.includes?.(
-            role.permissions.map((p: any) => p.name),
-          ) ?? true,
-      );
-
-    const hasAccess = authStore.user?.access_type === "member" || is;
-
-    if (!hasAccess) await router.push({ name: "home" });
   },
-  { immediate: true },
-);
-
-// Com workspace de grupo, as telas padrão de projeto ficam inacessíveis:
-// qualquer navegação para elas (inclusive por URL) volta para as telas do grupo.
-const enforceGroupWorkspace = () => {
-  if (!isGroupWorkspace.value) return;
-  if (typeof route.name !== "string") return;
-  if (!projectRouteNames.value.has(route.name)) return;
-
-  const id = groupNumericId.value;
-  if (id != null) {
-    router.replace({ name: "groups.overview", params: { id } });
-  } else {
-    router.replace({ name: "groups" });
-  }
-};
-
-watch(
-  [() => route.name, isGroupWorkspace, groupNumericId],
-  enforceGroupWorkspace,
   { immediate: true },
 );
 </script>
