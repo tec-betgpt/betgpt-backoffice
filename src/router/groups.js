@@ -2,9 +2,7 @@ import DefaultLayout from "@/layouts/default.vue";
 import Groups from "@/views/dashboard/Groups.vue";
 import GroupDetails from "@/views/dashboard/GroupDetails.vue";
 import GroupOverviewView from "@/views/dashboard/group/GroupOverviewView.vue";
-import GroupProjectsView from "@/views/dashboard/group/GroupProjectsView.vue";
-import GroupMembersView from "@/views/dashboard/group/GroupMembersView.vue";
-import GroupInvitationsView from "@/views/dashboard/group/GroupInvitationsView.vue";
+import GroupManagementView from "@/views/dashboard/group/GroupManagementView.vue";
 
 const groupMeta = {
   layout: DefaultLayout,
@@ -32,22 +30,10 @@ export default [
         meta: { ...groupMeta, title: "Visão geral" },
       },
       {
-        path: "projects",
-        name: "groups.projects",
-        component: GroupProjectsView,
-        meta: { ...groupMeta, title: "Projetos" },
-      },
-      {
-        path: "members",
-        name: "groups.members",
-        component: GroupMembersView,
-        meta: { ...groupMeta, title: "Membros" },
-      },
-      {
-        path: "invitations",
-        name: "groups.invitations",
-        component: GroupInvitationsView,
-        meta: { ...groupMeta, title: "Convites" },
+        path: "management",
+        name: "groups.management",
+        component: GroupManagementView,
+        meta: { ...groupMeta, title: "Gerenciamento" },
       },
     ],
   },

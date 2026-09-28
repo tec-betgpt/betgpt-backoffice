@@ -425,19 +425,6 @@ const groupItems = computed(() =>
   workspaceStore.group_projects.filter((item: any) => item.type === "group"),
 );
 
-/** Perfis de gestão do Grupo (Membros/Convites). */
-const GROUP_MANAGER_ROLES = [
-  "member-proprietor",
-  "member-admin",
-  "member-developer",
-  "client-proprietor",
-  "client-admin",
-];
-
-const canManageGroupRoles = computed<boolean>(() =>
-  GROUP_MANAGER_ROLES.some((role) => hasRole(role)),
-);
-
 // --- Novo design: menu por tipo de workspace -------------------------------
 const isGroupWorkspace = computed(
   () => activeGroupProject.value?.type === "group",
@@ -456,36 +443,47 @@ const groupNumericId = computed(() => {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
 });
 
-/** Telas do Grupo (abas do detalhe), usadas quando o workspace é um grupo. */
+/**
+ * Seção "Grupo" exibida em conjunto com o menu padrão de projeto quando o
+ * workspace ativo é um grupo. O gerenciamento (projetos, membros e convites)
+ * fica em uma única tela (`groups.management`).
+ */
 const groupNavMenu = computed<any[]>(() => {
   const id = groupNumericId.value;
   // Qualquer membro do Grupo (inclusive client, sem acesso a projeto) enxerga
   // as telas do Grupo; o backend autoriza por papel no Grupo.
   const show = groupItems.value.length > 0;
-  // Membros/Convites: apenas perfis de gestão do Grupo.
-  const canManageGroup = show && canManageGroupRoles.value;
-  const item = (
-    name: string,
-    routeName: string,
-    icon: any,
-    visible: boolean = show,
-  ) => ({
-    name,
-    icon,
-    show: visible,
-    url: { name: routeName, params: { id } },
-  });
 
   return [
-    item("Visão geral", "groups.overview", LayoutDashboard),
-    item("Projetos", "groups.projects", Building2),
-    item("Membros", "groups.members", Users2, canManageGroup),
-    item("Convites", "groups.invitations", Mail, canManageGroup),
+    {
+      name: "Grupo",
+      icon: LayoutDashboard,
+      type: "group",
+      show,
+      children: [
+        {
+          name: "Visão geral",
+          icon: LayoutDashboard,
+          show,
+          url: { name: "groups.overview", params: { id } },
+        },
+        {
+          name: "Gerenciamento",
+          icon: SquareStack,
+          show,
+          url: { name: "groups.management", params: { id } },
+        },
+      ],
+    },
   ];
 });
 
+// Em workspace de grupo, as telas padrão de projeto continuam no menu:
+// apenas acrescentamos a seção "Grupo".
 const displayMenu = computed<any[]>(() =>
-  isGroupWorkspace.value ? groupNavMenu.value : navMenu.value,
+  isGroupWorkspace.value
+    ? [...groupNavMenu.value, ...navMenu.value]
+    : navMenu.value,
 );
 
 const logoSrc = computed(() =>
@@ -987,21 +985,6 @@ const navMenu = computed(() => {
   ];
 });
 
-/** Nomes das rotas do menu de projeto (telas padrão de projeto). */
-const projectRouteNames = computed<Set<string>>(() => {
-  const names = new Set<string>();
-  navMenu.value.forEach((item: any) => {
-    if (item.children?.length) {
-      item.children.forEach((child: any) => {
-        if (child.url?.name) names.add(child.url.name);
-      });
-    } else if (item.url?.name) {
-      names.add(item.url.name);
-    }
-  });
-  return names;
-});
-
 // Methods
 const getLogoSrc = (isDarkMode: boolean, isSidebarExpanded: boolean) => {
   const logos = isDarkMode ? DARK_LOGOS : LIGHT_LOGOS;
@@ -1171,27 +1154,6 @@ watch(
 
     if (!hasAccess) await router.push({ name: "home" });
   },
-  { immediate: true },
-);
-
-// Com workspace de grupo, as telas padrão de projeto ficam inacessíveis:
-// qualquer navegação para elas (inclusive por URL) volta para as telas do grupo.
-const enforceGroupWorkspace = () => {
-  if (!isGroupWorkspace.value) return;
-  if (typeof route.name !== "string") return;
-  if (!projectRouteNames.value.has(route.name)) return;
-
-  const id = groupNumericId.value;
-  if (id != null) {
-    router.replace({ name: "groups.overview", params: { id } });
-  } else {
-    router.replace({ name: "groups" });
-  }
-};
-
-watch(
-  [() => route.name, isGroupWorkspace, groupNumericId],
-  enforceGroupWorkspace,
   { immediate: true },
 );
 </script>

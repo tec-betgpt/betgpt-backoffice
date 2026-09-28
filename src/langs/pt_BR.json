@@ -680,5 +680,6 @@
   "groups_section_projects": "Projetos vinculados ao grupo.",
   "groups_section_members": "Membros e permissões do grupo.",
   "groups_section_invitations": "Convites pendentes e revogação.",
-  "groups_status": "Status"
+  "groups_status": "Status",
+  "groups_section_management": "Projetos, membros e convites do grupo."
 }

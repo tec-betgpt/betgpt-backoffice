@@ -109,7 +109,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import moment from "moment";
-import { Building2, Users2, Mail } from "lucide-vue-next";
+import { Settings } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,22 +129,10 @@ const { canManageGroups } = useManagementProfile();
 
 const sections = [
   {
-    name: "groups.projects",
-    label: "groups_projects",
-    description: "groups_section_projects",
-    icon: Building2,
-  },
-  {
-    name: "groups.members",
-    label: "groups_members",
-    description: "groups_section_members",
-    icon: Users2,
-  },
-  {
-    name: "groups.invitations",
-    label: "groups_invitations",
-    description: "groups_section_invitations",
-    icon: Mail,
+    name: "groups.management",
+    label: "groups_management",
+    description: "groups_section_management",
+    icon: Settings,
   },
 ];
 
