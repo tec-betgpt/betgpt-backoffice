@@ -5,6 +5,7 @@ import {Project} from "@/contracts/project";
 import {UserProjectGroup} from "@/contracts/userProjectGroup";
 import {UserLogin} from "@/contracts/userLogin";
 import {UserMetadata} from "@/contracts/userMetadata";
+import type {WorkspaceGroupProject} from "@/contracts/workspace";
 
 export interface User {
   id: number
@@ -26,5 +27,6 @@ export interface User {
   emailChangeRequest: EmailChangeRequest|null
   preferences: UserPreference|null
   projectGroups: UserProjectGroup[]
+  group_projects?: WorkspaceGroupProject[]
   userLogins: UserLogin[]
 }

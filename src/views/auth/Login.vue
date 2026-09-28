@@ -172,6 +172,7 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { consumePostLoginRedirect } from "@/lib/postLoginRedirect";
 import Auth from "@/services/auth";
 import {
   ChevronRight,
@@ -254,7 +255,7 @@ const handleLoginResponse = async (response: any) => {
       }
     } catch {}
 
-    router.push("/");
+    router.push(consumePostLoginRedirect() ?? "/");
   }
 };
 

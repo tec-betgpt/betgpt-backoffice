@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import UserProjectGroup from "@/services/userProjectGroup";
 import type { DateRange } from "reka-ui";
+import type { WorkspaceGroupProject } from "@/contracts/workspace";
 
 interface ActiveGroupProject {
   id: string
@@ -15,7 +16,7 @@ interface ActiveGroupProject {
 export const useWorkspaceStore = defineStore("workspace", {
   state: () => ({
     activeGroupProject: null as ActiveGroupProject | null,
-    group_projects: [],
+    group_projects: [] as WorkspaceGroupProject[],
     lastAnnotationUpdate: null as number | null,
     date:null as DateRange|null,
     context: null as Array<string> | null,
