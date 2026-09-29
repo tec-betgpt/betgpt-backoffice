@@ -1,4 +1,4 @@
-import {Project} from "@/contracts/project";
+import {ProjectSummary} from "@/contracts/projectSummary";
 import {PlayerStatus} from "@/contracts/playerStatus";
 import {Deposit} from "@/contracts/deposit";
 import {Player} from "@/contracts/player";
@@ -17,6 +17,6 @@ export interface PostbackLog {
   loggable_id: number
   created_at: string
   updated_at: string
-  project: Project
+  project?: ProjectSummary | null
   loggable: Deposit|Player|Withdraw|PlayerLogin|PlayerStatus
 }

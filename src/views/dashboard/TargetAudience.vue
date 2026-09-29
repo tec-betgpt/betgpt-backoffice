@@ -175,6 +175,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import { projectColumnDef } from "@/components/custom/projectColumn";
 import TargetAudienceDialog from "@/components/target_audience/TargetAudienceDialog.vue";
 import TargetAudienceKPIs from "@/components/target_audience/TargetAudienceKPIs.vue";
 import TargetAudienceCharts from "@/components/target_audience/TargetAudienceCharts.vue";
@@ -200,6 +201,7 @@ const activeTab = ref('elevate');
 const audienceToDelete = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id ?? null);
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 let refreshInterval: any = null;
 const hasPermission = (permissionName: string) =>
   Boolean((authStore.user as any)?.roles?.some((role: any) =>
@@ -458,11 +460,12 @@ const deleteTargetAudience = async () => {
 
 // --- Colunas das Tabelas ---
 const columnHelper = createColumnHelper<any>();
-const columns = [
+const columns = computed(() => [
   columnHelper.accessor("name", {
     header: "Nome",
     cell: ({ row }) => h("div", { class: "font-medium text-slate-900 dark:text-slate-100 capitalize" }, row.getValue("name")),
   }),
+  ...(isGroupWorkspace.value ? [projectColumnDef()] : []),
   columnHelper.accessor("status", {
     header: "Status",
     cell: ({ row }) => {
@@ -544,7 +547,7 @@ const columns = [
       ]);
     },
   },
-];
+]);
 
 const metaColumnHelper = createColumnHelper<any>();
 const metaColumns = [

@@ -1,4 +1,4 @@
-import {Project} from "@/contracts/project";
+import {ProjectSummary} from "@/contracts/projectSummary";
 
 export interface WebhookLog {
   id: number
@@ -10,5 +10,5 @@ export interface WebhookLog {
   reason: string | null
   created_at: string | null
   updated_at: string | null
-  project: Project
+  project?: ProjectSummary | null
 }

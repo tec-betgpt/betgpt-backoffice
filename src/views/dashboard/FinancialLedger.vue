@@ -89,6 +89,7 @@
               <TableRow>
                 <TableHead class="w-10"></TableHead>
                 <TableHead v-if="columnVisibility.dataHora !== false">Data/hora</TableHead>
+                <TableHead v-if="isGroupWorkspace && columnVisibility.projeto !== false">Projeto</TableHead>
                 <TableHead v-if="columnVisibility.campanha !== false">Campanha</TableHead>
                 <TableHead v-if="columnVisibility.dispatch !== false">Dispatch</TableHead>
                 <TableHead v-if="columnVisibility.recurso !== false">Recurso</TableHead>
@@ -119,6 +120,13 @@
                     />
                   </TableCell>
                   <TableCell v-if="columnVisibility.dataHora !== false">{{ formatDateTime(entry.occurred_at) }}</TableCell>
+                  <TableCell v-if="isGroupWorkspace && columnVisibility.projeto !== false">
+                    <Badge v-if="entry.project" variant="secondary" class="gap-1.5 py-1 pr-2">
+                      <ProjectAvatar :name="entry.project.name" :logo-url="entry.project.logo_url" class="h-4 w-4" />
+                      <span class="max-w-[140px] truncate">{{ entry.project.name }}</span>
+                    </Badge>
+                    <span v-else class="text-muted-foreground">—</span>
+                  </TableCell>
                   <TableCell v-if="columnVisibility.campanha !== false">
                     <button
                       v-if="entry.campaign"
@@ -164,7 +172,10 @@
                           <span class="text-muted-foreground">idempotency_key:</span>
                           {{ (entry.metadata as Record<string, unknown> | null)?.idempotency_key ?? "—" }}
                         </span>
-                        <span v-if="entry.project_id">
+                        <span v-if="entry.project">
+                          <span class="text-muted-foreground">projeto:</span> {{ entry.project.name }}
+                        </span>
+                        <span v-else-if="entry.project_id">
                           <span class="text-muted-foreground">project_id:</span> {{ entry.project_id }}
                         </span>
                         <span>
@@ -239,11 +250,13 @@ import {
 } from "@/contracts/financialLedger";
 import { getLedger } from "@/services/financialLedger";
 import { useWorkspaceStore } from "@/stores/workspace";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 
 const route = useRoute();
 const router = useRouter();
 const workspaceStore = useWorkspaceStore();
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 
 const entries = ref<LedgerEntry[]>([]);
 const loading = ref(false);
@@ -257,8 +270,9 @@ const pages = ref({
   last: 0,
 });
 
-const ledgerColumns = [
+const ledgerColumns = computed(() => [
   { id: "dataHora", label: "Data/hora" },
+  ...(isGroupWorkspace.value ? [{ id: "projeto", label: "Projeto" }] : []),
   { id: "campanha", label: "Campanha" },
   { id: "dispatch", label: "Dispatch" },
   { id: "recurso", label: "Recurso" },
@@ -267,10 +281,10 @@ const ledgerColumns = [
   { id: "quantidade", label: "Quantidade" },
   { id: "valor", label: "Valor" },
   { id: "moeda", label: "Moeda" },
-];
+]);
 const columnVisibility = ref<Record<string, boolean>>({});
 const visibleLedgerColumns = computed(() =>
-  ledgerColumns.filter((c) => columnVisibility.value[c.id] !== false)
+  ledgerColumns.value.filter((c) => columnVisibility.value[c.id] !== false)
 );
 
 const filters = reactive<{

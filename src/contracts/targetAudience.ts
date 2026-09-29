@@ -1,5 +1,5 @@
 import {Segment} from "@/contracts/segment";
-import {Project} from "@/contracts/project";
+import {ProjectSummary} from "@/contracts/projectSummary";
 import {TargetAudienceConditionGroup} from "@/contracts/targetAudienceConditionGroup";
 import {TargetAudienceResult} from "@/contracts/targetAudienceResult";
 import {TargetAudienceSync} from "@/contracts/targetAudienceSync";
@@ -16,8 +16,8 @@ export interface TargetAudience {
   created_at: string
   updated_at: string
   deleted_at: string | null
+  project?: ProjectSummary | null
   $user: User
-  $project: Project
   $conditionGroups: TargetAudienceConditionGroup[]
   $result: TargetAudienceResult[]
   $segments: Segment[]
