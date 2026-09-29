@@ -154,7 +154,6 @@
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import { consumePostLoginRedirect } from "@/lib/postLoginRedirect";
 import Auth from '@/services/auth';
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { toast } from "vue-sonner";
@@ -255,7 +254,7 @@ const twoFactorLogin = async (code: Array<string>) => {
         }
       } catch {}
 
-      router.push(consumePostLoginRedirect() ?? "/");
+      router.push("/");
     } else {
       toast.error("Erro", { description: "Resposta inesperada do servidor." });
     }

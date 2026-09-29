@@ -87,7 +87,6 @@
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "@/stores/auth"
-import { consumePostLoginRedirect } from "@/lib/postLoginRedirect"
 import { toast } from "vue-sonner";
 import { useColorMode } from "@vueuse/core"
 import { Loader2 as LucideSpinner } from "lucide-vue-next"
@@ -132,7 +131,7 @@ async function saveQuestions() {
     })
     authStore.setRequiresSecurityQuestions(false)
     toast("Sucesso", { description: "Perguntas de segurança salvas com sucesso." })
-    router.push(consumePostLoginRedirect() ?? "/")
+    router.push("/")
   } catch {
     toast.error("Erro", { description: "Erro ao salvar perguntas de segurança." })
   } finally {

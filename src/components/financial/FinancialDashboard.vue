@@ -46,23 +46,59 @@
       </CardContent>
     </Card>
 
-    <FinancialDonutCharts
-      :sector="dashboardData.charts.expenses_by_sector"
-      :category="dashboardData.charts.expenses_by_category"
-      :is-loading="isLoading"
-      empty-label="Nenhuma despesa encontrada no período."
-    />
+    <div class="grid gap-4 lg:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Despesas por Setor</CardTitle>
+          <CardDescription>Distribuição percentual das saídas por setor.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Skeleton v-if="isLoading" class="h-80 w-full" />
+          <div v-else-if="!sectorSeries.length" class="flex h-80 items-center justify-center text-sm text-muted-foreground">
+            Nenhuma despesa por setor encontrada no período.
+          </div>
+          <apexchart
+            v-else
+            type="donut"
+            height="400"
+            :options="sectorChartOptions"
+            :series="sectorSeries"
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Despesas por Categoria</CardTitle>
+          <CardDescription>Distribuição percentual das saídas por categoria.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Skeleton v-if="isLoading" class="h-80 w-full" />
+          <div v-else-if="!categorySeries.length" class="flex h-80 items-center justify-center text-sm text-muted-foreground">
+            Nenhuma despesa por categoria encontrada no período.
+          </div>
+          <apexchart
+            v-else
+            type="donut"
+            height="400"
+            :options="categoryChartOptions"
+            :series="categorySeries"
+          />
+        </CardContent>
+      </Card>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import type { DateRange } from "reka-ui";
+import VueApexCharts from "vue3-apexcharts";
+import type { ApexOptions } from "apexcharts";
 import financialTransactionsApi from "@/services/financialTransactions";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import FinancialDonutCharts from "@/components/financial/FinancialDonutCharts.vue";
 
 interface DashboardChartItem {
   label: string;
@@ -87,6 +123,8 @@ interface DashboardResponse {
     expenses_by_category: DashboardChartItem[];
   };
 }
+
+const apexchart = VueApexCharts;
 
 const props = defineProps<{
   selectedRange: DateRange;
@@ -119,6 +157,61 @@ const formatDateForAPI = (date: DateRange["start"]) => {
   return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
 };
 
+const buildChartOptions = (items: DashboardChartItem[]): ApexOptions => ({
+  chart: {
+    type: "donut",
+    toolbar: { show: false },
+    animations: { enabled: true },
+  },
+  labels: items.map((item) => item.label),
+  colors: ["#2563eb", "#16a34a", "#f97316", "#dc2626", "#7c3aed", "#0891b2", "#ca8a04", "#db2777"],
+  dataLabels: {
+    enabled: true,
+    formatter: (_value, options) => `${items[options.seriesIndex]?.percentage ?? 0}%`,
+  },
+  legend: {
+    position: "bottom",
+    formatter: (seriesName, options) => {
+      const percentage = items[options.seriesIndex]?.percentage ?? 0;
+      return `${seriesName} - ${percentage}%`;
+    },
+  },
+  stroke: {
+    width: 2,
+    colors: ["#ffffff"],
+  },
+  tooltip: {
+    y: {
+      formatter: (value, options) => {
+        const percentage = items[options.seriesIndex]?.percentage ?? 0;
+        return `${formatCurrency(value)} (${percentage}%)`;
+      },
+    },
+  },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: "68%",
+        labels: {
+          show: true,
+          value: {
+            formatter: (value) => formatCurrency(Number(value)),
+          },
+          total: {
+            show: true,
+            label: "Total",
+            formatter: () => formatCurrency(items.reduce((total, item) => total + item.value, 0)),
+          },
+        },
+      },
+    },
+  },
+});
+
+const sectorSeries = computed(() => dashboardData.value.charts.expenses_by_sector.map((item) => item.value));
+const categorySeries = computed(() => dashboardData.value.charts.expenses_by_category.map((item) => item.value));
+const sectorChartOptions = computed(() => buildChartOptions(dashboardData.value.charts.expenses_by_sector));
+const categoryChartOptions = computed(() => buildChartOptions(dashboardData.value.charts.expenses_by_category));
 const balanceClass = computed(() => dashboardData.value.consolidated.is_profitable ? "text-emerald-600" : "text-red-500");
 
 const fetchDashboard = async () => {
