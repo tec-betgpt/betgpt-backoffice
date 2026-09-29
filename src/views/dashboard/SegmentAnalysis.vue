@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import VueApexCharts from "vue3-apexcharts";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -43,8 +44,19 @@ type AnalysisPayload = {
   funnel: Array<{ key: string; label: string; count: number; pct: number }>;
   retention: { d7: number; d14: number; d30: number };
   activity: Array<{ date: string; players: number; depositors: number; deposits_amount: number }>;
-  meta?: Record<string, string>;
+  friction?: Record<string, number>;
+  meta?: {
+    query_ms?: number;
+    churn_days?: number;
+    membership?: string;
+    read_plan?: string[];
+    [key: string]: unknown;
+  };
 };
+
+const props = defineProps<{ version?: string }>();
+const route = useRoute();
+const isV2 = computed(() => props.version === "v2" || route.name === "segment-analysis-v2");
 
 const apexchart = VueApexCharts;
 const workspaceStore = useWorkspaceStore();
@@ -64,6 +76,28 @@ const isLoadingSources = ref(false);
 const isLoading = ref(false);
 const analysis = ref<AnalysisPayload | null>(null);
 const hasLoadedOnce = ref(false);
+const churnDays = ref("30");
+const screenMs = ref<number | null>(null);
+const churnWindow = computed(() => Number(analysis.value?.meta?.churn_days ?? churnDays.value) || 30);
+const readPlan = computed(() => {
+  const plan = analysis.value?.meta?.read_plan;
+  return Array.isArray(plan) ? plan.join(", ") : "";
+});
+const frictionCards = computed(() => {
+  const friction = analysis.value?.friction;
+  if (!friction) return [];
+
+  return [
+    { label: "Depósitos gerados", value: friction.deposits_generated ?? 0 },
+    { label: "Depósitos aprovados na origem", value: friction.deposits_generated_approved ?? 0 },
+    { label: "Depósitos pendentes", value: friction.deposits_generated_pending ?? 0 },
+    { label: "Depósitos em outro status", value: friction.deposits_generated_other ?? 0 },
+    { label: "Saques gerados", value: friction.withdraws_generated ?? 0 },
+    { label: "Saques aprovados na origem", value: friction.withdraws_generated_approved ?? 0 },
+    { label: "Saques pendentes", value: friction.withdraws_generated_pending ?? 0 },
+    { label: "Saques em outro status", value: friction.withdraws_generated_other ?? 0 },
+  ];
+});
 let analysisRequestSeq = 0;
 
 const isDark = ref(document.documentElement.classList.contains("dark"));
@@ -165,7 +199,11 @@ const performanceCards = computed(() => {
     { title: "Usuários Multi-Depósito", value: `${numberLocale(p.multi_deposit_users_pct)}%`, hint: `${numberLocale(p.multi_depositors_period)} no período` },
     { title: "Frequência Média de Depósitos", value: numberLocale(p.avg_deposit_frequency), hint: "Depósitos por depositante" },
     { title: "Tempo de Vida Médio", value: `${numberLocale(p.avg_lifetime_days)} dias`, hint: "1º → último depósito" },
-    { title: "Taxa de Churn (30d)", value: `${numberLocale(p.churn_rate_30d)}%`, hint: "Sem atividade nos últimos 30 dias" },
+    {
+      title: `Taxa de Churn (${churnWindow.value}d)`,
+      value: `${numberLocale(p.churn_rate_30d)}%`,
+      hint: `Sem atividade nos últimos ${churnWindow.value} dias`,
+    },
     { title: "Receita Diária Média", value: currencyFilter(p.avg_daily_revenue), hint: "Por jogador ativo" },
   ];
 });
@@ -335,23 +373,31 @@ async function applyFilter() {
   const requestedSourceId = Number(sourceId.value);
   const requestedStart = selectedRange.value.start?.toString();
   const requestedEnd = selectedRange.value.end?.toString();
+  const startedAt = performance.now();
 
   isLoading.value = true;
   hasLoadedOnce.value = true;
   analysis.value = null;
+  screenMs.value = null;
 
   try {
-    const { data } = await Analytics.segmentAnalysis({
+    const params = {
       filter_id: workspaceStore.activeGroupProject.id,
       start_date: requestedStart,
       end_date: requestedEnd,
       source_type: requestedSourceType,
       source_id: requestedSourceId,
-    });
+      ...(isV2.value ? { churn_days: Number(churnDays.value) } : {}),
+    };
+    const { data } = isV2.value
+      ? await Analytics.segmentAnalysisV2(params)
+      : await Analytics.segmentAnalysis(params);
 
     if (seq !== analysisRequestSeq) return;
 
     analysis.value = data as AnalysisPayload;
+    await nextTick();
+    screenMs.value = Math.round(performance.now() - startedAt);
   } catch (error: any) {
     if (seq !== analysisRequestSeq) return;
     console.error(error);
@@ -381,6 +427,7 @@ watch(
     sourceType.value,
     selectedRange.value.start?.toString?.() ?? "",
     selectedRange.value.end?.toString?.() ?? "",
+    isV2.value ? churnDays.value : "",
   ],
   () => {
     applyFilter();
@@ -388,14 +435,17 @@ watch(
 );
 
 useScreenContext(
-  "Análise de Segmentos — métricas de depósito, retenção, LTV e funil por segmento ou tag",
+  "Análise de Segmentos: métricas de depósito, retenção, LTV e funil por segmento ou tag",
   () => ({
     source_type: sourceType.value,
     source_id: sourceId.value,
     start_date: selectedRange.value.start ? selectedRange.value.start.toString() : "",
     end_date: selectedRange.value.end ? selectedRange.value.end.toString() : "",
+    version: isV2.value ? "v2" : "v1",
+    churn_days: isV2.value ? churnDays.value : "",
+    api: isV2.value ? "/v1/analytics/segment-analysis-v2" : "/v1/analytics/segment-analysis",
   }),
-  "/v1/analytics/segment-analysis",
+  isV2.value ? "/v1/analytics/segment-analysis-v2" : "/v1/analytics/segment-analysis",
 );
 </script>
 
@@ -403,9 +453,13 @@ useScreenContext(
   <div class="segment-analysis-page space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="grid gap-4 lg:grid-cols-[1fr_auto] items-start">
       <div>
-        <h2 class="text-2xl font-bold tracking-tight">Análise de Segmentos</h2>
+        <h2 class="text-2xl font-bold tracking-tight">{{ isV2 ? "Análise de Segmentos v2" : "Análise de Segmentos" }}</h2>
         <p class="text-muted-foreground">
-          Escolha um segmento ou uma tag e o período para montar o panorama de jogadores, depósitos, retenção e LTV.
+          {{
+            isV2
+              ? "Mesmas métricas da v1, lidas dos fatos consolidados. O tempo da consulta e da tela aparece no rodapé."
+              : "Escolha um segmento ou uma tag e o período para montar o panorama de jogadores, depósitos, retenção e LTV."
+          }}
         </p>
       </div>
 
@@ -438,6 +492,22 @@ useScreenContext(
         <div class="space-y-1.5">
           <Label>Período</Label>
           <CustomDatePicker v-model="selectedRange" />
+        </div>
+
+        <div v-if="isV2" class="space-y-1.5 min-w-[120px]">
+          <Label>Churn</Label>
+          <Select v-model="churnDays">
+            <SelectTrigger>
+              <SelectValue placeholder="30 dias" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">7 dias</SelectItem>
+              <SelectItem value="14">14 dias</SelectItem>
+              <SelectItem value="30">30 dias</SelectItem>
+              <SelectItem value="60">60 dias</SelectItem>
+              <SelectItem value="90">90 dias</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>
@@ -614,8 +684,28 @@ useScreenContext(
         </CardContent>
       </Card>
 
+      <Card v-if="isV2 && analysis?.friction">
+        <CardHeader>
+          <CardTitle>Atrito de geração</CardTitle>
+          <CardDescription>
+            Cada lançamento entra no dia em que nasceu (data.id). O status é o último evento, com até 3 dias para atualizar. Os KPIs de depósito continuam no dia da aprovação.
+          </CardDescription>
+        </CardHeader>
+        <CardContent class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div v-for="item in frictionCards" :key="item.label" class="rounded-lg border p-4">
+            <p class="text-xs text-muted-foreground mb-2">{{ item.label }}</p>
+            <p class="text-2xl font-bold">{{ numberLocale(item.value) }}</p>
+          </div>
+        </CardContent>
+      </Card>
+
       <p v-if="hasLoadedOnce && analysis?.meta?.membership" class="text-xs text-muted-foreground">
         {{ analysis.meta.membership }}
+      </p>
+      <p v-if="isV2 && analysis" class="text-xs text-muted-foreground">
+        Consulta: {{ numberLocale(Number(analysis.meta?.query_ms ?? 0)) }} ms.
+        Tela: {{ numberLocale(screenMs ?? 0) }} ms.
+        <span v-if="readPlan"> Leitura: {{ readPlan }}.</span>
       </p>
     </template>
   </div>

@@ -442,6 +442,12 @@ const navMenu = computed(() => {
           show: canAccess("access-to-reports"),
         },
         {
+          name: "Análise de Segmentos v2",
+          url: { name: "segment-analysis-v2" },
+          icon: PieChart,
+          show: canAccess("access-to-reports"),
+        },
+        {
           name: "Publico Alvo",
           url: { name: "target-audiences" },
           icon: Target,

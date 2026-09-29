@@ -59,4 +59,13 @@ export default {
     const { data } = await api.get('/analytics/segment-analysis', { params })
     return data
   },
+
+  /**
+   * GET /v1/analytics/segment-analysis-v2
+   * Mesmas métricas, lidas dos fatos. Aceita churn_days (1 a 365).
+   */
+  async segmentAnalysisV2 (params = {}) {
+    const { data } = await api.get('/analytics/segment-analysis-v2', { params })
+    return data
+  },
 }
