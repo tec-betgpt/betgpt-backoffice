@@ -41,12 +41,11 @@
             <template v-else>
               <TableRow v-for="annotation in projectAnnotations" :key="annotation.id">
                 <TableCell v-if="activeGroupProjectType == 'group' && columnVisibility.logo !== false">
-                  <Avatar class="h-10 w-10 rounded-lg">
-                    <AvatarImage :src="annotation.project.logo_url || undefined" />
-                    <AvatarFallback class="p-10 rounded-lg">
-                      {{ annotation.project.name.charAt(0) }}{{ annotation.project.name.charAt(1) }}
-                    </AvatarFallback>
-                  </Avatar>
+                  <ProjectAvatar
+                    :name="annotation.project.name"
+                    :logo-url="annotation.project.logo_url"
+                    class="h-10 w-10 rounded-lg"
+                  />
                 </TableCell>
                 <TableCell v-if="columnVisibility.titulo !== false" class="font-medium">{{ annotation.title }}</TableCell>
                 <TableCell v-if="columnVisibility.recurso !== false">{{ annotation.resource || "N/A" }}</TableCell>
@@ -148,7 +147,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import { Eye, Pencil, Plus } from "lucide-vue-next";
 import moment from "moment";
 import { ProjectAnnotation } from "@/contracts/projectAnnotation";

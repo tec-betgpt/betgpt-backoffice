@@ -42,16 +42,12 @@
                 <div
                   class="flex aspect-square size-8 items-center justify-center rounded-lg bg-black text-sidebar-primary-foreground"
                 >
-                  <Avatar shape="square" class="size-7">
-                    <AvatarImage
-                      v-if="activeGroupProject && activeGroupProject.logo"
-                      :src="activeGroupProject.logo"
-                    />
-                    <AvatarImage v-else src="/default-project.jpg" />
-                    <AvatarFallback class="uppercase text-white">
-                      {{ activeGroupProject.name.slice(0, 2) }}
-                    </AvatarFallback>
-                  </Avatar>
+                  <ProjectAvatar
+                    :name="activeGroupProject.name"
+                    :logo-url="activeGroupProject.logo"
+                    class="size-7"
+                    fallback-class="text-white"
+                  />
                 </div>
                 <div class="grid flex-1 text-left text-sm leading-tight">
                   <span class="truncate font-semibold">
@@ -83,13 +79,12 @@
                   <div
                     class="flex size-6 items-center justify-center rounded-sm border"
                   >
-                    <Avatar shape="square" class="size-7">
-                      <AvatarImage v-if="project.logo" :src="project.logo" />
-                      <AvatarImage v-else src="/default-project.jpg" />
-                      <AvatarFallback class="uppercase text-white">
-                        {{ project.name.slice(0, 2) }}
-                      </AvatarFallback>
-                    </Avatar>
+                    <ProjectAvatar
+                      :name="project.name"
+                      :logo-url="project.logo"
+                      class="size-7"
+                      fallback-class="text-white"
+                    />
                   </div>
                   {{ project.name }}
                 </DropdownMenuItem>
@@ -263,6 +258,7 @@
 
 <script setup lang="ts">
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
