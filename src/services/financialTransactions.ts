@@ -16,6 +16,11 @@ interface IndexResponse {
     updated_at: string
     project_id: number | null
     group_id: number | null
+    project?: {
+      id: number
+      name: string
+      logo_url: string | null
+    } | null
     sector: {
       id: number
       name: string

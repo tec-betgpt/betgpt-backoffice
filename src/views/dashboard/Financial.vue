@@ -32,7 +32,6 @@
             :on-update-type="(value) => type = value"
             :on-update-cost-center-id="(value) => costCenterId = value"
             :on-update-sector-id="(value) => sectorId = value"
-            :project-id="activeGroupProjectId"
             :reload-financials-after-mutation="reloadFinancialsAfterMutation"
             :delete-financial="deleteFinancial"
             :costs="costs"
@@ -87,6 +86,11 @@ interface FinancialData {
   type: string;
   createdByName: string;
   project_id: number | null;
+  project: {
+    id: number;
+    name: string;
+    logo_url: string | null;
+  } | null;
 }
 
 interface FinancialGlobalTotals {
@@ -188,6 +192,7 @@ const fetchFinancials = async (
         type: financial.type,
         createdByName,
         project_id: financial.project_id ?? null,
+        project: financial.project ?? null,
       };
     });
 
