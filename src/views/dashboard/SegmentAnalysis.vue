@@ -373,7 +373,7 @@ async function applyFilter() {
   const requestedSourceId = Number(sourceId.value);
   const requestedStart = selectedRange.value.start?.toString();
   const requestedEnd = selectedRange.value.end?.toString();
-  const startedAt = performance.now();
+  const startedAt = Date.now();
 
   isLoading.value = true;
   hasLoadedOnce.value = true;
@@ -397,7 +397,7 @@ async function applyFilter() {
 
     analysis.value = data as AnalysisPayload;
     await nextTick();
-    screenMs.value = Math.round(performance.now() - startedAt);
+    screenMs.value = Date.now() - startedAt;
   } catch (error: any) {
     if (seq !== analysisRequestSeq) return;
     console.error(error);
