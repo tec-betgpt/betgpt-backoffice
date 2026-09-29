@@ -192,6 +192,7 @@ export interface FinancialTransactionTableItem {
   cost_center_id: number | null;
   sectorId: number | null;
   type: "cost" | "revenue" | string;
+  project_id?: number | null;
 }
 
 interface FinancialCostOption {

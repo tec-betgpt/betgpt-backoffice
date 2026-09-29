@@ -16,6 +16,14 @@
 
       <form @submit.prevent="onSubmit()">
         <div class="grid gap-4 py-2">
+          <div class="grid items-center gap-1.5">
+            <Label for="project_scope">Projeto</Label>
+            <ProjectScopeSelect v-model="selectedScope" />
+            <p class="text-xs mt-1 text-right text-muted-foreground">
+              Obrigatório
+            </p>
+          </div>
+
           <div class="gap-1.5">
             <Label for="cost_center_id">Centro de Custo</Label>
             <div class="flex flex-row gap-2">
@@ -171,6 +179,7 @@ import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import financialTransactionsApi from "@/services/financialTransactions";
 import DatePicker from "@/components/custom/DatePicker.vue";
+import ProjectScopeSelect from "@/components/financial/ProjectScopeSelect.vue";
 import { Dialog } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "vue-sonner";
@@ -186,10 +195,13 @@ const props = defineProps<{
   sectors: Array<{ id: number; name: string }>,
 }>();
 
-const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
+const workspaceStore = useWorkspaceStore();
+const activeGroupProject = computed(() => workspaceStore.activeGroupProject);
+const isGroupWorkspace = computed(() => activeGroupProject.value?.type === "group");
 const isDialog = ref(false);
 const loading = ref(false);
 const sectorId = ref<number | null>(null);
+const selectedScope = ref("group");
 const financialForm = ref({
   cost_center_id: null,
   type: "",
@@ -225,15 +237,22 @@ const formatDateForApi = (value: Date) => {
 };
 
 const openDialog = () => {
-  const typeProject = useWorkspaceStore().activeGroupProject?.type
+  selectedScope.value = "group";
+  isDialog.value = true;
+}
 
-  if (typeProject === 'project') {
-    isDialog.value = true;
-    return;
+const scopePayload = (): { project_id: number } | { group_id: number } => {
+  if (!isGroupWorkspace.value) {
+    return { project_id: Number(activeGroupProject.value?.project_id) };
   }
 
-  toast.error("Apenas projetos", { description: "Selecione um Projeto invés de Grupo" });
-}
+  if (selectedScope.value === "group") {
+    const groupNumericId = Number(String(activeGroupProject.value?.id ?? "").split("_")[1] ?? 0);
+    return { group_id: groupNumericId };
+  }
+
+  return { project_id: Number(selectedScope.value) };
+};
 
 watch(
   () => financialForm.value.cost_center_id,
@@ -263,7 +282,7 @@ const onSubmit = async () => {
   try {
     await financialTransactionsApi.store({
       ...financialForm.value,
-      project_id: parseInt(activeGroupProjectId!.split("_")[1]),
+      ...scopePayload(),
       ...(sectorId.value != null ? { sector_id: sectorId.value } : {}),
     });
 
@@ -271,8 +290,15 @@ const onSubmit = async () => {
     toast("Novo Custo Adicionado!", { description: "Registro salvo com sucesso" });
 
     await props.reload();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao salvar transação financeira:", error);
+    if (error?.response?.status === 403) {
+      toast.error("Sem permissão", { description: "Você não tem permissão para lançar neste projeto." });
+    } else {
+      toast.error("Erro ao salvar", {
+        description: error?.response?.data?.message ?? "Não foi possível salvar o registro.",
+      });
+    }
   }
 
   loading.value = false;
@@ -280,6 +306,7 @@ const onSubmit = async () => {
 
 const reset = () => {
   sectorId.value = null;
+  selectedScope.value = "group";
   financialForm.value = {
     cost_center_id: null,
     type: "",

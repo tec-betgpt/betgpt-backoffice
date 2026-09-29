@@ -86,6 +86,7 @@ interface FinancialData {
   percentage: string;
   type: string;
   createdByName: string;
+  project_id: number | null;
 }
 
 interface FinancialGlobalTotals {
@@ -186,6 +187,7 @@ const fetchFinancials = async (
         percentage: financial.percentage,
         type: financial.type,
         createdByName,
+        project_id: financial.project_id ?? null,
       };
     });
 

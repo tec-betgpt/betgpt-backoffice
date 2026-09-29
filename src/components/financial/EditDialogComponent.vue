@@ -17,6 +17,11 @@
       <form @submit.prevent="onSubmit()">
         <div class="grid gap-4 py-4">
           <div class="grid items-center gap-1.5">
+            <Label for="edit_project_scope">Projeto</Label>
+            <ProjectScopeSelect v-model="selectedScope" />
+          </div>
+
+          <div class="grid items-center gap-1.5">
             <Label for="cost_center_id">Centro de Custo</Label>
 
             <div class="flex flex-row gap-2">
@@ -146,7 +151,9 @@ import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { Dialog } from "@/components/ui/dialog";
 import DatePicker from "@/components/custom/DatePicker.vue";
+import ProjectScopeSelect from "@/components/financial/ProjectScopeSelect.vue";
 import FinancialTransactions from "@/services/financialTransactions";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 interface FinancialData {
   id: number;
@@ -159,6 +166,7 @@ interface FinancialData {
   description: string;
   percentage: string;
   type: string;
+  project_id?: number | null;
 }
 
 const props = withDefaults(
@@ -182,6 +190,10 @@ const isDialog = ref(false);
 const loading = ref(false);
 const date = ref(new Date());
 const sectorId = ref<number | null>(props.row.sectorId ?? null);
+const selectedScope = ref("group");
+
+const workspaceStore = useWorkspaceStore();
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 
 const displayAmount = computed({
   get() {
@@ -228,24 +240,39 @@ const onSubmit = async () => {
   financialForm.value.date = formatDateForApi(date.value);
   const cost = props.costs.find((c) => c.id === financialForm.value.cost_center_id);
 
+  const payload: Record<string, unknown> = {
+    cost_center_id: financialForm.value.cost_center_id,
+    sector_id: sectorId.value,
+    type: financialForm.value.type,
+    category_type: financialForm.value.category_type,
+    percentage: financialForm.value.percentage,
+    amount: financialForm.value.amount,
+    date: financialForm.value.date,
+    description: financialForm.value.description,
+  };
+
+  // O update aceita apenas project_id (nunca group_id): projeto selecionado envia o id,
+  // "Grupo (sem projeto)" omite o campo e mantém o escopo atual.
+  if (isGroupWorkspace.value && selectedScope.value !== "group") {
+    payload.project_id = Number(selectedScope.value);
+  }
+
   try {
-    await FinancialTransactions.update(financialForm.value.id, {
-      cost_center_id: financialForm.value.cost_center_id,
-      sector_id: sectorId.value,
-      type: financialForm.value.type,
-      category_type: financialForm.value.category_type,
-      percentage: financialForm.value.percentage,
-      amount: financialForm.value.amount,
-      date: financialForm.value.date,
-      description: financialForm.value.description,
-    });
+    await FinancialTransactions.update(financialForm.value.id, payload);
 
     isDialog.value = false;
     toast("Custo Atualizado!", { description: "Registro atualizado com sucesso" });
 
     await props.reload();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao salvar transação financeira:", error);
+    if (error?.response?.status === 403) {
+      toast.error("Sem permissão", { description: "Você não tem permissão para mover o registro para este projeto." });
+    } else {
+      toast.error("Erro ao atualizar", {
+        description: error?.response?.data?.message ?? "Não foi possível atualizar o registro.",
+      });
+    }
   }
 
   loading.value = false;
@@ -257,6 +284,7 @@ watch(isDialog, (open) => {
   }
   financialForm.value = { ...props.row };
   sectorId.value = props.row.sectorId ?? null;
+  selectedScope.value = props.row.project_id != null ? String(props.row.project_id) : "group";
   date.value = props.row.date ? new Date(props.row.date) : new Date();
 });
 
