@@ -54,6 +54,9 @@
                   <component :is="sortIcon('referrer_id')" class="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
+              <TableHead v-if="isGroupWorkspace && columnVisibility.projetos !== false">
+                Projetos
+              </TableHead>
               <TableHead v-if="columnVisibility.criadoEm !== false" class="text-right">
                 <Button class="p-0" variant="ghost" @click="handleSort('created_at')">
                   Criado em
@@ -95,6 +98,41 @@
                   <span v-else>{{ row.referrer_id }}</span>
                 </template>
                 <span v-else class="text-muted-foreground">—</span>
+              </TableCell>
+              <TableCell v-if="isGroupWorkspace && columnVisibility.projetos !== false">
+                <div class="flex items-center flex-wrap gap-1">
+                  <template v-if="playerProjects(row).length">
+                    <Badge
+                      v-for="project in playerProjects(row).slice(0, 3)"
+                      :key="project.id"
+                      variant="secondary"
+                      class="gap-1.5 py-1 pr-2"
+                    >
+                      <ProjectAvatar :name="project.name" :logo-url="project.logo_url" class="h-4 w-4" />
+                      <span class="max-w-[140px] truncate">{{ project.name }}</span>
+                    </Badge>
+                    <DropdownMenu v-if="playerProjects(row).length > 3">
+                      <DropdownMenuTrigger as-child>
+                        <Button size="sm" variant="secondary" class="py-0">
+                          +{{ playerProjects(row).length - 3 }}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent class="w-56" align="start">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            v-for="project in playerProjects(row).slice(3)"
+                            :key="project.id"
+                            class="gap-2"
+                          >
+                            <ProjectAvatar :name="project.name" :logo-url="project.logo_url" class="h-4 w-4" />
+                            {{ project.name }}
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </template>
+                  <span v-else class="text-muted-foreground">—</span>
+                </div>
               </TableCell>
               <TableCell v-if="columnVisibility.criadoEm !== false" class="text-right text-nowrap">
                 {{ $moment(row.created_at).format('DD/MM/YYYY HH:mm') }}h
@@ -167,6 +205,16 @@ import EditDialogComponent from "@/components/players/EditDialogComponent.vue";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 import SearchableCombobox from "@/components/custom/SearchableCombobox.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { PlayerProjectSummary } from "@/contracts/playerProjectSummary";
 import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
@@ -194,6 +242,7 @@ type Player = {
   referrer_id?: string | null;
   external_id?: string | null;
   referrer_player?: ReferrerPlayerSnippet | null;
+  projects?: PlayerProjectSummary[];
   [key: string]: unknown;
 };
 
@@ -216,6 +265,9 @@ const direction = ref(false);
 const perPage = ref(15);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === 'group');
+const playerProjects = (row: Player): PlayerProjectSummary[] =>
+  Array.isArray(row.projects) ? row.projects : [];
 const searchInput = ref('');
 
 type ExtraColumn = {
@@ -272,19 +324,20 @@ const extraColumns: ExtraColumn[] = [
   { id: "conset", label: "Consentimento", key: "conset", type: "boolean", hiddenByDefault: true },
 ];
 
-const tableColumns = [
+const tableColumns = computed(() => [
   { id: "nome", label: "Nome" },
   { id: "email", label: "E-mail" },
   { id: "referrerId", label: "Referrer ID" },
+  ...(isGroupWorkspace.value ? [{ id: "projetos", label: "Projetos" }] : []),
   { id: "criadoEm", label: "Criado em" },
   ...extraColumns.map(({ id, label }) => ({ id, label })),
   { id: "acoes", label: "Ações" },
-];
+]);
 const columnVisibility = ref<Record<string, boolean>>(
   Object.fromEntries(extraColumns.map((column) => [column.id, false])),
 );
 const visibleTableColumns = computed(() =>
-  tableColumns.filter((c) => c.id === "acoes" || columnVisibility.value[c.id] !== false)
+  tableColumns.value.filter((c) => c.id === "acoes" || columnVisibility.value[c.id] !== false)
 );
 
 const formatCurrency = (value: number) =>

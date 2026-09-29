@@ -10,7 +10,38 @@
         <p class="text-xs md:text-sm text-muted-foreground line-clamp-1">Gerenciamento detalhado e histórico de atividade.</p>
       </div>
 
-      <div ref="playerSearchRef" class="relative ml-auto w-full max-w-xs md:max-w-sm">
+      <div class="ml-auto flex items-center gap-2">
+        <DropdownMenu v-if="showProjectSelector">
+          <DropdownMenuTrigger as-child>
+            <Button variant="outline" class="gap-2 max-w-[220px]">
+              <ProjectAvatar
+                v-if="currentScopeProject"
+                :name="currentScopeProject.name"
+                :logo-url="currentScopeProject.logo_url"
+                class="h-5 w-5"
+              />
+              <span class="truncate">{{ currentScopeProject?.name ?? 'Todos os projetos' }}</span>
+              <ChevronsUpDown class="h-4 w-4 shrink-0 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-56">
+            <DropdownMenuLabel class="text-xs text-muted-foreground">
+              Projeto das métricas
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              v-for="project in playerProjects"
+              :key="project.id"
+              class="gap-2"
+              @click="selectProjectScope(project)"
+            >
+              <ProjectAvatar :name="project.name" :logo-url="project.logo_url" class="h-5 w-5" />
+              <span class="flex-1 truncate">{{ project.name }}</span>
+              <Check v-if="project.id === selectedProjectScopeId" class="h-4 w-4" />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div ref="playerSearchRef" class="relative w-full max-w-xs md:max-w-sm">
         <div class="relative">
           <SearchIcon class="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
@@ -49,6 +80,7 @@
             </ul>
           </template>
         </div>
+        </div>
       </div>
     </div>
 
@@ -65,7 +97,7 @@
       <PlayerProfileHeader 
         :player="player" 
         :reload="() => fetchHistory(1)" 
-        :filter-id="activeGroupProjectId" 
+        :filter-id="currentFilterId" 
       />
 
       <!-- KPIs Financeiros -->
@@ -73,7 +105,7 @@
 
       <PlayerSmarticoInsights
         :player-id="player.id"
-        :project-id="activeGroupProjectId"
+        :project-id="currentFilterId"
       />
 
       <!-- Conteúdo em Grade -->
@@ -182,7 +214,7 @@
               <TagManager
                 model-type="player"
                 :model-id="player.id"
-                :project-id="activeGroupProjectId" 
+                :project-id="currentFilterId" 
               />
             </CardContent>
           </Card>
@@ -303,7 +335,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useRoute, useRouter } from "vue-router";
 import { 
-  ChevronLeft, Loader2Icon, MapPinIcon, 
+  ChevronLeft, ChevronsUpDown, Check, Loader2Icon, MapPinIcon, 
   SmartphoneIcon, TagIcon, FilterIcon, SearchIcon 
 } from "lucide-vue-next";
 import { onClickOutside } from "@vueuse/core";
@@ -332,6 +364,15 @@ import { Dialog,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
+import type { PlayerProjectSummary } from "@/contracts/playerProjectSummary";
 import { Input } from "@/components/ui/input";
 
 const route = useRoute();
@@ -355,6 +396,20 @@ const activeTab = ref('activity');
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id ?? null);
+
+const selectedProjectScopeId = ref<number | null>(null);
+const currentFilterId = computed(() =>
+  selectedProjectScopeId.value != null
+    ? `project_${selectedProjectScopeId.value}`
+    : activeGroupProjectId.value,
+);
+const playerProjects = computed<PlayerProjectSummary[]>(() =>
+  Array.isArray(player.value?.projects) ? player.value.projects : [],
+);
+const currentScopeProject = computed(
+  () => playerProjects.value.find((p) => p.id === selectedProjectScopeId.value) ?? null,
+);
+const showProjectSelector = computed(() => playerProjects.value.length > 1);
 
 const playerContact = computed(() => {
   if (!player.value) return null;
@@ -513,7 +568,7 @@ const fetchHistory = async (page = 1) => {
 
   try {
     const params = {
-      filter_id: activeGroupProjectId.value,
+      filter_id: currentFilterId.value,
       include: 'history',
       page: page,
     };
@@ -562,7 +617,19 @@ function resetProfileStateForNewClient() {
   selectedEventType.value = "all";
   isHistoryDetailDialogOpen.value = false;
   selectedHistoryEvent.value = null;
+  selectedProjectScopeId.value = null;
 }
+
+const selectProjectScope = (project: PlayerProjectSummary) => {
+  if (project.id === selectedProjectScopeId.value) return;
+
+  selectedProjectScopeId.value = project.id;
+  currentPage.value = 1;
+  lastPage.value = 1;
+  history.value = [];
+  selectedEventType.value = "all";
+  fetchHistory(1);
+};
 
 watch(
   [() => route.params.id, activeGroupProjectId],
