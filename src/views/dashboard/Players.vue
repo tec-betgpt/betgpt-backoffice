@@ -50,7 +50,7 @@
               </TableHead>
               <TableHead v-if="columnVisibility.referrerId !== false">
                 <Button class="p-0" variant="ghost" @click="handleSort('referrer_id')">
-                  Referrer ID
+                  Indicador
                   <component :is="sortIcon('referrer_id')" class="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
@@ -88,6 +88,13 @@
               </TableCell>
               <TableCell v-if="columnVisibility.referrerId !== false">
                 <template v-if="row.referrer_id">
+                  <div
+                    v-if="row.referrer_player?.name || row.referrer_player?.email"
+                    class="mb-0.5 text-xs leading-tight text-muted-foreground"
+                  >
+                    <div v-if="row.referrer_player?.name">{{ row.referrer_player.name }}</div>
+                    <div v-if="row.referrer_player?.email">{{ row.referrer_player.email }}</div>
+                  </div>
                   <router-link
                     v-if="canAccessClientManagement && row.referrer_player"
                     :to="{ name: 'clients.show', params: { id: String(row.referrer_player.id) } }"

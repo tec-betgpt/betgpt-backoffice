@@ -55,6 +55,19 @@ export default [
         },
       },
       {
+        path: "segment-analysis-v2",
+        name: "segment-analysis-v2",
+        component: SegmentAnalysis,
+        props: { version: "v2" },
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Análise de Segmentos v2",
+          roles: "member|client",
+          permissions: "access-to-reports",
+        },
+      },
+      {
         path: "target-audiences",
         name: "target-audiences",
         component: TargetAudience,
