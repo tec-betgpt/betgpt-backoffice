@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import UserProjectGroup from "@/services/userProjectGroup";
+import { filterIdToGroupId, filterIdToProjectId } from "@/lib/filterId";
 import type { DateRange } from "reka-ui";
 
 interface ActiveGroupProject {
@@ -20,6 +21,22 @@ export const useWorkspaceStore = defineStore("workspace", {
     date:null as DateRange|null,
     context: null as Array<string> | null,
   }),
+  getters: {
+    filterId: (state): string | null => state.activeGroupProject?.id ?? null,
+    numericProjectId: (state): number | null => {
+      const value = Number(state.activeGroupProject?.project_id);
+      if (Number.isInteger(value) && value > 0) {
+        return value;
+      }
+      return filterIdToProjectId(state.activeGroupProject?.id);
+    },
+    numericGroupId: (state): number | null =>
+      filterIdToGroupId(state.activeGroupProject?.id),
+    isGroupWorkspace: (state): boolean =>
+      state.activeGroupProject?.type === "group",
+    hasActiveWorkspace: (state): boolean =>
+      Boolean(state.activeGroupProject?.id),
+  },
   actions: {
     notifyAnnotationUpdate() {
       this.lastAnnotationUpdate = Date.now();

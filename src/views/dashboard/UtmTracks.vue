@@ -160,6 +160,7 @@ import UtmTracks from "@/services/utmTracks";
 import {createColumnHelper} from "@tanstack/vue-table";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import {useWorkspaceStore} from "@/stores/workspace";
+import {useWorkspaceScope} from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
 import moment from "moment";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
@@ -223,10 +224,15 @@ watch(typeFilter.value, async () => {
 })
 
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const searchValues = ref<Record<string, string>>({});
 
 const fetchUtmTracks = async (current = pages.value.current) => {
+  if (!activeGroupProjectId.value) {
+    isLoading.value = false;
+    return;
+  }
+
   isLoading.value = true;
 
   try {
@@ -242,7 +248,7 @@ const fetchUtmTracks = async (current = pages.value.current) => {
       perPage: 100,
       orderBy: order.value ? order.value : "id",
       orderDirection: direction.value ? "asc" : "desc",
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
     })
 
     utmTracks.value = data.utm_tracks;
@@ -271,7 +277,7 @@ const openDialogAndFetchTrack = async (trackValue: string) => {
   isDialogLoading.value = true;
   selectedTrackData.value = null;
   try {
-   const response = await UtmTracks.show({id: trackValue,filter_id:activeGroupProjectId});
+   const response = await UtmTracks.show({id: trackValue,filter_id:activeGroupProjectId.value});
    selectedTrackData.value = response.data;
   } catch (error) {
     console.error("Erro ao buscar detalhes da atribuição:", error);
@@ -312,6 +318,11 @@ const setType = (type: any) => {
 
 onMounted(async () => {
   await fetchUtmTracks();
+})
+
+onWorkspaceChange(() => {
+  pages.value.current = 0;
+  fetchUtmTracks();
 })
 
 const setSearch = (values: Record<string, string>) => {

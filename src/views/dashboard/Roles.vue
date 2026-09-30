@@ -89,7 +89,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { toast } from "vue-sonner";
-import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Roles from '@/services/roles'
 import CustomPagination from "@/components/custom/CustomPagination.vue";
@@ -119,14 +119,17 @@ const pages = ref({
   total: 0,
 });
 const perPage = ref(10);
-const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 
 const fetchRoles = async (current = pages.value.current) => {
+  if (!activeGroupProjectId.value) {
+    isLoading.value = false;
+    return;
+  }
   try {
     const { data } = await Roles.index({
       page: current,
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       per_page: perPage.value,
     });
     roles.value = data.roles;
@@ -144,6 +147,10 @@ onMounted(() => {
   isLoading.value = true;
   fetchRoles()
   isLoading.value = false;
+});
+
+onWorkspaceChange(() => {
+  fetchRoles();
 });
 
 useScreenContext(

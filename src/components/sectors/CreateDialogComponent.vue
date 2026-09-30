@@ -13,13 +13,17 @@
         <div class="grid gap-4 py-4">
           <div class="grid grid-cols-4 items-center gap-4">
             <Label for="name">Nome</Label>
-            <Input
-              id="name"
-              v-model="form.name"
-              placeholder="Digite o nome"
-              class="col-span-3"
-              required
-            />
+            <div class="col-span-3">
+              <Input
+                id="name"
+                v-model="form.name"
+                placeholder="Digite o nome"
+                required
+              />
+              <p v-if="errorFor('name')" class="text-sm text-destructive mt-1">
+                {{ errorFor('name') }}
+              </p>
+            </div>
           </div>
         </div>
         <DialogFooter>
@@ -35,28 +39,39 @@
 import { ref } from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useFormErrors } from "@/composables/useFormErrors";
 import Sector from "@/services/sector"
 import { Plus } from "lucide-vue-next";
 
 const props = defineProps<{ reload: () => void }>();
 const dialog = ref(false);
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const isLoading = ref(false);
+const { handleError, clearErrors, errorFor } = useFormErrors();
 const form = ref({
   name: "",
   type: "setor",
-  project_id: activeGroupProjectId,
+  project_id: workspaceStore.numericProjectId,
   user_id: null,
 });
 
 const onSubmit = async () => {
+  const projectId = workspaceStore.numericProjectId;
+  if (!projectId) {
+    toast.error("Projeto não selecionado", {
+      description: "Selecione um projeto específico no workspace para criar um setor.",
+      duration: 3000,
+    });
+    return;
+  }
+
   isLoading.value = true;
+  clearErrors();
 
   try {
     await Sector.store({
       ...form.value,
-      project_id: activeGroupProjectId.split('_')[1],
+      project_id: projectId,
     })
 
     dialog.value = false;
@@ -64,7 +79,10 @@ const onSubmit = async () => {
 
     toast("Sucesso", { description: "Setor criado com sucesso.", duration: 3000 });
   } catch (error) {
-    console.error("Erro ao salvar setor:", error);
+    // 422: erros de campo exibidos inline; o interceptor global já faz o toast.
+    if (!handleError(error)) {
+      console.error("Erro ao salvar setor:", error);
+    }
   }
 
   isLoading.value = false;

@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CostCenter from "@/services/costCenters";
@@ -83,7 +84,7 @@ interface CostData {
 const isLoading = ref(false);
 const costs = ref<CostData[]>([]);
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const nameCost = ref();
 const perPages = ref('10');
 const pages = ref({
@@ -109,6 +110,8 @@ watch(perPages, (newPerPage) => {
 });
 
 const fetchCosts = async (current: number = pages.value.current) => {
+  if (!activeGroupProjectId.value) return;
+
   try {
     const page = nameCost.value && current
         ? current
@@ -119,7 +122,7 @@ const fetchCosts = async (current: number = pages.value.current) => {
                 : pages.value.current
 
     const { data } = await CostCenter.index({
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       find_name: nameCost.value,
       sort_by: "id",
       sort_order: "desc",
@@ -168,5 +171,9 @@ onMounted(async () => {
   isLoading.value = true;
   await fetchCosts()
   isLoading.value = false;
+});
+
+onWorkspaceChange(() => {
+  fetchCosts(1);
 });
 </script>

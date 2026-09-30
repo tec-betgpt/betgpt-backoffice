@@ -102,6 +102,7 @@ import { ref, computed, onMounted } from "vue";
 import { toast } from "vue-sonner";
 import ProtectionListReports from "@/services/protectionListReports";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
@@ -115,6 +116,7 @@ import { FileSpreadsheet, FileChartColumn } from "lucide-vue-next";
 
 
 const workspaceStore = useWorkspaceStore();
+const { onWorkspaceChange } = useWorkspaceScope();
 const reports = ref([]);
 const isLoading = ref(true);
 
@@ -137,10 +139,17 @@ const pages = ref({
 });
 
 const fetchReports = async (page = 1) => {
+  const filterId = workspaceStore.filterId;
+  if (!filterId) {
+    reports.value = [];
+    isLoading.value = false;
+    return;
+  }
+
   isLoading.value = true;
   try {
     const response = await ProtectionListReports.index({
-      project_id: workspaceStore.activeGroupProject?.id!,
+      filter_id: filterId,
       page,
       per_page: perPage.value
     });
@@ -196,6 +205,8 @@ const formatStatus = (status: string) => {
 onMounted(async () => {
   await fetchReports();
 });
+
+onWorkspaceChange(() => fetchReports(1));
 
 useScreenContext(
   "Tela de relatórios de lista de proteção - Exibe relatórios de listas de proteção",

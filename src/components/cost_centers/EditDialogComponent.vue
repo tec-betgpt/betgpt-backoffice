@@ -36,6 +36,9 @@
                 placeholder="Digite o nome"
                 class="mt-2"
               />
+              <p v-if="errorFor('name')" class="text-sm text-destructive mt-1">
+                {{ errorFor('name') }}
+              </p>
             </div>
           </div>
           <div class="grid grid-cols-4 items-center gap-4">
@@ -54,6 +57,9 @@
               <Button type="button" variant="outline" size="sm" class="self-end" @click="costForm.sector_id = null">
                 Sem setor
               </Button>
+              <p v-if="errorFor('sector_id')" class="text-sm text-destructive">
+                {{ errorFor('sector_id') }}
+              </p>
             </div>
           </div>
         </div>
@@ -76,6 +82,7 @@ import CostCenter from '@/services/costCenters'
 import Sector from "@/services/sector"
 import i18n from "@/i18n";
 import {Spinner} from "@/components/ui/spinner";
+import { useFormErrors } from "@/composables/useFormErrors";
 
 
 const props = withDefaults(
@@ -90,9 +97,11 @@ const isDialog = ref(false);
 const isLoading = ref(false);
 const costForm = ref({});
 const loadingSub = ref(false);
+const { handleError, clearErrors, errorFor } = useFormErrors();
 
 const onSubmit = async () => {
   loadingSub.value = true;
+  clearErrors();
 
   try {
     await CostCenter.update(props.row.id, costForm.value)
@@ -100,7 +109,10 @@ const onSubmit = async () => {
     isDialog.value = false;
     toast(i18n.global.t("success"), { description: "Centro de custo atualizado com sucesso.", duration: 3000 });
   } catch (error) {
-    console.error("Erro ao salvar centro de custo:", error);
+    // 422: erros de campo exibidos inline; o interceptor global já faz o toast.
+    if (!handleError(error)) {
+      console.error("Erro ao salvar centro de custo:", error);
+    }
   }
 
   loadingSub.value = false;
@@ -108,6 +120,7 @@ const onSubmit = async () => {
 
 const openDialog = async () => {
   isLoading.value = true;
+  clearErrors();
   await fetchSectors();
   costForm.value = {
     type: "custo",

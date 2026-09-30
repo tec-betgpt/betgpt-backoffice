@@ -83,8 +83,8 @@ import { computed, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { X } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
-import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import Sector from "@/services/sector"
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
@@ -101,8 +101,7 @@ interface SectorData {
 const isLoading = ref(true);
 const search = ref(null);
 const sectors = ref<SectorData[]>([]);
-const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const perPage = ref(10);
 const pages = ref({
   current: 1,
@@ -137,10 +136,12 @@ const remove = async (id: number) => {
 }
 
 const fetchSectors = async (current: number = pages.value.current) => {
+  if (!activeGroupProjectId.value) return;
+
   try {
     const { data } = await Sector.index({
       page: current,
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       find_name: [{ name: search.value }],
       sort_by: "id",
       sort_order: "desc",
@@ -162,6 +163,10 @@ onMounted(async () => {
   isLoading.value = true;
   await fetchSectors()
   isLoading.value = false;
+});
+
+onWorkspaceChange(() => {
+  fetchSectors(1);
 });
 
 useScreenContext(

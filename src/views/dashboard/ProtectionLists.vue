@@ -217,6 +217,7 @@
 import { ref, computed, onMounted, reactive, watch, nextTick } from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useAuthStore } from "@/stores/auth";
 import ProtectionLists from "@/services/protectionLists";
@@ -267,6 +268,7 @@ import {
 
 
 const workspaceStore = useWorkspaceStore();
+const { onWorkspaceChange } = useWorkspaceScope();
 const authStore = useAuthStore();
 const hasPermission = (permissionName: string) =>
   Boolean((authStore.user as any)?.roles?.some((role: any) =>
@@ -350,10 +352,17 @@ const toggleSort = () => {
 };
 
 const fetchProtectionLists = async (page = 1) => {
+  const filterId = workspaceStore.filterId;
+  if (!filterId) {
+    protectionLists.value = [];
+    isLoading.value = false;
+    return;
+  }
+
   isLoading.value = true;
   try {
     const params = {
-      project_id: workspaceStore.activeGroupProject?.id!,
+      filter_id: filterId,
       page,
       per_page: perPage.value,
       ...filters,
@@ -412,6 +421,8 @@ watch(selectedRange, () => {
 onMounted(async () => {
   await fetchProtectionLists();
 });
+
+onWorkspaceChange(() => fetchProtectionLists(1));
 
 useScreenContext(
   "Tela de listas de proteção - Gerencia listas de proteção",

@@ -17,11 +17,17 @@
           <div class="gap-4">
             <Label for="name">Nome</Label>
             <Input v-model="form.name" class="mt-2" />
+            <p v-if="errorFor('name')" class="text-sm text-destructive mt-1">
+              {{ errorFor('name') }}
+            </p>
           </div>
 
           <div class="gap-4">
             <Label for="name">E-mail</Label>
             <Input v-model="form.email" class="mt-2" />
+            <p v-if="errorFor('email')" class="text-sm text-destructive mt-1">
+              {{ errorFor('email') }}
+            </p>
           </div>
         </div>
 
@@ -41,6 +47,7 @@ import { PencilLine } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { Dialog } from "@/components/ui/dialog";
 import { Spinner } from "@/components/ui/spinner";
+import { useFormErrors } from "@/composables/useFormErrors";
 import Players from "@/services/players";
 
 const props = defineProps<{
@@ -54,6 +61,7 @@ const isLoading = ref({
   show: false
 });
 const isDialog = ref(false);
+const { handleError, clearErrors, errorFor } = useFormErrors();
 const form = ref({
   name: '',
   email: '',
@@ -61,6 +69,7 @@ const form = ref({
 
 const onSubmit = async () => {
   isLoading.value.onSubmit = true
+  clearErrors();
 
   try {
     await Players.update(props.row.id, form.value, { filter_id: props.filterId })
@@ -69,7 +78,10 @@ const onSubmit = async () => {
 
     toast("Sucesso", { description: "Cliente atualizado com sucesso." });
   } catch (error: any) {
-    toast.error("Ops!", { description: error.response.data.message, duration: 3000 });
+    // 422: erros de campo exibidos inline; o interceptor global já faz o toast.
+    if (!handleError(error)) {
+      toast.error("Ops!", { description: error?.response?.data?.message ?? "Não foi possível atualizar o cliente.", duration: 3000 });
+    }
   }
 
   isLoading.value.onSubmit = false;

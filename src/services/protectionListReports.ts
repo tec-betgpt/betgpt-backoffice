@@ -6,6 +6,7 @@ export default {
    *
    * @param {object} params
    * @param {number} params.project_id
+   * @param {string} params.filter_id
    * @param {number} params.page
    * @param {number} params.per_page
    */

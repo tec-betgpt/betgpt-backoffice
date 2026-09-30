@@ -162,6 +162,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
 import { projectColumnDef } from "@/components/custom/projectColumn";
@@ -204,6 +205,7 @@ const searchValues = ref<Record<string, string>>({});
 const showDeleteDialog = ref(false);
 const reportToDeleteId = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
+const { requireFilterId } = useWorkspaceScope();
 const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 
 const projectReturnLoading = ref(true);
@@ -269,6 +271,11 @@ function createHeaderButton(label: string, columnKey: string, currentOrder: any,
 }
 
 const fetchProjectReturnReports = async (page = 1) => {
+  const filterId = requireFilterId((message) =>
+    toast.error("Erro", { description: message })
+  );
+  if (!filterId) return;
+
   projectReturnLoading.value = true;
   try {
     const params = {
@@ -276,7 +283,7 @@ const fetchProjectReturnReports = async (page = 1) => {
       start_date: selectedRange.value.start.toString(),
       end_date: selectedRange.value.end.toString(),
       per_page: projectReturnPerPages.value,
-      filter_id: workspaceStore.activeGroupProject.id,
+      filter_id: filterId,
       orderBy: projectReturnOrder.value,
       orderDirection: projectReturnDirection.value ? "asc" : "desc",
       channel_group: projectReturnSearchValues.value,
@@ -296,6 +303,11 @@ const fetchProjectReturnReports = async (page = 1) => {
 };
 
 const fetchReports = async (page = 1) => {
+  const filterId = requireFilterId((message) =>
+    toast.error("Erro", { description: message })
+  );
+  if (!filterId) return;
+
   loading.value = true;
   try {
     const searchParams = Object.keys(searchValues.value).reduce((acc, key) => {
@@ -308,7 +320,7 @@ const fetchReports = async (page = 1) => {
     const params: any = {
       page,
       per_page: perPages.value,
-      filter_id: workspaceStore.activeGroupProject.id,
+      filter_id: filterId,
       orderBy: order.value,
       orderDirection: direction.value ? "asc" : "desc",
     };
@@ -331,9 +343,12 @@ const fetchReports = async (page = 1) => {
   }
 };
 const fetchChannelGroups = async () => {
+  const projectId = workspaceStore.numericProjectId;
+  if (!projectId) return;
+
   try {
     const response = await ConversionDefinitions.channelGroups({
-      project_id: workspaceStore.activeGroupProject.project_id,
+      project_id: projectId,
     });
     channelGroups.value = response.data.map( ch => { return {value: ch.displayName,label:channelTranslations[ch.displayName] || ch.displayName}; } );
   } catch (error) {

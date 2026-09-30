@@ -24,6 +24,9 @@
               class="mt-2"
               required
             />
+            <p v-if="errorFor('name')" class="text-sm text-destructive mt-1">
+              {{ errorFor('name') }}
+            </p>
           </div>
         </div>
         <DialogFooter>
@@ -41,6 +44,7 @@ import { ref } from "vue";
 import { toast } from "vue-sonner";
 import { PenLine, X } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useFormErrors } from "@/composables/useFormErrors";
 import Sector from "@/services/sector"
 import i18n from "@/i18n";
 
@@ -52,6 +56,7 @@ const dialog = ref(false);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const isLoading = ref(false);
+const { handleError, clearErrors, errorFor } = useFormErrors();
 const form = ref<any>({
   name: "",
   type: "setor",
@@ -61,18 +66,23 @@ const form = ref<any>({
 
 const openDialog = () => {
   form.value = { ...props.row };
+  clearErrors();
   dialog.value = true;
 }
 
 const submitSector = async () => {
   isLoading.value = true;
+  clearErrors();
 
   try {
     await Sector.update(props.row.id, form.value)
     dialog.value = false;
     toast(i18n.global.t("success"), { description: "Setor atualizado com sucesso.", duration: 3000 });
-  } catch (error) {
-    toast.error(i18n.global.t("error"), { description: i18n.global.t(error.response.data.message), duration: 3000 });
+  } catch (error: any) {
+    // 422: erros de campo exibidos inline; o interceptor global já faz o toast.
+    if (!handleError(error)) {
+      toast.error(i18n.global.t("error"), { description: i18n.global.t(error?.response?.data?.message || "error_ocurried"), duration: 3000 });
+    }
   }
 
   props.reload();

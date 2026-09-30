@@ -316,9 +316,15 @@ const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type 
 const slugLoading = ref(true);
 const hasSlug = ref(false);
 
-const projectIdNumber = computed(() => Number(workspaceStore.activeGroupProject?.project_id));
+const projectIdNumber = computed(() => workspaceStore.numericProjectId);
 
 const checkSlug = async () => {
+  if (projectIdNumber.value === null) {
+    hasSlug.value = false;
+    slugLoading.value = false;
+    return;
+  }
+
   slugLoading.value = true;
   try {
     const response = await ProjectPreferencesService.show(projectIdNumber.value);
@@ -391,7 +397,7 @@ async function fetchLinks(page = 1) {
       page,
       per_page: filters.per_page,
       filter_id: workspaceStore.activeGroupProject?.id || "all",
-      project_id: workspaceStore.activeGroupProject?.project_id || workspaceStore.activeGroupProject?.id,
+      ...(workspaceStore.numericProjectId ? { project_id: workspaceStore.numericProjectId } : {}),
       ...(filters.status !== SELECT_ALL_VALUE ? { status: filters.status } : {}),
       ...(filters.type !== SELECT_ALL_VALUE ? { type: filters.type } : {}),
       ...(filters.search ? { search: filters.search } : {}),

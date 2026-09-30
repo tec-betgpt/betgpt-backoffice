@@ -36,6 +36,9 @@
                 placeholder="Digite o nome"
                 class="mt-2"
               />
+              <p v-if="errorFor('name')" class="text-sm text-destructive mt-1">
+                {{ errorFor('name') }}
+              </p>
             </div>
           </div>
           <div class="grid grid-cols-4 items-center gap-4">
@@ -54,6 +57,9 @@
               <Button type="button" variant="outline" size="sm" class="self-end" @click="costForm.sector_id = null">
                 Sem setor
               </Button>
+              <p v-if="errorFor('sector_id')" class="text-sm text-destructive">
+                {{ errorFor('sector_id') }}
+              </p>
               <p class="text-xs text-muted-foreground">
                 Opcional. O centro de custo fica vinculado ao projeto atual.
               </p>
@@ -75,6 +81,7 @@ import { ref } from "vue";
 import { Plus } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useFormErrors } from "@/composables/useFormErrors";
 import { Spinner } from "@/components/ui/spinner";
 import CostCenter from "@/services/costCenters";
 import Sector from "@/services/sector";
@@ -97,6 +104,7 @@ const costForm = ref<{
   type: string;
 }>();
 const loadingSub = ref(false);
+const { handleError, clearErrors, errorFor } = useFormErrors();
 
 const onSubmit = async () => {
   if (costForm.value.project_id == null) {
@@ -104,6 +112,7 @@ const onSubmit = async () => {
     return;
   }
   try {
+    clearErrors();
 
     await CostCenter.store({
       ...costForm.value,
@@ -112,14 +121,18 @@ const onSubmit = async () => {
     await props.reload();
     isDialog.value = false;
     toast("Sucesso", { description: "Centro de custo salvo com sucesso." });
-  } catch (error) {
-    toast.error("Ops!", { description: error.response.data.message, duration: 3000 });
+  } catch (error: any) {
+    // 422: erros de campo exibidos inline; o interceptor global já faz o toast.
+    if (!handleError(error)) {
+      toast.error("Ops!", { description: error?.response?.data?.message ?? "Não foi possível salvar o centro de custo.", duration: 3000 });
+    }
   }
 
   loadingSub.value = false;
 }
 
 const openDialog = async () => {
+  clearErrors();
   await fetchSectors();
   form.value.type = "custo";
   isEditing.value = false;

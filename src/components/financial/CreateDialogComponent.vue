@@ -42,6 +42,9 @@
                 Limpar
               </Button>
             </div>
+            <p v-if="errorFor('cost_center_id')" class="text-sm text-destructive mt-1">
+              {{ errorFor('cost_center_id') }}
+            </p>
           </div>
 
           <div class="grid items-center gap-1.5">
@@ -61,6 +64,9 @@
                 Limpar
               </Button>
             </div>
+            <p v-if="errorFor('sector_id')" class="text-sm text-destructive mt-1">
+              {{ errorFor('sector_id') }}
+            </p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -74,6 +80,9 @@
                   <SelectItem value="revenue">Receita</SelectItem>
                 </SelectContent>
               </Select>
+              <p v-if="errorFor('type')" class="text-sm text-destructive mt-1">
+                {{ errorFor('type') }}
+              </p>
               <p class="text-xs mt-1 text-right text-muted-foreground">
                 Obrigatório
               </p>
@@ -89,6 +98,9 @@
                   <SelectItem value="variable">Variável</SelectItem>
                 </SelectContent>
               </Select>
+              <p v-if="errorFor('category_type')" class="text-sm text-destructive mt-1">
+                {{ errorFor('category_type') }}
+              </p>
               <p class="text-xs mt-1 text-right text-muted-foreground">
                 Obrigatório
               </p>
@@ -120,6 +132,9 @@
                 type="number"
                 min="0"
               />
+              <p v-if="errorFor('percentage')" class="text-sm text-destructive mt-1">
+                {{ errorFor('percentage') }}
+              </p>
               <p class="text-xs mt-1 text-right text-muted-foreground">
                 Opcional
               </p>
@@ -133,6 +148,9 @@
                 type="text"
                 required
               />
+              <p v-if="errorFor('amount')" class="text-sm text-destructive mt-1">
+                {{ errorFor('amount') }}
+              </p>
               <p class="text-xs mt-1 text-right text-muted-foreground">
                 Ex.: 1000
               </p>
@@ -145,6 +163,9 @@
               id="description"
               v-model="financialForm.description"
             />
+            <p v-if="errorFor('description')" class="text-sm text-destructive mt-1">
+              {{ errorFor('description') }}
+            </p>
             <p class="text-xs mt-1 text-right text-muted-foreground">
               Opcional
             </p>
@@ -153,6 +174,9 @@
         <div>
           <DatePicker id="date"
                       :model-value="date" @update:model-value="args => date =  args" />
+          <p v-if="errorFor('date')" class="text-sm text-destructive mt-1">
+            {{ errorFor('date') }}
+          </p>
           <p class="text-xs mt-1 text-right text-muted-foreground">
             Obrigatório
           </p>
@@ -183,6 +207,7 @@ import ProjectScopeSelect from "@/components/financial/ProjectScopeSelect.vue";
 import { Dialog } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "vue-sonner";
+import { useFormErrors } from "@/composables/useFormErrors";
 
 const props = defineProps<{
   reload: () => void,
@@ -213,6 +238,7 @@ const financialForm = ref({
   related: null,
 });
 const date = ref<Date>(new Date());
+const { handleError, clearErrors, errorFor } = useFormErrors();
 
 const displayAmount = computed({
   get() {
@@ -247,8 +273,7 @@ const scopePayload = (): { project_id: number } | { group_id: number } => {
   }
 
   if (selectedScope.value === "group") {
-    const groupNumericId = Number(String(activeGroupProject.value?.id ?? "").split("_")[1] ?? 0);
-    return { group_id: groupNumericId };
+    return { group_id: workspaceStore.numericGroupId ?? 0 };
   }
 
   return { project_id: Number(selectedScope.value) };
@@ -276,6 +301,7 @@ watch(isDialog, (open) => {
 
 const onSubmit = async () => {
   loading.value = true;
+  clearErrors();
   financialForm.value.date = formatDateForApi(date.value);
   const cost = props.costs.find((c) => c.id === financialForm.value.cost_center_id);
 
@@ -291,13 +317,16 @@ const onSubmit = async () => {
 
     await props.reload();
   } catch (error: any) {
-    console.error("Erro ao salvar transação financeira:", error);
-    if (error?.response?.status === 403) {
-      toast.error("Sem permissão", { description: "Você não tem permissão para lançar neste projeto." });
-    } else {
-      toast.error("Erro ao salvar", {
-        description: error?.response?.data?.message ?? "Não foi possível salvar o registro.",
-      });
+    // 422: erros de campo exibidos inline; o interceptor global já faz o toast.
+    if (!handleError(error)) {
+      if (error?.response?.status === 403) {
+        toast.error("Sem permissão", { description: "Você não tem permissão para lançar neste projeto." });
+      } else {
+        console.error("Erro ao salvar transação financeira:", error);
+        toast.error("Erro ao salvar", {
+          description: error?.response?.data?.message ?? "Não foi possível salvar o registro.",
+        });
+      }
     }
   }
 
@@ -307,6 +336,7 @@ const onSubmit = async () => {
 const reset = () => {
   sectorId.value = null;
   selectedScope.value = "group";
+  clearErrors();
   financialForm.value = {
     cost_center_id: null,
     type: "",
