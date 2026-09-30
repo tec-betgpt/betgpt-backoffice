@@ -28,6 +28,15 @@
             <DropdownMenuLabel class="text-xs text-muted-foreground">
               Projeto das métricas
             </DropdownMenuLabel>
+            <DropdownMenuItem class="gap-2" @click="clearProjectScope">
+              <ProjectAvatar
+                :name="workspaceStore.activeGroupProject?.name ?? ''"
+                :logo-url="null"
+                class="h-5 w-5"
+              />
+              <span class="flex-1 truncate">Todos os projetos</span>
+              <Check v-if="selectedProjectScopeId == null" class="h-4 w-4" />
+            </DropdownMenuItem>
             <DropdownMenuItem
               v-for="project in playerProjects"
               :key="project.id"
@@ -403,9 +412,8 @@ const currentFilterId = computed(() =>
     ? `project_${selectedProjectScopeId.value}`
     : activeGroupProjectId.value,
 );
-const playerProjects = computed<PlayerProjectSummary[]>(() =>
-  Array.isArray(player.value?.projects) ? player.value.projects : [],
-);
+const availableProjects = ref<PlayerProjectSummary[]>([]);
+const playerProjects = computed<PlayerProjectSummary[]>(() => availableProjects.value);
 const currentScopeProject = computed(
   () => playerProjects.value.find((p) => p.id === selectedProjectScopeId.value) ?? null,
 );
@@ -577,6 +585,11 @@ const fetchHistory = async (page = 1) => {
     if (page === 1) {
       player.value = data;
       history.value = data.history.data;
+      if (Array.isArray(data.projects)) {
+        const merged = new Map(availableProjects.value.map((p) => [p.id, p]));
+        for (const p of data.projects) merged.set(p.id, p);
+        availableProjects.value = [...merged.values()];
+      }
     } else {
       history.value.push(...data.history.data);
     }
@@ -618,12 +631,24 @@ function resetProfileStateForNewClient() {
   isHistoryDetailDialogOpen.value = false;
   selectedHistoryEvent.value = null;
   selectedProjectScopeId.value = null;
+  availableProjects.value = [];
 }
 
 const selectProjectScope = (project: PlayerProjectSummary) => {
   if (project.id === selectedProjectScopeId.value) return;
 
   selectedProjectScopeId.value = project.id;
+  currentPage.value = 1;
+  lastPage.value = 1;
+  history.value = [];
+  selectedEventType.value = "all";
+  fetchHistory(1);
+};
+
+const clearProjectScope = () => {
+  if (selectedProjectScopeId.value == null) return;
+
+  selectedProjectScopeId.value = null;
   currentPage.value = 1;
   lastPage.value = 1;
   history.value = [];
