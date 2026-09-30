@@ -1,3 +1,5 @@
+import {ProjectSummary} from "@/contracts/projectSummary";
+
 export interface LinkApiResponse<T> {
   success: boolean;
   message: string;
@@ -68,10 +70,7 @@ export interface LinkListItem {
   versions?: LinkVersion[];
   utmSnapshots?: LinkUtmSnapshot[];
   utm_snapshots?: LinkUtmSnapshot[];
-  project?: {
-    id: number;
-    name: string;
-  } | null;
+  project?: ProjectSummary | null;
   created_at?: string | null;
   updated_at?: string | null;
   utm_source?: string | null;

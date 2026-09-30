@@ -1,11 +1,11 @@
 import {Param} from "@/contracts/param";
 import {PlayerProfile} from "@/contracts/playerProfile";
 import {PlayerLogin} from "@/contracts/playerLogin";
-import {Project} from "@/contracts/project";
 import {Deposit} from "@/contracts/deposit";
 import {Withdraw} from "@/contracts/withdraw";
 import {PlayerStatus} from "@/contracts/playerStatus";
 import {PlayerProject} from "@/contracts/playerProject";
+import {PlayerProjectSummary} from "@/contracts/playerProjectSummary";
 import {SegmentResult} from "@/contracts/segmentResult";
 import {PlayerHistory} from "@/contracts/playerHistory";
 
@@ -31,7 +31,7 @@ export interface Player {
   profiles: PlayerProfile[]
   params: Param[]
   logins: PlayerLogin[]
-  projects: Project[]
+  projects: PlayerProjectSummary[]
   deposits: Deposit[]
   withdraws: Withdraw[]
   statuses: PlayerStatus[]

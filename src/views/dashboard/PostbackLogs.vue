@@ -117,6 +117,7 @@
             <TableHeader>
               <TableRow>
                 <TableHead v-if="columnVisibility.tipo !== false">Tipo</TableHead>
+                <TableHead v-if="isGroupWorkspace && columnVisibility.projeto !== false">Projeto</TableHead>
                 <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
                 <TableHead v-if="columnVisibility.recebidoEm !== false" class="text-right">
                   <Button class="p-0" variant="ghost" @click="handleSort('created_at')">
@@ -149,6 +150,13 @@
               <TableRow v-for="row in logs" :key="row.id">
                 <TableCell v-if="columnVisibility.tipo !== false">
                   {{ getType(row.type) }}
+                </TableCell>
+                <TableCell v-if="isGroupWorkspace && columnVisibility.projeto !== false">
+                  <Badge v-if="row.project" variant="secondary" class="gap-1.5 py-1 pr-2">
+                    <ProjectAvatar :name="row.project.name" :logo-url="row.project.logo_url" class="h-4 w-4" />
+                    <span class="max-w-[140px] truncate">{{ row.project.name }}</span>
+                  </Badge>
+                  <span v-else class="text-muted-foreground">—</span>
                 </TableCell>
                 <TableCell v-if="columnVisibility.status !== false">
                   <Badge variant="secondary" :class="getStatus(row.status).color">
@@ -194,13 +202,16 @@ import PostbackLogService from "@/services/postbackLog";
 import CustomSimplePagination from "@/components/custom/CustomSimplePagination.vue";
 import ShowDialogComponent from "@/components/postback_logs/ShowDialogComponent.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { ProjectSummary } from "@/contracts/projectSummary";
 
 
 const selectedRange = ref({ start: null, end: null });
 const selectedType = ref<string>("all");
 const selectedStatus = ref<string>("all");
 const workspaceStore = useWorkspaceStore();
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 const loading = ref(false);
 const logs = ref<PostbackLog[]>([]);
 const totalLogs = ref({
@@ -213,16 +224,17 @@ const order = ref('id');
 const direction = ref(false);
 const perPage = ref(15);
 
-const tableColumns = [
+const tableColumns = computed(() => [
   { id: "tipo", label: "Tipo" },
+  ...(isGroupWorkspace.value ? [{ id: "projeto", label: "Projeto" }] : []),
   { id: "status", label: "Status" },
   { id: "recebidoEm", label: "Recebido em" },
   { id: "processadoEm", label: "Processado em" },
   { id: "acoes", label: "Ações" },
-];
+]);
 const columnVisibility = ref<Record<string, boolean>>({});
 const visibleTableColumns = computed(() =>
-  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+  tableColumns.value.filter((c) => columnVisibility.value[c.id] !== false)
 );
 
 const handleSort = (column: string) => {
@@ -355,5 +367,6 @@ type PostbackLog = {
   error: string | null;
   created_at: string;
   processed_at: string | null;
+  project?: ProjectSummary | null;
 };
 </script>

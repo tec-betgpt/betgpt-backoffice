@@ -286,7 +286,7 @@ const filterForm = reactive({
 const dateRangeError = ref("");
 const isDetailsOpen = ref(false);
 
-const historyColumns = [
+const historyColumns = computed(() => [
   { id: "uuid", label: "UUID" },
   { id: "status", label: "Status" },
   { id: "supplierStatus", label: "supplier_status" },
@@ -294,10 +294,10 @@ const historyColumns = [
   { id: "supplierDispatchId", label: "supplier_dispatch_id" },
   { id: "solicitadoEm", label: "Solicitado em" },
   { id: "acoes", label: "Ações" },
-];
+]);
 const historyColumnVisibility = ref<Record<string, boolean>>({});
 const visibleHistoryColumns = computed(() =>
-  historyColumns.filter((c) => historyColumnVisibility.value[c.id] !== false)
+  historyColumns.value.filter((c) => historyColumnVisibility.value[c.id] !== false)
 );
 
 const activeGroupProject = computed(() => workspaceStore.activeGroupProject);

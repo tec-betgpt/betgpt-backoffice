@@ -89,7 +89,7 @@
 <script setup lang="ts">
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
-import { h, onMounted, ref, watch, nextTick } from "vue";
+import { h, onMounted, ref, watch, nextTick, computed } from "vue";
 import { Separator } from "@/components/ui/separator";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { Button } from "@/components/ui/button";
@@ -109,11 +109,14 @@ import { Sheet } from "@/components/ui/sheet";
 import { Dialog, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import {Spinner} from "@/components/ui/spinner";
+import { projectColumnDef } from "@/components/custom/projectColumn";
+import type { ProjectSummary } from "@/contracts/projectSummary";
 
 const openDialog = ref(false);
 const isLoading = ref(true);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 const pages = ref({ current: 1, total: 0, last: 0 });
 const paginate = ref(1);
 const perPage = ref(10)
@@ -217,7 +220,7 @@ const fetchSegments = async (current: number = pages.value.current) => {
     isLoadingSeg.value = false;
   }
 };
-const columnsHistory = [
+const columnsHistory = computed(() => [
   historyColumnHelper.accessor("history.type", {
     header: "Tipo",
     cell: ({ row }) => {
@@ -228,6 +231,8 @@ const columnsHistory = [
       return h("span", { class: "capitalize" }, label);
     },
   }),
+
+  ...(isGroupWorkspace.value ? [projectColumnDef()] : []),
 
   historyColumnHelper.accessor("title", {
     header: "Titulo",
@@ -321,7 +326,7 @@ const columnsHistory = [
           );
     },
   }),
-];
+]);
 
 const onDownload = (url: string, type: string) => {
   const anchor = document.createElement("a");
@@ -398,6 +403,7 @@ interface HistoryData {
   } | null;
   created_at: string;
   target_title: string;
+  project?: ProjectSummary | null;
 }
 </script>
 

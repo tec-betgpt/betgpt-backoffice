@@ -50,6 +50,7 @@
           <TableHeader>
             <TableRow>
               <TableHead v-if="columnVisibility.id !== false">ID</TableHead>
+              <TableHead v-if="isGroupWorkspace && columnVisibility.projeto !== false">Projeto</TableHead>
               <TableHead v-if="columnVisibility.entidade !== false">Entidade</TableHead>
               <TableHead v-if="columnVisibility.statusHttp !== false">Status HTTP</TableHead>
               <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
@@ -63,6 +64,13 @@
             <TableRow v-for="row in logs" :key="row.id">
               <TableCell v-if="columnVisibility.id !== false">
                 {{ row.id }}
+              </TableCell>
+              <TableCell v-if="isGroupWorkspace && columnVisibility.projeto !== false">
+                <Badge v-if="row.project" variant="secondary" class="gap-1.5 py-1 pr-2">
+                  <ProjectAvatar :name="row.project.name" :logo-url="row.project.logo_url" class="h-4 w-4" />
+                  <span class="max-w-[140px] truncate">{{ row.project.name }}</span>
+                </Badge>
+                <span v-else class="text-muted-foreground">—</span>
               </TableCell>
               <TableCell v-if="columnVisibility.entidade !== false">
                 <div v-if="row.webhookable">
@@ -138,6 +146,7 @@ import { useScreenContext } from "@/composables/useScreenContext";
 import WebhookLogs from "@/services/webhooks";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -148,8 +157,9 @@ import { Label } from "@/components/ui/label";
 import { RefreshCw } from "lucide-vue-next";
 
 const workspaceStore = useWorkspaceStore();
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 
-const logs = ref([]);
+const logs = ref<any[]>([]);
 const isLoading = ref(true);
 const perPage = ref(20);
 const retrying = ref<number | null>(null);
@@ -164,18 +174,19 @@ const filters = reactive({
   order: 'desc'
 });
 
-const tableColumns = [
+const tableColumns = computed(() => [
   { id: "id", label: "ID" },
+  ...(isGroupWorkspace.value ? [{ id: "projeto", label: "Projeto" }] : []),
   { id: "entidade", label: "Entidade" },
   { id: "statusHttp", label: "Status HTTP" },
   { id: "status", label: "Status" },
   { id: "erroMotivo", label: "Erro/Motivo" },
   { id: "data", label: "Data" },
   { id: "acoes", label: "Ações" },
-];
+]);
 const columnVisibility = ref<Record<string, boolean>>({});
 const visibleTableColumns = computed(() =>
-  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+  tableColumns.value.filter((c) => columnVisibility.value[c.id] !== false)
 );
 
 const fetchLogs = async (page = 1) => {

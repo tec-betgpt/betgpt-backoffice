@@ -1,3 +1,5 @@
+import {ProjectSummary} from "@/contracts/projectSummary";
+
 export interface Tag {
   id: number;
   uuid: string;
@@ -13,6 +15,7 @@ export interface Tag {
   parent?: Tag;
   children?: Tag[];
   players_count?: number;
+  project?: ProjectSummary | null;
 }
 
 export interface TagMetadata {

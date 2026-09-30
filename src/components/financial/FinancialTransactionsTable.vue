@@ -62,7 +62,6 @@
       <div class="flex items-center gap-2">
         <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
         <FinancialImportHistoriesDialog
-          :project-id="projectId"
           :reload="reloadFinancialsAfterMutation"
         />
       </div>
@@ -73,6 +72,7 @@
         <TableHeader>
           <TableRow>
             <TableHead v-if="columnVisibility.costCenter !== false">Centro de custo</TableHead>
+            <TableHead v-if="isGroupWorkspace && columnVisibility.project !== false">Projeto</TableHead>
             <TableHead v-if="columnVisibility.sector !== false">Setor</TableHead>
             <TableHead v-if="columnVisibility.category !== false">Categoria</TableHead>
             <TableHead v-if="columnVisibility.description !== false">Descrição</TableHead>
@@ -104,6 +104,16 @@
           <template v-else>
             <TableRow v-for="transaction in transactions" :key="transaction.id">
               <TableCell v-if="columnVisibility.costCenter !== false">{{ transaction.costCenter }}</TableCell>
+              <TableCell v-if="isGroupWorkspace && columnVisibility.project !== false">
+                <Badge variant="secondary" class="gap-1.5 py-1 pr-2">
+                  <ProjectAvatar
+                    :name="transaction.project?.name ?? activeGroupProjectName"
+                    :logo-url="transaction.project?.logo_url ?? null"
+                    class="h-4 w-4"
+                  />
+                  <span class="max-w-[140px] truncate">{{ transaction.project?.name ?? 'Grupo' }}</span>
+                </Badge>
+              </TableCell>
               <TableCell v-if="columnVisibility.sector !== false">{{ transaction.sectorName }}</TableCell>
               <TableCell v-if="columnVisibility.category !== false">{{ formatCategory(transaction.category_type) }}</TableCell>
               <TableCell v-if="columnVisibility.description !== false">
@@ -179,6 +189,8 @@ import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.v
 import EditDialogComponent from "@/components/financial/EditDialogComponent.vue";
 import FinancialImportHistoriesDialog from "@/components/financial/FinancialImportHistoriesDialog.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 export interface FinancialTransactionTableItem {
   id: number;
@@ -192,6 +204,12 @@ export interface FinancialTransactionTableItem {
   cost_center_id: number | null;
   sectorId: number | null;
   type: "cost" | "revenue" | string;
+  project_id?: number | null;
+  project?: {
+    id: number;
+    name: string;
+    logo_url: string | null;
+  } | null;
 }
 
 interface FinancialCostOption {
@@ -225,7 +243,6 @@ const props = withDefaults(defineProps<{
   onUpdateType?: (value: string) => void;
   onUpdateCostCenterId?: (value: string) => void;
   onUpdateSectorId?: (value: string) => void;
-  projectId: string | number | null;
   reloadFinancialsAfterMutation: () => void;
   deleteFinancial: (id: number) => void;
   costs: FinancialCostOption[];
@@ -246,8 +263,13 @@ const props = withDefaults(defineProps<{
   sectors: () => [],
 });
 
-const tableColumns = [
+const workspaceStore = useWorkspaceStore();
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
+const activeGroupProjectName = computed(() => workspaceStore.activeGroupProject?.name ?? "");
+
+const tableColumns = computed(() => [
   { id: "costCenter", label: "Centro de custo" },
+  ...(isGroupWorkspace.value ? [{ id: "project", label: "Projeto" }] : []),
   { id: "sector", label: "Setor" },
   { id: "category", label: "Categoria" },
   { id: "description", label: "Descrição" },
@@ -255,10 +277,10 @@ const tableColumns = [
   { id: "type", label: "Tipo" },
   { id: "amount", label: "Valor" },
   { id: "actions", label: "Ações" },
-];
+]);
 const columnVisibility = ref<Record<string, boolean>>({});
 const visibleTableColumns = computed(() =>
-  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+  tableColumns.value.filter((c) => columnVisibility.value[c.id] !== false)
 );
 const visibleMiddleColumnsCount = computed(() =>
   visibleTableColumns.value.filter((c) => !["costCenter", "amount", "actions"].includes(c.id)).length

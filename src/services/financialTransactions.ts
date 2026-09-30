@@ -14,7 +14,13 @@ interface IndexResponse {
     description: string | null
     created_at: string
     updated_at: string
-    project_id: number
+    project_id: number | null
+    group_id: number | null
+    project?: {
+      id: number
+      name: string
+      logo_url: string | null
+    } | null
     sector: {
       id: number
       name: string
@@ -98,13 +104,24 @@ interface DashboardParams {
   filter_id: string | null
 }
 
+interface StoreBody {
+  project_id?: number
+  group_id?: number
+  [key: string]: unknown
+}
+
+interface UpdateBody {
+  project_id?: number
+  [key: string]: unknown
+}
+
 export default {
   async index(params: IndexParams): Promise<IndexResponse> {
     const { data } = await api.get("/financial-transactions", { params });
     return data;
   },
 
-  async store(body: Record<string, unknown>) {
+  async store(body: StoreBody) {
     const { data } = await api.post("/financial-transactions", body);
     return data;
   },
@@ -114,7 +131,7 @@ export default {
     return data;
   },
 
-  async update(id: number, body: Record<string, unknown>) {
+  async update(id: number, body: UpdateBody) {
     const { data } = await api.put(`/financial-transactions/${id}`, body);
     return data;
   },

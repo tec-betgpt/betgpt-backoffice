@@ -102,6 +102,7 @@
             <TableHeader>
               <TableRow>
                 <TableHead v-if="columnVisibility.codigo !== false">Código</TableHead>
+                <TableHead v-if="isGroupWorkspace && columnVisibility.projeto !== false">Projeto</TableHead>
                 <TableHead v-if="columnVisibility.encurtador !== false">Encurtador</TableHead>
                 <TableHead v-if="columnVisibility.slug !== false">Slug</TableHead>
                 <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
@@ -123,6 +124,13 @@
               </TableRow>
               <TableRow v-for="link in links" :key="link.id">
                 <TableCell v-if="columnVisibility.codigo !== false" class="font-medium">{{ link.code }}</TableCell>
+                <TableCell v-if="isGroupWorkspace && columnVisibility.projeto !== false">
+                  <Badge v-if="link.project" variant="secondary" class="gap-1.5 py-1 pr-2">
+                    <ProjectAvatar :name="link.project.name" :logo-url="link.project.logo_url" class="h-4 w-4" />
+                    <span class="max-w-[140px] truncate">{{ link.project.name }}</span>
+                  </Badge>
+                  <span v-else class="text-muted-foreground">—</span>
+                </TableCell>
                 <TableCell v-if="columnVisibility.encurtador !== false" class="font-medium">{{ link.short_url }}</TableCell>
 
                 <TableCell v-if="columnVisibility.slug !== false">{{ link.slug || "—" }}</TableCell>
@@ -250,6 +258,7 @@ import linksService from "@/services/links";
 import ProjectPreferencesService from "@/services/projectPreferences";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useRouter } from "vue-router";
 import CreateDialogComponent from "@/components/links/CreateDialogComponent.vue";
@@ -302,6 +311,7 @@ import { getDestinationUrl, SELECT_ALL_VALUE } from "@/components/links/linkForm
 
 const workspaceStore = useWorkspaceStore();
 const router = useRouter();
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 
 const slugLoading = ref(true);
 const hasSlug = ref(false);
@@ -323,18 +333,19 @@ const checkSlug = async () => {
 const links = ref<LinkListItem[]>([]);
 const isLoading = ref(false);
 
-const tableColumns = [
+const tableColumns = computed(() => [
   { id: "codigo", label: "Código" },
+  ...(isGroupWorkspace.value ? [{ id: "projeto", label: "Projeto" }] : []),
   { id: "encurtador", label: "Encurtador" },
   { id: "slug", label: "Slug" },
   { id: "status", label: "Status" },
   { id: "tipo", label: "Tipo" },
   { id: "destino", label: "Destino" },
   { id: "acoes", label: "Ações" },
-];
+]);
 const columnVisibility = ref<Record<string, boolean>>({});
 const visibleTableColumns = computed(() =>
-  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+  tableColumns.value.filter((c) => columnVisibility.value[c.id] !== false)
 );
 const isLoadingDetails = ref(false);
 const isArchiving = ref(false);
