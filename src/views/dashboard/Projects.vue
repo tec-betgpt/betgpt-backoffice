@@ -158,6 +158,7 @@ import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import moment from "moment";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import Projects from '@/services/projects'
+import type { ProjectListItem } from "@/contracts/project";
 import {Dialog} from "@/components/ui/dialog";
 import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import {Label} from "@/components/ui/label";
@@ -167,9 +168,9 @@ const imagePreview = ref();
 const errorMessage = ref("");
 
 const statusFilter = ref<Array<string>>(["active"]);
-watch(statusFilter.value, () => {
+watch(statusFilter, () => {
   fetchProjects(1);
-});
+}, { deep: true });
 const router = useRouter();
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -180,7 +181,7 @@ const hasPermission = (permissionName: string) =>
     role.permissions?.some((permission: any) => permission.name === permissionName),
   ));
 const processingAction = ref(null);
-const projects = ref<Project[]>([]);
+const projects = ref<ProjectListItem[]>([]);
 const isLoading = ref(true);
 const isProcessing = ref(false);
 const processingStatusId = ref(null);
@@ -192,7 +193,13 @@ const pages = ref({
   last: 0,
 });
 const perPage = ref(10);
-const form = ref({
+const form = ref<{
+  id: number | null;
+  name: string;
+  image: string | null;
+  webhook_url: string;
+  is_sync_google_analytics: boolean;
+}>({
   id: null,
   name: "",
   image: "",
@@ -363,7 +370,7 @@ const createProject = async () => {
       is_sync_google_analytics: form.value.is_sync_google_analytics ? 1 : 0
     })
 
-    projects.value.push(data.data);
+    projects.value.push(data.data as unknown as ProjectListItem);
     toast("Sucesso", { description: "Projeto criado com sucesso." });
     showModal.value = false;
   } catch (error) {
@@ -376,7 +383,7 @@ const createProject = async () => {
 const updateProject = async () => {
   isProcessing.value = true;
   try {
-    const data = await Projects.update(form.value.id, {
+    const data = await Projects.update(form.value.id as number, {
       ...form.value,
       is_sync_google_analytics: form.value.is_sync_google_analytics ? 1 : 0
     })
@@ -384,7 +391,7 @@ const updateProject = async () => {
     const projectIndex = projects.value.findIndex(
       (p) => p.id === form.value.id
     );
-    projects.value[projectIndex] = data.data;
+    projects.value[projectIndex] = data.data as unknown as ProjectListItem;
     toast("Sucesso", { description: "Projeto atualizado com sucesso." });
 
     showModal.value = false;
@@ -396,7 +403,7 @@ const updateProject = async () => {
   form.value = { id: null, name: "", image: "", webhook_url: "", is_sync_google_analytics: false };
 };
 
-const columnHelper = createColumnHelper<Project>();
+const columnHelper = createColumnHelper<ProjectListItem>();
 
 function createHeaderButton(label: string, columnKey: string) {
   return h(
@@ -468,7 +475,7 @@ const columns = [
           "div",
           {},
 
-          row.getValue("last_postback_log")?.created_at ? moment(row.getValue("last_postback_log").created_at).format("DD/MM/YYYY HH:mm:ss")
+          row.original.last_postback_log?.created_at ? moment(row.original.last_postback_log?.created_at).format("DD/MM/YYYY HH:mm:ss")
               : 'Sem dados'
       )
     },
@@ -497,11 +504,11 @@ const columns = [
               Badge,
               {
                 variant:
-                  row.getValue("statuses")?.[0]?.name === "active"
+                  row.original.statuses?.[0]?.name === "active"
                     ? "default"
                     : "destructive",
               },
-              row.getValue("statuses")?.[0]?.name === "active"
+              row.original.statuses?.[0]?.name === "active"
                 ? "Ativo"
                 : "Inativo"
             )
@@ -574,10 +581,10 @@ const columns = [
                   "div",
                   {},
                   processingAction.value === `status-${row.getValue("id")}`
-                    ? row.getValue("statuses")?.[0]?.name === "active"
+                    ? row.original.statuses?.[0]?.name === "active"
                       ? "Desativando..."
                       : "Ativando..."
-                    : row.getValue("statuses")?.[0]?.name === "active"
+                    : row.original.statuses?.[0]?.name === "active"
                     ? "Inativar"
                     : "Ativar"
                 )
@@ -586,32 +593,6 @@ const columns = [
       ]),
   }),
 ];
-type ProjectStatus = {
-  id: number;
-  name: string;
-  reason: string | null;
-  model_type: string;
-  model_id: number;
-  created_at: string; // ISO timestamp
-  updated_at: string; // ISO timestamp
-};
-
-type Project = {
-  id: number;
-  name: string;
-  created_at: string;
-  logo_url: string;
-  statuses: ProjectStatus[];
-  users_count: number;
-  webhook_url: string;
-  is_sync_google_analytics: boolean;
-  last_postback_log:{
-    id: number;
-    project_id: number;
-    created_at: string;
-
-  }
-};
 
 onMounted(fetchProjects);
 </script>

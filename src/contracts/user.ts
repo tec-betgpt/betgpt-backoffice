@@ -2,7 +2,7 @@ import {Language} from "@/contracts/language";
 import {UserPreference} from "@/contracts/userPreference";
 import {EmailChangeRequest} from "@/contracts/emailChangeRequest";
 import {Project} from "@/contracts/project";
-import {UserProjectGroup} from "@/contracts/userProjectGroup";
+import {UserProjectGroup, WorkspaceFilterItem} from "@/contracts/userProjectGroup";
 import {UserLogin} from "@/contracts/userLogin";
 import {UserMetadata} from "@/contracts/userMetadata";
 
@@ -27,4 +27,10 @@ export interface User {
   preferences: UserPreference|null
   projectGroups: UserProjectGroup[]
   userLogins: UserLogin[]
+  /** Injetado nas respostas de autenticação: 'member' | 'client' */
+  access_type?: string
+  /** Injetado nas respostas de autenticação: URL temporária da foto */
+  icon?: string | null
+  /** Injetado nas respostas de autenticação: filtros de workspace (grupos + projetos) */
+  group_projects?: WorkspaceFilterItem[]
 }

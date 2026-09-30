@@ -99,7 +99,7 @@ const isLoading = ref({
 const isDialog = ref(false);
 const selectedRange = ref({ start: undefined, end: undefined });
 
-const form = ref({
+const form = ref<{ project_id: number | null; dispatch_type: string; event_type: string; channel: string; reason: string }>({
   project_id: null,
   dispatch_type: '',
   event_type: '',
@@ -138,7 +138,7 @@ const show = async () => {
         dispatch_type: data.dispatch_type,
         event_type: data.event_type,
         channel: data.channel,
-        reason: data.reason
+        reason: data.reason ?? ''
     };
 
     if (data.start_at) {

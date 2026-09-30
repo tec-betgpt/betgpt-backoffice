@@ -71,6 +71,7 @@ import { Plus, Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useFormErrors } from "@/composables/useFormErrors";
 import Projects from '@/services/projects'
+import type { ProjectListItem } from '@/contracts/project'
 import UserProjectGroup from '@/services/userProjectGroup'
 
 const props = defineProps<{ reload: () => Promise<void> }>();
@@ -81,7 +82,7 @@ const isDialog = ref(false);
 const loading = ref(false);
 const creatingGroup = ref(false);
 const groups: any = ref([]);
-const projects = ref([]);
+const projects = ref<ProjectListItem[]>([]);
 const newGroupName = ref("");
 const selectedProjects = ref([]);
 const deletingGroupId: any = ref(null);

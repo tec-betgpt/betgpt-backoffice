@@ -180,7 +180,7 @@ const fetchPlayers = async (page = 1, append = false) => {
   
   isLoadingPlayers.value = true;
   try {
-    const response = await ProtectionLists.getPlayersByProject(workspaceStore.activeGroupProject.project_id, {
+    const response = await ProtectionLists.getPlayersByProject(workspaceStore.activeGroupProject!.project_id!, {
       search: playerSearch.value,
       per_page: 15,
       page: page,

@@ -216,6 +216,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { PlayerProjectSummary } from "@/contracts/playerProjectSummary";
+import type { PlayerListItem } from "@/contracts/player";
 import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
@@ -228,26 +229,9 @@ const hasPermission = (permissionName: string) =>
     role.permissions?.some((permission: any) => permission.name === permissionName),
   ));
 
-type ReferrerPlayerSnippet = {
-  id: number;
-  name: string | null;
-  email: string;
-  external_id: string | null;
-};
+type Player = PlayerListItem;
 
-type Player = {
-  id: string;
-  name: string;
-  email: string;
-  created_at: string;
-  referrer_id?: string | null;
-  external_id?: string | null;
-  referrer_player?: ReferrerPlayerSnippet | null;
-  projects?: PlayerProjectSummary[];
-  [key: string]: unknown;
-};
-
-const showPlayer = (id: string) => {
+const showPlayer = (id: string | number) => {
   if (!canAccessClientManagement.value) return;
   router.push({ name: 'clients.show', params: { id } });
 };

@@ -1,4 +1,34 @@
 import api from './base.js'
+import type { CostCenter } from '@/contracts/costCenter'
+
+interface CostCenterIndexParams {
+  filter_id?: string | number | null
+  sort_by?: string | null
+  sort_order?: string | null
+  find_name?: string | Array<Record<string, string | null>> | null
+  page?: number
+  per_page?: number | string | null
+}
+
+interface CostCenterPaginator {
+  current_page: number
+  data: CostCenter[]
+  last_page: number
+  per_page: number
+  total: number
+}
+
+interface CostCenterIndexResponse {
+  success: boolean
+  message: string | null
+  data: CostCenterPaginator
+}
+
+interface CostCenterResponse {
+  success: boolean
+  message: string | null
+  data: CostCenter
+}
 
 export default {
   /**
@@ -11,7 +41,7 @@ export default {
    * @param {string|null} params.find_name
    * @param {number|null} params.per_page
    */
-  async index (params = {}) {
+  async index(params: CostCenterIndexParams = {}): Promise<CostCenterIndexResponse> {
     const { data } = await api.get('/cost-centers', { params })
     return data
   },
@@ -21,7 +51,7 @@ export default {
    *
    * @param {number} id
    */
-  async show (id) {
+  async show(id: number): Promise<CostCenterResponse> {
     const { data } = await api.get(`/cost-centers/${id}`)
     return data
   },
@@ -35,7 +65,7 @@ export default {
    * @param {number} body.project_id
    * @param {number|null} [body.sector_id]
    */
-  async store (body) {
+  async store(body: Record<string, unknown>): Promise<CostCenterResponse> {
     const { data } = await api.post('/cost-centers', body)
     return data
   },
@@ -45,7 +75,7 @@ export default {
    *
    * @param {number} id
    */
-  async destroy (id) {
+  async destroy(id: number) {
     const { data } = await api.delete(`/cost-centers/${id}`)
     return data
   },
@@ -60,7 +90,7 @@ export default {
    * @param {string} body.otherName
    * @param {number} body.user_id
    */
-  async update (id, body) {
+  async update(id: number, body: Record<string, unknown>): Promise<CostCenterResponse> {
     const { data } = await api.put(`/cost-centers/${id}`, body)
     return data
   },

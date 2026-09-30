@@ -395,7 +395,7 @@ const canAccessClientManagement = computed(() =>
   hasPermission("access-to-client-management"),
 );
 const player = ref();
-const history = ref([]);
+const history = ref<any[]>([]);
 const isLoading = ref(true);
 const isHistoryLoading = ref(false);
 const currentPage = ref(1);

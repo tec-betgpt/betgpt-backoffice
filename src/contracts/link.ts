@@ -98,25 +98,32 @@ export interface LinkDetailsResponse extends LinkListItem {
   utm_snapshots?: LinkUtmSnapshot[];
 }
 
-export interface PaginationMeta {
-  current_page: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-  [key: string]: unknown;
-}
-
 export interface PaginationLink {
   url: string | null;
   label: string;
   active: boolean;
 }
 
+/**
+ * GET /v1/links — o paginador Laravel vem na raiz (não há `meta`).
+ */
 export interface LinkListResponse {
   data: LinkListItem[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
   links?: PaginationLink[];
-  meta: PaginationMeta;
   [key: string]: unknown;
+}
+
+/**
+ * GET /v1/links/list — lista simplificada para selects.
+ */
+export interface LinkListEntry {
+  id: number;
+  project_id: number;
+  code: string;
 }
 
 export interface LinkListParams {

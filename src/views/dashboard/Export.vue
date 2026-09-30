@@ -50,6 +50,7 @@
       <div v-else>
         <div
           v-for="value in values"
+          :key="value.id"
           class="flex items-start justify-start align-top gap-2 mb-2"
         >
           <Checkbox
@@ -111,7 +112,7 @@ import { Dialog, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import {Spinner} from "@/components/ui/spinner";
 import { projectColumnDef } from "@/components/custom/projectColumn";
-import type { ProjectSummary } from "@/contracts/projectSummary";
+import type { HistoryData } from "@/contracts/historyExport";
 
 const openDialog = ref(false);
 const isLoading = ref(true);
@@ -179,7 +180,7 @@ const loadExportsHistory = async () => {
 };
 const orderId = ref("");
 const order = ref(false);
-const history = ref([]);
+const history = ref<HistoryData[]>([]);
 const handlerOrder = () => {};
 const selectPage = async (value) => {
   paginate.value = value;
@@ -400,23 +401,6 @@ interface SegmentData {
   id: number;
   name: string;
   description: string;
-}
-
-interface HistoryData {
-  id: string;
-  url: string;
-  type: string;
-  status: string;
-  filter: Array<string>;
-  user_id: number;
-  user?: {
-    id: number;
-    first_name: string;
-    last_name: string;
-  } | null;
-  created_at: string;
-  target_title: string;
-  project?: ProjectSummary | null;
 }
 </script>
 

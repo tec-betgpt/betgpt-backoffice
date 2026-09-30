@@ -421,6 +421,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 import ConversionDefinitions from "@/services/conversionDefinitions";
 import ErrorComponent from "@/components/layout/ErrorComponent.vue";
+import { useFormErrors } from "@/composables/useFormErrors";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Accordion,
@@ -434,7 +435,7 @@ import { Select } from "@/components/ui/select";
 
 const props = defineProps<{ reload: () => Promise<void> }>();
 
-const errors = ref([]);
+const { handleError, clearErrors } = useFormErrors();
 const modal = ref(false);
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
@@ -550,7 +551,7 @@ const removeCondition = (index: number) => {
 
 const onSubmit = async () => {
   isProcessing.value = true;
-  errors.value = [];
+  clearErrors();
 
   try {
     const payload: any = {
@@ -597,9 +598,7 @@ const onSubmit = async () => {
 
     toast("Sucesso", { description: "Definição de conversão criada com sucesso" });
   } catch (error: any) {
-    if (error.response && error.response.data) {
-      errors.value = error.response.data.errors;
-    } else {
+    if (!handleError(error)) {
       console.error(error);
     }
   }

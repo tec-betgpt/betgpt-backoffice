@@ -164,8 +164,8 @@
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    <template v-for="child in item.children">
-                      <SidebarMenuSubItem v-if="child.show" :key="child.name">
+                    <template v-for="child in item.children" :key="child.name">
+                      <SidebarMenuSubItem v-if="child.show">
                         <SidebarMenuSubButton
                           as-child
                           :isActive="route.name === child.url.name"

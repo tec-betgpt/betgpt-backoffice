@@ -1,7 +1,7 @@
 import {ConversionEvent} from "@/contracts/conversionEvent";
 import {Project} from "@/contracts/project";
 import {User} from "@/contracts/user";
-import {ConversionDefinitionCondition} from "@/contracts/conversionDefinitionCondition";
+import {ConversionDefinitionCondition, ConversionDefinitionConditionItem} from "@/contracts/conversionDefinitionCondition";
 import {ConversionPlayerEvent} from "@/contracts/conversionPlayerEvent";
 
 export interface ConversionDefinition {
@@ -29,4 +29,28 @@ export interface ConversionDefinition {
   allPlayerEvents: ConversionPlayerEvent[]
   events_count: number|null
   all_player_events_count: number|null
+}
+
+/**
+ * Item formatado do index de GET /v1/conversion-definitions.
+ */
+export interface ConversionDefinitionListItem {
+  id: number
+  name: string
+  description: string | null
+  is_return_report: boolean
+  metric_source_type: string | null
+  conversion_category: string | null
+  is_primary: boolean
+  conversion_value_field: string | null
+  channel_group: string | null
+  updated_at: string | null
+  created_at: string | null
+}
+
+/**
+ * Payload formatado de GET /v1/conversion-definitions/{id}.
+ */
+export interface ConversionDefinitionShow extends ConversionDefinitionListItem {
+  conditions: ConversionDefinitionConditionItem[]
 }

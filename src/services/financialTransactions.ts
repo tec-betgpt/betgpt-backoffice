@@ -1,46 +1,8 @@
 import api from "./base.js";
+import type { FinancialTransaction } from "@/contracts/financialTransaction";
 
 interface IndexResponse {
-  data: Array<{
-    id: number
-    cost_center_id: number | null
-    sector_id: number
-    user_id: number
-    type: "cost" | "revenue"
-    category_type: "fixed" | "variable"
-    percentage: number | null
-    amount: number | string
-    date: string
-    description: string | null
-    created_at: string
-    updated_at: string
-    project_id: number | null
-    group_id: number | null
-    project?: {
-      id: number
-      name: string
-      logo_url: string | null
-    } | null
-    sector: {
-      id: number
-      name: string
-    } | null
-    cost_center: {
-      id: number
-      name: string
-      sector?: {
-        id: number
-        name: string
-      } | null
-    } | null,
-    user: {
-      id: number
-      first_name: string
-      last_name: string
-      initials: string
-      name: string
-    }
-  }>
+  data: FinancialTransaction[]
   meta?: {
     current_page: number
     last_page: number
@@ -55,7 +17,7 @@ interface IndexResponse {
 }
 
 interface IndexParams {
-  filter_id?: number | null
+  filter_id?: string | null
   name?: string
   project_ids?: number[]
   search_name?: string
@@ -80,6 +42,7 @@ interface DashboardResponse {
   consolidated: {
     revenue: number
     expense: number
+    investment: number
     balance: number
     margin_percentage: number
     is_profitable: boolean

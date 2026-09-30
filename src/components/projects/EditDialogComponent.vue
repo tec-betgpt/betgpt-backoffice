@@ -69,6 +69,7 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { Spinner } from "@/components/ui/spinner";
 import { useFormErrors } from "@/composables/useFormErrors";
 import Projects from '@/services/projects'
+import type { ProjectListItem } from '@/contracts/project'
 import UserProjectGroup from '@/services/userProjectGroup'
 
 const props = defineProps<{ row: any, reload: () => Promise<void> }>();
@@ -79,7 +80,7 @@ const isDialog = ref(false);
 const isLoading = ref(false);
 const loading = ref(false);
 const creatingGroup = ref(false);
-const projects = ref([]);
+const projects = ref<ProjectListItem[]>([]);
 const name = ref("");
 const selectedProjects = ref<number[]>([]);
 const { handleError, clearErrors, errorFor } = useFormErrors();

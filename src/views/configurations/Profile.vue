@@ -148,7 +148,7 @@
     </div>
   </div>
 
-  <Sheet v-model:open="imageSheet" position="right" size="lg">
+  <Sheet v-model:open="imageSheet">
     <SheetContent class="flex flex-col gap-6">
       <SheetHeader>
         <SheetTitle> Atualizar Imagem de Perfil </SheetTitle>

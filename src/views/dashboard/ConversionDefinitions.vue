@@ -125,7 +125,7 @@ const fetchConversionDefinitions = async (current = pages.value.current) => {
     );
 
     // Adicionar filtro por tipo
-    const typeFilter: any = {};
+    const typeFilter: { is_primary?: boolean } = {};
     if (conversionType.value === "primary") {
       typeFilter.is_primary = true;
     } else if (conversionType.value === "quantitative") {

@@ -67,6 +67,7 @@
 import { computed, ref, onMounted, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
+import { usePagination } from "@/composables/usePagination";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CostCenter from "@/services/costCenters";
@@ -87,11 +88,7 @@ const workspaceStore = useWorkspaceStore();
 const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const nameCost = ref();
 const perPages = ref('10');
-const pages = ref({
-  current: 1,
-  total: 0,
-  last: 0,
-});
+const { pages, updateFromResponse } = usePagination();
 
 const tableColumns = [
   { id: "nome", label: "Nome" },
@@ -131,11 +128,7 @@ const fetchCosts = async (current: number = pages.value.current) => {
     })
 
     costs.value = data.data
-    pages.value = {
-      current: data.current_page,
-      total: data.total,
-      last: data.last_page,
-    };
+    updateFromResponse(data);
   } catch (error) {
     console.error("Erro ao buscar centros de custo:", error);
   }

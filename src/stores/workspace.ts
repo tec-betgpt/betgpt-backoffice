@@ -1,22 +1,13 @@
 import { defineStore } from "pinia";
 import UserProjectGroup from "@/services/userProjectGroup";
 import { filterIdToGroupId, filterIdToProjectId } from "@/lib/filterId";
+import type { WorkspaceFilterItem } from "@/contracts/userProjectGroup";
 import type { DateRange } from "reka-ui";
-
-interface ActiveGroupProject {
-  id: string
-  project_id:string
-  is_selected: boolean
-  label: string
-  logo: string | null
-  name: string
-  type: "group" | "project"
-}
 
 export const useWorkspaceStore = defineStore("workspace", {
   state: () => ({
-    activeGroupProject: null as ActiveGroupProject | null,
-    group_projects: [],
+    activeGroupProject: null as WorkspaceFilterItem | null,
+    group_projects: [] as WorkspaceFilterItem[],
     lastAnnotationUpdate: null as number | null,
     date:null as DateRange|null,
     context: null as Array<string> | null,
@@ -42,11 +33,11 @@ export const useWorkspaceStore = defineStore("workspace", {
       this.lastAnnotationUpdate = Date.now();
     },
 
-    async setProjects(newGroupProjects: any) {
+    async setProjects(newGroupProjects: WorkspaceFilterItem[]) {
       this.group_projects = newGroupProjects;
     },
 
-    async setActiveGroupProject(project: any) {
+    async setActiveGroupProject(project: WorkspaceFilterItem) {
       if (!project) return;
 
       this.activeGroupProject = project;
@@ -60,7 +51,7 @@ export const useWorkspaceStore = defineStore("workspace", {
       }
     },
 
-    async loadInitialData(preferences: any, newGroupProjects: any) {
+    async loadInitialData(preferences: any, newGroupProjects: WorkspaceFilterItem[] = []) {
       await this.setProjects(newGroupProjects);
 
       if (

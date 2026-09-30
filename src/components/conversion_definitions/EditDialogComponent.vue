@@ -290,6 +290,7 @@ import { Loader2Icon, PlusIcon, Search, Trash2Icon, Pencil } from "lucide-vue-ne
 import { useWorkspaceStore } from "@/stores/workspace";
 import ConversionDefinitions from "@/services/conversionDefinitions";
 import ErrorComponent from "@/components/layout/ErrorComponent.vue";
+import { useFormErrors } from "@/composables/useFormErrors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -302,7 +303,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const props = defineProps<{ row: object, reload: (() => Promise<void>) }>();
 
 const open = ref(false);
-const errors = ref([]);
+const { handleError, clearErrors } = useFormErrors();
 const workspaceStore = useWorkspaceStore();
 const isProcessing = ref(false);
 const values = ref<string[]>([]);
@@ -399,7 +400,7 @@ const show = async () => {
     form.value = {
       ...form.value,
       ...response
-    }
+    } as unknown as typeof form.value
   } catch (e) {
     console.error(e)
   }
@@ -407,7 +408,7 @@ const show = async () => {
 
 const onSubmit = async () => {
   isProcessing.value = true;
-  errors.value = [];
+  clearErrors();
 
   try {
     const payload:any = {
@@ -452,10 +453,9 @@ const onSubmit = async () => {
 
     toast("Sucesso", { description: "Definição de conversão atualizada com sucesso" });
   } catch (error: any) {
-    if (error.response && error.response.data) {
-      errors.value = error.response.data.errors;
+    if (!handleError(error)) {
+      console.error(error);
     }
-    console.error(error);
   }
 
   isProcessing.value = false;

@@ -34,7 +34,7 @@
                   {{ row.name }}
                 </TableCell>
                 <TableCell v-if="columnVisibility.projetos !== false">
-                  <Badge variant="secondary" class="m-1 py-2 " v-for="(item, index) in row.projects.slice(0, 3)" :key="index">
+                  <Badge variant="secondary" class="m-1 py-2 " v-for="item in row.projects.slice(0, 3)" :key="item.id">
                     {{ item.name }}
                   </Badge>
                   <DropdownMenu v-if="row.projects.length > 3" class="overflow-y-scroll">
@@ -45,7 +45,7 @@
                     </DropdownMenuTrigger>
                     <DropdownMenuContent class="w-56" align="start">
                       <DropdownMenuGroup>
-                        <DropdownMenuItem v-for="(item, index) in row.projects.slice(3)">
+                        <DropdownMenuItem v-for="item in row.projects.slice(3)" :key="item.id">
                           {{ item.name }}
                         </DropdownMenuItem>
                       </DropdownMenuGroup>

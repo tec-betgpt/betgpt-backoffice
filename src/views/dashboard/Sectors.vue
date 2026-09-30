@@ -85,6 +85,7 @@ import { X } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
+import { usePagination } from "@/composables/usePagination";
 import Sector from "@/services/sector"
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
@@ -96,18 +97,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface SectorData {
   id: number;
   name: string;
-  project: string;
+  project: { id: number; name: string } | null;
 }
 const isLoading = ref(true);
 const search = ref(null);
 const sectors = ref<SectorData[]>([]);
 const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const perPage = ref(10);
-const pages = ref({
-  current: 1,
-  total: 0,
-  last: 0,
-});
+const { pages, updateFromResponse } = usePagination();
 
 const tableColumns = [
   { id: "nome", label: "Nome" },
@@ -149,11 +146,7 @@ const fetchSectors = async (current: number = pages.value.current) => {
     })
 
     sectors.value = data.data;
-    pages.value = {
-      current: data.current_page,
-      total: data.total,
-      last: data.last_page,
-    };
+    updateFromResponse(data);
   } catch (error) {
     console.error("Erro ao buscar setores:", error);
   }

@@ -36,7 +36,7 @@ export type CampaignCostEstimate = {
 
 export type CampaignCostBreakdown = {
   quantity: number;
-  unit: string;
+  unit: string | null;
 } & LedgerAmounts;
 
 export type CampaignCostsResponse = {

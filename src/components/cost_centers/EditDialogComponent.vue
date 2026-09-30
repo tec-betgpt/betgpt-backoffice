@@ -89,7 +89,7 @@ const props = withDefaults(
   defineProps<{ reload: () => Promise<void>; row: any; hideTrigger?: boolean }>(),
   { hideTrigger: false },
 );
-const sectors = ref([]);
+const sectors = ref<Array<{ id: number; name: string }>>([]);
 const workspaceStore = useWorkspaceStore();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const loadingSectors = ref(true);

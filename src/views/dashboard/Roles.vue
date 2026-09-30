@@ -91,7 +91,9 @@ import { ref, computed, onMounted, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
+import { usePagination } from "@/composables/usePagination";
 import Roles from '@/services/roles'
+import type { Role } from '@/contracts/role'
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import CreateDialogComponent from "@/components/roles/CreateDialogComponent.vue";
 
@@ -111,13 +113,9 @@ const visibleTableColumns = computed(() =>
   tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
 );
 
-const roles = ref([]);
+const roles = ref<Role[]>([]);
 const isLoading = ref(true);
-const pages = ref({
-  current: 1,
-  last: 0,
-  total: 0,
-});
+const { pages, updateFromResponse } = usePagination();
 const perPage = ref(10);
 const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 
@@ -133,11 +131,7 @@ const fetchRoles = async (current = pages.value.current) => {
       per_page: perPage.value,
     });
     roles.value = data.roles;
-    pages.value = {
-      current: data.pagination.current_page,
-      last: data.pagination.last_page,
-      total: data.pagination.total,
-    };
+    updateFromResponse(data.pagination);
   } catch (error) {
     toast.error("Erro", { description: "Erro ao carregar os dados." });
   }

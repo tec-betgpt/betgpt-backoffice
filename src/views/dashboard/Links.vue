@@ -405,9 +405,9 @@ async function fetchLinks(page = 1) {
 
     links.value = response.data || [];
     pages.value = {
-      current: Number(response.meta?.current_page || 1),
-      total: Number(response.meta?.total || 0),
-      last: Number(response.meta?.last_page || 0),
+      current: Number(response.current_page || 1),
+      total: Number(response.total || 0),
+      last: Number(response.last_page || 0),
     };
   } catch (error) {
     console.error("Erro ao buscar links:", error);
