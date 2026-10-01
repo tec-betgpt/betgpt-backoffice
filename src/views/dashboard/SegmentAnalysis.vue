@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import VueApexCharts from "vue3-apexcharts";
 import { toast } from "vue-sonner";
@@ -99,6 +99,7 @@ const frictionCards = computed(() => {
   ];
 });
 let analysisRequestSeq = 0;
+let analysisController: AbortController | null = null;
 
 const isDark = ref(document.documentElement.classList.contains("dark"));
 
@@ -361,6 +362,10 @@ async function applyFilter() {
   }
 
   if (!sourceId.value) {
+    analysisController?.abort();
+    analysisController = null;
+    analysisRequestSeq++;
+    isLoading.value = false;
     return;
   }
 
@@ -369,6 +374,9 @@ async function applyFilter() {
   }
 
   const seq = ++analysisRequestSeq;
+  analysisController?.abort();
+  const controller = new AbortController();
+  analysisController = controller;
   const requestedSourceType = sourceType.value;
   const requestedSourceId = Number(sourceId.value);
   const requestedStart = selectedRange.value.start?.toString();
@@ -390,8 +398,8 @@ async function applyFilter() {
       ...(isV2.value ? { churn_days: Number(churnDays.value) } : {}),
     };
     const { data } = isV2.value
-      ? await Analytics.segmentAnalysisV2(params)
-      : await Analytics.segmentAnalysis(params);
+      ? await Analytics.segmentAnalysisV2(params, controller.signal)
+      : await Analytics.segmentAnalysis(params, controller.signal);
 
     if (seq !== analysisRequestSeq) return;
 
@@ -406,9 +414,14 @@ async function applyFilter() {
   } finally {
     if (seq === analysisRequestSeq) {
       isLoading.value = false;
+      analysisController = null;
     }
   }
 }
+
+onBeforeUnmount(() => {
+  analysisController?.abort();
+});
 
 watch(sourceType, () => {
   loadSources();

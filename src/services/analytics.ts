@@ -55,8 +55,8 @@ export default {
    * @param {'segment'|'tag'} params.source_type
    * @param {number} params.source_id
    */
-  async segmentAnalysis (params = {}) {
-    const { data } = await api.get('/analytics/segment-analysis', { params })
+  async segmentAnalysis (params = {}, signal?: AbortSignal) {
+    const { data } = await api.get('/analytics/segment-analysis', { params, signal })
     return data
   },
 
@@ -64,8 +64,8 @@ export default {
    * GET /v1/analytics/segment-analysis-v2
    * Mesmas métricas, lidas dos fatos. Aceita churn_days (1 a 365).
    */
-  async segmentAnalysisV2 (params = {}) {
-    const { data } = await api.get('/analytics/segment-analysis-v2', { params })
+  async segmentAnalysisV2 (params = {}, signal?: AbortSignal) {
+    const { data } = await api.get('/analytics/segment-analysis-v2', { params, signal })
     return data
   },
 }
