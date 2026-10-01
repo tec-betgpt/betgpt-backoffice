@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h, watch } from "vue";
+import { ref, onMounted, h, watch, computed } from "vue";
 import { Button } from "@/components/ui/button";
 import { toast } from "vue-sonner";
 import { createColumnHelper } from "@tanstack/vue-table";
@@ -164,6 +164,8 @@ import { Badge } from "@/components/ui/badge";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import CustomDatePicker from "@/components/custom/CustomDatePicker.vue";
+import { projectColumnDef } from "@/components/custom/projectColumn";
+import type { ProjectSummary } from "@/contracts/projectSummary";
 
 import { getLocalTimeZone, today } from "@internationalized/date";
 
@@ -175,6 +177,7 @@ type Report = {
   created_at: string;
   updated_at: string;
   url: string;
+  project?: ProjectSummary | null;
 };
 
 type ProjectReturnReport = {
@@ -201,6 +204,7 @@ const searchValues = ref<Record<string, string>>({});
 const showDeleteDialog = ref(false);
 const reportToDeleteId = ref<number | null>(null);
 const workspaceStore = useWorkspaceStore();
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 
 const projectReturnLoading = ref(true);
 const projectReturnReports = ref<ProjectReturnReport[]>([]);
@@ -423,11 +427,12 @@ const projectReturnColumns = [
   }),
 ];
 
-const columns = [
+const columns = computed(() => [
   columnHelper.accessor("name", {
     header: () => createHeaderButton("Nome", "name", order, direction, fetchReports),
     cell: ({ row }) => h("div", { class: "capitalize" }, row.original.name || "N/A"),
   }),
+  ...(isGroupWorkspace.value ? [projectColumnDef()] : []),
   columnHelper.accessor("status", {
     header: () => createHeaderButton("Status", "status", order, direction, fetchReports),
     cell: ({ row }) => {
@@ -478,7 +483,7 @@ const columns = [
         ]),
       ]),
   }),
-];
+]);
 
 watch(perPages, () => fetchReports(1));
 

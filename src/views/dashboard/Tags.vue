@@ -38,6 +38,7 @@
         <TableHeader>
           <TableRow>
             <TableHead v-if="columnVisibility.nome !== false" class="w-[250px]">Nome</TableHead>
+            <TableHead v-if="isGroupWorkspace && columnVisibility.projeto !== false">Projeto</TableHead>
             <TableHead v-if="columnVisibility.slug !== false">Slug</TableHead>
             <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
             <TableHead v-if="columnVisibility.players !== false">Players</TableHead>
@@ -68,6 +69,13 @@
               <p v-if="tag.parent" class="text-xs text-muted-foreground mt-0.5 ml-5">
                 ↳ Subtag de: {{ tag.parent.name }}
               </p>
+            </TableCell>
+            <TableCell v-if="isGroupWorkspace && columnVisibility.projeto !== false">
+              <Badge v-if="tag.project" variant="secondary" class="gap-1.5 py-1 pr-2">
+                <ProjectAvatar :name="tag.project.name" :logo-url="tag.project.logo_url" class="h-4 w-4" />
+                <span class="max-w-[140px] truncate">{{ tag.project.name }}</span>
+              </Badge>
+              <span v-else class="text-muted-foreground">—</span>
             </TableCell>
             <TableCell v-if="columnVisibility.slug !== false">
               <code class="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
@@ -198,6 +206,7 @@ import TagsService from '@/services/tags';
 import TagDialog from '@/components/tags/TagDialog.vue';
 import ImportTagsDialog from '@/components/tags/ImportTagsDialog.vue';
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import { Tag } from '@/contracts/tag';
 import moment from 'moment';
 import {useWorkspaceStore} from "@/stores/workspace";
@@ -212,6 +221,7 @@ const pagination = ref({
   last_page: 1,
 });
 const workspace = useWorkspaceStore()
+const isGroupWorkspace = computed(() => workspace.activeGroupProject?.type === "group");
 const isDialogOpen = ref(false);
 const isImportDialogOpen = ref(false);
 const selectedTag = ref<Tag | null>(null);
@@ -219,17 +229,18 @@ const selectedTag = ref<Tag | null>(null);
 const isDeleteDialogOpen = ref(false);
 const tagToDelete = ref<Tag | null>(null);
 
-const tableColumns = [
+const tableColumns = computed(() => [
   { id: "nome", label: "Nome" },
+  ...(isGroupWorkspace.value ? [{ id: "projeto", label: "Projeto" }] : []),
   { id: "slug", label: "Slug" },
   { id: "status", label: "Status" },
   { id: "players", label: "Players" },
   { id: "criadoEm", label: "Criado em" },
   { id: "acoes", label: "Ações" },
-];
+]);
 const columnVisibility = ref<Record<string, boolean>>({});
 const visibleTableColumns = computed(() =>
-  tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
+  tableColumns.value.filter((c) => columnVisibility.value[c.id] !== false)
 );
 
 let searchTimeout: any = null;

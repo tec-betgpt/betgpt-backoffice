@@ -159,7 +159,7 @@ import moment from "moment";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import Projects from '@/services/projects'
 import {Dialog} from "@/components/ui/dialog";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -429,14 +429,12 @@ const columns = [
     header({ column }) {
       return "Logo"
     },
-    cell: ({ row }) =>        h(
-        Avatar,
-        { class: "h-10 w-10 rounded-lg" },
-        [
-          h(AvatarImage, { src: row.getValue("logo_url") || undefined }),
-          h(AvatarFallback, { class: "p-10 rounded-lg" }, row.original.name.charAt(0) + row.original.name.charAt(1))
-        ]
-    ),
+    cell: ({ row }) =>
+      h(ProjectAvatar, {
+        name: row.original.name,
+        logoUrl: row.getValue("logo_url"),
+        class: "h-10 w-10 rounded-lg",
+      }),
   }),
   columnHelper.accessor("id", {
     header({ header }) {

@@ -128,6 +128,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CustomDataTable from "@/components/custom/CustomDataTable.vue";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
+import { projectColumnDef } from "@/components/custom/projectColumn";
 import SegmentDialog from "@/components/segments/SegmentDialog.vue";
 import SegmentExportDialog from "@/components/segments/SegmentExportDialog.vue";
 import SegmentTagRules from "@/components/segments/SegmentTagRules.vue";
@@ -149,6 +150,7 @@ const segmentForTags = ref<any>(null);
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
 const activeGroupProjectId = computed(() => workspaceStore.activeGroupProject?.id ?? null);
+const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 const hasPermission = (permissionName: string) =>
   Boolean((authStore.user as any)?.roles?.some((role: any) =>
     role.permissions?.some((permission: any) => permission.name === permissionName),
@@ -416,7 +418,7 @@ function openTagsManager(segment) {
   showTagsDialog.value = true;
 }
 
-const columns = [
+const columns = computed(() => [
   segmentColumnHelper.accessor("name", {
     header({ column }) {
       return createHeaderButton(
@@ -441,6 +443,7 @@ const columns = [
       ]);
     },
   }),
+  ...(isGroupWorkspace.value ? [projectColumnDef()] : []),
   {
     accessorKey: "players",
     header: "Total de Contatos",
@@ -611,7 +614,7 @@ const columns = [
       ]);
     },
   },
-];
+]);
 
 onMounted(async () => {
   await fetchTags();

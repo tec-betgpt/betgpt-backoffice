@@ -1,5 +1,5 @@
 import {User} from "@/contracts/user";
-import {Project} from "@/contracts/project";
+import {ProjectSummary} from "@/contracts/projectSummary";
 
 export interface GeneratedReport {
   id: number
@@ -13,6 +13,6 @@ export interface GeneratedReport {
   created_at: string | null
   updated_at: string | null
   url: string | null
-  project: Project
+  project?: ProjectSummary | null
   user: User
 }

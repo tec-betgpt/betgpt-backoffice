@@ -111,6 +111,11 @@ export type LedgerEntry = {
   currency: string;
   campaign_id: number | null;
   project_id: number | null;
+  project?: {
+    id: number;
+    name: string;
+    logo_url: string | null;
+  } | null;
   billable_resource_id: number | null;
   source_type: LedgerSourceType;
   source_id: number | null;

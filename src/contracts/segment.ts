@@ -1,8 +1,8 @@
-import {Project} from "@/contracts/project";
 import {User} from "@/contracts/user";
 import {SegmentConditionGroup} from "@/contracts/segmentConditionGroup";
 import {SegmentResult} from "@/contracts/segmentResult";
 import {TargetAudience} from "@/contracts/targetAudience";
+import {ProjectSummary} from "@/contracts/projectSummary";
 
 export interface Segment {
   id: number
@@ -16,7 +16,7 @@ export interface Segment {
   created_at: string
   updated_at: string
   deleted_at: string | null
-  project: Project
+  project?: ProjectSummary | null
   user: User
   conditionGroups: SegmentConditionGroup[]
   results: SegmentResult[]

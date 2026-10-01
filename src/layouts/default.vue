@@ -15,29 +15,14 @@
             <BreadcrumbList class="flex flex-nowrap">
               <BreadcrumbItem>
                 <BreadcrumbLink as-child>
-                  <Avatar
+                  <ProjectAvatar
                     @click="toggleSidebar"
-                    v-if="activeGroupProject"
                     shape="square"
                     class="size-6"
-                  >
-                    <AvatarImage
-                      v-if="activeGroupProject && activeGroupProject.logo"
-                      :src="activeGroupProject.logo"
-                    />
-                    <AvatarImage v-else src="/default-project.jpg" />
-                    <AvatarFallback class="uppercase text-dark">
-                      {{ activeGroupProject.name.slice(0, 2) }}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Avatar
-                    @click="toggleSidebar"
-                    v-else
-                    shape="square"
-                    class="size-6"
-                  >
-                    <AvatarImage src="/default-project.jpg" />
-                  </Avatar>
+                    :name="activeGroupProject?.name ?? ''"
+                    :logo-url="activeGroupProject?.logo ?? null"
+                    fallback-class="text-dark"
+                  />
                 </BreadcrumbLink>
                 <BreadcrumbSeparator />
               </BreadcrumbItem>
@@ -126,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import {
   Breadcrumb,
   BreadcrumbItem,

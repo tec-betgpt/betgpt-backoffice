@@ -163,6 +163,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { toast } from "vue-sonner";
+import { useWorkspaceStore } from "@/stores/workspace";
 
 type Step = "upload" | "preview" | "processing";
 
@@ -179,7 +180,6 @@ interface PreviewResponse {
 }
 
 const props = defineProps<{
-  projectId: string | number | null;
   reload: () => void | Promise<void>;
 }>();
 
@@ -219,16 +219,21 @@ const visiblePreviewColumns = computed(() =>
   previewColumns.value.filter((c) => previewColumnVisibility.value[c.id] !== false)
 );
 
-const normalizeProjectId = (projectId: string | number | null) => {
-  if (typeof projectId === "number") return String(projectId);
-  if (!projectId) return "";
+// O endpoint de importação exige project_id (obrigatório e existente em projects),
+// então a importação só é possível com um workspace de projeto ativo. Em grupo,
+// o dialog é bloqueado com um toast em vez de enviar um id inválido.
+const workspaceStore = useWorkspaceStore();
+const importProjectId = computed(() => {
+  const active = workspaceStore.activeGroupProject;
+  if (active?.type !== "project") return null;
 
-  return projectId.includes("_") ? projectId.split("_").pop() ?? "" : projectId;
-};
+  const id = Number(active.project_id);
+  return Number.isFinite(id) && id > 0 ? id : null;
+});
 
 const openDialog = () => {
-  if (!normalizeProjectId(props.projectId)) {
-    toast.error("Projeto obrigatório", { description: "Selecione um projeto antes de importar transações financeiras." });
+  if (!importProjectId.value) {
+    toast.error("Importação indisponível", { description: "Selecione um projeto (em vez de um grupo) para importar transações financeiras." });
     return;
   }
 
@@ -306,7 +311,7 @@ const handleFile = async (file: File) => {
 const confirmImport = async () => {
   if (!selectedFile.value) return;
 
-  const projectId = normalizeProjectId(props.projectId);
+  const projectId = importProjectId.value;
   if (!projectId) return;
 
   step.value = "processing";
@@ -314,7 +319,7 @@ const confirmImport = async () => {
 
   const formData = new FormData();
   formData.append("file", selectedFile.value);
-  formData.append("project_id", projectId);
+  formData.append("project_id", String(projectId));
 
   try {
     await financialImportHistories.process(formData);
