@@ -100,6 +100,20 @@ const frictionCards = computed(() => {
 });
 let analysisRequestSeq = 0;
 let analysisController: AbortController | null = null;
+/** Segmento grande: a API enfileira e responde 202 com status=processing até o resultado ficar pronto. */
+const ANALYSIS_POLL_MS = 3000;
+const ANALYSIS_POLL_MAX_MS = 15 * 60 * 1000;
+const queuedSegmentSize = ref<number | null>(null);
+
+function waitFor(ms: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+    signal.addEventListener("abort", () => {
+      clearTimeout(timer);
+      reject(new DOMException("Aborted", "AbortError"));
+    }, { once: true });
+  });
+}
 
 const isDark = ref(document.documentElement.classList.contains("dark"));
 
@@ -397,9 +411,19 @@ async function applyFilter() {
       source_id: requestedSourceId,
       ...(isV2.value ? { churn_days: Number(churnDays.value) } : {}),
     };
-    const { data } = isV2.value
+    let { data } = isV2.value
       ? await Analytics.segmentAnalysisV2(params, controller.signal)
       : await Analytics.segmentAnalysis(params, controller.signal);
+
+    while (isV2.value && data?.status === "processing") {
+      if (seq !== analysisRequestSeq) return;
+      if (Date.now() - startedAt > ANALYSIS_POLL_MAX_MS) {
+        throw new Error("A análise demorou mais que o esperado. Tente novamente em alguns minutos.");
+      }
+      queuedSegmentSize.value = Number(data.segment_size ?? 0) || null;
+      await waitFor(ANALYSIS_POLL_MS, controller.signal);
+      ({ data } = await Analytics.segmentAnalysisV2(params, controller.signal));
+    }
 
     if (seq !== analysisRequestSeq) return;
 
@@ -407,13 +431,14 @@ async function applyFilter() {
     await nextTick();
     screenMs.value = Date.now() - startedAt;
   } catch (error: any) {
-    if (seq !== analysisRequestSeq) return;
+    if (seq !== analysisRequestSeq || controller.signal.aborted) return;
     console.error(error);
-    toast.error("Erro ao carregar análise", { description: error?.response?.data?.message || "Não foi possível aplicar o filtro selecionado." });
+    toast.error("Erro ao carregar análise", { description: error?.response?.data?.message || error?.message || "Não foi possível aplicar o filtro selecionado." });
     analysis.value = null;
   } finally {
     if (seq === analysisRequestSeq) {
       isLoading.value = false;
+      queuedSegmentSize.value = null;
       analysisController = null;
     }
   }
@@ -533,7 +558,10 @@ useScreenContext(
     </div>
 
     <template v-else>
-      <div v-if="isLoading" class="text-sm text-muted-foreground">
+      <div v-if="isLoading && queuedSegmentSize" class="text-sm text-muted-foreground">
+        Calculando segmento grande ({{ numberLocale(queuedSegmentSize) }} jogadores). Pode levar até um minuto; o resultado fica salvo por alguns minutos.
+      </div>
+      <div v-else-if="isLoading" class="text-sm text-muted-foreground">
         <Skeleton class="h-4 w-64" />
       </div>
       <div v-else-if="analysis?.source" class="text-sm text-muted-foreground">
