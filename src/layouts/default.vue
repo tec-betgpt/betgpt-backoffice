@@ -89,6 +89,7 @@
           <router-view v-if="activeGroupProject" :isShowValues="isShowValues"></router-view>
         </div>
       </main>
+      <InviteBanner />
     </SidebarInset>
 
     <RightMenuComponent v-if="!hideRightMenuAi" v-model:sidebarAi="sidebarAi" />
@@ -142,6 +143,8 @@ import Auth from "@/services/auth";
 import LeftMenuComponent from "@/components/layout/LeftMenuComponent.vue";
 import RightMenuComponent from "@/components/layout/RightMenuComponent.vue";
 import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
+import InviteBanner from "@/components/groups/InviteBanner.vue";
+import { useGroupsStore } from "@/stores/groups";
 
 interface BreadcrumbItem {
   name: string;
@@ -165,6 +168,7 @@ const sidebarAi = ref(false);
 const mode: any = useColorMode();
 const workspaceStore = useWorkspaceStore();
 const authStore = useAuthStore();
+const groupsStore = useGroupsStore();
 const { isImpersonating } = storeToRefs(authStore);
 const configStore = useConfigStore();
 const route = useRoute();
@@ -363,6 +367,7 @@ onMounted(async () => {
     if (workspaceStore.activeGroupProject?.type == "project" && user.access_type == "member") {
       fetchStatusOAuth2()
     }
+    groupsStore.fetchMyInvitations().catch(() => undefined);
   }
 
   swipeSidebars();

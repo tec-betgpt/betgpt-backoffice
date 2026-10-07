@@ -103,7 +103,7 @@
         <TableRow>
           <TableCell :colspan="visibleColumns.length + 1">
             <div class="flex justify-center items-center h-24">
-              <Skeleton v-for="index in 5" class="h-4 w-full bg-gray-300 my-4" />
+              <Skeleton v-for="index in 5" :key="index" class="h-4 w-full bg-gray-300 my-4" />
             </div>
           </TableCell>
         </TableRow>

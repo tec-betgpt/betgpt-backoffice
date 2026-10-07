@@ -388,7 +388,7 @@ async function fetchIntegrations() {
       );
     }
 
-    const { data } = await Projects.integrations(activeGroupProject.project_id);
+    const { data } = await Projects.integrations(activeGroupProject.project_id as string);
 
     // dual: elevate-sms (dedicado) + smsfunnel (genérico) re-exposto para consumo
     // o catálogo volta a expor smsfunnel e o painel deve renderizar ambos.
@@ -611,7 +611,7 @@ async function saveAllIntegrations() {
   }
   try {
     await Projects.bulkUpdate(
-      activeGroupProject.project_id,
+      activeGroupProject.project_id as string,
       integrations.value,
     );
 
@@ -634,7 +634,7 @@ async function fetchElevateSmsConfig() {
   }
 
   try {
-    await smsIntegrationsStore.fetchConfig(activeGroupProject.project_id);
+    await smsIntegrationsStore.fetchConfig(activeGroupProject.project_id as string);
   } catch {
     // Estado de erro já é exibido no card da integração.
   }

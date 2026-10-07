@@ -154,6 +154,7 @@
               <Skeleton
                   v-else
                   v-for="n in 4"
+                  :key="n"
                   class="h-12 rounded-xl bg-accent text-accent-foreground/80 w-full"
               />
             </div>

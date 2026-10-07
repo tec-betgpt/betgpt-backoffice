@@ -52,9 +52,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h, watch } from "vue";
+import { ref, computed, onMounted, h, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
   import { useScreenContext } from "@/composables/useScreenContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +94,8 @@ const order = ref();
 const direction = ref(false);
 const searchValues = ref<Record<string, string>>({});
 
-const activeGroupProject = ref(workspaceStore.activeGroupProject || null);
+const activeGroupProject = computed(() => workspaceStore.activeGroupProject ?? null);
+const { onWorkspaceChange } = useWorkspaceScope();
 
 const setSearch = (values: Record<string, string>) => {
   searchValues.value = values;
@@ -123,7 +125,7 @@ const fetchConversionDefinitions = async (current = pages.value.current) => {
     );
 
     // Adicionar filtro por tipo
-    const typeFilter: any = {};
+    const typeFilter: { is_primary?: boolean } = {};
     if (conversionType.value === "primary") {
       typeFilter.is_primary = true;
     } else if (conversionType.value === "quantitative") {
@@ -303,6 +305,10 @@ const columns = [
 ];
 
 onMounted(() => {
+  fetchConversionDefinitions(1);
+});
+
+onWorkspaceChange(() => {
   fetchConversionDefinitions(1);
 });
 

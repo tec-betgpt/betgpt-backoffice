@@ -8,6 +8,7 @@ import Home from "@/views/dashboard/Home.vue";
 import TwoFactor from "@/views/auth/TwoFactor.vue";
 import AccountRecovery from "@/views/auth/AccountRecovery.vue";
 import SecurityQuestions from "@/views/auth/SecurityQuestions.vue";
+import InviteLanding from "@/views/auth/InviteLanding.vue";
 import configurations from "@/router/configurations.js";
 import elevate_ia from "@/router/elevate_ia.js";
 import performances from "@/router/performances.js";
@@ -20,6 +21,7 @@ import financial from "@/router/financial.js";
 import efficiency from "@/router/efficiency.js";
 import updates from "@/router/updates.js";
 import emailHealth from "@/router/emailHealth.js";
+import groups from "@/router/groups.js";
 
 const routes = [
   {
@@ -60,6 +62,12 @@ const routes = [
     meta: { layout: BlankLayout, title: "Perguntas de Segurança" },
   },
   {
+    path: "/groups/invitations/:uuid",
+    name: "groups.invitation",
+    component: InviteLanding,
+    meta: { layout: BlankLayout, title: "Convite de Grupo" },
+  },
+  {
     path: "/home",
     name: "home",
     component: Home,
@@ -82,11 +90,21 @@ const routes = [
   ...efficiency,
   ...updates,
   ...emailHealth,
+  ...groups,
 ];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
+    if (to.hash) {
+      return { el: to.hash };
+    }
+    return { top: 0 };
+  },
 });
 
 router.beforeEach(async (to, from, next) => {

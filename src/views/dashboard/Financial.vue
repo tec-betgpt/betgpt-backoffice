@@ -62,8 +62,8 @@ import { getLocalTimeZone, today } from "@internationalized/date";
 import financialTransactionsApi from "@/services/financialTransactions";
 import { toast } from "vue-sonner";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import CostCenter from "@/services/costCenters";
 import Sector from "@/services/sector";
 import { Card, CardContent } from "@/components/ui/card";
@@ -99,7 +99,7 @@ interface FinancialGlobalTotals {
   balance: number;
 }
 
-const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const currentDate = today(getLocalTimeZone());
 const selectedRange = ref<DateRange>({
   start: currentDate.subtract({ days: 28 }),
@@ -153,10 +153,12 @@ const fetchFinancials = async (
   current = pages.value.current,
   opts?: { refresh?: boolean },
 ) => {
+  if (!activeGroupProjectId.value) return;
+
   try {
     const response = await financialTransactionsApi.index({
       page: current,
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       name: search.value,
       sort_by: orderId.value,
       sort_order: order.value ? "asc" : "desc",
@@ -213,9 +215,11 @@ const fetchFinancials = async (
 }
 
 const getCosts = async () => {
+  if (!activeGroupProjectId.value) return;
+
   try {
     const { data } = await CostCenter.index({
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       per_page: 500,
       sort_by: "name",
       sort_order: "asc",
@@ -233,9 +237,11 @@ const getCosts = async () => {
 }
 
 const getSectors = async () => {
+  if (!activeGroupProjectId.value) return;
+
   try {
     const { data } = await Sector.index({
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       per_page: 500,
       sort_by: "name",
       sort_order: "asc",
@@ -259,10 +265,20 @@ onMounted(async () => {
   loading.value = false;
 });
 
+onWorkspaceChange(async () => {
+  loading.value = true;
+
+  await getCosts();
+  await getSectors();
+  await fetchFinancials();
+
+  loading.value = false;
+});
+
 useScreenContext(
   "Tela financeiro - Gerencia informações financeiras",
   () => ({
-    "filter_id": activeGroupProjectId ?? "",
+    "filter_id": activeGroupProjectId.value ?? "",
     "name": search.value || "",
     "sort_by": orderId.value,
     "sort_order": order.value ? "asc" : "desc",

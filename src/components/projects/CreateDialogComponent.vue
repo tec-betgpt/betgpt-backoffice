@@ -20,6 +20,9 @@
           v-model="newGroupName"
           placeholder="Digite o nome do grupo"
         />
+        <p v-if="errorFor('name')" class="text-sm text-destructive">
+          {{ errorFor('name') }}
+        </p>
         <div>
           <Label>Projetos no Grupo</Label>
           <div v-if="loading" class="mt-2">
@@ -66,7 +69,9 @@ import { ref, defineProps, onMounted } from "vue";
 import { toast } from "vue-sonner";
 import { Plus, Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useFormErrors } from "@/composables/useFormErrors";
 import Projects from '@/services/projects'
+import type { ProjectListItem } from '@/contracts/project'
 import UserProjectGroup from '@/services/userProjectGroup'
 
 const props = defineProps<{ reload: () => Promise<void> }>();
@@ -77,12 +82,14 @@ const isDialog = ref(false);
 const loading = ref(false);
 const creatingGroup = ref(false);
 const groups: any = ref([]);
-const projects = ref([]);
+const projects = ref<ProjectListItem[]>([]);
 const newGroupName = ref("");
 const selectedProjects = ref([]);
 const deletingGroupId: any = ref(null);
+const { handleError, clearErrors, errorFor } = useFormErrors();
 
 const openDialog = async () => {
+  clearErrors();
   isDialog.value = true;
 }
 
@@ -115,6 +122,7 @@ const createGroup = async () => {
 
   try {
     creatingGroup.value = true;
+    clearErrors();
 
     const { data } = await UserProjectGroup.store({
       name: newGroupName.value,
@@ -128,7 +136,10 @@ const createGroup = async () => {
     props.reload();
     toast("Sucesso", { description: "Grupo criado com sucesso." });
   } catch (error) {
-    toast.error("Erro", { description: "Erro ao criar grupo." });
+    // 422: erros de campo exibidos inline; o interceptor global já faz o toast.
+    if (!handleError(error)) {
+      toast.error("Erro", { description: "Erro ao criar grupo." });
+    }
   }
 
   creatingGroup.value = false;

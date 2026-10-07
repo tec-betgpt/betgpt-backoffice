@@ -157,9 +157,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ArrowDown, ArrowUp, ChevronDown, Loader2 as LucideSpinner, MoreHorizontal, ChevronsUpDown } from 'lucide-vue-next'
 import UtmTracks from "@/services/utmTracks";
+import type { UtmTrack } from "@/contracts/utmTrack";
 import {createColumnHelper} from "@tanstack/vue-table";
 import CustomDataInfinite from "@/components/custom/CustomDataInfinite.vue";
 import {useWorkspaceStore} from "@/stores/workspace";
+import {useWorkspaceScope} from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
 import moment from "moment";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
@@ -167,21 +169,12 @@ import ChartBarComponent from "@/components/utm_tracks/ChartBarComponent.vue";
 import {Skeleton} from "@/components/ui/skeleton";
 
 
-type UtmTrack = {
-  id: number
-  name: string
-  value: string
-  source_id: number
-  source_type: string
-  project_id: number
-}
 const order = ref();
 const direction = ref(false);
 const columnHelper = createColumnHelper<any>();
 
 const hasMore = ref(true);
-const utmTracks = ref<UtmTrack[]>([]);
-const chartRegistersUtmSource = ref<any>({
+const utmTracks = ref<UtmTrack[]>([]);const chartRegistersUtmSource = ref<any>({
   labels: [],
   series: []
 });
@@ -192,11 +185,11 @@ const chartDepositsUtmSource = ref<any>({
 const isLoading = ref(true);
 const meta = ref<Record<string, string>>({});
 const pages = ref({
-  current: 0,
+  current: 1,
   last: 0,
   total: 0
 })
-const typeFilter = ref<Array<String>>(["deposit", "player"]);
+const typeFilter = ref<string[]>(["deposit", "player"]);
 
 const isDialogOpen = ref(false);
 const isDialogLoading = ref(false);
@@ -217,16 +210,21 @@ const groupedTrackData = computed(() => {
 });
 
 
-watch(typeFilter.value, async () => {
-  pages.value.current = 0;
+watch(typeFilter, async () => {
+  pages.value.current = 1;
   await fetchUtmTracks(pages.value.current);
-})
+}, { deep: true })
 
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const searchValues = ref<Record<string, string>>({});
 
 const fetchUtmTracks = async (current = pages.value.current) => {
+  if (!activeGroupProjectId.value) {
+    isLoading.value = false;
+    return;
+  }
+
   isLoading.value = true;
 
   try {
@@ -242,11 +240,16 @@ const fetchUtmTracks = async (current = pages.value.current) => {
       perPage: 100,
       orderBy: order.value ? order.value : "id",
       orderDirection: direction.value ? "asc" : "desc",
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
     })
 
     utmTracks.value = data.utm_tracks;
     meta.value = data.meta || {};
+
+    pages.value.current = data.pagination.current_page;
+    pages.value.last = data.pagination.last_page;
+    pages.value.total = data.pagination.total;
+    hasMore.value = data.pagination.current_page < data.pagination.last_page;
 
     chartRegistersUtmSource.value.labels = data.registers_utm_tracks.labels
     chartRegistersUtmSource.value.series = [{
@@ -271,7 +274,7 @@ const openDialogAndFetchTrack = async (trackValue: string) => {
   isDialogLoading.value = true;
   selectedTrackData.value = null;
   try {
-   const response = await UtmTracks.show({id: trackValue,filter_id:activeGroupProjectId});
+   const response = await UtmTracks.show({id: trackValue,filter_id:activeGroupProjectId.value});
    selectedTrackData.value = response.data;
   } catch (error) {
     console.error("Erro ao buscar detalhes da atribuição:", error);
@@ -297,7 +300,7 @@ useScreenContext(
 );
 
 const loadMore = async () => {
-  pages.value.current = pages.value.current + 100
+  pages.value.current = pages.value.current + 1
   await fetchUtmTracks(pages.value.current);
 };
 
@@ -312,6 +315,11 @@ const setType = (type: any) => {
 
 onMounted(async () => {
   await fetchUtmTracks();
+})
+
+onWorkspaceChange(() => {
+  pages.value.current = 1;
+  fetchUtmTracks();
 })
 
 const setSearch = (values: Record<string, string>) => {

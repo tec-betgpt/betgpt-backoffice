@@ -5,10 +5,12 @@ import type {
   LinkArchiveResponse,
   LinkCreatePayload,
   LinkDetailsResponse,
+  LinkListEntry,
   LinkListParams,
   ListParams,
   LinkListResponse,
   LinkUpdatePayload,
+  LinkVersion,
 } from "@/contracts/link";
 
 export default {
@@ -27,8 +29,8 @@ export default {
     return data.data;
   },
 
-  async update(id: number | string, body: LinkUpdatePayload): Promise<LinkDetailsResponse> {
-    const { data } = await api.patch<LinkApiResponse<LinkDetailsResponse>>(`/links/${id}`, body);
+  async update(id: number | string, body: LinkUpdatePayload): Promise<LinkVersion> {
+    const { data } = await api.patch<LinkApiResponse<LinkVersion>>(`/links/${id}`, body);
     return data.data;
   },
 
@@ -37,8 +39,8 @@ export default {
     return data.data;
   },
 
-  async list(params: ListParams): Promise<{ id: number; slug: string }[]> {
-    const { data } = await api.get<Promise<{ id: number; slug: string }[]>>("/links/list", { params });
+  async list(params: ListParams): Promise<LinkListEntry[]> {
+    const { data } = await api.get<LinkListEntry[]>("/links/list", { params });
     return data;
   }
 }
