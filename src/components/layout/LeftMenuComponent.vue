@@ -67,27 +67,53 @@
               :side-offset="4"
             >
               <ScrollArea class="max-h-[50vh] w-auto overflow-auto">
-                <DropdownMenuLabel class="text-xs text-muted-foreground">
-                  Projetos
-                </DropdownMenuLabel>
-                <DropdownMenuItem
-                  v-for="project in workspaceStore.group_projects"
-                  :key="project.name"
-                  class="gap-2 p-2"
-                  @click="setActiveGroupProject(project)"
-                >
-                  <div
-                    class="flex size-6 items-center justify-center rounded-sm border"
+                <template v-if="projectItems.length">
+                  <DropdownMenuLabel class="text-xs text-muted-foreground">
+                    Projetos
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    v-for="project in projectItems"
+                    :key="project.id"
+                    class="gap-2 p-2"
+                    @click="setActiveGroupProject(project)"
                   >
-                    <ProjectAvatar
-                      :name="project.name"
-                      :logo-url="project.logo"
-                      class="size-7"
-                      fallback-class="text-white"
-                    />
-                  </div>
-                  {{ project.name }}
-                </DropdownMenuItem>
+                    <div
+                      class="flex size-6 items-center justify-center rounded-sm border"
+                    >
+                      <ProjectAvatar
+                        :name="project.name"
+                        :logo-url="project.logo"
+                        class="size-7"
+                        fallback-class="text-white"
+                      />
+                    </div>
+                    {{ project.name }}
+                  </DropdownMenuItem>
+                </template>
+
+                <template v-if="groupItems.length">
+                  <DropdownMenuLabel class="text-xs text-muted-foreground">
+                    Grupos
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    v-for="group in groupItems"
+                    :key="group.id"
+                    class="gap-2 p-2"
+                    @click="setActiveGroupProject(group)"
+                  >
+                    <div
+                      class="flex size-6 items-center justify-center rounded-sm border"
+                    >
+                      <ProjectAvatar
+                        :name="group.name"
+                        :logo-url="group.logo"
+                        class="size-7"
+                        fallback-class="text-white"
+                      />
+                    </div>
+                    {{ group.name }}
+                  </DropdownMenuItem>
+                </template>
               </ScrollArea>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -99,14 +125,14 @@
       <SidebarGroup>
         <SidebarGroupLabel>Menu</SidebarGroupLabel>
         <SidebarMenu>
-          <template v-for="item in navMenu" :key="item.name">
+          <template v-for="item in displayMenu" :key="item.name">
             <SidebarMenuItem v-if="!item.children && item.show">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger as-child>
                     <SidebarMenuButton
                       as-child
-                      :is-active="route.name === item.url.name"
+                      :is-active="isMenuItemActive(item)"
                       :tooltip="item.name"
                       @click="toggleCollapsed('')"
                     >
@@ -387,6 +413,30 @@ const activeGroupProject = computed(
   () => workspaceStore.activeGroupProject || null,
 );
 
+const projectItems = computed(() =>
+  workspaceStore.group_projects.filter((item: any) => item.type !== "group"),
+);
+const groupItems = computed(() =>
+  workspaceStore.group_projects.filter((item: any) => item.type === "group"),
+);
+
+const isGroupWorkspace = computed(
+  () => activeGroupProject.value?.type === "group",
+);
+
+/** Id numérico do grupo a partir de `group_10` (fallback: project_id). */
+const groupNumericId = computed(() => {
+  const raw = String(
+    activeGroupProject.value?.id ??
+      activeGroupProject.value?.project_id ??
+      "",
+  );
+  const match = /group_(\d+)/.exec(raw);
+  if (match) return Number(match[1]);
+  const numeric = Number(raw.replace(/\D/g, ""));
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
+});
+
 const logoSrc = computed(() =>
   getLogoSrc(mode.value === "dark", sidebarExpanded.value as boolean),
 );
@@ -560,8 +610,8 @@ const navMenu = computed(() => {
         canAccess("access-to-member-management"),
       children: [
         {
-          name: "Grupo de Projetos",
-          url: { name: "configurations.projects" },
+          name: "Grupos",
+          url: { name: "groups" },
           icon: LayoutList,
           show: canAccess("access-to-project-groups"),
         },
@@ -892,6 +942,47 @@ const navMenu = computed(() => {
   ];
 });
 
+/**
+ * Seção "Grupo" exibida em conjunto com o menu padrão de projeto quando o
+ * workspace ativo é um grupo. O gerenciamento (projetos, membros e convites)
+ * fica em uma única tela (`groups.management`).
+ */
+const groupNavMenu = computed<any[]>(() => {
+  const id = groupNumericId.value;
+  const show = groupItems.value.length > 0;
+
+  return [
+    {
+      name: "Grupo",
+      icon: LayoutDashboard,
+      type: "group",
+      show,
+      children: [
+        {
+          name: "Visão geral",
+          icon: LayoutDashboard,
+          show,
+          url: { name: "groups.overview", params: { id } },
+        },
+        {
+          name: "Gerenciamento",
+          icon: SquareStack,
+          show,
+          url: { name: "groups.management", params: { id } },
+        },
+      ],
+    },
+  ];
+});
+
+// Em workspace de grupo, as telas padrão de projeto continuam no menu:
+// apenas acrescentamos a seção "Grupo".
+const displayMenu = computed<any[]>(() =>
+  isGroupWorkspace.value
+    ? [...groupNavMenu.value, ...navMenu.value]
+    : navMenu.value,
+);
+
 // Methods
 const getLogoSrc = (isDarkMode: boolean, isSidebarExpanded: boolean) => {
   const logos = isDarkMode ? DARK_LOGOS : LIGHT_LOGOS;
@@ -933,9 +1024,16 @@ const canAccess = (permissionName: string) => {
   );
 };
 
+const isMenuItemActive = (item: any) => {
+  if (route.name !== item.url?.name) return false;
+  const itemTab = item.url?.query?.tab;
+  if (itemTab === undefined) return true;
+  return (route.query.tab ?? "overview") === itemTab;
+};
+
 const getActiveMenuType = () => {
-  const activeGroup = navMenu.value.find((group) => {
-    return group.children?.some((child) => child.url.name === route.name);
+  const activeGroup = displayMenu.value.find((group: any) => {
+    return group.children?.some((child: any) => child.url.name === route.name);
   });
 
   return activeGroup?.type || "";
@@ -1022,23 +1120,35 @@ watch(
 watch(
   activeGroupProject,
   async () => {
-    if (activeGroupProject.value) {
-      const is = authStore.user?.roles
-        .filter(
-          (role: any) =>
-            role.pivot.project_id === activeGroupProject.value?.project_id,
-        )
-        .some(
-          (role: any) =>
-            route.meta.permissions?.includes?.(
-              role.permissions.map((p: any) => p.name),
-            ) ?? true,
-        );
+    if (!activeGroupProject.value) return;
 
-      const hasAccess = authStore.user?.access_type === "member" || is;
+    // Workspace de Grupo: o acesso é pela participação no Grupo (owner/membro),
+    // sem exigir permissão/acesso a projeto (client pode não estar no projeto).
+    if (activeGroupProject.value.type === "group") {
+      const groupId = String(activeGroupProject.value.id);
+      const isGroupMember = (
+        (authStore.user as any)?.group_projects ?? []
+      ).some((groupProject: any) => String(groupProject.id) === groupId);
 
-      if (!hasAccess) await router.push({ name: "home" });
+      if (!isGroupMember) await router.push({ name: "home" });
+      return;
     }
+
+    const is = authStore.user?.roles
+      .filter(
+        (role: any) =>
+          role.pivot.project_id === activeGroupProject.value?.project_id,
+      )
+      .some(
+        (role: any) =>
+          route.meta.permissions?.includes?.(
+            role.permissions.map((p: any) => p.name),
+          ) ?? true,
+      );
+
+    const hasAccess = authStore.user?.access_type === "member" || is;
+
+    if (!hasAccess) await router.push({ name: "home" });
   },
   { immediate: true },
 );
