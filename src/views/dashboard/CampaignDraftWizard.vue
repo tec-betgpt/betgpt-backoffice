@@ -23,7 +23,7 @@
 
       <div class="flex flex-wrap items-center gap-2">
         <Button variant="outline" @click="router.push({ name: 'campaign-drafts.index' })">Voltar para lista</Button>
-        <template v-if="activeCampaignTab === 'configuration'">
+        <template v-if="activeCampaignTab === 'configuration' && wizardMode !== 'select'">
           <Button variant="outline" :disabled="!campaign?.id || isEstimating" @click="runEstimate()">
             {{ isEstimating ? "Atualizando estimativa..." : "Atualizar estimativa" }}
           </Button>
@@ -34,14 +34,14 @@
             {{ isValidating ? "Validando..." : "Validar configuração" }}
           </Button>
           <Button
-            v-if="canLaunch"
+            v-if="canLaunch && !isFlowMode"
             :disabled="isLaunching || isDirty"
             @click="isLaunchDialogOpen = true"
           >
             {{ isLaunching ? "Disparando..." : "Validar e disparar" }}
           </Button>
           <Button
-            v-if="campaign?.id && !canLaunch && campaign.status !== 'draft'"
+            v-if="campaign?.id && !canLaunch && campaign.status !== 'draft' && !isFlowMode"
             variant="outline"
             @click="router.push({ name: 'campaign-drafts.show', params: { id: campaign.id } })"
           >
@@ -126,10 +126,26 @@
     <Tabs v-else v-model="activeCampaignTab">
       <TabsList class="w-full justify-start">
         <TabsTrigger value="configuration">Configuração</TabsTrigger>
-        <TabsTrigger value="execution" :disabled="!campaign?.id">Execução</TabsTrigger>
+        <TabsTrigger v-if="!isFlowMode" value="execution" :disabled="!campaign?.id">Execução</TabsTrigger>
       </TabsList>
 
       <TabsContent value="configuration">
+        <div v-if="wizardMode === 'select'" class="mx-auto max-w-3xl">
+          <Card>
+            <CardContent class="pt-6">
+              <CampaignTypeStep
+                v-model="formModel"
+                :errors="sectionErrors('campaign_type')"
+                :warnings="sectionWarnings('campaign_type')"
+                :loading="stepLoading.campaign_type"
+                :readonly="isReadonly"
+                @continue="onTypeStepContinue"
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        <template v-else>
         <div class="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
           <Card>
             <CardHeader>
@@ -141,7 +157,7 @@
             <CardContent class="space-y-3">
               <Progress :model-value="progressValue" />
               <button
-                v-for="(step, index) in steps"
+                v-for="(step, index) in activeSteps"
                 :key="step.key"
                 type="button"
                 class="w-full rounded-md border px-3 py-3 text-left transition-colors hover:bg-accent"
@@ -173,6 +189,44 @@
 
           <Card>
             <CardContent class="pt-6">
+              <CampaignTypeStep
+                v-if="activeStep === 'campaign_type'"
+                v-model="formModel"
+                :errors="sectionErrors('campaign_type')"
+                :warnings="sectionWarnings('campaign_type')"
+                :loading="stepLoading.campaign_type"
+                :readonly="isReadonly"
+                :selection-locked="Boolean(campaignId)"
+                :on-save="() => saveDraft('campaign_type')"
+                @continue="onTypeStepContinue"
+              />
+              <div v-if="activeStep === 'flow_editor'">
+                <FlowEditorCanvas
+                  v-model="form.flow_config"
+                  :catalog="flowNodeTypes"
+                  :templates="flowCatalog?.templates || []"
+                  :catalog-loading="isFlowCatalogLoading"
+                  :readonly="isReadonly"
+                  :saving="isSaving"
+                  @save="saveFlowAndContinue"
+                />
+                <p v-if="flowCatalogError" class="mt-3 text-sm text-destructive">{{ flowCatalogError }}</p>
+              </div>
+              <div v-if="activeStep === 'flow_review'" class="space-y-6">
+                <FlowSummaryPanel :definition="form.flow_config?.definition || null" />
+                <div class="flex flex-wrap items-center gap-2">
+                  <Button :disabled="!campaign?.id || isValidating" @click="runValidation">
+                    {{ isValidating ? "Validando..." : "Validar configuração" }}
+                  </Button>
+                  <p class="text-sm text-muted-foreground">
+                    A validação verifica a estrutura do fluxo, mensagens e links no backend.
+                  </p>
+                </div>
+                <CampaignValidationList
+                  :errors="sectionErrors('flow_review').length ? sectionErrors('flow_review') : sectionErrors('flow_editor')"
+                  :warnings="sectionWarnings('flow_review').length ? sectionWarnings('flow_review') : sectionWarnings('flow_editor')"
+                />
+              </div>
               <CampaignBasicStep
                 v-if="activeStep === 'basic'"
                 v-model="formModel"
@@ -253,7 +307,16 @@
 
           <div class="space-y-6">
             <CampaignEstimatePanel
-              :estimate="campaignEstimate"
+              v-if="estimateForPanel || !isFlowMode"
+              :estimate="estimateForPanel"
+              :loading="isEstimating"
+              :disabled="!campaign?.id"
+              :error-message="estimateErrorMessage"
+              :on-refresh="() => runEstimate()"
+            />
+            <FlowEstimatePanel
+              v-else
+              :estimate="flowEstimate"
               :loading="isEstimating"
               :disabled="!campaign?.id"
               :error-message="estimateErrorMessage"
@@ -274,9 +337,10 @@
             <Button variant="outline" :disabled="isReadonly || isSaving" @click="saveDraft(activeStep)">
               {{ isSaving ? "Salvando..." : "Salvar" }}
             </Button>
-            <Button :disabled="activeStepIndex === steps.length - 1" @click="goToStep(activeStepIndex + 1)">Avançar</Button>
+            <Button :disabled="activeStepIndex === activeSteps.length - 1" @click="goToStep(activeStepIndex + 1)">Avançar</Button>
           </div>
         </div>
+        </template>
       </TabsContent>
 
       <TabsContent value="execution">
@@ -455,11 +519,11 @@
             A campanha <strong>{{ campaign?.name }}</strong> será validada e enviada para o pipeline de disparo
             <template v-if="form.channel === 'email'"> via SMTP (e-mail).</template>
             <template v-else> via SMS Funnel.</template>
-            <span v-if="campaignEstimate">
-              Estimativa: <strong>{{ campaignEstimate.audience.estimated_recipients }}</strong> destinatário(s)<template v-if="form.channel === 'email'">
-              / <strong>{{ campaignEstimate.message.estimated_emails ?? campaignEstimate.message.estimated_messages }}</strong> e-mail(s)</template><template v-else>,
-              <strong>{{ campaignEstimate.message.estimated_sms_segments }}</strong> segmento(s) de SMS</template><template v-if="campaignEstimate.financial.estimated_cost !== null">,
-              custo estimado de <strong>{{ formatCurrency(campaignEstimate.financial.estimated_cost) }}</strong></template>.
+            <span v-if="launchEstimate">
+              Estimativa: <strong>{{ launchEstimate.audience.estimated_recipients }}</strong> destinatário(s)<template v-if="form.channel === 'email'">
+              / <strong>{{ launchEstimate.message.estimated_emails ?? launchEstimate.message.estimated_messages }}</strong> e-mail(s)</template><template v-else>,
+              <strong>{{ launchEstimate.message.estimated_sms_segments }}</strong> segmento(s) de SMS</template><template v-if="launchEstimate.financial.estimated_cost !== null">,
+              custo estimado de <strong>{{ formatCurrency(launchEstimate.financial.estimated_cost) }}</strong></template>.
             </span>
             Esta ação não pode ser desfeita após o início do envio.
           </AlertDialogDescription>
@@ -522,20 +586,26 @@ import CampaignMessageStep from "@/components/campaigns/CampaignMessageStep.vue"
 import CampaignRecurrenceStep from "@/components/campaigns/CampaignRecurrenceStep.vue";
 import CampaignScheduleStep from "@/components/campaigns/CampaignScheduleStep.vue";
 import CampaignSingleStageStep from "@/components/campaigns/CampaignSingleStageStep.vue";
+import CampaignTypeStep from "@/components/campaigns/CampaignTypeStep.vue";
+import CampaignValidationList from "@/components/campaigns/CampaignValidationList.vue";
 import CampaignWarmupStep from "@/components/campaigns/CampaignWarmupStep.vue";
+import FlowEditorCanvas from "@/components/campaign-flow/FlowEditorCanvas.vue";
+import FlowEstimatePanel from "@/components/campaign-flow/FlowEstimatePanel.vue";
+import FlowSummaryPanel from "@/components/campaign-flow/FlowSummaryPanel.vue";
 import {
   createCampaign,
   deleteCampaign,
   estimateCampaign,
   getCampaign,
+  getFlowCatalog,
   launchCampaign,
   updateCampaign,
   validateCampaign,
 } from "@/services/campaigns";
 import type {
+  CampaignAnyEstimateResponse,
   CampaignConfigurationProgress,
   CampaignDetail,
-  CampaignEstimateResponse,
   CampaignFormState,
   CampaignStatus,
   CampaignStorePayload,
@@ -547,16 +617,26 @@ import type {
 import {
   CAMPAIGN_PROGRESS_STATUS_LABELS,
   CAMPAIGN_STATUS_LABELS,
+  isBroadcastEstimate,
+  isFlowEstimate,
 } from "@/contracts/campaigns";
 import {
   CAMPAIGN_RUN_STATUS_LABELS,
 } from "@/contracts/campaignExecution";
+import {
+  createEmptyFlowConfig,
+  createEmptyFlowDefinition,
+  flattenCatalogNodeTypes,
+  type CampaignFlowConfig,
+  type FlowCatalogResponse,
+} from "@/contracts/campaignFlow";
 import { useCampaignExecutionStore } from "@/stores/campaignExecution";
 import CampaignRunProgressPanel from "@/components/campaigns/CampaignRunProgressPanel.vue";
 import CampaignWavesBatchesPanel from "@/components/campaigns/CampaignWavesBatchesPanel.vue";
 import CampaignRecipientsPanel from "@/components/campaigns/CampaignRecipientsPanel.vue";
 
 type StepKey =
+  | "campaign_type"
   | "basic"
   | "audience"
   | "message"
@@ -564,7 +644,11 @@ type StepKey =
   | "schedule"
   | "delivery_windows"
   | "recurrence_policy"
-  | "warmup_policy";
+  | "warmup_policy"
+  | "flow_editor"
+  | "flow_review";
+
+type WizardMode = "select" | "broadcast" | "flow";
 
 type HttpLikeError = {
   message?: string;
@@ -584,7 +668,7 @@ type StepDefinition = {
   progressKey?: CampaignWizardStepKey;
 };
 
-const steps: StepDefinition[] = [
+const broadcastSteps: StepDefinition[] = [
   { key: "basic", label: "Dados básicos", sectionKeys: ["campaign", "channels"], progressKey: "channels" },
   { key: "audience", label: "Público", sectionKeys: ["audience", "campaign"], progressKey: "audience" },
   { key: "message", label: "Mensagem", sectionKeys: ["message"], progressKey: "message" },
@@ -595,6 +679,12 @@ const steps: StepDefinition[] = [
   { key: "warmup_policy", label: "Warmup", sectionKeys: ["warmup", "warmup_policy"], progressKey: "warmup" },
 ];
 
+const flowSteps: StepDefinition[] = [
+  { key: "campaign_type", label: "Tipo de campanha", sectionKeys: ["campaign", "basics"], progressKey: "basics" },
+  { key: "flow_editor", label: "Editar fluxo", sectionKeys: ["flow", "flow_structure", "messages", "links"], progressKey: "flow" },
+  { key: "flow_review", label: "Finalizar", sectionKeys: ["review"], progressKey: "review" },
+];
+
 const route = useRoute();
 const router = useRouter();
 const workspaceStore = useWorkspaceStore();
@@ -602,8 +692,9 @@ const campaignExecutionStore = useCampaignExecutionStore();
 
 const campaign = ref<CampaignDetail | null>(null);
 const configurationProgress = ref<CampaignConfigurationProgress | null>(null);
-const campaignEstimate = ref<CampaignEstimateResponse | null>(null);
+const campaignEstimate = ref<CampaignAnyEstimateResponse | null>(null);
 const validationResult = ref<CampaignValidationResponse | null>(null);
+const wizardMode = ref<WizardMode>(campaignIdFromRoute() ? "broadcast" : "select");
 const activeStep = ref<StepKey>("basic");
 const activeCampaignTab = ref<"configuration" | "execution">("configuration");
 const isDirty = ref(false);
@@ -634,6 +725,7 @@ const handleVisibilityChange = () => {
 };
 
 const stepLoading = reactive<Record<StepKey, boolean>>({
+  campaign_type: false,
   basic: false,
   audience: false,
   message: false,
@@ -642,7 +734,15 @@ const stepLoading = reactive<Record<StepKey, boolean>>({
   delivery_windows: false,
   recurrence_policy: false,
   warmup_policy: false,
+  flow_editor: false,
+  flow_review: false,
 });
+
+const flowCatalog = ref<FlowCatalogResponse | null>(null);
+const isFlowCatalogLoading = ref(false);
+const flowCatalogError = ref("");
+let hasInitializedMode = false;
+const stepAfterCreate = ref<StepKey | null>(null);
 
 const form = reactive<CampaignFormState>(createEmptyForm());
 const formModel = computed({
@@ -663,10 +763,12 @@ function onChannelChange(channel: "sms" | "email") {
   }
 }
 
-const campaignId = computed(() => {
+const campaignId = computed(() => campaignIdFromRoute());
+
+function campaignIdFromRoute() {
   const id = Number(route.params.id);
   return Number.isFinite(id) && id > 0 ? id : null;
-});
+}
 
 function formatDateTime(value: string | null) {
   if (!value) return "—";
@@ -791,13 +893,15 @@ const activeProjectId = computed(() => {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
 });
 
-const activeStepIndex = computed(() => steps.findIndex((step) => step.key === activeStep.value));
+const activeSteps = computed<StepDefinition[]>(() => (wizardMode.value === "flow" ? flowSteps : broadcastSteps));
+const isFlowMode = computed(() => wizardMode.value === "flow");
+const activeStepIndex = computed(() => activeSteps.value.findIndex((step) => step.key === activeStep.value));
 const progressValue = computed(() => {
   if (configurationProgress.value && configurationProgress.value.total_steps > 0) {
     return (configurationProgress.value.completed_steps / configurationProgress.value.total_steps) * 100;
   }
 
-  return ((activeStepIndex.value + 1) / steps.length) * 100;
+  return ((activeStepIndex.value + 1) / activeSteps.value.length) * 100;
 });
 const progressSummary = computed(() => {
   if (!configurationProgress.value) {
@@ -815,6 +919,67 @@ const canLaunch = computed(() =>
   ),
 );
 const statusLabel = computed(() => CAMPAIGN_STATUS_LABELS[(campaign.value?.status || "draft") as CampaignStatus]);
+
+const estimateForPanel = computed(() =>
+  isBroadcastEstimate(campaignEstimate.value) ? campaignEstimate.value : null,
+);
+const flowEstimate = computed(() =>
+  isFlowEstimate(campaignEstimate.value) ? campaignEstimate.value : null,
+);
+const launchEstimate = estimateForPanel;
+
+const flowNodeTypes = computed(() => flattenCatalogNodeTypes(flowCatalog.value?.node_types));
+
+watch(
+  wizardMode,
+  async (mode) => {
+    if (mode === "flow" && !flowCatalog.value && !isFlowCatalogLoading.value) {
+      await loadFlowCatalog();
+    }
+  },
+  { immediate: true },
+);
+
+async function loadFlowCatalog() {
+  isFlowCatalogLoading.value = true;
+  flowCatalogError.value = "";
+
+  try {
+    flowCatalog.value = await getFlowCatalog();
+  } catch (error) {
+    flowCatalogError.value = extractHttpMessage(error, "Não foi possível carregar o catálogo do editor de fluxo.");
+  } finally {
+    isFlowCatalogLoading.value = false;
+  }
+}
+
+function onTypeStepContinue() {
+  if (wizardMode.value === "select") {
+    wizardMode.value = form.type === "flow" ? "flow" : "broadcast";
+    activeStep.value = form.type === "flow" ? "flow_editor" : "basic";
+    return;
+  }
+
+  goToStep(activeStepIndex.value + 1);
+}
+
+async function saveFlowAndContinue() {
+  const wasCreate = !campaign.value?.id;
+  if (wasCreate) {
+    stepAfterCreate.value = "flow_review";
+  }
+
+  await saveDraft("flow_editor");
+
+  if (errorMessage.value) {
+    stepAfterCreate.value = null;
+    return;
+  }
+
+  if (!wasCreate) {
+    activeStep.value = "flow_review";
+  }
+}
 
 watch(
   form,
@@ -890,6 +1055,7 @@ function createEmptyForm(): CampaignFormState {
       eligibility_rules: null,
       metadata: null,
     },
+    flow_config: null,
     message: {
       channel: "sms",
       locale: "",
@@ -949,6 +1115,20 @@ async function loadCampaignContext(id: number) {
     campaign.value = detail;
     configurationProgress.value = detail.configuration_progress || null;
     applyCampaignDetail(detail);
+
+    const isFlow = detail.type === "flow";
+    wizardMode.value = isFlow ? "flow" : "broadcast";
+    if (!hasInitializedMode) {
+      hasInitializedMode = true;
+      const queryStep = typeof route.query.step === "string" ? route.query.step : null;
+      const validKeys = (isFlow ? flowSteps : broadcastSteps).map((step) => step.key) as string[];
+      activeStep.value = queryStep && validKeys.includes(queryStep)
+        ? (queryStep as StepKey)
+        : isFlow
+          ? "campaign_type"
+          : "basic";
+    }
+
     isDirty.value = false;
     await runEstimate(id, false);
   } catch (error) {
@@ -970,6 +1150,13 @@ function applyCampaignDetail(detail: CampaignDetail) {
       ...createEmptyForm().single_stage_config,
       ...(detail.single_stage_config || {}),
     },
+    flow_config: detail.flow_config
+      ? {
+          version: detail.flow_config.version ?? 1,
+          definition: JSON.parse(JSON.stringify(detail.flow_config.definition || createEmptyFlowDefinition())) as CampaignFlowConfig["definition"],
+          entry_audience: detail.flow_config.entry_audience ?? null,
+        }
+      : null,
     message: {
       ...createEmptyForm().message,
       ...((detail.messages && detail.messages[0]) || {}),
@@ -1011,7 +1198,12 @@ async function saveDraft(step: StepKey) {
       campaign.value = detail;
       configurationProgress.value = detail.configuration_progress || null;
       applyCampaignDetail(detail);
-      await router.replace({ name: "campaign-drafts.edit", params: { id: detail.id } });
+      await router.replace({
+        name: "campaign-drafts.edit",
+        params: { id: detail.id },
+        query: stepAfterCreate.value ? { step: stepAfterCreate.value } : undefined,
+      });
+      stepAfterCreate.value = null;
       await runEstimate(detail.id, false);
       toast("Campanha criada como draft.");
     } else {
@@ -1059,7 +1251,7 @@ async function runValidation() {
     validationWarnings.value = result.warnings || {};
     configurationProgress.value = result.configuration_progress || configurationProgress.value;
 
-    const firstStep = steps.find((step) => {
+    const firstStep = activeSteps.value.find((step) => {
       const wizardStep = wizardStepFor(step.key);
       return wizardStep && wizardStep.status !== "valid";
     });
@@ -1138,13 +1330,24 @@ function buildStorePayload(): CampaignStorePayload {
     throw new Error("Informe um projeto ativo e o nome para criar o draft.");
   }
 
-  return {
+  const base = {
     project_id: activeProjectId.value,
     name: form.name,
     description: form.description,
-    type: "broadcast",
+    type: form.type,
     channel: form.channel,
     metadata: form.metadata,
+  };
+
+  if (form.type === "flow") {
+    return {
+      ...base,
+      flow_config: form.flow_config || createEmptyFlowConfig(),
+    };
+  }
+
+  return {
+    ...base,
     single_stage_config: form.single_stage_config,
     message: {
       ...form.message,
@@ -1159,12 +1362,23 @@ function buildStorePayload(): CampaignStorePayload {
 }
 
 function buildUpdatePayload(): CampaignUpdatePayload {
-  return {
+  const base = {
     name: form.name,
     description: form.description,
-    type: "broadcast",
+    type: form.type,
     channel: form.channel,
     metadata: form.metadata,
+  };
+
+  if (form.type === "flow") {
+    return {
+      ...base,
+      flow_config: form.flow_config || createEmptyFlowConfig(),
+    };
+  }
+
+  return {
+    ...base,
     single_stage_config: form.single_stage_config,
     message: {
       ...form.message,
@@ -1179,7 +1393,7 @@ function buildUpdatePayload(): CampaignUpdatePayload {
 }
 
 function wizardStepFor(stepKey: StepKey): CampaignWizardStep | undefined {
-  const progressKey = steps.find((step) => step.key === stepKey)?.progressKey;
+  const progressKey = activeSteps.value.find((step) => step.key === stepKey)?.progressKey;
   if (!progressKey || !configurationProgress.value) return undefined;
   return configurationProgress.value.steps.find((step) => step.key === progressKey);
 }
@@ -1196,11 +1410,11 @@ function stepSummary(stepKey: StepKey) {
 }
 
 function sectionErrors(stepKey: StepKey) {
-  return mergeMessages(steps.find((step) => step.key === stepKey)?.sectionKeys || [], validationErrors.value);
+  return mergeMessages(activeSteps.value.find((step) => step.key === stepKey)?.sectionKeys || [], validationErrors.value);
 }
 
 function sectionWarnings(stepKey: StepKey) {
-  return mergeMessages(steps.find((step) => step.key === stepKey)?.sectionKeys || [], validationWarnings.value);
+  return mergeMessages(activeSteps.value.find((step) => step.key === stepKey)?.sectionKeys || [], validationWarnings.value);
 }
 
 function mergeMessages(sectionKeys: string[], source: Record<string, { field: string; message: string }[]>) {
@@ -1208,7 +1422,7 @@ function mergeMessages(sectionKeys: string[], source: Record<string, { field: st
 }
 
 function clearStepMessages(stepKey: StepKey) {
-  const step = steps.find((item) => item.key === stepKey);
+  const step = activeSteps.value.find((item) => item.key === stepKey);
   if (!step) return;
 
   validationErrors.value = { ...validationErrors.value };
@@ -1226,7 +1440,7 @@ function clearValidationState() {
 }
 
 function goToStep(index: number) {
-  const step = steps[index];
+  const step = activeSteps.value[index];
   if (step) activeStep.value = step.key;
 }
 
@@ -1276,7 +1490,7 @@ function handleHttpError(error: unknown, step?: StepKey) {
         ? messages.map((message) => ({ field, message: String(message) }))
         : [{ field, message: String(messages) }],
     );
-    const key = steps.find((item) => item.key === step)?.sectionKeys[0] || "campaign";
+    const key = activeSteps.value.find((item) => item.key === step)?.sectionKeys[0] || "campaign";
     validationErrors.value = { ...validationErrors.value, [key]: items };
     errorMessage.value = "Revise os campos destacados antes de continuar.";
     return;
