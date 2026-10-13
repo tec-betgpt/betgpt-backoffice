@@ -135,7 +135,7 @@ const currentViewport = ref<FlowViewport | null>(null);
 const isGalleryOpen = ref(false);
 const canvasWrapper = ref<HTMLElement | null>(null);
 
-const { addEdges, addNodes, screenToFlowCoordinate, setViewport } = useVueFlow();
+const { addEdges, addNodes, screenToFlowCoordinate, setViewport, fitView } = useVueFlow();
 
 provide("flowReadonly", toRef(props, "readonly"));
 
@@ -258,8 +258,11 @@ function applyTemplate(template: FlowTemplate) {
     target: idMap.get(edge.target) || edge.target,
     markerEnd: MarkerType.ArrowClosed,
   }));
-  currentViewport.value = hydrated.viewport;
+  currentViewport.value = null;
   suppressSync = false;
+  nextTick(() => {
+    fitView({ padding: 0.2, duration: 200 });
+  });
   toast(`Template "${template.name}" aplicado.`);
 }
 
