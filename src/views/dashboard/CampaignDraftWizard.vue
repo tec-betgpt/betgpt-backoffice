@@ -146,7 +146,10 @@
         </div>
 
         <template v-else>
-        <div class="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
+        <div
+          class="grid gap-6"
+          :class="isFlowEditorStep ? 'xl:grid-cols-[280px_minmax(0,1fr)]' : 'xl:grid-cols-[280px_minmax(0,1fr)_360px]'"
+        >
           <Card>
             <CardHeader>
               <CardTitle>Progresso do builder</CardTitle>
@@ -305,7 +308,7 @@
             </CardContent>
           </Card>
 
-          <div class="space-y-6">
+          <div v-if="!isFlowEditorStep" class="space-y-6">
             <CampaignEstimatePanel
               v-if="estimateForPanel || !isFlowMode"
               :estimate="estimateForPanel"
@@ -895,6 +898,7 @@ const activeProjectId = computed(() => {
 
 const activeSteps = computed<StepDefinition[]>(() => (wizardMode.value === "flow" ? flowSteps : broadcastSteps));
 const isFlowMode = computed(() => wizardMode.value === "flow");
+const isFlowEditorStep = computed(() => isFlowMode.value && activeStep.value === "flow_editor");
 const activeStepIndex = computed(() => activeSteps.value.findIndex((step) => step.key === activeStep.value));
 const progressValue = computed(() => {
   if (configurationProgress.value && configurationProgress.value.total_steps > 0) {

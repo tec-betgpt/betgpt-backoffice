@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-[640px] flex-col overflow-hidden rounded-md border border-border">
+  <div class="flex h-[calc(100dvh-300px)] min-h-[560px] flex-col overflow-hidden rounded-md border border-border">
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-background px-3 py-2">
       <div class="flex items-center gap-2">
         <Button variant="outline" size="sm" :disabled="readonly || catalogLoading" @click="isGalleryOpen = true">
