@@ -17,6 +17,18 @@ export interface LinkDestination {
   is_healthy?: boolean | null;
 }
 
+export interface LinkParam {
+  name: string;
+  value: string;
+}
+
+export interface LinkParamRecord extends LinkParam {
+  id: number;
+  link_id: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
 export interface LinkUtmObject {
   utm_source?: string | null;
   utm_medium?: string | null;
@@ -67,6 +79,7 @@ export interface LinkListItem {
   domain?: string | null;
   reason?: string | null;
   destination?: LinkDestination | null;
+  params?: LinkParamRecord[];
   versions?: LinkVersion[];
   utmSnapshots?: LinkUtmSnapshot[];
   utm_snapshots?: LinkUtmSnapshot[];
@@ -147,6 +160,7 @@ export interface LinkFormPayloadBase {
   reason?: string | null;
   destination?: LinkDestination;
   destinations?: LinkDestination[];
+  params?: LinkParam[];
   utm?: LinkUtmObject | null;
   utm_source?: string | null;
   utm_medium?: string | null;

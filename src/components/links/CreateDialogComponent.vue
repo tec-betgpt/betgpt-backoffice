@@ -130,6 +130,32 @@
 
         <div class="space-y-4 rounded-lg border p-4">
           <div>
+            <h3 class="font-medium">Parâmetros de URL</h3>
+            <p class="text-sm text-muted-foreground">Parâmetros de query string anexados à URL de destino no redirect. O nome deve ser único por link.</p>
+          </div>
+
+          <div v-for="(param, i) in form.params" :key="i" class="flex flex-col gap-3 rounded-lg border p-4 md:flex-row md:items-end">
+            <div class="flex-1 space-y-2">
+              <Label>Nome</Label>
+              <Input v-model="param.name" placeholder="ref" />
+              <p v-if="fieldErrors[`params.${i}.name`]" class="text-sm text-destructive">{{ fieldErrors[`params.${i}.name`] }}</p>
+            </div>
+            <div class="flex-1 space-y-2">
+              <Label>Valor</Label>
+              <Input v-model="param.value" placeholder="promo10" />
+              <p v-if="fieldErrors[`params.${i}.value`]" class="text-sm text-destructive">{{ fieldErrors[`params.${i}.value`] }}</p>
+            </div>
+            <Button type="button" variant="ghost" size="sm" @click="removeParam(form.params, i)">Remover</Button>
+          </div>
+
+          <Button type="button" variant="outline" size="sm" @click="addParam(form.params)">
+            + Adicionar parâmetro
+          </Button>
+          <p v-if="fieldErrors.params" class="text-sm text-destructive">{{ fieldErrors.params }}</p>
+        </div>
+
+        <div class="space-y-4 rounded-lg border p-4">
+          <div>
             <h3 class="font-medium">UTM e contexto</h3>
             <p class="text-sm text-muted-foreground">Campos opcionais enviados na criação.</p>
           </div>
@@ -222,11 +248,13 @@ import {
 } from "@/contracts/link";
 import {
   addDestination,
+  addParam,
   createDefaultForm,
   getActiveProjectId,
   mapApiErrors,
   MAX_DESTINATIONS,
   removeDestination,
+  removeParam,
   sanitizePayload,
   SELECT_NONE_VALUE,
   validateForm,

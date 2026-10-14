@@ -3,6 +3,7 @@ import type {
   LinkDestination,
   LinkDetailsResponse,
   LinkListItem,
+  LinkParam,
   LinkUtmObject,
   LinkUtmSnapshot,
   LinkUpdatePayload,
@@ -27,6 +28,11 @@ export interface DestinationState {
   variant_key: string;
 }
 
+export interface ParamState {
+  name: string;
+  value: string;
+}
+
 export interface LinkFormState {
   project_id: string | number;
   code: string;
@@ -37,6 +43,7 @@ export interface LinkFormState {
   customDomainEnabled: boolean;
   reason: string;
   destinations: DestinationState[];
+  params: ParamState[];
   utm: UtmGroup;
   preserve_original: boolean;
   channel: string;
@@ -69,6 +76,7 @@ export function createDefaultForm(): LinkFormState {
     customDomainEnabled: false,
     reason: "",
     destinations: [defaultDestination()],
+    params: [],
     utm: defaultUtmGroup(),
     preserve_original: false,
     channel: SELECT_NONE_VALUE,
@@ -107,7 +115,33 @@ export function validateForm(form: LinkFormState) {
     errors["destinations.weight"] = `A soma dos pesos deve ser 100 (atual: ${totalWeight}).`;
   }
 
+  const seenNames = new Set<string>();
+  form.params.forEach((param, index) => {
+    const name = param.name.trim();
+    const value = param.value.trim();
+    const isEmpty = !name && !value;
+    if (isEmpty) return;
+
+    if (!name) {
+      errors[`params.${index}.name`] = "Informe o nome do parâmetro.";
+    } else if (seenNames.has(name)) {
+      errors["params"] = `O nome de parâmetro "${name}" está duplicado.`;
+    } else {
+      seenNames.add(name);
+    }
+
+    if (!value) {
+      errors[`params.${index}.value`] = "Informe o valor do parâmetro.";
+    }
+  });
+
   return errors;
+}
+
+function buildParamsPayload(params: ParamState[]): LinkParam[] {
+  return params
+    .filter((param) => param.name.trim() || param.value.trim())
+    .map((param) => ({ name: param.name.trim(), value: param.value.trim() }));
 }
 
 function buildUtmPayload(group: UtmGroup): LinkUtmObject | null {
@@ -141,6 +175,7 @@ export function sanitizePayload(form: LinkFormState) {
         weight: d.weight === "" ? null : Number(d.weight),
         variant_key: d.variant_key || null,
       })),
+    params: buildParamsPayload(form.params),
   };
 
   return Object.fromEntries(
@@ -219,6 +254,14 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
       variant_key: link.destination?.variant_key || "",
     }];
   }
+  const linkParams = Array.isArray((link as LinkDetailsResponse).params)
+    ? (link as LinkDetailsResponse).params ?? []
+    : [];
+  form.params = linkParams.map((param) => ({
+    name: param.name || "",
+    value: param.value || "",
+  }));
+
   Object.assign(form.utm, parseUtmObject(snapshot?.utm ?? link.utm ?? null));
   if (!form.utm.utm_source) form.utm.utm_source = String(snapshot?.utm_source ?? link.utm_source ?? "");
   if (!form.utm.utm_medium) form.utm.utm_medium = String(snapshot?.utm_medium ?? link.utm_medium ?? "");
@@ -252,6 +295,14 @@ export function getDestinationUrl(link: LinkListItem | LinkDetailsResponse) {
     || link.versions?.[0]?.destination?.url
     || (link as LinkDetailsResponse).last_version?.destinations?.[0]?.url
     || "—";
+}
+
+export function addParam(params: ParamState[]) {
+  params.push({ name: "", value: "" });
+}
+
+export function removeParam(params: ParamState[], index: number) {
+  params.splice(index, 1);
 }
 
 export function addDestination(destinations: DestinationState[]) {
