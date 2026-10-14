@@ -1,4 +1,6 @@
-export type CampaignType = "broadcast";
+import type { CampaignFlowConfig } from "@/contracts/campaignFlow";
+
+export type CampaignType = "broadcast" | "flow";
 export type CampaignChannel = "sms" | "email";
 
 export type CampaignStatus =
@@ -26,6 +28,9 @@ export type CampaignMessageLike = {
   field: string;
   message: string;
 };
+
+/** Alias usado pelos componentes de etapa do builder para erros/avisos de validação. */
+export type CampaignValidationItem = CampaignMessageLike;
 
 export type CampaignProjectSummary = {
   id: number;
@@ -70,7 +75,10 @@ export type CampaignWizardStepKey =
   | "audience"
   | "schedule"
   | "delivery_windows"
-  | "warmup";
+  | "warmup"
+  | "basics"
+  | "flow"
+  | "review";
 
 export type CampaignWizardStep = {
   key: CampaignWizardStepKey;
@@ -182,6 +190,7 @@ export type CampaignStorePayload = {
   channel?: CampaignChannel;
   metadata?: CampaignMetadata | null;
   single_stage_config?: CampaignSingleStageConfigPayload | null;
+  flow_config?: CampaignFlowConfig | null;
   message?: CampaignMessagePayload | null;
   messages?: CampaignMessagePayload[];
   links?: CampaignLinkPayload[];
@@ -325,6 +334,7 @@ export type CampaignDetail = {
   created_by_user?: CampaignUserSummary | null;
   updated_by_user?: CampaignUserSummary | null;
   single_stage_config?: CampaignSingleStageConfig | null;
+  flow_config?: CampaignFlowConfig | null;
   messages?: CampaignMessage[];
   links?: CampaignLink[];
   schedule?: CampaignSchedule | null;
@@ -344,7 +354,9 @@ export type CampaignPreLaunchChecklistItem = {
     | "schedule"
     | "delivery_windows"
     | "warmup"
-    | "financial";
+    | "financial"
+    | "flow_structure"
+    | "messages";
   label: string;
   status: "valid" | "warning" | "invalid";
   blocking: boolean;
@@ -432,6 +444,42 @@ export type CampaignEstimateResponse = {
   warnings: Record<string, CampaignEstimateSectionMessage[]>;
 };
 
+/**
+ * Estimativa de campanhas multi-estágio (CampaignEstimateService::estimateFlow):
+ * sem audience/financeiro nesta fase — resumo estrutural do grafo.
+ */
+export type CampaignFlowEstimateSection = {
+  node_count: number;
+  nodes_by_category: Record<string, number>;
+  actions_by_channel: Record<string, number>;
+  estimated_messages_per_recipient: number;
+  financial_estimate: "not_applicable" | string;
+};
+
+export type CampaignFlowEstimateResponse = {
+  campaign_id: number;
+  status: "estimated" | "blocked";
+  can_continue: boolean;
+  estimated_at: string;
+  flow: CampaignFlowEstimateSection;
+  errors: Record<string, CampaignEstimateSectionMessage[]>;
+  warnings: Record<string, CampaignEstimateSectionMessage[]>;
+};
+
+export type CampaignAnyEstimateResponse = CampaignEstimateResponse | CampaignFlowEstimateResponse;
+
+export function isFlowEstimate(
+  estimate: CampaignAnyEstimateResponse | null | undefined,
+): estimate is CampaignFlowEstimateResponse {
+  return Boolean(estimate && "flow" in estimate);
+}
+
+export function isBroadcastEstimate(
+  estimate: CampaignAnyEstimateResponse | null | undefined,
+): estimate is CampaignEstimateResponse {
+  return Boolean(estimate && "audience" in estimate);
+}
+
 export type CampaignApiResponse<T> = {
   success?: boolean;
   message?: string | null;
@@ -513,6 +561,7 @@ export type CampaignFormState = {
   channel: CampaignChannel;
   metadata: CampaignMetadata | null;
   single_stage_config: CampaignSingleStageConfigPayload;
+  flow_config: CampaignFlowConfig | null;
   message: CampaignMessagePayload;
   links: CampaignLinkPayload[];
   schedule: CampaignSchedulePayload;
@@ -546,9 +595,17 @@ export const CAMPAIGN_CHANNEL_OPTIONS = [
   { label: "E-mail", value: "email" as CampaignChannel },
 ];
 
-export const CAMPAIGN_TYPE_OPTIONS = [
-  { label: "Broadcast", value: "broadcast" as CampaignType },
-];
+export const CAMPAIGN_TYPE_LABELS: Record<CampaignType, string> = {
+  broadcast: "Estágio único",
+  flow: "Multi-estágio",
+};
+
+export const CAMPAIGN_TYPE_OPTIONS = (
+  Object.entries(CAMPAIGN_TYPE_LABELS) as [CampaignType, string][]
+).map(([value, label]) => ({
+  label,
+  value,
+}));
 
 export const CAMPAIGN_PROGRESS_STATUS_LABELS = {
   missing: "Pendente",

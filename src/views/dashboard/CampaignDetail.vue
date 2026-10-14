@@ -16,7 +16,9 @@
           </Badge>
         </div>
         <p class="text-muted-foreground">
-          Acompanhe o progresso do disparo via SMS Funnel: ocorrências, broadcasts e entregas.
+          {{ campaign?.type === 'flow'
+            ? "Campanha multi-estágio: resumo do fluxo e acompanhamento operacional."
+            : "Acompanhe o progresso do disparo via SMS Funnel: ocorrências, broadcasts e entregas." }}
         </p>
       </div>
 
@@ -62,6 +64,8 @@
       <AlertTitle>Não foi possível concluir a ação</AlertTitle>
       <AlertDescription>{{ errorMessage }}</AlertDescription>
     </Alert>
+
+    <FlowSummaryPanel v-if="campaign?.type === 'flow'" :definition="campaign.flow_config?.definition || null" />
 
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       <Card v-for="metric in summaryMetrics" :key="metric.label">
@@ -229,6 +233,7 @@ import {
 } from "@/contracts/campaigns";
 import { FINANCIAL_STATUS_LABELS, type FinancialStatus } from "@/contracts/financialLedger";
 import CampaignCostsPanel from "@/components/campaigns/CampaignCostsPanel.vue";
+import FlowSummaryPanel from "@/components/campaign-flow/FlowSummaryPanel.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import {
   cancelCampaign,

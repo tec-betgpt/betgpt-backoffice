@@ -2,16 +2,17 @@ import api from "./base.js";
 import { postWithIdempotency } from "./idempotency";
 import campaignExecutionService from "@/services/campaignExecution";
 import type {
+  CampaignAnyEstimateResponse,
   CampaignApiResponse,
   CampaignDetail,
   CampaignDispatchesResponse,
-  CampaignEstimateResponse,
   CampaignListParams,
   CampaignListResponse,
   CampaignStorePayload,
   CampaignUpdatePayload,
   CampaignValidationResponse,
 } from "@/contracts/campaigns";
+import type { FlowCatalogResponse } from "@/contracts/campaignFlow";
 
 function unwrapResponse<T>(response: T | CampaignApiResponse<T>): T {
   if (
@@ -59,8 +60,8 @@ export async function validateCampaign(id: number): Promise<CampaignValidationRe
   return unwrapResponse(data);
 }
 
-export async function estimateCampaign(id: number): Promise<CampaignEstimateResponse> {
-  const { data } = await api.post<CampaignEstimateResponse | CampaignApiResponse<CampaignEstimateResponse>>(
+export async function estimateCampaign(id: number): Promise<CampaignAnyEstimateResponse> {
+  const { data } = await api.post<CampaignAnyEstimateResponse | CampaignApiResponse<CampaignAnyEstimateResponse>>(
     `/campaigns/${id}/estimate`,
   );
   return unwrapResponse(data);
@@ -96,6 +97,13 @@ export async function getCampaignDispatches(id: number): Promise<CampaignDispatc
   return unwrapResponse(data);
 }
 
+export async function getFlowCatalog(): Promise<FlowCatalogResponse> {
+  const { data } = await api.get<FlowCatalogResponse | CampaignApiResponse<FlowCatalogResponse>>(
+    "/campaign-flow/catalog",
+  );
+  return unwrapResponse(data);
+}
+
 export default {
   index: listCampaigns,
   listCampaigns,
@@ -110,6 +118,7 @@ export default {
   resumeCampaign,
   cancelCampaign,
   getCampaignDispatches,
+  getFlowCatalog,
   store: createCampaign,
   show: getCampaign,
   update: updateCampaign,
