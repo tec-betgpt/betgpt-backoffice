@@ -85,7 +85,7 @@ const authUser = computed(() => authStore.user as any);
 const canManageDomains = computed(
   () =>
     authUser.value?.roles?.some(
-      (role: any) => role.name === "member-admin" || role.name === "member-proprietor" || role.name === "member-developer",
+      (role: any) => role.name === "member-admin" || role.name === "member-proprietor" || role.name === "member-developer" || role.name === "client-proprietor"
     ) ?? false,
 );
 
