@@ -65,7 +65,7 @@
     </Card>
 
     <Dialog v-model:open="showModal">
-      <DialogContent position="right" size="lg">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>
             {{ isEditing ? "Editar Usuário" : "Novo Usuário" }}
@@ -281,7 +281,7 @@ import {
 
 const processingAction = ref(null);
 const users = ref<User[]>([]);
-const projects = ref([]);
+const projects = ref<any[]>([]);
 const roles = ref([]);
 const isLoading = ref(true);
 const isProcessing = ref(false);

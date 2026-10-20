@@ -66,6 +66,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
+import { usePagination } from "@/composables/usePagination";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import CostCenter from "@/services/costCenters";
@@ -83,14 +85,10 @@ interface CostData {
 const isLoading = ref(false);
 const costs = ref<CostData[]>([]);
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const nameCost = ref();
 const perPages = ref('10');
-const pages = ref({
-  current: 1,
-  total: 0,
-  last: 0,
-});
+const { pages, updateFromResponse } = usePagination();
 
 const tableColumns = [
   { id: "nome", label: "Nome" },
@@ -109,6 +107,8 @@ watch(perPages, (newPerPage) => {
 });
 
 const fetchCosts = async (current: number = pages.value.current) => {
+  if (!activeGroupProjectId.value) return;
+
   try {
     const page = nameCost.value && current
         ? current
@@ -119,7 +119,7 @@ const fetchCosts = async (current: number = pages.value.current) => {
                 : pages.value.current
 
     const { data } = await CostCenter.index({
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       find_name: nameCost.value,
       sort_by: "id",
       sort_order: "desc",
@@ -128,11 +128,7 @@ const fetchCosts = async (current: number = pages.value.current) => {
     })
 
     costs.value = data.data
-    pages.value = {
-      current: data.current_page,
-      total: data.total,
-      last: data.last_page,
-    };
+    updateFromResponse(data);
   } catch (error) {
     console.error("Erro ao buscar centros de custo:", error);
   }
@@ -168,5 +164,9 @@ onMounted(async () => {
   isLoading.value = true;
   await fetchCosts()
   isLoading.value = false;
+});
+
+onWorkspaceChange(() => {
+  fetchCosts(1);
 });
 </script>

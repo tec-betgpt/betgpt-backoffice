@@ -50,6 +50,7 @@
       <div v-else>
         <div
           v-for="value in values"
+          :key="value.id"
           class="flex items-start justify-start align-top gap-2 mb-2"
         >
           <Checkbox
@@ -94,6 +95,7 @@ import { Separator } from "@/components/ui/separator";
 import { createColumnHelper } from "@tanstack/vue-table";
 import { Button } from "@/components/ui/button";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
 import Export from "@/services/export";
 import { Accordion } from "@/components/ui/accordion";
@@ -110,12 +112,12 @@ import { Dialog, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import {Spinner} from "@/components/ui/spinner";
 import { projectColumnDef } from "@/components/custom/projectColumn";
-import type { ProjectSummary } from "@/contracts/projectSummary";
+import type { HistoryData } from "@/contracts/historyExport";
 
 const openDialog = ref(false);
 const isLoading = ref(true);
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
 const pages = ref({ current: 1, total: 0, last: 0 });
 const paginate = ref(1);
@@ -129,7 +131,7 @@ watch(perPage, () => {
 useScreenContext(
   "Tela de exports - Gerencia exportação de dados",
   () => ({
-    "filter_id": activeGroupProjectId ?? "",
+    "filter_id": activeGroupProjectId.value ?? "",
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,
@@ -152,10 +154,18 @@ onMounted(async () => {
     }
   }
 });
+
+onWorkspaceChange(() => {
+  loadExportsHistory();
+});
 const loadExportsHistory = async () => {
+  if (!activeGroupProjectId.value) {
+    isLoading.value = false;
+    return;
+  }
   isLoading.value = true;
   const response = await Export.index({
-    filter_id: activeGroupProjectId,
+    filter_id: activeGroupProjectId.value,
     page: paginate.value,
     per_page: perPage.value,
   });
@@ -170,7 +180,7 @@ const loadExportsHistory = async () => {
 };
 const orderId = ref("");
 const order = ref(false);
-const history = ref([]);
+const history = ref<HistoryData[]>([]);
 const handlerOrder = () => {};
 const selectPage = async (value) => {
   paginate.value = value;
@@ -186,7 +196,7 @@ const exportData = async () => {
   try {
     isExporting.value = true;
     await Export.exportData({
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       type_export: "segment",
       target_id: targetId.value,
     });
@@ -202,11 +212,15 @@ const exportData = async () => {
   }
 };
 const fetchSegments = async (current: number = pages.value.current) => {
+  if (!activeGroupProjectId.value) {
+    isLoadingSeg.value = false;
+    return;
+  }
   try {
     isLoadingSeg.value = true;
     const params = {
       page: 1,
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       sort_by: orderId.value,
       sort_order: "asc",
       per_page: -1,
@@ -387,23 +401,6 @@ interface SegmentData {
   id: number;
   name: string;
   description: string;
-}
-
-interface HistoryData {
-  id: string;
-  url: string;
-  type: string;
-  status: string;
-  filter: Array<string>;
-  user_id: number;
-  user?: {
-    id: number;
-    first_name: string;
-    last_name: string;
-  } | null;
-  created_at: string;
-  target_title: string;
-  project?: ProjectSummary | null;
 }
 </script>
 

@@ -85,7 +85,7 @@ const authUser = computed(() => authStore.user as any);
 const canManageDomains = computed(
   () =>
     authUser.value?.roles?.some(
-      (role: any) => role.name === "member-admin" || role.name === "member-proprietor" || role.name === "member-developer",
+      (role: any) => role.name === "member-admin" || role.name === "member-proprietor" || role.name === "member-developer" || role.name === "client-proprietor"
     ) ?? false,
 );
 
@@ -268,6 +268,13 @@ onMounted(async () => {
       </div>
     </div>
 
+    <div class="flex gap-2">
+      <Button @click="handleSave" :disabled="loading || saving">
+        <span v-if="saving">Salvando...</span>
+        <span v-else>Salvar Preferências</span>
+      </Button>
+    </div>
+
     <div class="bg-muted/50 rounded-lg p-4 space-y-4 mt-8">
       <div class="flex items-start justify-between gap-4">
         <div class="space-y-1">
@@ -357,12 +364,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="flex gap-2">
-      <Button @click="handleSave" :disabled="loading || saving">
-        <span v-if="saving">Salvando...</span>
-        <span v-else>Salvar Preferências</span>
-      </Button>
-    </div>
+
 
     <Dialog v-model:open="isAddDialogOpen">
       <DialogContent>

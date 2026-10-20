@@ -101,8 +101,11 @@
 import { ref, computed, onMounted } from "vue";
 import { toast } from "vue-sonner";
 import ProtectionListReports from "@/services/protectionListReports";
+import type { ProtectionListReport } from "@/contracts/protectionListReport";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
+import { usePagination } from "@/composables/usePagination";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import DestroyDialogComponent from "@/components/custom/DestroyDialogComponent.vue";
@@ -115,7 +118,8 @@ import { FileSpreadsheet, FileChartColumn } from "lucide-vue-next";
 
 
 const workspaceStore = useWorkspaceStore();
-const reports = ref([]);
+const { onWorkspaceChange } = useWorkspaceScope();
+const reports = ref<ProtectionListReport[]>([]);
 const isLoading = ref(true);
 
 const tableColumns = [
@@ -130,27 +134,26 @@ const visibleTableColumns = computed(() =>
   tableColumns.filter((c) => columnVisibility.value[c.id] !== false)
 );
 const perPage = ref(15);
-const pages = ref({
-  current: 1,
-  last: 1,
-  total: 0
-});
+const { pages, updateFromResponse } = usePagination({ last: 1 });
 
 const fetchReports = async (page = 1) => {
+  const filterId = workspaceStore.filterId;
+  if (!filterId) {
+    reports.value = [];
+    isLoading.value = false;
+    return;
+  }
+
   isLoading.value = true;
   try {
     const response = await ProtectionListReports.index({
-      project_id: workspaceStore.activeGroupProject?.id!,
+      filter_id: filterId,
       page,
       per_page: perPage.value
     });
 
     reports.value = response.data;
-    pages.value = {
-      current: response.current_page,
-      last: response.last_page,
-      total: response.total,
-    };
+    updateFromResponse(response);
   } catch (error) {
     toast.error("Erro", { description: "Erro ao carregar os relatórios." });
   } finally {
@@ -166,7 +169,8 @@ const destroy = async (id: number) => {
   }
 }
 
-const openLink = (url: string) => {
+const openLink = (url: string | null) => {
+  if (!url) return;
   if (url) {
     window.open(url, '_blank');
   }
@@ -197,10 +201,12 @@ onMounted(async () => {
   await fetchReports();
 });
 
+onWorkspaceChange(() => fetchReports(1));
+
 useScreenContext(
   "Tela de relatórios de lista de proteção - Exibe relatórios de listas de proteção",
   () => ({
-    "project_id": workspaceStore.activeGroupProject?.id ?? "",
+    "filter_id": workspaceStore.activeGroupProject?.id ?? "",
     "page": pages.value.current,
     "last_page": pages.value.last,
     "per_page": perPage.value,

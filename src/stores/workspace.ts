@@ -1,35 +1,43 @@
 import { defineStore } from "pinia";
 import UserProjectGroup from "@/services/userProjectGroup";
+import { filterIdToGroupId, filterIdToProjectId } from "@/lib/filterId";
+import type { WorkspaceFilterItem } from "@/contracts/userProjectGroup";
 import type { DateRange } from "reka-ui";
-
-interface ActiveGroupProject {
-  id: string
-  project_id:string
-  is_selected: boolean
-  label: string
-  logo: string | null
-  name: string
-  type: "group" | "project"
-}
 
 export const useWorkspaceStore = defineStore("workspace", {
   state: () => ({
-    activeGroupProject: null as ActiveGroupProject | null,
-    group_projects: [],
+    activeGroupProject: null as WorkspaceFilterItem | null,
+    group_projects: [] as WorkspaceFilterItem[],
     lastAnnotationUpdate: null as number | null,
     date:null as DateRange|null,
     context: null as Array<string> | null,
   }),
+  getters: {
+    filterId: (state): string | null => state.activeGroupProject?.id ?? null,
+    numericProjectId: (state): number | null => {
+      const value = Number(state.activeGroupProject?.project_id);
+      if (Number.isInteger(value) && value > 0) {
+        return value;
+      }
+      return filterIdToProjectId(state.activeGroupProject?.id);
+    },
+    numericGroupId: (state): number | null =>
+      filterIdToGroupId(state.activeGroupProject?.id),
+    isGroupWorkspace: (state): boolean =>
+      state.activeGroupProject?.type === "group",
+    hasActiveWorkspace: (state): boolean =>
+      Boolean(state.activeGroupProject?.id),
+  },
   actions: {
     notifyAnnotationUpdate() {
       this.lastAnnotationUpdate = Date.now();
     },
 
-    async setProjects(newGroupProjects: any) {
+    async setProjects(newGroupProjects: WorkspaceFilterItem[]) {
       this.group_projects = newGroupProjects;
     },
 
-    async setActiveGroupProject(project: any) {
+    async setActiveGroupProject(project: WorkspaceFilterItem) {
       if (!project) return;
 
       this.activeGroupProject = project;
@@ -43,7 +51,7 @@ export const useWorkspaceStore = defineStore("workspace", {
       }
     },
 
-    async loadInitialData(preferences: any, newGroupProjects: any) {
+    async loadInitialData(preferences: any, newGroupProjects: WorkspaceFilterItem[] = []) {
       await this.setProjects(newGroupProjects);
 
       if (

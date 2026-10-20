@@ -43,7 +43,10 @@ api.interceptors.response.use(
       !error.response.data.errors &&
       error.response.data.message
     ) {
-      toast.error(i18n.global.t("error_ocurried"), { description: i18n.global.t(error.response.data.message) });
+      const message = error.response.data.message;
+      toast.error(i18n.global.t("error_ocurried"), {
+        description: i18n.global.te(message) ? i18n.global.t(message) : message,
+      });
     }
 
     return Promise.reject(error);

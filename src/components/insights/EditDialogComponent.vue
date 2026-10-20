@@ -4,7 +4,7 @@
   </Button>
 
   <Dialog v-model:open="isDialog">
-    <DialogContent position="right" size="lg">
+    <DialogContent>
       <DialogHeader>
         <DialogTitle>
           Editar Insight

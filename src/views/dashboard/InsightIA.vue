@@ -15,6 +15,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import CustomStarScore from "@/components/custom/CustomStarScore.vue";
 import {useWorkspaceStore} from "@/stores/workspace";
+import {useWorkspaceScope} from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
 
 const loading = ref(true);
@@ -23,6 +24,7 @@ const workspaceStore = useWorkspaceStore()
 const activeGroupProject = computed(
     () => workspaceStore.activeGroupProject || null
 );
+const { requireFilterId, onWorkspaceChange } = useWorkspaceScope();
 const selectedMessages = ref([]);
 const isHistoryDialogOpen = ref(false);
 
@@ -61,12 +63,18 @@ const pagination = ref({
 const perPage = ref('10');
 
 const fetchInsight = async (page: number = 1, itemsPerPage: number = 10) => {
+  const filterId = requireFilterId();
+  if (!filterId) {
+    loading.value = false;
+    return;
+  }
+
   loading.value = true;
   try {
     const response = await IntelligenceArtificial.index({
       per_page:itemsPerPage,
       page:page,
-      filter_id: activeGroupProject.value.id
+      filter_id: filterId
     });
     insightsData.value = response.data.data;
     pagination.value.total = response.data.total;
@@ -97,6 +105,10 @@ const updatePerPage = (value: string) => {
 };
 
 onMounted(() => {
+  fetchInsight();
+});
+
+onWorkspaceChange(() => {
   fetchInsight();
 });
 

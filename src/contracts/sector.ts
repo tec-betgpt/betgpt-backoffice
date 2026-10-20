@@ -2,15 +2,15 @@ import {CostCenter} from "@/contracts/costCenter";
 import {Project} from "@/contracts/project";
 import {User} from "@/contracts/user";
 
+/**
+ * O model esconde user_id/created_at/updated_at/deleted_at — nunca são enviados.
+ * `project` vem no index; `user` e `costCenters` só no show.
+ */
 export interface Sector {
   id: number
   name: string
   project_id: number
-  user_id: number
-  created_at: string
-  updated_at: string
-  deleted_at: string | null
-  project: Project
-  user: User
-  costCenters: CostCenter[]
+  project: Project | null
+  user?: User | null
+  costCenters?: CostCenter[]
 }

@@ -204,6 +204,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { ArrowDown, ArrowUp, Eye, ChevronsUpDown } from 'lucide-vue-next'
 import Players from "@/services/players";
 import TagsService from "@/services/tags";
@@ -222,6 +223,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { PlayerProjectSummary } from "@/contracts/playerProjectSummary";
+import type { PlayerListItem } from "@/contracts/player";
 import { useRouter } from "vue-router";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
@@ -234,26 +236,9 @@ const hasPermission = (permissionName: string) =>
     role.permissions?.some((permission: any) => permission.name === permissionName),
   ));
 
-type ReferrerPlayerSnippet = {
-  id: number;
-  name: string | null;
-  email: string;
-  external_id: string | null;
-};
+type Player = PlayerListItem;
 
-type Player = {
-  id: string;
-  name: string;
-  email: string;
-  created_at: string;
-  referrer_id?: string | null;
-  external_id?: string | null;
-  referrer_player?: ReferrerPlayerSnippet | null;
-  projects?: PlayerProjectSummary[];
-  [key: string]: unknown;
-};
-
-const showPlayer = (id: string) => {
+const showPlayer = (id: string | number) => {
   if (!canAccessClientManagement.value) return;
   router.push({ name: 'clients.show', params: { id } });
 };
@@ -271,7 +256,7 @@ const order = ref('id');
 const direction = ref(false);
 const perPage = ref(15);
 const workspaceStore = useWorkspaceStore();
-const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === 'group');
 const playerProjects = (row: Player): PlayerProjectSummary[] =>
   Array.isArray(row.projects) ? row.projects : [];
@@ -403,7 +388,7 @@ const formatExtraCell = (row: Player, column: ExtraColumn) => {
 const loadTagOptions = async (search = '') => {
   try {
     const response = await TagsService.index({
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       per_page: 20,
       search,
     });
@@ -424,6 +409,8 @@ const loadTagOptions = async (search = '') => {
 };
 
 const fetchPlayers = async (page = currentPage.value) => {
+  if (!activeGroupProjectId.value) return;
+
   currentPage.value = page;
   isLoading.value = true;
   players.value = [];
@@ -434,7 +421,7 @@ const fetchPlayers = async (page = currentPage.value) => {
       perPage: perPage.value,
       orderBy: order.value,
       orderDirection: direction.value ? "asc" : "desc",
-      filter_id: activeGroupProjectId,
+      filter_id: activeGroupProjectId.value,
       ...searchValues.value,
     };
 
@@ -465,6 +452,10 @@ const handleSearch = async () => {
 
 watch(selectedTagName, () => {
   fetchPlayers(1);
+});
+
+onWorkspaceChange(() => {
+  fetchPlayers();
 });
 
 const sortIcon = (column: string) => {

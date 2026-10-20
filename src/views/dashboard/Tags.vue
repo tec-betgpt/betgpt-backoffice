@@ -210,6 +210,7 @@ import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import { Tag } from '@/contracts/tag';
 import moment from 'moment';
 import {useWorkspaceStore} from "@/stores/workspace";
+import {useWorkspaceScope} from "@/composables/useWorkspaceScope";
 
 const loading = ref(false);
 const tags = ref<Tag[]>([]);
@@ -221,6 +222,7 @@ const pagination = ref({
   last_page: 1,
 });
 const workspace = useWorkspaceStore()
+const { requireFilterId, onWorkspaceChange } = useWorkspaceScope();
 const isGroupWorkspace = computed(() => workspace.activeGroupProject?.type === "group");
 const isDialogOpen = ref(false);
 const isImportDialogOpen = ref(false);
@@ -246,13 +248,20 @@ const visibleTableColumns = computed(() =>
 let searchTimeout: any = null;
 
 const fetchTags = async () => {
+  const filterId = requireFilterId((message) => {
+    toast.error("Erro", { description: message });
+  });
+  if (!filterId) {
+    return;
+  }
+
   loading.value = true;
   try {
     const response = await TagsService.index({
       search: searchQuery.value,
       page: pagination.value.current_page,
       per_page: pagination.value.per_page,
-      filter_id: workspace.activeGroupProject.id
+      filter_id: filterId
     });
     tags.value = response.data;
     pagination.value = {
@@ -324,6 +333,10 @@ useScreenContext("Gerenciamento de Tags", () => ({
 }), "/v1/tags");
 
 onMounted(() => {
+  fetchTags();
+});
+
+onWorkspaceChange(() => {
   fetchTags();
 });
 </script>

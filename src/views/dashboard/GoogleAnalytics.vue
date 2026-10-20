@@ -55,7 +55,7 @@
                   <SelectValue placeholder="Selecione o agrupamento..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem v-for="options in groupOptions" :value="options">
+                  <SelectItem v-for="options in groupOptions" :key="options" :value="options">
                       {{ getGroupByLabel(options) }}
                     </SelectItem>
                 </SelectContent>

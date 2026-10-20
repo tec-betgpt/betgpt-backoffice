@@ -96,7 +96,7 @@ import type { DateRange } from "reka-ui";
 import VueApexCharts from "vue3-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import financialTransactionsApi from "@/services/financialTransactions";
-import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -130,7 +130,7 @@ const props = defineProps<{
   selectedRange: DateRange;
 }>();
 
-const activeGroupProjectId = useWorkspaceStore().activeGroupProject?.id ?? null;
+const { filterId: activeGroupProjectId, onWorkspaceChange } = useWorkspaceScope();
 const isLoading = ref(false);
 const dashboardData = ref<DashboardResponse>({
   consolidated: {
@@ -216,6 +216,7 @@ const balanceClass = computed(() => dashboardData.value.consolidated.is_profitab
 
 const fetchDashboard = async () => {
   if (!props.selectedRange.start || !props.selectedRange.end) return;
+  if (!activeGroupProjectId.value) return;
 
   isLoading.value = true;
 
@@ -223,7 +224,7 @@ const fetchDashboard = async () => {
     dashboardData.value = await financialTransactionsApi.dashboard({
       start_date: formatDateForAPI(props.selectedRange.start),
       end_date: formatDateForAPI(props.selectedRange.end),
-      filter_id: activeGroupProjectId ? String(activeGroupProjectId) : null,
+      filter_id: activeGroupProjectId.value ? String(activeGroupProjectId.value) : null,
     });
   } catch (error) {
     console.error("Erro ao buscar dashboard financeiro:", error);
@@ -233,6 +234,10 @@ const fetchDashboard = async () => {
 };
 
 onMounted(fetchDashboard);
+
+onWorkspaceChange(() => {
+  fetchDashboard();
+});
 
 watch(
   () => props.selectedRange,

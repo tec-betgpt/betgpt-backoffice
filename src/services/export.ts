@@ -1,4 +1,27 @@
 import api from "./base";
+import type { HistoryData } from "@/contracts/historyExport";
+
+interface ExportIndexParams {
+  filter_id?: string | null
+  page?: number
+  per_page?: number
+}
+
+interface ExportIndexResponse {
+  data: {
+    current_page: number
+    data: HistoryData[]
+    last_page: number
+    per_page: number
+    total: number
+  }
+}
+
+interface ExportDataParams {
+  filter_id?: string | number | null
+  type_export?: string
+  target_id?: number[] | number
+}
 
 export default {
   /**
@@ -10,7 +33,7 @@ export default {
      * @param {number} params.per_page
 
      */
-  async index(params = {}) {
+  async index(params: ExportIndexParams = {}): Promise<ExportIndexResponse> {
     const { data } = await api.get("/export", { params });
     return data;
   },
@@ -22,18 +45,13 @@ export default {
    *
    * @param {Object} params
    * @param {string|number} params.filter_id
-   * @param {string} [params.orderBy="id"]
-   * @param {string} [params.orderDirection="asc"]
    * @param {string} params.type_export
    * @param {number[]|number} [params.target_id]
    *
    */
-  async exportData(params = {}) {
+  async exportData(params: ExportDataParams = {}) {
     const { data } = await api.post("/export", {
       filter_id: params.filter_id,
-      date_time: params.date_time,
-      order_by: params.orderBy,
-      order_direction: params.orderDirection,
       type_export: params.type_export,
       target_id: params.target_id,
     });

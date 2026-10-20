@@ -40,7 +40,7 @@
             <SelectContent>
               <SelectItem :value="SELECT_NONE_VALUE">Sem link</SelectItem>
               <SelectItem v-for="option in linkOptions" :key="option.id" :value="String(option.id)">
-                {{ option.slug }}
+                {{ option.code }}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -98,7 +98,7 @@ const SELECT_NONE_VALUE = "__none__";
 
 type LinkOption = {
   id: number;
-  slug: string;
+  code: string;
 };
 
 const props = withDefaults(

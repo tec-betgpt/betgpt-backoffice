@@ -438,7 +438,7 @@ const chartOptions = computed<ApexOptions>(() => ({
 
 function getRequestParams() {
   const filterId = workspaceStore.activeGroupProject?.id;
-  const projectId = workspaceStore.activeGroupProject?.project_id;
+  const projectId = workspaceStore.numericProjectId;
 
   const params: Record<string, string | number> = {};
 

@@ -17,6 +17,18 @@ export interface LinkDestination {
   is_healthy?: boolean | null;
 }
 
+export interface LinkParam {
+  name: string;
+  value: string;
+}
+
+export interface LinkParamRecord extends LinkParam {
+  id: number;
+  link_id: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
 export interface LinkUtmObject {
   utm_source?: string | null;
   utm_medium?: string | null;
@@ -67,6 +79,7 @@ export interface LinkListItem {
   domain?: string | null;
   reason?: string | null;
   destination?: LinkDestination | null;
+  params?: LinkParamRecord[];
   versions?: LinkVersion[];
   utmSnapshots?: LinkUtmSnapshot[];
   utm_snapshots?: LinkUtmSnapshot[];
@@ -98,25 +111,32 @@ export interface LinkDetailsResponse extends LinkListItem {
   utm_snapshots?: LinkUtmSnapshot[];
 }
 
-export interface PaginationMeta {
-  current_page: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-  [key: string]: unknown;
-}
-
 export interface PaginationLink {
   url: string | null;
   label: string;
   active: boolean;
 }
 
+/**
+ * GET /v1/links — o paginador Laravel vem na raiz (não há `meta`).
+ */
 export interface LinkListResponse {
   data: LinkListItem[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
   links?: PaginationLink[];
-  meta: PaginationMeta;
   [key: string]: unknown;
+}
+
+/**
+ * GET /v1/links/list — lista simplificada para selects.
+ */
+export interface LinkListEntry {
+  id: number;
+  project_id: number;
+  code: string;
 }
 
 export interface LinkListParams {
@@ -140,6 +160,7 @@ export interface LinkFormPayloadBase {
   reason?: string | null;
   destination?: LinkDestination;
   destinations?: LinkDestination[];
+  params?: LinkParam[];
   utm?: LinkUtmObject | null;
   utm_source?: string | null;
   utm_medium?: string | null;
