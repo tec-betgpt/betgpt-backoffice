@@ -38,11 +38,11 @@ type SourceType = "segment" | "tag";
 
 type AnalysisPayload = {
   source: { type: SourceType; id: number; name: string };
-  kpis: Record<string, number>;
-  performance: Record<string, number>;
+  kpis: Record<string, number | null>;
+  performance: Record<string, number | null>;
   deposit_segmentation: Array<{ key: string; label: string; players: number; pct: number; revenue: number }>;
   funnel: Array<{ key: string; label: string; count: number; pct: number }>;
-  retention: { d7: number; d14: number; d30: number };
+  retention: { d7: number | null; d14: number | null; d30: number | null };
   activity: Array<{ date: string; players: number; depositors: number; deposits_amount: number }>;
   friction?: Record<string, number>;
   meta?: {
@@ -104,6 +104,13 @@ let analysisController: AbortController | null = null;
 const ANALYSIS_POLL_MS = 3000;
 const ANALYSIS_POLL_MAX_MS = 15 * 60 * 1000;
 const queuedSegmentSize = ref<number | null>(null);
+/** v2 em duas etapas: o período aparece primeiro; os cards lifetime (perfil de todos os membros) chegam depois. */
+const isLoadingLifetime = ref(false);
+
+/** Valor de card lifetime: null enquanto a 2ª etapa não chega (ou se ela falhar). */
+function lifetimeText(value: number | null | undefined, format: (v: number) => string) {
+  return value === null || value === undefined ? "—" : format(value);
+}
 
 function waitFor(ms: number, signal: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
@@ -141,15 +148,17 @@ const kpiCards = computed(() => {
     },
     {
       title: "Taxa de Conversão",
-      value: `${numberLocale(k.conversion_rate)}%`,
-      hint: `${numberLocale(k.depositors_count)} depositaram`,
+      value: lifetimeText(k.conversion_rate, (v) => `${numberLocale(v)}%`),
+      hint: `${lifetimeText(k.depositors_count, numberLocale)} depositaram`,
       icon: Percent,
+      pending: k.conversion_rate == null && isLoadingLifetime.value,
     },
     {
       title: "Depositaram Mais de Uma Vez",
-      value: `${numberLocale(k.multi_deposit_rate)}%`,
-      hint: `${numberLocale(k.multi_depositors)} usuários`,
+      value: lifetimeText(k.multi_deposit_rate, (v) => `${numberLocale(v)}%`),
+      hint: `${lifetimeText(k.multi_depositors, numberLocale)} usuários`,
       icon: Repeat2,
+      pending: k.multi_deposit_rate == null && isLoadingLifetime.value,
     },
     {
       title: "Depósito Médio",
@@ -171,9 +180,10 @@ const kpiCards = computed(() => {
     },
     {
       title: "LTV Atual (Histórico)",
-      value: currencyFilter(k.ltv),
+      value: lifetimeText(k.ltv, currencyFilter),
       hint: "Por jogador com depósito",
       icon: TrendingUp,
+      pending: k.ltv == null && isLoadingLifetime.value,
     },
     {
       title: "Saques",
@@ -189,9 +199,10 @@ const kpiCards = computed(() => {
     },
     {
       title: "Retenção de Depósitos",
-      value: `${numberLocale(k.deposit_retention_rate)}%`,
+      value: lifetimeText(k.deposit_retention_rate, (v) => `${numberLocale(v)}%`),
       hint: "Ativos entre depositantes (30d)",
       icon: Percent,
+      pending: k.deposit_retention_rate == null && isLoadingLifetime.value,
     },
   ];
 });
@@ -213,11 +224,17 @@ const performanceCards = computed(() => {
     { title: "Receita dos Grandes Depositantes", value: currencyFilter(p.whales_revenue), hint: `${numberLocale(p.whales_revenue_pct)}% da receita` },
     { title: "Usuários Multi-Depósito", value: `${numberLocale(p.multi_deposit_users_pct)}%`, hint: `${numberLocale(p.multi_depositors_period)} no período` },
     { title: "Frequência Média de Depósitos", value: numberLocale(p.avg_deposit_frequency), hint: "Depósitos por depositante" },
-    { title: "Tempo de Vida Médio", value: `${numberLocale(p.avg_lifetime_days)} dias`, hint: "1º → último depósito" },
+    {
+      title: "Tempo de Vida Médio",
+      value: lifetimeText(p.avg_lifetime_days, (v) => `${numberLocale(v)} dias`),
+      hint: "1º → último depósito",
+      pending: p.avg_lifetime_days == null && isLoadingLifetime.value,
+    },
     {
       title: `Taxa de Churn (${churnWindow.value}d)`,
-      value: `${numberLocale(p.churn_rate_30d)}%`,
+      value: lifetimeText(p.churn_rate_30d, (v) => `${numberLocale(v)}%`),
       hint: `Sem atividade nos últimos ${churnWindow.value} dias`,
+      pending: p.churn_rate_30d == null && isLoadingLifetime.value,
     },
     { title: "Receita Diária Média", value: currencyFilter(p.avg_daily_revenue), hint: "Por jogador ativo" },
   ];
@@ -380,6 +397,7 @@ async function applyFilter() {
     analysisController = null;
     analysisRequestSeq++;
     isLoading.value = false;
+    isLoadingLifetime.value = false;
     return;
   }
 
@@ -398,36 +416,48 @@ async function applyFilter() {
   const startedAt = Date.now();
 
   isLoading.value = true;
+  isLoadingLifetime.value = false;
   hasLoadedOnce.value = true;
   analysis.value = null;
   screenMs.value = null;
 
-  try {
-    const params = {
-      filter_id: workspaceStore.activeGroupProject.id,
-      start_date: requestedStart,
-      end_date: requestedEnd,
-      source_type: requestedSourceType,
-      source_id: requestedSourceId,
-      ...(isV2.value ? { churn_days: Number(churnDays.value) } : {}),
-    };
-    let { data } = isV2.value
-      ? await Analytics.segmentAnalysisV2(params, controller.signal)
-      : await Analytics.segmentAnalysis(params, controller.signal);
+  const params = {
+    filter_id: workspaceStore.activeGroupProject.id,
+    start_date: requestedStart,
+    end_date: requestedEnd,
+    source_type: requestedSourceType,
+    source_id: requestedSourceId,
+    ...(isV2.value ? { churn_days: Number(churnDays.value) } : {}),
+  };
 
-    while (isV2.value && data?.status === "processing") {
-      if (seq !== analysisRequestSeq) return;
+  // Segmento grande: a API enfileira e responde status=processing; repete o mesmo GET até ficar pronto.
+  const fetchV2 = async (part: "period" | "lifetime", onQueued?: (size: number | null) => void) => {
+    let { data } = await Analytics.segmentAnalysisV2({ ...params, part }, controller.signal);
+    while (data?.status === "processing") {
+      if (seq !== analysisRequestSeq) return null;
       if (Date.now() - startedAt > ANALYSIS_POLL_MAX_MS) {
         throw new Error("A análise demorou mais que o esperado. Tente novamente em alguns minutos.");
       }
-      queuedSegmentSize.value = Number(data.segment_size ?? 0) || null;
+      onQueued?.(Number(data.segment_size ?? 0) || null);
       await waitFor(ANALYSIS_POLL_MS, controller.signal);
-      ({ data } = await Analytics.segmentAnalysisV2(params, controller.signal));
+      ({ data } = await Analytics.segmentAnalysisV2({ ...params, part }, controller.signal));
+    }
+    return seq === analysisRequestSeq ? data : null;
+  };
+
+  try {
+    if (isV2.value) {
+      const data = await fetchV2("period", (size) => { queuedSegmentSize.value = size; });
+      if (!data) return;
+      analysis.value = data as AnalysisPayload;
+    } else {
+      const { data } = await Analytics.segmentAnalysis(params, controller.signal);
+      if (seq !== analysisRequestSeq) return;
+      analysis.value = data as AnalysisPayload;
     }
 
-    if (seq !== analysisRequestSeq) return;
-
-    analysis.value = data as AnalysisPayload;
+    isLoading.value = false;
+    queuedSegmentSize.value = null;
     await nextTick();
     screenMs.value = Date.now() - startedAt;
   } catch (error: any) {
@@ -435,10 +465,35 @@ async function applyFilter() {
     console.error(error);
     toast.error("Erro ao carregar análise", { description: error?.response?.data?.message || error?.message || "Não foi possível aplicar o filtro selecionado." });
     analysis.value = null;
+    isLoading.value = false;
+    queuedSegmentSize.value = null;
+    analysisController = null;
+    return;
+  }
+
+  if (!isV2.value) {
+    analysisController = null;
+    return;
+  }
+
+  // 2ª etapa: cards lifetime. Falha aqui não derruba o resto da tela; os cards ficam com "—".
+  isLoadingLifetime.value = true;
+  try {
+    const lifetime = await fetchV2("lifetime");
+    if (!lifetime || !analysis.value) return;
+    analysis.value = {
+      ...analysis.value,
+      kpis: { ...analysis.value.kpis, ...lifetime.kpis },
+      performance: { ...analysis.value.performance, ...lifetime.performance },
+      retention: lifetime.retention ?? analysis.value.retention,
+    };
+  } catch (error: any) {
+    if (seq !== analysisRequestSeq || controller.signal.aborted) return;
+    console.error(error);
+    toast.error("Indicadores históricos indisponíveis", { description: error?.response?.data?.message || error?.message || "Conversão, LTV, retenção D7/D14/D30 e churn não puderam ser calculados." });
   } finally {
     if (seq === analysisRequestSeq) {
-      isLoading.value = false;
-      queuedSegmentSize.value = null;
+      isLoadingLifetime.value = false;
       analysisController = null;
     }
   }
@@ -590,8 +645,14 @@ useScreenContext(
               </div>
             </CardHeader>
             <CardContent>
-              <p class="text-2xl font-bold tracking-tight">{{ card.value }}</p>
-              <p class="text-xs text-muted-foreground mt-1">{{ card.hint }}</p>
+              <template v-if="card.pending">
+                <Skeleton class="h-7 w-1/2 mb-2" />
+                <Skeleton class="h-3 w-3/4" />
+              </template>
+              <template v-else>
+                <p class="text-2xl font-bold tracking-tight">{{ card.value }}</p>
+                <p class="text-xs text-muted-foreground mt-1">{{ card.hint }}</p>
+              </template>
             </CardContent>
           </Card>
         </template>
@@ -616,8 +677,14 @@ useScreenContext(
                 <CardTitle class="text-sm font-medium text-muted-foreground">{{ card.title }}</CardTitle>
               </CardHeader>
               <CardContent class="pb-3">
-                <p class="text-xl font-semibold">{{ card.value }}</p>
-                <p class="text-xs text-muted-foreground mt-1">{{ card.hint }}</p>
+                <template v-if="card.pending">
+                  <Skeleton class="h-6 w-1/2 mb-2" />
+                  <Skeleton class="h-3 w-3/4" />
+                </template>
+                <template v-else>
+                  <p class="text-xl font-semibold">{{ card.value }}</p>
+                  <p class="text-xs text-muted-foreground mt-1">{{ card.hint }}</p>
+                </template>
               </CardContent>
             </Card>
           </template>
@@ -686,21 +753,21 @@ useScreenContext(
             <CardDescription>% dos depositantes com atividade recente (login ou depósito).</CardDescription>
           </CardHeader>
           <CardContent>
-            <div v-if="isLoading" class="grid grid-cols-3 gap-4">
+            <div v-if="isLoading || (isLoadingLifetime && analysis?.retention?.d7 == null)" class="grid grid-cols-3 gap-4">
               <Skeleton v-for="n in 3" :key="`ret-skel-${n}`" class="h-24 w-full" />
             </div>
             <div v-else class="grid grid-cols-3 gap-4 py-6">
               <div class="rounded-lg border p-4 text-center">
                 <p class="text-xs text-muted-foreground mb-2">7 Dias</p>
-                <p class="text-3xl font-bold">{{ numberLocale(analysis?.retention?.d7 ?? 0) }}%</p>
+                <p class="text-3xl font-bold">{{ lifetimeText(analysis?.retention?.d7, (v) => `${numberLocale(v)}%`) }}</p>
               </div>
               <div class="rounded-lg border p-4 text-center">
                 <p class="text-xs text-muted-foreground mb-2">14 Dias</p>
-                <p class="text-3xl font-bold">{{ numberLocale(analysis?.retention?.d14 ?? 0) }}%</p>
+                <p class="text-3xl font-bold">{{ lifetimeText(analysis?.retention?.d14, (v) => `${numberLocale(v)}%`) }}</p>
               </div>
               <div class="rounded-lg border p-4 text-center">
                 <p class="text-xs text-muted-foreground mb-2">30 Dias</p>
-                <p class="text-3xl font-bold">{{ numberLocale(analysis?.retention?.d30 ?? 0) }}%</p>
+                <p class="text-3xl font-bold">{{ lifetimeText(analysis?.retention?.d30, (v) => `${numberLocale(v)}%`) }}</p>
               </div>
             </div>
           </CardContent>
