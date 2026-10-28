@@ -266,3 +266,60 @@
     opacity: 1;
   }
 }
+
+/* Vue Flow (editor de fluxo multi-estágio): mapeia o tema default para os tokens do app.
+   Escopado em .vue-flow para vencer o :root do theme-default.css independente da ordem de carga. */
+.vue-flow {
+  --vf-node-bg: hsl(var(--card));
+  --vf-node-text: hsl(var(--card-foreground));
+  --vf-node-color: hsl(var(--border));
+  --vf-connection-path: hsl(var(--muted-foreground));
+  --vf-handle: hsl(var(--muted-foreground));
+  --vf-box-shadow: hsl(var(--primary));
+  background-color: hsl(var(--background));
+}
+
+.vue-flow .vue-flow__handle {
+  width: 8px;
+  height: 8px;
+  background-color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--background));
+}
+
+.vue-flow .vue-flow__edge-path {
+  stroke: hsl(var(--muted-foreground));
+}
+
+.vue-flow .vue-flow__edge-text {
+  fill: hsl(var(--foreground));
+}
+
+.vue-flow .vue-flow__edge-textbg {
+  fill: hsl(var(--card));
+}
+
+.vue-flow .vue-flow__controls {
+  box-shadow: none;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.vue-flow .vue-flow__controls-button {
+  background-color: hsl(var(--card));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.vue-flow .vue-flow__controls-button svg {
+  fill: hsl(var(--foreground));
+}
+
+.vue-flow .vue-flow__controls-button:hover {
+  background-color: hsl(var(--accent));
+}
+
+.vue-flow .vue-flow__minimap {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}

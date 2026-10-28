@@ -133,7 +133,7 @@
                     <div class="flex flex-wrap gap-2 text-xs text-muted-foreground">
                       <span>#{{ item.id }}</span>
                       <span>{{ item.channel }}</span>
-                      <span>{{ item.type }}</span>
+                      <span>{{ CAMPAIGN_TYPE_LABELS[item.type] || item.type }}</span>
                     </div>
                   </div>
                 </TableCell>
@@ -253,10 +253,12 @@ import {
   CAMPAIGN_CHANNEL_OPTIONS,
   CAMPAIGN_STATUS_LABELS,
   CAMPAIGN_STATUS_OPTIONS,
+  CAMPAIGN_TYPE_LABELS,
   CAMPAIGN_TYPE_OPTIONS,
   type CampaignListItem,
   type CampaignListParams,
   type CampaignStatus,
+  type CampaignType,
   type CampaignUserSummary,
 } from "@/contracts/campaigns";
 import { deleteCampaign, listCampaigns } from "@/services/campaigns";
@@ -286,7 +288,7 @@ const visibleCampaignsColumns = computed(() =>
   campaignsColumns.filter((c) => campaignsColumnVisibility.value[c.id] !== false)
 );
 
-const filters = reactive<CampaignListParams & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: "sms" | "email" | typeof SELECT_ALL_VALUE | null; type: "broadcast" | typeof SELECT_ALL_VALUE | null }>({
+const filters = reactive<CampaignListParams & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: "sms" | "email" | typeof SELECT_ALL_VALUE | null; type: CampaignType | typeof SELECT_ALL_VALUE | null }>({
   filter_id: null,
   project_id: null,
   status: SELECT_ALL_VALUE,
