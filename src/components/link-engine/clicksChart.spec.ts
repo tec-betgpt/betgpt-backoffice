@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildClicksByLinkSeries, UNATTRIBUTED_SERIES_NAME } from "@/components/link-engine/clicksChart";
+import {
+  buildClicksByLinkSeries,
+  getTooltipRows,
+  UNATTRIBUTED_SERIES_NAME,
+} from "@/components/link-engine/clicksChart";
 import type { ClickMinutePoint } from "@/services/linkEngine";
 
 function point(overrides: Partial<ClickMinutePoint>): ClickMinutePoint {
@@ -76,6 +80,42 @@ describe("buildClicksByLinkSeries", () => {
 
     const unattributed = series.find((item) => item.name === UNATTRIBUTED_SERIES_NAME);
     expect(unattributed?.data[0].y).toBe(2);
+  });
+
+  it("getTooltipRows ignora séries com zero no minuto", () => {
+    const rows = getTooltipRows({
+      series: [
+        [2, 5],
+        [0, 3],
+      ],
+      seriesNames: ["promo-x", "black-friday"],
+      colors: ["#111111", "#222222"],
+      dataPointIndex: 0,
+    });
+
+    expect(rows).toEqual([{ name: "promo-x", color: "#111111", value: 2 }]);
+  });
+
+  it("getTooltipRows ordena do maior para o menor", () => {
+    const rows = getTooltipRows({
+      series: [[1], [4], [2]],
+      seriesNames: ["a", "b", "c"],
+      colors: ["#111111", "#222222", "#333333"],
+      dataPointIndex: 0,
+    });
+
+    expect(rows.map((row) => row.name)).toEqual(["b", "c", "a"]);
+  });
+
+  it("getTooltipRows retorna vazio quando todas as séries são zero", () => {
+    const rows = getTooltipRows({
+      series: [[0], [0]],
+      seriesNames: ["a", "b"],
+      colors: ["#111111", "#222222"],
+      dataPointIndex: 0,
+    });
+
+    expect(rows).toEqual([]);
   });
 
   it("usa o total quando o endpoint ainda não retorna by_link", () => {

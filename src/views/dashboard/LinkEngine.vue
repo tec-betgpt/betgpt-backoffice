@@ -285,6 +285,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useDark } from "@vueuse/core";
 import type { ApexOptions } from "apexcharts";
 import VueApexCharts from "vue3-apexcharts";
 import {
@@ -306,10 +307,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
-import { buildClicksByLinkSeries } from "@/components/link-engine/clicksChart";
+import {
+  buildClicksByLinkSeries,
+  getTooltipRows,
+  sortClickMinutePoints,
+} from "@/components/link-engine/clicksChart";
 
 const apexchart = VueApexCharts;
 const workspaceStore = useWorkspaceStore();
+const isDark = useDark();
 
 const POLLING_INTERVAL_MS = 30_000;
 const EXPECTED_POINTS = 1440;
@@ -365,11 +371,67 @@ const latencyItems = computed(() => {
   ];
 });
 
-const chartSeries = computed(() =>
-  buildClicksByLinkSeries(monitor.value?.clicks_per_minute_24h ?? []),
+const chartPoints = computed(() =>
+  sortClickMinutePoints(monitor.value?.clicks_per_minute_24h ?? []),
 );
+const chartSeries = computed(() => buildClicksByLinkSeries(chartPoints.value));
 
 const hasChartData = computed(() => chartSeries.value.length > 0);
+
+function escapeHtml(value: string) {
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[character] ?? character,
+  );
+}
+
+function buildTooltipContent({ series, dataPointIndex, w }: any): string {
+  const rows = getTooltipRows({
+    series: Array.isArray(series) ? series : [],
+    seriesNames: w?.globals?.seriesNames ?? [],
+    colors: w?.globals?.colors ?? [],
+    dataPointIndex,
+  });
+  const minute = chartPoints.value[dataPointIndex]?.minute;
+  const title = minute ? escapeHtml(formatDateTime(minute)) : "";
+  const foreground = "hsl(var(--popover-foreground))";
+  const muted = "hsl(var(--muted-foreground))";
+
+  const body = rows.length
+    ? rows
+        .map(
+          (row) =>
+            `<div style="display:flex;align-items:center;gap:8px;padding:1px 0;">` +
+            `<span style="width:8px;height:8px;border-radius:9999px;flex:none;background:${row.color};"></span>` +
+            `<span style="flex:1;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${foreground};">${escapeHtml(row.name)}</span>` +
+            `<span style="font-weight:600;font-variant-numeric:tabular-nums;color:${foreground};">${formatInteger(row.value)}</span>` +
+            `</div>`,
+        )
+        .join("")
+    : `<div style="color:${muted};">Sem cliques neste minuto</div>`;
+
+  const total =
+    rows.length > 1
+      ? `<div style="display:flex;justify-content:space-between;gap:16px;margin-top:6px;padding-top:6px;border-top:1px solid hsl(var(--border));font-weight:600;color:${foreground};">` +
+        `<span>Total</span><span>${formatInteger(rows.reduce((sum, row) => sum + row.value, 0))}</span>` +
+        `</div>`
+      : "";
+
+  return (
+    `<div style="min-width:180px;font-size:12px;">` +
+    (title ? `<div style="color:${muted};font-size:11px;margin-bottom:6px;">${title}</div>` : "") +
+    body +
+    total +
+    `</div>`
+  );
+}
 
 const chartOptions = computed<ApexOptions>(() => ({
   chart: {
@@ -378,6 +440,7 @@ const chartOptions = computed<ApexOptions>(() => ({
     zoom: { enabled: false },
     stacked: true,
   },
+  theme: { mode: isDark.value ? "dark" : "light" },
   dataLabels: { enabled: false },
   fill: {
     type: "gradient",
@@ -396,6 +459,7 @@ const chartOptions = computed<ApexOptions>(() => ({
     position: "bottom",
     horizontalAlign: "left",
     fontSize: "11px",
+    labels: { colors: "hsl(var(--muted-foreground))" },
     markers: { size: 6 },
     itemMargin: { horizontal: 8, vertical: 2 },
   },
@@ -406,12 +470,8 @@ const chartOptions = computed<ApexOptions>(() => ({
   tooltip: {
     shared: true,
     intersect: false,
-    x: {
-      formatter: (value) => formatDateTime(new Date(value)),
-    },
-    y: {
-      formatter: (value) => `${formatInteger(Number(value))} cliques`,
-    },
+    cssClass: "link-engine-tooltip",
+    custom: buildTooltipContent,
   },
   xaxis: {
     type: "datetime",
@@ -562,3 +622,14 @@ useScreenContext(
   "/v1/link-engine/monitor",
 );
 </script>
+
+<style>
+.apexcharts-tooltip.link-engine-tooltip {
+  background: hsl(var(--popover)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.15) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  padding: 10px 12px !important;
+}
+</style>

@@ -13,28 +13,61 @@ export interface ClicksChartSeries {
   data: ClicksChartPoint[];
 }
 
+export interface ClicksTooltipRow {
+  name: string;
+  color: string;
+  value: number;
+}
+
+interface TooltipRowsParams {
+  series: number[][];
+  seriesNames: string[];
+  colors: string[];
+  dataPointIndex: number;
+}
+
 interface NormalizedMinute {
   time: number;
   clicks: number;
   byLink: Map<number, number>;
 }
 
-function normalizePoints(points: ClickMinutePoint[]): NormalizedMinute[] {
-  return [...points]
-    .sort((left, right) => new Date(left.minute).getTime() - new Date(right.minute).getTime())
-    .map((point) => {
-      const byLink = new Map<number, number>();
-      (point.by_link ?? []).forEach((link) => {
-        const clicks = Number(link.clicks) || 0;
-        byLink.set(link.link_id, (byLink.get(link.link_id) ?? 0) + clicks);
-      });
+export function sortClickMinutePoints(points: ClickMinutePoint[]): ClickMinutePoint[] {
+  return [...points].sort(
+    (left, right) => new Date(left.minute).getTime() - new Date(right.minute).getTime(),
+  );
+}
 
-      return {
-        time: new Date(point.minute).getTime(),
-        clicks: Number(point.clicks) || 0,
-        byLink,
-      };
+function normalizePoints(points: ClickMinutePoint[]): NormalizedMinute[] {
+  return sortClickMinutePoints(points).map((point) => {
+    const byLink = new Map<number, number>();
+    (point.by_link ?? []).forEach((link) => {
+      const clicks = Number(link.clicks) || 0;
+      byLink.set(link.link_id, (byLink.get(link.link_id) ?? 0) + clicks);
     });
+
+    return {
+      time: new Date(point.minute).getTime(),
+      clicks: Number(point.clicks) || 0,
+      byLink,
+    };
+  });
+}
+
+export function getTooltipRows({
+  series,
+  seriesNames,
+  colors,
+  dataPointIndex,
+}: TooltipRowsParams): ClicksTooltipRow[] {
+  return series
+    .map((values, index) => ({
+      name: seriesNames[index] ?? `Série ${index + 1}`,
+      color: colors[index] ?? "currentColor",
+      value: Number(values?.[dataPointIndex]) || 0,
+    }))
+    .filter((row) => row.value > 0)
+    .sort((left, right) => right.value - left.value);
 }
 
 export function buildClicksByLinkSeries(points: ClickMinutePoint[]): ClicksChartSeries[] {
