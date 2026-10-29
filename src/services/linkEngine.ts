@@ -1,8 +1,16 @@
 import api from "./base.js";
 
+export interface ClickMinuteLinkClicks {
+  link_id: number;
+  code: string;
+  short_url: string;
+  clicks: number;
+}
+
 export interface ClickMinutePoint {
   minute: string;
   clicks: number;
+  by_link?: ClickMinuteLinkClicks[];
 }
 
 export interface RedirectLatency {

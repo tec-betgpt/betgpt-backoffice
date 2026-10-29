@@ -144,14 +144,14 @@
           <div>
             <CardTitle>Cliques por minuto nas ultimas 24h</CardTitle>
             <p class="text-sm text-muted-foreground">
-              {{ formatInteger(monitor.clicks_per_minute_24h.length) }} pontos retornados
+              {{ formatInteger(monitor.clicks_per_minute_24h.length) }} pontos retornados · cliques empilhados por link
             </p>
           </div>
           <Badge v-if="!hasExpectedChartPoints" variant="destructive">Esperado: 1440</Badge>
         </CardHeader>
         <CardContent>
           <apexchart
-            v-if="chartSeries[0].data.length"
+            v-if="hasChartData"
             type="area"
             height="360"
             :options="chartOptions"
@@ -306,6 +306,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import { buildClicksByLinkSeries } from "@/components/link-engine/clicksChart";
 
 const apexchart = VueApexCharts;
 const workspaceStore = useWorkspaceStore();
@@ -364,23 +365,19 @@ const latencyItems = computed(() => {
   ];
 });
 
-const chartSeries = computed(() => [
-  {
-    name: "Cliques",
-    data: (monitor.value?.clicks_per_minute_24h ?? []).map((point) => ({
-      x: new Date(point.minute).getTime(),
-      y: point.clicks,
-    })),
-  },
-]);
+const chartSeries = computed(() =>
+  buildClicksByLinkSeries(monitor.value?.clicks_per_minute_24h ?? []),
+);
+
+const hasChartData = computed(() => chartSeries.value.length > 0);
 
 const chartOptions = computed<ApexOptions>(() => ({
   chart: {
     animations: { enabled: false },
     toolbar: { show: false },
     zoom: { enabled: false },
+    stacked: true,
   },
-  colors: ["#2563eb"],
   dataLabels: { enabled: false },
   fill: {
     type: "gradient",
@@ -394,11 +391,21 @@ const chartOptions = computed<ApexOptions>(() => ({
     borderColor: "hsl(var(--border))",
     strokeDashArray: 4,
   },
+  legend: {
+    show: true,
+    position: "bottom",
+    horizontalAlign: "left",
+    fontSize: "11px",
+    markers: { size: 6 },
+    itemMargin: { horizontal: 8, vertical: 2 },
+  },
   stroke: {
     curve: "smooth",
     width: 2,
   },
   tooltip: {
+    shared: true,
+    intersect: false,
     x: {
       formatter: (value) => formatDateTime(new Date(value)),
     },
