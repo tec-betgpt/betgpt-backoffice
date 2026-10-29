@@ -6,11 +6,24 @@ import {
   buildUpdatePayload,
   createDefaultForm,
   fillFormFromLink,
+  getActiveVersion,
+  getDestinationUrl,
+  getVersionNumber,
   removeParam,
   sanitizePayload,
   validateForm,
 } from "@/components/links/linkForm";
-import type { LinkDetailsResponse } from "@/contracts/link";
+import type { LinkDetailsResponse, LinkListItem } from "@/contracts/link";
+
+function buildLink(overrides: Partial<LinkListItem> = {}): LinkListItem {
+  return {
+    id: 1,
+    project_id: 84,
+    code: "telegram-roleta",
+    short_url: "https://click.example.com/telegram-roleta",
+    ...overrides,
+  } as LinkListItem;
+}
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -101,6 +114,95 @@ describe("linkForm params", () => {
 
     const errors = validateForm(form);
     expect(errors["params.0.name"]).toBeTruthy();
+  });
+
+  it("getActiveVersion prioriza a versão ativa da listagem", () => {
+    const link = buildLink({
+      versions: [
+        { id: 52, version: 1, is_active: false, destinations: [{ url: "https://antigo.example.com" }] },
+        { id: 53, version: 2, is_active: true, destinations: [{ url: "https://atual.example.com" }] },
+      ],
+    });
+
+    expect(getActiveVersion(link)?.id).toBe(53);
+  });
+
+  it("getActiveVersion usa a última versão quando nenhuma está ativa", () => {
+    const link = buildLink({
+      versions: [
+        { id: 17, version: 1, is_active: false, destinations: [{ url: "https://v1.example.com" }] },
+        { id: 49, version: 11, is_active: false, destinations: [{ url: "https://v11.example.com" }] },
+      ],
+    });
+
+    expect(getActiveVersion(link)?.id).toBe(49);
+  });
+
+  it("getDestinationUrl lê destinations da versão ativa da listagem", () => {
+    const link = buildLink({
+      versions: [
+        { id: 52, version: 1, is_active: false, destinations: [{ id: 52, url: "https://antigo.example.com" }] },
+        { id: 53, version: 2, is_active: true, destinations: [{ id: 53, url: "https://atual.example.com" }] },
+      ],
+    });
+
+    expect(getDestinationUrl(link)).toBe("https://atual.example.com");
+  });
+
+  it("getActiveVersion prioriza last_version no detalhe mesmo com versions presentes", () => {
+    const link = {
+      ...buildLink({
+        versions: [
+          { id: 52, version: 1, is_active: true, destinations: [{ url: "https://antigo.example.com" }] },
+        ],
+      }),
+      last_version: {
+        id: 63,
+        version: 4,
+        destinations: [{ url: "https://ultima.example.com" }],
+      },
+    } as LinkDetailsResponse;
+
+    expect(getActiveVersion(link)?.id).toBe(63);
+  });
+
+  it("getDestinationUrl lê destinations do last_version no detalhe", () => {
+    const link = {
+      ...buildLink(),
+      last_version: {
+        id: 63,
+        version: 4,
+        destinations: [{ id: 63, url: "https://destino.example.com/landing" }],
+      },
+    } as LinkDetailsResponse;
+
+    expect(getDestinationUrl(link)).toBe("https://destino.example.com/landing");
+  });
+
+  it("getDestinationUrl retorna travessão quando não há destino", () => {
+    expect(getDestinationUrl(buildLink())).toBe("—");
+  });
+
+  it("getVersionNumber usa o número da versão e não o id", () => {
+    expect(getVersionNumber({ id: 63, version: 4 })).toBe(4);
+    expect(getVersionNumber({ id: 63 })).toBe(63);
+    expect(getVersionNumber(null)).toBeNull();
+  });
+
+  it("fillFormFromLink popula destinations a partir da versão ativa", () => {
+    const form = createDefaultForm();
+    const link = buildLink({
+      versions: [
+        { id: 52, version: 1, is_active: false, destinations: [{ id: 52, url: "https://antigo.example.com", weight: 100 }] },
+        { id: 53, version: 2, is_active: true, destinations: [{ id: 53, url: "https://atual.example.com", weight: 100 }] },
+      ],
+    });
+
+    fillFormFromLink(form, link, getDestinationUrl(link));
+
+    expect(form.destinations).toEqual([
+      { url: "https://atual.example.com", weight: "100", variant_key: "" },
+    ]);
   });
 
   it("fillFormFromLink popula params a partir do link", () => {

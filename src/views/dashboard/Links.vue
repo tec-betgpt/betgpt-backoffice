@@ -194,13 +194,13 @@
           <Card>
             <CardHeader><CardTitle>Última versão</CardTitle></CardHeader>
             <CardContent class="space-y-3">
-              <template v-if="selectedLinkDetails.last_version">
+              <template v-if="selectedLastVersion">
                 <div class="rounded-lg border p-4 space-y-2">
                   <div class="flex items-center justify-between gap-3">
-                    <Badge variant="outline">Versão {{ selectedLinkDetails.last_version.id || "—" }}</Badge>
-                    <span class="text-xs text-muted-foreground">{{ selectedLinkDetails.last_version.created_at || "Sem data" }}</span>
+                    <Badge variant="outline">Versão {{ getVersionNumber(selectedLastVersion) ?? "—" }}</Badge>
+                    <span class="text-xs text-muted-foreground">{{ selectedLastVersion.created_at || "Sem data" }}</span>
                   </div>
-                  <div v-for="dest in selectedLinkDetails.last_version.destinations" :key="dest.id" class="border-t pt-2 mt-2 first:border-t-0 first:pt-0 first:mt-0">
+                  <div v-for="dest in selectedLastVersionDestinations" :key="dest.id ?? dest.url" class="border-t pt-2 mt-2 first:border-t-0 first:pt-0 first:mt-0">
                     <div class="text-sm"><span class="font-medium">URL:</span> {{ dest.url || "—" }}</div>
                     <div class="text-sm"><span class="font-medium">Peso:</span> {{ dest.weight ?? "—" }}</div>
                     <div class="text-sm"><span class="font-medium">Status:</span> {{ dest.status || "—" }}</div>
@@ -307,7 +307,12 @@ import {
   LINK_STATUS_OPTIONS,
   LINK_TYPE_OPTIONS,
 } from "@/contracts/link";
-import { getDestinationUrl, SELECT_ALL_VALUE } from "@/components/links/linkForm";
+import {
+  getActiveVersion,
+  getDestinationUrl,
+  getVersionNumber,
+  SELECT_ALL_VALUE,
+} from "@/components/links/linkForm";
 
 const workspaceStore = useWorkspaceStore();
 const router = useRouter();
@@ -361,6 +366,16 @@ const isDetailsOpen = ref(false);
 const isArchiveDialogOpen = ref(false);
 const selectedLinkDetails = ref<LinkDetailsResponse | null>(null);
 const selectedLinkForArchive = ref<LinkListItem | null>(null);
+
+const selectedLastVersion = computed(() =>
+  selectedLinkDetails.value ? getActiveVersion(selectedLinkDetails.value) : null,
+);
+const selectedLastVersionDestinations = computed(() => {
+  const version = selectedLastVersion.value;
+  if (!version) return [];
+  if (version.destinations?.length) return version.destinations;
+  return version.destination ? [version.destination] : [];
+});
 
 const snapshots = computed(() => [
   ...(selectedLinkDetails.value?.utmSnapshots ?? []),

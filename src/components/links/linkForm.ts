@@ -7,6 +7,7 @@ import type {
   LinkUtmObject,
   LinkUtmSnapshot,
   LinkUpdatePayload,
+  LinkVersion,
 } from "@/contracts/link";
 import { useWorkspaceStore } from "@/stores/workspace";
 
@@ -220,6 +221,32 @@ function parseUtmObject(value: unknown): UtmGroup {
   };
 }
 
+export function getActiveVersion(link: LinkListItem | LinkDetailsResponse): LinkVersion | null {
+  const lastVersion = (link as LinkDetailsResponse).last_version;
+  if (lastVersion) return lastVersion;
+
+  const versions = Array.isArray(link.versions) ? link.versions : [];
+
+  if (versions.length > 0) {
+    const sorted = [...versions].sort((left, right) => {
+      const leftVersion = Number(left.version) || 0;
+      const rightVersion = Number(right.version) || 0;
+      if (leftVersion !== rightVersion) return leftVersion - rightVersion;
+      return (Date.parse(left.created_at || "") || 0) - (Date.parse(right.created_at || "") || 0);
+    });
+    const active = sorted.filter((version) => version.is_active);
+
+    return active.length > 0 ? active[active.length - 1] : sorted[sorted.length - 1];
+  }
+
+  return null;
+}
+
+export function getVersionNumber(version?: LinkVersion | null): number | null {
+  const value = version?.version ?? version?.id;
+  return typeof value === "number" ? value : null;
+}
+
 export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkDetailsResponse, destinationUrl: string) {
   const snapshot = getLatestUtmSnapshot(link);
   const snapshotContext = snapshot?.context && typeof snapshot.context === "object"
@@ -236,8 +263,15 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
   form.customDomainEnabled = Boolean(domainValue);
   form.reason = String(link.reason || "");
 
-  const linkDests = (link as LinkDetailsResponse).destinations as LinkDestination[] | undefined
-    || (link as LinkDetailsResponse).last_version?.destinations;
+  const activeVersion = getActiveVersion(link);
+  const explicitDests = (link as LinkDetailsResponse).destinations as LinkDestination[] | undefined;
+  const linkDests = explicitDests?.length
+    ? explicitDests
+    : activeVersion?.destinations?.length
+      ? activeVersion.destinations
+      : activeVersion?.destination
+        ? [activeVersion.destination]
+        : undefined;
   if (linkDests && linkDests.length > 0) {
     form.destinations = linkDests.map((d) => ({
       url: d.url || "",
@@ -291,9 +325,11 @@ export function fillFormFromLink(form: LinkFormState, link: LinkListItem | LinkD
 }
 
 export function getDestinationUrl(link: LinkListItem | LinkDetailsResponse) {
+  const activeVersion = getActiveVersion(link);
+
   return link.destination?.url
-    || link.versions?.[0]?.destination?.url
-    || (link as LinkDetailsResponse).last_version?.destinations?.[0]?.url
+    || activeVersion?.destination?.url
+    || activeVersion?.destinations?.[0]?.url
     || "—";
 }
 

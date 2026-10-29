@@ -59,6 +59,9 @@ export interface LinkUtmSnapshot {
 
 export interface LinkVersion {
   id?: number;
+  link_id?: number;
+  version?: number;
+  is_active?: boolean;
   created_at?: string | null;
   destination?: LinkDestination | null;
   destinations?: LinkDestination[];
