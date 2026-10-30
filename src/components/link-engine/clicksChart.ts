@@ -1,4 +1,4 @@
-import type { ClickMinutePoint } from "@/services/linkEngine";
+import type { ClickMinuteLinkClicks, ClickMinutePoint } from "@/services/linkEngine";
 
 export const UNATTRIBUTED_SERIES_NAME = "Não identificado";
 export const TOTAL_SERIES_NAME = "Cliques";
@@ -17,6 +17,20 @@ export interface ClicksTooltipRow {
   name: string;
   color: string;
   value: number;
+}
+
+export interface LinkLastClick {
+  linkId: number;
+  code: string;
+  shortUrl: string;
+  totalClicks: number;
+  lastClickAt: string;
+  clicksAtLastClick: number;
+}
+
+export interface LinkLastClicksOverview {
+  lastClick: LinkLastClick | null;
+  links: LinkLastClick[];
 }
 
 interface TooltipRowsParams {
@@ -52,6 +66,53 @@ function normalizePoints(points: ClickMinutePoint[]): NormalizedMinute[] {
       byLink,
     };
   });
+}
+
+export function getLinkLastClicks(points: ClickMinutePoint[]): LinkLastClicksOverview {
+  const links = new Map<number, LinkLastClick>();
+
+  sortClickMinutePoints(points).forEach((point) => {
+    const minuteClicks = new Map<number, { clicks: number; link: ClickMinuteLinkClicks }>();
+
+    (point.by_link ?? []).forEach((link) => {
+      const clicks = Number(link.clicks) || 0;
+      if (clicks <= 0) return;
+
+      const current = minuteClicks.get(link.link_id);
+      if (current) {
+        current.clicks += clicks;
+      } else {
+        minuteClicks.set(link.link_id, { clicks, link });
+      }
+    });
+
+    minuteClicks.forEach(({ clicks, link }) => {
+      const previous = links.get(link.link_id);
+
+      links.set(link.link_id, {
+        linkId: link.link_id,
+        code: link.code || `#${link.link_id}`,
+        shortUrl: link.short_url || "",
+        totalClicks: (previous?.totalClicks ?? 0) + clicks,
+        lastClickAt: point.minute,
+        clicksAtLastClick: clicks,
+      });
+    });
+  });
+
+  const sortedLinks = [...links.values()].sort((left, right) => {
+    const timeDiff = new Date(right.lastClickAt).getTime() - new Date(left.lastClickAt).getTime();
+    if (timeDiff !== 0) return timeDiff;
+    if (right.clicksAtLastClick !== left.clicksAtLastClick) {
+      return right.clicksAtLastClick - left.clicksAtLastClick;
+    }
+    return left.code.localeCompare(right.code);
+  });
+
+  return {
+    lastClick: sortedLinks[0] ?? null,
+    links: sortedLinks,
+  };
 }
 
 export function getTooltipRows({

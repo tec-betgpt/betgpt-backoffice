@@ -47,15 +47,32 @@
     </Alert>
 
     <template v-if="isInitialLoading">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Skeleton v-for="item in 4" :key="item" class="h-32 w-full" />
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <Skeleton v-for="item in 5" :key="item" class="h-32 w-full" />
       </div>
       <Skeleton class="h-[420px] w-full" />
       <Skeleton class="h-[320px] w-full" />
     </template>
 
     <template v-else-if="monitor">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Último clique</CardTitle>
+            <MousePointerClick class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <template v-if="lastClick">
+              <div class="truncate text-2xl font-bold" :title="lastClick.code">{{ lastClick.code }}</div>
+              <p class="text-xs text-muted-foreground">{{ formatDateTime(lastClick.lastClickAt) }}</p>
+            </template>
+            <template v-else>
+              <div class="text-2xl font-bold">—</div>
+              <p class="text-xs text-muted-foreground">Nenhum clique nas últimas 24h</p>
+            </template>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-sm font-medium">Cliques em 5 min</CardTitle>
@@ -162,6 +179,62 @@
             class="flex h-[360px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground"
           >
             Sem dados no periodo
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle>Links e últimos cliques</CardTitle>
+            <p class="text-sm text-muted-foreground">
+              Ordenado pelo clique mais recente nas últimas 24h.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <Badge variant="outline">{{ formatInteger(lastClicks.links.length) }} links</Badge>
+            <ColumnVisibilityToggle
+              v-model="lastClicksColumnVisibility"
+              :columns="lastClicksColumns"
+              table="link-last-clicks"
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div class="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead v-if="lastClicksColumnVisibility.codigo !== false">Código</TableHead>
+                  <TableHead v-if="lastClicksColumnVisibility.encurtador !== false">Encurtador</TableHead>
+                  <TableHead v-if="lastClicksColumnVisibility.ultimoClique !== false">Último clique</TableHead>
+                  <TableHead v-if="lastClicksColumnVisibility.cliques !== false" class="text-right">Cliques (24h)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-for="link in lastClicks.links" :key="link.linkId">
+                  <TableCell v-if="lastClicksColumnVisibility.codigo !== false" class="font-medium">{{ link.code }}</TableCell>
+                  <TableCell
+                    v-if="lastClicksColumnVisibility.encurtador !== false"
+                    class="max-w-[320px] truncate"
+                    :title="link.shortUrl"
+                  >
+                    {{ link.shortUrl || "—" }}
+                  </TableCell>
+                  <TableCell v-if="lastClicksColumnVisibility.ultimoClique !== false" class="text-nowrap">
+                    {{ formatDateTime(link.lastClickAt) }}
+                  </TableCell>
+                  <TableCell v-if="lastClicksColumnVisibility.cliques !== false" class="text-right font-medium">
+                    {{ formatInteger(link.totalClicks) }}
+                  </TableCell>
+                </TableRow>
+                <TableRow v-if="lastClicks.links.length === 0">
+                  <TableCell :colspan="visibleLastClicksColumns.length" class="py-8 text-center text-muted-foreground">
+                    Nenhum clique registrado nas últimas 24h.
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
@@ -309,6 +382,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import {
   buildClicksByLinkSeries,
+  getLinkLastClicks,
   getTooltipRows,
   sortClickMinutePoints,
 } from "@/components/link-engine/clicksChart";
@@ -347,6 +421,17 @@ const unhealthyColumnVisibility = ref<Record<string, boolean>>({});
 const visibleUnhealthyColumns = computed(() =>
   unhealthyColumns.filter((c) => unhealthyColumnVisibility.value[c.id] !== false),
 );
+
+const lastClicksColumns = [
+  { id: "codigo", label: "Código" },
+  { id: "encurtador", label: "Encurtador" },
+  { id: "ultimoClique", label: "Último clique" },
+  { id: "cliques", label: "Cliques (24h)" },
+];
+const lastClicksColumnVisibility = ref<Record<string, boolean>>({});
+const visibleLastClicksColumns = computed(() =>
+  lastClicksColumns.filter((c) => lastClicksColumnVisibility.value[c.id] !== false),
+);
 const hasFetchError = ref(false);
 const errorMessage = ref("");
 const lastUpdatedAt = ref<Date | null>(null);
@@ -375,6 +460,8 @@ const chartPoints = computed(() =>
   sortClickMinutePoints(monitor.value?.clicks_per_minute_24h ?? []),
 );
 const chartSeries = computed(() => buildClicksByLinkSeries(chartPoints.value));
+const lastClicks = computed(() => getLinkLastClicks(chartPoints.value));
+const lastClick = computed(() => lastClicks.value.lastClick);
 
 const hasChartData = computed(() => chartSeries.value.length > 0);
 

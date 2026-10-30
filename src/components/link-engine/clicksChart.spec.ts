@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildClicksByLinkSeries,
+  getLinkLastClicks,
   getTooltipRows,
   UNATTRIBUTED_SERIES_NAME,
 } from "@/components/link-engine/clicksChart";
@@ -80,6 +81,85 @@ describe("buildClicksByLinkSeries", () => {
 
     const unattributed = series.find((item) => item.name === UNATTRIBUTED_SERIES_NAME);
     expect(unattributed?.data[0].y).toBe(2);
+  });
+
+  it("getLinkLastClicks retorna vazio sem pontos", () => {
+    expect(getLinkLastClicks([])).toEqual({ lastClick: null, links: [] });
+  });
+
+  it("getLinkLastClicks agrega total e último clique por link", () => {
+    const { lastClick, links } = getLinkLastClicks([
+      point({
+        minute: "2026-10-29T10:00:00-03:00",
+        clicks: 3,
+        by_link: [
+          { link_id: 12, code: "promo-x", short_url: "https://le.example.com/promo-x", clicks: 2 },
+          { link_id: 34, code: "black-friday", short_url: "https://le.example.com/black-friday", clicks: 1 },
+        ],
+      }),
+      point({
+        minute: "2026-10-29T10:05:00-03:00",
+        clicks: 4,
+        by_link: [
+          { link_id: 12, code: "promo-x", short_url: "https://le.example.com/promo-x", clicks: 4 },
+        ],
+      }),
+    ]);
+
+    expect(lastClick).toEqual(
+      expect.objectContaining({
+        linkId: 12,
+        code: "promo-x",
+        totalClicks: 6,
+        lastClickAt: "2026-10-29T10:05:00-03:00",
+        clicksAtLastClick: 4,
+      }),
+    );
+    expect(links.map((link) => link.linkId)).toEqual([12, 34]);
+    expect(links[1]).toEqual(
+      expect.objectContaining({
+        linkId: 34,
+        totalClicks: 1,
+        lastClickAt: "2026-10-29T10:00:00-03:00",
+      }),
+    );
+  });
+
+  it("getLinkLastClicks escolhe o link mais recente e ignora cliques zero", () => {
+    const { lastClick, links } = getLinkLastClicks([
+      point({
+        minute: "2026-10-29T10:00:00-03:00",
+        clicks: 2,
+        by_link: [
+          { link_id: 12, code: "promo-x", short_url: "https://le.example.com/promo-x", clicks: 2 },
+        ],
+      }),
+      point({
+        minute: "2026-10-29T10:07:00-03:00",
+        clicks: 0,
+        by_link: [
+          { link_id: 12, code: "promo-x", short_url: "https://le.example.com/promo-x", clicks: 0 },
+        ],
+      }),
+    ]);
+
+    expect(links).toHaveLength(1);
+    expect(lastClick?.lastClickAt).toBe("2026-10-29T10:00:00-03:00");
+  });
+
+  it("getLinkLastClicks desempata pelo volume no minuto mais recente", () => {
+    const { lastClick } = getLinkLastClicks([
+      point({
+        minute: "2026-10-29T10:00:00-03:00",
+        clicks: 5,
+        by_link: [
+          { link_id: 12, code: "promo-x", short_url: "https://le.example.com/promo-x", clicks: 2 },
+          { link_id: 34, code: "black-friday", short_url: "https://le.example.com/black-friday", clicks: 3 },
+        ],
+      }),
+    ]);
+
+    expect(lastClick?.linkId).toBe(34);
   });
 
   it("getTooltipRows ignora séries com zero no minuto", () => {
