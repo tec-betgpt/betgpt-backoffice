@@ -23,80 +23,67 @@
     <template v-else>
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
-        <h2 class="text-2xl font-bold tracking-tight">Links</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Gestão de Links</h2>
         <p class="text-muted-foreground">
           Gerencie links, versões de destino, UTM snapshots e arquivamento.
         </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <Button variant="outline" :disabled="isLoading" @click="fetchLinks(1)">
-          Atualizar
-        </Button>
         <Button @click="isCreateDialogOpen = true">
           Novo Link
         </Button>
       </div>
     </div>
 
-    <Card>
-      <CardHeader>
-        <CardTitle>Filtros</CardTitle>
-      </CardHeader>
-      <CardContent class="space-y-4">
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <div class="space-y-2">
-            <Label>Status</Label>
-            <Select v-model="filters.status">
-              <SelectTrigger>
-                <SelectValue placeholder="Todos os status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem :value="SELECT_ALL_VALUE">Todos</SelectItem>
-                <SelectItem v-for="option in LINK_STATUS_OPTIONS" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="relative w-full sm:max-w-[320px]">
+        <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          v-model="filters.search"
+          class="pl-8"
+          placeholder="Buscar por código ou slug"
+          @input="scheduleSearch"
+          @keydown.enter="fetchLinks(1)"
+        />
+      </div>
 
-          <div class="space-y-2">
-            <Label>Tipo</Label>
-            <Select v-model="filters.type">
-              <SelectTrigger>
-                <SelectValue placeholder="Todos os tipos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem :value="SELECT_ALL_VALUE">Todos</SelectItem>
-                <SelectItem v-for="option in LINK_TYPE_OPTIONS" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <Select v-model="filters.status" @update:model-value="fetchLinks(1)">
+        <SelectTrigger class="w-[180px]">
+          <SelectValue placeholder="Todos os status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem :value="SELECT_ALL_VALUE">Todos os status</SelectItem>
+          <SelectItem v-for="option in LINK_STATUS_OPTIONS" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
 
-          <div class="space-y-2 xl:col-span-2">
-            <Label>Busca</Label>
-            <Input
-              v-model="filters.search"
-              placeholder="Buscar por code ou slug"
-              @keydown.enter="fetchLinks(1)"
-            />
-          </div>
-        </div>
+      <Select v-model="filters.type" @update:model-value="fetchLinks(1)">
+        <SelectTrigger class="w-[180px]">
+          <SelectValue placeholder="Todos os tipos" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem :value="SELECT_ALL_VALUE">Todos os tipos</SelectItem>
+          <SelectItem v-for="option in LINK_TYPE_OPTIONS" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
 
-        <div class="flex flex-wrap justify-end gap-2">
-          <Button variant="ghost" @click="resetFilters()">Limpar filtros</Button>
-          <Button :disabled="isLoading" @click="fetchLinks(1)">Buscar</Button>
-        </div>
-      </CardContent>
-    </Card>
+      <Button variant="ghost" @click="resetFilters()">Limpar filtros</Button>
+
+      <ColumnVisibilityToggle
+        v-model="columnVisibility"
+        :columns="tableColumns"
+        table="links"
+        class="ml-auto"
+      />
+    </div>
 
     <Card>
       <CardContent class="pt-6">
-        <div class="flex justify-end mb-2">
-          <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
-        </div>
         <div class="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -107,6 +94,8 @@
                 <TableHead v-if="columnVisibility.slug !== false">Slug</TableHead>
                 <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
                 <TableHead v-if="columnVisibility.tipo !== false">Tipo</TableHead>
+                <TableHead v-if="columnVisibility.totalCliques !== false" class="text-right">Total de Cliques</TableHead>
+                <TableHead v-if="columnVisibility.cliques24h !== false" class="text-right">Cliques 24h</TableHead>
                 <TableHead v-if="columnVisibility.destino !== false">Destino</TableHead>
                 <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
               </TableRow>
@@ -138,6 +127,12 @@
                   <Badge variant="outline">{{ link.status || "—" }}</Badge>
                 </TableCell>
                 <TableCell v-if="columnVisibility.tipo !== false">{{ link.type || "—" }}</TableCell>
+                <TableCell v-if="columnVisibility.totalCliques !== false" class="text-right font-medium">
+                  {{ formatClickCount(getLinkClickMetrics(link).total) }}
+                </TableCell>
+                <TableCell v-if="columnVisibility.cliques24h !== false" class="text-right font-medium">
+                  {{ formatClickCount(getLinkClickMetrics(link).last24h) }}
+                </TableCell>
                 <TableCell v-if="columnVisibility.destino !== false" class="max-w-[280px] truncate">{{ getDestinationUrl(link) }}</TableCell>
                 <TableCell v-if="columnVisibility.acoes !== false">
                   <div class="flex justify-end gap-2">
@@ -252,7 +247,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import linksService from "@/services/links";
 import ProjectPreferencesService from "@/services/projectPreferences";
@@ -263,12 +258,11 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useRouter } from "vue-router";
 import CreateDialogComponent from "@/components/links/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/links/EditDialogComponent.vue";
-import { AlertCircle, Settings2 } from "lucide-vue-next";
+import { AlertCircle, Search, Settings2 } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -313,6 +307,10 @@ import {
   getVersionNumber,
   SELECT_ALL_VALUE,
 } from "@/components/links/linkForm";
+import {
+  formatClickCount,
+  getLinkClickMetrics,
+} from "@/components/links/linkClicks";
 
 const workspaceStore = useWorkspaceStore();
 const router = useRouter();
@@ -351,10 +349,15 @@ const tableColumns = computed(() => [
   { id: "slug", label: "Slug" },
   { id: "status", label: "Status" },
   { id: "tipo", label: "Tipo" },
+  { id: "totalCliques", label: "Total de Cliques" },
+  { id: "cliques24h", label: "Cliques 24h" },
   { id: "destino", label: "Destino" },
   { id: "acoes", label: "Ações" },
 ]);
-const columnVisibility = ref<Record<string, boolean>>({});
+const columnVisibility = ref<Record<string, boolean>>({
+  slug: false,
+  tipo: false,
+});
 const visibleTableColumns = computed(() =>
   tableColumns.value.filter((c) => columnVisibility.value[c.id] !== false)
 );
@@ -396,7 +399,27 @@ const pages = ref({
   last: 0,
 });
 
+let searchDebounceId: number | null = null;
+
+function scheduleSearch() {
+  if (searchDebounceId !== null) {
+    window.clearTimeout(searchDebounceId);
+  }
+
+  searchDebounceId = window.setTimeout(() => {
+    searchDebounceId = null;
+    fetchLinks(1);
+  }, 350);
+}
+
+function clearScheduledSearch() {
+  if (searchDebounceId === null) return;
+  window.clearTimeout(searchDebounceId);
+  searchDebounceId = null;
+}
+
 function resetFilters() {
+  clearScheduledSearch();
   filters.status = SELECT_ALL_VALUE;
   filters.type = SELECT_ALL_VALUE;
   filters.search = "";
@@ -405,6 +428,7 @@ function resetFilters() {
 }
 
 async function fetchLinks(page = 1) {
+  clearScheduledSearch();
   isLoading.value = true;
 
   try {
@@ -496,5 +520,9 @@ onMounted(async () => {
   if (hasSlug.value) {
     await fetchLinks(1);
   }
+});
+
+onBeforeUnmount(() => {
+  clearScheduledSearch();
 });
 </script>

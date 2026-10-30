@@ -70,10 +70,18 @@ export interface LinkVersion {
   [key: string]: unknown;
 }
 
+export interface LinkClickSummary {
+  total: number;
+  last_24h: number;
+}
+
 export interface LinkListItem {
   id: number;
   project_id: number;
   code: string;
+  clicks?: LinkClickSummary | null;
+  total_clicks?: number | null;
+  clicks_24h?: number | null;
   slug?: string | null;
   status?: string | null;
   type?: string | null;

@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  ALL_CLICKS_SERIES_NAME,
   buildClicksByLinkSeries,
+  buildHourlyClicksByLinkSeries,
+  getChartLinks,
   getLinkLastClicks,
   getTooltipRows,
+  sumClicksSince,
   UNATTRIBUTED_SERIES_NAME,
 } from "@/components/link-engine/clicksChart";
 import type { ClickMinutePoint } from "@/services/linkEngine";
@@ -204,5 +208,151 @@ describe("buildClicksByLinkSeries", () => {
     expect(series).toHaveLength(1);
     expect(series[0].name).toBe("Cliques");
     expect(series[0].data[0].y).toBe(7);
+  });
+});
+
+describe("buildHourlyClicksByLinkSeries", () => {
+  const linkA = { link_id: 12, code: "promo-x", short_url: "https://le.example.com/promo-x", clicks: 1 };
+  const linkB = { link_id: 34, code: "black-friday", short_url: "https://le.example.com/black-friday", clicks: 1 };
+
+  it("retorna vazio quando não há pontos", () => {
+    expect(buildHourlyClicksByLinkSeries([])).toEqual([]);
+  });
+
+  it("agrega minutos do mesmo horário em um único ponto", () => {
+    const series = buildHourlyClicksByLinkSeries([
+      point({
+        minute: "2026-10-29T10:00:00-03:00",
+        clicks: 3,
+        by_link: [{ ...linkA, clicks: 2 }, { ...linkB, clicks: 1 }],
+      }),
+      point({
+        minute: "2026-10-29T10:45:00-03:00",
+        clicks: 2,
+        by_link: [{ ...linkA, clicks: 2 }],
+      }),
+    ]);
+
+    const promo = series.find((item) => item.name === "promo-x");
+    const blackFriday = series.find((item) => item.name === "black-friday");
+
+    expect(promo?.data).toEqual([{ x: new Date("2026-10-29T10:00:00-03:00").getTime(), y: 4 }]);
+    expect(blackFriday?.data).toEqual([{ x: new Date("2026-10-29T10:00:00-03:00").getTime(), y: 1 }]);
+  });
+
+  it("preenche com zero as horas sem cliques entre os extremos", () => {
+    const series = buildHourlyClicksByLinkSeries([
+      point({
+        minute: "2026-10-29T10:00:00-03:00",
+        clicks: 1,
+        by_link: [linkA],
+      }),
+      point({
+        minute: "2026-10-29T12:00:00-03:00",
+        clicks: 2,
+        by_link: [{ ...linkA, clicks: 2 }],
+      }),
+    ]);
+
+    const promo = series.find((item) => item.name === "promo-x");
+    expect(promo?.data.map((item) => item.y)).toEqual([1, 0, 2]);
+  });
+
+  it("cria a série Todos os envios como linha, escondida por padrão no legend", () => {
+    const series = buildHourlyClicksByLinkSeries([
+      point({
+        minute: "2026-10-29T10:00:00-03:00",
+        clicks: 3,
+        by_link: [linkA],
+      }),
+    ]);
+
+    const total = series.find((item) => item.name === ALL_CLICKS_SERIES_NAME);
+    expect(total?.type).toBe("line");
+    expect(total?.data[0].y).toBe(3);
+    expect(series.filter((item) => item.name !== ALL_CLICKS_SERIES_NAME).every((item) => item.type === "area")).toBe(true);
+  });
+
+  it("soma apenas os links selecionados na série Todos os envios", () => {
+    const series = buildHourlyClicksByLinkSeries(
+      [
+        point({
+          minute: "2026-10-29T10:00:00-03:00",
+          clicks: 5,
+          by_link: [{ ...linkA, clicks: 3 }, { ...linkB, clicks: 2 }],
+        }),
+      ],
+      { selectedLinkIds: new Set([12]) },
+    );
+
+    expect(series.map((item) => item.name)).toEqual(["promo-x", ALL_CLICKS_SERIES_NAME]);
+    expect(series.find((item) => item.name === ALL_CLICKS_SERIES_NAME)?.data[0].y).toBe(3);
+  });
+
+  it("retorna vazio quando nenhum link está selecionado", () => {
+    const series = buildHourlyClicksByLinkSeries(
+      [
+        point({
+          minute: "2026-10-29T10:00:00-03:00",
+          clicks: 3,
+          by_link: [linkA],
+        }),
+      ],
+      { selectedLinkIds: new Set() },
+    );
+
+    expect(series).toEqual([]);
+  });
+
+  it("usa uma série única quando o endpoint não retorna by_link", () => {
+    const series = buildHourlyClicksByLinkSeries([point({ clicks: 7 })]);
+
+    expect(series).toHaveLength(1);
+    expect(series[0].name).toBe("Cliques");
+    expect(series[0].type).toBe("area");
+    expect(series[0].data[0].y).toBe(7);
+  });
+});
+
+describe("getChartLinks", () => {
+  it("lista os links pelo total de cliques, do maior para o menor", () => {
+    const links = getChartLinks([
+      point({
+        minute: "2026-10-29T10:00:00-03:00",
+        clicks: 4,
+        by_link: [
+          { link_id: 12, code: "promo-x", short_url: "https://le.example.com/promo-x", clicks: 1 },
+          { link_id: 34, code: "black-friday", short_url: "https://le.example.com/black-friday", clicks: 3 },
+        ],
+      }),
+      point({
+        minute: "2026-10-29T10:01:00-03:00",
+        clicks: 2,
+        by_link: [
+          { link_id: 12, code: "promo-x", short_url: "https://le.example.com/promo-x", clicks: 2 },
+        ],
+      }),
+    ]);
+
+    expect(links).toEqual([
+      { id: 34, name: "black-friday", total: 3, shortUrl: "https://le.example.com/black-friday" },
+      { id: 12, name: "promo-x", total: 3, shortUrl: "https://le.example.com/promo-x" },
+    ]);
+  });
+});
+
+describe("sumClicksSince", () => {
+  it("soma somente os pontos dentro da janela", () => {
+    const since = new Date("2026-10-29T10:00:00-03:00").getTime();
+    const total = sumClicksSince(
+      [
+        point({ minute: "2026-10-29T09:59:00-03:00", clicks: 9 }),
+        point({ minute: "2026-10-29T10:00:00-03:00", clicks: 2 }),
+        point({ minute: "2026-10-29T10:30:00-03:00", clicks: 3 }),
+      ],
+      since,
+    );
+
+    expect(total).toBe(5);
   });
 });

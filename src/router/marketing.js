@@ -1,6 +1,4 @@
 import DefaultLayout from "@/layouts/default.vue";
-import LinkEngine from "@/views/dashboard/LinkEngine.vue";
-import Links from "@/views/dashboard/Links.vue";
 import CampaignDrafts from "@/views/dashboard/CampaignDrafts.vue";
 import CampaignDraftWizard from "@/views/dashboard/CampaignDraftWizard.vue";
 import CampaignDetail from "@/views/dashboard/CampaignDetail.vue";
@@ -119,24 +117,6 @@ export default [
         meta: {
           ...marketingMeta,
           title: "Histórico de SMS",
-        },
-      },
-      {
-        path: "links",
-        name: "links",
-        component: Links,
-        meta: {
-          ...marketingMeta,
-          title: "Links",
-        },
-      },
-      {
-        path: "link-engine",
-        name: "link-engine",
-        component: LinkEngine,
-        meta: {
-          ...marketingMeta,
-          title: "Link Engine",
         },
       },
       {

@@ -2,7 +2,7 @@
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <div class="space-y-0.5">
-        <h2 class="text-2xl font-bold tracking-tight">Link Engine</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Monitoramento</h2>
         <p class="text-muted-foreground">
           Monitoramento operacional de cliques, fila, redirects e links degradados.
         </p>
@@ -38,24 +38,59 @@
       </AlertDescription>
     </Alert>
 
-    <Alert v-if="monitor && !hasExpectedChartPoints">
+    <Alert v-if="monitor && !hasExpectedChartHours">
       <AlertTriangle class="h-4 w-4" />
       <AlertTitle>Serie temporal incompleta</AlertTitle>
       <AlertDescription>
-        O endpoint retornou {{ formatInteger(monitor.clicks_per_minute_24h.length) }} pontos. O esperado e 1440 pontos.
+        O endpoint retornou {{ formatInteger(chartHourCount) }} horas. O esperado e 24 horas.
       </AlertDescription>
     </Alert>
 
     <template v-if="isInitialLoading">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <Skeleton v-for="item in 5" :key="item" class="h-32 w-full" />
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Skeleton v-for="item in 8" :key="item" class="h-32 w-full" />
       </div>
       <Skeleton class="h-[420px] w-full" />
       <Skeleton class="h-[320px] w-full" />
     </template>
 
     <template v-else-if="monitor">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Total de Cliques</CardTitle>
+            <MousePointerClick class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">{{ formatNullableInteger(totalClicks) }}</div>
+            <p class="text-xs text-muted-foreground">
+              {{ totalClicks === null ? "Aguardando dados da API" : "Histórico completo" }}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Cliques 24h</CardTitle>
+            <Clock3 class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">{{ formatInteger(clicks24h) }}</div>
+            <p class="text-xs text-muted-foreground">Últimas 24 horas</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle class="text-sm font-medium">Cliques 1h</CardTitle>
+            <Clock3 class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">{{ formatInteger(clicks1h) }}</div>
+            <p class="text-xs text-muted-foreground">Última hora</p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-sm font-medium">Último clique</CardTitle>
@@ -159,12 +194,52 @@
       <Card>
         <CardHeader class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <CardTitle>Cliques por minuto nas ultimas 24h</CardTitle>
+            <CardTitle>Cliques por hora nas ultimas 24h</CardTitle>
             <p class="text-sm text-muted-foreground">
-              {{ formatInteger(monitor.clicks_per_minute_24h.length) }} pontos retornados · cliques empilhados por link
+              {{ formatInteger(chartHourCount) }} horas retornadas · cliques empilhados por link
             </p>
           </div>
-          <Badge v-if="!hasExpectedChartPoints" variant="destructive">Esperado: 1440</Badge>
+          <div class="flex flex-wrap items-center gap-2">
+            <Popover v-model:open="isLinkFilterOpen">
+              <PopoverTrigger as-child>
+                <Button variant="outline" size="sm">
+                  <Filter class="mr-2 h-4 w-4" />
+                  Links ({{ selectedLinkIds.length }}/{{ chartLinks.length }})
+                  <ChevronDown class="ml-2 h-3 w-3" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" class="w-[300px] p-3">
+                <Input v-model="linkSearch" placeholder="Buscar link..." class="mb-2" />
+                <div class="flex items-center justify-between pb-2">
+                  <Button variant="ghost" size="sm" @click="selectAllLinks">Todos</Button>
+                  <Button variant="ghost" size="sm" @click="clearLinkSelection">Nenhum</Button>
+                </div>
+                <div class="max-h-[240px] space-y-1 overflow-y-auto">
+                  <button
+                    v-for="link in filteredChartLinks"
+                    :key="link.id"
+                    type="button"
+                    class="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+                    @click="toggleLink(link.id)"
+                  >
+                    <Check
+                      :class="[
+                        'mr-2 h-4 w-4 shrink-0',
+                        isLinkSelected(link.id) ? 'opacity-100' : 'opacity-0',
+                      ]"
+                    />
+                    <span class="truncate">{{ link.name }}</span>
+                    <span class="ml-auto text-xs text-muted-foreground">{{ formatInteger(link.total) }}</span>
+                  </button>
+                  <p v-if="filteredChartLinks.length === 0" class="py-4 text-center text-sm text-muted-foreground">
+                    Nenhum link encontrado.
+                  </p>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Badge variant="outline">24 horas</Badge>
+            <Badge v-if="!hasExpectedChartHours" variant="destructive">Esperado: 24</Badge>
+          </div>
         </CardHeader>
         <CardContent>
           <apexchart
@@ -178,7 +253,7 @@
             v-else
             class="flex h-[360px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground"
           >
-            Sem dados no periodo
+            {{ selectedLinkIds.length === 0 ? "Selecione pelo menos um link" : "Sem dados no periodo" }}
           </div>
         </CardContent>
       </Card>
@@ -363,7 +438,10 @@ import type { ApexOptions } from "apexcharts";
 import VueApexCharts from "vue3-apexcharts";
 import {
   AlertTriangle,
+  Check,
+  ChevronDown,
   Clock3,
+  Filter,
   Gauge,
   ListChecks,
   MousePointerClick,
@@ -377,14 +455,19 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import {
-  buildClicksByLinkSeries,
+  ALL_CLICKS_SERIES_NAME,
+  buildHourlyClicksByLinkSeries,
+  getChartLinks,
   getLinkLastClicks,
   getTooltipRows,
   sortClickMinutePoints,
+  sumClicksSince,
 } from "@/components/link-engine/clicksChart";
 
 const apexchart = VueApexCharts;
@@ -392,7 +475,8 @@ const workspaceStore = useWorkspaceStore();
 const isDark = useDark();
 
 const POLLING_INTERVAL_MS = 30_000;
-const EXPECTED_POINTS = 1440;
+const EXPECTED_HOURS = 24;
+const HOUR_MS = 60 * 60 * 1000;
 
 const monitor = ref<LinkEngineMonitorResponse | null>(null);
 const isFetching = ref(false);
@@ -441,8 +525,13 @@ const integerFormatter = new Intl.NumberFormat("pt-BR");
 
 const isInitialLoading = computed(() => isFetching.value && !monitor.value);
 const queuePendingCritical = computed(() => (monitor.value?.queue_pending ?? 0) > 1000);
-const hasExpectedChartPoints = computed(
-  () => (monitor.value?.clicks_per_minute_24h.length ?? 0) === EXPECTED_POINTS,
+const totalClicks = computed(() => monitor.value?.total_clicks ?? null);
+const clicks24h = computed(() =>
+  monitor.value?.clicks_last_24h ??
+  chartPoints.value.reduce((sum, point) => sum + (Number(point.clicks) || 0), 0),
+);
+const clicks1h = computed(
+  () => monitor.value?.clicks_last_1h ?? sumClicksSince(chartPoints.value, Date.now() - HOUR_MS),
 );
 
 const latencyItems = computed(() => {
@@ -459,11 +548,89 @@ const latencyItems = computed(() => {
 const chartPoints = computed(() =>
   sortClickMinutePoints(monitor.value?.clicks_per_minute_24h ?? []),
 );
-const chartSeries = computed(() => buildClicksByLinkSeries(chartPoints.value));
+const chartLinks = computed(() => getChartLinks(chartPoints.value));
+const selectedLinkIds = ref<number[]>([]);
+const knownLinkIds = ref<Set<number>>(new Set());
+const isLinkFilterOpen = ref(false);
+const linkSearch = ref("");
+const legendSelected = ref<Record<string, boolean>>({});
+
+const filteredChartLinks = computed(() => {
+  const query = linkSearch.value.trim().toLowerCase();
+  if (!query) return chartLinks.value;
+  return chartLinks.value.filter(
+    (link) =>
+      link.name.toLowerCase().includes(query) ||
+      link.shortUrl.toLowerCase().includes(query),
+  );
+});
+
+const chartSeries = computed(() =>
+  buildHourlyClicksByLinkSeries(chartPoints.value, {
+    selectedLinkIds: new Set(selectedLinkIds.value),
+  }),
+);
+const chartHourCount = computed(() => {
+  if (chartSeries.value.length > 0) {
+    return chartSeries.value[0]?.data.length ?? 0;
+  }
+
+  return buildHourlyClicksByLinkSeries(chartPoints.value)[0]?.data.length ?? 0;
+});
+const hasExpectedChartHours = computed(
+  () => chartPoints.value.length === 0 || chartHourCount.value === EXPECTED_HOURS,
+);
 const lastClicks = computed(() => getLinkLastClicks(chartPoints.value));
 const lastClick = computed(() => lastClicks.value.lastClick);
 
 const hasChartData = computed(() => chartSeries.value.length > 0);
+
+function isLinkSelected(linkId: number) {
+  return selectedLinkIds.value.includes(linkId);
+}
+
+function toggleLink(linkId: number) {
+  selectedLinkIds.value = isLinkSelected(linkId)
+    ? selectedLinkIds.value.filter((id) => id !== linkId)
+    : [...selectedLinkIds.value, linkId];
+}
+
+function selectAllLinks() {
+  selectedLinkIds.value = chartLinks.value.map((link) => link.id);
+}
+
+function clearLinkSelection() {
+  selectedLinkIds.value = [];
+}
+
+watch(
+  chartLinks,
+  (links) => {
+    const allIds = links.map((link) => link.id);
+    const nextKnown = new Set(allIds);
+    const added = allIds.filter((id) => !knownLinkIds.value.has(id));
+    selectedLinkIds.value = [
+      ...selectedLinkIds.value.filter((id) => nextKnown.has(id)),
+      ...added,
+    ];
+    knownLinkIds.value = nextKnown;
+  },
+  { immediate: true },
+);
+
+watch(
+  chartSeries,
+  (series) => {
+    const next = { ...legendSelected.value };
+    series.forEach((item) => {
+      if (!(item.name in next)) {
+        next[item.name] = item.name !== ALL_CLICKS_SERIES_NAME;
+      }
+    });
+    legendSelected.value = next;
+  },
+  { immediate: true },
+);
 
 function escapeHtml(value: string) {
   return value.replace(
@@ -486,8 +653,8 @@ function buildTooltipContent({ series, dataPointIndex, w }: any): string {
     colors: w?.globals?.colors ?? [],
     dataPointIndex,
   });
-  const minute = chartPoints.value[dataPointIndex]?.minute;
-  const title = minute ? escapeHtml(formatDateTime(minute)) : "";
+  const hour = chartSeries.value[0]?.data[dataPointIndex]?.x;
+  const title = hour ? escapeHtml(formatHour(hour)) : "";
   const foreground = "hsl(var(--popover-foreground))";
   const muted = "hsl(var(--muted-foreground))";
 
@@ -502,7 +669,7 @@ function buildTooltipContent({ series, dataPointIndex, w }: any): string {
             `</div>`,
         )
         .join("")
-    : `<div style="color:${muted};">Sem cliques neste minuto</div>`;
+    : `<div style="color:${muted};">Sem cliques nesta hora</div>`;
 
   const total =
     rows.length > 1
@@ -526,6 +693,16 @@ const chartOptions = computed<ApexOptions>(() => ({
     toolbar: { show: false },
     zoom: { enabled: false },
     stacked: true,
+    events: {
+      legendClick: (_chart: unknown, seriesIndex: number) => {
+        const name = chartSeries.value[seriesIndex]?.name;
+        if (!name) return;
+        legendSelected.value = {
+          ...legendSelected.value,
+          [name]: !(legendSelected.value[name] ?? true),
+        };
+      },
+    },
   },
   theme: { mode: isDark.value ? "dark" : "light" },
   dataLabels: { enabled: false },
@@ -549,6 +726,7 @@ const chartOptions = computed<ApexOptions>(() => ({
     labels: { colors: "hsl(var(--muted-foreground))" },
     markers: { size: 6 },
     itemMargin: { horizontal: 8, vertical: 2 },
+    selected: legendSelected.value,
   },
   stroke: {
     curve: "smooth",
@@ -648,6 +826,25 @@ function stopPolling() {
 
 function formatInteger(value: number) {
   return integerFormatter.format(Number.isFinite(value) ? value : 0);
+}
+
+function formatNullableInteger(value: number | null) {
+  return value === null ? "—" : formatInteger(value);
+}
+
+function formatHour(value: number | string | Date) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function formatMilliseconds(value: number | null) {

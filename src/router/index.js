@@ -16,6 +16,7 @@ import audiences from "@/router/audiences.js";
 import manage from "@/router/manage.js";
 import governance from "@/router/governance.js";
 import marketing from "@/router/marketing.js";
+import traffic from "@/router/traffic.js";
 import protection from "@/router/protection.js";
 import financial from "@/router/financial.js";
 import efficiency from "@/router/efficiency.js";
@@ -85,6 +86,7 @@ const routes = [
   ...manage,
   ...governance,
   ...marketing,
+  ...traffic,
   ...protection,
   ...financial,
   ...efficiency,

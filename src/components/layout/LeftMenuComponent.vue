@@ -373,6 +373,7 @@ import {
   RadioTower,
   PieChart, Activity,
   KeyRound,
+  Waypoints,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -576,6 +577,91 @@ const navMenu = computed(() => {
       ],
     },
     {
+      name: "Tráfego",
+      icon: Waypoints,
+      type: "traffic",
+      show: canAccess("access-to-marketing"),
+      children: [
+        {
+          name: "Monitoramento",
+          url: { name: "link-engine" },
+          icon: Activity,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Gestão de Links",
+          url: { name: "links" },
+          icon: Link2,
+          show: canAccess("access-to-marketing"),
+        },
+      ],
+    },
+    {
+      name: "Marketing",
+      icon: Megaphone,
+      type: "marketing",
+      show: canAccess("access-to-marketing"),
+      children: [
+        {
+          name: "Campanhas",
+          url: { name: "campaign-drafts.index" },
+          icon: MessageSquareText,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Teste de SMS",
+          url: { name: "sms.test-message" },
+          icon: MessageCircleMore,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Listas SMS",
+          url: { name: "sms.lists" },
+          icon: ListChecks,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Automações SMS",
+          url: { name: "sms.automations" },
+          icon: Workflow,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Broadcasts SMS",
+          url: { name: "sms.broadcasts" },
+          icon: RadioTower,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Envio Direto SMS",
+          url: { name: "sms.direct-send" },
+          icon: Send,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Histórico SMS",
+          url: { name: "sms.history" },
+          icon: History,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "Monitor de Campanha",
+          url: { name: "campaign-monitor" },
+          icon: Activity,
+          show: canAccess("access-to-marketing"),
+        },
+        {
+          name: "E-mail SMTP",
+          url: { name: "campaign-mail-settings" },
+          icon: Mail,
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            hasRole("member-developer"),
+        },
+      ],
+    },
+    {
       name: "Desempenho",
       icon: ChartNoAxesColumnIncreasing,
       type: "efficiency",
@@ -710,83 +796,6 @@ const navMenu = computed(() => {
           url: { name: "ai-controller" },
           icon: SlidersHorizontal,
           show: hasRole("member-proprietor") || hasRole("member-developer"),
-        },
-      ],
-    },
-    {
-      name: "Marketing",
-      icon: Megaphone,
-      type: "marketing",
-      show: canAccess("access-to-marketing"),
-      children: [
-        {
-          name: "Campanhas",
-          url: { name: "campaign-drafts.index" },
-          icon: MessageSquareText,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "Teste de SMS",
-          url: { name: "sms.test-message" },
-          icon: MessageCircleMore,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "Listas SMS",
-          url: { name: "sms.lists" },
-          icon: ListChecks,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "Automações SMS",
-          url: { name: "sms.automations" },
-          icon: Workflow,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "Broadcasts SMS",
-          url: { name: "sms.broadcasts" },
-          icon: RadioTower,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "Envio Direto SMS",
-          url: { name: "sms.direct-send" },
-          icon: Send,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "Histórico SMS",
-          url: { name: "sms.history" },
-          icon: History,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "Links",
-          url: { name: "links" },
-          icon: Link2,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "Link Engine",
-          url: { name: "link-engine" },
-          icon: ChartArea,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "Monitor de Campanha",
-          url: { name: "campaign-monitor" },
-          icon: Activity,
-          show: canAccess("access-to-marketing"),
-        },
-        {
-          name: "E-mail SMTP",
-          url: { name: "campaign-mail-settings" },
-          icon: Mail,
-          show:
-            hasRole("member-proprietor") ||
-            hasRole("member-admin") ||
-            hasRole("member-developer"),
         },
       ],
     },

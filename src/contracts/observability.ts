@@ -177,6 +177,9 @@ export interface RedirectErrors {
 }
 
 export interface LinkEngineMonitorResponse {
+  total_clicks?: number | null;
+  clicks_last_1h?: number | null;
+  clicks_last_24h?: number | null;
   clicks_last_5min: number;
   clicks_per_minute_24h: ClickMinutePoint[];
   canonical_clicks: CanonicalClicks;
