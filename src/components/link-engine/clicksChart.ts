@@ -194,6 +194,7 @@ export function buildClicksByLinkSeries(points: ClickMinutePoint[]): ClicksChart
 }
 
 const HOUR_MS = 60 * 60 * 1000;
+const MAX_HOURS = 24;
 
 interface NormalizedHour {
   time: number;
@@ -240,7 +241,7 @@ function normalizeHours(points: ClickMinutePoint[]): NormalizedHour[] {
     filled.push(hours.get(time) ?? { time, clicks: 0, byLink: new Map() });
   }
 
-  return filled;
+  return filled.length > MAX_HOURS ? filled.slice(-MAX_HOURS) : filled;
 }
 
 export function getChartLinks(points: ClickMinutePoint[]): ChartLinkOption[] {

@@ -304,6 +304,24 @@ describe("buildHourlyClicksByLinkSeries", () => {
     expect(series).toEqual([]);
   });
 
+  it("limita a série às 24 horas mais recentes", () => {
+    const base = Date.UTC(2026, 9, 29, 0, 0, 0);
+
+    const series = buildHourlyClicksByLinkSeries(
+      Array.from({ length: 25 }, (_, index) =>
+        point({
+          minute: new Date(base + index * 60 * 60 * 1000).toISOString(),
+          clicks: index + 1,
+          by_link: [{ ...linkA, clicks: index + 1 }],
+        }),
+      ),
+    );
+
+    expect(series[0].data).toHaveLength(24);
+    expect(series[0].data[0].y).toBe(2);
+    expect(series[0].data[23].y).toBe(25);
+  });
+
   it("usa uma série única quando o endpoint não retorna by_link", () => {
     const series = buildHourlyClicksByLinkSeries([point({ clicks: 7 })]);
 
