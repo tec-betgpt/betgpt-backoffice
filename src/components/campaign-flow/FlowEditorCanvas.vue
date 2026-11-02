@@ -1,29 +1,40 @@
 <template>
-  <div class="flex h-[calc(100dvh-300px)] min-h-[560px] flex-col overflow-hidden rounded-md border border-border">
-    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-background px-3 py-2">
+  <div class="flex h-full min-h-0 flex-col overflow-hidden">
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-background px-6 py-3">
       <div class="flex items-center gap-2">
-        <Button variant="outline" size="sm" :disabled="readonly || catalogLoading" @click="isGalleryOpen = true">
-          Templates
-        </Button>
-        <Badge variant="outline">{{ nodes.length }} nó(s)</Badge>
+        <Lightbulb class="size-4 text-muted-foreground" />
+        <span class="text-sm font-semibold">Editar fluxo</span>
       </div>
       <div class="flex items-center gap-2">
         <slot name="actions" />
         <Button size="sm" :disabled="readonly || saving" @click="emit('save')">
           {{ saving ? "Salvando..." : "Salvar & Continuar" }}
         </Button>
+        <Button variant="outline" size="sm" :disabled="readonly || catalogLoading" @click="isGalleryOpen = true">
+          Templates
+        </Button>
+        <Popover v-model:open="isAddPanelOpen">
+          <PopoverTrigger as-child>
+            <Button variant="outline" size="sm" :disabled="readonly || catalogLoading">
+              <Plus class="mr-1 size-4" />
+              Adicionar
+              <ChevronDown class="ml-1 size-3.5 text-muted-foreground" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" class="w-[520px] max-w-[calc(100vw-2rem)] p-0">
+            <FlowNodeCatalogPanel
+              :catalog="catalog"
+              :loading="catalogLoading"
+              :disabled="readonly"
+              :trigger-types="triggerTypes"
+              @add-node="onAddNode"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
 
     <div class="flex min-h-0 flex-1">
-      <FlowNodeCatalogPanel
-        :catalog="catalog"
-        :loading="catalogLoading"
-        :disabled="readonly"
-        :trigger-types="triggerTypes"
-        @add-node="addNodeFromCatalog"
-      />
-
       <div ref="canvasWrapper" class="relative min-w-0 flex-1">
         <VueFlow
           v-model:nodes="nodes"
@@ -52,8 +63,9 @@
           </template>
 
           <Background variant="dots" :gap="20" :size="1" pattern-color="hsl(var(--muted-foreground))" />
-          <Controls position="bottom-left" />
+          <Controls position="bottom-left" show-zoom show-fit show-lock />
           <MiniMap
+            position="bottom-right"
             pannable
             zoomable
             node-color="hsl(var(--muted-foreground))"
@@ -88,8 +100,9 @@ import { Background } from "@vue-flow/background";
 import { Controls } from "@vue-flow/controls";
 import { MiniMap } from "@vue-flow/minimap";
 import { toast } from "vue-sonner";
-import { Badge } from "@/components/ui/badge";
+import { ChevronDown, Lightbulb, Plus } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import FlowActionNode from "@/components/campaign-flow/FlowActionNode.vue";
 import FlowConditionNode from "@/components/campaign-flow/FlowConditionNode.vue";
 import FlowNodeCatalogPanel from "@/components/campaign-flow/FlowNodeCatalogPanel.vue";
@@ -133,6 +146,7 @@ const nodes = ref<Node<FlowCanvasNodeData>[]>([]);
 const edges = ref<Edge[]>([]);
 const currentViewport = ref<FlowViewport | null>(null);
 const isGalleryOpen = ref(false);
+const isAddPanelOpen = ref(false);
 const canvasWrapper = ref<HTMLElement | null>(null);
 
 const { addEdges, addNodes, screenToFlowCoordinate, setViewport, fitView } = useVueFlow();
@@ -225,6 +239,16 @@ function nextNodePosition() {
   } catch {
     return fallback;
   }
+}
+
+function onAddNode(item: FlowNodeTypeCatalogItem) {
+  if (item.category === "trigger" && triggerTypes.value.length > 0) {
+    addNodeFromCatalog(item);
+    return;
+  }
+
+  addNodeFromCatalog(item);
+  isAddPanelOpen.value = false;
 }
 
 function addNodeFromCatalog(item: FlowNodeTypeCatalogItem) {

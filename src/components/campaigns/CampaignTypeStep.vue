@@ -1,26 +1,14 @@
 <template>
-  <div class="space-y-6">
-    <div>
-      <h3 class="text-lg font-semibold">Tipo de campanha</h3>
-      <p class="text-sm text-muted-foreground">
-        Defina a identidade da campanha e escolha como a jornada será construída.
-      </p>
-    </div>
-
+  <div class="space-y-8">
     <CampaignValidationList :errors="errors" :warnings="warnings" />
 
-    <div class="rounded-md border border-border p-3 text-sm">
-      <span class="text-muted-foreground">Projeto ativo: </span>
-      <span class="font-medium">{{ activeProjectLabel }}</span>
-    </div>
-
-    <div class="grid gap-4">
+    <div class="mx-auto grid w-full max-w-2xl gap-4">
       <div class="space-y-2">
         <Label>Nome</Label>
         <Input v-model="model.name" :disabled="readonly" placeholder="Campanha de retenção" />
       </div>
       <div class="space-y-2">
-        <Label>Descrição</Label>
+        <Label>Descrição (opcional)</Label>
         <Textarea
           :model-value="model.description ?? ''"
           :disabled="readonly"
@@ -30,91 +18,101 @@
       </div>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2">
+    <div class="mx-auto grid w-full max-w-2xl gap-6 sm:grid-cols-2">
       <button
         v-for="option in typeOptions"
         :key="option.value"
         type="button"
-        class="rounded-lg border-2 p-5 text-left transition-colors"
+        class="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-xl border-2 p-8 text-center transition-colors"
         :class="[
-          model.type === option.value ? 'border-primary bg-accent' : 'border-border hover:bg-accent/50',
-          selectionLocked && model.type !== option.value ? 'cursor-not-allowed opacity-50' : '',
+          selectedType === option.value
+            ? 'border-primary bg-accent/60'
+            : 'border-border hover:bg-accent/40',
+          selectionLocked && selectedType !== option.value ? 'cursor-not-allowed opacity-50' : '',
         ]"
-        :disabled="readonly || (selectionLocked && model.type !== option.value)"
+        :disabled="readonly || (selectionLocked && selectedType !== option.value)"
         @click="selectType(option.value)"
       >
-        <div class="flex items-center justify-between gap-2">
-          <component :is="option.icon" class="size-5 text-muted-foreground" />
-          <Badge v-if="model.type === option.value" variant="default">Selecionado</Badge>
-        </div>
-        <div class="mt-3 text-base font-semibold">{{ option.label }}</div>
-        <p class="mt-1 text-sm text-muted-foreground">{{ option.description }}</p>
+        <component
+          :is="option.icon"
+          class="size-10"
+          :class="selectedType === option.value ? 'text-primary' : 'text-muted-foreground'"
+        />
+        <div class="text-lg font-semibold">{{ option.label }}</div>
+        <p class="text-sm text-muted-foreground">{{ option.description }}</p>
       </button>
     </div>
 
-    <p v-if="selectionLocked" class="text-xs text-muted-foreground">
+    <p v-if="selectionLocked" class="text-center text-xs text-muted-foreground">
       O tipo da campanha não pode ser alterado após a criação.
     </p>
 
-    <div class="flex flex-wrap items-center gap-2">
+    <div class="mx-auto flex w-full max-w-2xl items-center justify-between">
+      <Button variant="outline" :disabled="loading" @click="emit('back')">
+        <ArrowLeft class="mr-2 size-4" />
+        Voltar
+      </Button>
       <Button v-if="onSave" variant="outline" :disabled="readonly || loading" @click="onSave">
         {{ loading ? "Salvando..." : "Salvar etapa" }}
       </Button>
-      <Button :disabled="readonly || loading" @click="emit('continue')">Continuar</Button>
+      <Button :disabled="!selectedType || readonly || loading" @click="emit('continue')">
+        Próxima etapa
+        <ArrowRight class="ml-2 size-4" />
+      </Button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { GitBranch, Megaphone } from "lucide-vue-next";
-import { Badge } from "@/components/ui/badge";
+import { ref } from "vue";
+import { ArrowLeft, ArrowRight, GitFork, Send } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import CampaignValidationList from "@/components/campaigns/CampaignValidationList.vue";
 import type { CampaignFormState, CampaignType, CampaignValidationItem } from "@/contracts/campaigns";
-import { useWorkspaceStore } from "@/stores/workspace";
 
-defineProps<{
+const props = defineProps<{
   errors?: CampaignValidationItem[];
   warnings?: CampaignValidationItem[];
   loading?: boolean;
   readonly?: boolean;
   /** Em edição, o tipo já foi persistido e não pode mudar. */
   selectionLocked?: boolean;
+  /** Tipo já escolhido anteriormente (edição ou retorno à etapa). Null = exige clique. */
+  initialSelected?: CampaignType | null;
   onSave?: () => void | Promise<void>;
 }>();
 
 const emit = defineEmits<{
   (e: "continue"): void;
+  (e: "back"): void;
+  (e: "select", type: CampaignType): void;
 }>();
 
 const model = defineModel<CampaignFormState>({ required: true });
 
-const workspaceStore = useWorkspaceStore();
+const selectedType = ref<CampaignType | null>(props.initialSelected ?? null);
 
-const activeProjectLabel = computed(
-  () => workspaceStore.activeGroupProject?.name || "Nenhum projeto ativo selecionado",
-);
-
-const typeOptions: { value: CampaignType; label: string; description: string; icon: typeof Megaphone }[] = [
+const typeOptions: { value: CampaignType; label: string; description: string; icon: typeof Send }[] = [
   {
     value: "broadcast",
     label: "Estágio único",
-    description: "Disparo único (ou recorrente) de SMS/e-mail para uma audiência, com agenda, janelas e warmup.",
-    icon: Megaphone,
+    description: "Crie uma campanha com um único estágio, ideal para enviar mensagens únicas.",
+    icon: Send,
   },
   {
     value: "flow",
     label: "Multi-estágio",
-    description: "Jornada visual com gatilhos, condições e múltiplas ações encadeadas no editor de fluxo.",
-    icon: GitBranch,
+    description: "Campanhas baseadas em fluxos, excelente para criar jornadas de usuário.",
+    icon: GitFork,
   },
 ];
 
 function selectType(type: CampaignType) {
+  selectedType.value = type;
   model.value.type = type;
+  emit("select", type);
 }
 </script>

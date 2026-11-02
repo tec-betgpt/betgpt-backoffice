@@ -1,20 +1,14 @@
 <template>
-  <div
-    class="w-[240px] rounded-md border border-border bg-card text-card-foreground shadow-sm"
-    :class="selected ? 'ring-2 ring-primary' : ''"
+  <FlowNodeShell
+    :icon="data.nodeType === 'wait_for_deposit' ? DollarSign : Clock"
+    :title="data.label"
+    :description="data.description"
+    :selected="selected"
+    icon-color-class="text-sky-500 dark:text-sky-400"
+    icon-background-class="bg-sky-500/15"
+    width-class="w-[250px]"
   >
-    <div class="flex items-center gap-2 border-b border-border px-3 py-2">
-      <GitBranch v-if="data.nodeType === 'wait_for_deposit'" class="size-4 shrink-0 text-sky-500" />
-      <Clock v-else class="size-4 shrink-0 text-sky-500" />
-      <div class="min-w-0">
-        <div class="truncate text-xs font-semibold">{{ data.label }}</div>
-        <div class="text-[10px] uppercase tracking-wide text-muted-foreground">Condição</div>
-      </div>
-    </div>
-
-    <div class="space-y-2 px-3 py-2">
-      <p v-if="data.description" class="text-xs text-muted-foreground">{{ data.description }}</p>
-
+    <div class="space-y-2">
       <template v-if="data.nodeType === 'wait_for_deposit'">
         <div class="grid grid-cols-2 gap-2">
           <div class="space-y-1">
@@ -103,26 +97,29 @@
       </template>
     </div>
 
-    <Handle type="target" :position="Position.Top" />
+    <template #handles>
+      <Handle type="target" :position="Position.Top" />
 
-    <template v-if="data.nodeType === 'wait_for_deposit'">
-      <div class="flex items-center justify-between border-t border-border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide">
-        <span class="text-emerald-600 dark:text-emerald-400">SIM</span>
-        <span class="text-red-600 dark:text-red-400">NÃO</span>
-      </div>
-      <Handle id="yes" type="source" :position="Position.Bottom" class="flow-handle-yes" />
-      <Handle id="no" type="source" :position="Position.Bottom" class="flow-handle-no" />
+      <template v-if="data.nodeType === 'wait_for_deposit'">
+        <div class="flex items-center justify-between border-t border-border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide">
+          <span class="text-emerald-600 dark:text-emerald-400">SIM</span>
+          <span class="text-red-600 dark:text-red-400">NÃO</span>
+        </div>
+        <Handle id="yes" type="source" :position="Position.Bottom" class="flow-handle-yes !bg-emerald-500" />
+        <Handle id="no" type="source" :position="Position.Bottom" class="flow-handle-no !bg-red-500" />
+      </template>
+      <Handle v-else type="source" :position="Position.Bottom" />
     </template>
-    <Handle v-else type="source" :position="Position.Bottom" />
-  </div>
+  </FlowNodeShell>
 </template>
 
 <script setup lang="ts">
 import { inject, type Ref } from "vue";
 import { Handle, Position, useVueFlow, type NodeProps } from "@vue-flow/core";
-import { Clock, GitBranch } from "lucide-vue-next";
+import { Clock, DollarSign } from "lucide-vue-next";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import FlowNodeShell from "@/components/campaign-flow/FlowNodeShell.vue";
 import type { FlowCanvasNodeData } from "@/lib/flowDefinition";
 
 const props = defineProps<NodeProps<FlowCanvasNodeData>>();
