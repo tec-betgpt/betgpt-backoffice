@@ -88,15 +88,17 @@
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
                 <TableHead v-if="columnVisibility.codigo !== false">Código</TableHead>
                 <TableHead v-if="isGroupWorkspace && columnVisibility.projeto !== false">Projeto</TableHead>
-                <TableHead v-if="columnVisibility.encurtador !== false">Encurtador</TableHead>
-                <TableHead v-if="columnVisibility.slug !== false">Slug</TableHead>
-                <TableHead v-if="columnVisibility.status !== false">Status</TableHead>
-                <TableHead v-if="columnVisibility.tipo !== false">Tipo</TableHead>
                 <TableHead v-if="columnVisibility.totalCliques !== false" class="text-right">Total de Cliques</TableHead>
                 <TableHead v-if="columnVisibility.cliques24h !== false" class="text-right">Cliques 24h</TableHead>
+                <TableHead v-if="columnVisibility.ultimoClique !== false">Último clique</TableHead>
+                <TableHead v-if="columnVisibility.encurtador !== false">Encurtador</TableHead>
                 <TableHead v-if="columnVisibility.destino !== false">Destino</TableHead>
+                <TableHead v-if="columnVisibility.tracking !== false">Trackeamento</TableHead>
+                <TableHead v-if="columnVisibility.slug !== false">Slug</TableHead>
+                <TableHead v-if="columnVisibility.tipo !== false">Tipo</TableHead>
                 <TableHead v-if="columnVisibility.acoes !== false" class="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -112,7 +114,19 @@
                 </TableCell>
               </TableRow>
               <TableRow v-for="link in links" :key="link.id">
-                <TableCell v-if="columnVisibility.codigo !== false" class="font-medium">{{ link.code }}</TableCell>
+                <TableCell v-if="columnVisibility.status !== false">
+                  <LinkStatusIndicator :status="link.status" />
+                </TableCell>
+                <TableCell v-if="columnVisibility.codigo !== false">
+                  <button
+                    type="button"
+                    class="font-medium hover:underline"
+                    title="Abrir detalhes do link"
+                    @click="openDetails(link.id)"
+                  >
+                    {{ link.code }}
+                  </button>
+                </TableCell>
                 <TableCell v-if="isGroupWorkspace && columnVisibility.projeto !== false">
                   <Badge v-if="link.project" variant="secondary" class="gap-1.5 py-1 pr-2">
                     <ProjectAvatar :name="link.project.name" :logo-url="link.project.logo_url" class="h-4 w-4" />
@@ -120,25 +134,66 @@
                   </Badge>
                   <span v-else class="text-muted-foreground">—</span>
                 </TableCell>
-                <TableCell v-if="columnVisibility.encurtador !== false" class="font-medium">{{ link.short_url }}</TableCell>
-
-                <TableCell v-if="columnVisibility.slug !== false">{{ link.slug || "—" }}</TableCell>
-                <TableCell v-if="columnVisibility.status !== false">
-                  <Badge variant="outline">{{ link.status || "—" }}</Badge>
-                </TableCell>
-                <TableCell v-if="columnVisibility.tipo !== false">{{ link.type || "—" }}</TableCell>
                 <TableCell v-if="columnVisibility.totalCliques !== false" class="text-right font-medium">
                   {{ formatClickCount(getLinkClickMetrics(link).total) }}
                 </TableCell>
                 <TableCell v-if="columnVisibility.cliques24h !== false" class="text-right font-medium">
                   {{ formatClickCount(getLinkClickMetrics(link).last24h) }}
                 </TableCell>
-                <TableCell v-if="columnVisibility.destino !== false" class="max-w-[280px] truncate">{{ getDestinationUrl(link) }}</TableCell>
+                <TableCell v-if="columnVisibility.ultimoClique !== false" class="whitespace-nowrap text-sm">
+                  {{ formatDateTime(link.last_click_at) }}
+                </TableCell>
+                <TableCell v-if="columnVisibility.encurtador !== false" class="max-w-[280px] font-medium">
+                  <CopyableCell :value="link.short_url" label="Encurtador" class="max-w-[280px]">
+                    <span class="truncate">{{ link.short_url || "—" }}</span>
+                  </CopyableCell>
+                </TableCell>
+                <TableCell v-if="columnVisibility.destino !== false" class="max-w-[280px]">
+                  <CopyableCell :value="getDestinationUrl(link)" label="Destino" class="max-w-[280px]">
+                    <span class="truncate">{{ getDestinationUrl(link) }}</span>
+                  </CopyableCell>
+                </TableCell>
+                <TableCell v-if="columnVisibility.tracking !== false">
+                  <LinkTrackingBadge :tracking="link.tracking" />
+                </TableCell>
+                <TableCell v-if="columnVisibility.slug !== false">{{ link.slug || "—" }}</TableCell>
+                <TableCell v-if="columnVisibility.tipo !== false">{{ link.type || "—" }}</TableCell>
                 <TableCell v-if="columnVisibility.acoes !== false">
-                  <div class="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" @click="openDetails(link.id)">Detalhes</Button>
-                    <Button variant="outline" size="sm" @click="openEditDialog(link.id)">Editar</Button>
-                    <Button variant="destructive" size="sm" @click="openArchiveDialog(link)">Arquivar</Button>
+                  <div class="flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger as-child>
+                        <Button variant="ghost" size="icon" class="h-8 w-8" title="Ações">
+                          <MoreHorizontal class="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" class="w-11 min-w-0 p-1">
+                        <DropdownMenuItem
+                          class="justify-center"
+                          title="Editar"
+                          aria-label="Editar"
+                          @click="openEditDialog(link.id)"
+                        >
+                          <Pencil class="h-4 w-4" />
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          class="justify-center"
+                          title="Detalhes"
+                          aria-label="Detalhes"
+                          @click="openDetails(link.id)"
+                        >
+                          <Eye class="h-4 w-4" />
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          class="justify-center text-destructive"
+                          title="Arquivar"
+                          aria-label="Arquivar"
+                          @click="openArchiveDialog(link)"
+                        >
+                          <Archive class="h-4 w-4" />
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
@@ -167,64 +222,11 @@
       :refresh-list="fetchLinks"
     />
 
-    <Sheet :open="isDetailsOpen" @update:open="isDetailsOpen = $event">
-      <SheetContent side="right" class="w-full sm:max-w-2xl overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Detalhes do link</SheetTitle>
-          <SheetDescription>Histórico de versões, destino atual e snapshots de UTM.</SheetDescription>
-        </SheetHeader>
-
-        <div v-if="isLoadingDetails" class="py-8 text-center text-muted-foreground">Carregando detalhes...</div>
-        <div v-else-if="selectedLinkDetails" class="mt-6 space-y-6">
-          <Card>
-            <CardContent class="pt-6 space-y-2">
-              <div><span class="font-medium">Código:</span> {{ selectedLinkDetails.code }}</div>
-              <div><span class="font-medium">Slug:</span> {{ selectedLinkDetails.slug || "—" }}</div>
-              <div><span class="font-medium">Status:</span> {{ selectedLinkDetails.status || "—" }}</div>
-              <div><span class="font-medium">Tipo:</span> {{ selectedLinkDetails.type || "—" }}</div>
-              <div><span class="font-medium">Destino atual:</span> {{ getDestinationUrl(selectedLinkDetails) }}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle>Última versão</CardTitle></CardHeader>
-            <CardContent class="space-y-3">
-              <template v-if="selectedLastVersion">
-                <div class="rounded-lg border p-4 space-y-2">
-                  <div class="flex items-center justify-between gap-3">
-                    <Badge variant="outline">Versão {{ getVersionNumber(selectedLastVersion) ?? "—" }}</Badge>
-                    <span class="text-xs text-muted-foreground">{{ selectedLastVersion.created_at || "Sem data" }}</span>
-                  </div>
-                  <div v-for="dest in selectedLastVersionDestinations" :key="dest.id ?? dest.url" class="border-t pt-2 mt-2 first:border-t-0 first:pt-0 first:mt-0">
-                    <div class="text-sm"><span class="font-medium">URL:</span> {{ dest.url || "—" }}</div>
-                    <div class="text-sm"><span class="font-medium">Peso:</span> {{ dest.weight ?? "—" }}</div>
-                    <div class="text-sm"><span class="font-medium">Status:</span> {{ dest.status || "—" }}</div>
-                  </div>
-                </div>
-              </template>
-              <div v-else class="text-sm text-muted-foreground">Nenhuma versão retornada.</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle>UTM Snapshots</CardTitle></CardHeader>
-            <CardContent class="space-y-3">
-              <div v-if="snapshots.length === 0" class="text-sm text-muted-foreground">Nenhum snapshot retornado.</div>
-              <div v-for="snapshot in snapshots" :key="snapshot.id || snapshot.snapshot_at || JSON.stringify(snapshot)" class="rounded-lg border p-4 space-y-1">
-                <div class="text-sm"><span class="font-medium">UTM Source:</span> {{ snapshot.utm_source || "—" }}</div>
-                <div class="text-sm"><span class="font-medium">UTM Medium:</span> {{ snapshot.utm_medium || "—" }}</div>
-                <div class="text-sm"><span class="font-medium">UTM Campaign:</span> {{ snapshot.utm_campaign || "—" }}</div>
-                <div class="text-sm"><span class="font-medium">UTM Content:</span> {{ snapshot.utm_content || "—" }}</div>
-                <div class="text-sm"><span class="font-medium">UTM Term:</span> {{ snapshot.utm_term || "—" }}</div>
-                <div class="text-sm pt-1 border-t" v-if="snapshot.context">
-                  <span class="font-medium">Channel:</span> {{ snapshot.context.channel || "—" }}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </SheetContent>
-    </Sheet>
+    <LinkDetailsSheet
+      v-model:open="isDetailsOpen"
+      :link-id="selectedLinkId"
+      :refresh-list="fetchLinks"
+    />
 
     <AlertDialog :open="isArchiveDialogOpen" @update:open="isArchiveDialogOpen = $event">
       <AlertDialogContent>
@@ -258,10 +260,14 @@ import { useWorkspaceStore } from "@/stores/workspace";
 import { useRouter } from "vue-router";
 import CreateDialogComponent from "@/components/links/CreateDialogComponent.vue";
 import EditDialogComponent from "@/components/links/EditDialogComponent.vue";
-import { AlertCircle, Search, Settings2 } from "lucide-vue-next";
+import LinkDetailsSheet from "@/components/links/LinkDetailsSheet.vue";
+import LinkStatusIndicator from "@/components/links/LinkStatusIndicator.vue";
+import LinkTrackingBadge from "@/components/links/LinkTrackingBadge.vue";
+import CopyableCell from "@/components/custom/CopyableCell.vue";
+import { AlertCircle, Archive, Eye, MoreHorizontal, Pencil, Search, Settings2 } from "lucide-vue-next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -280,12 +286,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -296,15 +302,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { LinkDetailsResponse, LinkListItem } from "@/contracts/link";
+import type { LinkListItem } from "@/contracts/link";
 import {
   LINK_STATUS_OPTIONS,
   LINK_TYPE_OPTIONS,
 } from "@/contracts/link";
 import {
-  getActiveVersion,
   getDestinationUrl,
-  getVersionNumber,
   SELECT_ALL_VALUE,
 } from "@/components/links/linkForm";
 import {
@@ -343,15 +347,17 @@ const links = ref<LinkListItem[]>([]);
 const isLoading = ref(false);
 
 const tableColumns = computed(() => [
+  { id: "status", label: "Status" },
   { id: "codigo", label: "Código" },
   ...(isGroupWorkspace.value ? [{ id: "projeto", label: "Projeto" }] : []),
-  { id: "encurtador", label: "Encurtador" },
-  { id: "slug", label: "Slug" },
-  { id: "status", label: "Status" },
-  { id: "tipo", label: "Tipo" },
   { id: "totalCliques", label: "Total de Cliques" },
   { id: "cliques24h", label: "Cliques 24h" },
+  { id: "ultimoClique", label: "Último clique" },
+  { id: "encurtador", label: "Encurtador" },
   { id: "destino", label: "Destino" },
+  { id: "tracking", label: "Trackeamento" },
+  { id: "slug", label: "Slug" },
+  { id: "tipo", label: "Tipo" },
   { id: "acoes", label: "Ações" },
 ]);
 const columnVisibility = ref<Record<string, boolean>>({
@@ -361,29 +367,13 @@ const columnVisibility = ref<Record<string, boolean>>({
 const visibleTableColumns = computed(() =>
   tableColumns.value.filter((c) => columnVisibility.value[c.id] !== false)
 );
-const isLoadingDetails = ref(false);
 const isArchiving = ref(false);
 const isCreateDialogOpen = ref(false);
 const isEditDialogOpen = ref(false);
 const isDetailsOpen = ref(false);
 const isArchiveDialogOpen = ref(false);
-const selectedLinkDetails = ref<LinkDetailsResponse | null>(null);
+const selectedLinkId = ref<number | null>(null);
 const selectedLinkForArchive = ref<LinkListItem | null>(null);
-
-const selectedLastVersion = computed(() =>
-  selectedLinkDetails.value ? getActiveVersion(selectedLinkDetails.value) : null,
-);
-const selectedLastVersionDestinations = computed(() => {
-  const version = selectedLastVersion.value;
-  if (!version) return [];
-  if (version.destinations?.length) return version.destinations;
-  return version.destination ? [version.destination] : [];
-});
-
-const snapshots = computed(() => [
-  ...(selectedLinkDetails.value?.utmSnapshots ?? []),
-  ...(selectedLinkDetails.value?.utm_snapshots ?? []),
-]);
 const editingLinkId = ref<number | null>(null);
 
 const filters = reactive({
@@ -464,18 +454,24 @@ function openEditDialog(linkId: number) {
   isEditDialogOpen.value = true;
 }
 
-async function openDetails(linkId: number) {
+function openDetails(linkId: number) {
+  selectedLinkId.value = linkId;
   isDetailsOpen.value = true;
-  isLoadingDetails.value = true;
+}
 
-  try {
-    selectedLinkDetails.value = await linksService.show(linkId);
-  } catch (error) {
-    console.error("Erro ao carregar detalhes do link:", error);
-    isDetailsOpen.value = false;
-  } finally {
-    isLoadingDetails.value = false;
-  }
+function formatDateTime(value?: string | null) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function openArchiveDialog(link: LinkListItem) {

@@ -46,16 +46,58 @@
       </AlertDescription>
     </Alert>
 
+    <div class="grid gap-4 xl:grid-cols-2">
+      <Card>
+        <CardHeader class="pb-2">
+          <CardTitle>Cliques por dia — últimos 30 dias</CardTitle>
+          <p class="text-sm text-muted-foreground">Total diário de cliques no período.</p>
+        </CardHeader>
+        <CardContent>
+          <apexchart
+            v-if="dailyChartSeries[0]?.data?.length"
+            type="bar"
+            height="220"
+            :options="dailyChartOptions"
+            :series="dailyChartSeries"
+          />
+          <div v-else class="flex h-[220px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
+            Sem dados no período
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader class="pb-2">
+          <CardTitle>Acumulado mensal</CardTitle>
+          <p class="text-sm text-muted-foreground">
+            Total por mês e acumulado desde o início do projeto.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <apexchart
+            v-if="monthlyChartSeries[0]?.data?.length"
+            type="line"
+            height="220"
+            :options="monthlyChartOptions"
+            :series="monthlyChartSeries"
+          />
+          <div v-else class="flex h-[220px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
+            Sem dados no período
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
     <template v-if="isInitialLoading">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Skeleton v-for="item in 8" :key="item" class="h-32 w-full" />
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-4 2xl:grid-cols-8">
+        <Skeleton v-for="item in 8" :key="item" class="h-20 w-full" />
       </div>
       <Skeleton class="h-[420px] w-full" />
       <Skeleton class="h-[320px] w-full" />
     </template>
 
     <template v-else-if="monitor">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div class="compact-grid grid grid-cols-2 gap-3 md:grid-cols-4 2xl:grid-cols-8">
         <Card>
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-sm font-medium">Total de Cliques</CardTitle>
@@ -263,11 +305,11 @@
           <div>
             <CardTitle>Links e últimos cliques</CardTitle>
             <p class="text-sm text-muted-foreground">
-              Ordenado pelo clique mais recente nas últimas 24h.
+              Ordenado pelo clique mais recente.
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <Badge variant="outline">{{ formatInteger(lastClicks.links.length) }} links</Badge>
+            <Badge variant="outline">{{ formatInteger(lastClicksPages.total) }} links</Badge>
             <ColumnVisibilityToggle
               v-model="lastClicksColumnVisibility"
               :columns="lastClicksColumns"
@@ -280,37 +322,73 @@
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead v-if="lastClicksColumnVisibility.status !== false">Status</TableHead>
                   <TableHead v-if="lastClicksColumnVisibility.codigo !== false">Código</TableHead>
-                  <TableHead v-if="lastClicksColumnVisibility.encurtador !== false">Encurtador</TableHead>
+                  <TableHead v-if="lastClicksColumnVisibility.total !== false" class="text-right">Total de Cliques</TableHead>
+                  <TableHead v-if="lastClicksColumnVisibility.cliques24h !== false" class="text-right">Cliques 24h</TableHead>
                   <TableHead v-if="lastClicksColumnVisibility.ultimoClique !== false">Último clique</TableHead>
-                  <TableHead v-if="lastClicksColumnVisibility.cliques !== false" class="text-right">Cliques (24h)</TableHead>
+                  <TableHead v-if="lastClicksColumnVisibility.encurtador !== false">Encurtador</TableHead>
+                  <TableHead v-if="lastClicksColumnVisibility.destino !== false">Destino</TableHead>
+                  <TableHead v-if="lastClicksColumnVisibility.tracking !== false">Trackeamento</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow v-for="link in lastClicks.links" :key="link.linkId">
-                  <TableCell v-if="lastClicksColumnVisibility.codigo !== false" class="font-medium">{{ link.code }}</TableCell>
-                  <TableCell
-                    v-if="lastClicksColumnVisibility.encurtador !== false"
-                    class="max-w-[320px] truncate"
-                    :title="link.shortUrl"
-                  >
-                    {{ link.shortUrl || "—" }}
+                <TableRow v-for="link in lastClicksLinks" :key="link.id">
+                  <TableCell v-if="lastClicksColumnVisibility.status !== false">
+                    <LinkStatusIndicator :status="link.status" />
                   </TableCell>
-                  <TableCell v-if="lastClicksColumnVisibility.ultimoClique !== false" class="text-nowrap">
-                    {{ formatDateTime(link.lastClickAt) }}
+                  <TableCell v-if="lastClicksColumnVisibility.codigo !== false">
+                    <button
+                      type="button"
+                      class="font-medium hover:underline"
+                      title="Abrir detalhes do link"
+                      @click="openLinkDetails(link.id)"
+                    >
+                      {{ link.code }}
+                    </button>
                   </TableCell>
-                  <TableCell v-if="lastClicksColumnVisibility.cliques !== false" class="text-right font-medium">
-                    {{ formatInteger(link.totalClicks) }}
+                  <TableCell v-if="lastClicksColumnVisibility.total !== false" class="text-right font-medium">
+                    {{ formatClickCount(getLinkClickMetrics(link).total) }}
+                  </TableCell>
+                  <TableCell v-if="lastClicksColumnVisibility.cliques24h !== false" class="text-right font-medium">
+                    {{ formatClickCount(getLinkClickMetrics(link).last24h) }}
+                  </TableCell>
+                  <TableCell v-if="lastClicksColumnVisibility.ultimoClique !== false" class="whitespace-nowrap text-sm">
+                    {{ formatDateTime(link.last_click_at) }}
+                  </TableCell>
+                  <TableCell v-if="lastClicksColumnVisibility.encurtador !== false" class="max-w-[280px]">
+                    <CopyableCell :value="link.short_url" label="Encurtador" class="max-w-[280px]">
+                      <span class="truncate">{{ link.short_url || "—" }}</span>
+                    </CopyableCell>
+                  </TableCell>
+                  <TableCell v-if="lastClicksColumnVisibility.destino !== false" class="max-w-[280px]">
+                    <CopyableCell :value="getDestinationUrl(link)" label="Destino" class="max-w-[280px]">
+                      <span class="truncate">{{ getDestinationUrl(link) }}</span>
+                    </CopyableCell>
+                  </TableCell>
+                  <TableCell v-if="lastClicksColumnVisibility.tracking !== false">
+                    <LinkTrackingBadge :tracking="link.tracking" />
                   </TableCell>
                 </TableRow>
-                <TableRow v-if="lastClicks.links.length === 0">
+                <TableRow v-if="!isLoadingLastClicks && lastClicksLinks.length === 0">
                   <TableCell :colspan="visibleLastClicksColumns.length" class="py-8 text-center text-muted-foreground">
-                    Nenhum clique registrado nas últimas 24h.
+                    Nenhum link com cliques encontrado.
+                  </TableCell>
+                </TableRow>
+                <TableRow v-if="isLoadingLastClicks && lastClicksLinks.length === 0">
+                  <TableCell :colspan="visibleLastClicksColumns.length" class="py-8 text-center text-muted-foreground">
+                    Carregando links...
                   </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           </div>
+
+          <CustomPagination
+            class="mt-4"
+            :select-page="fetchLastClicks"
+            :pages="lastClicksPages"
+          />
         </CardContent>
       </Card>
 
@@ -428,6 +506,12 @@
         <Button :disabled="isFetching" @click="fetchMonitor(true)">Tentar novamente</Button>
       </CardContent>
     </Card>
+
+    <LinkDetailsSheet
+      v-model:open="isLinkDetailsOpen"
+      :link-id="selectedLinkId"
+      :refresh-list="fetchLastClicks"
+    />
   </div>
 </template>
 
@@ -448,7 +532,12 @@ import {
   RefreshCw,
 } from "lucide-vue-next";
 import LinkEngineService from "@/services/linkEngine";
-import type { LinkEngineMonitorResponse } from "@/services/linkEngine";
+import type {
+  LinkEngineMonitorHistoryResponse,
+  LinkEngineMonitorResponse,
+} from "@/services/linkEngine";
+import linksService from "@/services/links";
+import type { LinkListItem } from "@/contracts/link";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -460,12 +549,20 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import CopyableCell from "@/components/custom/CopyableCell.vue";
+import CustomPagination from "@/components/custom/CustomPagination.vue";
+import LinkDetailsSheet from "@/components/links/LinkDetailsSheet.vue";
+import LinkStatusIndicator from "@/components/links/LinkStatusIndicator.vue";
+import LinkTrackingBadge from "@/components/links/LinkTrackingBadge.vue";
+import { formatClickCount, getLinkClickMetrics } from "@/components/links/linkClicks";
+import { getDestinationUrl } from "@/components/links/linkForm";
 import {
   ALL_CLICKS_SERIES_NAME,
   buildHourlyClicksByLinkSeries,
   getChartLinks,
   getLinkLastClicks,
   getTooltipRows,
+  getVisibleClicksMax,
   sortClickMinutePoints,
   sumClicksSince,
 } from "@/components/link-engine/clicksChart";
@@ -479,7 +576,14 @@ const EXPECTED_HOURS = 24;
 const HOUR_MS = 60 * 60 * 1000;
 
 const monitor = ref<LinkEngineMonitorResponse | null>(null);
+const history = ref<LinkEngineMonitorHistoryResponse | null>(null);
 const isFetching = ref(false);
+
+const lastClicksLinks = ref<LinkListItem[]>([]);
+const isLoadingLastClicks = ref(false);
+const lastClicksPages = ref({ current: 1, total: 0, last: 0 });
+const selectedLinkId = ref<number | null>(null);
+const isLinkDetailsOpen = ref(false);
 
 const campaignsColumns = [
   { id: "campanha", label: "Campanha" },
@@ -507,10 +611,14 @@ const visibleUnhealthyColumns = computed(() =>
 );
 
 const lastClicksColumns = [
+  { id: "status", label: "Status" },
   { id: "codigo", label: "Código" },
-  { id: "encurtador", label: "Encurtador" },
+  { id: "total", label: "Total de Cliques" },
+  { id: "cliques24h", label: "Cliques 24h" },
   { id: "ultimoClique", label: "Último clique" },
-  { id: "cliques", label: "Cliques (24h)" },
+  { id: "encurtador", label: "Encurtador" },
+  { id: "destino", label: "Destino" },
+  { id: "tracking", label: "Trackeamento" },
 ];
 const lastClicksColumnVisibility = ref<Record<string, boolean>>({});
 const visibleLastClicksColumns = computed(() =>
@@ -581,7 +689,148 @@ const hasExpectedChartHours = computed(
   () => chartPoints.value.length === 0 || chartHourCount.value === EXPECTED_HOURS,
 );
 const lastClicks = computed(() => getLinkLastClicks(chartPoints.value));
-const lastClick = computed(() => lastClicks.value.lastClick);
+const lastClick = computed(() => {
+  const first = lastClicksLinks.value[0];
+  if (first?.last_click_at) {
+    return { code: first.code, lastClickAt: first.last_click_at };
+  }
+
+  return lastClicks.value.lastClick;
+});
+
+const chartColors = [
+  "#3b82f6",
+  "#f59e0b",
+  "#ec4899",
+  "#8b5cf6",
+  "#06b6d4",
+  "#84cc16",
+  "#f97316",
+  "#14b8a6",
+  "#a855f7",
+  "#ef4444",
+];
+const chartSeriesColors = computed(() =>
+  chartSeries.value.map((item, index) =>
+    item.name === ALL_CLICKS_SERIES_NAME
+      ? "#22c55e"
+      : chartColors[index % chartColors.length],
+  ),
+);
+const yAxisMax = computed(() => {
+  const max = getVisibleClicksMax(chartSeries.value, legendSelected.value);
+  return max > 0 ? Math.ceil(max * 1.1) : undefined;
+});
+
+const dailyChartSeries = computed(() => [
+  {
+    name: "Cliques",
+    data: (history.value?.clicks_per_day_30d ?? []).map((item) => item.clicks),
+  },
+]);
+const dailyChartCategories = computed(() =>
+  (history.value?.clicks_per_day_30d ?? []).map((item) => formatShortDate(item.date)),
+);
+const dailyChartOptions = computed<ApexOptions>(() => ({
+  chart: {
+    animations: { enabled: false },
+    toolbar: { show: false },
+    zoom: { enabled: false },
+  },
+  theme: { mode: isDark.value ? "dark" : "light" },
+  colors: ["#3b82f6"],
+  dataLabels: { enabled: false },
+  plotOptions: {
+    bar: { borderRadius: 4, columnWidth: "55%" },
+  },
+  grid: { borderColor: "hsl(var(--border))", strokeDashArray: 4 },
+  legend: { show: false },
+  tooltip: { shared: false, intersect: false },
+  xaxis: {
+    categories: dailyChartCategories.value,
+    labels: {
+      rotate: -45,
+      style: { colors: "hsl(var(--muted-foreground))", fontSize: "10px" },
+    },
+    axisBorder: { color: "hsl(var(--border))" },
+    axisTicks: { color: "hsl(var(--border))" },
+  },
+  yaxis: {
+    labels: {
+      formatter: (value) => formatInteger(Number(value)),
+      style: { colors: "hsl(var(--muted-foreground))", fontSize: "10px" },
+    },
+    min: 0,
+    forceNiceScale: true,
+  },
+}));
+
+const monthlyChartSeries = computed(() => [
+  {
+    name: "Cliques no mês",
+    type: "bar",
+    data: (history.value?.monthly_clicks ?? []).map((item) => item.clicks),
+  },
+  {
+    name: "Acumulado",
+    type: "line",
+    data: (history.value?.monthly_clicks ?? []).map((item) => item.cumulative),
+  },
+]);
+const monthlyChartCategories = computed(() =>
+  (history.value?.monthly_clicks ?? []).map((item) => formatMonth(item.month)),
+);
+const monthlyChartOptions = computed<ApexOptions>(() => ({
+  chart: {
+    animations: { enabled: false },
+    toolbar: { show: false },
+    zoom: { enabled: false },
+  },
+  theme: { mode: isDark.value ? "dark" : "light" },
+  colors: ["#3b82f6", "#22c55e"],
+  dataLabels: { enabled: false },
+  plotOptions: {
+    bar: { borderRadius: 4, columnWidth: "45%" },
+  },
+  grid: { borderColor: "hsl(var(--border))", strokeDashArray: 4 },
+  legend: {
+    position: "top",
+    horizontalAlign: "left",
+    fontSize: "11px",
+    labels: { colors: "hsl(var(--muted-foreground))" },
+  },
+  stroke: { width: [0, 3], curve: "smooth" },
+  tooltip: { shared: true, intersect: false },
+  xaxis: {
+    categories: monthlyChartCategories.value,
+    labels: {
+      style: { colors: "hsl(var(--muted-foreground))", fontSize: "10px" },
+    },
+    axisBorder: { color: "hsl(var(--border))" },
+    axisTicks: { color: "hsl(var(--border))" },
+  },
+  yaxis: [
+    {
+      seriesName: "Cliques no mês",
+      labels: {
+        formatter: (value) => formatInteger(Number(value)),
+        style: { colors: "hsl(var(--muted-foreground))", fontSize: "10px" },
+      },
+      min: 0,
+      forceNiceScale: true,
+    },
+    {
+      seriesName: "Acumulado",
+      opposite: true,
+      labels: {
+        formatter: (value) => formatInteger(Number(value)),
+        style: { colors: "hsl(var(--muted-foreground))", fontSize: "10px" },
+      },
+      min: 0,
+      forceNiceScale: true,
+    },
+  ],
+}));
 
 const hasChartData = computed(() => chartSeries.value.length > 0);
 
@@ -671,18 +920,10 @@ function buildTooltipContent({ series, dataPointIndex, w }: any): string {
         .join("")
     : `<div style="color:${muted};">Sem cliques nesta hora</div>`;
 
-  const total =
-    rows.length > 1
-      ? `<div style="display:flex;justify-content:space-between;gap:16px;margin-top:6px;padding-top:6px;border-top:1px solid hsl(var(--border));font-weight:600;color:${foreground};">` +
-        `<span>Total</span><span>${formatInteger(rows.reduce((sum, row) => sum + row.value, 0))}</span>` +
-        `</div>`
-      : "";
-
   return (
     `<div style="min-width:180px;font-size:12px;">` +
     (title ? `<div style="color:${muted};font-size:11px;margin-bottom:6px;">${title}</div>` : "") +
     body +
-    total +
     `</div>`
   );
 }
@@ -705,6 +946,7 @@ const chartOptions = computed<ApexOptions>(() => ({
     },
   },
   theme: { mode: isDark.value ? "dark" : "light" },
+  colors: chartSeriesColors.value,
   dataLabels: { enabled: false },
   fill: {
     type: "gradient",
@@ -723,7 +965,7 @@ const chartOptions = computed<ApexOptions>(() => ({
     position: "bottom",
     horizontalAlign: "left",
     fontSize: "11px",
-    labels: { colors: "hsl(var(--muted-foreground))" },
+    labels: { colors: "hsl(var(--muted-foreground))", useSeriesColors: true },
     markers: { size: 6 },
     itemMargin: { horizontal: 8, vertical: 2 },
     selected: legendSelected.value,
@@ -764,6 +1006,7 @@ const chartOptions = computed<ApexOptions>(() => ({
       },
     },
     min: 0,
+    max: yAxisMax.value,
     forceNiceScale: true,
   },
 }));
@@ -812,9 +1055,52 @@ async function fetchMonitor(force = false) {
   }
 }
 
+async function fetchHistory() {
+  try {
+    history.value = await LinkEngineService.history(getRequestParams());
+  } catch (error) {
+    console.error("Erro ao carregar histórico de cliques:", error);
+    history.value = null;
+  }
+}
+
+async function fetchLastClicks(page = 1) {
+  isLoadingLastClicks.value = true;
+
+  try {
+    const response = await linksService.index({
+      page,
+      per_page: 25,
+      ...getRequestParams(),
+      sort: "last_click_at",
+      direction: "desc",
+      has_clicks: 1,
+    });
+
+    lastClicksLinks.value = response.data || [];
+    lastClicksPages.value = {
+      current: Number(response.current_page || 1),
+      total: Number(response.total || 0),
+      last: Number(response.last_page || 0),
+    };
+  } catch (error) {
+    console.error("Erro ao carregar últimos cliques:", error);
+  } finally {
+    isLoadingLastClicks.value = false;
+  }
+}
+
+function openLinkDetails(linkId: number) {
+  selectedLinkId.value = linkId;
+  isLinkDetailsOpen.value = true;
+}
+
 function startPolling() {
   stopPolling();
-  pollingId.value = window.setInterval(() => fetchMonitor(), POLLING_INTERVAL_MS);
+  pollingId.value = window.setInterval(() => {
+    fetchMonitor();
+    fetchLastClicks(lastClicksPages.value.current);
+  }, POLLING_INTERVAL_MS);
 }
 
 function stopPolling() {
@@ -847,11 +1133,33 @@ function formatHour(value: number | string | Date) {
   }).format(date);
 }
 
+function formatShortDate(value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  }).format(date);
+}
+
+function formatMonth(value: string) {
+  const date = new Date(`${value}-01T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "short",
+    year: "2-digit",
+  }).format(date);
+}
+
 function formatMilliseconds(value: number | null) {
   return value === null ? "—" : `${formatInteger(value)} ms`;
 }
 
-function formatDateTime(value: string | Date) {
+function formatDateTime(value: string | Date | null | undefined) {
+  if (!value) return "—";
+
   const date = value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(date.getTime())) {
@@ -882,11 +1190,17 @@ function isCriticalLinkStatus(status: string) {
 
 watch(
   () => workspaceStore.activeGroupProject?.id,
-  () => fetchMonitor(true),
+  () => {
+    fetchMonitor(true);
+    fetchHistory();
+    fetchLastClicks(1);
+  },
 );
 
 onMounted(() => {
   fetchMonitor(true);
+  fetchHistory();
+  fetchLastClicks(1);
   startPolling();
 });
 
@@ -908,6 +1222,25 @@ useScreenContext(
 </script>
 
 <style>
+.compact-grid > div > div:first-child {
+  padding: 0.75rem 0.75rem 0.25rem;
+  gap: 0.25rem;
+}
+
+.compact-grid > div > div:last-child {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.compact-grid .text-2xl {
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+}
+
+.compact-grid p.text-xs {
+  font-size: 0.65rem;
+  line-height: 0.9rem;
+}
+
 .apexcharts-tooltip.link-engine-tooltip {
   background: hsl(var(--popover)) !important;
   border: 1px solid hsl(var(--border)) !important;

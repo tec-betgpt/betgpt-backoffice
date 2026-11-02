@@ -367,3 +367,32 @@ export function sumClicksSince(points: ClickMinutePoint[], since: number): numbe
     return total + (Number(point.clicks) || 0);
   }, 0);
 }
+
+export function getVisibleClicksMax(
+  series: ClicksChartSeries[],
+  selected: Record<string, boolean>,
+): number {
+  const visible = series.filter((item) => selected[item.name] !== false);
+  if (visible.length === 0) return 0;
+
+  const length = Math.max(...visible.map((item) => item.data.length), 0);
+  let max = 0;
+
+  for (let index = 0; index < length; index += 1) {
+    let stacked = 0;
+    let lineTotal = 0;
+
+    visible.forEach((item) => {
+      const value = Number(item.data[index]?.y) || 0;
+      if (item.name === ALL_CLICKS_SERIES_NAME) {
+        lineTotal = Math.max(lineTotal, value);
+      } else {
+        stacked += value;
+      }
+    });
+
+    max = Math.max(max, stacked, lineTotal);
+  }
+
+  return max;
+}
