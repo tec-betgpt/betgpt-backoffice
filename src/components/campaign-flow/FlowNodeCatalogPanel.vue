@@ -1,49 +1,62 @@
 <template>
-  <div class="flex h-full w-[280px] shrink-0 flex-col border-r border-border bg-background">
-    <div class="space-y-3 border-b border-border p-3">
-      <div class="text-sm font-semibold">Adicionar</div>
-      <Input v-model="search" placeholder="Buscar nó..." class="h-8 text-sm" :disabled="disabled" />
+  <div class="flex max-h-[70vh] flex-col">
+    <div class="border-b border-border p-3">
+      <Input ref="searchInput" v-model="search" placeholder="Pesquisar..." class="h-9" :disabled="disabled" />
     </div>
 
-    <ScrollArea class="min-h-0 flex-1">
-      <div class="space-y-4 p-3">
-        <div v-for="group in groupedCatalog" :key="group.category" class="space-y-2">
-          <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <div class="min-h-0 flex-1 overflow-y-auto">
+      <div class="space-y-5 p-3">
+        <section v-for="group in groupedCatalog" :key="group.category">
+          <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {{ FLOW_NODE_CATEGORY_LABELS[group.category] }}
-          </div>
-          <button
-            v-for="item in group.items"
-            :key="item.key"
-            type="button"
-            class="w-full rounded-md border border-border px-3 py-2 text-left transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
-            :disabled="disabled || (item.category === 'trigger' && hasTrigger && !isCurrentTrigger(String(item.key)))"
-            @click="emit('add-node', item)"
-          >
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-sm font-medium">{{ item.label }}</span>
+          </h4>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              v-for="item in group.items"
+              :key="String(item.key)"
+              type="button"
+              class="flex flex-col items-center gap-2 rounded-lg border border-border p-4 text-center transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="disabled || (item.category === 'trigger' && hasTrigger && !isCurrentTrigger(String(item.key)))"
+              :title="item.description"
+              @click="emit('add-node', item)"
+            >
+              <span
+                class="flex size-9 items-center justify-center rounded-md"
+                :class="iconBackgroundClass(group.category)"
+              >
+                <component :is="iconFor(String(item.key))" class="size-4" :class="iconColorClass(group.category)" />
+              </span>
+              <span class="text-xs font-medium">{{ item.label }}</span>
               <span
                 v-if="item.category === 'trigger' && hasTrigger && !isCurrentTrigger(String(item.key))"
                 class="text-[10px] text-muted-foreground"
               >
                 1 por fluxo
               </span>
-            </div>
-            <p class="mt-1 text-xs text-muted-foreground">{{ item.description }}</p>
-          </button>
-        </div>
+            </button>
+          </div>
+        </section>
 
         <p v-if="groupedCatalog.length === 0" class="text-sm text-muted-foreground">
           {{ loading ? "Carregando catálogo..." : "Nenhum nó encontrado para a busca." }}
         </p>
       </div>
-    </ScrollArea>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import {
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  GitBranch,
+  Mail,
+  MessageSquare,
+  Zap,
+} from "lucide-vue-next";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   FLOW_NODE_CATEGORY_LABELS,
   type FlowNodeCategory,
@@ -63,8 +76,26 @@ const emit = defineEmits<{
 }>();
 
 const search = ref("");
+const searchInput = ref<InstanceType<typeof Input> | null>(null);
+
+onMounted(() => {
+  const el = (searchInput.value?.$el || searchInput.value) as HTMLInputElement | undefined;
+  el?.focus?.();
+});
 
 const CATEGORY_ORDER: FlowNodeCategory[] = ["trigger", "condition", "action"];
+
+const NODE_ICONS: Record<string, typeof Zap> = {
+  campaign_started: Zap,
+  user_registered: Zap,
+  first_deposit: Zap,
+  deposit_made: Zap,
+  wait_for_deposit: DollarSign,
+  delay: Clock,
+  send_sms: MessageSquare,
+  send_email: Mail,
+  mark_converted: CheckCircle2,
+};
 
 const hasTrigger = computed(() => (props.triggerTypes || []).length > 0);
 
@@ -85,7 +116,23 @@ const groupedCatalog = computed(() => {
   })).filter((group) => group.items.length > 0);
 });
 
-function isCurrentTrigger(type: string) {
-  return (props.triggerTypes || []).includes(type);
+function isCurrentTrigger(key: string) {
+  return (props.triggerTypes || []).includes(key);
+}
+
+function iconFor(key: string) {
+  return NODE_ICONS[key] || GitBranch;
+}
+
+function iconColorClass(category: FlowNodeCategory) {
+  if (category === "trigger") return "text-violet-500 dark:text-violet-400";
+  if (category === "condition") return "text-sky-500 dark:text-sky-400";
+  return "text-rose-500 dark:text-rose-400";
+}
+
+function iconBackgroundClass(category: FlowNodeCategory) {
+  if (category === "trigger") return "bg-violet-500/15";
+  if (category === "condition") return "bg-sky-500/15";
+  return "bg-rose-500/15";
 }
 </script>

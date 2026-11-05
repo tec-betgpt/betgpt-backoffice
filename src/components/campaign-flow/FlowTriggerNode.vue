@@ -1,27 +1,23 @@
 <template>
-  <div
-    class="w-[220px] rounded-md border border-border bg-card text-card-foreground shadow-sm"
-    :class="selected ? 'ring-2 ring-primary' : ''"
+  <FlowNodeShell
+    :icon="Zap"
+    :title="data.label"
+    :description="data.description"
+    :selected="selected"
+    icon-color-class="text-violet-500 dark:text-violet-400"
+    icon-background-class="bg-violet-500/15"
+    width-class="w-[220px]"
   >
-    <div class="flex items-center gap-2 border-b border-border px-3 py-2">
-      <Zap class="size-4 shrink-0 text-amber-500" />
-      <div class="min-w-0">
-        <div class="truncate text-xs font-semibold">{{ data.label }}</div>
-        <div class="text-[10px] uppercase tracking-wide text-muted-foreground">Gatilho</div>
-      </div>
-    </div>
-
-    <div v-if="data.description" class="px-3 py-2">
-      <p class="text-xs text-muted-foreground">{{ data.description }}</p>
-    </div>
-
-    <Handle type="source" :position="Position.Bottom" />
-  </div>
+    <template #handles>
+      <Handle type="source" :position="Position.Bottom" />
+    </template>
+  </FlowNodeShell>
 </template>
 
 <script setup lang="ts">
 import { Handle, Position, type NodeProps } from "@vue-flow/core";
 import { Zap } from "lucide-vue-next";
+import FlowNodeShell from "@/components/campaign-flow/FlowNodeShell.vue";
 import type { FlowCanvasNodeData } from "@/lib/flowDefinition";
 
 defineProps<NodeProps<FlowCanvasNodeData>>();

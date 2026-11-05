@@ -1,6 +1,31 @@
 <template>
-  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+  <div
+    class="w-full"
+    :class="wizardMode === 'broadcast'
+      ? 'space-y-6 p-10 max-[450px]:p-2 pb-16'
+      : '-mx-4 -mb-4 flex h-[calc(100dvh-4rem)] flex-col sm:-mx-6 sm:-mb-0'"
+  >
+    <div
+      v-if="wizardMode !== 'broadcast'"
+      class="flex items-center justify-between gap-2 px-6 pt-4 pb-1 max-[450px]:px-2"
+    >
+      <nav class="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span>Marketing</span>
+        <ChevronRight class="size-3" />
+        <router-link :to="{ name: 'campaign-drafts.index' }" class="transition-colors hover:text-foreground">
+          Campanhas
+        </router-link>
+        <ChevronRight class="size-3" />
+        <span class="text-foreground">{{ campaign?.name || "Nova campanha" }}</span>
+      </nav>
+      <div class="flex items-center gap-2">
+        <Badge v-if="campaign" :variant="statusVariant(campaign.status)">{{ statusLabel }}</Badge>
+        <Badge v-if="isDirty" variant="secondary">Alterações locais</Badge>
+        <Badge variant="secondary">Projeto: {{ activeProjectLabel }}</Badge>
+      </div>
+    </div>
+
+    <div v-if="wizardMode === 'broadcast'" class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div class="space-y-2">
         <div class="flex flex-wrap items-center gap-2">
           <h2 class="text-2xl font-bold tracking-tight">{{ campaignId ? "Editar campanha" : "Nova campanha" }}</h2>
@@ -23,7 +48,7 @@
 
       <div class="flex flex-wrap items-center gap-2">
         <Button variant="outline" @click="router.push({ name: 'campaign-drafts.index' })">Voltar para lista</Button>
-        <template v-if="activeCampaignTab === 'configuration' && wizardMode !== 'select'">
+        <template v-if="activeCampaignTab === 'configuration'">
           <Button variant="outline" :disabled="!campaign?.id || isEstimating" @click="runEstimate()">
             {{ isEstimating ? "Atualizando estimativa..." : "Atualizar estimativa" }}
           </Button>
@@ -104,52 +129,148 @@
       </div>
     </div>
 
-    <Alert v-if="!activeProjectId && !campaignId" variant="destructive">
+    <Alert v-if="!activeProjectId && !campaignId" variant="destructive" :class="wizardMode !== 'broadcast' ? 'mx-6 mt-3 max-[450px]:mx-2' : ''">
       <AlertTitle>Projeto ativo obrigatório</AlertTitle>
       <AlertDescription>Selecione um projeto no workspace antes de criar uma campanha draft.</AlertDescription>
     </Alert>
 
-    <Alert v-if="isReadonly">
+    <Alert v-if="isReadonly" :class="wizardMode !== 'broadcast' ? 'mx-6 mt-3 max-[450px]:mx-2' : ''">
       <AlertTitle>Edição bloqueada</AlertTitle>
       <AlertDescription>Esta campanha não está mais em rascunho. A tela permanece disponível apenas para consulta.</AlertDescription>
     </Alert>
 
-    <Alert v-if="errorMessage" variant="destructive">
+    <Alert v-if="errorMessage" variant="destructive" :class="wizardMode !== 'broadcast' ? 'mx-6 mt-3 max-[450px]:mx-2' : ''">
       <AlertTitle>Não foi possível concluir a ação</AlertTitle>
       <AlertDescription>{{ errorMessage }}</AlertDescription>
     </Alert>
 
-    <Card v-if="isInitialLoading">
+    <Card v-if="isInitialLoading" :class="wizardMode !== 'broadcast' ? 'mx-6 mt-3 max-[450px]:mx-2' : ''">
       <CardContent class="pt-6 text-sm text-muted-foreground">Carregando campanha...</CardContent>
     </Card>
 
-    <Tabs v-else v-model="activeCampaignTab">
-      <TabsList class="w-full justify-start">
+    <Tabs v-else v-model="activeCampaignTab" :class="wizardMode !== 'broadcast' ? 'flex min-h-0 flex-1 flex-col' : ''">
+      <TabsList :class="wizardMode !== 'broadcast' ? 'hidden' : 'w-full justify-start'">
         <TabsTrigger value="configuration">Configuração</TabsTrigger>
         <TabsTrigger v-if="!isFlowMode" value="execution" :disabled="!campaign?.id">Execução</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="configuration">
-        <div v-if="wizardMode === 'select'" class="mx-auto max-w-3xl">
-          <Card>
-            <CardContent class="pt-6">
+      <TabsContent value="configuration" :class="wizardMode !== 'broadcast' ? 'flex min-h-0 flex-1 flex-col' : ''">
+        <div v-if="wizardMode !== 'broadcast'" class="flex min-h-0 flex-1 flex-col">
+          <template v-if="activeStep === 'flow_editor' && wizardMode === 'flow'">
+            <FlowEditorCanvas
+              v-model="form.flow_config"
+              :catalog="flowNodeTypes"
+              :templates="flowCatalog?.templates || []"
+              :catalog-loading="isFlowCatalogLoading"
+              :readonly="isReadonly"
+              :saving="isSaving"
+              class="min-h-0 flex-1"
+              @save="saveFlowAndContinue"
+            />
+            <p v-if="flowCatalogError" class="px-6 py-2 text-sm text-destructive">{{ flowCatalogError }}</p>
+          </template>
+
+          <div v-else class="min-h-0 flex-1 overflow-y-auto">
+            <nav class="flex justify-center overflow-x-auto px-6 pt-8">
+              <ol class="flex items-start gap-8 sm:gap-16">
+                <li v-for="(step, index) in flowSteps" :key="step.key">
+                  <button
+                    type="button"
+                    class="flex w-28 flex-col items-center gap-2"
+                    :disabled="wizardMode !== 'flow'"
+                    @click="goToStep(index)"
+                  >
+                    <span
+                      class="flex size-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors"
+                      :class="flowStepCircleClass(index)"
+                    >
+                      <Check v-if="index < flowStepperIndex" class="size-4" />
+                      <template v-else>{{ index + 1 }}</template>
+                    </span>
+                    <span
+                      class="text-center text-xs font-medium"
+                      :class="index === flowStepperIndex ? 'text-foreground' : 'text-muted-foreground'"
+                    >
+                      {{ step.label }}
+                    </span>
+                    <Badge
+                      v-if="wizardStepFor(step.key)"
+                      :variant="progressVariant(wizardStepFor(step.key)?.status || 'missing')"
+                      class="px-1.5 py-0 text-[10px]"
+                    >
+                      {{ progressStatusLabel(wizardStepFor(step.key)?.status || 'missing') }}
+                    </Badge>
+                  </button>
+                </li>
+              </ol>
+            </nav>
+
+            <div v-if="flowStepperIndex === 0" class="mx-auto w-full max-w-2xl px-6 pb-10 pt-8">
+              <div class="mb-8 flex items-center gap-2">
+                <Lightbulb class="size-5 text-muted-foreground" />
+                <h2 class="text-xl font-bold tracking-tight">
+                  {{ campaignId ? "Editar campanha" : "Nova campanha" }}
+                </h2>
+              </div>
               <CampaignTypeStep
                 v-model="formModel"
                 :errors="sectionErrors('campaign_type')"
                 :warnings="sectionWarnings('campaign_type')"
                 :loading="stepLoading.campaign_type"
                 :readonly="isReadonly"
+                :selection-locked="wizardMode === 'flow' && Boolean(campaignId)"
+                :initial-selected="wizardMode === 'select' ? null : form.type"
                 @continue="onTypeStepContinue"
+                @back="onTypeStepBack"
               />
-            </CardContent>
-          </Card>
+            </div>
+
+            <div v-else class="mx-auto w-full max-w-4xl space-y-6 px-6 pb-10 pt-8">
+              <FlowSummaryPanel :definition="form.flow_config?.definition || null" />
+              <FlowEstimatePanel
+                :estimate="flowEstimate"
+                :loading="isEstimating"
+                :disabled="!campaign?.id"
+                :error-message="estimateErrorMessage"
+                :on-refresh="() => runEstimate()"
+              />
+              <CampaignChecklistPanel
+                :validation="validationResult"
+                :loading="isValidating"
+                :disabled="!campaign?.id"
+              />
+              <CampaignValidationList
+                :errors="sectionErrors('flow_review').length ? sectionErrors('flow_review') : sectionErrors('flow_editor')"
+                :warnings="sectionWarnings('flow_review').length ? sectionWarnings('flow_review') : sectionWarnings('flow_editor')"
+              />
+              <div class="flex items-center justify-between">
+                <Button variant="outline" @click="activeStep = 'flow_editor'">
+                  <ArrowLeft class="mr-2 size-4" />
+                  Voltar
+                </Button>
+                <div class="flex flex-wrap gap-2">
+                  <Button
+                    v-if="canDelete"
+                    variant="destructive"
+                    :disabled="isDeleting"
+                    @click="isDeleteDialogOpen = true"
+                  >
+                    {{ isDeleting ? "Excluindo..." : "Excluir draft" }}
+                  </Button>
+                  <Button variant="outline" :disabled="isReadonly || isSaving" @click="saveDraft('flow_review')">
+                    {{ isSaving ? "Salvando..." : "Salvar" }}
+                  </Button>
+                  <Button :disabled="!campaign?.id || isValidating" @click="runValidation">
+                    {{ isValidating ? "Validando..." : "Validar configuração" }}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <template v-else>
-        <div
-          class="grid gap-6"
-          :class="isFlowEditorStep ? 'xl:grid-cols-[280px_minmax(0,1fr)]' : 'xl:grid-cols-[280px_minmax(0,1fr)_360px]'"
-        >
+        <div class="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
           <Card>
             <CardHeader>
               <CardTitle>Progresso do builder</CardTitle>
@@ -192,44 +313,6 @@
 
           <Card>
             <CardContent class="pt-6">
-              <CampaignTypeStep
-                v-if="activeStep === 'campaign_type'"
-                v-model="formModel"
-                :errors="sectionErrors('campaign_type')"
-                :warnings="sectionWarnings('campaign_type')"
-                :loading="stepLoading.campaign_type"
-                :readonly="isReadonly"
-                :selection-locked="Boolean(campaignId)"
-                :on-save="() => saveDraft('campaign_type')"
-                @continue="onTypeStepContinue"
-              />
-              <div v-if="activeStep === 'flow_editor'">
-                <FlowEditorCanvas
-                  v-model="form.flow_config"
-                  :catalog="flowNodeTypes"
-                  :templates="flowCatalog?.templates || []"
-                  :catalog-loading="isFlowCatalogLoading"
-                  :readonly="isReadonly"
-                  :saving="isSaving"
-                  @save="saveFlowAndContinue"
-                />
-                <p v-if="flowCatalogError" class="mt-3 text-sm text-destructive">{{ flowCatalogError }}</p>
-              </div>
-              <div v-if="activeStep === 'flow_review'" class="space-y-6">
-                <FlowSummaryPanel :definition="form.flow_config?.definition || null" />
-                <div class="flex flex-wrap items-center gap-2">
-                  <Button :disabled="!campaign?.id || isValidating" @click="runValidation">
-                    {{ isValidating ? "Validando..." : "Validar configuração" }}
-                  </Button>
-                  <p class="text-sm text-muted-foreground">
-                    A validação verifica a estrutura do fluxo, mensagens e links no backend.
-                  </p>
-                </div>
-                <CampaignValidationList
-                  :errors="sectionErrors('flow_review').length ? sectionErrors('flow_review') : sectionErrors('flow_editor')"
-                  :warnings="sectionWarnings('flow_review').length ? sectionWarnings('flow_review') : sectionWarnings('flow_editor')"
-                />
-              </div>
               <CampaignBasicStep
                 v-if="activeStep === 'basic'"
                 v-model="formModel"
@@ -308,18 +391,9 @@
             </CardContent>
           </Card>
 
-          <div v-if="!isFlowEditorStep" class="space-y-6">
+          <div class="space-y-6">
             <CampaignEstimatePanel
-              v-if="estimateForPanel || !isFlowMode"
               :estimate="estimateForPanel"
-              :loading="isEstimating"
-              :disabled="!campaign?.id"
-              :error-message="estimateErrorMessage"
-              :on-refresh="() => runEstimate()"
-            />
-            <FlowEstimatePanel
-              v-else
-              :estimate="flowEstimate"
               :loading="isEstimating"
               :disabled="!campaign?.id"
               :error-message="estimateErrorMessage"
@@ -562,6 +636,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { ArrowLeft, Check, ChevronRight, Lightbulb } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -896,10 +971,24 @@ const activeProjectId = computed(() => {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
 });
 
+const activeProjectLabel = computed(
+  () => workspaceStore.activeGroupProject?.name || "Nenhum projeto ativo",
+);
+
 const activeSteps = computed<StepDefinition[]>(() => (wizardMode.value === "flow" ? flowSteps : broadcastSteps));
 const isFlowMode = computed(() => wizardMode.value === "flow");
-const isFlowEditorStep = computed(() => isFlowMode.value && activeStep.value === "flow_editor");
+const flowStepperIndex = computed(() => (wizardMode.value === "select" ? 0 : activeStepIndex.value));
 const activeStepIndex = computed(() => activeSteps.value.findIndex((step) => step.key === activeStep.value));
+
+function flowStepCircleClass(index: number) {
+  if (index === flowStepperIndex.value) {
+    return "border-primary bg-primary text-primary-foreground";
+  }
+  if (index < flowStepperIndex.value) {
+    return "border-primary text-primary";
+  }
+  return "border-border text-muted-foreground";
+}
 const progressValue = computed(() => {
   if (configurationProgress.value && configurationProgress.value.total_steps > 0) {
     return (configurationProgress.value.completed_steps / configurationProgress.value.total_steps) * 100;
@@ -965,6 +1054,15 @@ function onTypeStepContinue() {
   }
 
   goToStep(activeStepIndex.value + 1);
+}
+
+function onTypeStepBack() {
+  if (wizardMode.value === "select" || campaignId.value) {
+    router.push({ name: "campaign-drafts.index" });
+    return;
+  }
+
+  wizardMode.value = "select";
 }
 
 async function saveFlowAndContinue() {
