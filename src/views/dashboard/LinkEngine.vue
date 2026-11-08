@@ -46,7 +46,7 @@
       </AlertDescription>
     </Alert>
 
-    <div class="grid gap-4 xl:grid-cols-2">
+    <div class="grid gap-4 xl:grid-cols-3">
       <Card>
         <CardHeader class="pb-2">
           <CardTitle>Cliques por dia — últimos 30 dias</CardTitle>
@@ -59,6 +59,27 @@
             height="220"
             :options="dailyChartOptions"
             :series="dailyChartSeries"
+          />
+          <div v-else class="flex h-[220px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
+            Sem dados no período
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader class="pb-2">
+          <CardTitle>Acumulado da semana — domingo a sábado</CardTitle>
+          <p class="text-sm text-muted-foreground">
+            Cliques por dia e acumulado da semana atual.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <apexchart
+            v-if="history"
+            type="line"
+            height="220"
+            :options="weeklyChartOptions"
+            :series="weeklyChartSeries"
           />
           <div v-else class="flex h-[220px] items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
             Sem dados no período
@@ -556,6 +577,7 @@ import LinkStatusIndicator from "@/components/links/LinkStatusIndicator.vue";
 import LinkTrackingBadge from "@/components/links/LinkTrackingBadge.vue";
 import { formatClickCount, getLinkClickMetrics } from "@/components/links/linkClicks";
 import { getDestinationUrl } from "@/components/links/linkForm";
+import { buildWeeklyCumulativeClicks } from "@/components/link-engine/historyChart";
 import {
   ALL_CLICKS_SERIES_NAME,
   buildHourlyClicksByLinkSeries,
@@ -831,6 +853,95 @@ const monthlyChartOptions = computed<ApexOptions>(() => ({
     },
   ],
 }));
+
+const weeklyClicks = computed(() =>
+  buildWeeklyCumulativeClicks(history.value?.clicks_per_day_30d ?? []),
+);
+const weeklyChartSeries = computed(() => [
+  {
+    name: "Cliques no dia",
+    type: "bar",
+    data: weeklyClicks.value.map((item) => item.clicks),
+  },
+  {
+    name: "Acumulado",
+    type: "line",
+    data: weeklyClicks.value.map((item) => item.cumulative),
+  },
+]);
+const weeklyChartCategories = computed(() =>
+  weeklyClicks.value.map((item) => item.label),
+);
+const weeklyChartOptions = computed<ApexOptions>(() => {
+  const today = weeklyClicks.value.find((item) => item.isToday);
+
+  return {
+    chart: {
+      animations: { enabled: false },
+      toolbar: { show: false },
+      zoom: { enabled: false },
+    },
+    theme: { mode: isDark.value ? "dark" : "light" },
+    colors: ["#3b82f6", "#22c55e"],
+    dataLabels: { enabled: false },
+    plotOptions: {
+      bar: { borderRadius: 4, columnWidth: "50%" },
+    },
+    grid: { borderColor: "hsl(var(--border))", strokeDashArray: 4 },
+    legend: {
+      position: "top",
+      horizontalAlign: "left",
+      fontSize: "11px",
+      labels: { colors: "hsl(var(--muted-foreground))" },
+    },
+    stroke: { width: [0, 3], curve: "smooth" },
+    tooltip: { shared: true, intersect: false },
+    annotations: {
+      xaxis: today
+        ? [
+            {
+              x: today.label,
+              borderColor: "#22c55e",
+              strokeDashArray: 4,
+              label: {
+                text: "Hoje",
+                style: { background: "#22c55e", color: "#052e16" },
+              },
+            },
+          ]
+        : [],
+    },
+    xaxis: {
+      categories: weeklyChartCategories.value,
+      labels: {
+        style: { colors: "hsl(var(--muted-foreground))", fontSize: "10px" },
+      },
+      axisBorder: { color: "hsl(var(--border))" },
+      axisTicks: { color: "hsl(var(--border))" },
+    },
+    yaxis: [
+      {
+        seriesName: "Cliques no dia",
+        labels: {
+          formatter: (value) => formatInteger(Number(value)),
+          style: { colors: "hsl(var(--muted-foreground))", fontSize: "10px" },
+        },
+        min: 0,
+        forceNiceScale: true,
+      },
+      {
+        seriesName: "Acumulado",
+        opposite: true,
+        labels: {
+          formatter: (value) => formatInteger(Number(value)),
+          style: { colors: "hsl(var(--muted-foreground))", fontSize: "10px" },
+        },
+        min: 0,
+        forceNiceScale: true,
+      },
+    ],
+  };
+});
 
 const hasChartData = computed(() => chartSeries.value.length > 0);
 
