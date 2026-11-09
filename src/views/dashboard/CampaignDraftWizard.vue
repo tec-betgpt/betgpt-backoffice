@@ -292,6 +292,7 @@
                   </div>
                 </CardContent>
               </Card>
+              <FlowRecoveryReport v-if="flowStats && campaign?.id" :campaign-id="campaign.id" />
               <FlowSummaryPanel :definition="form.flow_config?.definition || null" />
               <FlowEstimatePanel
                 :estimate="flowEstimate"
@@ -776,6 +777,7 @@ import CampaignWarmupStep from "@/components/campaigns/CampaignWarmupStep.vue";
 import FlowEditorCanvas from "@/components/campaign-flow/FlowEditorCanvas.vue";
 import FlowEstimatePanel from "@/components/campaign-flow/FlowEstimatePanel.vue";
 import FlowSummaryPanel from "@/components/campaign-flow/FlowSummaryPanel.vue";
+import FlowRecoveryReport from "@/components/campaign-flow/FlowRecoveryReport.vue";
 import {
   createCampaign,
   deleteCampaign,

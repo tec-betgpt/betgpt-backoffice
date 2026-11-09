@@ -187,6 +187,49 @@ export type FlowStatsResponse = {
   enrollments: FlowEnrollmentSummary;
 };
 
+/** Relatório de recuperação (GET /v1/campaigns/{id}/flow/report). Valores em centavos. */
+export type FlowRecoveryReportTotals = {
+  pix_generated: number;
+  pix_generated_value: number;
+  entered: number;
+  paid_before_message: number;
+  messaged: number;
+  sms_sent: number;
+  emails_sent: number;
+  links_created: number;
+  links_opened: number;
+  link_opens: number;
+  recovered: number;
+  recovered_value: number;
+  /** Percentual (0–100) de recuperados sobre quem recebeu mensagem. */
+  recovery_rate: number;
+  fee_value: number;
+};
+
+export type FlowRecoveryReportDay = {
+  date: string;
+  entered: number;
+  paid_before_message: number;
+  messaged: number;
+  links_opened: number;
+  recovered: number;
+  recovered_value: number;
+};
+
+export type FlowRecoveryReport = {
+  period: { start: string; end: string };
+  attribution_hours: number;
+  fee_percent: number;
+  totals: FlowRecoveryReportTotals;
+  daily: FlowRecoveryReportDay[];
+};
+
+export type FlowRecoveryReportParams = {
+  start_date?: string;
+  end_date?: string;
+  fee_percent?: number;
+};
+
 export const FLOW_NODE_CATEGORY_LABELS: Record<FlowNodeCategory, string> = {
   trigger: "Gatilhos",
   condition: "Condições",
