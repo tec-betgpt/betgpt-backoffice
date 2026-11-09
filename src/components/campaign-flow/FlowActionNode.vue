@@ -30,7 +30,8 @@
           @update:model-value="updateConfig('message', $event)"
         />
         <p class="text-[10px] leading-snug text-muted-foreground">
-          Variáveis: <code v-pre>{{first_name}}</code>, <code v-pre>{{name}}</code>, <code v-pre>{{valor}}</code>
+          Variáveis: <code v-pre>{{first_name}}</code>, <code v-pre>{{name}}</code>, <code v-pre>{{valor}}</code>,
+          <code v-pre>{{link_pagamento}}</code> (Pix gerado)
         </p>
       </div>
       <div class="space-y-1">
