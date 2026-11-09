@@ -12,7 +12,7 @@ import type {
   CampaignUpdatePayload,
   CampaignValidationResponse,
 } from "@/contracts/campaigns";
-import type { FlowCatalogResponse } from "@/contracts/campaignFlow";
+import type { FlowCatalogResponse, FlowStatsResponse } from "@/contracts/campaignFlow";
 
 function unwrapResponse<T>(response: T | CampaignApiResponse<T>): T {
   if (
@@ -104,6 +104,13 @@ export async function getFlowCatalog(): Promise<FlowCatalogResponse> {
   return unwrapResponse(data);
 }
 
+export async function getFlowStats(campaignId: number): Promise<FlowStatsResponse> {
+  const { data } = await api.get<FlowStatsResponse | CampaignApiResponse<FlowStatsResponse>>(
+    `/campaigns/${campaignId}/flow/stats`,
+  );
+  return unwrapResponse(data);
+}
+
 export default {
   index: listCampaigns,
   listCampaigns,
@@ -119,6 +126,7 @@ export default {
   cancelCampaign,
   getCampaignDispatches,
   getFlowCatalog,
+  getFlowStats,
   store: createCampaign,
   show: getCampaign,
   update: updateCampaign,

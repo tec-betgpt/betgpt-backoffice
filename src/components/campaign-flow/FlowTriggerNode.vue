@@ -4,6 +4,7 @@
     :title="data.label"
     :description="data.description"
     :selected="selected"
+    :node-id="id"
     icon-color-class="text-violet-500 dark:text-violet-400"
     icon-background-class="bg-violet-500/15"
     width-class="w-[220px]"

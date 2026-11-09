@@ -22,6 +22,47 @@
         <Badge v-if="campaign" :variant="statusVariant(campaign.status)">{{ statusLabel }}</Badge>
         <Badge v-if="isDirty" variant="secondary">Alterações locais</Badge>
         <Badge variant="secondary">Projeto: {{ activeProjectLabel }}</Badge>
+        <template v-if="isFlowMode && campaign?.id">
+          <Button
+            v-if="canActivateFlow"
+            size="sm"
+            :disabled="isDirty || flowAction !== null"
+            :title="isDirty ? 'Salve as alterações antes de ativar.' : undefined"
+            @click="isFlowActivateDialogOpen = true"
+          >
+            <Play class="mr-1 size-3.5" />
+            {{ flowAction === "launch" ? "Ativando..." : "Ativar jornada" }}
+          </Button>
+          <Button
+            v-if="campaign.status === 'running'"
+            size="sm"
+            variant="secondary"
+            :disabled="flowAction !== null"
+            @click="runFlowAction('pause')"
+          >
+            <Pause class="mr-1 size-3.5" />
+            {{ flowAction === "pause" ? "Pausando..." : "Pausar" }}
+          </Button>
+          <Button
+            v-if="campaign.status === 'paused'"
+            size="sm"
+            :disabled="flowAction !== null"
+            @click="runFlowAction('resume')"
+          >
+            <Play class="mr-1 size-3.5" />
+            {{ flowAction === "resume" ? "Retomando..." : "Retomar" }}
+          </Button>
+          <Button
+            v-if="campaign.status === 'running' || campaign.status === 'paused'"
+            size="sm"
+            variant="destructive"
+            :disabled="flowAction !== null"
+            @click="isFlowCancelDialogOpen = true"
+          >
+            <Square class="mr-1 size-3.5" />
+            {{ flowAction === "cancel" ? "Encerrando..." : "Encerrar" }}
+          </Button>
+        </template>
       </div>
     </div>
 
@@ -164,6 +205,7 @@
               :catalog-loading="isFlowCatalogLoading"
               :readonly="isReadonly"
               :saving="isSaving"
+              :stats="flowStats?.nodes || null"
               class="min-h-0 flex-1"
               @save="saveFlowAndContinue"
             />
@@ -226,6 +268,30 @@
             </div>
 
             <div v-else class="mx-auto w-full max-w-4xl space-y-6 px-6 pb-10 pt-8">
+              <Card v-if="flowStats">
+                <CardHeader>
+                  <CardTitle>Resultados da jornada</CardTitle>
+                  <CardDescription>Jogadores que entraram pelo gatilho desde a ativação.</CardDescription>
+                </CardHeader>
+                <CardContent class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <div>
+                    <div class="text-xs text-muted-foreground">Entraram</div>
+                    <div class="text-lg font-semibold">{{ formatCount(flowStats.enrollments.total) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-muted-foreground">Em andamento</div>
+                    <div class="text-lg font-semibold">{{ formatCount(flowStats.enrollments.open) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-muted-foreground">Convertidos</div>
+                    <div class="text-lg font-semibold">{{ formatCount(flowStats.enrollments.converted) }}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-muted-foreground">Valor convertido</div>
+                    <div class="text-lg font-semibold">{{ formatCurrency(flowStats.enrollments.conversion_value / 100) }}</div>
+                  </div>
+                </CardContent>
+              </Card>
               <FlowSummaryPanel :definition="form.flow_config?.definition || null" />
               <FlowEstimatePanel
                 :estimate="flowEstimate"
@@ -588,6 +654,46 @@
       </AlertDialogContent>
     </AlertDialog>
 
+    <AlertDialog :open="isFlowActivateDialogOpen" @update:open="isFlowActivateDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Ativar jornada</AlertDialogTitle>
+          <AlertDialogDescription>
+            A partir de agora, cada evento do gatilho no projeto coloca o jogador no fluxo e as mensagens
+            são enviadas de verdade. Depois de ativada, o fluxo fica somente leitura.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Voltar</AlertDialogCancel>
+          <AlertDialogAction :disabled="flowAction !== null" @click="runFlowAction('launch')">
+            {{ flowAction === "launch" ? "Ativando..." : "Ativar" }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog :open="isFlowCancelDialogOpen" @update:open="isFlowCancelDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Encerrar jornada</AlertDialogTitle>
+          <AlertDialogDescription>
+            Ninguém novo entra no fluxo e quem está no meio dele sai sem receber as próximas mensagens.
+            Uma jornada encerrada não pode ser reativada.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Voltar</AlertDialogCancel>
+          <AlertDialogAction
+            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            :disabled="flowAction !== null"
+            @click="runFlowAction('cancel')"
+          >
+            {{ flowAction === "cancel" ? "Encerrando..." : "Encerrar jornada" }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <AlertDialog :open="isLaunchDialogOpen" @update:open="isLaunchDialogOpen = $event">
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -636,7 +742,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ArrowLeft, Check, ChevronRight, Lightbulb } from "lucide-vue-next";
+import { ArrowLeft, Check, ChevronRight, Lightbulb, Pause, Play, Square } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -676,6 +782,7 @@ import {
   estimateCampaign,
   getCampaign,
   getFlowCatalog,
+  getFlowStats,
   launchCampaign,
   updateCampaign,
   validateCampaign,
@@ -707,7 +814,9 @@ import {
   flattenCatalogNodeTypes,
   type CampaignFlowConfig,
   type FlowCatalogResponse,
+  type FlowStatsResponse,
 } from "@/contracts/campaignFlow";
+import campaignExecutionService from "@/services/campaignExecution";
 import { useCampaignExecutionStore } from "@/stores/campaignExecution";
 import CampaignRunProgressPanel from "@/components/campaigns/CampaignRunProgressPanel.vue";
 import CampaignWavesBatchesPanel from "@/components/campaigns/CampaignWavesBatchesPanel.vue";
@@ -815,6 +924,23 @@ const stepLoading = reactive<Record<StepKey, boolean>>({
   flow_editor: false,
   flow_review: false,
 });
+
+type FlowLifecycleAction = "launch" | "pause" | "resume" | "cancel";
+
+const FLOW_ACTION_TOASTS: Record<FlowLifecycleAction, string> = {
+  launch: "Jornada ativada.",
+  pause: "Jornada pausada.",
+  resume: "Jornada retomada.",
+  cancel: "Jornada encerrada.",
+};
+
+const FLOW_STATS_POLL_MS = 30000;
+
+const flowStats = ref<FlowStatsResponse | null>(null);
+const flowAction = ref<FlowLifecycleAction | null>(null);
+const isFlowActivateDialogOpen = ref(false);
+const isFlowCancelDialogOpen = ref(false);
+let flowStatsInterval: number | null = null;
 
 const flowCatalog = ref<FlowCatalogResponse | null>(null);
 const isFlowCatalogLoading = ref(false);
@@ -1012,6 +1138,64 @@ const canLaunch = computed(() =>
   ),
 );
 const statusLabel = computed(() => CAMPAIGN_STATUS_LABELS[(campaign.value?.status || "draft") as CampaignStatus]);
+const canActivateFlow = computed(() =>
+  Boolean(
+    campaign.value?.id &&
+      ["draft", "validation_failed", "validated", "prepared"].includes(campaign.value.status),
+  ),
+);
+
+async function runFlowAction(action: FlowLifecycleAction) {
+  const id = campaign.value?.id;
+  if (!id || flowAction.value) return;
+
+  flowAction.value = action;
+  errorMessage.value = "";
+
+  try {
+    await campaignExecutionService[action](id);
+    toast(FLOW_ACTION_TOASTS[action]);
+    await loadCampaignContext(id);
+  } catch (error) {
+    errorMessage.value = extractHttpMessage(error, "Não foi possível alterar o estado da jornada.");
+  } finally {
+    flowAction.value = null;
+    isFlowActivateDialogOpen.value = false;
+    isFlowCancelDialogOpen.value = false;
+  }
+}
+
+async function loadFlowStats() {
+  const id = campaign.value?.id;
+  if (!id || campaign.value?.type !== "flow" || campaign.value.status === "draft") {
+    flowStats.value = null;
+    return;
+  }
+
+  try {
+    flowStats.value = await getFlowStats(id);
+  } catch {
+    // contagens são complementares: a tela segue sem elas
+  }
+}
+
+function syncFlowStatsPolling() {
+  if (flowStatsInterval) {
+    window.clearInterval(flowStatsInterval);
+    flowStatsInterval = null;
+  }
+
+  if (campaign.value?.type !== "flow" || campaign.value.status !== "running") return;
+
+  flowStatsInterval = window.setInterval(() => {
+    if (typeof document !== "undefined" && document.hidden) return;
+    loadFlowStats();
+  }, FLOW_STATS_POLL_MS);
+}
+
+function formatCount(value: number) {
+  return new Intl.NumberFormat("pt-BR").format(value);
+}
 
 const estimateForPanel = computed(() =>
   isBroadcastEstimate(campaignEstimate.value) ? campaignEstimate.value : null,
@@ -1134,6 +1318,9 @@ watch(
 
 onBeforeUnmount(() => {
   stopExecutionPolling();
+  if (flowStatsInterval) {
+    window.clearInterval(flowStatsInterval);
+  }
   if (typeof document !== "undefined") {
     document.removeEventListener("visibilitychange", handleVisibilityChange);
   }
@@ -1232,7 +1419,8 @@ async function loadCampaignContext(id: number) {
     }
 
     isDirty.value = false;
-    await runEstimate(id, false);
+    await Promise.all([runEstimate(id, false), loadFlowStats()]);
+    syncFlowStatsPolling();
   } catch (error) {
     handleHttpError(error);
   } finally {
