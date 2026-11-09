@@ -15,6 +15,7 @@ export type FlowNodeType =
   | "user_registered"
   | "first_deposit"
   | "deposit_made"
+  | "pix_generated"
   | "wait_for_deposit"
   | "delay"
   | "send_sms"
@@ -138,6 +139,7 @@ export const FLOW_NODE_TYPE_LABELS: Record<string, string> = {
   user_registered: "Jogador cadastrado",
   first_deposit: "Primeiro depósito",
   deposit_made: "Depósito realizado",
+  pix_generated: "Pix gerado",
   wait_for_deposit: "Aguardar depósito",
   delay: "Aguardar",
   send_sms: "Enviar SMS",
@@ -150,11 +152,39 @@ export const FLOW_NODE_TYPE_CATEGORY: Record<string, FlowNodeCategory> = {
   user_registered: "trigger",
   first_deposit: "trigger",
   deposit_made: "trigger",
+  pix_generated: "trigger",
   wait_for_deposit: "condition",
   delay: "condition",
   send_sms: "action",
   send_email: "action",
   mark_converted: "action",
+};
+
+/** Contagens de um nó na execução (GET /v1/campaigns/{id}/flow/stats). */
+export type FlowNodeStats = {
+  reached: number;
+  waiting: number;
+  completed: number;
+  skipped: number;
+  failed: number;
+  yes: number;
+  no: number;
+};
+
+export type FlowEnrollmentSummary = {
+  total: number;
+  open: number;
+  completed: number;
+  exited: number;
+  failed: number;
+  converted: number;
+  /** Centavos. */
+  conversion_value: number;
+};
+
+export type FlowStatsResponse = {
+  nodes: Record<string, FlowNodeStats>;
+  enrollments: FlowEnrollmentSummary;
 };
 
 export const FLOW_NODE_CATEGORY_LABELS: Record<FlowNodeCategory, string> = {

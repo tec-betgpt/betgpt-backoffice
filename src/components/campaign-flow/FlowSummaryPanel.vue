@@ -58,6 +58,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   FLOW_NODE_CATEGORY_LABELS,
+  flowNodeCategoryFor,
   flowNodeTypeLabel,
   type FlowDefinition,
   type FlowNode,
@@ -67,14 +68,19 @@ const props = defineProps<{
   definition: FlowDefinition | null;
 }>();
 
+// Definições criadas fora do editor podem vir sem `category`.
+function categoryOf(node: FlowNode) {
+  return node.category || flowNodeCategoryFor(String(node.type));
+}
+
 const entryTriggerLabel = computed(() => {
-  const trigger = (props.definition?.nodes || []).find((node) => node.category === "trigger");
+  const trigger = (props.definition?.nodes || []).find((node) => categoryOf(node) === "trigger");
   if (!trigger) return "Nenhum gatilho definido";
   return trigger.label || flowNodeTypeLabel(String(trigger.type));
 });
 
 const conditionCount = computed(
-  () => (props.definition?.nodes || []).filter((node) => node.category === "condition").length,
+  () => (props.definition?.nodes || []).filter((node) => categoryOf(node) === "condition").length,
 );
 
 const actionCounts = computed(() => {
@@ -91,11 +97,11 @@ const CATEGORY_ORDER = { trigger: 0, condition: 1, action: 2 } as const;
 
 const orderedNodes = computed(() =>
   [...(props.definition?.nodes || [])].sort(
-    (a, b) => CATEGORY_ORDER[a.category || "action"] - CATEGORY_ORDER[b.category || "action"],
+    (a, b) => CATEGORY_ORDER[categoryOf(a)] - CATEGORY_ORDER[categoryOf(b)],
   ),
 );
 
 function categoryLabel(node: FlowNode) {
-  return FLOW_NODE_CATEGORY_LABELS[node.category || "action"];
+  return FLOW_NODE_CATEGORY_LABELS[categoryOf(node)];
 }
 </script>

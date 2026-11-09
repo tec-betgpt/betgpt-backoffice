@@ -4,6 +4,7 @@
     :title="data.label"
     :description="data.description"
     :selected="selected"
+    :node-id="id"
     icon-color-class="text-rose-500 dark:text-rose-400"
     icon-background-class="bg-rose-500/15"
     width-class="w-[270px]"
@@ -28,6 +29,9 @@
           :model-value="(data.config.message as string) || ''"
           @update:model-value="updateConfig('message', $event)"
         />
+        <p class="text-[10px] leading-snug text-muted-foreground">
+          Variáveis: <code v-pre>{{first_name}}</code>, <code v-pre>{{name}}</code>, <code v-pre>{{valor}}</code>
+        </p>
       </div>
       <div class="space-y-1">
         <Label class="text-[11px]">ID do link rastreado (opcional)</Label>
