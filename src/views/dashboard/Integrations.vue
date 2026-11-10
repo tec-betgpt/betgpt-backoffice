@@ -9,16 +9,6 @@
       </p>
     </div>
 
-    <section v-if="activeGroupProject.type !== 'group'" class="space-y-3">
-      <div class="space-y-0.5">
-        <h3 class="text-lg font-medium">Integração de SMS</h3>
-        <p class="text-sm text-muted-foreground">
-          Configure o provedor comercial de SMS do projeto.
-        </p>
-      </div>
-      <ElevateSmsIntegrationCard @retry="fetchElevateSmsConfig" />
-    </section>
-
     <div v-if="loading" class="space-y-4">
       <Skeleton class="h-6 w-full" />
       <Skeleton class="h-6 w-full" />
@@ -305,12 +295,9 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import IntegrationPreferencesGoogleAnalytics from "@/views/dashboard/IntegrationPreferencesGoogleAnalytics.vue";
-import ElevateSmsIntegrationCard from "@/components/integrations/ElevateSmsIntegrationCard.vue";
-import { useSmsIntegrationsStore } from "@/stores/smsIntegrations";
 import { Settings2 } from "lucide-vue-next";
 
 const workspaceStore = useWorkspaceStore();
-const smsIntegrationsStore = useSmsIntegrationsStore();
 const loading = ref(false);
 const saving = ref(false);
 const integrations = ref<Array<any>>([]);
@@ -390,9 +377,8 @@ async function fetchIntegrations() {
 
     const { data } = await Projects.integrations(activeGroupProject.project_id as string);
 
-    // dual: elevate-sms (dedicado) + smsfunnel (genérico) re-exposto para consumo
-    // o catálogo volta a expor smsfunnel e o painel deve renderizar ambos.
-    const hiddenSupplierSlugs: string[] = [];
+    // Elevate SMS oculto enquanto nenhum projeto usa; o card dedicado continua em components/integrations.
+    const hiddenSupplierSlugs: string[] = ["elevate-sms"];
 
     integrations.value = data
       .map((integration: any) => {
@@ -628,21 +614,8 @@ async function saveAllIntegrations() {
   await fetchIntegrations();
 }
 
-async function fetchElevateSmsConfig() {
-  if (activeGroupProject.type === "group") {
-    return;
-  }
-
-  try {
-    await smsIntegrationsStore.fetchConfig(activeGroupProject.project_id as string);
-  } catch {
-    // Estado de erro já é exibido no card da integração.
-  }
-}
-
 onMounted(async () => {
   await fetchIntegrations();
-  await fetchElevateSmsConfig();
 });
 
 useScreenContext(
