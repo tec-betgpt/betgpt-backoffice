@@ -402,7 +402,7 @@ async function fetchIntegrations() {
     const postmaster = integrations.value.find(
       (value) => value.slug === "google-postmaster",
     );
-    if (google?.config && (google.config.property_id == "" || google.config.property_id == null)) {
+    if (google && isOAuthConnected(google) && (google.config.property_id == "" || google.config.property_id == null)) {
       try {
         await getProperty();
       } catch {
