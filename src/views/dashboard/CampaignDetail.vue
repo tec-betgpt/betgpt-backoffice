@@ -31,7 +31,7 @@
         >
           Uso de recursos
         </Button>
-        <Button variant="outline" :disabled="isLoading" @click="refresh">
+        <Button variant="outline" :disabled="isLoading" @click="refreshAll">
           {{ isLoading ? "Atualizando..." : "Atualizar" }}
         </Button>
         <Button
@@ -75,6 +75,8 @@
         </CardHeader>
       </Card>
     </div>
+
+    <CampaignConversionsPanel v-if="campaignId" ref="conversionsPanel" :campaign-id="campaignId" />
 
     <Tabs default-value="dispatches" class="space-y-4">
       <TabsList>
@@ -232,6 +234,7 @@ import {
   type CampaignStatus,
 } from "@/contracts/campaigns";
 import { FINANCIAL_STATUS_LABELS, type FinancialStatus } from "@/contracts/financialLedger";
+import CampaignConversionsPanel from "@/components/campaigns/CampaignConversionsPanel.vue";
 import CampaignCostsPanel from "@/components/campaigns/CampaignCostsPanel.vue";
 import FlowSummaryPanel from "@/components/campaign-flow/FlowSummaryPanel.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
@@ -255,6 +258,7 @@ const isCancelDialogOpen = ref(false);
 const errorMessage = ref("");
 const financialStatus = ref<FinancialStatus | null>(null);
 const costsPanel = ref<InstanceType<typeof CampaignCostsPanel> | null>(null);
+const conversionsPanel = ref<InstanceType<typeof CampaignConversionsPanel> | null>(null);
 let pollTimer: number | null = null;
 
 const dispatchesColumns = [
@@ -346,6 +350,12 @@ async function refresh(showLoading = true) {
   } finally {
     isLoading.value = false;
   }
+}
+
+// O polling não recalcula as conversões; só o botão Atualizar.
+function refreshAll() {
+  refresh();
+  conversionsPanel.value?.refresh();
 }
 
 async function doAction(action: "pause" | "resume") {

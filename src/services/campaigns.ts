@@ -4,6 +4,7 @@ import campaignExecutionService from "@/services/campaignExecution";
 import type {
   CampaignAnyEstimateResponse,
   CampaignApiResponse,
+  CampaignConversions,
   CampaignDetail,
   CampaignDispatchesResponse,
   CampaignListParams,
@@ -102,6 +103,14 @@ export async function getCampaignDispatches(id: number): Promise<CampaignDispatc
   return unwrapResponse(data);
 }
 
+export async function getCampaignConversions(id: number, windowHours?: number): Promise<CampaignConversions> {
+  const { data } = await api.get<CampaignConversions | CampaignApiResponse<CampaignConversions>>(
+    `/campaigns/${id}/conversions`,
+    { params: windowHours ? { window_hours: windowHours } : {} },
+  );
+  return unwrapResponse(data);
+}
+
 export async function getFlowCatalog(): Promise<FlowCatalogResponse> {
   const { data } = await api.get<FlowCatalogResponse | CampaignApiResponse<FlowCatalogResponse>>(
     "/campaign-flow/catalog",
@@ -141,6 +150,7 @@ export default {
   resumeCampaign,
   cancelCampaign,
   getCampaignDispatches,
+  getCampaignConversions,
   getFlowCatalog,
   getFlowStats,
   getFlowReport,
