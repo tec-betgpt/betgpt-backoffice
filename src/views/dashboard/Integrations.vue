@@ -334,6 +334,11 @@ const OAUTH_IDENTITY_KEYS = [
   "account_email",
   "connected_email",
   "email_address",
+  // Cloudflare não expõe e-mail no callback; a conexão é marcada pelos
+  // tokens/instante do consentimento gravados no config.
+  "access_token",
+  "refresh_token",
+  "connected_at",
 ];
 
 function isOAuthConnected(integration: any) {
