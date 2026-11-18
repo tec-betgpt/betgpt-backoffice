@@ -1,7 +1,8 @@
 import type { CampaignFlowConfig } from "@/contracts/campaignFlow";
+import { MARKETING_CHANNEL_OPTIONS, type MarketingChannel } from "@/contracts/marketingAssets";
 
 export type CampaignType = "broadcast" | "flow";
-export type CampaignChannel = "sms" | "email";
+export type CampaignChannel = MarketingChannel;
 
 export type CampaignStatus =
   | "draft"
@@ -120,6 +121,9 @@ export type CampaignSingleStageConfigPayload = {
 };
 
 export type CampaignMessagePayload = {
+  id?: number;
+  asset_id?: number | null;
+  asset?: { id: number; name: string } | null;
   channel?: CampaignChannel;
   locale?: string | null;
   subject?: string | null;
@@ -580,6 +584,7 @@ export type CampaignFormState = {
   single_stage_config: CampaignSingleStageConfigPayload;
   flow_config: CampaignFlowConfig | null;
   message: CampaignMessagePayload;
+  messages: CampaignMessagePayload[];
   links: CampaignLinkPayload[];
   schedule: CampaignSchedulePayload;
   delivery_windows: CampaignDeliveryWindowPayload[];
@@ -607,10 +612,7 @@ export const CAMPAIGN_STATUS_OPTIONS = Object.entries(CAMPAIGN_STATUS_LABELS).ma
   }),
 );
 
-export const CAMPAIGN_CHANNEL_OPTIONS = [
-  { label: "SMS", value: "sms" as CampaignChannel },
-  { label: "E-mail", value: "email" as CampaignChannel },
-];
+export const CAMPAIGN_CHANNEL_OPTIONS = MARKETING_CHANNEL_OPTIONS;
 
 export const CAMPAIGN_TYPE_LABELS: Record<CampaignType, string> = {
   broadcast: "Estágio único",

@@ -388,7 +388,6 @@
                 :loading="stepLoading.basic"
                 :readonly="isReadonly"
                 :on-save="() => saveDraft('basic')"
-                @channel-change="onChannelChange"
               />
               <CampaignSingleStageStep
                 v-if="activeStep === 'audience'"
@@ -399,19 +398,21 @@
                 :readonly="isReadonly"
                 :on-save="() => saveDraft('audience')"
               />
-              <CampaignMessageStep
+              <CampaignChannelsStep
                 v-if="activeStep === 'message'"
-                v-model="form.message"
+                v-model="form.messages"
+                :project-id="activeProjectId"
                 :errors="sectionErrors('message')"
                 :warnings="sectionWarnings('message')"
                 :loading="stepLoading.message"
                 :readonly="isReadonly"
                 :on-save="() => saveDraft('message')"
+                @change="onChannelsChange"
               />
               <CampaignLinksStep
                 v-if="activeStep === 'links'"
                 v-model="form.links"
-                :detected-links="form.message.detected_links || []"
+                :detected-links="detectedMessageLinks"
                 :errors="sectionErrors('links')"
                 :warnings="sectionWarnings('links')"
                 :loading="stepLoading.links"
@@ -767,7 +768,7 @@ import CampaignChecklistPanel from "@/components/campaigns/CampaignChecklistPane
 import CampaignDeliveryWindowsStep from "@/components/campaigns/CampaignDeliveryWindowsStep.vue";
 import CampaignEstimatePanel from "@/components/campaigns/CampaignEstimatePanel.vue";
 import CampaignLinksStep from "@/components/campaigns/CampaignLinksStep.vue";
-import CampaignMessageStep from "@/components/campaigns/CampaignMessageStep.vue";
+import CampaignChannelsStep from "@/components/campaigns/CampaignChannelsStep.vue";
 import CampaignRecurrenceStep from "@/components/campaigns/CampaignRecurrenceStep.vue";
 import CampaignScheduleStep from "@/components/campaigns/CampaignScheduleStep.vue";
 import CampaignSingleStageStep from "@/components/campaigns/CampaignSingleStageStep.vue";
@@ -823,6 +824,7 @@ import { useCampaignExecutionStore } from "@/stores/campaignExecution";
 import CampaignRunProgressPanel from "@/components/campaigns/CampaignRunProgressPanel.vue";
 import CampaignWavesBatchesPanel from "@/components/campaigns/CampaignWavesBatchesPanel.vue";
 import CampaignRecipientsPanel from "@/components/campaigns/CampaignRecipientsPanel.vue";
+import { normalizeCampaignMessages } from "@/components/campaigns/campaignChannels";
 
 type StepKey =
   | "campaign_type"
@@ -860,7 +862,7 @@ type StepDefinition = {
 const broadcastSteps: StepDefinition[] = [
   { key: "basic", label: "Dados básicos", sectionKeys: ["campaign", "channels"], progressKey: "channels" },
   { key: "audience", label: "Público", sectionKeys: ["audience", "campaign"], progressKey: "audience" },
-  { key: "message", label: "Mensagem", sectionKeys: ["message"], progressKey: "message" },
+  { key: "message", label: "Canais", sectionKeys: ["message"], progressKey: "message" },
   { key: "links", label: "Links", sectionKeys: ["links"], progressKey: "links" },
   { key: "schedule", label: "Agendamento", sectionKeys: ["schedule"], progressKey: "schedule" },
   { key: "delivery_windows", label: "Janelas", sectionKeys: ["delivery_windows"], progressKey: "delivery_windows" },
@@ -958,15 +960,16 @@ const formModel = computed({
   },
 });
 
-function onChannelChange(channel: "sms" | "email") {
-  form.channel = channel;
-  form.message.channel = channel;
-  if (channel === "email") {
-    form.message.sms_segments_count = 0;
+const detectedMessageLinks = computed(() => Array.from(new Set(
+  form.messages.flatMap((message) => message.detected_links || []),
+)));
+
+function onChannelsChange() {
+  const primaryMessage = form.messages[0];
+  if (primaryMessage?.channel) {
+    form.channel = primaryMessage.channel;
   }
-  if (channel === "sms" && form.message.subject == null) {
-    form.message.subject = "";
-  }
+  form.message = primaryMessage ? { ...primaryMessage } : createEmptyForm().message;
 }
 
 const campaignId = computed(() => campaignIdFromRoute());
@@ -1358,6 +1361,7 @@ function createEmptyForm(): CampaignFormState {
       variables: [],
       metadata: null,
     },
+    messages: [],
     links: [],
     schedule: {
       schedule_type: "scheduled",
@@ -1432,6 +1436,7 @@ async function loadCampaignContext(id: number) {
 
 function applyCampaignDetail(detail: CampaignDetail) {
   suppressDirty.value = true;
+  const messages = normalizeCampaignMessages(detail.messages, detail.channel);
   Object.assign(form, createEmptyForm(), {
     name: detail.name,
     description: detail.description,
@@ -1451,8 +1456,9 @@ function applyCampaignDetail(detail: CampaignDetail) {
       : null,
     message: {
       ...createEmptyForm().message,
-      ...((detail.messages && detail.messages[0]) || {}),
+      ...(messages[0] || {}),
     },
+    messages,
     links: detail.links || [],
     schedule: {
       ...createEmptyForm().schedule,
@@ -1641,10 +1647,7 @@ function buildStorePayload(): CampaignStorePayload {
   return {
     ...base,
     single_stage_config: form.single_stage_config,
-    message: {
-      ...form.message,
-      channel: form.channel,
-    },
+    messages: form.messages,
     links: form.links,
     schedule: form.schedule,
     delivery_windows: form.delivery_windows,
@@ -1672,10 +1675,7 @@ function buildUpdatePayload(): CampaignUpdatePayload {
   return {
     ...base,
     single_stage_config: form.single_stage_config,
-    message: {
-      ...form.message,
-      channel: form.channel,
-    },
+    messages: form.messages,
     links: form.links,
     schedule: form.schedule,
     delivery_windows: form.delivery_windows,
