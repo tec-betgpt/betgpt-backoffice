@@ -6,10 +6,12 @@ import {
   getChartLinks,
   getLinkLastClicks,
   getTooltipRows,
+  getVisibleClicksMax,
   sumClicksSince,
   UNATTRIBUTED_SERIES_NAME,
 } from "@/components/link-engine/clicksChart";
 import type { ClickMinutePoint } from "@/services/linkEngine";
+import type { ClicksChartSeries } from "@/components/link-engine/clicksChart";
 
 function point(overrides: Partial<ClickMinutePoint>): ClickMinutePoint {
   return { minute: "2026-10-29T10:00:00-03:00", clicks: 0, ...overrides };
@@ -320,6 +322,20 @@ describe("buildHourlyClicksByLinkSeries", () => {
     expect(series[0].data).toHaveLength(24);
     expect(series[0].data[0].y).toBe(2);
     expect(series[0].data[23].y).toBe(25);
+  });
+
+  it("calcula o eixo Y apenas com as séries visíveis", () => {
+    const series: ClicksChartSeries[] = [
+      { name: "promo-x", type: "area", data: [{ x: 1, y: 2 }] },
+      { name: ALL_CLICKS_SERIES_NAME, type: "line", data: [{ x: 1, y: 5 }] },
+    ];
+
+    expect(
+      getVisibleClicksMax(series, { "promo-x": true, [ALL_CLICKS_SERIES_NAME]: true }),
+    ).toBe(5);
+    expect(
+      getVisibleClicksMax(series, { "promo-x": true, [ALL_CLICKS_SERIES_NAME]: false }),
+    ).toBe(2);
   });
 
   it("usa uma série única quando o endpoint não retorna by_link", () => {

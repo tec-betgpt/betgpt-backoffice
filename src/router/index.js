@@ -23,6 +23,7 @@ import efficiency from "@/router/efficiency.js";
 import updates from "@/router/updates.js";
 import emailHealth from "@/router/emailHealth.js";
 import groups from "@/router/groups.js";
+import developer from "@/router/developer.js";
 
 const routes = [
   {
@@ -93,6 +94,7 @@ const routes = [
   ...updates,
   ...emailHealth,
   ...groups,
+  ...developer,
 ];
 
 const router = createRouter({
@@ -140,6 +142,17 @@ router.beforeEach(async (to, from, next) => {
     );
 
     if (!hasPermission) {
+      return next({ name: "home" });
+    }
+  }
+
+  // Telas liberadas por perfil (não por permissão), ex.: Webhook Inspector.
+  if (to.meta.requiresAuth && Array.isArray(to.meta.anyRole)) {
+    const hasRole = authStore.user?.roles?.some((role) =>
+      to.meta.anyRole.includes(role.name)
+    );
+
+    if (!hasRole) {
       return next({ name: "home" });
     }
   }

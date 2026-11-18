@@ -75,11 +75,20 @@ export interface LinkClickSummary {
   last_24h: number;
 }
 
+export interface LinkTrackingSummary {
+  enabled: boolean;
+  source: string | null;
+  medium: string | null;
+  campaign: string | null;
+}
+
 export interface LinkListItem {
   id: number;
   project_id: number;
   code: string;
   clicks?: LinkClickSummary | null;
+  tracking?: LinkTrackingSummary | null;
+  last_click_at?: string | null;
   total_clicks?: number | null;
   clicks_24h?: number | null;
   slug?: string | null;
@@ -156,6 +165,9 @@ export interface LinkListParams {
   status?: string;
   type?: string;
   search?: string;
+  sort?: "last_click_at" | "total_clicks" | "clicks_24h" | "code" | "status" | "created_at";
+  direction?: "asc" | "desc";
+  has_clicks?: boolean | number | string;
   per_page?: string | number;
   page?: number;
 }

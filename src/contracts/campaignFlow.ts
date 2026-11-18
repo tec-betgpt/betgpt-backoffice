@@ -15,6 +15,7 @@ export type FlowNodeType =
   | "user_registered"
   | "first_deposit"
   | "deposit_made"
+  | "pix_generated"
   | "wait_for_deposit"
   | "delay"
   | "send_sms"
@@ -138,6 +139,7 @@ export const FLOW_NODE_TYPE_LABELS: Record<string, string> = {
   user_registered: "Jogador cadastrado",
   first_deposit: "Primeiro depósito",
   deposit_made: "Depósito realizado",
+  pix_generated: "Pix gerado",
   wait_for_deposit: "Aguardar depósito",
   delay: "Aguardar",
   send_sms: "Enviar SMS",
@@ -150,11 +152,82 @@ export const FLOW_NODE_TYPE_CATEGORY: Record<string, FlowNodeCategory> = {
   user_registered: "trigger",
   first_deposit: "trigger",
   deposit_made: "trigger",
+  pix_generated: "trigger",
   wait_for_deposit: "condition",
   delay: "condition",
   send_sms: "action",
   send_email: "action",
   mark_converted: "action",
+};
+
+/** Contagens de um nó na execução (GET /v1/campaigns/{id}/flow/stats). */
+export type FlowNodeStats = {
+  reached: number;
+  waiting: number;
+  completed: number;
+  skipped: number;
+  failed: number;
+  yes: number;
+  no: number;
+};
+
+export type FlowEnrollmentSummary = {
+  total: number;
+  open: number;
+  completed: number;
+  exited: number;
+  failed: number;
+  converted: number;
+  /** Centavos. */
+  conversion_value: number;
+};
+
+export type FlowStatsResponse = {
+  nodes: Record<string, FlowNodeStats>;
+  enrollments: FlowEnrollmentSummary;
+};
+
+/** Relatório de recuperação (GET /v1/campaigns/{id}/flow/report). Valores em centavos. */
+export type FlowRecoveryReportTotals = {
+  pix_generated: number;
+  pix_generated_value: number;
+  entered: number;
+  paid_before_message: number;
+  messaged: number;
+  sms_sent: number;
+  emails_sent: number;
+  links_created: number;
+  links_opened: number;
+  link_opens: number;
+  recovered: number;
+  recovered_value: number;
+  /** Percentual (0–100) de recuperados sobre quem recebeu mensagem. */
+  recovery_rate: number;
+  fee_value: number;
+};
+
+export type FlowRecoveryReportDay = {
+  date: string;
+  entered: number;
+  paid_before_message: number;
+  messaged: number;
+  links_opened: number;
+  recovered: number;
+  recovered_value: number;
+};
+
+export type FlowRecoveryReport = {
+  period: { start: string; end: string };
+  attribution_hours: number;
+  fee_percent: number;
+  totals: FlowRecoveryReportTotals;
+  daily: FlowRecoveryReportDay[];
+};
+
+export type FlowRecoveryReportParams = {
+  start_date?: string;
+  end_date?: string;
+  fee_percent?: number;
 };
 
 export const FLOW_NODE_CATEGORY_LABELS: Record<FlowNodeCategory, string> = {

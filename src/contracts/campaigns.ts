@@ -537,6 +537,23 @@ export type CampaignDispatchesResponse = {
   dispatches: CampaignDispatch[];
 };
 
+export type CampaignConversions = {
+  attribution_hours: number;
+  totals: {
+    reached: number;
+    logins: number;
+    deposits_generated: number;
+    deposits_generated_value: number;
+    deposits_approved: number;
+    deposits_approved_value: number;
+    deposits_abandoned: number;
+    login_rate: number;
+    conversion_rate: number;
+    approval_rate: number;
+    abandonment_rate: number;
+  };
+};
+
 export type CampaignLaunchResponse = {
   campaign: CampaignDetail;
   dispatch: CampaignDispatch;

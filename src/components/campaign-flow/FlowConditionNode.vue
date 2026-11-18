@@ -4,6 +4,7 @@
     :title="data.label"
     :description="data.description"
     :selected="selected"
+    :node-id="id"
     icon-color-class="text-sky-500 dark:text-sky-400"
     icon-background-class="bg-sky-500/15"
     width-class="w-[250px]"

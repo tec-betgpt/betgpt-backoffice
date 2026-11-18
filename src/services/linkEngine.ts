@@ -62,6 +62,22 @@ export interface LinkEngineMonitorResponse {
   unhealthy_links: UnhealthyLinkItem[];
 }
 
+export interface LinkEngineDailyClicks {
+  date: string;
+  clicks: number;
+}
+
+export interface LinkEngineMonthlyClicks {
+  month: string;
+  clicks: number;
+  cumulative: number;
+}
+
+export interface LinkEngineMonitorHistoryResponse {
+  clicks_per_day_30d: LinkEngineDailyClicks[];
+  monthly_clicks: LinkEngineMonthlyClicks[];
+}
+
 export interface LinkEngineMonitorParams {
   filter_id?: string | number;
 }
@@ -71,6 +87,13 @@ export default {
     params: LinkEngineMonitorParams = {},
   ): Promise<LinkEngineMonitorResponse> {
     const { data } = await api.get("/link-engine/monitor", { params });
+    return data;
+  },
+
+  async history(
+    params: LinkEngineMonitorParams = {},
+  ): Promise<LinkEngineMonitorHistoryResponse> {
+    const { data } = await api.get("/link-engine/monitor/history", { params });
     return data;
   },
 };

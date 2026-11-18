@@ -4,6 +4,7 @@ import campaignExecutionService from "@/services/campaignExecution";
 import type {
   CampaignAnyEstimateResponse,
   CampaignApiResponse,
+  CampaignConversions,
   CampaignDetail,
   CampaignDispatchesResponse,
   CampaignListParams,
@@ -12,7 +13,12 @@ import type {
   CampaignUpdatePayload,
   CampaignValidationResponse,
 } from "@/contracts/campaigns";
-import type { FlowCatalogResponse } from "@/contracts/campaignFlow";
+import type {
+  FlowCatalogResponse,
+  FlowRecoveryReport,
+  FlowRecoveryReportParams,
+  FlowStatsResponse,
+} from "@/contracts/campaignFlow";
 
 function unwrapResponse<T>(response: T | CampaignApiResponse<T>): T {
   if (
@@ -97,9 +103,35 @@ export async function getCampaignDispatches(id: number): Promise<CampaignDispatc
   return unwrapResponse(data);
 }
 
+export async function getCampaignConversions(id: number, windowHours?: number): Promise<CampaignConversions> {
+  const { data } = await api.get<CampaignConversions | CampaignApiResponse<CampaignConversions>>(
+    `/campaigns/${id}/conversions`,
+    { params: windowHours ? { window_hours: windowHours } : {} },
+  );
+  return unwrapResponse(data);
+}
+
 export async function getFlowCatalog(): Promise<FlowCatalogResponse> {
   const { data } = await api.get<FlowCatalogResponse | CampaignApiResponse<FlowCatalogResponse>>(
     "/campaign-flow/catalog",
+  );
+  return unwrapResponse(data);
+}
+
+export async function getFlowStats(campaignId: number): Promise<FlowStatsResponse> {
+  const { data } = await api.get<FlowStatsResponse | CampaignApiResponse<FlowStatsResponse>>(
+    `/campaigns/${campaignId}/flow/stats`,
+  );
+  return unwrapResponse(data);
+}
+
+export async function getFlowReport(
+  campaignId: number,
+  params: FlowRecoveryReportParams = {},
+): Promise<FlowRecoveryReport> {
+  const { data } = await api.get<FlowRecoveryReport | CampaignApiResponse<FlowRecoveryReport>>(
+    `/campaigns/${campaignId}/flow/report`,
+    { params },
   );
   return unwrapResponse(data);
 }
@@ -118,7 +150,10 @@ export default {
   resumeCampaign,
   cancelCampaign,
   getCampaignDispatches,
+  getCampaignConversions,
   getFlowCatalog,
+  getFlowStats,
+  getFlowReport,
   store: createCampaign,
   show: getCampaign,
   update: updateCampaign,

@@ -110,6 +110,7 @@ import FlowTemplatesGallery from "@/components/campaign-flow/FlowTemplatesGaller
 import FlowTriggerNode from "@/components/campaign-flow/FlowTriggerNode.vue";
 import type {
   CampaignFlowConfig,
+  FlowNodeStats,
   FlowNodeTypeCatalogItem,
   FlowTemplate,
   FlowViewport,
@@ -135,6 +136,7 @@ const props = defineProps<{
   catalogLoading?: boolean;
   readonly?: boolean;
   saving?: boolean;
+  stats?: Record<string, FlowNodeStats> | null;
 }>();
 
 const emit = defineEmits<{
@@ -152,6 +154,7 @@ const canvasWrapper = ref<HTMLElement | null>(null);
 const { addEdges, addNodes, screenToFlowCoordinate, setViewport, fitView } = useVueFlow();
 
 provide("flowReadonly", toRef(props, "readonly"));
+provide("flowNodeStats", toRef(props, "stats"));
 
 const triggerTypes = computed(() =>
   nodes.value.filter((node) => node.data?.category === "trigger").map((node) => String(node.data?.nodeType)),
@@ -176,6 +179,7 @@ watch(
       suppressSync = false;
       return;
     }
+    if (props.readonly) return;
     const next: CampaignFlowConfig = {
       version: props.modelValue?.version ?? 1,
       definition: toFlowDefinition(nodes.value, edges.value, currentViewport.value),
