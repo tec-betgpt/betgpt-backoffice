@@ -374,6 +374,7 @@ import {
   PieChart, Activity,
   KeyRound,
   Waypoints,
+  RadioReceiver,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -796,6 +797,15 @@ const navMenu = computed(() => {
           url: { name: "ai-controller" },
           icon: SlidersHorizontal,
           show: hasRole("member-proprietor") || hasRole("member-developer"),
+        },
+        {
+          name: "Webhook Inspector",
+          url: { name: "webhook-inspector" },
+          icon: RadioReceiver,
+          show:
+            hasRole("member-proprietor") ||
+            hasRole("member-admin") ||
+            hasRole("member-developer"),
         },
       ],
     },
