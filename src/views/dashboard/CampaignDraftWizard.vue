@@ -18,11 +18,6 @@
         <ChevronRight class="size-3" />
         <span class="text-foreground">{{ campaign?.name || "Nova campanha" }}</span>
       </nav>
-      <div class="flex items-center gap-2">
-        <Badge v-if="campaign" :variant="statusVariant(campaign.status)">{{ statusLabel }}</Badge>
-        <Badge v-if="isDirty" variant="secondary">Alterações locais</Badge>
-        <Badge variant="secondary">Projeto: {{ activeProjectLabel }}</Badge>
-      </div>
     </div>
 
     <div v-if="wizardMode === 'broadcast'" class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

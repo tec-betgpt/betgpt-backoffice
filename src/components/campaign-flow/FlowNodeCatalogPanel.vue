@@ -1,5 +1,5 @@
 <template>
-  <div class="flex max-h-[70vh] flex-col">
+  <div class="flex max-h-[50vh] flex-col">
     <div class="border-b border-border p-3">
       <Input ref="searchInput" v-model="search" placeholder="Pesquisar..." class="h-9" :disabled="disabled" />
     </div>
