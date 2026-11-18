@@ -10,6 +10,8 @@ import type {
   CampaignListParams,
   CampaignListResponse,
   CampaignStorePayload,
+  CampaignSummaryPeriod,
+  CampaignSummaryResponse,
   CampaignUpdatePayload,
   CampaignValidationResponse,
 } from "@/contracts/campaigns";
@@ -96,6 +98,17 @@ export async function cancelCampaign(id: number): Promise<CampaignDetail> {
   return getCampaign(id);
 }
 
+export async function getCampaignSummary(
+  projectId: number,
+  period: CampaignSummaryPeriod = "30d",
+): Promise<CampaignSummaryResponse> {
+  const { data } = await api.get<CampaignSummaryResponse | CampaignApiResponse<CampaignSummaryResponse>>(
+    "/campaigns/summary",
+    { params: { project_id: projectId, period } },
+  );
+  return unwrapResponse(data);
+}
+
 export async function getCampaignDispatches(id: number): Promise<CampaignDispatchesResponse> {
   const { data } = await api.get<CampaignDispatchesResponse | CampaignApiResponse<CampaignDispatchesResponse>>(
     `/campaigns/${id}/dispatches`,
@@ -150,6 +163,7 @@ export default {
   resumeCampaign,
   cancelCampaign,
   getCampaignDispatches,
+  getCampaignSummary,
   getCampaignConversions,
   getFlowCatalog,
   getFlowStats,

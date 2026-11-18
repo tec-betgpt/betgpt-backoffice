@@ -212,6 +212,7 @@ export type CampaignListParams = {
   status?: CampaignStatus | null;
   channel?: CampaignChannel | null;
   type?: CampaignType | null;
+  scheduled?: boolean | null;
   search?: string | null;
   per_page?: number | null;
   page?: number | null;
@@ -637,6 +638,29 @@ export const CAMPAIGN_CHECKLIST_STATUS_LABELS = {
   warning: "Alerta",
   invalid: "Inválido",
 } as const;
+
+export type CampaignSummaryPeriod = "today" | "7d" | "30d" | "90d" | "all";
+
+export type CampaignKpiComparison = {
+  value: number;
+  previous: number | null;
+  change_percent: number | null;
+};
+
+export type CampaignSummaryResponse = {
+  period: {
+    key: CampaignSummaryPeriod;
+    start: string | null;
+    end: string | null;
+    previous_start: string | null;
+    previous_end: string | null;
+  };
+  kpis: Record<
+    "active_campaigns" | "sends" | "opens" | "clicks" | "conversions" | "conversion_rate",
+    CampaignKpiComparison
+  >;
+  status_counts: Record<"all" | "running" | "flow" | "scheduled" | "paused" | "draft", number>;
+};
 
 export const CAMPAIGN_DAY_OPTIONS = [
   { label: "Domingo", value: 0 },
