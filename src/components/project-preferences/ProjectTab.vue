@@ -452,7 +452,8 @@ onMounted(async () => {
           </DialogTitle>
           <DialogDescription v-if="cloudflareConnected">
             Sua integração com a Cloudflare está conectada. Se o domínio estiver
-            na Cloudflare, o DNS é configurado automaticamente.
+            na Cloudflare, o DNS é configurado automaticamente. Para domínios
+            fora da Cloudflare, use a configuração manual abaixo.
           </DialogDescription>
           <DialogDescription v-else>
             O domínio só fica ativo depois de apontar o DNS para o IP dos
@@ -460,35 +461,51 @@ onMounted(async () => {
           </DialogDescription>
         </DialogHeader>
 
-        <div v-if="cloudflareConnected" class="space-y-4 text-sm">
-          <div
-            class="flex items-start gap-2 rounded-lg border border-emerald-300/60 bg-emerald-50 p-3 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
-          >
-            <ShieldCheck class="mt-0.5 h-4 w-4 shrink-0" />
-            <div class="space-y-2">
-              <p class="font-medium">
-                Cloudflare conectada — configuração automática
-              </p>
-              <p class="text-xs">
-                Se o domínio estiver na Cloudflare, basta informar o domínio ou
-                subdomínio em <strong>Adicionar Domínio</strong>. Nós criamos e
-                configuramos o registro DNS na sua conta automaticamente.
-              </p>
-              <div
-                class="rounded-md border bg-background p-2 font-mono text-xs text-foreground"
-              >
-                <div>Domínio: meusite.com.br</div>
-                <div>Subdomínio: links.meusite.com.br</div>
+        <div class="space-y-5 text-sm">
+          <div v-if="cloudflareConnected" class="space-y-4">
+            <div
+              class="flex items-start gap-2 rounded-lg border border-emerald-300/60 bg-emerald-50 p-3 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
+            >
+              <ShieldCheck class="mt-0.5 h-4 w-4 shrink-0" />
+              <div class="space-y-2">
+                <p class="font-medium">
+                  Cloudflare conectada — configuração automática
+                </p>
+                <p class="text-xs">
+                  Se o domínio estiver na Cloudflare, basta informar o domínio
+                  ou subdomínio em <strong>Adicionar Domínio</strong>. Nós
+                  criamos e configuramos o registro DNS na sua conta
+                  automaticamente.
+                </p>
+                <div
+                  class="rounded-md border bg-background p-2 font-mono text-xs text-foreground"
+                >
+                  <div>Domínio: meusite.com.br</div>
+                  <div>Subdomínio: links.meusite.com.br</div>
+                </div>
               </div>
             </div>
+            <p class="text-xs text-muted-foreground">
+              Depois de cadastrar, acompanhe o andamento pelas colunas
+              <strong>Status</strong> e <strong>SSL</strong> da tabela.
+            </p>
           </div>
-          <p class="text-xs text-muted-foreground">
-            Depois de cadastrar, acompanhe o andamento pelas colunas
-            <strong>Status</strong> e <strong>SSL</strong> da tabela.
-          </p>
-        </div>
 
-        <div v-else class="space-y-5 text-sm">
+          <div v-if="cloudflareConnected" class="space-y-1 pt-1">
+            <div class="flex items-center gap-3">
+              <div class="h-px flex-1 bg-border" />
+              <span
+                class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+              >
+                Ou configure manualmente
+              </span>
+              <div class="h-px flex-1 bg-border" />
+            </div>
+            <p class="text-xs text-muted-foreground">
+              Para domínios fora da Cloudflare, como Registro.br ou GoDaddy.
+            </p>
+          </div>
+
           <!-- IP/host de destino -->
           <div class="rounded-lg border bg-muted/40 p-3">
             <p class="text-xs text-muted-foreground">
