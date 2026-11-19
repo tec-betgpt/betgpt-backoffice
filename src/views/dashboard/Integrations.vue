@@ -209,9 +209,9 @@
           </div>
         </template>
         </div>
-        <div
+        <CardFooter
           v-if="data.slug === 'cloudflare' && isOAuthConnected(data)"
-          class="mt-4"
+          class="mt-4 border-t px-0 pb-0 pt-4"
         >
           <Button
             variant="outline"
@@ -221,7 +221,7 @@
             <Globe class="mr-2 h-4 w-4" />
             Configurar domínio
           </Button>
-        </div>
+        </CardFooter>
       </Card>
     </div>
 
@@ -285,7 +285,7 @@ import {
   LogOut,
 } from "lucide-vue-next";
 import Projects from "@/services/projects";
-import { Card } from "@/components/ui/card";
+import { Card, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
