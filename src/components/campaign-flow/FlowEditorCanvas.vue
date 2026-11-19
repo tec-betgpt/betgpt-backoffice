@@ -108,6 +108,9 @@ import FlowConditionNode from "@/components/campaign-flow/FlowConditionNode.vue"
 import FlowNodeCatalogPanel from "@/components/campaign-flow/FlowNodeCatalogPanel.vue";
 import FlowTemplatesGallery from "@/components/campaign-flow/FlowTemplatesGallery.vue";
 import FlowTriggerNode from "@/components/campaign-flow/FlowTriggerNode.vue";
+import { getMarketingAssetSummary } from "@/services/marketingAssets";
+import type { MarketingAssetSummary } from "@/contracts/marketingAssets";
+import { useWorkspaceStore } from "@/stores/workspace";
 import type {
   CampaignFlowConfig,
   FlowNodeStats,
@@ -150,11 +153,13 @@ const currentViewport = ref<FlowViewport | null>(null);
 const isGalleryOpen = ref(false);
 const isAddPanelOpen = ref(false);
 const canvasWrapper = ref<HTMLElement | null>(null);
-
+const workspaceStore = useWorkspaceStore();
+const flowAssets = ref<MarketingAssetSummary | null>(null);
 const { addEdges, addNodes, screenToFlowCoordinate, setViewport, fitView } = useVueFlow();
 
 provide("flowReadonly", toRef(props, "readonly"));
 provide("flowNodeStats", toRef(props, "stats"));
+provide("flowAssets", flowAssets);
 
 const triggerTypes = computed(() =>
   nodes.value.filter((node) => node.data?.category === "trigger").map((node) => String(node.data?.nodeType)),
@@ -167,10 +172,20 @@ let addOffset = 0;
 
 onMounted(() => {
   hydrate(props.modelValue);
-  if (!props.modelValue?.definition?.nodes?.length && !props.readonly) {
-    isGalleryOpen.value = true;
-  }
+  loadFlowAssets();
 });
+
+watch(() => workspaceStore.numericProjectId, loadFlowAssets);
+
+async function loadFlowAssets() {
+  flowAssets.value = null;
+  if (!workspaceStore.numericProjectId) return;
+  try {
+    flowAssets.value = await getMarketingAssetSummary(workspaceStore.numericProjectId);
+  } catch {
+    flowAssets.value = null;
+  }
+}
 
 watch(
   [nodes, edges, currentViewport],

@@ -1,32 +1,24 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <div class="flex items-center gap-2">
-          <h3 class="text-lg font-semibold">Canais</h3>
-          <Badge variant="secondary">{{ selectedChannels.length }}</Badge>
-        </div>
-        <p class="text-sm text-muted-foreground">Selecione um ou mais canais e escolha o template de cada um.</p>
-      </div>
-      <Button v-if="onSave" variant="outline" :disabled="readonly || loading" @click="onSave">
-        {{ loading ? "Salvando..." : "Salvar etapa" }}
-      </Button>
+    <div>
+      <h3 class="text-base font-semibold">Canais</h3>
+      <p class="mt-1 text-sm text-muted-foreground">Selecione os canais que deseja utilizar na campanha.</p>
     </div>
 
     <CampaignValidationList :errors="errors" :warnings="warnings" />
 
-    <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <button
-        v-for="option in channelOptions"
+        v-for="option in visibleChannelOptions"
         :key="option.value"
         type="button"
         :disabled="readonly"
         :aria-pressed="isSelected(option.value)"
-        class="relative flex min-h-28 flex-col items-center justify-center gap-2 rounded-lg border p-4 text-sm font-medium transition-colors hover:border-primary hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+        class="relative flex min-h-32 flex-col items-center justify-center gap-3 rounded-lg border bg-background p-5 text-sm font-medium shadow-sm transition-colors hover:border-primary hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
         :class="isSelected(option.value) ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary' : 'bg-background'"
         @click="toggleChannel(option.value)"
       >
-        <component :is="channelIcon(option.value)" class="size-6" />
+        <component :is="channelIcon(option.value)" class="size-8" stroke-width="1.8" />
         {{ option.label }}
         <Check v-if="isSelected(option.value)" class="absolute right-2 top-2 size-4" />
       </button>
@@ -102,7 +94,7 @@ import {
   MessageCircle,
   MessageSquareText,
   PanelsTopLeft,
-  PhoneCall,
+  Mic,
   Radio,
 } from "lucide-vue-next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -146,13 +138,16 @@ const icons: Record<CampaignChannel, Component> = {
   webpush: Bell,
   sms: MessageSquareText,
   popup: PanelsTopLeft,
-  callcenter: PhoneCall,
+  callcenter: Mic,
   whatsapp: MessageCircle,
   rcs: Radio,
 };
 
+const visibleChannelOptions = computed(() =>
+  channelOptions.filter((option) => option.value !== "rcs" || isSelected("rcs")),
+);
 const selectedChannels = computed(() =>
-  channelOptions.map((option) => option.value).filter((channel) => isSelected(channel)),
+  visibleChannelOptions.value.map((option) => option.value).filter((channel) => isSelected(channel)),
 );
 
 watch(() => props.projectId, loadSummary, { immediate: true });
@@ -239,6 +234,16 @@ function channelIcon(channel: CampaignChannel) {
 }
 
 function channelLabel(channel: CampaignChannel) {
-  return MARKETING_CHANNEL_LABELS[channel];
+  const labels: Record<CampaignChannel, string> = {
+    email: "Email",
+    inbox: "Inbox",
+    webpush: "Web Push",
+    sms: "SMS",
+    popup: "OnSite",
+    callcenter: "Voz",
+    whatsapp: "WhatsApp",
+    rcs: MARKETING_CHANNEL_LABELS.rcs,
+  };
+  return labels[channel];
 }
 </script>

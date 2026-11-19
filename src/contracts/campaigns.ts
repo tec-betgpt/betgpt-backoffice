@@ -27,6 +27,7 @@ export type CampaignMetadata = Record<string, unknown>;
 
 export type CampaignMessageLike = {
   field: string;
+  step?: string;
   message: string;
 };
 

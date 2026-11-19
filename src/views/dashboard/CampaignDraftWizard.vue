@@ -185,6 +185,19 @@
       <AlertDescription>{{ errorMessage }}</AlertDescription>
     </Alert>
 
+    <Alert v-if="validationStepGroups.length" variant="destructive" :class="wizardMode !== 'broadcast' ? 'mx-6 mt-3 max-[450px]:mx-2' : ''">
+      <AlertTitle>Revise: {{ validationStepSummary }}</AlertTitle>
+      <AlertDescription class="mt-2 flex flex-wrap gap-2">
+        <Button
+          v-for="group in validationStepGroups"
+          :key="group.step"
+          variant="outline"
+          size="sm"
+          @click="goToValidationStep(group.step)"
+        >{{ group.label }} ({{ group.items.length }})</Button>
+      </AlertDescription>
+    </Alert>
+
     <Card v-if="isInitialLoading" :class="wizardMode !== 'broadcast' ? 'mx-6 mt-3 max-[450px]:mx-2' : ''">
       <CardContent class="pt-6 text-sm text-muted-foreground">Carregando campanha...</CardContent>
     </Card>
@@ -337,6 +350,31 @@
         </div>
 
         <template v-else>
+          <CampaignSingleStageConfigurator
+            v-model="formModel"
+            v-model:active-step="activeStep"
+            v-model:step-loading="stepLoading"
+            :project-id="activeProjectId"
+            :detected-links="detectedMessageLinks"
+            :readonly="isReadonly"
+            :is-saving="isSaving"
+            :section-errors="sectionErrors"
+            :section-warnings="sectionWarnings"
+            :all-errors="allValidationErrors"
+            :all-warnings="allValidationWarnings"
+            :estimate="estimateForPanel"
+            :is-estimating="isEstimating"
+            :estimate-error-message="estimateErrorMessage"
+            :campaign-id="campaignId"
+            :on-refresh-estimate="() => runEstimate()"
+            :validation="validationResult"
+            :is-validating="isValidating"
+            @channels-change="onChannelsChange"
+            @save-continue="onSingleStageSaveContinue"
+            @validate="runValidation"
+          />
+        </template>
+        <template v-if="false">
         <div class="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
           <Card>
             <CardHeader>
@@ -742,7 +780,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ArrowLeft, Check, ChevronRight, Lightbulb, Pause, Play, Square } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -771,6 +809,7 @@ import CampaignLinksStep from "@/components/campaigns/CampaignLinksStep.vue";
 import CampaignChannelsStep from "@/components/campaigns/CampaignChannelsStep.vue";
 import CampaignRecurrenceStep from "@/components/campaigns/CampaignRecurrenceStep.vue";
 import CampaignScheduleStep from "@/components/campaigns/CampaignScheduleStep.vue";
+import CampaignSingleStageConfigurator from "@/components/campaigns/CampaignSingleStageConfigurator.vue";
 import CampaignSingleStageStep from "@/components/campaigns/CampaignSingleStageStep.vue";
 import CampaignTypeStep from "@/components/campaigns/CampaignTypeStep.vue";
 import CampaignValidationList from "@/components/campaigns/CampaignValidationList.vue";
@@ -798,6 +837,7 @@ import type {
   CampaignStatus,
   CampaignStorePayload,
   CampaignUpdatePayload,
+  CampaignValidationItem,
   CampaignValidationResponse,
   CampaignWizardStep,
   CampaignWizardStepKey,
@@ -825,6 +865,7 @@ import CampaignRunProgressPanel from "@/components/campaigns/CampaignRunProgress
 import CampaignWavesBatchesPanel from "@/components/campaigns/CampaignWavesBatchesPanel.vue";
 import CampaignRecipientsPanel from "@/components/campaigns/CampaignRecipientsPanel.vue";
 import { normalizeCampaignMessages } from "@/components/campaigns/campaignChannels";
+import { groupCampaignValidationItems } from "@/components/campaigns/campaignValidation";
 
 type StepKey =
   | "campaign_type"
@@ -902,8 +943,8 @@ const isExecutionCancelDialogOpen = ref(false);
 const errorMessage = ref("");
 const estimateErrorMessage = ref("");
 const suppressDirty = ref(false);
-const validationErrors = ref<Record<string, { field: string; message: string }[]>>({});
-const validationWarnings = ref<Record<string, { field: string; message: string }[]>>({});
+const validationErrors = ref<Record<string, CampaignValidationItem[]>>({});
+const validationWarnings = ref<Record<string, CampaignValidationItem[]>>({});
 let executionPollTimeout: number | null = null;
 let executionPollInFlight = false;
 const handleVisibilityChange = () => {
@@ -959,6 +1000,7 @@ const formModel = computed({
     Object.assign(form, value);
   },
 });
+provide("campaignValidationNavigate", goToValidationStep);
 
 const detectedMessageLinks = computed(() => Array.from(new Set(
   form.messages.flatMap((message) => message.detected_links || []),
@@ -1238,7 +1280,7 @@ async function loadFlowCatalog() {
 function onTypeStepContinue() {
   if (wizardMode.value === "select") {
     wizardMode.value = form.type === "flow" ? "flow" : "broadcast";
-    activeStep.value = form.type === "flow" ? "flow_editor" : "basic";
+    activeStep.value = form.type === "flow" ? "flow_editor" : "message";
     return;
   }
 
@@ -1421,7 +1463,7 @@ async function loadCampaignContext(id: number) {
         ? (queryStep as StepKey)
         : isFlow
           ? "campaign_type"
-          : "basic";
+          : "message";
     }
 
     isDirty.value = false;
@@ -1701,6 +1743,39 @@ function stepSummary(stepKey: StepKey) {
   return "";
 }
 
+const allValidationErrors = computed(() => Object.values(validationErrors.value).flat());
+const allValidationWarnings = computed(() => Object.values(validationWarnings.value).flat());
+const validationStepGroups = computed(() => {
+  const items = Object.entries(validationErrors.value).flatMap(([section, sectionItems]) =>
+    sectionItems.map((item) => ({
+      ...item,
+      step: item.step || inferValidationStep(section),
+    })),
+  );
+  return groupCampaignValidationItems(items);
+});
+const validationStepSummary = computed(() =>
+  validationStepGroups.value.map((group) => `${group.label} (${group.items.length})`).join(", "),
+);
+
+function inferValidationStep(section: string): string {
+  return activeSteps.value.find((step) => step.sectionKeys.includes(section))?.key || section;
+}
+
+function goToValidationStep(stepKey: string) {
+  const target = activeSteps.value.find((step) =>
+    step.key === stepKey || step.sectionKeys.includes(stepKey),
+  );
+  if (target) activeStep.value = target.key;
+}
+
+async function onSingleStageSaveContinue(next: string | null) {
+  await saveDraft(activeStep.value);
+  if (!errorMessage.value && next) {
+    activeStep.value = next as StepKey;
+  }
+}
+
 function sectionErrors(stepKey: StepKey) {
   return mergeMessages(activeSteps.value.find((step) => step.key === stepKey)?.sectionKeys || [], validationErrors.value);
 }
@@ -1777,12 +1852,13 @@ function handleHttpError(error: unknown, step?: StepKey) {
 
   if (status === 422) {
     const errors = error.response?.data?.errors || {};
+    const targetStep = step || activeStep.value;
     const items = Object.entries(errors).flatMap(([field, messages]) =>
       Array.isArray(messages)
-        ? messages.map((message) => ({ field, message: String(message) }))
-        : [{ field, message: String(messages) }],
+        ? messages.map((message) => ({ field, step: targetStep, message: String(message) }))
+        : [{ field, step: targetStep, message: String(messages) }],
     );
-    const key = activeSteps.value.find((item) => item.key === step)?.sectionKeys[0] || "campaign";
+    const key = activeSteps.value.find((item) => item.key === targetStep)?.sectionKeys[0] || "campaign";
     validationErrors.value = { ...validationErrors.value, [key]: items };
     errorMessage.value = "Revise os campos destacados antes de continuar.";
     return;
