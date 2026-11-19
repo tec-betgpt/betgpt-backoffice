@@ -285,6 +285,7 @@ import {
   LogOut,
 } from "lucide-vue-next";
 import Projects from "@/services/projects";
+import { isOAuthConnected } from "@/lib/integrationConnection";
 import { Card, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -344,38 +345,6 @@ const openPreferencesDialog = (integration: any) => {
 
 const isLogoutDialogOpen = ref(false);
 const integrationIdToLogout = ref(null);
-
-// Chaves que integrações OAuth gravam no config após o callback
-// (GA/Meta usam "email"; google-postmaster pode usar outra chave de conta
-// ou uma flag). A credencial em si nunca trafega — só metadados.
-const OAUTH_IDENTITY_KEYS = [
-  "email",
-  "google_email",
-  "account_email",
-  "connected_email",
-  "email_address",
-  // Cloudflare não expõe e-mail no callback; a conexão é marcada pelos
-  // tokens/instante do consentimento gravados no config.
-  "access_token",
-  "refresh_token",
-  "connected_at",
-];
-
-function isOAuthConnected(integration: any) {
-  const config = integration?.config;
-  if (!config || typeof config !== "object" || Array.isArray(config)) {
-    return false;
-  }
-
-  if (config.connected === true || config.authorized === true) {
-    return true;
-  }
-
-  return OAUTH_IDENTITY_KEYS.some((key) => {
-    const value = config[key];
-    return typeof value === "string" && value.trim() !== "";
-  });
-}
 
 function confirmLogout(id: any) {
   integrationIdToLogout.value = id;

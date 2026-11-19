@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Globe, HelpCircle, Copy, Check, ShieldCheck } from "lucide-vue-next";
 import ProjectPreferencesService from "@/services/projectPreferences";
 import LinkDomainsService from "@/services/linkDomains";
+import Projects from "@/services/projects";
+import { isOAuthConnected } from "@/lib/integrationConnection";
 import { LinkDomain, LinkDomainSslStatus, LinkDomainStatus } from "@/contracts/linkDomain";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -57,6 +59,7 @@ const domainToDelete = ref<LinkDomain | null>(null);
 const deletingDomain = ref(false);
 const isTutorialOpen = ref(false);
 const copiedTarget = ref(false);
+const cloudflareConnected = ref(false);
 
 /**
  * Host de destino dos links (equivalente ao `SHORT_LINK_DOMAIN` do backend).
@@ -134,6 +137,23 @@ const fetchDomains = async () => {
     toast.error("Erro", { description: "Não foi possível carregar os domínios do projeto." });
   } finally {
     domainsLoading.value = false;
+  }
+};
+
+const loadCloudflareConnection = async () => {
+  try {
+    const response = await Projects.integrations(projectIdNumber.value);
+    const list = Array.isArray(response?.data) ? response.data : [];
+    const cloudflare = list.find(
+      (integration: any) => integration.slug === "cloudflare",
+    );
+
+    cloudflareConnected.value = isOAuthConnected({
+      config: cloudflare?.integration?.config ?? cloudflare?.config,
+    });
+  } catch (error) {
+    console.error("Erro ao verificar a conexão com a Cloudflare:", error);
+    cloudflareConnected.value = false;
   }
 };
 
@@ -232,6 +252,7 @@ const sslStatusLabel = (status: LinkDomainSslStatus | null) => {
 onMounted(async () => {
   await loadCurrentPreference();
   await fetchDomains();
+  await loadCloudflareConnection();
 });
 </script>
 
@@ -273,7 +294,14 @@ onMounted(async () => {
             <Label class="text-base font-medium">Domínios Personalizados de Links</Label>
           </div>
           <p class="text-sm text-muted-foreground">
-            Domínios cadastrados que podem ser usados como domínio próprio dos links do projeto. O domínio deve estar acessível via HTTPS com DNS resolvível.
+            Domínios cadastrados que podem ser usados como domínio próprio dos links do projeto. Funciona com domínio raiz ou subdomínio, desde que esteja acessível via HTTPS e com DNS resolvível.
+          </p>
+          <p class="text-xs text-muted-foreground">
+            Exemplos:
+            <code class="rounded bg-muted px-1 py-0.5 font-mono">meusite.com.br</code>
+            (domínio) e
+            <code class="rounded bg-muted px-1 py-0.5 font-mono">links.meusite.com.br</code>
+            (subdomínio).
           </p>
         </div>
         <div class="flex shrink-0 items-center gap-2">
@@ -361,18 +389,21 @@ onMounted(async () => {
         <DialogHeader>
           <DialogTitle>Adicionar Domínio</DialogTitle>
           <DialogDescription>
-            Informe o domínio que os links do projeto poderão usar como domínio próprio.
+            Informe o domínio ou subdomínio que os links do projeto poderão usar como domínio próprio.
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-2">
-          <Label>Domínio</Label>
+          <Label>Domínio ou subdomínio</Label>
           <Input
             v-model="newDomain"
-            placeholder="Ex: https://campanha.com.br"
+            placeholder="Ex: meusite.com.br ou links.meusite.com.br"
             :disabled="addingDomain"
             @keyup.enter="handleAddDomain"
           />
+          <p v-if="cloudflareConnected" class="text-xs text-muted-foreground">
+            Cloudflare conectada: o registro DNS será criado automaticamente.
+          </p>
         </div>
 
         <DialogFooter>
@@ -419,13 +450,45 @@ onMounted(async () => {
           <DialogTitle class="flex items-center gap-2">
             <Globe class="h-5 w-5" /> Como configurar seu domínio
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription v-if="cloudflareConnected">
+            Sua integração com a Cloudflare está conectada. Se o domínio estiver
+            na Cloudflare, o DNS é configurado automaticamente.
+          </DialogDescription>
+          <DialogDescription v-else>
             O domínio só fica ativo depois de apontar o DNS para o IP dos
             servidores de links, propagar e responder em HTTPS.
           </DialogDescription>
         </DialogHeader>
 
-        <div class="space-y-5 text-sm">
+        <div v-if="cloudflareConnected" class="space-y-4 text-sm">
+          <div
+            class="flex items-start gap-2 rounded-lg border border-emerald-300/60 bg-emerald-50 p-3 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
+          >
+            <ShieldCheck class="mt-0.5 h-4 w-4 shrink-0" />
+            <div class="space-y-2">
+              <p class="font-medium">
+                Cloudflare conectada — configuração automática
+              </p>
+              <p class="text-xs">
+                Se o domínio estiver na Cloudflare, basta informar o domínio ou
+                subdomínio em <strong>Adicionar Domínio</strong>. Nós criamos e
+                configuramos o registro DNS na sua conta automaticamente.
+              </p>
+              <div
+                class="rounded-md border bg-background p-2 font-mono text-xs text-foreground"
+              >
+                <div>Domínio: meusite.com.br</div>
+                <div>Subdomínio: links.meusite.com.br</div>
+              </div>
+            </div>
+          </div>
+          <p class="text-xs text-muted-foreground">
+            Depois de cadastrar, acompanhe o andamento pelas colunas
+            <strong>Status</strong> e <strong>SSL</strong> da tabela.
+          </p>
+        </div>
+
+        <div v-else class="space-y-5 text-sm">
           <!-- IP/host de destino -->
           <div class="rounded-lg border bg-muted/40 p-3">
             <p class="text-xs text-muted-foreground">
