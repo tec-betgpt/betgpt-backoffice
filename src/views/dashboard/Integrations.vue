@@ -209,6 +209,19 @@
           </div>
         </template>
         </div>
+        <CardFooter
+          v-if="data.slug === 'cloudflare' && isOAuthConnected(data)"
+          class="mt-4 border-t px-0 pb-0 pt-4"
+        >
+          <Button
+            variant="outline"
+            class="w-full"
+            @click="goToProjectPreferences"
+          >
+            <Globe class="mr-2 h-4 w-4" />
+            Configurar domínio
+          </Button>
+        </CardFooter>
       </Card>
     </div>
 
@@ -261,16 +274,19 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { toast } from "vue-sonner";
 import {
   Loader2 as LucideSpinner,
   ExternalLink,
+  Globe,
   LogOut,
 } from "lucide-vue-next";
 import Projects from "@/services/projects";
-import { Card } from "@/components/ui/card";
+import { isOAuthConnected } from "@/lib/integrationConnection";
+import { Card, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -297,6 +313,7 @@ import {
 import IntegrationPreferencesGoogleAnalytics from "@/views/dashboard/IntegrationPreferencesGoogleAnalytics.vue";
 import { Settings2 } from "lucide-vue-next";
 
+const router = useRouter();
 const workspaceStore = useWorkspaceStore();
 const loading = ref(false);
 const saving = ref(false);
@@ -314,6 +331,10 @@ const preferencesDialogOpen = ref(false);
 const googleAnalyticsIntegrationId = ref<number | undefined>();
 const googleAnalyticsProjectId = ref<string | undefined>();
 
+const goToProjectPreferences = () => {
+  router.push({ name: "project-preferences", query: { tab: "projeto" } });
+};
+
 const openPreferencesDialog = (integration: any) => {
   if (integration.slug === "google-analytics") {
     googleAnalyticsIntegrationId.value = integration.id;
@@ -324,38 +345,6 @@ const openPreferencesDialog = (integration: any) => {
 
 const isLogoutDialogOpen = ref(false);
 const integrationIdToLogout = ref(null);
-
-// Chaves que integrações OAuth gravam no config após o callback
-// (GA/Meta usam "email"; google-postmaster pode usar outra chave de conta
-// ou uma flag). A credencial em si nunca trafega — só metadados.
-const OAUTH_IDENTITY_KEYS = [
-  "email",
-  "google_email",
-  "account_email",
-  "connected_email",
-  "email_address",
-  // Cloudflare não expõe e-mail no callback; a conexão é marcada pelos
-  // tokens/instante do consentimento gravados no config.
-  "access_token",
-  "refresh_token",
-  "connected_at",
-];
-
-function isOAuthConnected(integration: any) {
-  const config = integration?.config;
-  if (!config || typeof config !== "object" || Array.isArray(config)) {
-    return false;
-  }
-
-  if (config.connected === true || config.authorized === true) {
-    return true;
-  }
-
-  return OAUTH_IDENTITY_KEYS.some((key) => {
-    const value = config[key];
-    return typeof value === "string" && value.trim() !== "";
-  });
-}
 
 function confirmLogout(id: any) {
   integrationIdToLogout.value = id;
