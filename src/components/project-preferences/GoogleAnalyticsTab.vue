@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Settings2, Check, Plus } from "lucide-vue-next";
+import { Check, Plus } from "lucide-vue-next";
 import ProjectPreferences from "@/services/projectPreferences";
 import GoogleAnalytics from "@/services/googleAnalytics";
 import { toast } from "vue-sonner";
@@ -51,8 +51,6 @@ const showCreateSecretDialog = ref(false);
 const newSecretName = ref("");
 const newSecretDisplayName = ref("");
 const creatingSecret = ref(false);
-
-const integrationName = "Google Analytics";
 
 const descriptionText = computed(() => {
   return `Selecione um grupo para usar como padrão nas visualizações. Você ainda poderá acessar dados de outros grupos, mas as telas iniciarão com esse grupo selecionado.`;
@@ -270,17 +268,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight flex items-center gap-2">
-        <Settings2 class="h-5 w-5" />
-        Preferências do {{ integrationName }}
-      </h2>
-      <p class="text-muted-foreground">
-        Customize as configurações padrões para esta integração.
-      </p>
-    </div>
-
+  <div class="space-y-6">
     <div class="space-y-6 py-4">
       <div class="bg-muted/50 rounded-lg p-4 space-y-2">
         <Label class="text-base font-medium">Grupo Padrão</Label>

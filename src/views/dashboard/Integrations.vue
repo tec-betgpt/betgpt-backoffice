@@ -331,7 +331,7 @@ const googleAnalyticsIntegrationId = ref<number | undefined>();
 const googleAnalyticsProjectId = ref<string | undefined>();
 
 const goToProjectPreferences = () => {
-  router.push({ name: "project-preferences" });
+  router.push({ name: "project-preferences", query: { tab: "projeto" } });
 };
 
 const openPreferencesDialog = (integration: any) => {

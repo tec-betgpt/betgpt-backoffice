@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Settings2, Check, Plus, Copy, CheckCheck } from "lucide-vue-next";
+import { Check, Plus, Copy, CheckCheck } from "lucide-vue-next";
 import ProjectPreferences from "@/services/projectPreferences";
 import MetaAds from "@/services/metaAds";
 import { toast } from "vue-sonner";
@@ -42,8 +42,6 @@ const newPixelName = ref("");
 const creatingPixel = ref(false);
 
 const copied = ref(false);
-
-const integrationName = "Meta Ads";
 
 const pixelDescriptionText = computed(() => {
   return `Selecione um pixel para usar nas integrações.`;
@@ -191,18 +189,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight flex items-center gap-2">
-        <Settings2 class="h-5 w-5" />
-        Preferências do {{ integrationName }}
-      </h2>
-      <p class="text-muted-foreground">
-        Customize as configurações padrões para esta integração.
-      </p>
-    </div>
-
-    <div class="space-y-6 py-4 border-t">
+  <div class="space-y-6">
+    <div class="space-y-6 py-4">
       <div class="bg-muted/50 rounded-lg p-4 space-y-2 flex items-center justify-between">
         <div>
           <Label class="text-base font-medium">Pixel</Label>
