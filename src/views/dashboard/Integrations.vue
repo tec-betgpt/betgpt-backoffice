@@ -209,6 +209,19 @@
           </div>
         </template>
         </div>
+        <div
+          v-if="data.slug === 'cloudflare' && isOAuthConnected(data)"
+          class="mt-4"
+        >
+          <Button
+            variant="outline"
+            class="w-full"
+            @click="goToProjectPreferences"
+          >
+            <Globe class="mr-2 h-4 w-4" />
+            Configurar domínio
+          </Button>
+        </div>
       </Card>
     </div>
 
@@ -261,12 +274,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { toast } from "vue-sonner";
 import {
   Loader2 as LucideSpinner,
   ExternalLink,
+  Globe,
   LogOut,
 } from "lucide-vue-next";
 import Projects from "@/services/projects";
@@ -297,6 +312,7 @@ import {
 import IntegrationPreferencesGoogleAnalytics from "@/views/dashboard/IntegrationPreferencesGoogleAnalytics.vue";
 import { Settings2 } from "lucide-vue-next";
 
+const router = useRouter();
 const workspaceStore = useWorkspaceStore();
 const loading = ref(false);
 const saving = ref(false);
@@ -313,6 +329,10 @@ const disableBt = ref(false);
 const preferencesDialogOpen = ref(false);
 const googleAnalyticsIntegrationId = ref<number | undefined>();
 const googleAnalyticsProjectId = ref<string | undefined>();
+
+const goToProjectPreferences = () => {
+  router.push({ name: "project-preferences" });
+};
 
 const openPreferencesDialog = (integration: any) => {
   if (integration.slug === "google-analytics") {
