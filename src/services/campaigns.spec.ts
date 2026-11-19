@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "@/services/base";
-import { getCampaignSummary, listCampaigns } from "./campaigns";
+import { createCampaign, getCampaignSummary, listCampaigns, updateCampaign } from "./campaigns";
 
 vi.mock("@/services/base", () => ({
   default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
@@ -8,6 +8,8 @@ vi.mock("@/services/base", () => ({
 
 const mocked = api as unknown as {
   get: ReturnType<typeof vi.fn>;
+  post: ReturnType<typeof vi.fn>;
+  put: ReturnType<typeof vi.fn>;
 };
 
 describe("campaigns service", () => {
@@ -28,6 +30,31 @@ describe("campaigns service", () => {
     await expect(listCampaigns({ project_id: 4, status: "draft", scheduled: true })).resolves.toEqual(payload);
     expect(mocked.get).toHaveBeenCalledWith("/campaigns", {
       params: { project_id: 4, status: "draft", scheduled: true },
+    });
+  });
+
+  it("normaliza horários HH:MM para HH:MM:SS na criação e atualização", async () => {
+    mocked.post.mockResolvedValue({ data: { id: 1 } });
+    mocked.put.mockResolvedValue({});
+    const delivery_windows = [
+      { starts_at: "10:00", ends_at: "18:00", is_active: true },
+      { starts_at: "11:00:00", ends_at: "19:00:00", is_active: true },
+    ];
+
+    await createCampaign({ project_id: 4, name: "Campanha", delivery_windows });
+    expect(mocked.post).toHaveBeenCalledWith("/campaigns", expect.objectContaining({
+      delivery_windows: [
+        { starts_at: "10:00:00", ends_at: "18:00:00", is_active: true },
+        { starts_at: "11:00:00", ends_at: "19:00:00", is_active: true },
+      ],
+    }), expect.any(Object));
+
+    await updateCampaign(1, { delivery_windows });
+    expect(mocked.put).toHaveBeenCalledWith("/campaigns/1", {
+      delivery_windows: [
+        { starts_at: "10:00:00", ends_at: "18:00:00", is_active: true },
+        { starts_at: "11:00:00", ends_at: "19:00:00", is_active: true },
+      ],
     });
   });
 });

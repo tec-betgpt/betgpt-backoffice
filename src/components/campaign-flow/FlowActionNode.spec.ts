@@ -43,6 +43,14 @@ describe("FlowActionNode", () => {
     const wrapper = mount(FlowActionNode, {
       props: {
         id: "email-1",
+        type: "send_email",
+        connectable: true,
+        position: { x: 0, y: 0 },
+        dimensions: { width: 270, height: 100 },
+        dragging: false,
+        resizing: false,
+        zIndex: 0,
+        events: {},
         selected: false,
         data: {
           nodeType: "send_email",
@@ -52,7 +60,10 @@ describe("FlowActionNode", () => {
           config: { message: "Legado" },
         },
       } as any,
-      global: { provide: { flowAssets: ref(summary) } },
+      global: {
+        provide: { flowAssets: ref(summary) },
+        stubs: { RouterLink: { template: "<a><slot /></a>" } },
+      },
     });
 
     expect(wrapper.find("textarea").exists()).toBe(false);

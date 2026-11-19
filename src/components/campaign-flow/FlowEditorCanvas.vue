@@ -140,6 +140,7 @@ const props = defineProps<{
   readonly?: boolean;
   saving?: boolean;
   stats?: Record<string, FlowNodeStats> | null;
+  openAddPanelOnMount?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -151,7 +152,7 @@ const nodes = ref<Node<FlowCanvasNodeData>[]>([]);
 const edges = ref<Edge[]>([]);
 const currentViewport = ref<FlowViewport | null>(null);
 const isGalleryOpen = ref(false);
-const isAddPanelOpen = ref(false);
+const isAddPanelOpen = ref(Boolean(props.openAddPanelOnMount && !props.readonly));
 const canvasWrapper = ref<HTMLElement | null>(null);
 const workspaceStore = useWorkspaceStore();
 const flowAssets = ref<MarketingAssetSummary | null>(null);

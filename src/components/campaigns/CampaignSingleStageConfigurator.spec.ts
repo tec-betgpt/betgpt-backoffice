@@ -77,7 +77,7 @@ describe("CampaignSingleStageConfigurator", () => {
     ]) {
       expect(wrapper.text()).toContain(text);
     }
-    expect(wrapper.get('[data-test="channels-step"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="channels-step"]').exists()).toBe(true);
     expect(wrapper.text()).toContain("Salvar e continuar");
   });
 
@@ -112,8 +112,7 @@ describe("CampaignSingleStageConfigurator", () => {
       },
     });
     const wrapper = mount(Parent, { global: { stubs } });
-    console.log(wrapper.html());
-    const repetition = wrapper.findAll("button").find((button) => button.text() === "Repetição");
+       const repetition = wrapper.findAll("button").find((button) => button.text() === "Repetição");
     await repetition!.trigger("click");
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.activeStep).toBe("recurrence_policy");

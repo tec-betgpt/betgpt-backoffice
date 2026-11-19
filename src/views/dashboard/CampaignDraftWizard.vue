@@ -219,6 +219,7 @@
               :readonly="isReadonly"
               :saving="isSaving"
               :stats="flowStats?.nodes || null"
+              :open-add-panel-on-mount="!campaignId"
               class="min-h-0 flex-1"
               @save="saveFlowAndContinue"
             />
@@ -353,7 +354,7 @@
           <CampaignSingleStageConfigurator
             v-model="formModel"
             v-model:active-step="activeStep"
-            v-model:step-loading="stepLoading"
+            :step-loading="stepLoading"
             :project-id="activeProjectId"
             :detected-links="detectedMessageLinks"
             :readonly="isReadonly"
@@ -1278,6 +1279,8 @@ async function loadFlowCatalog() {
 }
 
 function onTypeStepContinue() {
+  if (wizardMode.value === "select" && !form.name.trim()) return;
+
   if (wizardMode.value === "select") {
     wizardMode.value = form.type === "flow" ? "flow" : "broadcast";
     activeStep.value = form.type === "flow" ? "flow_editor" : "message";
@@ -1776,15 +1779,15 @@ async function onSingleStageSaveContinue(next: string | null) {
   }
 }
 
-function sectionErrors(stepKey: StepKey) {
+function sectionErrors(stepKey: string) {
   return mergeMessages(activeSteps.value.find((step) => step.key === stepKey)?.sectionKeys || [], validationErrors.value);
 }
 
-function sectionWarnings(stepKey: StepKey) {
+function sectionWarnings(stepKey: string) {
   return mergeMessages(activeSteps.value.find((step) => step.key === stepKey)?.sectionKeys || [], validationWarnings.value);
 }
 
-function mergeMessages(sectionKeys: string[], source: Record<string, { field: string; message: string }[]>) {
+function mergeMessages(sectionKeys: string[], source: Record<string, CampaignValidationItem[]>): CampaignValidationItem[] {
   return sectionKeys.flatMap((key) => source[key] || []);
 }
 

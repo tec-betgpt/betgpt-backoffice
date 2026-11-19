@@ -78,7 +78,7 @@ describe("campaignChannels", () => {
     await flushPromises();
 
     const sms = wrapper.findAll("button").find((button) => button.text() === "SMS");
-    const email = wrapper.findAll("button").find((button) => button.text() === "E-mail");
+    const email = wrapper.findAll("button").find((button) => button.text() === "Email");
     expect(sms).toBeTruthy();
     expect(email).toBeTruthy();
     await sms!.trigger("click");
@@ -88,6 +88,8 @@ describe("campaignChannels", () => {
     expect(wrapper.vm.messages).toHaveLength(2);
     expect(wrapper.vm.messages.map((message) => message.channel)).toEqual(["sms", "email"]);
     expect(wrapper.text()).toContain("Canais");
-    expect(wrapper.text()).toContain("Conteúdo inline legado");
+    expect(wrapper.text()).toContain("conteúdo inline legado");
+    expect(wrapper.text()).toContain("Web Push");
+    expect(wrapper.text()).toContain("OnSite");
   });
 });

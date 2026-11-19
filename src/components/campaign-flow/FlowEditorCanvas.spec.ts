@@ -51,9 +51,9 @@ function config(nodes: any[] = []) {
   };
 }
 
-async function mountCanvas(nodes: any[] = []) {
+async function mountCanvas(nodes: any[] = [], openAddPanelOnMount = false) {
   const wrapper = mount(FlowEditorCanvas, {
-    props: { modelValue: config(nodes), catalog: [], templates: [] },
+    props: { modelValue: config(nodes), catalog: [], templates: [], openAddPanelOnMount },
     global: { stubs },
   });
   await flushPromises();
@@ -77,6 +77,12 @@ describe("FlowEditorCanvas catalog", () => {
   it("não abre diálogos em um fluxo vazio", async () => {
     const wrapper = await mountCanvas();
     expect(wrapper.get('[data-test="catalog"]').attributes("data-open")).toBe("false");
+    expect(wrapper.get('[data-test="gallery"]').attributes("data-open")).toBe("false");
+  });
+
+  it("abre o catálogo na primeira entrada de um novo fluxo", async () => {
+    const wrapper = await mountCanvas([], true);
+    expect(wrapper.get('[data-test="catalog"]').attributes("data-open")).toBe("true");
     expect(wrapper.get('[data-test="gallery"]').attributes("data-open")).toBe("false");
   });
 

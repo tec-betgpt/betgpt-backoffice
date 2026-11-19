@@ -182,7 +182,7 @@ import CampaignSingleStageStep from "./CampaignSingleStageStep.vue";
 import CampaignValidationList from "./CampaignValidationList.vue";
 import CampaignWarmupStep from "./CampaignWarmupStep.vue";
 import type {
-  CampaignAnyEstimateResponse,
+  CampaignEstimateResponse,
   CampaignFormState,
   CampaignValidationItem,
   CampaignValidationResponse,
@@ -191,13 +191,14 @@ import type {
 const props = defineProps<{
   projectId: number | null;
   detectedLinks: string[];
+  stepLoading: Record<string, boolean>;
   readonly?: boolean;
   isSaving?: boolean;
   sectionErrors: (step: string) => CampaignValidationItem[];
   sectionWarnings: (step: string) => CampaignValidationItem[];
   allErrors: CampaignValidationItem[];
   allWarnings: CampaignValidationItem[];
-  estimate: CampaignAnyEstimateResponse | null;
+  estimate: CampaignEstimateResponse | null;
   isEstimating?: boolean;
   estimateErrorMessage?: string;
   campaignId: number | null;
@@ -208,7 +209,7 @@ const props = defineProps<{
 
 const model = defineModel<CampaignFormState>({ required: true });
 const activeStep = defineModel<string>("activeStep", { required: true });
-const stepLoading = defineModel<Record<string, boolean>>("stepLoading", { required: true });
+const stepLoading = computed(() => props.stepLoading);
 const emit = defineEmits<{
   (event: "channels-change"): void;
   (event: "save-continue", next: string | null): void;

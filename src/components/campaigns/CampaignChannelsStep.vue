@@ -19,23 +19,18 @@
         @click="toggleChannel(option.value)"
       >
         <component :is="channelIcon(option.value)" class="size-8" stroke-width="1.8" />
-        {{ option.label }}
+        {{ channelLabel(option.value) }}
         <Check v-if="isSelected(option.value)" class="absolute right-2 top-2 size-4" />
       </button>
     </div>
 
     <Alert v-if="summaryError" variant="destructive"><AlertDescription>{{ summaryError }}</AlertDescription></Alert>
-    <Alert v-if="selectedChannels.length === 0">
-      <AlertDescription>Selecione ao menos um canal para configurar as mensagens.</AlertDescription>
-    </Alert>
-
-    <Card v-for="channel in selectedChannels" :key="channel" class="overflow-hidden">
+       <Card v-for="channel in selectedChannels" :key="channel" class="overflow-hidden">
       <CardHeader class="pb-4">
         <div class="flex items-center gap-2">
           <component :is="channelIcon(channel)" class="size-5 text-muted-foreground" />
           <CardTitle class="text-base">{{ channelLabel(channel) }}</CardTitle>
           <Badge v-if="messageFor(channel)?.asset_id" variant="secondary">Asset</Badge>
-          <Badge v-else variant="outline">Conteúdo inline legado</Badge>
         </div>
       </CardHeader>
       <CardContent class="space-y-4">
