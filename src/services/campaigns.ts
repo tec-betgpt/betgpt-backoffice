@@ -1,5 +1,6 @@
 import api from "./base.js";
 import { postWithIdempotency } from "./idempotency";
+import { normalizeCampaignDeliveryWindows } from "./campaignPayload";
 import campaignExecutionService from "@/services/campaignExecution";
 import type {
   CampaignAnyEstimateResponse,
@@ -10,6 +11,8 @@ import type {
   CampaignListParams,
   CampaignListResponse,
   CampaignStorePayload,
+  CampaignSummaryPeriod,
+  CampaignSummaryResponse,
   CampaignUpdatePayload,
   CampaignValidationResponse,
 } from "@/contracts/campaigns";
@@ -42,7 +45,10 @@ export async function listCampaigns(params: CampaignListParams = {}): Promise<Ca
 }
 
 export async function createCampaign(payload: CampaignStorePayload): Promise<CampaignDetail> {
-  const data = await postWithIdempotency<CampaignDetail | CampaignApiResponse<CampaignDetail>>("/campaigns", payload);
+  const data = await postWithIdempotency<CampaignDetail | CampaignApiResponse<CampaignDetail>>(
+    "/campaigns",
+    normalizeCampaignDeliveryWindows(payload),
+  );
   return unwrapResponse(data);
 }
 
@@ -52,7 +58,7 @@ export async function getCampaign(id: number): Promise<CampaignDetail> {
 }
 
 export async function updateCampaign(id: number, payload: CampaignUpdatePayload): Promise<void> {
-  await api.put(`/campaigns/${id}`, payload);
+  await api.put(`/campaigns/${id}`, normalizeCampaignDeliveryWindows(payload));
 }
 
 export async function deleteCampaign(id: number): Promise<void> {
@@ -94,6 +100,17 @@ export async function resumeCampaign(id: number): Promise<CampaignDetail> {
 export async function cancelCampaign(id: number): Promise<CampaignDetail> {
   await campaignExecutionService.cancel(id);
   return getCampaign(id);
+}
+
+export async function getCampaignSummary(
+  projectId: number,
+  period: CampaignSummaryPeriod = "30d",
+): Promise<CampaignSummaryResponse> {
+  const { data } = await api.get<CampaignSummaryResponse | CampaignApiResponse<CampaignSummaryResponse>>(
+    "/campaigns/summary",
+    { params: { project_id: projectId, period } },
+  );
+  return unwrapResponse(data);
 }
 
 export async function getCampaignDispatches(id: number): Promise<CampaignDispatchesResponse> {
@@ -150,6 +167,7 @@ export default {
   resumeCampaign,
   cancelCampaign,
   getCampaignDispatches,
+  getCampaignSummary,
   getCampaignConversions,
   getFlowCatalog,
   getFlowStats,

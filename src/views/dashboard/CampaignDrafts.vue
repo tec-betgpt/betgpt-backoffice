@@ -2,17 +2,57 @@
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div>
-        <h2 class="text-2xl font-bold tracking-tight">Campaign Builder</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Campanhas</h2>
         <p class="text-muted-foreground">
-          Liste campanhas draft e configuradas, continue a edição e remova rascunhos quando necessário.
+          Acompanhe os KPIs do projeto, filtre por status e acesse o monitor de cada campanha.
         </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
         <Button variant="outline" :disabled="isLoading" @click="fetchCampaigns(1)">Atualizar</Button>
-        <Button @click="router.push({ name: 'campaign-drafts.create' })">Nova campanha</Button>
+        <Button @click="router.push({ name: 'campaign-drafts.create' })">Criar nova campanha</Button>
       </div>
     </div>
+
+    <section class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 class="text-lg font-semibold">Resumo do projeto</h3>
+          <p class="text-sm text-muted-foreground">Métricas de campanhas e comparativo com o período anterior.</p>
+        </div>
+        <Select v-model="summaryPeriod">
+          <SelectTrigger class="w-48"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="today">Hoje</SelectItem>
+            <SelectItem value="7d">Últimos 7 dias</SelectItem>
+            <SelectItem value="30d">Últimos 30 dias</SelectItem>
+            <SelectItem value="90d">Últimos 90 dias</SelectItem>
+            <SelectItem value="all">Todo o período</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Alert v-if="summaryError" variant="destructive"><AlertDescription>{{ summaryError }}</AlertDescription></Alert>
+      <div v-if="summary" class="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+        <Card v-for="metric in kpiCards" :key="metric.key">
+          <CardHeader class="pb-2">
+            <CardDescription>{{ metric.label }}</CardDescription>
+            <CardTitle class="text-2xl">{{ formatKpiValue(metric.key, metric.value) }}</CardTitle>
+          </CardHeader>
+          <CardContent><p class="text-xs text-muted-foreground">{{ formatComparison(metric) }}</p></CardContent>
+        </Card>
+      </div>
+      <p v-if="isSummaryLoading" class="text-xs text-muted-foreground">Atualizando métricas...</p>
+    </section>
+
+    <Tabs :model-value="activeStatusTab" @update:modelValue="applyStatusTab">
+      <TabsList class="flex w-full justify-start overflow-x-auto">
+        <TabsTrigger v-for="tab in statusTabs" :key="tab.key" :value="tab.key" class="gap-2">
+          {{ tab.label }}
+          <Badge variant="secondary">{{ statusCount(tab.key) }}</Badge>
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
 
     <Alert v-if="errorMessage" variant="destructive">
       <AlertTitle>Falha ao carregar campanhas</AlertTitle>
@@ -72,7 +112,12 @@
 
           <div class="space-y-2 xl:col-span-2">
             <Label>Busca</Label>
-            <Input v-model="filters.search" placeholder="Buscar por nome ou descrição" @keydown.enter="fetchCampaigns(1)" />
+            <Input
+              :model-value="filters.search ?? ''"
+              placeholder="Buscar por nome ou descrição"
+              @update:modelValue="filters.search = $event === '' ? null : String($event)"
+              @keydown.enter="fetchCampaigns(1)"
+            />
           </div>
         </div>
 
@@ -95,7 +140,7 @@
           <p class="mt-2 text-sm text-muted-foreground">
             Ajuste os filtros ou crie um novo draft para começar o builder.
           </p>
-          <Button class="mt-4" @click="router.push({ name: 'campaign-drafts.create' })">Nova campanha</Button>
+          <Button class="mt-4" @click="router.push({ name: 'campaign-drafts.create' })">Criar nova campanha</Button>
         </div>
       </CardContent>
     </Card>
@@ -158,11 +203,11 @@
                 <TableCell v-if="campaignsColumnVisibility.actions !== false">
                   <div class="flex justify-end gap-2">
                     <Button
-                      v-if="item.status !== 'draft' && item.status !== 'validation_failed'"
+                      variant="outline"
                       size="sm"
                       @click="openCampaignDetail(item)"
                     >
-                      Disparos
+                      Monitor
                     </Button>
                     <Button variant="outline" size="sm" @click="openCampaign(item)">
                       {{ item.status === "draft" ? "Editar" : "Abrir" }}
@@ -228,7 +273,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { Input } from "@/components/ui/input";
@@ -248,6 +293,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "vue-sonner";
 import {
   CAMPAIGN_CHANNEL_OPTIONS,
@@ -255,13 +301,23 @@ import {
   CAMPAIGN_STATUS_OPTIONS,
   CAMPAIGN_TYPE_LABELS,
   CAMPAIGN_TYPE_OPTIONS,
+  type CampaignChannel,
+  type CampaignKpiComparison,
   type CampaignListItem,
   type CampaignListParams,
   type CampaignStatus,
+  type CampaignSummaryPeriod,
+  type CampaignSummaryResponse,
   type CampaignType,
   type CampaignUserSummary,
 } from "@/contracts/campaigns";
-import { deleteCampaign, listCampaigns } from "@/services/campaigns";
+import { deleteCampaign, getCampaignSummary, listCampaigns } from "@/services/campaigns";
+import {
+  CAMPAIGN_LIST_TABS,
+  campaignTabFilters,
+  campaignTabFromFilters,
+  type CampaignListTab,
+} from "@/components/campaigns/campaignList";
 import { useWorkspaceStore } from "@/stores/workspace";
 
 const router = useRouter();
@@ -274,6 +330,11 @@ const isDeleting = ref(false);
 const errorMessage = ref("");
 const isDeleteDialogOpen = ref(false);
 const selectedCampaign = ref<CampaignListItem | null>(null);
+const summary = ref<CampaignSummaryResponse | null>(null);
+const summaryPeriod = ref<CampaignSummaryPeriod>("30d");
+const isSummaryLoading = ref(false);
+const summaryError = ref("");
+const statusTabs = CAMPAIGN_LIST_TABS;
 
 const campaignsColumns = [
   { id: "campaign", label: "Campanha" },
@@ -288,13 +349,14 @@ const visibleCampaignsColumns = computed(() =>
   campaignsColumns.filter((c) => campaignsColumnVisibility.value[c.id] !== false)
 );
 
-const filters = reactive<CampaignListParams & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: "sms" | "email" | typeof SELECT_ALL_VALUE | null; type: CampaignType | typeof SELECT_ALL_VALUE | null }>({
+const filters = reactive<Omit<CampaignListParams, "status" | "channel" | "type"> & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: CampaignChannel | typeof SELECT_ALL_VALUE | null; type: CampaignType | typeof SELECT_ALL_VALUE | null }>({
   filter_id: null,
   project_id: null,
   status: SELECT_ALL_VALUE,
   channel: SELECT_ALL_VALUE,
   type: SELECT_ALL_VALUE,
-  search: null,
+  scheduled: null,
+  search: "",
   per_page: 10,
   page: 1,
 });
@@ -313,15 +375,37 @@ const activeProjectId = computed(() => {
 const activeProjectLabel = computed(
   () => workspaceStore.activeGroupProject?.name || "Nenhum projeto ativo selecionado",
 );
+const activeStatusTab = computed(() => campaignTabFromFilters({
+  status: filters.status === SELECT_ALL_VALUE ? null : filters.status,
+  type: filters.type === SELECT_ALL_VALUE ? null : filters.type,
+  scheduled: filters.scheduled,
+}));
+const kpiCards = computed(() => {
+  if (!summary.value) return [];
+  const definitions = [
+    { key: "active_campaigns", label: "Campanhas ativas" },
+    { key: "sends", label: "Envios" },
+    { key: "opens", label: "Aberturas" },
+    { key: "clicks", label: "Cliques" },
+    { key: "conversions", label: "Conversões" },
+    { key: "conversion_rate", label: "Taxa de conversão" },
+  ] as const;
+  return definitions.map((definition) => ({
+    ...definition,
+    ...summary.value!.kpis[definition.key],
+  }));
+});
 
 watch(
   activeProjectId,
   async (projectId) => {
     filters.project_id = projectId;
-    await fetchCampaigns(1);
+    await Promise.all([fetchCampaigns(1), fetchSummary()]);
   },
   { immediate: true },
 );
+
+watch(summaryPeriod, () => fetchSummary());
 
 onMounted(async () => {
   if (!activeProjectId.value) {
@@ -351,12 +435,42 @@ async function fetchCampaigns(page = 1) {
   }
 }
 
+async function fetchSummary() {
+  if (!activeProjectId.value) {
+    summary.value = null;
+    return;
+  }
+  isSummaryLoading.value = true;
+  summaryError.value = "";
+  try {
+    summary.value = await getCampaignSummary(activeProjectId.value, summaryPeriod.value);
+  } catch (error) {
+    summaryError.value = getHttpMessage(error, "Não foi possível carregar os KPIs do projeto.");
+  } finally {
+    isSummaryLoading.value = false;
+  }
+}
+
+function applyStatusTab(value: unknown) {
+  const tab = statusTabs.find((item) => item.key === value)?.key || "all";
+  const next = campaignTabFilters(tab);
+  filters.status = next.status || SELECT_ALL_VALUE;
+  filters.type = next.type || SELECT_ALL_VALUE;
+  filters.scheduled = next.scheduled;
+  fetchCampaigns(1);
+}
+
+function statusCount(tab: CampaignListTab) {
+  return summary.value?.status_counts[tab] ?? 0;
+}
+
 function sanitizeFilters(): CampaignListParams {
   return {
     project_id: filters.project_id,
     status: filters.status === SELECT_ALL_VALUE ? null : filters.status,
     channel: filters.channel === SELECT_ALL_VALUE ? null : filters.channel,
     type: filters.type === SELECT_ALL_VALUE ? null : filters.type,
+    scheduled: filters.scheduled || null,
     search: filters.search?.trim() || null,
     per_page: filters.per_page || 10,
     page: filters.page || 1,
@@ -367,7 +481,8 @@ function resetFilters() {
   filters.status = SELECT_ALL_VALUE;
   filters.channel = SELECT_ALL_VALUE;
   filters.type = SELECT_ALL_VALUE;
-  filters.search = null;
+  filters.scheduled = null;
+  filters.search = "";
   filters.page = 1;
   fetchCampaigns(1);
 }
@@ -405,12 +520,24 @@ async function confirmDelete() {
 
     const nextPage =
       campaigns.value.length === 1 && pages.current > 1 ? pages.current - 1 : pages.current;
-    await fetchCampaigns(nextPage);
+    await Promise.all([fetchCampaigns(nextPage), fetchSummary()]);
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível excluir a campanha.");
   } finally {
     isDeleting.value = false;
   }
+}
+
+function formatKpiValue(key: keyof CampaignSummaryResponse["kpis"], value: number) {
+  const formatted = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(value);
+  return key === "conversion_rate" ? `${formatted}%` : formatted;
+}
+
+function formatComparison(metric: CampaignKpiComparison) {
+  if (metric.previous === null) return "Sem período anterior";
+  if (metric.change_percent === null) return "Novo no período";
+  const signal = metric.change_percent > 0 ? "+" : "";
+  return `${signal}${metric.change_percent}% vs período anterior`;
 }
 
 function formatDateTime(value: string | null) {

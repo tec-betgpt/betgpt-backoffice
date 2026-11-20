@@ -1,7 +1,8 @@
 import type { CampaignFlowConfig } from "@/contracts/campaignFlow";
+import { MARKETING_CHANNEL_OPTIONS, type MarketingChannel } from "@/contracts/marketingAssets";
 
 export type CampaignType = "broadcast" | "flow";
-export type CampaignChannel = "sms" | "email";
+export type CampaignChannel = MarketingChannel;
 
 export type CampaignStatus =
   | "draft"
@@ -26,6 +27,7 @@ export type CampaignMetadata = Record<string, unknown>;
 
 export type CampaignMessageLike = {
   field: string;
+  step?: string;
   message: string;
 };
 
@@ -120,6 +122,9 @@ export type CampaignSingleStageConfigPayload = {
 };
 
 export type CampaignMessagePayload = {
+  id?: number;
+  asset_id?: number | null;
+  asset?: { id: number; name: string } | null;
   channel?: CampaignChannel;
   locale?: string | null;
   subject?: string | null;
@@ -208,6 +213,7 @@ export type CampaignListParams = {
   status?: CampaignStatus | null;
   channel?: CampaignChannel | null;
   type?: CampaignType | null;
+  scheduled?: boolean | null;
   search?: string | null;
   per_page?: number | null;
   page?: number | null;
@@ -580,6 +586,7 @@ export type CampaignFormState = {
   single_stage_config: CampaignSingleStageConfigPayload;
   flow_config: CampaignFlowConfig | null;
   message: CampaignMessagePayload;
+  messages: CampaignMessagePayload[];
   links: CampaignLinkPayload[];
   schedule: CampaignSchedulePayload;
   delivery_windows: CampaignDeliveryWindowPayload[];
@@ -607,10 +614,7 @@ export const CAMPAIGN_STATUS_OPTIONS = Object.entries(CAMPAIGN_STATUS_LABELS).ma
   }),
 );
 
-export const CAMPAIGN_CHANNEL_OPTIONS = [
-  { label: "SMS", value: "sms" as CampaignChannel },
-  { label: "E-mail", value: "email" as CampaignChannel },
-];
+export const CAMPAIGN_CHANNEL_OPTIONS = MARKETING_CHANNEL_OPTIONS;
 
 export const CAMPAIGN_TYPE_LABELS: Record<CampaignType, string> = {
   broadcast: "Estágio único",
@@ -635,6 +639,29 @@ export const CAMPAIGN_CHECKLIST_STATUS_LABELS = {
   warning: "Alerta",
   invalid: "Inválido",
 } as const;
+
+export type CampaignSummaryPeriod = "today" | "7d" | "30d" | "90d" | "all";
+
+export type CampaignKpiComparison = {
+  value: number;
+  previous: number | null;
+  change_percent: number | null;
+};
+
+export type CampaignSummaryResponse = {
+  period: {
+    key: CampaignSummaryPeriod;
+    start: string | null;
+    end: string | null;
+    previous_start: string | null;
+    previous_end: string | null;
+  };
+  kpis: Record<
+    "active_campaigns" | "sends" | "opens" | "clicks" | "conversions" | "conversion_rate",
+    CampaignKpiComparison
+  >;
+  status_counts: Record<"all" | "running" | "flow" | "scheduled" | "paused" | "draft", number>;
+};
 
 export const CAMPAIGN_DAY_OPTIONS = [
   { label: "Domingo", value: 0 },

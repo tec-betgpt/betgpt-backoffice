@@ -55,7 +55,7 @@
       <Button v-if="onSave" variant="outline" :disabled="readonly || loading" @click="onSave">
         {{ loading ? "Salvando..." : "Salvar etapa" }}
       </Button>
-      <Button :disabled="!selectedType || readonly || loading" @click="emit('continue')">
+      <Button :disabled="!canContinue" @click="emit('continue')">
         Próxima etapa
         <ArrowRight class="ml-2 size-4" />
       </Button>
@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { ArrowLeft, ArrowRight, GitFork, Send } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,6 +94,9 @@ const emit = defineEmits<{
 const model = defineModel<CampaignFormState>({ required: true });
 
 const selectedType = ref<CampaignType | null>(props.initialSelected ?? null);
+const canContinue = computed(() => Boolean(
+  model.value.name.trim() && selectedType.value && !props.readonly && !props.loading,
+));
 
 const typeOptions: { value: CampaignType; label: string; description: string; icon: typeof Send }[] = [
   {

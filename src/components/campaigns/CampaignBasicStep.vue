@@ -3,7 +3,7 @@
     <div>
       <h3 class="text-lg font-semibold">Dados básicos</h3>
       <p class="text-sm text-muted-foreground">
-        Defina a identidade da campanha. O canal escolhido determina se o disparo será via SMS Funnel ou e-mail (SMTP Elevate).
+        Defina a identidade da campanha. Os canais e seus assets serão selecionados na etapa Canais.
       </p>
     </div>
 
@@ -18,21 +18,9 @@
         <Label>Descrição</Label>
         <Textarea v-model="model.description" :disabled="readonly" placeholder="Contexto interno do rascunho" />
       </div>
-      <div class="space-y-2">
+      <div class="space-y-2 md:col-span-2">
         <Label>Tipo</Label>
         <Input v-model="model.type" disabled />
-      </div>
-      <div class="space-y-2">
-        <Label>Canal</Label>
-        <select
-          v-model="model.channel"
-          :disabled="readonly"
-          class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-          @change="onChannelChange"
-        >
-          <option value="sms">SMS</option>
-          <option value="email">E-mail</option>
-        </select>
       </div>
     </div>
 
@@ -59,11 +47,4 @@ const props = defineProps<{
 }>();
 
 const model = defineModel<CampaignFormState>({ required: true });
-const emit = defineEmits<{
-  (e: "channel-change", channel: "sms" | "email"): void;
-}>();
-
-function onChannelChange() {
-  emit("channel-change", model.value.channel);
-}
 </script>
