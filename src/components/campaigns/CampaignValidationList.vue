@@ -9,7 +9,7 @@
           </button>
           <ul class="mt-1 list-disc space-y-1 pl-4">
             <li v-for="item in group.items" :key="`${item.field}-${item.message}`">
-              <strong>{{ item.field }}:</strong> {{ item.message }}
+              <strong>{{ campaignValidationFieldLabel(item.field) }}:</strong> {{ item.message }}
             </li>
           </ul>
         </div>
@@ -25,7 +25,7 @@
           </button>
           <ul class="mt-1 list-disc space-y-1 pl-4">
             <li v-for="item in group.items" :key="`${item.field}-${item.message}`">
-              <strong>{{ item.field }}:</strong> {{ item.message }}
+              <strong>{{ campaignValidationFieldLabel(item.field) }}:</strong> {{ item.message }}
             </li>
           </ul>
         </div>
@@ -38,7 +38,7 @@
 import { computed, inject } from "vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { CampaignValidationItem } from "@/contracts/campaigns";
-import { groupCampaignValidationItems } from "./campaignValidation";
+import { campaignValidationFieldLabel, groupCampaignValidationItems } from "./campaignValidation";
 
 const props = withDefaults(
   defineProps<{

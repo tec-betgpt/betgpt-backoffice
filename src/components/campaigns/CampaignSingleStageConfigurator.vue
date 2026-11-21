@@ -6,7 +6,7 @@
         Tipo de campanha
       </li>
       <li class="flex flex-col items-center gap-1 text-sm font-medium">
-        <span :class="topStep === 2 ? 'bg-primary text-primary-foreground' : 'bg-primary text-primary-foreground'" class="flex size-9 items-center justify-center rounded-full">2</span>
+        <span class="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">2</span>
         Configurar
       </li>
       <li class="flex flex-col items-center gap-1 text-sm font-medium" :class="topStep === 3 ? '' : 'text-muted-foreground'">
@@ -22,59 +22,36 @@
       </div>
 
       <Tabs v-model="configurationTab">
-        <TabsList class="flex w-full justify-start rounded-lg bg-muted p-1">
+        <TabsList class="flex w-full justify-start overflow-x-auto rounded-lg bg-muted p-1">
           <TabsTrigger value="channels" @click="changeTab('channels')">Canais</TabsTrigger>
           <TabsTrigger value="repetition" @click="changeTab('repetition')">Repetição</TabsTrigger>
           <TabsTrigger value="days" @click="changeTab('days')">Dias</TabsTrigger>
           <TabsTrigger value="segment" @click="changeTab('segment')">Segmento</TabsTrigger>
           <TabsTrigger value="schedule" @click="changeTab('schedule')">Agendar</TabsTrigger>
-          <TabsTrigger value="spins" @click="changeTab('spins')">Giros</TabsTrigger>
-          <TabsTrigger value="promotions" @click="changeTab('promotions')">Promoções</TabsTrigger>
+          <TabsTrigger value="warmup" @click="changeTab('warmup')">Warmup</TabsTrigger>
         </TabsList>
 
         <Card class="mt-5 rounded-xl border shadow-sm">
           <CardContent class="pt-6">
-            <template v-if="configurationTab === 'channels'">
-              <CampaignChannelsStep
-                v-model="model.messages"
-                :project-id="projectId"
-                :errors="sectionErrors('message')"
-                :warnings="sectionWarnings('message')"
-                :loading="stepLoading.message"
-                :readonly="readonly"
-                @change="emit('channels-change')"
-              />
-              <div class="mt-6 border-t pt-6">
-                <CampaignLinksStep
-                  v-model="model.links"
-                  :detected-links="detectedLinks"
-                  :errors="sectionErrors('links')"
-                  :warnings="sectionWarnings('links')"
-                  :loading="stepLoading.links"
-                  :readonly="readonly"
-                />
-              </div>
-            </template>
+            <CampaignChannelsStep
+              v-if="configurationTab === 'channels'"
+              v-model="model.messages"
+              :project-id="projectId"
+              :errors="sectionErrors('message')"
+              :warnings="sectionWarnings('message')"
+              :loading="stepLoading.message"
+              :readonly="readonly"
+              @change="emit('channels-change')"
+            />
 
-            <template v-else-if="configurationTab === 'repetition'">
-              <CampaignRecurrenceStep
-                v-model="model.recurrence_policy"
-                :errors="sectionErrors('recurrence_policy')"
-                :warnings="sectionWarnings('recurrence_policy')"
-                :loading="stepLoading.recurrence_policy"
-                :readonly="readonly"
-                :is-applicable="model.schedule.schedule_type === 'recurring'"
-              />
-              <div class="mt-6 border-t pt-6">
-                <CampaignWarmupStep
-                  v-model="model.warmup_policy"
-                  :errors="sectionErrors('warmup_policy')"
-                  :warnings="sectionWarnings('warmup_policy')"
-                  :loading="stepLoading.warmup_policy"
-                  :readonly="readonly"
-                />
-              </div>
-            </template>
+            <CampaignRecurrenceStep
+              v-else-if="configurationTab === 'repetition'"
+              v-model="model.recurrence_policy"
+              :errors="sectionErrors('recurrence_policy')"
+              :warnings="sectionWarnings('recurrence_policy')"
+              :loading="stepLoading.recurrence_policy"
+              :readonly="readonly"
+            />
 
             <CampaignDeliveryWindowsStep
               v-else-if="configurationTab === 'days'"
@@ -114,12 +91,14 @@
               </div>
             </template>
 
-            <div v-else class="rounded-lg border border-dashed p-8 text-center">
-              <h3 class="font-semibold">{{ configurationTab === 'spins' ? 'Giros' : 'Promoções' }}</h3>
-              <p class="mt-2 text-sm text-muted-foreground">
-                Este recurso é específico do DeltaCRM e não está disponível nesta versão da campanha.
-              </p>
-            </div>
+            <CampaignWarmupStep
+              v-else-if="configurationTab === 'warmup'"
+              v-model="model.warmup_policy"
+              :errors="sectionErrors('warmup_policy')"
+              :warnings="sectionWarnings('warmup_policy')"
+              :loading="stepLoading.warmup_policy"
+              :readonly="readonly"
+            />
           </CardContent>
         </Card>
       </Tabs>
@@ -137,6 +116,9 @@
         <Lightbulb class="size-5 text-muted-foreground" />
         <h2 class="text-xl font-bold tracking-tight">Finalizar campanha</h2>
       </div>
+      <p class="text-sm text-muted-foreground">
+        Revise o resumo e resolva os itens pendentes antes de validar a configuração.
+      </p>
       <CampaignValidationList :errors="allErrors" :warnings="allWarnings" />
       <div class="grid gap-4 xl:grid-cols-2">
         <CampaignEstimatePanel
@@ -153,7 +135,7 @@
         />
       </div>
       <div class="flex justify-end gap-2">
-        <Button variant="outline" @click="activeStep = 'schedule'">Voltar</Button>
+        <Button variant="outline" @click="activeStep = 'warmup_policy'">Voltar</Button>
         <Button variant="outline" :disabled="readonly || isSaving" @click="emit('save-continue', null)">
           {{ isSaving ? "Salvando..." : "Salvar" }}
         </Button>
@@ -166,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, watch } from "vue";
 import { Check, Lightbulb, Save } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -176,12 +158,12 @@ import CampaignChannelsStep from "./CampaignChannelsStep.vue";
 import CampaignChecklistPanel from "./CampaignChecklistPanel.vue";
 import CampaignDeliveryWindowsStep from "./CampaignDeliveryWindowsStep.vue";
 import CampaignEstimatePanel from "./CampaignEstimatePanel.vue";
-import CampaignLinksStep from "./CampaignLinksStep.vue";
 import CampaignRecurrenceStep from "./CampaignRecurrenceStep.vue";
 import CampaignScheduleStep from "./CampaignScheduleStep.vue";
 import CampaignSingleStageStep from "./CampaignSingleStageStep.vue";
 import CampaignValidationList from "./CampaignValidationList.vue";
 import CampaignWarmupStep from "./CampaignWarmupStep.vue";
+import { deriveCampaignScheduleType } from "@/services/campaignPayload";
 import type {
   CampaignEstimateResponse,
   CampaignFormState,
@@ -191,7 +173,6 @@ import type {
 
 const props = defineProps<{
   projectId: number | null;
-  detectedLinks: string[];
   stepLoading: Record<string, boolean>;
   readonly?: boolean;
   isSaving?: boolean;
@@ -217,7 +198,6 @@ const emit = defineEmits<{
   (event: "validate"): void;
 }>();
 
-const localTab = ref<string | null>(null);
 const readonly = computed(() => Boolean(props.readonly));
 const isSaving = computed(() => Boolean(props.isSaving));
 const isEstimating = computed(() => Boolean(props.isEstimating));
@@ -232,50 +212,53 @@ const estimateErrorMessage = computed(() => props.estimateErrorMessage);
 const validation = computed(() => props.validation);
 const onRefreshEstimate = computed(() => props.onRefreshEstimate);
 
-const topStep = computed(() => activeStep.value === "warmup_policy" ? 3 : 2);
+const topStep = computed(() => activeStep.value === "review" ? 3 : 2);
 const configurationTab = computed({
   get: () => {
-    if (localTab.value === "spins" || localTab.value === "promotions") return localTab.value;
     if (activeStep.value === "audience") return "segment";
     if (activeStep.value === "schedule" || activeStep.value === "basic") return "schedule";
     if (activeStep.value === "delivery_windows") return "days";
     if (activeStep.value === "recurrence_policy") return "repetition";
+    if (activeStep.value === "warmup_policy") return "warmup";
     return "channels";
   },
   set: changeTab,
 });
 
-watch(activeStep, () => {
-  if (activeStep.value !== "recurrence_policy") localTab.value = null;
-});
+watch(
+  () => model.value.recurrence_policy.is_enabled,
+  () => {
+    model.value.schedule.schedule_type = deriveCampaignScheduleType(
+      model.value.schedule,
+      model.value.recurrence_policy,
+    );
+  },
+  { immediate: true },
+);
 
 function changeTab(value: unknown) {
-  const tab = String(value);
-  if (tab === "spins" || tab === "promotions") {
-    localTab.value = tab;
-    return;
-  }
-  localTab.value = null;
   const stepByTab: Record<string, string> = {
     channels: "message",
     repetition: "recurrence_policy",
     days: "delivery_windows",
     segment: "audience",
     schedule: "schedule",
+    warmup: "warmup_policy",
   };
-  if (stepByTab[tab]) activeStep.value = stepByTab[tab];
+  const step = stepByTab[String(value)];
+  if (step) activeStep.value = step;
 }
 
 function saveContinue() {
   const nextByStep: Record<string, string | null> = {
-    basic: "warmup_policy",
+    basic: "schedule",
     audience: "schedule",
     message: "recurrence_policy",
     links: "recurrence_policy",
     schedule: "warmup_policy",
     delivery_windows: "audience",
     recurrence_policy: "delivery_windows",
-    warmup_policy: null,
+    warmup_policy: "review",
   };
   emit("save-continue", nextByStep[activeStep.value] ?? null);
 }

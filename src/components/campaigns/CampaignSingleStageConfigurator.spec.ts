@@ -1,20 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
-import { defineComponent, ref } from "vue";
+import { defineComponent, nextTick, reactive, ref } from "vue";
 import CampaignSingleStageConfigurator from "./CampaignSingleStageConfigurator.vue";
 import type { CampaignFormState } from "@/contracts/campaigns";
 
 const stubs = {
   CampaignChannelsStep: { template: '<div data-test="channels-step" />' },
-  CampaignLinksStep: { template: "<div />" },
-  CampaignRecurrenceStep: { template: "<div />" },
-  CampaignWarmupStep: { template: "<div />" },
-  CampaignDeliveryWindowsStep: { template: "<div />" },
-  CampaignSingleStageStep: { template: "<div />" },
-  CampaignBasicStep: { template: "<div />" },
-  CampaignScheduleStep: { template: "<div />" },
-  CampaignEstimatePanel: { template: "<div />" },
-  CampaignChecklistPanel: { template: "<div />" },
+  CampaignRecurrenceStep: { template: '<div data-test="recurrence-step" />' },
+  CampaignWarmupStep: { template: '<div data-test="warmup-step" />' },
+  CampaignDeliveryWindowsStep: { template: '<div data-test="days-step" />' },
+  CampaignSingleStageStep: { template: '<div data-test="segment-step" />' },
+  CampaignBasicStep: { template: '<div data-test="basic-step" />' },
+  CampaignScheduleStep: { template: '<div data-test="schedule-step" />' },
+  CampaignEstimatePanel: { template: '<div data-test="estimate-panel" />' },
+  CampaignChecklistPanel: { template: '<div data-test="checklist-panel" />' },
 };
 
 function form(): CampaignFormState {
@@ -29,21 +28,20 @@ function form(): CampaignFormState {
     message: {},
     messages: [],
     links: [],
-    schedule: {},
+    schedule: { schedule_type: "immediate", starts_at: null },
     delivery_windows: [],
-    recurrence_policy: {},
+    recurrence_policy: { is_enabled: false },
     warmup_policy: {},
   };
 }
 
-function mountConfigurator(activeStep = "message") {
+function mountConfigurator(activeStep = "message", modelValue = form()) {
   return mount(CampaignSingleStageConfigurator, {
     props: {
-      modelValue: form(),
+      modelValue,
       activeStep,
       stepLoading: {},
       projectId: 1,
-      detectedLinks: [],
       readonly: false,
       isSaving: false,
       sectionErrors: () => [],
@@ -61,7 +59,7 @@ function mountConfigurator(activeStep = "message") {
 }
 
 describe("CampaignSingleStageConfigurator", () => {
-  it("renderiza as três etapas e as tabs do DeltaCRM", () => {
+  it("renderiza somente as tabs pertencentes ao produto", () => {
     const wrapper = mountConfigurator();
     for (const text of [
       "Tipo de campanha",
@@ -72,16 +70,63 @@ describe("CampaignSingleStageConfigurator", () => {
       "Dias",
       "Segmento",
       "Agendar",
-      "Giros",
-      "Promoções",
+      "Warmup",
     ]) {
       expect(wrapper.text()).toContain(text);
     }
+    expect(wrapper.text()).not.toContain("Giros");
+    expect(wrapper.text()).not.toContain("Promoções");
+    expect(wrapper.text()).not.toContain("Links");
     expect(wrapper.find('[data-test="channels-step"]').exists()).toBe(true);
     expect(wrapper.text()).toContain("Salvar e continuar");
   });
 
-  it("mapeia a tab Repetição para a etapa de recorrência", async () => {
+  it("mapeia as tabs para suas etapas e mantém Warmup separado", async () => {
+    const wrapper = mountConfigurator("warmup_policy");
+    expect(wrapper.find('[data-test="warmup-step"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="recurrence-step"]').exists()).toBe(false);
+
+    const repetition = wrapper.findAll("button").find((button) => button.text() === "Repetição");
+    await repetition!.trigger("click");
+    expect(wrapper.emitted("update:activeStep")?.at(-1)).toEqual(["recurrence_policy"]);
+  });
+
+  it("avança de Warmup para uma etapa Finalizar independente", async () => {
+    const wrapper = mountConfigurator("warmup_policy");
+    const save = wrapper.findAll("button").find((button) => button.text() === "Salvar e continuar");
+    await save!.trigger("click");
+    expect(wrapper.emitted("save-continue")).toEqual([["review"]]);
+
+    const review = mountConfigurator("review");
+    expect(review.text()).toContain("Finalizar campanha");
+    expect(review.find('[data-test="estimate-panel"]').exists()).toBe(true);
+    expect(review.text()).not.toContain("Salvar e continuar");
+    const back = review.findAll("button").find((button) => button.text() === "Voltar");
+    await back!.trigger("click");
+    expect(review.emitted("update:activeStep")?.at(-1)).toEqual(["warmup_policy"]);
+  });
+
+  it("sincroniza o agendamento ao ativar e desativar a recorrência", async () => {
+    const modelValue = reactive(form());
+    mountConfigurator("recurrence_policy", modelValue);
+    modelValue.recurrence_policy.is_enabled = true;
+    await nextTick();
+    expect(modelValue.schedule.schedule_type).toBe("recurring");
+
+    modelValue.recurrence_policy.is_enabled = false;
+    await nextTick();
+    expect(modelValue.schedule.schedule_type).toBe("immediate");
+
+    modelValue.schedule.starts_at = "2026-11-22T10:00";
+    modelValue.recurrence_policy.is_enabled = true;
+    await nextTick();
+    expect(modelValue.schedule.schedule_type).toBe("recurring");
+    modelValue.recurrence_policy.is_enabled = false;
+    await nextTick();
+    expect(modelValue.schedule.schedule_type).toBe("scheduled");
+  });
+
+  it("mantém o mapeamento da tab Repetição com v-model do wizard", async () => {
     const Parent = defineComponent({
       components: { CampaignSingleStageConfigurator },
       setup() {
@@ -94,7 +139,6 @@ describe("CampaignSingleStageConfigurator", () => {
           :model-value="formValue"
           :step-loading="{}"
           :project-id="1"
-          :detected-links="[]"
           :section-errors="() => []"
           :section-warnings="() => []"
           :all-errors="[]"
@@ -112,7 +156,7 @@ describe("CampaignSingleStageConfigurator", () => {
       },
     });
     const wrapper = mount(Parent, { global: { stubs } });
-       const repetition = wrapper.findAll("button").find((button) => button.text() === "Repetição");
+    const repetition = wrapper.findAll("button").find((button) => button.text() === "Repetição");
     await repetition!.trigger("click");
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.activeStep).toBe("recurrence_policy");

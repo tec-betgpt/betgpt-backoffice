@@ -5,6 +5,7 @@ import { createPinia } from "pinia";
 import type { MarketingAsset, MarketingAssetSummary } from "@/contracts/marketingAssets";
 import type { CampaignMessage, CampaignMessagePayload } from "@/contracts/campaigns";
 import CampaignChannelsStep from "./CampaignChannelsStep.vue";
+import MarketingAssetPreviewDialog from "@/components/marketing/MarketingAssetPreviewDialog.vue";
 import {
   applyAssetToMessage,
   createChannelMessage,
@@ -91,5 +92,76 @@ describe("campaignChannels", () => {
     expect(wrapper.text()).toContain("conteúdo inline legado");
     expect(wrapper.text()).toContain("Web Push");
     expect(wrapper.text()).toContain("OnSite");
+  });
+
+  it("abre e fecha o modal com o snapshot de uma mensagem legada", async () => {
+    const wrapper = mount(CampaignChannelsStep, {
+      props: {
+        projectId: 1,
+        modelValue: [{
+          id: 10,
+          channel: "sms",
+          asset_id: null,
+          body: "Mensagem legada",
+          metadata: { asset_payload: { sender: "BetGPT" } },
+        }],
+      },
+      global: { plugins: [createPinia()] },
+    });
+    await flushPromises();
+
+    const previewButton = wrapper.find('button[aria-label="Pré-visualizar SMS"]');
+    expect(previewButton.exists()).toBe(true);
+    await previewButton.trigger("click");
+    const preview = wrapper.findAllComponents(MarketingAssetPreviewDialog).at(-1)!;
+    expect(preview.props("open")).toBe(true);
+    expect(preview.props("asset")).toMatchObject({
+      id: 10,
+      channel: "sms",
+      body: "Mensagem legada",
+      payload: { sender: "BetGPT" },
+    });
+    expect(getAssetMock).not.toHaveBeenCalled();
+
+    preview.vm.$emit("update:open", false);
+    await nextTick();
+    expect(preview.props("open")).toBe(false);
+  });
+
+  it("busca o conteúdo completo do asset ao pré-visualizar uma relação resumida", async () => {
+    const asset = {
+      id: 3,
+      project_id: 1,
+      channel: "sms",
+      name: "Template SMS",
+      subject: null,
+      body: "Conteúdo do asset",
+      locale: "pt-BR",
+      payload: null,
+      variables: null,
+      metadata: null,
+      created_at: null,
+      updated_at: null,
+    } as MarketingAsset;
+    getAssetMock.mockResolvedValue(asset);
+    const wrapper = mount(CampaignChannelsStep, {
+      props: {
+        projectId: 1,
+        modelValue: [{
+          id: 11,
+          channel: "sms",
+          asset_id: 3,
+          asset: { id: 3, name: "Template SMS" },
+          body: "Snapshot",
+        }],
+      },
+      global: { plugins: [createPinia()] },
+    });
+    await flushPromises();
+
+    await wrapper.find('button[aria-label="Pré-visualizar SMS"]').trigger("click");
+    await flushPromises();
+    expect(getAssetMock).toHaveBeenCalledWith(3);
+    expect(wrapper.findAllComponents(MarketingAssetPreviewDialog).at(-1)!.props("asset")).toEqual(asset);
   });
 });

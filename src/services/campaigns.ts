@@ -1,6 +1,6 @@
 import api from "./base.js";
 import { postWithIdempotency } from "./idempotency";
-import { normalizeCampaignDeliveryWindows } from "./campaignPayload";
+import { normalizeCampaignPayload } from "./campaignPayload";
 import campaignExecutionService from "@/services/campaignExecution";
 import type {
   CampaignAnyEstimateResponse,
@@ -49,7 +49,7 @@ export async function listCampaigns(params: CampaignListParams = {}): Promise<Ca
 export async function createCampaign(payload: CampaignStorePayload): Promise<CampaignDetail> {
   const data = await postWithIdempotency<CampaignDetail | CampaignApiResponse<CampaignDetail>>(
     "/campaigns",
-    normalizeCampaignDeliveryWindows(payload),
+    normalizeCampaignPayload(payload),
   );
   return unwrapResponse(data);
 }
@@ -60,7 +60,7 @@ export async function getCampaign(id: number): Promise<CampaignDetail> {
 }
 
 export async function updateCampaign(id: number, payload: CampaignUpdatePayload): Promise<void> {
-  await api.put(`/campaigns/${id}`, normalizeCampaignDeliveryWindows(payload));
+  await api.put(`/campaigns/${id}`, normalizeCampaignPayload(payload));
 }
 
 export async function deleteCampaign(id: number): Promise<void> {

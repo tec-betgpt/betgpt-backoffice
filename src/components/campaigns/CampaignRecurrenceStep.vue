@@ -3,18 +3,14 @@
     <div>
       <h3 class="text-lg font-semibold">Recorrência</h3>
       <p class="text-sm text-muted-foreground">
-        Esta etapa só é necessária quando o agendamento for recorrente. Ela define se a campanha se repetirá diariamente, semanalmente ou mensalmente, qual intervalo será usado e quando a repetição deve terminar.
+        Ative a recorrência para repetir a campanha diariamente, semanalmente ou mensalmente e definir quando a repetição deve terminar.
       </p>
     </div>
 
     <CampaignValidationList :errors="errors" :warnings="warnings" />
 
-    <p v-if="!isApplicable" class="text-sm text-muted-foreground">
-      Esta etapa fica editável quando o tipo de agendamento estiver como recorrente.
-    </p>
-
     <label class="flex items-center gap-3 rounded-md border p-3 text-sm">
-      <Switch v-model:checked="model.is_enabled" :disabled="readonly || !isApplicable" />
+      <Switch v-model:checked="model.is_enabled" :disabled="readonly" />
       Ativar recorrência
     </label>
 
@@ -67,25 +63,25 @@ import CampaignJsonField from "./CampaignJsonField.vue";
 import CampaignValidationList from "./CampaignValidationList.vue";
 import type { CampaignRecurrencePolicyPayload, CampaignValidationItem } from "@/contracts/campaigns";
 
-const model = defineModel<CampaignRecurrencePolicyPayload>({ required: true });
-const daysOfWeekText = ref("");
-const daysOfMonthText = ref("");
 const props = withDefaults(
   defineProps<{
     errors?: CampaignValidationItem[];
     warnings?: CampaignValidationItem[];
     loading?: boolean;
     readonly?: boolean;
-    isApplicable?: boolean;
     onSave?: () => void | Promise<void>;
   }>(),
   {
-    isApplicable: false,
+    errors: () => [],
+    warnings: () => [],
+    loading: false,
+    readonly: false,
   },
 );
-
-const fieldsDisabled = computed(() => props.readonly || !props.isApplicable || !model.value.is_enabled);
-
+const model = defineModel<CampaignRecurrencePolicyPayload>({ required: true });
+const daysOfWeekText = ref("");
+const daysOfMonthText = ref("");
+const fieldsDisabled = computed(() => props.readonly || !model.value.is_enabled);
 const serialize = (items?: number[]) => (items || []).join(",");
 const parseNumbers = (value: string) =>
   value
@@ -105,20 +101,6 @@ watch(
   () => model.value.days_of_month,
   (value) => {
     daysOfMonthText.value = serialize(value);
-  },
-  { immediate: true },
-);
-
-watch(
-  () => props.isApplicable,
-  (isApplicable) => {
-    if (isApplicable && !model.value.is_enabled) {
-      model.value.is_enabled = true;
-    }
-
-    if (!isApplicable) {
-      model.value.is_enabled = false;
-    }
   },
   { immediate: true },
 );

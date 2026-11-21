@@ -25,7 +25,8 @@
     </div>
 
     <Alert v-if="summaryError" variant="destructive"><AlertDescription>{{ summaryError }}</AlertDescription></Alert>
-       <Card v-for="channel in selectedChannels" :key="channel" class="overflow-hidden">
+
+    <Card v-for="channel in selectedChannels" :key="channel" class="overflow-hidden">
       <CardHeader class="pb-4">
         <div class="flex items-center gap-2">
           <component :is="channelIcon(channel)" class="size-5 text-muted-foreground" />
@@ -59,13 +60,18 @@
           <AlertDescription>Este rascunho usa conteúdo inline legado. Ele será preservado até você selecionar um asset.</AlertDescription>
         </Alert>
 
-        <details v-if="messageFor(channel)?.body" class="rounded-md border p-3 text-sm">
-          <summary class="cursor-pointer font-medium">
-            {{ selectedAssetName(channel) || 'Pré-visualizar conteúdo' }}
-          </summary>
-          <p v-if="messageFor(channel)?.subject" class="mt-3 text-muted-foreground">Assunto: {{ messageFor(channel)?.subject }}</p>
-          <pre class="mt-2 max-h-56 overflow-auto whitespace-pre-wrap text-muted-foreground">{{ bodyPreview(channel) }}</pre>
-        </details>
+        <div v-if="messageFor(channel)">
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="previewLoadingChannel === channel"
+            :aria-label="`Pré-visualizar ${channelLabel(channel)}`"
+            @click="openPreview(channel)"
+          >
+            <Eye class="mr-2 size-4" />
+            {{ previewLoadingChannel === channel ? "Carregando..." : "Pré-visualizar" }}
+          </Button>
+        </div>
       </CardContent>
     </Card>
 
@@ -75,6 +81,7 @@
       :project-id="projectId"
       @saved="assetCreated"
     />
+    <MarketingAssetPreviewDialog v-model:open="isPreviewOpen" :asset="previewAsset" />
   </div>
 </template>
 
@@ -84,6 +91,7 @@ import type { Component } from "vue";
 import {
   Bell,
   Check,
+  Eye,
   Inbox,
   Mail,
   MessageCircle,
@@ -98,6 +106,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MarketingAssetFormDialog from "@/components/marketing/MarketingAssetFormDialog.vue";
+import MarketingAssetPreviewDialog from "@/components/marketing/MarketingAssetPreviewDialog.vue";
 import CampaignValidationList from "./CampaignValidationList.vue";
 import type { CampaignChannel, CampaignMessagePayload, CampaignValidationItem } from "@/contracts/campaigns";
 import {
@@ -126,6 +135,10 @@ const summaryError = ref("");
 const selectingChannel = ref<CampaignChannel | null>(null);
 const creatingChannel = ref<CampaignChannel>("sms");
 const isCreateOpen = ref(false);
+const isPreviewOpen = ref(false);
+const previewAsset = ref<MarketingAsset | null>(null);
+const previewLoadingChannel = ref<CampaignChannel | null>(null);
+const assetCache = new Map<number, MarketingAsset>();
 const channelOptions = MARKETING_CHANNEL_OPTIONS;
 const icons: Record<CampaignChannel, Component> = {
   email: Mail,
@@ -195,6 +208,7 @@ async function selectAsset(channel: CampaignChannel, value: unknown) {
 }
 
 function applyAsset(channel: CampaignChannel, asset: MarketingAsset) {
+  assetCache.set(asset.id, asset);
   const index = model.value.findIndex((message) => message.channel === channel);
   const current = model.value[index] ?? createChannelMessage(channel);
   const message = applyAssetToMessage(current, asset);
@@ -213,15 +227,60 @@ async function assetCreated(asset: MarketingAsset) {
   applyAsset(creatingChannel.value, asset);
 }
 
+async function openPreview(channel: CampaignChannel) {
+  const message = messageFor(channel);
+  if (!message) return;
+
+  previewLoadingChannel.value = channel;
+  summaryError.value = "";
+  try {
+    const cached = message.asset_id ? assetCache.get(message.asset_id) : null;
+    const related = isCompleteAsset(message.asset) ? message.asset : null;
+    previewAsset.value = cached
+      ?? related
+      ?? (message.asset_id ? await getMarketingAsset(message.asset_id) : snapshotAsset(channel, message));
+    if (message.asset_id && previewAsset.value) assetCache.set(message.asset_id, previewAsset.value);
+    isPreviewOpen.value = true;
+  } catch (error: any) {
+    summaryError.value = error?.response?.data?.message || error?.message || "Não foi possível carregar a pré-visualização.";
+  } finally {
+    previewLoadingChannel.value = null;
+  }
+}
+
+function isCompleteAsset(asset: CampaignMessagePayload["asset"]): asset is MarketingAsset {
+  return Boolean(asset && "body" in asset && "channel" in asset && "payload" in asset);
+}
+
+function snapshotAsset(channel: CampaignChannel, message: CampaignMessagePayload): MarketingAsset {
+  const metadata = isRecord(message.metadata) ? message.metadata : {};
+  const payload = isRecord(metadata.asset_payload) ? metadata.asset_payload : null;
+  return {
+    id: message.asset_id ?? message.id ?? 0,
+    project_id: props.projectId ?? 0,
+    channel: message.channel ?? channel,
+    name: selectedAssetName(channel) ?? channelLabel(channel),
+    subject: message.subject ?? null,
+    body: message.body ?? "",
+    locale: message.locale ?? null,
+    payload,
+    variables: message.variables ?? null,
+    metadata: message.metadata ?? null,
+    audio_url: typeof payload?.audio_url === "string" ? payload.audio_url : null,
+    created_at: null,
+    updated_at: null,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, any> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function selectedAssetName(channel: CampaignChannel) {
   const message = messageFor(channel);
   return summary.value?.[channel]?.find((asset) => asset.id === message?.asset_id)?.name
     ?? message?.asset?.name
     ?? null;
-}
-
-function bodyPreview(channel: CampaignChannel) {
-  return (messageFor(channel)?.body ?? "").slice(0, 3000);
 }
 
 function channelIcon(channel: CampaignChannel) {

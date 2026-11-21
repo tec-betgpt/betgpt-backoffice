@@ -356,7 +356,6 @@
             v-model:active-step="activeStep"
             :step-loading="stepLoading"
             :project-id="activeProjectId"
-            :detected-links="detectedMessageLinks"
             :readonly="isReadonly"
             :is-saving="isSaving"
             :section-errors="sectionErrors"
@@ -483,7 +482,6 @@
                 :warnings="sectionWarnings('recurrence_policy')"
                 :loading="stepLoading.recurrence_policy"
                 :readonly="isReadonly"
-                :is-applicable="form.schedule.schedule_type === 'recurring'"
                 :on-save="() => saveDraft('recurrence_policy')"
               />
               <CampaignWarmupStep
@@ -867,6 +865,7 @@ import CampaignWavesBatchesPanel from "@/components/campaigns/CampaignWavesBatch
 import CampaignRecipientsPanel from "@/components/campaigns/CampaignRecipientsPanel.vue";
 import { normalizeCampaignMessages } from "@/components/campaigns/campaignChannels";
 import { groupCampaignValidationItems } from "@/components/campaigns/campaignValidation";
+import { deriveCampaignScheduleType } from "@/services/campaignPayload";
 
 type StepKey =
   | "campaign_type"
@@ -878,6 +877,7 @@ type StepKey =
   | "delivery_windows"
   | "recurrence_policy"
   | "warmup_policy"
+  | "review"
   | "flow_editor"
   | "flow_review";
 
@@ -902,14 +902,15 @@ type StepDefinition = {
 };
 
 const broadcastSteps: StepDefinition[] = [
-  { key: "basic", label: "Dados básicos", sectionKeys: ["campaign", "channels"], progressKey: "channels" },
-  { key: "audience", label: "Público", sectionKeys: ["audience", "campaign"], progressKey: "audience" },
+  { key: "basic", label: "Dados básicos", sectionKeys: ["campaign", "channels"] },
+  { key: "audience", label: "Segmento", sectionKeys: ["audience", "campaign"], progressKey: "audience" },
   { key: "message", label: "Canais", sectionKeys: ["message"], progressKey: "message" },
   { key: "links", label: "Links", sectionKeys: ["links"], progressKey: "links" },
-  { key: "schedule", label: "Agendamento", sectionKeys: ["schedule"], progressKey: "schedule" },
-  { key: "delivery_windows", label: "Janelas", sectionKeys: ["delivery_windows"], progressKey: "delivery_windows" },
-  { key: "recurrence_policy", label: "Recorrência", sectionKeys: ["recurrence_policy"] },
+  { key: "schedule", label: "Agendamento", sectionKeys: ["schedule", "financial"], progressKey: "schedule" },
+  { key: "delivery_windows", label: "Dias", sectionKeys: ["delivery_windows"], progressKey: "delivery_windows" },
+  { key: "recurrence_policy", label: "Repetição", sectionKeys: ["recurrence_policy"] },
   { key: "warmup_policy", label: "Warmup", sectionKeys: ["warmup", "warmup_policy"], progressKey: "warmup" },
+  { key: "review", label: "Finalizar", sectionKeys: ["review"], progressKey: "review" },
 ];
 
 const flowSteps: StepDefinition[] = [
@@ -967,6 +968,7 @@ const stepLoading = reactive<Record<StepKey, boolean>>({
   delivery_windows: false,
   recurrence_policy: false,
   warmup_policy: false,
+  review: false,
   flow_editor: false,
   flow_review: false,
 });
@@ -1409,7 +1411,7 @@ function createEmptyForm(): CampaignFormState {
     messages: [],
     links: [],
     schedule: {
-      schedule_type: "scheduled",
+      schedule_type: "immediate",
       timezone: "America/Sao_Paulo",
       starts_at: null,
       ends_at: null,
@@ -1527,6 +1529,7 @@ function applyCampaignDetail(detail: CampaignDetail) {
       ...(detail.warmup_policy || {}),
     },
   });
+  form.schedule.schedule_type = deriveCampaignScheduleType(form.schedule, form.recurrence_policy);
   window.setTimeout(() => {
     suppressDirty.value = false;
   }, 0);
@@ -1863,8 +1866,8 @@ function handleHttpError(error: unknown, step?: StepKey) {
     const targetStep = step || activeStep.value;
     const items = Object.entries(errors).flatMap(([field, messages]) =>
       Array.isArray(messages)
-        ? messages.map((message) => ({ field, step: targetStep, message: String(message) }))
-        : [{ field, step: targetStep, message: String(messages) }],
+        ? messages.map((message) => ({ field, step: validationStepForField(field, targetStep), message: String(message) }))
+        : [{ field, step: validationStepForField(field, targetStep), message: String(messages) }],
     );
     const key = activeSteps.value.find((item) => item.key === targetStep)?.sectionKeys[0] || "campaign";
     validationErrors.value = { ...validationErrors.value, [key]: items };
@@ -1873,6 +1876,21 @@ function handleHttpError(error: unknown, step?: StepKey) {
   }
 
   errorMessage.value = error.response?.data?.message || "Erro inesperado ao comunicar com o servidor.";
+}
+
+function validationStepForField(field: string, fallback: StepKey): StepKey {
+  if (wizardMode.value === "flow") {
+    return ["name", "project_id", "type"].includes(field) ? "campaign_type" : "flow_editor";
+  }
+  if (field.startsWith("messages.") || field === "messages" || field === "channel") return "message";
+  if (field.startsWith("single_stage_config.")) return "audience";
+  if (field.startsWith("delivery_windows.")) return "delivery_windows";
+  if (field.startsWith("recurrence_policy.")) return "recurrence_policy";
+  if (field.startsWith("warmup_policy.")) return "warmup_policy";
+  if (field.startsWith("schedule.") || field.startsWith("financial.")) return "schedule";
+  if (field.startsWith("links.") || field === "links") return "links";
+  if (["name", "description", "metadata", "project_id"].includes(field)) return "schedule";
+  return fallback;
 }
 
 function extractHttpMessage(error: unknown, fallback: string) {
