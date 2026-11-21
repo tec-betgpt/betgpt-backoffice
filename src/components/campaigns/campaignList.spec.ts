@@ -3,7 +3,9 @@ import {
   CAMPAIGN_LIST_TABS,
   campaignTabFilters,
   campaignTabFromFilters,
+  groupCampaignsByUpdatedDate,
 } from "./campaignList";
+import type { CampaignListItem } from "@/contracts/campaigns";
 
 describe("campaign list tabs", () => {
   it("oferece as seis abas na ordem esperada", () => {
@@ -31,5 +33,20 @@ describe("campaign list tabs", () => {
     expect(campaignTabFromFilters({ type: "flow" })).toBe("flow");
     expect(campaignTabFromFilters({ scheduled: true })).toBe("scheduled");
     expect(campaignTabFromFilters({ status: "completed" })).toBe("all");
+  });
+
+  it("agrupa os cards pela data local da última alteração", () => {
+    const now = new Date(2026, 10, 21, 12);
+    const items = [
+      { id: 1, updated_at: new Date(2026, 10, 21, 9).toISOString() },
+      { id: 2, updated_at: new Date(2026, 10, 20, 18).toISOString() },
+      { id: 3, updated_at: new Date(2026, 10, 21, 11).toISOString() },
+    ] as CampaignListItem[];
+
+    const groups = groupCampaignsByUpdatedDate(items, now);
+    expect(groups.map((group) => [group.label, group.items.map((item) => item.id)])).toEqual([
+      ["Hoje", [1, 3]],
+      ["Ontem", [2]],
+    ]);
   });
 });

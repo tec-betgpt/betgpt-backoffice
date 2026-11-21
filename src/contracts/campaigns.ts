@@ -229,6 +229,13 @@ export type CampaignListSchedule = {
   respect_delivery_windows: boolean;
 };
 
+export type CampaignListMetrics = {
+  sends: number;
+  opens: number;
+  clicks: number;
+  conversions: number;
+};
+
 export type CampaignListItem = {
   id: number;
   uuid: string;
@@ -250,6 +257,11 @@ export type CampaignListItem = {
   created_by_user?: CampaignUserSummary | null;
   updated_by_user?: CampaignUserSummary | null;
   schedule?: CampaignListSchedule | null;
+  channels?: CampaignChannel[];
+  metrics?: CampaignListMetrics;
+  last_sent_at?: string | null;
+  target_audiences?: CampaignTargetAudienceSummary[];
+  recurrence_policy?: CampaignRecurrencePolicy | null;
 };
 
 export type CampaignListResponse = {

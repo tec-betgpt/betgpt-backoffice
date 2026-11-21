@@ -1,4 +1,4 @@
-import type { CampaignStatus, CampaignType } from "@/contracts/campaigns";
+import type { CampaignListItem, CampaignStatus, CampaignType } from "@/contracts/campaigns";
 
 export type CampaignListTab = "all" | "running" | "flow" | "scheduled" | "paused" | "draft";
 
@@ -37,4 +37,50 @@ export function campaignTabFromFilters(filters: {
     return filters.status;
   }
   return "all";
+}
+
+export type CampaignDateGroup = {
+  key: string;
+  label: string;
+  items: CampaignListItem[];
+};
+
+export function groupCampaignsByUpdatedDate(items: CampaignListItem[], now = new Date()): CampaignDateGroup[] {
+  const groups = new Map<string, CampaignListItem[]>();
+
+  for (const item of items) {
+    const key = campaignDateKey(item.updated_at);
+    groups.set(key, [...(groups.get(key) || []), item]);
+  }
+
+  return Array.from(groups.entries()).map(([key, groupedItems]) => ({
+    key,
+    label: campaignDateGroupLabel(key, now),
+    items: groupedItems,
+  }));
+}
+
+export function campaignDateGroupLabel(key: string, now = new Date()): string {
+  if (key === "sem-data") return "Sem data de alteração";
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (key === campaignDateKey(now.toISOString())) return "Hoje";
+  if (key === campaignDateKey(yesterday.toISOString())) return "Ontem";
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${key}T12:00:00`));
+}
+
+function campaignDateKey(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "sem-data";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
