@@ -56,11 +56,12 @@ describe("marketingAssetForm", () => {
   });
 
   it("valida mídia completa para Whatsapp e RCS", () => {
-    const form = { ...createEmptyAssetForm(), name: "WhatsApp", body: "Conteúdo", mediaType: "image" };
+    const form = { ...createEmptyAssetForm(), name: "WhatsApp", body: "Conteúdo", mediaType: "image", whatsappCategory: "utility" };
     expect(validateAssetForm(form, "whatsapp")).toContain("tipo e a URL");
     form.mediaUrl = "https://example.test/image.png";
     expect(validateAssetForm(form, "whatsapp")).toBeNull();
     expect(buildAssetPayload(form, "whatsapp", 1).payload).toEqual({
+      category: "utility",
       media: { type: "image", url: "https://example.test/image.png" },
     });
   });
@@ -68,6 +69,44 @@ describe("marketingAssetForm", () => {
   it("rejeita JSON inválido", () => {
     const form = { ...createEmptyAssetForm(), name: "SMS", body: "Conteúdo", variables: "not-json" };
     expect(validateAssetForm(form, "sms")).toContain("JSON válido");
+  });
+
+  it("monta categoria e placeholders do WhatsApp", () => {
+    const form = {
+      ...createEmptyAssetForm(),
+      name: "WhatsApp",
+      body: "Olá, {{name}}",
+      whatsappCategory: "utility",
+      placeholders: "name, coupon",
+    };
+    expect(validateAssetForm(form, "whatsapp")).toBeNull();
+    expect(buildAssetPayload(form, "whatsapp", 1).payload).toEqual({
+      category: "utility",
+      placeholders: ["name", "coupon"],
+    });
+  });
+
+  it("valida e monta botões do PopUp", () => {
+    const form = {
+      ...createEmptyAssetForm(),
+      name: "PopUp",
+      body: "<p>Conteúdo</p>",
+      popupButtons: [{ label: "Aproveitar", actionUrl: "https://example.test" }],
+    };
+    expect(validateAssetForm(form, "popup")).toBeNull();
+    expect(buildAssetPayload(form, "popup", 1).payload).toEqual({
+      buttons: [{ label: "Aproveitar", action_url: "https://example.test" }],
+    });
+    form.popupButtons[0].actionUrl = "";
+    expect(validateAssetForm(form, "popup")).toContain("rótulo e a ação");
+  });
+
+  it("Callcenter exige áudio e não exige corpo", () => {
+    const form = { ...createEmptyAssetForm(), name: "Callcenter" };
+    expect(validateAssetForm(form, "callcenter")).toBe("Selecione um arquivo de áudio.");
+    form.audioPreviewUrl = "blob:audio";
+    expect(validateAssetForm(form, "callcenter")).toBeNull();
+    expect(buildAssetPayload(form, "callcenter", 1).body).toBe("");
   });
 
   it("preenche o formulário de edição com o asset atual", () => {

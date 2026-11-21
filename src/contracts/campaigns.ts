@@ -1,5 +1,5 @@
 import type { CampaignFlowConfig } from "@/contracts/campaignFlow";
-import { MARKETING_CHANNEL_OPTIONS, type MarketingChannel } from "@/contracts/marketingAssets";
+import { MARKETING_CHANNEL_OPTIONS, type MarketingAsset, type MarketingChannel } from "@/contracts/marketingAssets";
 
 export type CampaignType = "broadcast" | "flow";
 export type CampaignChannel = MarketingChannel;
@@ -111,6 +111,7 @@ export type CampaignConfigurationProgress = {
 
 export type CampaignSingleStageConfigPayload = {
   target_audience_id?: number | null;
+  target_audience_ids?: number[];
   audience_mode?: CampaignAudienceMode;
   apply_protection_list?: boolean;
   apply_opt_out?: boolean;
@@ -228,6 +229,13 @@ export type CampaignListSchedule = {
   respect_delivery_windows: boolean;
 };
 
+export type CampaignListMetrics = {
+  sends: number;
+  opens: number;
+  clicks: number;
+  conversions: number;
+};
+
 export type CampaignListItem = {
   id: number;
   uuid: string;
@@ -249,6 +257,11 @@ export type CampaignListItem = {
   created_by_user?: CampaignUserSummary | null;
   updated_by_user?: CampaignUserSummary | null;
   schedule?: CampaignListSchedule | null;
+  channels?: CampaignChannel[];
+  metrics?: CampaignListMetrics;
+  last_sent_at?: string | null;
+  target_audiences?: CampaignTargetAudienceSummary[];
+  recurrence_policy?: CampaignRecurrencePolicy | null;
 };
 
 export type CampaignListResponse = {
@@ -257,6 +270,32 @@ export type CampaignListResponse = {
   per_page: number;
   total: number;
   last_page: number;
+};
+
+export type CampaignTargetAudienceSummary = {
+  id: number;
+  name: string;
+};
+
+export type CampaignAudienceSegmentPreview = CampaignTargetAudienceSummary & {
+  target_audience_id: number;
+  total_eligible: number;
+  error: string | null;
+};
+
+export type CampaignAudiencePreviewResponse = {
+  segments: CampaignAudienceSegmentPreview[];
+  total_eligible: number;
+};
+
+export type CampaignAudiencePreviewPayload = {
+  project_id: number;
+  target_audience_ids: number[];
+  channel: CampaignChannel;
+  audience_mode?: CampaignAudienceMode | null;
+  apply_protection_list?: boolean;
+  apply_opt_out?: boolean;
+  apply_suppression?: boolean;
 };
 
 export type CampaignSingleStageConfig = CampaignSingleStageConfigPayload & {
@@ -340,8 +379,10 @@ export type CampaignDetail = {
   created_by_user?: CampaignUserSummary | null;
   updated_by_user?: CampaignUserSummary | null;
   single_stage_config?: CampaignSingleStageConfig | null;
+  target_audiences?: CampaignTargetAudienceSummary[];
   flow_config?: CampaignFlowConfig | null;
   messages?: CampaignMessage[];
+  templates?: MarketingAsset[];
   links?: CampaignLink[];
   schedule?: CampaignSchedule | null;
   delivery_windows?: CampaignDeliveryWindow[];

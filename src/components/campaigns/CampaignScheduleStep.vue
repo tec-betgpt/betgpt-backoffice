@@ -11,14 +11,6 @@
 
     <div class="grid gap-4 md:grid-cols-2">
       <div class="space-y-2">
-        <Label>Tipo de agendamento</Label>
-        <select v-model="model.schedule_type" :disabled="readonly" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-          <option value="immediate">Imediato</option>
-          <option value="scheduled">Agendado</option>
-          <option value="recurring">Recorrente</option>
-        </select>
-      </div>
-      <div class="space-y-2">
         <Label>Timezone</Label>
         <Input v-model="model.timezone" :disabled="readonly" placeholder="America/Sao_Paulo" />
       </div>
@@ -45,12 +37,14 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from "vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import CampaignJsonField from "./CampaignJsonField.vue";
 import CampaignValidationList from "./CampaignValidationList.vue";
+import { deriveCampaignScheduleType } from "@/services/campaignPayload";
 import type { CampaignSchedulePayload, CampaignValidationItem } from "@/contracts/campaigns";
 
 defineProps<{
@@ -62,4 +56,13 @@ defineProps<{
 }>();
 
 const model = defineModel<CampaignSchedulePayload>({ required: true });
+
+watch(
+  () => model.value.starts_at,
+  () => {
+    if (model.value.schedule_type !== "recurring") {
+      model.value.schedule_type = deriveCampaignScheduleType(model.value);
+    }
+  },
+);
 </script>

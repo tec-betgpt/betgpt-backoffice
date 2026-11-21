@@ -1,6 +1,10 @@
 import api from "./base";
 import type { CampaignApiResponse } from "@/contracts/campaigns";
-import type { CampaignMonitorResponse } from "@/contracts/campaignMonitor";
+import type {
+  CampaignMonitorEventsResponse,
+  CampaignMonitorEventType,
+  CampaignMonitorResponse,
+} from "@/contracts/campaignMonitor";
 
 function unwrap<T>(payload: T | CampaignApiResponse<T>): T {
   if (
@@ -26,4 +30,18 @@ export async function getCampaignMonitor(
   return unwrap(data);
 }
 
-export default { getCampaignMonitor };
+export async function getCampaignMonitorEvents(
+  campaignId: number,
+  projectId: number,
+  type: CampaignMonitorEventType,
+  page = 1,
+  perPage = 25,
+): Promise<CampaignMonitorEventsResponse> {
+  const { data } = await api.get<CampaignMonitorEventsResponse>(
+    `/campaigns/${campaignId}/monitor/events`,
+    { params: { project_id: projectId, type, page, per_page: perPage } },
+  );
+  return data;
+}
+
+export default { getCampaignMonitor, getCampaignMonitorEvents };

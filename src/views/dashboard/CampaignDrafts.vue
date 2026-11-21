@@ -59,79 +59,66 @@
       <AlertDescription>{{ errorMessage }}</AlertDescription>
     </Alert>
 
-    <Card>
-      <CardHeader>
-        <CardTitle>Filtros</CardTitle>
-      </CardHeader>
-      <CardContent class="space-y-4">
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <div class="space-y-2">
-            <Label>Status</Label>
-            <Select v-model="filters.status">
-              <SelectTrigger>
-                <SelectValue placeholder="Todos os status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem :value="SELECT_ALL_VALUE">Todos</SelectItem>
-                <SelectItem v-for="option in CAMPAIGN_STATUS_OPTIONS" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div class="space-y-2">
-            <Label>Canal</Label>
-            <Select v-model="filters.channel">
-              <SelectTrigger>
-                <SelectValue placeholder="Todos os canais" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem :value="SELECT_ALL_VALUE">Todos</SelectItem>
-                <SelectItem v-for="option in CAMPAIGN_CHANNEL_OPTIONS" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div class="space-y-2">
-            <Label>Tipo</Label>
-            <Select v-model="filters.type">
-              <SelectTrigger>
-                <SelectValue placeholder="Todos os tipos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem :value="SELECT_ALL_VALUE">Todos</SelectItem>
-                <SelectItem v-for="option in CAMPAIGN_TYPE_OPTIONS" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div class="space-y-2 xl:col-span-2">
-            <Label>Busca</Label>
-            <Input
-              :model-value="filters.search ?? ''"
-              placeholder="Buscar por nome ou descrição"
-              @update:modelValue="filters.search = $event === '' ? null : String($event)"
-              @keydown.enter="fetchCampaigns(1)"
-            />
-          </div>
+    <section aria-label="Filtros" class="space-y-4 rounded-xl border bg-card p-4 shadow-sm">
+      <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(240px,1.6fr)_repeat(3,minmax(160px,1fr))]">
+        <div class="space-y-2 md:col-span-2 xl:col-span-1">
+          <Label>Busca</Label>
+          <Input
+            :model-value="filters.search ?? ''"
+            placeholder="Buscar por nome ou descrição"
+            @update:modelValue="filters.search = $event === '' ? null : String($event)"
+            @keydown.enter="fetchCampaigns(1)"
+          />
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <p class="text-sm text-muted-foreground">
-            Projeto ativo: {{ activeProjectLabel }}
-          </p>
-          <div class="flex flex-wrap gap-2">
-            <Button variant="ghost" @click="resetFilters">Limpar filtros</Button>
-            <Button :disabled="isLoading" @click="fetchCampaigns(1)">Buscar</Button>
-          </div>
+        <div class="space-y-2">
+          <Label>Status</Label>
+          <Select v-model="filters.status">
+            <SelectTrigger><SelectValue placeholder="Todos os status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem :value="SELECT_ALL_VALUE">Todos</SelectItem>
+              <SelectItem v-for="option in CAMPAIGN_STATUS_OPTIONS" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </CardContent>
-    </Card>
+
+        <div class="space-y-2">
+          <Label>Canal</Label>
+          <Select v-model="filters.channel">
+            <SelectTrigger><SelectValue placeholder="Todos os canais" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem :value="SELECT_ALL_VALUE">Todos</SelectItem>
+              <SelectItem v-for="option in CAMPAIGN_CHANNEL_OPTIONS" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div class="space-y-2">
+          <Label>Tipo</Label>
+          <Select v-model="filters.type">
+            <SelectTrigger><SelectValue placeholder="Todos os tipos" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem :value="SELECT_ALL_VALUE">Todos</SelectItem>
+              <SelectItem v-for="option in CAMPAIGN_TYPE_OPTIONS" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="text-sm text-muted-foreground">Projeto ativo: {{ activeProjectLabel }}</p>
+        <div class="flex flex-wrap gap-2">
+          <Button variant="ghost" @click="resetFilters">Limpar filtros</Button>
+          <Button :disabled="isLoading" @click="fetchCampaigns(1)">Buscar</Button>
+        </div>
+      </div>
+    </section>
 
     <Card v-if="!isLoading && campaigns.length === 0 && !errorMessage">
       <CardContent class="pt-6">
@@ -145,90 +132,29 @@
       </CardContent>
     </Card>
 
-    <Card v-else>
-      <CardContent class="pt-6">
-        <div class="flex justify-end mb-2">
-          <ColumnVisibilityToggle v-model="campaignsColumnVisibility" :columns="campaignsColumns" />
+    <div v-if="isLoading" class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3" aria-label="Carregando campanhas">
+      <div v-for="index in 6" :key="index" class="h-72 animate-pulse rounded-xl border bg-muted/40" />
+    </div>
+
+    <div v-else-if="campaigns.length" class="space-y-8">
+      <section v-for="group in campaignGroups" :key="group.key" :data-test="`campaign-date-group-${group.key}`" class="space-y-4">
+        <header class="flex items-center gap-3 border-b pb-2">
+          <h3 class="text-sm font-semibold">{{ group.label }}</h3>
+          <span class="text-xs text-muted-foreground">{{ group.items.length }} campanha(s)</span>
+        </header>
+        <div class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          <CampaignCard
+            v-for="item in group.items"
+            :key="item.id"
+            :campaign="item"
+            :deleting="isDeleting && selectedCampaign?.id === item.id"
+            @open="openCampaignDetail"
+            @edit="openCampaign"
+            @delete="openDeleteDialog"
+          />
         </div>
-        <div class="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead v-if="campaignsColumnVisibility.campaign !== false">Campanha</TableHead>
-                <TableHead v-if="campaignsColumnVisibility.status !== false">Status</TableHead>
-                <TableHead v-if="campaignsColumnVisibility.project !== false">Projeto</TableHead>
-                <TableHead v-if="campaignsColumnVisibility.schedule !== false">Agendamento</TableHead>
-                <TableHead v-if="campaignsColumnVisibility.updatedAt !== false">Atualização</TableHead>
-                <TableHead v-if="campaignsColumnVisibility.actions !== false" class="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-if="isLoading">
-                <TableCell :colspan="visibleCampaignsColumns.length" class="py-8 text-center text-muted-foreground">
-                  Carregando campanhas...
-                </TableCell>
-              </TableRow>
-              <TableRow v-for="item in campaigns" :key="item.id">
-                <TableCell v-if="campaignsColumnVisibility.campaign !== false" class="min-w-[280px]">
-                  <div class="space-y-1">
-                    <div class="font-medium">{{ item.name }}</div>
-                    <div class="text-xs text-muted-foreground">
-                      {{ item.description || "Sem descrição" }}
-                    </div>
-                    <div class="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span>#{{ item.id }}</span>
-                      <span>{{ item.channel }}</span>
-                      <span>{{ CAMPAIGN_TYPE_LABELS[item.type] || item.type }}</span>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell v-if="campaignsColumnVisibility.status !== false">
-                  <Badge :variant="statusVariant(item.status)">{{ CAMPAIGN_STATUS_LABELS[item.status] }}</Badge>
-                </TableCell>
-                <TableCell v-if="campaignsColumnVisibility.project !== false">{{ item.project?.name || `#${item.project_id}` }}</TableCell>
-                <TableCell v-if="campaignsColumnVisibility.schedule !== false">
-                  <div class="space-y-1 text-sm">
-                    <div>{{ item.schedule?.schedule_type || "—" }}</div>
-                    <div class="text-xs text-muted-foreground">
-                      {{ formatSchedule(item) }}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell v-if="campaignsColumnVisibility.updatedAt !== false">
-                  <div class="space-y-1 text-sm">
-                    <div>{{ formatDateTime(item.updated_at) }}</div>
-                    <div class="text-xs text-muted-foreground">{{ authorLabel(item) }}</div>
-                  </div>
-                </TableCell>
-                <TableCell v-if="campaignsColumnVisibility.actions !== false">
-                  <div class="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      @click="openCampaignDetail(item)"
-                    >
-                      Monitor
-                    </Button>
-                    <Button variant="outline" size="sm" @click="openCampaign(item)">
-                      {{ item.status === "draft" ? "Editar" : "Abrir" }}
-                    </Button>
-                    <Button
-                      v-if="item.status === 'draft'"
-                      variant="destructive"
-                      size="sm"
-                      :disabled="isDeleting && selectedCampaign?.id === item.id"
-                      @click="openDeleteDialog(item)"
-                    >
-                      {{ isDeleting && selectedCampaign?.id === item.id ? "Excluindo..." : "Excluir" }}
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+      </section>
+    </div>
 
     <CustomPagination
       v-if="campaigns.length > 0 || isLoading"
@@ -275,7 +201,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
-import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import CampaignCard from "@/components/campaigns/CampaignCard.vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -285,21 +211,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "vue-sonner";
 import {
   CAMPAIGN_CHANNEL_OPTIONS,
-  CAMPAIGN_STATUS_LABELS,
   CAMPAIGN_STATUS_OPTIONS,
-  CAMPAIGN_TYPE_LABELS,
   CAMPAIGN_TYPE_OPTIONS,
   type CampaignChannel,
   type CampaignKpiComparison,
@@ -309,13 +225,13 @@ import {
   type CampaignSummaryPeriod,
   type CampaignSummaryResponse,
   type CampaignType,
-  type CampaignUserSummary,
 } from "@/contracts/campaigns";
 import { deleteCampaign, getCampaignSummary, listCampaigns } from "@/services/campaigns";
 import {
   CAMPAIGN_LIST_TABS,
   campaignTabFilters,
   campaignTabFromFilters,
+  groupCampaignsByUpdatedDate,
   type CampaignListTab,
 } from "@/components/campaigns/campaignList";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -335,19 +251,6 @@ const summaryPeriod = ref<CampaignSummaryPeriod>("30d");
 const isSummaryLoading = ref(false);
 const summaryError = ref("");
 const statusTabs = CAMPAIGN_LIST_TABS;
-
-const campaignsColumns = [
-  { id: "campaign", label: "Campanha" },
-  { id: "status", label: "Status" },
-  { id: "project", label: "Projeto" },
-  { id: "schedule", label: "Agendamento" },
-  { id: "updatedAt", label: "Atualização" },
-  { id: "actions", label: "Ações" },
-];
-const campaignsColumnVisibility = ref<Record<string, boolean>>({});
-const visibleCampaignsColumns = computed(() =>
-  campaignsColumns.filter((c) => campaignsColumnVisibility.value[c.id] !== false)
-);
 
 const filters = reactive<Omit<CampaignListParams, "status" | "channel" | "type"> & { status: CampaignStatus | typeof SELECT_ALL_VALUE | null; channel: CampaignChannel | typeof SELECT_ALL_VALUE | null; type: CampaignType | typeof SELECT_ALL_VALUE | null }>({
   filter_id: null,
@@ -380,6 +283,7 @@ const activeStatusTab = computed(() => campaignTabFromFilters({
   type: filters.type === SELECT_ALL_VALUE ? null : filters.type,
   scheduled: filters.scheduled,
 }));
+const campaignGroups = computed(() => groupCampaignsByUpdatedDate(campaigns.value));
 const kpiCards = computed(() => {
   if (!summary.value) return [];
   const definitions = [
@@ -540,30 +444,6 @@ function formatComparison(metric: CampaignKpiComparison) {
   return `${signal}${metric.change_percent}% vs período anterior`;
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
-}
-
-function formatSchedule(item: CampaignListItem) {
-  if (!item.schedule) return "Sem agenda";
-  const startsAt = formatDateTime(item.schedule.starts_at);
-  return `${item.schedule.timezone || "—"} • ${startsAt}`;
-}
-
-function authorLabel(item: CampaignListItem) {
-  const author = resolveAuthor(item.updated_by_user || item.updated_by) || resolveAuthor(item.created_by_user || item.created_by);
-  if (!author) return "Sem usuário";
-  return [author.first_name, author.last_name].filter(Boolean).join(" ") || author.name || author.email || `#${author.id}`;
-}
-
-function statusVariant(status: CampaignStatus) {
-  if (status === "draft" || status === "validated") return "outline";
-  if (status === "validation_failed" || status === "canceled" || status === "archived") return "destructive";
-  if (status === "validating" || status === "paused") return "secondary";
-  return "default";
-}
-
 function getHttpMessage(error: unknown, fallback: string) {
   if (typeof error === "object" && error !== null && "response" in error) {
     const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
@@ -577,8 +457,4 @@ function getHttpMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
-function resolveAuthor(value: CampaignListItem["created_by"] | CampaignUserSummary | null | undefined) {
-  if (!value || typeof value === "number") return null;
-  return value;
-}
 </script>

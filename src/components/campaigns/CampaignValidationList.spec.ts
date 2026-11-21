@@ -13,9 +13,18 @@ describe("campaign validation", () => {
   it("agrupa erros por etapa e resume quantidades", () => {
     const groups = groupCampaignValidationItems(errors);
     expect(groups.map((group) => [group.label, group.items.length])).toEqual([
-      ["Mensagem", 1],
+      ["Canais", 1],
       ["Agendamento", 2],
     ]);
+  });
+
+  it("exibe nomes legíveis sem expor chaves técnicas", () => {
+    const wrapper = mount(CampaignValidationList, { props: { errors } });
+    expect(wrapper.text()).toContain("Conteúdo da mensagem");
+    expect(wrapper.text()).toContain("Data e hora de início");
+    expect(wrapper.text()).toContain("Fuso horário");
+    expect(wrapper.text()).not.toContain("messages.0.body");
+    expect(wrapper.text()).not.toContain("schedule.starts_at");
   });
 
   it("emite navegação ao clicar na etapa", async () => {
@@ -31,7 +40,7 @@ describe("campaign validation", () => {
       props: { errors },
       global: { provide: { campaignValidationNavigate: navigate } },
     });
-    const button = wrapper.findAll("button").find((item) => item.text() === "Mensagem (1)");
+    const button = wrapper.findAll("button").find((item) => item.text() === "Canais (1)");
     await button!.trigger("click");
     expect(navigate).toHaveBeenCalledWith("message");
     expect(wrapper.emitted("navigate")).toBeUndefined();

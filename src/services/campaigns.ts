@@ -1,10 +1,12 @@
 import api from "./base.js";
 import { postWithIdempotency } from "./idempotency";
-import { normalizeCampaignDeliveryWindows } from "./campaignPayload";
+import { normalizeCampaignPayload } from "./campaignPayload";
 import campaignExecutionService from "@/services/campaignExecution";
 import type {
   CampaignAnyEstimateResponse,
   CampaignApiResponse,
+  CampaignAudiencePreviewPayload,
+  CampaignAudiencePreviewResponse,
   CampaignConversions,
   CampaignDetail,
   CampaignDispatchesResponse,
@@ -47,7 +49,7 @@ export async function listCampaigns(params: CampaignListParams = {}): Promise<Ca
 export async function createCampaign(payload: CampaignStorePayload): Promise<CampaignDetail> {
   const data = await postWithIdempotency<CampaignDetail | CampaignApiResponse<CampaignDetail>>(
     "/campaigns",
-    normalizeCampaignDeliveryWindows(payload),
+    normalizeCampaignPayload(payload),
   );
   return unwrapResponse(data);
 }
@@ -58,7 +60,7 @@ export async function getCampaign(id: number): Promise<CampaignDetail> {
 }
 
 export async function updateCampaign(id: number, payload: CampaignUpdatePayload): Promise<void> {
-  await api.put(`/campaigns/${id}`, normalizeCampaignDeliveryWindows(payload));
+  await api.put(`/campaigns/${id}`, normalizeCampaignPayload(payload));
 }
 
 export async function deleteCampaign(id: number): Promise<void> {
@@ -100,6 +102,16 @@ export async function resumeCampaign(id: number): Promise<CampaignDetail> {
 export async function cancelCampaign(id: number): Promise<CampaignDetail> {
   await campaignExecutionService.cancel(id);
   return getCampaign(id);
+}
+
+export async function previewCampaignAudience(
+  payload: CampaignAudiencePreviewPayload,
+): Promise<CampaignAudiencePreviewResponse> {
+  const { data } = await api.post<CampaignAudiencePreviewResponse | CampaignApiResponse<CampaignAudiencePreviewResponse>>(
+    "/campaigns/audience-preview",
+    payload,
+  );
+  return unwrapResponse(data);
 }
 
 export async function getCampaignSummary(
@@ -167,6 +179,7 @@ export default {
   resumeCampaign,
   cancelCampaign,
   getCampaignDispatches,
+  previewCampaignAudience,
   getCampaignSummary,
   getCampaignConversions,
   getFlowCatalog,

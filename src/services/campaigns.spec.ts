@@ -33,6 +33,37 @@ describe("campaigns service", () => {
     });
   });
 
+  it("deriva o agendamento de recorrência e data inicial no payload", async () => {
+    mocked.post.mockResolvedValue({ data: { id: 1 } });
+    mocked.put.mockResolvedValue({});
+
+    await createCampaign({
+      project_id: 4,
+      name: "Imediata",
+      schedule: { schedule_type: "scheduled", starts_at: null },
+      recurrence_policy: { is_enabled: false },
+    });
+    expect(mocked.post).toHaveBeenLastCalledWith("/campaigns", expect.objectContaining({
+      schedule: expect.objectContaining({ schedule_type: "immediate" }),
+    }), expect.any(Object));
+
+    await updateCampaign(1, {
+      schedule: { schedule_type: "immediate", starts_at: "2026-11-22T10:00" },
+      recurrence_policy: { is_enabled: false },
+    });
+    expect(mocked.put).toHaveBeenLastCalledWith("/campaigns/1", expect.objectContaining({
+      schedule: expect.objectContaining({ schedule_type: "scheduled" }),
+    }));
+
+    await updateCampaign(1, {
+      schedule: { schedule_type: "immediate", starts_at: null },
+      recurrence_policy: { is_enabled: true },
+    });
+    expect(mocked.put).toHaveBeenLastCalledWith("/campaigns/1", expect.objectContaining({
+      schedule: expect.objectContaining({ schedule_type: "recurring" }),
+    }));
+  });
+
   it("normaliza horários HH:MM para HH:MM:SS na criação e atualização", async () => {
     mocked.post.mockResolvedValue({ data: { id: 1 } });
     mocked.put.mockResolvedValue({});

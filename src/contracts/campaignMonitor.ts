@@ -73,6 +73,30 @@ export type CampaignMonitorRun = {
   metadata?: Record<string, unknown>;
 };
 
+export type CampaignMonitorEventType = "opens" | "clicks" | "conversions" | "bounces";
+
+export type CampaignMonitorEventItem = {
+  id: string;
+  source: string;
+  event_type: string;
+  channel: MarketingChannel;
+  contact: string | null;
+  player_id: number | null;
+  occurred_at: string | null;
+};
+
+export type CampaignMonitorEventsResponse = {
+  campaign_id: number;
+  type: CampaignMonitorEventType;
+  events: CampaignMonitorEventItem[];
+  pagination: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+};
+
 export type CampaignMonitorResponse = {
   campaign_id: number;
   campaign_status: CampaignStatus;
