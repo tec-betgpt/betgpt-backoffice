@@ -18,6 +18,11 @@ export interface MarketingAssetFormState {
   mediaUrl: string;
   variables: string;
   metadata: string;
+  whatsappCategory: string;
+  placeholders: string;
+  popupButtons: Array<{ label: string; actionUrl: string }>;
+  audioPreviewUrl: string;
+  audioName: string;
 }
 
 export function createEmptyAssetForm(): MarketingAssetFormState {
@@ -39,6 +44,11 @@ export function createEmptyAssetForm(): MarketingAssetFormState {
     mediaUrl: "",
     variables: "",
     metadata: "",
+    whatsappCategory: "",
+    placeholders: "",
+    popupButtons: [],
+    audioPreviewUrl: "",
+    audioName: "",
   };
 }
 
@@ -65,15 +75,28 @@ export function fillAssetForm(asset: MarketingAsset): MarketingAssetFormState {
     mediaUrl: stringValue(media.url),
     variables: jsonValue(asset.variables),
     metadata: jsonValue(asset.metadata),
+    whatsappCategory: stringValue(payload.category),
+    placeholders: Array.isArray(payload.placeholders) ? payload.placeholders.join(", ") : "",
+    popupButtons: Array.isArray(payload.buttons) ? payload.buttons.map((button: any) => ({
+      label: stringValue(button.label),
+      actionUrl: stringValue(button.action_url),
+    })) : [],
+    audioPreviewUrl: asset.audio_url || stringValue(payload.audio?.url),
+    audioName: "",
   };
 }
 
 export function validateAssetForm(form: MarketingAssetFormState, channel: MarketingChannel): string | null {
   if (!form.name.trim()) return "Informe o nome do template.";
-  if (!form.body.trim()) return "Informe o conteúdo do template.";
+  if (channel !== "callcenter" && !form.body.trim()) return "Informe o conteúdo do template.";
   if (channel === "email" && !form.subject.trim()) return "Informe o assunto do e-mail.";
   if (channel === "sms" && form.body.length > 1530) return "A mensagem excede o limite de 1530 caracteres do SMS.";
   if (channel === "webpush" && !form.title.trim()) return "Informe o título do Webpush.";
+  if (channel === "whatsapp" && !form.whatsappCategory) return "Selecione a categoria do template WhatsApp.";
+  if (channel === "popup" && form.popupButtons.some((button) => Boolean(button.label.trim()) !== Boolean(button.actionUrl.trim()))) {
+    return "Preencha o rótulo e a ação de cada botão do PopUp.";
+  }
+  if (channel === "callcenter" && !form.audioPreviewUrl) return "Selecione um arquivo de áudio.";
   if (["whatsapp", "rcs"].includes(channel) && Boolean(form.mediaType) !== Boolean(form.mediaUrl.trim())) {
     return "Informe o tipo e a URL da mídia, ou deixe ambos vazios.";
   }
@@ -129,6 +152,19 @@ function channelPayload(form: MarketingAssetFormState, channel: MarketingChannel
     put("voice", form.voice);
   } else if (["whatsapp", "rcs"].includes(channel) && form.mediaType && form.mediaUrl.trim()) {
     payload.media = { type: form.mediaType, url: form.mediaUrl.trim() };
+  }
+
+  if (channel === "whatsapp") {
+    put("category", form.whatsappCategory);
+    const placeholders = form.placeholders.split(",").map((item) => item.trim()).filter(Boolean);
+    if (placeholders.length) payload.placeholders = placeholders;
+  }
+
+  if (channel === "popup") {
+    const buttons = form.popupButtons
+      .filter((button) => button.label.trim() && button.actionUrl.trim())
+      .map((button) => ({ label: button.label.trim(), action_url: button.actionUrl.trim() }));
+    if (buttons.length) payload.buttons = buttons;
   }
 
   return Object.keys(payload).length ? payload : null;

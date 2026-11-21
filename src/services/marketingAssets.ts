@@ -8,6 +8,7 @@ import type {
   MarketingAssetSummary,
   MarketingAssetTestPayload,
   MarketingAssetTestResult,
+  MarketingAssetAudioResult,
   MarketingAssetUpdateInput,
 } from "@/contracts/marketingAssets";
 
@@ -60,6 +61,18 @@ export async function getMarketingAssetSummary(projectId: number): Promise<Marke
   return unwrap(data);
 }
 
+export async function uploadMarketingAssetAudio(id: number, file: File): Promise<MarketingAssetAudioResult> {
+  const form = new FormData();
+  form.append("audio", file);
+  const { data } = await api.post<Envelope<MarketingAssetAudioResult>>(`${BASE_PATH}/${id}/audio`, form);
+  return unwrap(data);
+}
+
+export async function deleteMarketingAssetAudio(id: number): Promise<MarketingAssetAudioResult> {
+  const { data } = await api.delete<Envelope<MarketingAssetAudioResult>>(`${BASE_PATH}/${id}/audio`);
+  return unwrap(data);
+}
+
 export async function sendMarketingAssetTest(
   asset: MarketingAsset,
   payload: MarketingAssetTestPayload,
@@ -78,6 +91,8 @@ const marketingAssetsService = {
   updateMarketingAsset,
   deleteMarketingAsset,
   getMarketingAssetSummary,
+  uploadMarketingAssetAudio,
+  deleteMarketingAssetAudio,
   sendMarketingAssetTest,
 };
 

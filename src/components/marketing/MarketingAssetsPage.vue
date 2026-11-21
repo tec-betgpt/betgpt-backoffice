@@ -104,28 +104,11 @@
       @saved="fetchAssets(pages.current)"
     />
 
-    <Dialog :open="Boolean(previewAsset)" @update:open="previewAsset = $event ? previewAsset : null">
-      <DialogContent class="max-h-[90vh] max-w-3xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{{ previewAsset?.name }}</DialogTitle>
-          <DialogDescription>{{ previewAsset?.subject || `Template de ${channelLabel}` }}</DialogDescription>
-        </DialogHeader>
-        <iframe
-          v-if="previewAsset?.channel === 'email'"
-          class="h-96 w-full rounded-md border bg-white"
-          sandbox=""
-          :srcdoc="previewAsset.body"
-        />
-        <pre v-else class="max-h-96 overflow-auto whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm">{{ previewAsset?.body }}</pre>
-        <a
-          v-if="mediaUrl(previewAsset)"
-          :href="mediaUrl(previewAsset) || undefined"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-sm text-primary underline"
-        >Abrir mídia</a>
-      </DialogContent>
-    </Dialog>
+    <MarketingAssetPreviewDialog
+      :open="Boolean(previewAsset)"
+      :asset="previewAsset"
+      @update:open="previewAsset = $event ? previewAsset : null"
+    />
 
     <Dialog :open="Boolean(testAsset)" @update:open="closeTest">
       <DialogContent>
@@ -202,6 +185,7 @@ import {
 } from "@/services/marketingAssets";
 import { useWorkspaceStore } from "@/stores/workspace";
 import MarketingAssetFormDialog from "./MarketingAssetFormDialog.vue";
+import MarketingAssetPreviewDialog from "./MarketingAssetPreviewDialog.vue";
 
 const props = withDefaults(defineProps<{ channel: MarketingChannel; embedded?: boolean }>(), { embedded: false });
 const workspaceStore = useWorkspaceStore();
@@ -336,11 +320,6 @@ async function sendTest() {
   } finally {
     isTesting.value = false;
   }
-}
-
-function mediaUrl(asset: MarketingAsset | null): string | null {
-  const media = (asset?.payload as any)?.media;
-  return typeof media?.url === "string" ? media.url : null;
 }
 
 function formatDateTime(value: string | null) {

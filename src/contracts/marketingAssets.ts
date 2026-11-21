@@ -63,6 +63,7 @@ export interface MarketingAsset<C extends MarketingChannel = MarketingChannel> {
   payload: (ChannelPayloadMap[C] & Record<string, unknown>) | null;
   variables: Record<string, unknown> | unknown[] | null;
   metadata: Record<string, unknown> | unknown[] | null;
+  audio_url?: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -114,6 +115,11 @@ export type MarketingAssetSummary = Record<MarketingChannel, MarketingAssetSumma
 export interface MarketingAssetTestPayload {
   recipient_email?: string;
   recipient_phone?: string;
+}
+
+export interface MarketingAssetAudioResult {
+  asset_id: number;
+  audio_url: string | null;
 }
 
 export interface MarketingAssetTestResult {
