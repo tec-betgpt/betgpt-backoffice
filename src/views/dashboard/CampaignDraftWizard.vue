@@ -1491,6 +1491,11 @@ function applyCampaignDetail(detail: CampaignDetail) {
     single_stage_config: {
       ...createEmptyForm().single_stage_config,
       ...(detail.single_stage_config || {}),
+      target_audience_ids: detail.target_audiences?.length
+        ? detail.target_audiences.map((audience) => audience.id)
+        : detail.single_stage_config?.target_audience_id
+          ? [detail.single_stage_config.target_audience_id]
+          : [],
     },
     flow_config: detail.flow_config
       ? {

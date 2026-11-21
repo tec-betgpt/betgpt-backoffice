@@ -111,6 +111,7 @@ export type CampaignConfigurationProgress = {
 
 export type CampaignSingleStageConfigPayload = {
   target_audience_id?: number | null;
+  target_audience_ids?: number[];
   audience_mode?: CampaignAudienceMode;
   apply_protection_list?: boolean;
   apply_opt_out?: boolean;
@@ -259,6 +260,32 @@ export type CampaignListResponse = {
   last_page: number;
 };
 
+export type CampaignTargetAudienceSummary = {
+  id: number;
+  name: string;
+};
+
+export type CampaignAudienceSegmentPreview = CampaignTargetAudienceSummary & {
+  target_audience_id: number;
+  total_eligible: number;
+  error: string | null;
+};
+
+export type CampaignAudiencePreviewResponse = {
+  segments: CampaignAudienceSegmentPreview[];
+  total_eligible: number;
+};
+
+export type CampaignAudiencePreviewPayload = {
+  project_id: number;
+  target_audience_ids: number[];
+  channel: CampaignChannel;
+  audience_mode?: CampaignAudienceMode | null;
+  apply_protection_list?: boolean;
+  apply_opt_out?: boolean;
+  apply_suppression?: boolean;
+};
+
 export type CampaignSingleStageConfig = CampaignSingleStageConfigPayload & {
   id?: number;
   campaign_id?: number;
@@ -340,6 +367,7 @@ export type CampaignDetail = {
   created_by_user?: CampaignUserSummary | null;
   updated_by_user?: CampaignUserSummary | null;
   single_stage_config?: CampaignSingleStageConfig | null;
+  target_audiences?: CampaignTargetAudienceSummary[];
   flow_config?: CampaignFlowConfig | null;
   messages?: CampaignMessage[];
   links?: CampaignLink[];

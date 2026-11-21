@@ -5,6 +5,8 @@ import campaignExecutionService from "@/services/campaignExecution";
 import type {
   CampaignAnyEstimateResponse,
   CampaignApiResponse,
+  CampaignAudiencePreviewPayload,
+  CampaignAudiencePreviewResponse,
   CampaignConversions,
   CampaignDetail,
   CampaignDispatchesResponse,
@@ -102,6 +104,16 @@ export async function cancelCampaign(id: number): Promise<CampaignDetail> {
   return getCampaign(id);
 }
 
+export async function previewCampaignAudience(
+  payload: CampaignAudiencePreviewPayload,
+): Promise<CampaignAudiencePreviewResponse> {
+  const { data } = await api.post<CampaignAudiencePreviewResponse | CampaignApiResponse<CampaignAudiencePreviewResponse>>(
+    "/campaigns/audience-preview",
+    payload,
+  );
+  return unwrapResponse(data);
+}
+
 export async function getCampaignSummary(
   projectId: number,
   period: CampaignSummaryPeriod = "30d",
@@ -167,6 +179,7 @@ export default {
   resumeCampaign,
   cancelCampaign,
   getCampaignDispatches,
+  previewCampaignAudience,
   getCampaignSummary,
   getCampaignConversions,
   getFlowCatalog,

@@ -92,6 +92,7 @@
               :warnings="sectionWarnings('audience')"
               :loading="stepLoading.audience"
               :readonly="readonly"
+              :channel="model.channel"
             />
 
             <template v-else-if="configurationTab === 'schedule'">
