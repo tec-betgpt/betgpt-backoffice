@@ -50,6 +50,8 @@ const stubs = {
   CampaignMonitorOverview: { template: '<div data-test="monitor-overview" />' },
   CampaignMonitorHistory: { template: "<div />" },
   CampaignMonitorErrors: { template: "<div />" },
+  CampaignMonitorEvents: { template: '<div data-test="monitor-events" />' },
+  CampaignTemplatesPopover: { template: '<div data-test="templates-popover" />' },
 };
 
 function campaign(type: "broadcast" | "flow", status: "running" | "paused"): CampaignDetailModel {
@@ -133,8 +135,14 @@ describe("CampaignDetail monitor", () => {
     expect(wrapper.text()).toContain("Visão Geral");
     expect(wrapper.text()).toContain("Histórico");
     expect(wrapper.text()).toContain("Envios");
+    expect(wrapper.text()).toContain("Aberturas");
+    expect(wrapper.text()).toContain("Cliques");
+    expect(wrapper.text()).toContain("Conversões");
+    expect(wrapper.text()).toContain("Bounces");
     expect(wrapper.text()).toContain("Custos");
     expect(wrapper.text()).toContain("Erros");
+    expect(wrapper.find('[data-test="templates-popover"]').exists()).toBe(true);
+    expect(wrapper.find('button[aria-label="Abrir configuração da campanha"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="monitor-overview"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="flow-summary"]').exists()).toBe(false);
 

@@ -1,17 +1,38 @@
 <template>
   <div class="w-full space-y-6 p-10 pb-16 max-[450px]:p-2">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div class="space-y-3">
-        <div class="flex flex-wrap items-center gap-2">
-          <h2 class="text-2xl font-bold tracking-tight">{{ campaign?.name || "Campanha" }}</h2>
+      <div class="min-w-0 space-y-3">
+        <div class="flex items-center gap-2">
+          <h2 class="break-words text-2xl font-bold tracking-tight">{{ campaign?.name || "Campanha" }}</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            :disabled="!campaignId"
+            :aria-label="campaignStatus === 'draft' ? 'Editar campanha' : 'Abrir configuração da campanha'"
+            :title="campaignStatus === 'draft' ? 'Editar campanha' : 'Abrir configuração da campanha'"
+            @click="openConfiguration"
+          >
+            <Settings2 class="size-4" />
+          </Button>
+        </div>
+        <p class="text-muted-foreground">Monitore canais, histórico, envios, custos e erros da campanha.</p>
+        <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <Badge v-if="campaignStatus" :variant="statusVariant(campaignStatus)">
             {{ CAMPAIGN_STATUS_LABELS[campaignStatus] }}
           </Badge>
-          <Badge v-if="campaign" variant="outline">{{ formatDateTime(campaign.schedule?.starts_at || campaign.created_at) }}</Badge>
           <Badge v-if="campaign" variant="outline">{{ CAMPAIGN_TYPE_LABELS[campaign.type] }}</Badge>
-          <Badge v-if="campaign" variant="outline">Segmento: {{ segmentLabel }}</Badge>
-          <Badge variant="secondary">{{ campaign?.messages?.length || 0 }} template(s)</Badge>
-          <Badge variant="secondary">Progresso: {{ campaignProgress.toFixed(0) }}%</Badge>
+          <span v-if="campaign" class="flex items-center gap-1">
+            <CalendarDays class="size-3.5" />{{ formatDateTime(campaign.schedule?.starts_at || campaign.created_at) }}
+          </span>
+          <span v-if="campaign" class="flex max-w-full items-center gap-1" :title="segmentLabel">
+            <Users class="size-3.5 shrink-0" /><span class="truncate">Segmento: {{ segmentLabel }}</span>
+          </span>
+          <CampaignTemplatesPopover :templates="campaignTemplates" />
+          <span class="flex items-center gap-2">
+            <Gauge class="size-3.5" />
+            <Progress :model-value="campaignProgress" class="w-20" />
+            {{ campaignProgress.toFixed(0) }}%
+          </span>
           <Badge
             v-if="financialStatus"
             variant="outline"
@@ -20,7 +41,6 @@
             Financeiro: {{ FINANCIAL_STATUS_LABELS[financialStatus] }}
           </Badge>
         </div>
-        <p class="text-muted-foreground">Monitore canais, histórico, envios, custos e erros da campanha.</p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
@@ -54,8 +74,11 @@
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       <Card v-for="metric in summaryMetrics" :key="metric.label">
         <CardHeader class="pb-2">
-          <CardDescription>{{ metric.label }}</CardDescription>
-          <CardTitle class="text-2xl">{{ metric.value }}</CardTitle>
+          <div class="flex items-center justify-between gap-2">
+            <CardDescription>{{ metric.label }}</CardDescription>
+            <component :is="metric.icon" class="size-4" :class="metric.iconClass" />
+          </div>
+          <CardTitle class="text-2xl">{{ formatCount(metric.value) }}</CardTitle>
         </CardHeader>
       </Card>
     </div>
@@ -65,8 +88,9 @@
         <TabsTrigger value="overview">Visão Geral</TabsTrigger>
         <TabsTrigger value="history">Histórico</TabsTrigger>
         <TabsTrigger value="sends">Envios</TabsTrigger>
-        <TabsTrigger value="costs">Custos</TabsTrigger>
+        <TabsTrigger v-for="tab in eventTabs" :key="tab.key" :value="tab.key">{{ tab.title }}</TabsTrigger>
         <TabsTrigger value="errors">Erros</TabsTrigger>
+        <TabsTrigger value="costs">Custos</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" class="space-y-4">
@@ -159,6 +183,17 @@
         </Card>
       </TabsContent>
 
+      <TabsContent v-for="tab in eventTabs" :key="tab.key" :value="tab.key">
+        <CampaignMonitorEvents
+          :campaign-id="campaignId"
+          :project-id="campaign?.project_id || null"
+          :type="tab.key"
+          :title="tab.title"
+          :active="activeTab === tab.key"
+          :refresh-key="eventsRefreshKey"
+        />
+      </TabsContent>
+
       <TabsContent value="costs">
         <CampaignCostsPanel ref="costsPanel" :campaign-id="campaignId" @financial-status="financialStatus = $event" />
       </TabsContent>
@@ -191,6 +226,15 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import {
+  CalendarDays,
+  Gauge,
+  MousePointerClick,
+  Send,
+  Settings2,
+  TrendingUp,
+  Users,
+} from "lucide-vue-next";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -218,7 +262,7 @@ import {
   type CampaignDispatchStatus,
   type CampaignStatus,
 } from "@/contracts/campaigns";
-import type { CampaignMonitorResponse } from "@/contracts/campaignMonitor";
+import type { CampaignMonitorEventType, CampaignMonitorResponse } from "@/contracts/campaignMonitor";
 import { FINANCIAL_STATUS_LABELS, type FinancialStatus } from "@/contracts/financialLedger";
 import CampaignConversionsPanel from "@/components/campaigns/CampaignConversionsPanel.vue";
 import CampaignCostsPanel from "@/components/campaigns/CampaignCostsPanel.vue";
@@ -226,7 +270,9 @@ import CampaignRecipientsPanel from "@/components/campaigns/CampaignRecipientsPa
 import CampaignRunProgressPanel from "@/components/campaigns/CampaignRunProgressPanel.vue";
 import CampaignWavesBatchesPanel from "@/components/campaigns/CampaignWavesBatchesPanel.vue";
 import CampaignMonitorErrors from "@/components/campaigns/monitor/CampaignMonitorErrors.vue";
+import CampaignMonitorEvents from "@/components/campaigns/monitor/CampaignMonitorEvents.vue";
 import CampaignMonitorHistory from "@/components/campaigns/monitor/CampaignMonitorHistory.vue";
+import CampaignTemplatesPopover from "@/components/campaigns/CampaignTemplatesPopover.vue";
 import CampaignMonitorOverview from "@/components/campaigns/monitor/CampaignMonitorOverview.vue";
 import { monitorLeads, monitorProgress } from "@/components/campaigns/monitor/campaignMonitorView";
 import FlowSummaryPanel from "@/components/campaign-flow/FlowSummaryPanel.vue";
@@ -254,6 +300,13 @@ const isActing = ref(false);
 const isCancelDialogOpen = ref(false);
 const errorMessage = ref("");
 const financialStatus = ref<FinancialStatus | null>(null);
+const eventsRefreshKey = ref(0);
+const eventTabs: Array<{ key: CampaignMonitorEventType; title: string }> = [
+  { key: "opens", title: "Aberturas" },
+  { key: "clicks", title: "Cliques" },
+  { key: "conversions", title: "Conversões" },
+  { key: "bounces", title: "Bounces" },
+];
 const costsPanel = ref<InstanceType<typeof CampaignCostsPanel> | null>(null);
 const conversionsPanel = ref<InstanceType<typeof CampaignConversionsPanel> | null>(null);
 let pollTimer: number | null = null;
@@ -282,7 +335,12 @@ const canCancel = computed(() =>
   Boolean(campaignStatus.value && ["validated", "prepared", "running", "paused"].includes(campaignStatus.value)),
 );
 const campaignProgress = computed(() => monitorProgress(monitor.value));
+const campaignTemplates = computed(() => campaign.value?.templates || []);
 const segmentLabel = computed(() => {
+  const segments = campaign.value?.target_audiences || [];
+  if (segments.length === 1) return segments[0].name;
+  if (segments.length > 1) return `${segments[0].name} +${segments.length - 1}`;
+
   const audience = campaign.value?.single_stage_config?.target_audience as any;
   if (audience?.name) return audience.name;
   if (campaign.value?.single_stage_config?.target_audience_id) {
@@ -301,10 +359,10 @@ const summaryMetrics = computed(() => {
   );
   const totals = monitor.value?.channel_totals;
   return [
-    { label: "Envios", value: String(totals?.sends ?? fallback.sends) },
-    { label: "Cliques", value: String(totals?.clicks ?? 0) },
-    { label: "Conversões", value: String(totals?.conversions ?? 0) },
-    { label: "Leads", value: String(monitorLeads(monitor.value) || fallback.leads) },
+    { label: "Envios", value: totals?.sends ?? fallback.sends, icon: Send, iconClass: "text-blue-600" },
+    { label: "Cliques", value: totals?.clicks ?? 0, icon: MousePointerClick, iconClass: "text-violet-600" },
+    { label: "Conversões", value: totals?.conversions ?? 0, icon: TrendingUp, iconClass: "text-emerald-600" },
+    { label: "Leads", value: monitorLeads(monitor.value) || fallback.leads, icon: Users, iconClass: "text-amber-600" },
   ];
 });
 
@@ -339,6 +397,7 @@ async function refresh(showLoading = true) {
     campaignStatus.value = dispatchesResponse.status;
     dispatches.value = dispatchesResponse.dispatches;
     monitor.value = monitorResponse;
+    eventsRefreshKey.value++;
     costsPanel.value?.refresh();
   } catch (error) {
     errorMessage.value = getHttpMessage(error, "Não foi possível carregar o monitor da campanha.");
@@ -390,6 +449,15 @@ async function confirmCancel() {
   } finally {
     isActing.value = false;
   }
+}
+
+function openConfiguration() {
+  if (!campaignId.value) return;
+  router.push({ name: "campaign-drafts.edit", params: { id: campaignId.value } });
+}
+
+function formatCount(value: number) {
+  return new Intl.NumberFormat("pt-BR").format(value);
 }
 
 function dispatchProgress(dispatch: CampaignDispatch) {

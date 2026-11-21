@@ -1,5 +1,5 @@
 import type { CampaignFlowConfig } from "@/contracts/campaignFlow";
-import { MARKETING_CHANNEL_OPTIONS, type MarketingChannel } from "@/contracts/marketingAssets";
+import { MARKETING_CHANNEL_OPTIONS, type MarketingAsset, type MarketingChannel } from "@/contracts/marketingAssets";
 
 export type CampaignType = "broadcast" | "flow";
 export type CampaignChannel = MarketingChannel;
@@ -382,6 +382,7 @@ export type CampaignDetail = {
   target_audiences?: CampaignTargetAudienceSummary[];
   flow_config?: CampaignFlowConfig | null;
   messages?: CampaignMessage[];
+  templates?: MarketingAsset[];
   links?: CampaignLink[];
   schedule?: CampaignSchedule | null;
   delivery_windows?: CampaignDeliveryWindow[];
