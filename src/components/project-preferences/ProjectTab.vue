@@ -8,6 +8,7 @@ import ProjectPreferencesService from "@/services/projectPreferences";
 import LinkDomainsService from "@/services/linkDomains";
 import Projects from "@/services/projects";
 import { isOAuthConnected } from "@/lib/integrationConnection";
+import { isApexDomain } from "@/lib/apexDomain";
 import { LinkDomain, LinkDomainSslStatus, LinkDomainStatus } from "@/contracts/linkDomain";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -54,6 +55,9 @@ const domainsLoading = ref(false);
 const isAddDialogOpen = ref(false);
 const newDomain = ref("");
 const addingDomain = ref(false);
+const newDomainIsApex = computed(() => isApexDomain(newDomain.value));
+const isApexConfirmOpen = ref(false);
+const pendingApexDomain = ref("");
 const isDeleteDialogOpen = ref(false);
 const domainToDelete = ref<LinkDomain | null>(null);
 const deletingDomain = ref(false);
@@ -162,10 +166,53 @@ const openAddDialog = () => {
   isAddDialogOpen.value = true;
 };
 
-const handleAddDomain = async () => {
+const handleAddDomain = () => {
   const domain = newDomain.value.trim();
   if (!domain) return;
 
+  if (isApexDomain(domain)) {
+    pendingApexDomain.value = domain;
+    isAddDialogOpen.value = false;
+    isApexConfirmOpen.value = true;
+    return;
+  }
+
+  void submitNewDomain(domain);
+};
+
+const cancelApexDomain = () => {
+  isApexConfirmOpen.value = false;
+  pendingApexDomain.value = "";
+  isAddDialogOpen.value = true;
+};
+
+const onApexConfirmOpenChange = (open: boolean) => {
+  if (open) {
+    isApexConfirmOpen.value = true;
+    return;
+  }
+
+  if (pendingApexDomain.value) {
+    cancelApexDomain();
+  } else {
+    isApexConfirmOpen.value = false;
+  }
+};
+
+const confirmApexDomain = async () => {
+  const domain = pendingApexDomain.value;
+  isApexConfirmOpen.value = false;
+  pendingApexDomain.value = "";
+
+  if (!domain) return;
+
+  const saved = await submitNewDomain(domain);
+  if (!saved) {
+    isAddDialogOpen.value = true;
+  }
+};
+
+const submitNewDomain = async (domain: string) => {
   addingDomain.value = true;
   try {
     await LinkDomainsService.store({
@@ -176,9 +223,11 @@ const handleAddDomain = async () => {
     isAddDialogOpen.value = false;
     newDomain.value = "";
     await fetchDomains();
+    return true;
   } catch (error: any) {
     console.error("Erro ao cadastrar domínio:", error);
     toast.error("Erro", { description: error.response?.data?.message || "Não foi possível cadastrar o domínio." });
+    return false;
   } finally {
     addingDomain.value = false;
   }
@@ -404,6 +453,10 @@ onMounted(async () => {
           <p v-if="cloudflareConnected" class="text-xs text-muted-foreground">
             Cloudflare conectada: o registro DNS será criado automaticamente.
           </p>
+          <p v-if="newDomainIsApex" class="text-xs text-amber-600 dark:text-amber-400">
+            Este é o domínio raiz. Os links vão usar este domínio, e não um
+            subdomínio — vamos pedir confirmação antes de cadastrar.
+          </p>
         </div>
 
         <DialogFooter>
@@ -420,6 +473,34 @@ onMounted(async () => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog :open="isApexConfirmOpen" @update:open="onApexConfirmOpenChange">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Configurar o domínio raiz?</AlertDialogTitle>
+          <AlertDialogDescription>
+            <strong>{{ pendingApexDomain }}</strong> é um domínio raiz, não um
+            subdomínio. Os links do projeto passarão a usar esse domínio, que
+            costuma ser também o endereço do site principal. Se preferir
+            separar os links, cadastre um subdomínio como
+            <strong>links.{{ pendingApexDomain }}</strong>.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel :disabled="addingDomain" @click="cancelApexDomain">
+            Cancelar
+          </AlertDialogCancel>
+          <Button
+            class="bg-amber-500 text-white hover:bg-amber-500/90"
+            :disabled="addingDomain"
+            @click="confirmApexDomain"
+          >
+            <span v-if="addingDomain">Cadastrando...</span>
+            <span v-else>Continuar mesmo assim</span>
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     <AlertDialog :open="isDeleteDialogOpen" @update:open="isDeleteDialogOpen = false">
       <AlertDialogContent>
