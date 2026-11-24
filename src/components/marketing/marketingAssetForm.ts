@@ -1,4 +1,5 @@
 import type { MarketingAsset, MarketingAssetInput, MarketingChannel } from "@/contracts/marketingAssets";
+import { EMAIL_DESIGN_METADATA_KEY, isEmailDesign, type EmailDesign } from "./unlayer";
 
 export interface MarketingAssetFormState {
   name: string;
@@ -23,6 +24,7 @@ export interface MarketingAssetFormState {
   popupButtons: Array<{ label: string; actionUrl: string }>;
   audioPreviewUrl: string;
   audioName: string;
+  emailDesign: EmailDesign | null;
 }
 
 export function createEmptyAssetForm(): MarketingAssetFormState {
@@ -49,12 +51,14 @@ export function createEmptyAssetForm(): MarketingAssetFormState {
     popupButtons: [],
     audioPreviewUrl: "",
     audioName: "",
+    emailDesign: null,
   };
 }
 
 export function fillAssetForm(asset: MarketingAsset): MarketingAssetFormState {
   const payload = (asset.payload ?? {}) as Record<string, any>;
   const media = (payload.media ?? {}) as Record<string, any>;
+  const { [EMAIL_DESIGN_METADATA_KEY]: emailDesign, ...metadata } = isRecord(asset.metadata) ? asset.metadata : {};
 
   return {
     ...createEmptyAssetForm(),
@@ -74,7 +78,7 @@ export function fillAssetForm(asset: MarketingAsset): MarketingAssetFormState {
     mediaType: stringValue(media.type),
     mediaUrl: stringValue(media.url),
     variables: jsonValue(asset.variables),
-    metadata: jsonValue(asset.metadata),
+    metadata: isRecord(asset.metadata) ? jsonValue(Object.keys(metadata).length ? metadata : null) : jsonValue(asset.metadata),
     whatsappCategory: stringValue(payload.category),
     placeholders: Array.isArray(payload.placeholders) ? payload.placeholders.join(", ") : "",
     popupButtons: Array.isArray(payload.buttons) ? payload.buttons.map((button: any) => ({
@@ -83,11 +87,13 @@ export function fillAssetForm(asset: MarketingAsset): MarketingAssetFormState {
     })) : [],
     audioPreviewUrl: asset.audio_url || stringValue(payload.audio?.url),
     audioName: "",
+    emailDesign: asset.channel === "email" && isEmailDesign(emailDesign) ? emailDesign : null,
   };
 }
 
 export function validateAssetForm(form: MarketingAssetFormState, channel: MarketingChannel): string | null {
   if (!form.name.trim()) return "Informe o nome do template.";
+  if (channel === "email" && !hasVisibleEmailContent(form.body)) return "Monte o conteúdo do e-mail no editor.";
   if (channel !== "callcenter" && !form.body.trim()) return "Informe o conteúdo do template.";
   if (channel === "email" && !form.subject.trim()) return "Informe o assunto do e-mail.";
   if (channel === "sms" && form.body.length > 1530) return "A mensagem excede o limite de 1530 caracteres do SMS.";
@@ -124,8 +130,29 @@ export function buildAssetPayload(
     locale: form.locale.trim() || null,
     payload: channelPayload(form, channel),
     variables: parseJson(form.variables, "Variáveis"),
-    metadata: parseJson(form.metadata, "Metadados"),
+    metadata: withEmailDesign(parseJson(form.metadata, "Metadados"), channel === "email" ? form.emailDesign : null),
   };
+}
+
+function withEmailDesign(
+  metadata: Record<string, unknown> | unknown[] | null,
+  design: EmailDesign | null,
+): Record<string, unknown> | unknown[] | null {
+  if (!design || Array.isArray(metadata)) return metadata;
+  return { ...(metadata ?? {}), [EMAIL_DESIGN_METADATA_KEY]: design };
+}
+
+export function hasVisibleEmailContent(html: string): boolean {
+  if (/<img\b/i.test(html)) return true;
+  const text = html
+    .replace(/<(head|style|script)[^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;|&#160;/gi, " ");
+  return text.trim().length > 0;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function channelPayload(form: MarketingAssetFormState, channel: MarketingChannel): Record<string, unknown> | null {

@@ -9,12 +9,14 @@
 
 <script setup lang="ts">
 import { defineAsyncComponent } from "vue";
-import "tinymce/skins/ui/oxide/skin.css";
-import "tinymce/skins/ui/oxide/content.css";
 
 const Editor = defineAsyncComponent(async () => {
+  // Os plugins dependem do global `tinymce`, então o core precisa carregar antes.
+  await import("tinymce/tinymce");
   await Promise.all([
-    import("tinymce/tinymce"),
+    import("tinymce/skins/ui/oxide/skin.js"),
+    import("tinymce/skins/ui/oxide/content.js"),
+    import("tinymce/skins/content/default/content.js"),
     import("tinymce/themes/silver"),
     import("tinymce/icons/default"),
     import("tinymce/models/dom"),
@@ -39,6 +41,8 @@ withDefaults(defineProps<{
 const emit = defineEmits<{ (event: "update:modelValue", value: string): void }>();
 const editorOptions = {
   license_key: "gpl",
+  skin_url: "default",
+  content_css: "default",
   menubar: false,
   branding: false,
   promotion: false,

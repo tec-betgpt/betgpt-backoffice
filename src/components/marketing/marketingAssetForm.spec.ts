@@ -12,7 +12,9 @@ describe("marketingAssetForm", () => {
     const form = createEmptyAssetForm();
     expect(validateAssetForm(form, "email")).toBe("Informe o nome do template.");
     form.name = "Boas-vindas";
-    expect(validateAssetForm(form, "email")).toBe("Informe o conteúdo do template.");
+    expect(validateAssetForm(form, "email")).toBe("Monte o conteúdo do e-mail no editor.");
+    form.body = "<html><head><style>p{color:red}</style></head><body><table><tr><td></td></tr></table></body></html>";
+    expect(validateAssetForm(form, "email")).toBe("Monte o conteúdo do e-mail no editor.");
     form.body = "<p>Olá</p>";
     expect(validateAssetForm(form, "email")).toBe("Informe o assunto do e-mail.");
     form.subject = "Bem-vindo";
@@ -129,5 +131,36 @@ describe("marketingAssetForm", () => {
       subject: "Assunto",
       fromName: "BetGPT",
     });
+  });
+
+  it("guarda o design do editor de e-mail nos metadados sem expor no campo JSON", () => {
+    const design = { body: { rows: [] }, schemaVersion: 16 };
+    const form = {
+      ...createEmptyAssetForm(),
+      name: "E-mail",
+      subject: "Assunto",
+      body: "<p>Conteúdo</p>",
+      metadata: '{"origin":"test"}',
+      emailDesign: design,
+    };
+    const payload = buildAssetPayload(form, "email", 3);
+    expect(payload.metadata).toEqual({ origin: "test", email_design: design });
+
+    const filled = fillAssetForm({
+      id: 1,
+      project_id: 3,
+      channel: "email",
+      name: "E-mail",
+      subject: "Assunto",
+      body: "<p>Conteúdo</p>",
+      locale: null,
+      payload: null,
+      variables: null,
+      metadata: payload.metadata,
+      created_at: null,
+      updated_at: null,
+    } as MarketingAsset);
+    expect(filled.emailDesign).toEqual(design);
+    expect(JSON.parse(filled.metadata)).toEqual({ origin: "test" });
   });
 });

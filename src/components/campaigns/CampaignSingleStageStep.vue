@@ -189,6 +189,7 @@ function addSegment() {
   const id = Number(segmentToAdd.value);
   if (!id || selectedIds.value.includes(id)) return;
   syncIds([...selectedIds.value, id]);
+  if (!model.value.audience_mode || model.value.audience_mode === "none") model.value.audience_mode = "fixed";
   segmentToAdd.value = "";
 }
 

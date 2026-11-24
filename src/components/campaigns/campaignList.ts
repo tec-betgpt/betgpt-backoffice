@@ -63,16 +63,14 @@ export function groupCampaignsByUpdatedDate(items: CampaignListItem[], now = new
 export function campaignDateGroupLabel(key: string, now = new Date()): string {
   if (key === "sem-data") return "Sem data de alteração";
 
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (key === campaignDateKey(now.toISOString())) return "Hoje";
-  if (key === campaignDateKey(yesterday.toISOString())) return "Ontem";
+  const today = new Date(`${campaignDateKey(now.toISOString())}T12:00:00`);
+  const day = new Date(`${key}T12:00:00`);
+  const diffDays = Math.round((today.getTime() - day.getTime()) / 86400000);
+  if (diffDays === 0) return "Hoje";
+  if (diffDays === 1) return "Ontem";
+  if (diffDays > 1 && diffDays <= 7) return `${diffDays} dias atrás`;
 
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(`${key}T12:00:00`));
+  return new Intl.DateTimeFormat("pt-BR").format(day);
 }
 
 function campaignDateKey(value: string): string {

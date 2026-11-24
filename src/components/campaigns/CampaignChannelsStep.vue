@@ -56,7 +56,7 @@
         </div>
 
         <p v-if="selectingChannel === channel" class="text-xs text-muted-foreground">Carregando conteúdo do asset...</p>
-        <Alert v-if="messageFor(channel) && !messageFor(channel)?.asset_id">
+        <Alert v-if="messageFor(channel) && !messageFor(channel)?.asset_id && messageFor(channel)?.body?.trim()">
           <AlertDescription>Este rascunho usa conteúdo inline legado. Ele será preservado até você selecionar um asset.</AlertDescription>
         </Alert>
 

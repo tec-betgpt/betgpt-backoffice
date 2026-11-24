@@ -1,5 +1,8 @@
 <template>
   <div class="view-home pb-16 w-full">
+    <!-- acima do overlay de conta suspensa para o cliente conseguir pagar -->
+    <InvoiceDueNoticeComponent class="relative z-30 mt-5 mb-0" @released="_user" />
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 w-full mt-5">
       <div>
         <div class="text-xl md:text-2xl lg:text-3xl font-semibold">
@@ -403,6 +406,7 @@ import GlossaryTooltipComponent from "@/components/custom/GlossaryTooltipCompone
 import { useAuthStore } from "@/stores/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import SkeletonCustom from "@/components/custom/SkeletonCustom.vue";
+import InvoiceDueNoticeComponent from "@/components/invoices/InvoiceDueNoticeComponent.vue";
 
 const props = defineProps({
   isShowValues: {

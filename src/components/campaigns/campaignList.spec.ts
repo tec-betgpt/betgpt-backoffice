@@ -41,12 +41,16 @@ describe("campaign list tabs", () => {
       { id: 1, updated_at: new Date(2026, 10, 21, 9).toISOString() },
       { id: 2, updated_at: new Date(2026, 10, 20, 18).toISOString() },
       { id: 3, updated_at: new Date(2026, 10, 21, 11).toISOString() },
+      { id: 4, updated_at: new Date(2026, 10, 14, 10).toISOString() },
+      { id: 5, updated_at: new Date(2026, 10, 4, 10).toISOString() },
     ] as CampaignListItem[];
 
     const groups = groupCampaignsByUpdatedDate(items, now);
     expect(groups.map((group) => [group.label, group.items.map((item) => item.id)])).toEqual([
       ["Hoje", [1, 3]],
       ["Ontem", [2]],
+      ["7 dias atrás", [4]],
+      ["04/11/2026", [5]],
     ]);
   });
 });

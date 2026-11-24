@@ -41,13 +41,17 @@
             <TableCell v-if="invoicesColumnVisibility.periodo !== false">{{ formatDate(row.period_started_at) }} - {{ formatDate(row.period_ended_at) }}</TableCell>
             <TableCell v-if="invoicesColumnVisibility.valor !== false" class="text-right">{{ currencyFilter(row.amount) }}</TableCell>
             <TableCell v-if="invoicesColumnVisibility.status !== false">
-              <Badge :variant="getStatusVariant(row.status)">
-                {{ row.status }}
+              <Badge variant="outline" :class="INVOICE_STATUS_CLASSES[invoiceStatusInfo(row).tone]">
+                {{ invoiceStatusInfo(row).label }}
               </Badge>
             </TableCell>
             <TableCell v-if="invoicesColumnVisibility.acoes !== false" class="flex items-center justify-end space-x-2">
               <ShowComponent :row="row" />
-              <GetLinkComponent :row="row" :user="user" />
+              <Button variant="outline" size="sm" as-child>
+                <router-link :to="{ name: 'invoices.show', params: { id: row.id } }">
+                  {{ isInvoicePaid(row.status) ? "Ver fatura" : "Pagar" }}
+                </router-link>
+              </Button>
             </TableCell>
           </TableRow>
         </TableBody>
@@ -73,13 +77,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { toast } from "vue-sonner";
-import Auth from "@/services/auth";
 import Invoices from "@/services/invoices";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ShowComponent from "@/components/invoices/ShowComponent.vue";
-import GetLinkComponent from "@/components/invoices/GetLinkComponent.vue";
 import currencyFilter from "@/filters/currencyFilter";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import { INVOICE_STATUS_CLASSES, invoiceStatusInfo, isInvoicePaid } from "@/lib/invoiceStatus";
 
 
 const loadingColumns = [
@@ -106,7 +109,6 @@ const visibleInvoicesColumns = computed(() =>
   invoicesColumns.filter((c) => invoicesColumnVisibility.value[c.id] !== false)
 );
 
-const user = ref<any>(null);
 const services = ref<any>(null);
 const isLoading = ref(true);
 const currentPage = ref(1);
@@ -146,30 +148,7 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
 };
 
-const getStatusVariant = (status: string) => {
-  switch (status) {
-    case 'PENDING':
-      return 'default';
-    case 'PAID':
-      return 'success';
-    case 'OVERDUE':
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
-};
-
-const fetchUser = async () => {
-  try {
-    const response = await Auth.user();
-    user.value = response.data
-  } catch (e) {
-    console.error(e)
-  }
-};
-
 onMounted(async () => {
-  await fetchUser();
   await fetchInvoices();
 });
 </script>

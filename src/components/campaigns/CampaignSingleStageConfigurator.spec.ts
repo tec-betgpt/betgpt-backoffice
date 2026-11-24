@@ -12,7 +12,7 @@ const stubs = {
   CampaignSingleStageStep: { template: '<div data-test="segment-step" />' },
   CampaignBasicStep: { template: '<div data-test="basic-step" />' },
   CampaignScheduleStep: { template: '<div data-test="schedule-step" />' },
-  CampaignEstimatePanel: { template: '<div data-test="estimate-panel" />' },
+  CampaignWizardSidebar: { template: '<div data-test="wizard-sidebar" />' },
   CampaignChecklistPanel: { template: '<div data-test="checklist-panel" />' },
 };
 
@@ -99,7 +99,7 @@ describe("CampaignSingleStageConfigurator", () => {
 
     const review = mountConfigurator("review");
     expect(review.text()).toContain("Finalizar campanha");
-    expect(review.find('[data-test="estimate-panel"]').exists()).toBe(true);
+    expect(review.find('[data-test="wizard-sidebar"]').exists()).toBe(true);
     expect(review.text()).not.toContain("Salvar e continuar");
     const back = review.findAll("button").find((button) => button.text() === "Voltar");
     await back!.trigger("click");
@@ -160,5 +160,33 @@ describe("CampaignSingleStageConfigurator", () => {
     await repetition!.trigger("click");
     await wrapper.vm.$nextTick();
     expect(wrapper.vm.activeStep).toBe("recurrence_policy");
+  });
+
+  it("mostra a sidebar de resumo, as pendências por aba e o erro da etapa", () => {
+    const wrapper = mount(CampaignSingleStageConfigurator, {
+      props: {
+        modelValue: form(),
+        activeStep: "audience",
+        stepLoading: {},
+        projectId: 1,
+        sectionErrors: () => [],
+        sectionWarnings: () => [],
+        allErrors: [],
+        allWarnings: [],
+        estimate: null,
+        campaignId: 1,
+        onRefreshEstimate: () => {},
+        validation: null,
+        stepError: "Esta etapa tem 2 pendência(s).",
+        stepIssueCount: (step: string) => (step === "audience" ? 2 : 0),
+      },
+      global: { stubs },
+    });
+
+    expect(wrapper.find('[data-test="wizard-sidebar"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="step-error"]').text()).toContain("Segmento");
+    expect(wrapper.find('[data-test="step-error"]').text()).toContain("2 pendência(s)");
+    const segmentTab = wrapper.findAll('[role="tab"]').find((tab) => tab.text().startsWith("Segmento"));
+    expect(segmentTab?.text()).toContain("2");
   });
 });

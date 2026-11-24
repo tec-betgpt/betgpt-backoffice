@@ -82,7 +82,7 @@ const router = useRouter();
           :class="
             cn(
               'w-full text-left justify-start',
-              router.currentRoute.value.name === `${item.route}` &&
+              (router.currentRoute.value.meta.navRoute ?? router.currentRoute.value.name) === `${item.route}` &&
                 'bg-muted hover:bg-muted'
             )
           "

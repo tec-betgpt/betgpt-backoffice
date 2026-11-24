@@ -1,5 +1,6 @@
 import type { CampaignChannel, CampaignMessage, CampaignMessagePayload } from "@/contracts/campaigns";
 import type { MarketingAsset } from "@/contracts/marketingAssets";
+import { EMAIL_DESIGN_METADATA_KEY } from "@/components/marketing/unlayer";
 
 export function createChannelMessage(
   channel: CampaignChannel,
@@ -33,7 +34,7 @@ export function applyAssetToMessage(
 ): CampaignMessagePayload {
   const body = asset.body;
   const currentMetadata = isRecord(current.metadata) ? current.metadata : {};
-  const assetMetadata = isRecord(asset.metadata) ? asset.metadata : {};
+  const { [EMAIL_DESIGN_METADATA_KEY]: _design, ...assetMetadata } = isRecord(asset.metadata) ? asset.metadata : {};
 
   return createChannelMessage(asset.channel, {
     ...current,
