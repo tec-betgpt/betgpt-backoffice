@@ -1,47 +1,82 @@
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="max-h-[90vh] max-w-4xl overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle>{{ asset ? `Editar template de ${channelLabel}` : `Criar template de ${channelLabel}` }}</DialogTitle>
-        <DialogDescription>Configure o conteúdo reutilizável do canal {{ channelLabel }}.</DialogDescription>
+    <DialogContent
+      :class="isEmail
+        ? 'flex h-[96vh] max-h-[96vh] w-[97vw] max-w-[97vw] flex-col gap-3 overflow-hidden p-4 sm:max-w-[97vw]'
+        : 'max-h-[90vh] max-w-4xl overflow-y-auto'"
+    >
+      <DialogHeader :class="isEmail ? 'space-y-0' : ''">
+        <DialogTitle class="flex items-center gap-2">
+          <Mail v-if="isEmail" class="size-4 text-muted-foreground" />
+          {{ asset ? `Editar template de ${channelLabel}` : `Criar template de ${channelLabel}` }}
+        </DialogTitle>
+        <DialogDescription :class="isEmail ? 'sr-only' : ''">Configure o conteúdo reutilizável do canal {{ channelLabel }}.</DialogDescription>
       </DialogHeader>
 
-      <Alert v-if="errorMessage" variant="destructive">
+      <Alert v-if="errorMessage" variant="destructive" :class="isEmail ? 'py-2' : ''">
         <AlertTitle>Não foi possível salvar</AlertTitle>
         <AlertDescription>{{ errorMessage }}</AlertDescription>
       </Alert>
 
-      <form class="space-y-5" @submit.prevent="save">
+      <form v-if="isEmail" class="flex min-h-0 flex-1 flex-col gap-3" @submit.prevent="save">
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <div class="space-y-1">
+            <Label for="asset-name" class="text-xs">Nome do template</Label>
+            <Input id="asset-name" v-model="form.name" class="h-8" maxlength="255" placeholder="Ex.: Boas-vindas" />
+          </div>
+          <div class="space-y-1">
+            <Label for="asset-subject" class="text-xs">Assunto do e-mail</Label>
+            <Input id="asset-subject" v-model="form.subject" class="h-8" maxlength="255" placeholder="Assunto do e-mail" />
+          </div>
+          <div class="space-y-1">
+            <Label for="asset-from-name" class="text-xs">Nome do remetente</Label>
+            <Input id="asset-from-name" v-model="form.fromName" class="h-8" maxlength="255" placeholder="Opcional" />
+          </div>
+          <div class="space-y-1">
+            <Label for="asset-from-address" class="text-xs">E-mail do remetente</Label>
+            <Input id="asset-from-address" v-model="form.fromAddress" class="h-8" type="email" placeholder="Opcional" />
+          </div>
+          <div class="space-y-1">
+            <Label for="asset-reply-to" class="text-xs">Responder para</Label>
+            <Input id="asset-reply-to" v-model="form.replyTo" class="h-8" type="email" placeholder="Opcional" />
+          </div>
+        </div>
+
+        <EmailBuilderEditor
+          ref="emailBuilder"
+          :key="emailEditorKey"
+          class="min-h-0 flex-1"
+          :design="form.emailDesign"
+          :html="form.body"
+          @change="onEmailBuilderChange"
+        />
+
+        <DialogFooter class="items-center gap-2 sm:justify-between sm:pr-14">
+          <p class="text-xs text-muted-foreground">
+            Use as variáveis do jogador pelo menu "Merge Tags" do texto, ex.: <code v-pre>{{first_name}}</code>.
+          </p>
+          <div class="flex flex-wrap justify-end gap-2">
+            <Button type="button" variant="outline" size="sm" :disabled="isSaving" @click="openPreview">Pré-visualizar</Button>
+            <Button type="button" variant="ghost" size="sm" :disabled="isSaving" @click="emit('update:open', false)">Cancelar</Button>
+            <Button type="submit" size="sm" :disabled="isSaving || !projectId">
+              <Check class="mr-1 size-4" />
+              {{ isSaving ? "Salvando..." : asset ? "Salvar alterações" : "Criar template" }}
+            </Button>
+          </div>
+        </DialogFooter>
+      </form>
+
+      <form v-else class="space-y-5" @submit.prevent="save">
         <div class="grid gap-4 md:grid-cols-2">
           <div class="space-y-2 md:col-span-2">
             <Label for="asset-name">Nome do template</Label>
             <Input id="asset-name" v-model="form.name" maxlength="255" placeholder="Ex.: Boas-vindas" />
           </div>
 
-          <div v-if="channel === 'email'" class="space-y-2 md:col-span-2">
-            <Label for="asset-subject">Assunto do e-mail</Label>
-            <Input id="asset-subject" v-model="form.subject" maxlength="255" placeholder="Assunto do e-mail" />
-          </div>
-
           <div v-if="['webpush', 'inbox'].includes(channel)" class="space-y-2 md:col-span-2">
             <Label for="asset-title">Título da mensagem</Label>
             <Input id="asset-title" v-model="form.title" maxlength="255" />
           </div>
-
-          <template v-if="channel === 'email'">
-            <div class="space-y-2">
-              <Label for="asset-from-address">E-mail do remetente</Label>
-              <Input id="asset-from-address" v-model="form.fromAddress" type="email" />
-            </div>
-            <div class="space-y-2">
-              <Label for="asset-reply-to">Responder para</Label>
-              <Input id="asset-reply-to" v-model="form.replyTo" type="email" />
-            </div>
-            <div class="space-y-2 md:col-span-2">
-              <Label for="asset-from-name">Nome do remetente</Label>
-              <Input id="asset-from-name" v-model="form.fromName" maxlength="255" />
-            </div>
-          </template>
 
           <template v-if="channel === 'webpush'">
             <div class="space-y-2 md:col-span-2">
@@ -186,7 +221,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, watch } from "vue";
-import { Upload } from "lucide-vue-next";
+import { Check, Mail, Upload } from "lucide-vue-next";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -201,7 +236,9 @@ import {
   updateMarketingAsset,
   uploadMarketingAssetAudio,
 } from "@/services/marketingAssets";
+import EmailBuilderEditor from "./EmailBuilderEditor.vue";
 import HtmlEditor from "./HtmlEditor.vue";
+import type { EmailBuilderContent } from "./unlayer";
 import MarketingAssetPreviewDialog from "./MarketingAssetPreviewDialog.vue";
 import { buildAssetPayload, createEmptyAssetForm, fillAssetForm, validateAssetForm } from "./marketingAssetForm";
 
@@ -224,8 +261,11 @@ const isPreviewOpen = ref(false);
 const audioFile = ref<File | null>(null);
 const createdAsset = ref<MarketingAsset | null>(null);
 const audioMarkedForRemoval = ref(false);
+const emailBuilder = ref<InstanceType<typeof EmailBuilderEditor> | null>(null);
+const emailEditorKey = ref(0);
 const channelLabel = computed(() => MARKETING_CHANNEL_LABELS[props.channel]);
-const usesHtmlEditor = computed(() => ["email", "inbox", "rcs", "popup"].includes(props.channel));
+const isEmail = computed(() => props.channel === "email");
+const usesHtmlEditor = computed(() => ["inbox", "rcs", "popup"].includes(props.channel));
 const bodyLabel = computed(() => {
   if (props.channel === "sms" || props.channel === "whatsapp") return "Mensagem";
   if (props.channel === "webpush") return "Mensagem";
@@ -257,13 +297,26 @@ watch(
     audioFile.value = null;
     createdAsset.value = null;
     audioMarkedForRemoval.value = false;
+    emailEditorKey.value += 1;
   },
   { immediate: true },
 );
 
 onBeforeUnmount(revokeLocalAudio);
 
-function openPreview() {
+function onEmailBuilderChange(content: EmailBuilderContent) {
+  form.body = content.html;
+  form.emailDesign = content.design;
+}
+
+async function syncEmailBuilder() {
+  if (!isEmail.value) return;
+  const content = await emailBuilder.value?.exportContent();
+  if (content) onEmailBuilderChange(content);
+}
+
+async function openPreview() {
+  await syncEmailBuilder();
   errorMessage.value = "";
   try {
     void previewAsset.value;
@@ -324,6 +377,7 @@ function revokeLocalAudio() {
 
 async function save() {
   if (!props.projectId) return;
+  await syncEmailBuilder();
   const validationError = validateAssetForm(form, props.channel);
   if (validationError) {
     errorMessage.value = validationError;
