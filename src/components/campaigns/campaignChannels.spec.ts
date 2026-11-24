@@ -89,7 +89,7 @@ describe("campaignChannels", () => {
     expect(wrapper.vm.messages).toHaveLength(2);
     expect(wrapper.vm.messages.map((message) => message.channel)).toEqual(["sms", "email"]);
     expect(wrapper.text()).toContain("Canais");
-    expect(wrapper.text()).toContain("conteúdo inline legado");
+    expect(wrapper.text()).not.toContain("conteúdo inline legado");
     expect(wrapper.text()).toContain("Web Push");
     expect(wrapper.text()).toContain("OnSite");
   });

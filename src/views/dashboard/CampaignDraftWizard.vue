@@ -2,7 +2,7 @@
   <div
     class="w-full"
     :class="wizardMode === 'broadcast'
-      ? 'space-y-6 p-10 max-[450px]:p-2 pb-16'
+      ? 'space-y-4 p-6 max-[450px]:p-2 pb-16'
       : '-mx-4 -mb-4 flex h-[calc(100dvh-4rem)] flex-col sm:-mx-6 sm:-mb-0'"
   >
     <div
@@ -66,10 +66,17 @@
       </div>
     </div>
 
-    <div v-if="wizardMode === 'broadcast'" class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div class="space-y-2">
+    <div v-if="wizardMode === 'broadcast'" class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div class="space-y-1">
+        <nav class="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span>Marketing</span>
+          <ChevronRight class="size-3" />
+          <router-link :to="{ name: 'campaign-drafts.index' }" class="transition-colors hover:text-foreground">Campanhas</router-link>
+          <ChevronRight class="size-3" />
+          <span class="max-w-[320px] truncate text-foreground">{{ campaign?.name || "Nova campanha" }}</span>
+        </nav>
         <div class="flex flex-wrap items-center gap-2">
-          <h2 class="text-2xl font-bold tracking-tight">{{ campaignId ? "Editar campanha" : "Nova campanha" }}</h2>
+          <h2 class="text-xl font-bold tracking-tight">{{ campaignId ? "Editar campanha" : "Nova campanha" }}</h2>
           <Badge v-if="campaign" :variant="statusVariant(campaign.status)">{{ statusLabel }}</Badge>
           <Badge v-if="configurationProgress" :variant="progressVariant(configurationProgress.status)">
             {{ progressStatusLabel(configurationProgress.status) }}
@@ -77,30 +84,22 @@
           <Badge v-if="isDirty" variant="secondary">Alterações locais</Badge>
           <Badge v-else-if="campaign" variant="outline">Sincronizado</Badge>
         </div>
-        <p class="text-muted-foreground">
-          <template v-if="activeCampaignTab === 'execution'">
-            Acompanhe o estado operacional da execução (run materializado) da campanha.
-          </template>
-          <template v-else>
-            Configure, estime e valide a campanha SMS usando o estado calculado pelo backend.
-          </template>
+        <p v-if="activeCampaignTab === 'execution'" class="text-sm text-muted-foreground">
+          Acompanhe o estado operacional da execução da campanha.
         </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <Button variant="outline" @click="router.push({ name: 'campaign-drafts.index' })">Voltar para lista</Button>
         <template v-if="activeCampaignTab === 'configuration'">
-          <Button variant="outline" :disabled="!campaign?.id || isEstimating" @click="runEstimate()">
-            {{ isEstimating ? "Atualizando estimativa..." : "Atualizar estimativa" }}
-          </Button>
-          <Button variant="outline" :disabled="isReadonly || isSaving" @click="saveDraft(activeStep)">
+          <Button size="sm" variant="outline" :disabled="isReadonly || isSaving" @click="saveDraft(activeStep)">
             {{ isSaving ? "Salvando..." : "Salvar rascunho" }}
           </Button>
-          <Button :disabled="!campaign?.id || isValidating" @click="runValidation">
+          <Button size="sm" variant="outline" :disabled="!campaign?.id || isValidating" @click="runValidation">
             {{ isValidating ? "Validando..." : "Validar configuração" }}
           </Button>
           <Button
             v-if="canLaunch && !isFlowMode"
+            size="sm"
             :disabled="isLaunching || isDirty"
             @click="isLaunchDialogOpen = true"
           >
@@ -108,6 +107,7 @@
           </Button>
           <Button
             v-if="campaign?.id && !canLaunch && campaign.status !== 'draft' && !isFlowMode"
+            size="sm"
             variant="outline"
             @click="router.push({ name: 'campaign-drafts.show', params: { id: campaign.id } })"
           >
@@ -115,11 +115,13 @@
           </Button>
           <Button
             v-if="canDelete"
-            variant="destructive"
+            size="sm"
+            variant="ghost"
+            class="text-destructive hover:text-destructive"
             :disabled="isDeleting"
             @click="isDeleteDialogOpen = true"
           >
-            {{ isDeleting ? "Excluindo..." : "Excluir draft" }}
+            {{ isDeleting ? "Excluindo..." : "Excluir rascunho" }}
           </Button>
         </template>
         <template v-else>
@@ -185,7 +187,7 @@
       <AlertDescription>{{ errorMessage }}</AlertDescription>
     </Alert>
 
-    <Alert v-if="validationStepGroups.length" variant="destructive" :class="wizardMode !== 'broadcast' ? 'mx-6 mt-3 max-[450px]:mx-2' : ''">
+    <Alert v-if="validationStepGroups.length && wizardMode === 'flow'" variant="destructive" class="mx-6 mt-3 max-[450px]:mx-2">
       <AlertTitle>Revise: {{ validationStepSummary }}</AlertTitle>
       <AlertDescription class="mt-2 flex flex-wrap gap-2">
         <Button
@@ -203,7 +205,7 @@
     </Card>
 
     <Tabs v-else v-model="activeCampaignTab" :class="wizardMode !== 'broadcast' ? 'flex min-h-0 flex-1 flex-col' : ''">
-      <TabsList :class="wizardMode !== 'broadcast' ? 'hidden' : 'w-full justify-start'">
+      <TabsList :class="wizardMode !== 'broadcast' || !campaign || campaign.status === 'draft' ? 'hidden' : 'w-fit justify-start'">
         <TabsTrigger value="configuration">Configuração</TabsTrigger>
         <TabsTrigger v-if="!isFlowMode" value="execution" :disabled="!campaign?.id">Execução</TabsTrigger>
       </TabsList>
@@ -369,6 +371,9 @@
             :on-refresh-estimate="() => runEstimate()"
             :validation="validationResult"
             :is-validating="isValidating"
+            :step-error="stepErrorMessage"
+            :step-issue-count="stepIssueCount"
+            :segments="campaign?.target_audiences || []"
             @channels-change="onChannelsChange"
             @save-continue="onSingleStageSaveContinue"
             @validate="runValidation"
@@ -425,7 +430,7 @@
                 :warnings="sectionWarnings('basic')"
                 :loading="stepLoading.basic"
                 :readonly="isReadonly"
-                :on-save="() => saveDraft('basic')"
+                :on-save="() => { saveDraft('basic') }"
               />
               <CampaignSingleStageStep
                 v-if="activeStep === 'audience'"
@@ -434,7 +439,7 @@
                 :warnings="sectionWarnings('audience')"
                 :loading="stepLoading.audience"
                 :readonly="isReadonly"
-                :on-save="() => saveDraft('audience')"
+                :on-save="() => { saveDraft('audience') }"
               />
               <CampaignChannelsStep
                 v-if="activeStep === 'message'"
@@ -444,7 +449,7 @@
                 :warnings="sectionWarnings('message')"
                 :loading="stepLoading.message"
                 :readonly="isReadonly"
-                :on-save="() => saveDraft('message')"
+                :on-save="() => { saveDraft('message') }"
                 @change="onChannelsChange"
               />
               <CampaignLinksStep
@@ -455,7 +460,7 @@
                 :warnings="sectionWarnings('links')"
                 :loading="stepLoading.links"
                 :readonly="isReadonly"
-                :on-save="() => saveDraft('links')"
+                :on-save="() => { saveDraft('links') }"
               />
               <CampaignScheduleStep
                 v-if="activeStep === 'schedule'"
@@ -464,7 +469,7 @@
                 :warnings="sectionWarnings('schedule')"
                 :loading="stepLoading.schedule"
                 :readonly="isReadonly"
-                :on-save="() => saveDraft('schedule')"
+                :on-save="() => { saveDraft('schedule') }"
               />
               <CampaignDeliveryWindowsStep
                 v-if="activeStep === 'delivery_windows'"
@@ -473,7 +478,7 @@
                 :warnings="sectionWarnings('delivery_windows')"
                 :loading="stepLoading.delivery_windows"
                 :readonly="isReadonly"
-                :on-save="() => saveDraft('delivery_windows')"
+                :on-save="() => { saveDraft('delivery_windows') }"
               />
               <CampaignRecurrenceStep
                 v-if="activeStep === 'recurrence_policy'"
@@ -482,7 +487,7 @@
                 :warnings="sectionWarnings('recurrence_policy')"
                 :loading="stepLoading.recurrence_policy"
                 :readonly="isReadonly"
-                :on-save="() => saveDraft('recurrence_policy')"
+                :on-save="() => { saveDraft('recurrence_policy') }"
               />
               <CampaignWarmupStep
                 v-if="activeStep === 'warmup_policy'"
@@ -491,7 +496,7 @@
                 :warnings="sectionWarnings('warmup_policy')"
                 :loading="stepLoading.warmup_policy"
                 :readonly="isReadonly"
-                :on-save="() => saveDraft('warmup_policy')"
+                :on-save="() => { saveDraft('warmup_policy') }"
               />
             </CardContent>
           </Card>
@@ -864,7 +869,8 @@ import CampaignRunProgressPanel from "@/components/campaigns/CampaignRunProgress
 import CampaignWavesBatchesPanel from "@/components/campaigns/CampaignWavesBatchesPanel.vue";
 import CampaignRecipientsPanel from "@/components/campaigns/CampaignRecipientsPanel.vue";
 import { normalizeCampaignMessages } from "@/components/campaigns/campaignChannels";
-import { groupCampaignValidationItems } from "@/components/campaigns/campaignValidation";
+import { campaignValidationStepLabel, groupCampaignValidationItems } from "@/components/campaigns/campaignValidation";
+import { MARKETING_CHANNEL_LABELS } from "@/contracts/marketingAssets";
 import { deriveCampaignScheduleType } from "@/services/campaignPayload";
 
 type StepKey =
@@ -919,6 +925,15 @@ const flowSteps: StepDefinition[] = [
   { key: "flow_review", label: "Finalizar", sectionKeys: ["review"], progressKey: "review" },
 ];
 
+const SINGLE_STAGE_STEP_ORDER: StepKey[] = [
+  "message",
+  "recurrence_policy",
+  "delivery_windows",
+  "audience",
+  "schedule",
+  "warmup_policy",
+];
+
 const route = useRoute();
 const router = useRouter();
 const workspaceStore = useWorkspaceStore();
@@ -943,6 +958,7 @@ const isLaunchDialogOpen = ref(false);
 const isExecutionLaunchDialogOpen = ref(false);
 const isExecutionCancelDialogOpen = ref(false);
 const errorMessage = ref("");
+const stepErrorMessage = ref("");
 const estimateErrorMessage = ref("");
 const suppressDirty = ref(false);
 const validationErrors = ref<Record<string, CampaignValidationItem[]>>({});
@@ -1448,8 +1464,8 @@ function createEmptyForm(): CampaignFormState {
   };
 }
 
-async function loadCampaignContext(id: number) {
-  isInitialLoading.value = true;
+async function loadCampaignContext(id: number, silent = false) {
+  if (!silent) isInitialLoading.value = true;
   errorMessage.value = "";
 
   try {
@@ -1535,8 +1551,8 @@ function applyCampaignDetail(detail: CampaignDetail) {
   }, 0);
 }
 
-async function saveDraft(step: StepKey) {
-  if (isReadonly.value) return;
+async function saveDraft(step: StepKey): Promise<boolean> {
+  if (isReadonly.value) return false;
 
   errorMessage.value = "";
   clearStepMessages(step);
@@ -1559,13 +1575,15 @@ async function saveDraft(step: StepKey) {
       toast("Campanha criada como draft.");
     } else {
       await updateCampaign(campaign.value.id, buildUpdatePayload());
-      await loadCampaignContext(campaign.value.id);
+      await loadCampaignContext(campaign.value.id, true);
       clearValidationState();
       toast("Rascunho salvo.");
     }
     isDirty.value = false;
+    return true;
   } catch (error) {
     handleHttpError(error, step);
+    return false;
   } finally {
     stepLoading[step] = false;
     isSaving.value = false;
@@ -1602,12 +1620,17 @@ async function runValidation() {
     validationWarnings.value = result.warnings || {};
     configurationProgress.value = result.configuration_progress || configurationProgress.value;
 
-    const firstStep = activeSteps.value.find((step) => {
-      const wizardStep = wizardStepFor(step.key);
-      return wizardStep && wizardStep.status !== "valid";
-    });
-    if (firstStep) {
-      activeStep.value = firstStep.key;
+    if (wizardMode.value === "broadcast") {
+      const firstStep = SINGLE_STAGE_STEP_ORDER.find((step) => stepIssueCount(step) > 0);
+      if (firstStep) activeStep.value = firstStep;
+    } else {
+      const firstStep = activeSteps.value.find((step) => {
+        const wizardStep = wizardStepFor(step.key);
+        return wizardStep && wizardStep.status !== "valid";
+      });
+      if (firstStep) {
+        activeStep.value = firstStep.key;
+      }
     }
 
     toast(result.valid ? "Configuração válida." : "Configuração inválida.");
@@ -1781,17 +1804,115 @@ function goToValidationStep(stepKey: string) {
 }
 
 async function onSingleStageSaveContinue(next: string | null) {
-  await saveDraft(activeStep.value);
-  if (!errorMessage.value && next) {
-    activeStep.value = next as StepKey;
+  const step = activeStep.value;
+  stepErrorMessage.value = "";
+
+  const localIssues = localStepIssues(step);
+  if (localIssues.length) {
+    setStepIssues(step, localIssues);
+    stepErrorMessage.value = `Corrija ${localIssues.length === 1 ? "o item destacado" : `os ${localIssues.length} itens destacados`} nesta etapa para continuar.`;
+    return;
+  }
+
+  const saved = await saveDraft(step);
+  if (!saved) {
+    stepErrorMessage.value = errorMessage.value || "Não foi possível salvar esta etapa.";
+    errorMessage.value = "";
+    return;
+  }
+
+  if (!next) return;
+
+  const result = await validateQuietly();
+  if (next === "review") {
+    activeStep.value = "review";
+    return;
+  }
+
+  const blocking = result ? stepIssues(step, result.errors || {}) : [];
+  if (blocking.length) {
+    stepErrorMessage.value = `Esta etapa tem ${blocking.length} pendência(s). Corrija os itens destacados para continuar.`;
+    return;
+  }
+  activeStep.value = next as StepKey;
+}
+
+async function validateQuietly(): Promise<CampaignValidationResponse | null> {
+  if (!campaign.value?.id) return null;
+  isValidating.value = true;
+  try {
+    const result = await validateCampaign(campaign.value.id);
+    validationResult.value = result;
+    validationErrors.value = result.errors || {};
+    validationWarnings.value = result.warnings || {};
+    configurationProgress.value = result.configuration_progress || configurationProgress.value;
+    return result;
+  } catch {
+    return null;
+  } finally {
+    isValidating.value = false;
   }
 }
 
+function singleStageStepFor(item: CampaignValidationItem, section: string): string {
+  if (section === "financial") return "review";
+  if (item.field === "channel" || item.field === "campaign.channel") return "message";
+  const step = item.step || inferValidationStep(section);
+  if (step === "basic") return "schedule";
+  if (step === "links") return "message";
+  return step;
+}
+
+function stepIssues(step: string, source: Record<string, CampaignValidationItem[]>): CampaignValidationItem[] {
+  return Object.entries(source).flatMap(([section, items]) =>
+    (items || []).filter((item) => singleStageStepFor(item, section) === step),
+  );
+}
+
+function stepIssueCount(step: string): number {
+  return stepIssues(step, validationErrors.value).length;
+}
+
+function setStepIssues(step: StepKey, items: CampaignValidationItem[]) {
+  const key = `local_${step}`;
+  validationErrors.value = { ...validationErrors.value, [key]: items.map((item) => ({ ...item, step })) };
+}
+
+function localStepIssues(step: StepKey): CampaignValidationItem[] {
+  const issues: CampaignValidationItem[] = [];
+  if (step === "message") {
+    if (!form.messages.length) {
+      issues.push({ field: "messages", step, message: "Selecione ao menos um canal." });
+    }
+    for (const message of form.messages) {
+      const channel = message.channel || form.channel;
+      if (channel !== "callcenter" && !message.asset_id && !message.body?.trim()) {
+        issues.push({ field: "message.asset_id", step, message: `Selecione ou crie um template para ${MARKETING_CHANNEL_LABELS[channel]}.` });
+      }
+    }
+  }
+  if (step === "audience") {
+    const ids = form.single_stage_config.target_audience_ids ?? [];
+    if (!ids.length && !form.single_stage_config.target_audience_id) {
+      issues.push({ field: "single_stage_config.target_audience_ids", step, message: "Adicione ao menos um segmento." });
+    }
+    if (!form.single_stage_config.audience_mode || form.single_stage_config.audience_mode === "none") {
+      issues.push({ field: "single_stage_config.audience_mode", step, message: "Escolha o modo da audiência (fixa ou dinâmica)." });
+    }
+  }
+  if (step === "schedule" && !form.name.trim()) {
+    issues.push({ field: "name", step, message: "Informe o nome da campanha." });
+  }
+  return issues;
+}
+
 function sectionErrors(stepKey: string) {
+  if (wizardMode.value === "broadcast") return stepIssues(stepKey, validationErrors.value);
   return mergeMessages(activeSteps.value.find((step) => step.key === stepKey)?.sectionKeys || [], validationErrors.value);
 }
 
 function sectionWarnings(stepKey: string) {
+  if (wizardMode.value === "broadcast") return stepIssues(stepKey, validationWarnings.value);
   return mergeMessages(activeSteps.value.find((step) => step.key === stepKey)?.sectionKeys || [], validationWarnings.value);
 }
 
@@ -1810,6 +1931,10 @@ function clearStepMessages(stepKey: StepKey) {
     validationWarnings.value[key] = [];
   });
 }
+
+watch(activeStep, () => {
+  stepErrorMessage.value = "";
+});
 
 function clearValidationState() {
   validationResult.value = null;
@@ -1875,7 +2000,20 @@ function handleHttpError(error: unknown, step?: StepKey) {
     return;
   }
 
-  errorMessage.value = error.response?.data?.message || "Erro inesperado ao comunicar com o servidor.";
+  const serverMessage = error.response?.data?.message;
+  if (status && status >= 500) {
+    const label = step ? campaignValidationStepLabel(stepLabelKey(step)) : null;
+    const detail = serverMessage && serverMessage !== "Server Error" ? ` Detalhe: ${serverMessage}` : "";
+    errorMessage.value = `Erro no servidor ao salvar${label ? ` a etapa “${label}”` : ""}. Tente novamente; se continuar, avise o suporte.${detail}`;
+    return;
+  }
+
+  errorMessage.value = serverMessage || "Erro inesperado ao comunicar com o servidor.";
+}
+
+function stepLabelKey(step: StepKey): string {
+  if (wizardMode.value !== "broadcast") return step;
+  return step === "basic" ? "schedule" : step;
 }
 
 function validationStepForField(field: string, fallback: StepKey): StepKey {
