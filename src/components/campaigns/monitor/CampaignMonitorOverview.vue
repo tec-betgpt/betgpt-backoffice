@@ -1,56 +1,54 @@
 <template>
-  <div class="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.8fr)]">
-    <Card>
-      <CardHeader>
-        <CardTitle>Visão geral por canal</CardTitle>
-        <CardDescription>Entregas em relação aos envios de cada canal.</CardDescription>
-      </CardHeader>
-      <CardContent class="space-y-5">
-        <div v-for="row in rows" :key="row.channel" class="space-y-2">
+  <div class="grid gap-4 lg:grid-cols-2">
+    <div class="rounded-lg border bg-card shadow-sm">
+      <h3 class="flex items-center gap-2 border-b px-4 py-2.5 text-sm font-semibold">
+        <Rss class="size-4 text-muted-foreground" />
+        Canais
+      </h3>
+      <div class="divide-y divide-border/50">
+        <div v-for="row in rows" :key="row.channel" class="space-y-1.5 px-3 py-2">
           <div class="flex items-center justify-between gap-3 text-sm">
             <div class="flex items-center gap-2 font-medium">
-              <span class="flex size-7 items-center justify-center rounded-md border" :class="CAMPAIGN_CHANNEL_COLOR_CLASSES[row.channel]">
+              <span class="flex size-6 items-center justify-center rounded-md bg-muted/60" :class="CAMPAIGN_CHANNEL_TEXT_CLASSES[row.channel]">
                 <component :is="CAMPAIGN_CHANNEL_ICONS[row.channel]" class="size-3.5" />
               </span>
               {{ channelLabel(row.channel) }}
-              <Badge variant="outline">{{ row.sends }} envios</Badge>
+              <span class="text-[11px] font-normal text-muted-foreground">{{ formatCount(row.sends) }} envios</span>
+              <span v-if="row.errors" class="text-[11px] font-normal text-destructive">{{ formatCount(row.errors) }} erros</span>
             </div>
-            <span class="text-muted-foreground">{{ row.delivery_rate.toFixed(1) }}%</span>
+            <span class="tabular-nums">{{ formatPercent(row.delivery_rate) }}</span>
           </div>
-          <Progress :model-value="row.delivery_rate" />
-          <p class="text-xs text-muted-foreground">{{ row.deliveries }} entregues · {{ row.errors }} erros</p>
+          <Progress :model-value="row.delivery_rate" class="h-1" />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
 
-    <Card>
-      <CardHeader>
-        <CardTitle>Métricas</CardTitle>
-        <CardDescription>Totais consolidados da campanha.</CardDescription>
-      </CardHeader>
-      <CardContent class="grid grid-cols-2 gap-3">
-        <div v-for="metric in metrics" :key="metric.label" class="rounded-md border p-3">
-          <div class="flex items-center gap-2 text-xs text-muted-foreground">
+    <div class="rounded-lg border bg-card shadow-sm">
+      <h3 class="flex items-center gap-2 border-b px-4 py-2.5 text-sm font-semibold">
+        <ChartColumn class="size-4 text-muted-foreground" />
+        Métricas
+      </h3>
+      <dl class="divide-y divide-border/50">
+        <div v-for="metric in metrics" :key="metric.label" class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+          <dt class="flex items-center gap-2 text-muted-foreground">
             <component :is="metric.icon" class="size-3.5" />
             {{ metric.label }}
-          </div>
-          <div class="mt-1 text-xl font-semibold">{{ metric.value }}</div>
+          </dt>
+          <dd class="font-semibold tabular-nums">{{ formatCount(metric.value) }}</dd>
         </div>
-      </CardContent>
-    </Card>
+      </dl>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { CircleAlert, MailOpen, MousePointerClick, TrendingUp, UserMinus } from "lucide-vue-next";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartColumn, CircleAlert, MailOpen, MailX, MousePointerClick, Rss, TrendingUp, UserMinus } from "lucide-vue-next";
 import { Progress } from "@/components/ui/progress";
 import type { CampaignChannelMetrics, CampaignMonitorTotals } from "@/contracts/campaignMonitor";
 import { MARKETING_CHANNEL_LABELS, type MarketingChannel } from "@/contracts/marketingAssets";
 import { channelRows } from "./campaignMonitorView";
-import { CAMPAIGN_CHANNEL_COLOR_CLASSES, CAMPAIGN_CHANNEL_ICONS } from "../campaignPresentation";
+import { CAMPAIGN_CHANNEL_ICONS, CAMPAIGN_CHANNEL_TEXT_CLASSES } from "../campaignPresentation";
 
 const props = defineProps<{
   channels: Record<MarketingChannel, CampaignChannelMetrics>;
@@ -63,8 +61,17 @@ const metrics = computed(() => [
   { label: "Cliques", value: props.totals.clicks, icon: MousePointerClick },
   { label: "Bounces", value: props.totals.bounces, icon: CircleAlert },
   { label: "Conversões", value: props.totals.conversions, icon: TrendingUp },
+  { label: "Erros", value: props.totals.errors, icon: MailX },
   { label: "Inscrições removidas", value: props.totals.opt_outs, icon: UserMinus },
 ]);
+
+function formatCount(value: number) {
+  return new Intl.NumberFormat("pt-BR").format(value ?? 0);
+}
+
+function formatPercent(value: number) {
+  return `${new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)}%`;
+}
 
 function channelLabel(channel: MarketingChannel) {
   return MARKETING_CHANNEL_LABELS[channel];

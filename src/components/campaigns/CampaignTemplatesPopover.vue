@@ -9,8 +9,8 @@
   >
     <Popover v-model:open="isPopoverOpen">
       <PopoverTrigger as-child>
-        <Button variant="outline" size="sm" :disabled="templates.length === 0">
-          <Images class="mr-2 size-4" />
+        <Button variant="outline" size="sm" class="h-7 rounded-full bg-muted/30 px-3 text-xs" :disabled="templates.length === 0">
+          <Images class="mr-1.5 size-3.5" />
           {{ templates.length }} {{ templates.length === 1 ? "template" : "templates" }}
         </Button>
       </PopoverTrigger>

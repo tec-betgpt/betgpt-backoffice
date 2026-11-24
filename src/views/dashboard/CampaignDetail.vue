@@ -1,68 +1,81 @@
 <template>
-  <div class="w-full space-y-6 p-10 pb-16 max-[450px]:p-2">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div class="min-w-0 space-y-3">
-        <div class="flex items-center gap-2">
-          <h2 class="break-words text-2xl font-bold tracking-tight">{{ campaign?.name || "Campanha" }}</h2>
+  <div class="w-full space-y-4 p-6 pb-16 max-[450px]:p-2">
+    <div class="relative overflow-hidden rounded-xl border bg-card px-5 py-4 shadow-sm">
+      <Megaphone class="pointer-events-none absolute -right-2 -top-2 size-24 opacity-[0.04]" />
+      <div class="relative flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="min-w-0 space-y-3">
+          <div class="flex items-center gap-1">
+            <h2 class="break-words text-2xl font-bold tracking-tight">{{ campaign?.name || "Campanha" }}</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-8 text-muted-foreground"
+              :disabled="!campaignId"
+              :aria-label="campaignStatus === 'draft' ? 'Editar campanha' : 'Abrir configuração da campanha'"
+              :title="campaignStatus === 'draft' ? 'Editar campanha' : 'Abrir configuração da campanha'"
+              @click="openConfiguration"
+            >
+              <Settings2 class="size-4" />
+            </Button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <span v-if="campaign" :class="chipClass">
+              <CalendarDays class="size-3.5 text-blue-500" />
+              {{ formatDateTime(campaign.schedule?.starts_at || campaign.created_at) }}
+            </span>
+            <span
+              v-if="campaignStatus"
+              class="inline-flex h-7 items-center gap-1.5 rounded-full border px-3 font-medium"
+              :class="CAMPAIGN_STATUS_BADGE_CLASSES[campaignStatus]"
+            >
+              <span class="size-1.5 rounded-full bg-current" />
+              {{ CAMPAIGN_STATUS_LABELS[campaignStatus] }}
+            </span>
+            <span v-if="campaign" :class="chipClass">
+              <component :is="campaign.type === 'flow' ? GitFork : Send" class="size-3.5 text-blue-500" />
+              {{ CAMPAIGN_TYPE_LABELS[campaign.type] }}
+            </span>
+            <span v-if="campaign" :class="chipClass" :title="segmentLabel">
+              <PieChart class="size-3.5 text-muted-foreground" />
+              <span class="max-w-[260px] truncate">{{ segmentLabel }}</span>
+            </span>
+            <CampaignTemplatesPopover :templates="campaignTemplates" />
+            <span class="inline-flex h-7 items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/10 px-3 font-medium text-blue-500">
+              <Activity class="size-3.5" />
+              Progresso: {{ campaignProgress.toFixed(1) }}%
+            </span>
+            <span
+              v-if="financialStatus"
+              class="inline-flex h-7 items-center gap-1.5 rounded-full border border-emerald-500/40 px-3 font-medium text-emerald-600 dark:text-emerald-400"
+            >
+              <Wallet class="size-3.5" />
+              Financeiro: {{ FINANCIAL_STATUS_LABELS[financialStatus] }}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
           <Button
-            variant="ghost"
-            size="icon"
+            v-if="campaignStatus === 'running' || campaignStatus === 'prepared'"
+            size="sm"
+            variant="secondary"
+            :disabled="isActing"
+            @click="doAction('pause')"
+          >Pausar</Button>
+          <Button v-if="campaignStatus === 'paused'" size="sm" :disabled="isActing" @click="doAction('resume')">Retomar</Button>
+          <Button v-if="canCancel" size="sm" variant="ghost" class="text-destructive hover:text-destructive" :disabled="isActing" @click="isCancelDialogOpen = true">
+            Cancelar campanha
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             :disabled="!campaignId"
-            :aria-label="campaignStatus === 'draft' ? 'Editar campanha' : 'Abrir configuração da campanha'"
-            :title="campaignStatus === 'draft' ? 'Editar campanha' : 'Abrir configuração da campanha'"
-            @click="openConfiguration"
-          >
-            <Settings2 class="size-4" />
+            @click="router.push({ name: 'financial.resource-usage', query: { campaign_id: campaignId } })"
+          >Uso de recursos</Button>
+          <Button size="icon" variant="outline" class="size-8" title="Atualizar" aria-label="Atualizar" :disabled="isLoading" @click="refreshAll">
+            <RefreshCw class="size-4" :class="isLoading ? 'animate-spin' : ''" />
           </Button>
         </div>
-        <p class="text-muted-foreground">Monitore canais, histórico, envios, custos e erros da campanha.</p>
-        <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Badge v-if="campaignStatus" :variant="statusVariant(campaignStatus)">
-            {{ CAMPAIGN_STATUS_LABELS[campaignStatus] }}
-          </Badge>
-          <Badge v-if="campaign" variant="outline">{{ CAMPAIGN_TYPE_LABELS[campaign.type] }}</Badge>
-          <span v-if="campaign" class="flex items-center gap-1">
-            <CalendarDays class="size-3.5" />{{ formatDateTime(campaign.schedule?.starts_at || campaign.created_at) }}
-          </span>
-          <span v-if="campaign" class="flex max-w-full items-center gap-1" :title="segmentLabel">
-            <Users class="size-3.5 shrink-0" /><span class="truncate">Segmento: {{ segmentLabel }}</span>
-          </span>
-          <CampaignTemplatesPopover :templates="campaignTemplates" />
-          <span class="flex items-center gap-2">
-            <Gauge class="size-3.5" />
-            <Progress :model-value="campaignProgress" class="w-20" />
-            {{ campaignProgress.toFixed(0) }}%
-          </span>
-          <Badge
-            v-if="financialStatus"
-            variant="outline"
-            class="border-emerald-600/40 text-emerald-600 dark:border-emerald-500/40 dark:text-emerald-400"
-          >
-            Financeiro: {{ FINANCIAL_STATUS_LABELS[financialStatus] }}
-          </Badge>
-        </div>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-2">
-        <Button variant="outline" @click="router.push({ name: 'campaign-drafts.index' })">Voltar para lista</Button>
-        <Button
-          variant="outline"
-          :disabled="!campaignId"
-          @click="router.push({ name: 'financial.resource-usage', query: { campaign_id: campaignId } })"
-        >Uso de recursos</Button>
-        <Button variant="outline" :disabled="isLoading" @click="refreshAll">
-          {{ isLoading ? "Atualizando..." : "Atualizar" }}
-        </Button>
-        <Button
-          v-if="campaignStatus === 'running' || campaignStatus === 'prepared'"
-          variant="secondary"
-          :disabled="isActing"
-          @click="doAction('pause')"
-        >Pausar</Button>
-        <Button v-if="campaignStatus === 'paused'" :disabled="isActing" @click="doAction('resume')">Retomar</Button>
-        <Button v-if="canCancel" variant="destructive" :disabled="isActing" @click="isCancelDialogOpen = true">
-          Cancelar campanha
-        </Button>
       </div>
     </div>
 
@@ -71,33 +84,34 @@
       <AlertDescription>{{ errorMessage }}</AlertDescription>
     </Alert>
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <Card v-for="metric in summaryMetrics" :key="metric.label">
-        <CardHeader class="pb-2">
-          <div class="flex items-center justify-between gap-2">
-            <CardDescription>{{ metric.label }}</CardDescription>
-            <component :is="metric.icon" class="size-4" :class="metric.iconClass" />
-          </div>
-          <CardTitle class="text-2xl">{{ formatCount(metric.value) }}</CardTitle>
-        </CardHeader>
-      </Card>
+    <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div
+        v-for="metric in summaryMetrics"
+        :key="metric.label"
+        class="group relative overflow-hidden rounded-lg border bg-gradient-to-br from-card to-muted/5 px-4 py-3 shadow-sm"
+      >
+        <component :is="metric.icon" class="pointer-events-none absolute -right-2 -top-2 size-16 opacity-[0.05] transition-opacity group-hover:opacity-10" />
+        <div class="relative flex items-center gap-1.5 text-sm text-muted-foreground">
+          <component :is="metric.icon" class="size-4" :class="metric.iconClass" />
+          {{ metric.label }}
+        </div>
+        <div class="relative mt-1 text-2xl font-bold tabular-nums">{{ formatCount(metric.value) }}</div>
+      </div>
     </div>
 
+    <CampaignConversionsPanel v-if="campaignId" ref="conversionsPanel" :campaign-id="campaignId" />
+
     <Tabs v-model="activeTab" class="space-y-4">
-      <TabsList class="flex w-full justify-start overflow-x-auto">
-        <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-        <TabsTrigger value="history">Histórico</TabsTrigger>
-        <TabsTrigger value="sends">Envios</TabsTrigger>
-        <TabsTrigger v-for="tab in eventTabs" :key="tab.key" :value="tab.key">{{ tab.title }}</TabsTrigger>
-        <TabsTrigger value="errors">Erros</TabsTrigger>
-        <TabsTrigger value="costs">Custos</TabsTrigger>
+      <TabsList class="grid h-auto w-full auto-cols-fr grid-flow-col overflow-x-auto">
+        <TabsTrigger v-for="tab in detailTabs" :key="tab.key" :value="tab.key">
+          <component :is="tab.icon" class="mr-1.5 inline size-3.5 align-[-2px]" />{{ tab.title }}
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" class="space-y-4">
         <FlowSummaryPanel v-if="campaign?.type === 'flow'" :definition="campaign.flow_config?.definition || null" />
         <CampaignMonitorOverview v-if="monitor" :channels="monitor.channels" :totals="monitor.channel_totals" />
-        <Card v-else><CardContent class="pt-6 text-sm text-muted-foreground">Carregando métricas por canal...</CardContent></Card>
-        <CampaignConversionsPanel v-if="campaignId" ref="conversionsPanel" :campaign-id="campaignId" />
+        <div v-else class="rounded-lg border p-6 text-sm text-muted-foreground">Carregando métricas por canal...</div>
       </TabsContent>
 
       <TabsContent value="history">
@@ -227,13 +241,23 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
+  Activity,
   CalendarDays,
-  Gauge,
+  CircleAlert,
+  Eye,
+  GitFork,
+  History,
+  MailOpen,
+  Megaphone,
   MousePointerClick,
+  PieChart,
+  RefreshCw,
   Send,
   Settings2,
   TrendingUp,
+  TriangleAlert,
   Users,
+  Wallet,
 } from "lucide-vue-next";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -286,6 +310,7 @@ import {
 } from "@/services/campaigns";
 import { getCampaignMonitor } from "@/services/campaignMonitor";
 import { useCampaignExecutionStore } from "@/stores/campaignExecution";
+import { CAMPAIGN_STATUS_BADGE_CLASSES } from "@/components/campaigns/campaignPresentation";
 
 const route = useRoute();
 const router = useRouter();
@@ -307,6 +332,18 @@ const eventTabs: Array<{ key: CampaignMonitorEventType; title: string }> = [
   { key: "conversions", title: "Conversões" },
   { key: "bounces", title: "Bounces" },
 ];
+const detailTabs = [
+  { key: "overview", title: "Visão Geral", icon: Eye },
+  { key: "history", title: "Histórico", icon: History },
+  { key: "sends", title: "Envios", icon: Send },
+  { key: "opens", title: "Aberturas", icon: MailOpen },
+  { key: "clicks", title: "Cliques", icon: MousePointerClick },
+  { key: "conversions", title: "Conversões", icon: TrendingUp },
+  { key: "bounces", title: "Bounces", icon: CircleAlert },
+  { key: "errors", title: "Erros", icon: TriangleAlert },
+  { key: "costs", title: "Custos", icon: Wallet },
+];
+const chipClass = "inline-flex h-7 items-center gap-1.5 rounded-full border bg-muted/30 px-3 font-medium";
 const costsPanel = ref<InstanceType<typeof CampaignCostsPanel> | null>(null);
 const conversionsPanel = ref<InstanceType<typeof CampaignConversionsPanel> | null>(null);
 let pollTimer: number | null = null;
@@ -359,10 +396,10 @@ const summaryMetrics = computed(() => {
   );
   const totals = monitor.value?.channel_totals;
   return [
-    { label: "Envios", value: totals?.sends ?? fallback.sends, icon: Send, iconClass: "text-blue-600" },
-    { label: "Cliques", value: totals?.clicks ?? 0, icon: MousePointerClick, iconClass: "text-violet-600" },
-    { label: "Conversões", value: totals?.conversions ?? 0, icon: TrendingUp, iconClass: "text-emerald-600" },
-    { label: "Leads", value: monitorLeads(monitor.value) || fallback.leads, icon: Users, iconClass: "text-amber-600" },
+    { label: "Envios", value: totals?.sends ?? fallback.sends, icon: Send, iconClass: "text-blue-500" },
+    { label: "Cliques", value: totals?.clicks ?? 0, icon: MousePointerClick, iconClass: "text-emerald-500" },
+    { label: "Conversões", value: totals?.conversions ?? 0, icon: TrendingUp, iconClass: "text-violet-500" },
+    { label: "Leads", value: monitorLeads(monitor.value) || fallback.leads, icon: Users, iconClass: "text-amber-500" },
   ];
 });
 
@@ -392,7 +429,7 @@ async function refresh(showLoading = true) {
     const [dispatchesResponse, monitorResponse] = await Promise.all([
       getCampaignDispatches(campaignId.value),
       getCampaignMonitor(campaignId.value, detail.project_id),
-      executionStore.fetchRun(campaignId.value),
+      detail.status === "draft" ? null : executionStore.fetchRun(campaignId.value),
     ]);
     campaignStatus.value = dispatchesResponse.status;
     dispatches.value = dispatchesResponse.dispatches;
@@ -471,13 +508,6 @@ function dispatchStatusVariant(status: CampaignDispatchStatus) {
   if (status === "completed_with_errors") return "secondary";
   if (status === "completed") return "default";
   return "outline";
-}
-
-function statusVariant(status: CampaignStatus) {
-  if (status === "draft" || status === "validated") return "outline";
-  if (status === "validation_failed" || status === "canceled" || status === "archived") return "destructive";
-  if (status === "validating" || status === "paused") return "secondary";
-  return "default";
 }
 
 function formatDateTime(value?: string | null) {
