@@ -6,6 +6,7 @@ import ConfigurationNotifications from "@/views/configurations/Notifications.vue
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
 import ServiceConsumeds from "@/views/configurations/ServiceConsumeds.vue";
 import Invoices from "@/views/configurations/Invoices.vue";
+import InvoiceShow from "@/views/configurations/InvoiceShow.vue";
 import MarketingApiKeys from "@/views/configurations/MarketingApiKeys.vue";
 
 export default [
@@ -94,6 +95,18 @@ export default [
           requiresAuth: true,
           title: "Faturas",
           roles: "member|client",
+        },
+      },
+      {
+        path: "invoices/:id",
+        name: "invoices.show",
+        component: InvoiceShow,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Fatura",
+          roles: "member|client",
+          navRoute: "invoices.index",
         },
       },
     ],

@@ -13,9 +13,20 @@ export interface Invoice {
   amount: number
   status: string
   raw: any[] | null
+  asaas_payment_id?: string | null
+  trust_released_at?: string | null
+  due_at?: string
+  is_paid?: boolean
+  can_trust_release?: boolean
   created_at: string | null
   updated_at: string | null
   user: User
   serviceConsumed: ServiceConsumed
   service: Service
+}
+
+export interface InvoicePix {
+  qr_code_image: string
+  copy_paste: string
+  expires_at: string | null
 }
