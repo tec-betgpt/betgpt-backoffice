@@ -29,12 +29,31 @@ function campaign(overrides: Partial<CampaignListItem> = {}): CampaignListItem {
   };
 }
 
+const menuStubs = {
+  DropdownMenu: { template: "<div><slot /></div>" },
+  DropdownMenuTrigger: { template: "<div><slot /></div>" },
+  DropdownMenuContent: { template: "<div><slot /></div>" },
+  DropdownMenuSeparator: { template: "<hr />" },
+  DropdownMenuItem: { emits: ["select"], template: '<button type="button" @click.stop="$emit(\'select\')"><slot /></button>' },
+};
+
+function mountCard(item: CampaignListItem) {
+  return mount(CampaignCard, { props: { campaign: item }, global: { stubs: menuStubs } });
+}
+
+function menuItem(wrapper: ReturnType<typeof mountCard>, label: string) {
+  const item = wrapper.findAll("button").find((button) => button.text().includes(label));
+  if (!item) throw new Error(`Item "${label}" não encontrado`);
+  return item;
+}
+
 describe("CampaignCard", () => {
-  it("apresenta métricas, segmentos, recorrência e ações do rascunho", async () => {
-    const wrapper = mount(CampaignCard, { props: { campaign: campaign() } });
-    expect(wrapper.text()).toContain("Rascunho — ainda não publicada");
+  it("apresenta métricas com taxas, segmentos, recorrência e ações do rascunho", async () => {
+    const wrapper = mountCard(campaign());
+    expect(wrapper.text()).toContain("Rascunho");
     expect(wrapper.text()).toContain("Campanha VIP");
     expect(wrapper.text()).toContain("12");
+    expect(wrapper.text()).toContain("(41,7%)");
     expect(wrapper.text()).toContain("VIP +1");
     expect(wrapper.text()).toContain("A cada 2 semanas");
     expect(wrapper.text()).toContain("SMS");
@@ -43,11 +62,11 @@ describe("CampaignCard", () => {
     await wrapper.find('[data-test="campaign-card"]').trigger("click");
     expect(wrapper.emitted("open")).toHaveLength(1);
 
-    await wrapper.find('button[aria-label="Editar campanha"]').trigger("click");
+    await menuItem(wrapper, "Editar campanha").trigger("click");
     expect(wrapper.emitted("edit")?.[0]?.[0]).toMatchObject({ id: 10 });
     expect(wrapper.emitted("open")).toHaveLength(1);
 
-    await wrapper.find('button[aria-label="Excluir campanha"]').trigger("click");
+    await menuItem(wrapper, "Excluir campanha").trigger("click");
     expect(wrapper.emitted("delete")?.[0]?.[0]).toMatchObject({ id: 10 });
     expect(wrapper.emitted("open")).toHaveLength(1);
 
@@ -56,14 +75,17 @@ describe("CampaignCard", () => {
   });
 
   it("mantém fallbacks e remove ações exclusivas de rascunho em campanhas publicadas", () => {
-    const wrapper = mount(CampaignCard, {
-      props: { campaign: campaign({ status: "running", metrics: undefined, target_audiences: [], recurrence_policy: null, last_sent_at: null }) },
-    });
+    const wrapper = mountCard(campaign({ status: "running", metrics: undefined, target_audiences: [], recurrence_policy: null, last_sent_at: null }));
     expect(wrapper.text()).toContain("Sem segmento");
-    expect(wrapper.text()).toContain("Sem repetição");
-    expect(wrapper.text()).toContain("Nunca enviada");
-    expect(wrapper.text()).not.toContain("Rascunho — ainda não publicada");
-    expect(wrapper.find('button[aria-label="Excluir campanha"]').exists()).toBe(false);
-    expect(wrapper.find('button[aria-label="Abrir configuração"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain("Uma vez");
+    expect(wrapper.text()).not.toContain("Último envio");
+    expect(wrapper.text()).not.toContain("Excluir campanha");
+    expect(wrapper.text()).toContain("Ver configuração");
+  });
+
+  it("resume volumes grandes como no painel", () => {
+    const wrapper = mountCard(campaign({ status: "running", metrics: { sends: 3100, opens: 87, clicks: 85, conversions: 0 } }));
+    expect(wrapper.text()).toMatch(/3,1\smil/);
+    expect(wrapper.text()).toContain("87 (2,8%)");
   });
 });
