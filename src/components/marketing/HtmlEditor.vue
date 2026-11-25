@@ -3,6 +3,7 @@
     :model-value="modelValue"
     :disabled="disabled"
     :init="editorOptions"
+    license-key="gpl"
     @update:modelValue="emit('update:modelValue', $event)"
   />
 </template>
@@ -39,8 +40,8 @@ withDefaults(defineProps<{
 }>(), { disabled: false });
 
 const emit = defineEmits<{ (event: "update:modelValue", value: string): void }>();
+// O tinymce-vue sobrescreve `license_key` do init com a prop `licenseKey`.
 const editorOptions = {
-  license_key: "gpl",
   skin_url: "default",
   content_css: "default",
   menubar: false,
