@@ -375,6 +375,7 @@ import {
   KeyRound,
   Waypoints,
   RadioReceiver,
+  Server,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -721,6 +722,14 @@ const navMenu = computed(() => {
           name: "Fontes de Dados",
           url: { name: "data-sources" },
           icon: Blocks,
+          show:
+            canAccess("access-to-integrations") &&
+            activeGroupProject.value?.type === "project",
+        },
+        {
+          name: "Registros DNS",
+          url: { name: "dns-records" },
+          icon: Server,
           show:
             canAccess("access-to-integrations") &&
             activeGroupProject.value?.type === "project",

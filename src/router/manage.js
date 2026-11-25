@@ -4,6 +4,7 @@ import Projects from "@/views/dashboard/Projects.vue";
 import Insights from "@/views/dashboard/Insights.vue";
 import Users from "@/views/dashboard/Users.vue";
 import Integrations from "@/views/dashboard/Integrations.vue";
+import DnsRecords from "@/views/dashboard/DnsRecords.vue";
 import Webhooks from "@/views/dashboard/Webhooks.vue";
 import ProjectPreferences from "@/views/dashboard/ProjectPreferences.vue";
 import WebhookOperations from "@/views/dashboard/WebhookOperations.vue";
@@ -91,6 +92,18 @@ export default [
           roles: "member|client",
           permissions: "access-to-integrations",
           title: "Fontes de Dados",
+        },
+      },
+      {
+        path: "dns-records",
+        name: "dns-records",
+        component: DnsRecords,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: "access-to-integrations",
+          title: "Registros DNS",
         },
       },
       {
