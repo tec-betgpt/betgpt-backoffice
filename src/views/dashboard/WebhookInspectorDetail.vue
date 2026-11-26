@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import EndpointFormDialog from "@/components/webhook-inspector/EndpointFormDialog.vue";
 import RequestDetail from "@/components/webhook-inspector/RequestDetail.vue";
+import { useWorkspaceStore } from "@/stores/workspace";
 import { formatBytes, methodClass } from "@/components/webhook-inspector/format";
 import webhookInspector, {
   type WebhookInspectorEndpoint,
@@ -42,6 +43,8 @@ const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"];
 const route = useRoute();
 const router = useRouter();
 const uuid = computed(() => String(route.params.uuid));
+const workspaceStore = useWorkspaceStore();
+const projectId = computed(() => workspaceStore.numericProjectId);
 
 const endpoint = ref<WebhookInspectorEndpoint | null>(null);
 const notFound = ref(false);
@@ -83,16 +86,20 @@ const curlExample = computed(() =>
 
 async function loadEndpoint() {
   try {
-    endpoint.value = await webhookInspector.getEndpoint(uuid.value);
+    endpoint.value = await webhookInspector.getEndpoint(projectId.value!, uuid.value);
   } catch (error: any) {
-    if (error?.response?.status === 404) notFound.value = true;
+    // Também cai aqui ao trocar de projeto com o endpoint aberto: ele é de outro projeto.
+    if (error?.response?.status === 404) {
+      notFound.value = true;
+      router.replace({ name: "webhook-inspector" });
+    }
   }
 }
 
 async function loadRequests() {
   loadingList.value = true;
   try {
-    const page = await webhookInspector.listRequests(uuid.value, { ...filters.value, limit: PAGE_SIZE });
+    const page = await webhookInspector.listRequests(projectId.value!, uuid.value, { ...filters.value, limit: PAGE_SIZE });
     requests.value = page.items;
     hasMore.value = page.has_more;
     total.value = page.total;
@@ -111,7 +118,7 @@ async function loadOlder() {
   if (!oldest) return;
   loadingMore.value = true;
   try {
-    const page = await webhookInspector.listRequests(uuid.value, {
+    const page = await webhookInspector.listRequests(projectId.value!, uuid.value, {
       ...filters.value,
       before_id: oldest.id,
       limit: PAGE_SIZE,
@@ -124,11 +131,11 @@ async function loadOlder() {
 }
 
 async function poll() {
-  if (polling || !live.value || loadingList.value || document.visibilityState !== "visible") return;
+  if (polling || !live.value || !projectId.value || loadingList.value || document.visibilityState !== "visible") return;
   polling = true;
   try {
     const newest = requests.value[0];
-    const page = await webhookInspector.listRequests(uuid.value, {
+    const page = await webhookInspector.listRequests(projectId.value!, uuid.value, {
       ...filters.value,
       after_id: newest?.id ?? 0,
       limit: PAGE_SIZE,
@@ -160,7 +167,7 @@ async function select(requestUuid: string | null) {
   }
   loadingDetail.value = true;
   try {
-    const detail = await webhookInspector.getRequest(uuid.value, requestUuid);
+    const detail = await webhookInspector.getRequest(projectId.value!, uuid.value, requestUuid);
     details.set(requestUuid, detail);
     if (selectedUuid.value === requestUuid) selected.value = detail;
   } catch (error) {
@@ -174,7 +181,7 @@ async function deleteSelected() {
   const target = selectedUuid.value;
   if (!target) return;
   try {
-    await webhookInspector.deleteRequest(uuid.value, target);
+    await webhookInspector.deleteRequest(projectId.value!, uuid.value, target);
     const index = requests.value.findIndex((item) => item.uuid === target);
     requests.value = requests.value.filter((item) => item.uuid !== target);
     details.delete(target);
@@ -189,7 +196,7 @@ async function deleteSelected() {
 async function confirmClear() {
   clearing.value = true;
   try {
-    const deleted = await webhookInspector.clearRequests(uuid.value);
+    const deleted = await webhookInspector.clearRequests(projectId.value!, uuid.value);
     requests.value = [];
     details.clear();
     total.value = 0;
@@ -207,7 +214,7 @@ async function confirmClear() {
 async function handleSubmit(payload: WebhookInspectorEndpointPayload) {
   submitting.value = true;
   try {
-    endpoint.value = await webhookInspector.updateEndpoint(uuid.value, payload);
+    endpoint.value = await webhookInspector.updateEndpoint(projectId.value!, uuid.value, payload);
     formOpen.value = false;
     toast("Endpoint atualizado");
   } catch (error) {
@@ -240,7 +247,16 @@ watch(search, (value) => {
 
 watch(filters, () => loadRequests());
 
+// O endpoint é de um projeto; trocar de projeto no workspace volta para a lista.
+watch(projectId, (next, previous) => {
+  if (previous && next !== previous) router.push({ name: "webhook-inspector" });
+});
+
 onMounted(async () => {
+  if (!projectId.value) {
+    router.replace({ name: "webhook-inspector" });
+    return;
+  }
   await loadEndpoint();
   if (notFound.value) return;
   await loadRequests();

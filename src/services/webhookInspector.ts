@@ -9,6 +9,7 @@ export const WEBHOOK_INSPECTOR_ROLES = [
 
 export interface WebhookInspectorEndpoint {
   uuid: string;
+  project_id: number | null;
   name: string;
   description: string | null;
   url: string;
@@ -76,57 +77,66 @@ export interface WebhookInspectorRequestFilters {
 
 const base = "/webhook-inspector/endpoints";
 
-async function listEndpoints(): Promise<WebhookInspectorEndpoint[]> {
-  const { data } = await api.get(base);
+// Todo endpoint pertence a um projeto; a API recusa chamadas sem o projeto ativo.
+async function listEndpoints(projectId: number): Promise<WebhookInspectorEndpoint[]> {
+  const { data } = await api.get(base, { params: { project_id: projectId } });
   return data.data;
 }
 
-async function getEndpoint(uuid: string): Promise<WebhookInspectorEndpoint> {
-  const { data } = await api.get(`${base}/${uuid}`);
+async function getEndpoint(projectId: number, uuid: string): Promise<WebhookInspectorEndpoint> {
+  const { data } = await api.get(`${base}/${uuid}`, { params: { project_id: projectId } });
   return data.data;
 }
 
 async function createEndpoint(
+  projectId: number,
   payload: WebhookInspectorEndpointPayload,
 ): Promise<WebhookInspectorEndpoint> {
-  const { data } = await api.post(base, payload);
+  const { data } = await api.post(base, { ...payload, project_id: projectId });
   return data.data;
 }
 
 async function updateEndpoint(
+  projectId: number,
   uuid: string,
   payload: WebhookInspectorEndpointPayload,
 ): Promise<WebhookInspectorEndpoint> {
-  const { data } = await api.put(`${base}/${uuid}`, payload);
+  const { data } = await api.put(`${base}/${uuid}`, { ...payload, project_id: projectId });
   return data.data;
 }
 
-async function deleteEndpoint(uuid: string): Promise<void> {
-  await api.delete(`${base}/${uuid}`);
+async function deleteEndpoint(projectId: number, uuid: string): Promise<void> {
+  await api.delete(`${base}/${uuid}`, { params: { project_id: projectId } });
 }
 
 async function listRequests(
+  projectId: number,
   uuid: string,
   filters: WebhookInspectorRequestFilters = {},
 ): Promise<WebhookInspectorRequestPage> {
-  const { data } = await api.get(`${base}/${uuid}/requests`, { params: filters });
+  const { data } = await api.get(`${base}/${uuid}/requests`, {
+    params: { ...filters, project_id: projectId },
+  });
   return data.data;
 }
 
 async function getRequest(
+  projectId: number,
   uuid: string,
   requestUuid: string,
 ): Promise<WebhookInspectorRequestDetail> {
-  const { data } = await api.get(`${base}/${uuid}/requests/${requestUuid}`);
+  const { data } = await api.get(`${base}/${uuid}/requests/${requestUuid}`, {
+    params: { project_id: projectId },
+  });
   return data.data;
 }
 
-async function deleteRequest(uuid: string, requestUuid: string): Promise<void> {
-  await api.delete(`${base}/${uuid}/requests/${requestUuid}`);
+async function deleteRequest(projectId: number, uuid: string, requestUuid: string): Promise<void> {
+  await api.delete(`${base}/${uuid}/requests/${requestUuid}`, { params: { project_id: projectId } });
 }
 
-async function clearRequests(uuid: string): Promise<number> {
-  const { data } = await api.delete(`${base}/${uuid}/requests`);
+async function clearRequests(projectId: number, uuid: string): Promise<number> {
+  const { data } = await api.delete(`${base}/${uuid}/requests`, { params: { project_id: projectId } });
   return data.data?.deleted ?? 0;
 }
 

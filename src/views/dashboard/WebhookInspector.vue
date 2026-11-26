@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import moment from "moment";
 import { toast } from "vue-sonner";
@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import EndpointFormDialog from "@/components/webhook-inspector/EndpointFormDialog.vue";
+import { useWorkspaceStore } from "@/stores/workspace";
 import webhookInspector, {
   type WebhookInspectorEndpoint,
   type WebhookInspectorEndpointPayload,
@@ -46,6 +47,11 @@ import {
 } from "lucide-vue-next";
 
 const router = useRouter();
+const workspaceStore = useWorkspaceStore();
+
+// Endpoints são do projeto selecionado no workspace; em grupo não há um projeto só.
+const projectId = computed(() => workspaceStore.numericProjectId);
+const projectName = computed(() => workspaceStore.activeGroupProject?.name ?? "");
 
 const endpoints = ref<WebhookInspectorEndpoint[]>([]);
 const loading = ref(true);
@@ -58,9 +64,15 @@ const deleteTarget = ref<WebhookInspectorEndpoint | null>(null);
 const deleting = ref(false);
 
 async function load() {
+  const project = projectId.value;
+  endpoints.value = [];
+  if (!project) {
+    loading.value = false;
+    return;
+  }
   loading.value = true;
   try {
-    endpoints.value = await webhookInspector.listEndpoints();
+    endpoints.value = await webhookInspector.listEndpoints(project);
   } catch (error) {
     console.error(error);
   } finally {
@@ -95,12 +107,12 @@ async function handleSubmit(payload: WebhookInspectorEndpointPayload) {
   submitting.value = true;
   try {
     if (editing.value) {
-      await webhookInspector.updateEndpoint(editing.value.uuid, payload);
+      await webhookInspector.updateEndpoint(projectId.value!, editing.value.uuid, payload);
       toast("Endpoint atualizado");
       formOpen.value = false;
       await load();
     } else {
-      const created = await webhookInspector.createEndpoint(payload);
+      const created = await webhookInspector.createEndpoint(projectId.value!, payload);
       formOpen.value = false;
       await navigator.clipboard?.writeText(created.url).catch(() => undefined);
       toast("Endpoint criado", { description: "A URL foi copiada." });
@@ -118,7 +130,7 @@ async function confirmDelete() {
   if (!target) return;
   deleting.value = true;
   try {
-    await webhookInspector.deleteEndpoint(target.uuid);
+    await webhookInspector.deleteEndpoint(projectId.value!, target.uuid);
     toast("Endpoint excluído");
     deleteTarget.value = null;
     await load();
@@ -134,19 +146,22 @@ function lastRequest(endpoint: WebhookInspectorEndpoint) {
 }
 
 onMounted(load);
+watch(projectId, load);
 </script>
 
 <template>
   <div class="space-y-6 p-10 max-[450px]:p-2 pb-16 w-full">
     <div class="mb-4 flex items-start justify-between gap-4">
       <div class="space-y-0.5">
-        <h2 class="text-2xl font-bold tracking-tight">Webhook Inspector</h2>
+        <h2 class="text-2xl font-bold tracking-tight">
+          Webhook Inspector<template v-if="projectId && projectName"> · {{ projectName }}</template>
+        </h2>
         <p class="text-muted-foreground">
           URLs temporárias que guardam toda requisição recebida (método, headers, query e corpo).
           Use para acompanhar postbacks, testar integrações e depurar funis em desenvolvimento.
         </p>
       </div>
-      <Button @click="openCreate">
+      <Button v-if="projectId" @click="openCreate">
         <PlusIcon class="size-4 mr-2" />
         Novo endpoint
       </Button>
@@ -154,7 +169,19 @@ onMounted(load);
 
     <Separator class="mb-4" />
 
-    <div v-if="loading" class="space-y-2">
+    <div
+      v-if="!projectId"
+      class="border rounded-lg p-10 text-center flex flex-col items-center gap-3"
+    >
+      <RadioReceiverIcon class="size-8 text-muted-foreground" />
+      <p class="font-medium">Selecione um projeto</p>
+      <p class="text-sm text-muted-foreground max-w-md">
+        Cada endpoint pertence a um projeto. Escolha um projeto no seletor de workspace para ver
+        ou criar os endpoints dele.
+      </p>
+    </div>
+
+    <div v-else-if="loading" class="space-y-2">
       <Skeleton v-for="i in 3" :key="i" class="h-12 w-full" />
     </div>
 
