@@ -63,6 +63,17 @@
             </BreadcrumbList>
           </Breadcrumb>
 
+          <Button
+            v-if="canTryV2"
+            variant="outline"
+            size="sm"
+            class="mr-2 hidden h-8 gap-1.5 md:flex"
+            @click="switchUiVersion('v2', route.fullPath)"
+          >
+            <Sparkles class="h-3.5 w-3.5" />
+            Nova versão
+          </Button>
+
           <button @click="toggleValues()" class="mr-3">
             <Eye v-if="isShowValues" class="w-5 h-5 text-primary" />
             <EyeClosed v-else class="w-5 h-5 text-primary" />
@@ -126,7 +137,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
-import { EyeClosed, Eye, LogOut } from "lucide-vue-next";
+import { EyeClosed, Eye, LogOut, Sparkles } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { useColorMode } from "@vueuse/core";
 import CustomLoading from "@/components/custom/CustomLoading.vue";
@@ -145,6 +156,7 @@ import RightMenuComponent from "@/components/layout/RightMenuComponent.vue";
 import IAAnaliseButton from "@/components/custom/IAAnaliseButton.vue";
 import InviteBanner from "@/components/groups/InviteBanner.vue";
 import { useGroupsStore } from "@/stores/groups";
+import { canUseV2, switchUiVersion } from "@/navigation/uiVersion";
 
 interface BreadcrumbItem {
   name: string;
@@ -203,6 +215,7 @@ const exitImpersonation = async () => {
 };
 
 const isShowValues = ref(false);
+const canTryV2 = computed(() => canUseV2(authStore.user));
 
 // Computed
 const activeGroupProject = computed(
