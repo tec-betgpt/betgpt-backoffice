@@ -9,6 +9,7 @@ import TwoFactor from "@/views/auth/TwoFactor.vue";
 import AccountRecovery from "@/views/auth/AccountRecovery.vue";
 import SecurityQuestions from "@/views/auth/SecurityQuestions.vue";
 import InviteLanding from "@/views/auth/InviteLanding.vue";
+import McpAuthorize from "@/views/mcp/McpAuthorize.vue";
 import configurations from "@/router/configurations.js";
 import elevate_ia from "@/router/elevate_ia.js";
 import performances from "@/router/performances.js";
@@ -35,6 +36,12 @@ const routes = [
     name: "login",
     component: Login,
     meta: { layout: BlankLayout, title: "Login" },
+  },
+  {
+    path: "/mcp/authorize",
+    name: "mcp.authorize",
+    component: McpAuthorize,
+    meta: { layout: BlankLayout, title: "Conectar ao MCP" },
   },
   {
     path: "/recover",
