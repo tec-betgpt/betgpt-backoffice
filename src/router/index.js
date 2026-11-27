@@ -1,3 +1,4 @@
+import { defineAsyncComponent } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import DefaultLayout from "@/layouts/default.vue";
@@ -25,6 +26,8 @@ import updates from "@/router/updates.js";
 import emailHealth from "@/router/emailHealth.js";
 import groups from "@/router/groups.js";
 import developer from "@/router/developer.js";
+import { isV2 } from "@/navigation/uiVersion";
+import { buildV2Routes, installV2Navigation, v1FallbackRoutes } from "@/navigation/v2Routes";
 
 const routes = [
   {
@@ -104,9 +107,23 @@ const routes = [
   ...developer,
 ];
 
+const Empty = { render: () => null };
+
+const activeRoutes = isV2
+  ? buildV2Routes(routes, {
+      shell: defineAsyncComponent(() => import("@/layouts/v2/ShellV2.vue")),
+      legacyLayout: DefaultLayout,
+      accountLayout: () => import("@/views/v2/AccountLayout.vue"),
+      homeAdmin: () => import("@/views/v2/HomeAdmin.vue"),
+      homeWorkspace: () => import("@/views/v2/HomeWorkspace.vue"),
+      homeClassic: Home,
+      empty: Empty,
+    })
+  : [...routes, ...v1FallbackRoutes];
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes,
+  routes: activeRoutes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
       return savedPosition;
@@ -170,5 +187,7 @@ router.beforeEach(async (to, from, next) => {
 
   next();
 });
+
+if (isV2) installV2Navigation(router);
 
 export default router;

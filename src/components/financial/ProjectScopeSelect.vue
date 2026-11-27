@@ -1,6 +1,11 @@
 <template>
   <Input
-    v-if="!isGroupWorkspace"
+    v-if="isElevate"
+    model-value="Financeiro da Elevate"
+    disabled
+  />
+  <Input
+    v-else-if="!isGroupWorkspace"
     :model-value="activeGroupProject?.name"
     disabled
   />
@@ -36,6 +41,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -56,7 +62,7 @@ const emit = defineEmits<{
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProject = computed(() => workspaceStore.activeGroupProject);
-const isGroupWorkspace = computed(() => activeGroupProject.value?.type === "group");
+const { isElevate, isGroupWorkspace } = useWorkspaceScope();
 
 const projectOptions = computed(() =>
   (workspaceStore.group_projects as Array<{

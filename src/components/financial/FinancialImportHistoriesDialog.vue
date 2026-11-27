@@ -164,6 +164,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 
 type Step = "upload" | "preview" | "processing";
 
@@ -231,8 +232,10 @@ const importProjectId = computed(() => {
   return Number.isFinite(id) && id > 0 ? id : null;
 });
 
+const { isElevate } = useWorkspaceScope();
+
 const openDialog = () => {
-  if (!importProjectId.value) {
+  if (!importProjectId.value && !isElevate.value) {
     toast.error("Importação indisponível", { description: "Selecione um projeto (em vez de um grupo) para importar transações financeiras." });
     return;
   }
@@ -244,7 +247,7 @@ const downloadTemplate = async () => {
   templateLoading.value = true;
 
   try {
-    const response = await financialImportHistories.template();
+    const response = await financialImportHistories.template(isElevate.value ? { is_elevate: 1 } : {});
 
     const blob = new Blob([response], {
       type: response.type || "application/octet-stream",
@@ -297,6 +300,7 @@ const handleFile = async (file: File) => {
 
   const formData = new FormData();
   formData.append("file", file);
+  if (isElevate.value) formData.append("is_elevate", "1");
 
   try {
     preview.value = await financialImportHistories.preview(formData);
@@ -312,14 +316,15 @@ const confirmImport = async () => {
   if (!selectedFile.value) return;
 
   const projectId = importProjectId.value;
-  if (!projectId) return;
+  if (!projectId && !isElevate.value) return;
 
   step.value = "processing";
   processLoading.value = true;
 
   const formData = new FormData();
   formData.append("file", selectedFile.value);
-  formData.append("project_id", String(projectId));
+  if (isElevate.value) formData.append("is_elevate", "1");
+  else formData.append("project_id", String(projectId));
 
   try {
     await financialImportHistories.process(formData);

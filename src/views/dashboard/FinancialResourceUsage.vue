@@ -186,11 +186,13 @@ import { formatCents, type FinancialChannel, type ResourceUsageParams, type Reso
 import { getResourceUsage } from "@/services/financialLedger";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useScreenContext } from "@/composables/useScreenContext";
 
 const route = useRoute();
 const router = useRouter();
 const workspaceStore = useWorkspaceStore();
+const { fixedScope } = useWorkspaceScope();
 
 const usage = ref<ResourceUsageResponse | null>(null);
 const loading = ref(false);
@@ -251,7 +253,7 @@ function clearCampaignFilter() {
 }
 
 function buildParams(): ResourceUsageParams {
-  const filterId = workspaceStore.activeGroupProject?.id ?? "";
+  const filterId = fixedScope.value ?? workspaceStore.activeGroupProject?.id ?? "";
   return {
     filter_id: filterId || "all",
     campaign_id: filters.campaign_id ? Number(filters.campaign_id) : null,
