@@ -266,7 +266,7 @@
               class="w-full"
               :to="{ name: 'service-consumeds.index' }"
             >
-              Serviços Consumidos
+              Consumo
             </router-link>
           </DropdownMenuItem>
 

@@ -1,11 +1,9 @@
 <template>
-  <div class="space-y-4 w-full">
-    <div class="mb-4">
-      <h1 class="text-lg font-medium">Faturas</h1>
-      <p class="text-sm text-muted-foreground">
-        Veja a lista em detalhes de todas as suas faturas.
-      </p>
-    </div>
+  <div class="space-y-6">
+    <SettingsHeader
+      title="Faturas"
+      description="Suas faturas, com status e pagamento."
+    />
 
     <div v-if="isLoading" class="flex justify-end mb-2">
       <ColumnVisibilityToggle v-model="loadingColumnVisibility" :columns="loadingColumns" table="loading" />
@@ -21,8 +19,8 @@
       </TableRow>
     </Table>
 
-    <div class="flex justify-start items-start  gap-8 flex-wrap w-full border rounded-lg">
-      <div class="flex justify-end mb-2 w-full">
+    <div v-else class="w-full overflow-x-auto rounded-lg border">
+      <div class="flex w-full justify-end p-2">
         <ColumnVisibilityToggle v-model="invoicesColumnVisibility" :columns="invoicesColumns" table="invoices" />
       </div>
       <Table>
@@ -82,6 +80,7 @@ import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ShowComponent from "@/components/invoices/ShowComponent.vue";
 import currencyFilter from "@/filters/currencyFilter";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import SettingsHeader from "@/views/configurations/components/SettingsHeader.vue";
 import { INVOICE_STATUS_CLASSES, invoiceStatusInfo, isInvoicePaid } from "@/lib/invoiceStatus";
 
 
