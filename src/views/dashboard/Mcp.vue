@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/tabs";
 import {
   CopyIcon,
-  FileTextIcon,
   LightbulbIcon,
   Link2Icon,
   PlugIcon,
@@ -131,52 +130,56 @@ onMounted(loadAudit);
     </div>
 
     <div class="space-y-4">
-      <!-- URL do servidor -->
-      <section class="rounded-xl border bg-muted/30 p-5">
-        <div class="flex items-center gap-2">
-          <Link2Icon class="size-4 text-muted-foreground" />
-          <h4 class="text-sm font-medium">{{ t("mcp.server_url_title") }}</h4>
-        </div>
-
-        <div class="mt-4 flex items-stretch gap-2">
-          <div
-            class="flex min-w-0 flex-1 items-center rounded-md border bg-background px-3 py-2"
-          >
-            <code class="truncate text-xs text-muted-foreground sm:text-sm">
-              {{ serverUrl }}
-            </code>
+      <div class="grid items-start gap-4 lg:grid-cols-3">
+        <!-- URL do servidor -->
+        <section class="rounded-xl border bg-muted/30 p-5 lg:col-span-2">
+          <div class="flex items-center gap-2">
+            <Link2Icon class="size-4 text-muted-foreground" />
+            <h4 class="text-sm font-medium">{{ t("mcp.server_url_title") }}</h4>
           </div>
-          <Button type="button" variant="outline" @click="copyServerUrl">
-            <CopyIcon class="mr-2 size-4" />
-            {{ copied ? t("mcp.copied_short") : t("mcp.copy") }}
-          </Button>
-        </div>
 
-        <p class="mt-4 text-xs text-muted-foreground">
-          {{ t("mcp.url_hint_1") }}
-        </p>
-        <p class="mt-1 text-xs text-muted-foreground">
-          {{ t("mcp.url_hint_2") }}
-        </p>
-      </section>
+          <div class="mt-4 flex items-stretch gap-2">
+            <div
+              class="flex min-w-0 flex-1 items-center rounded-md border bg-background px-3 py-2"
+            >
+              <code class="truncate text-xs text-muted-foreground sm:text-sm">
+                {{ serverUrl }}
+              </code>
+            </div>
+            <Button type="button" variant="outline" @click="copyServerUrl">
+              <CopyIcon class="mr-2 size-4" />
+              {{ copied ? t("mcp.copied_short") : t("mcp.copy") }}
+            </Button>
+          </div>
 
-      <!-- Métricas reais (auditoria) -->
-      <div class="grid gap-3 sm:grid-cols-2">
-        <div class="rounded-xl border bg-muted/30 p-4">
-          <p class="text-xs text-muted-foreground">{{ t("mcp.stat_calls") }}</p>
-          <Skeleton v-if="auditLoading" class="mt-2 h-7 w-16" />
-          <p v-else class="mt-1 text-2xl font-semibold">
-            {{ auditError ? "—" : auditStats.calls_last_7_days }}
+          <p class="mt-4 text-xs text-muted-foreground">
+            {{ t("mcp.url_hint_1") }}
           </p>
-        </div>
-        <div class="rounded-xl border bg-muted/30 p-4">
-          <p class="text-xs text-muted-foreground">
-            {{ t("mcp.stat_failures") }}
+          <p class="mt-1 text-xs text-muted-foreground">
+            {{ t("mcp.url_hint_2") }}
           </p>
-          <Skeleton v-if="auditLoading" class="mt-2 h-7 w-16" />
-          <p v-else class="mt-1 text-2xl font-semibold">
-            {{ auditError ? "—" : auditStats.failures_last_7_days }}
-          </p>
+        </section>
+
+        <!-- Métricas reais (auditoria) -->
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          <div class="rounded-xl border bg-muted/30 p-4">
+            <p class="text-xs text-muted-foreground">
+              {{ t("mcp.stat_calls") }}
+            </p>
+            <Skeleton v-if="auditLoading" class="mt-2 h-7 w-16" />
+            <p v-else class="mt-1 text-2xl font-semibold">
+              {{ auditError ? "—" : auditStats.calls_last_7_days }}
+            </p>
+          </div>
+          <div class="rounded-xl border bg-muted/30 p-4">
+            <p class="text-xs text-muted-foreground">
+              {{ t("mcp.stat_failures") }}
+            </p>
+            <Skeleton v-if="auditLoading" class="mt-2 h-7 w-16" />
+            <p v-else class="mt-1 text-2xl font-semibold">
+              {{ auditError ? "—" : auditStats.failures_last_7_days }}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -223,55 +226,153 @@ onMounted(loadAudit);
         </Tabs>
       </section>
 
-      <!-- Permissões, exemplos e boas práticas -->
-      <div class="grid items-start gap-4 md:grid-cols-2">
-        <section class="rounded-xl border bg-muted/30 p-5">
-          <div class="flex items-center gap-2">
-            <ShieldCheckIcon class="size-4 text-muted-foreground" />
-            <h4 class="text-sm font-semibold">{{ t("mcp.permissions_title") }}</h4>
-          </div>
-          <p class="mt-2 text-xs text-muted-foreground">
-            {{ t("mcp.permissions_description") }}
-          </p>
-
-          <ul class="mt-4 space-y-4">
-            <li v-for="permission in permissions" :key="permission.scope">
-              <div class="flex flex-wrap items-center gap-2">
-                <p class="text-xs font-medium">
-                  {{ t(permission.labelKey) }}
-                </p>
-                <code
-                  class="rounded border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground"
-                >
-                  {{ permission.scope }}
-                </code>
-              </div>
-              <p class="mt-1 text-xs text-muted-foreground">
-                {{ t(permission.descriptionKey) }}
+      <!-- Auditoria + informações -->
+      <div class="grid items-start gap-4 lg:grid-cols-3">
+        <!-- Auditoria de uso -->
+        <section class="lg:col-span-2">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h4 class="text-base font-semibold">{{ t("mcp.audit_title") }}</h4>
+              <p class="mt-1 text-sm text-muted-foreground">
+                {{ t("mcp.audit_description") }}
               </p>
-            </li>
-          </ul>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              :disabled="auditLoading"
+              @click="loadAudit"
+            >
+              <RefreshCwIcon
+                class="size-4"
+                :class="auditLoading ? 'animate-spin' : ''"
+              />
+            </Button>
+          </div>
+
+          <div v-if="auditLoading" class="mt-4 space-y-2">
+            <Skeleton v-for="n in 3" :key="n" class="h-11 w-full rounded-lg" />
+          </div>
+
+          <div
+            v-else-if="auditError"
+            class="mt-4 rounded-xl border border-dashed p-8 text-center"
+          >
+            <TriangleAlertIcon class="mx-auto size-5 text-destructive" />
+            <p class="mt-2 text-sm font-medium">{{ t("mcp.audit_error") }}</p>
+            <Button variant="outline" size="sm" class="mt-3" @click="loadAudit">
+              {{ t("mcp.audit_retry") }}
+            </Button>
+          </div>
+
+          <div
+            v-else-if="auditEntries.length === 0"
+            class="mt-4 rounded-xl border border-dashed p-8 text-center"
+          >
+            <PlugIcon class="mx-auto size-5 text-muted-foreground" />
+            <p class="mt-2 text-sm font-medium">{{ t("mcp.audit_empty") }}</p>
+            <p class="mt-1 text-xs text-muted-foreground">
+              {{ t("mcp.audit_empty_hint") }}
+            </p>
+          </div>
+
+          <div v-else class="mt-4 overflow-x-auto rounded-xl border">
+            <table class="w-full text-sm">
+              <thead class="bg-muted/40 text-xs text-muted-foreground">
+                <tr>
+                  <th class="px-4 py-2 text-left font-medium">
+                    {{ t("mcp.audit_column_date") }}
+                  </th>
+                  <th class="px-4 py-2 text-left font-medium">
+                    {{ t("mcp.audit_column_tool") }}
+                  </th>
+                  <th class="px-4 py-2 text-left font-medium">
+                    {{ t("mcp.audit_column_status") }}
+                  </th>
+                  <th class="px-4 py-2 text-left font-medium">
+                    {{ t("mcp.audit_column_duration") }}
+                  </th>
+                  <th class="px-4 py-2 text-left font-medium">
+                    {{ t("mcp.audit_column_client") }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="entry in auditEntries"
+                  :key="entry.id"
+                  class="border-t"
+                >
+                  <td
+                    class="whitespace-nowrap px-4 py-2 text-xs text-muted-foreground"
+                  >
+                    {{ formatDate(entry.occurred_at) }}
+                  </td>
+                  <td class="px-4 py-2">
+                    <span class="font-medium">{{ entry.tool }}</span>
+                    <span
+                      v-if="entry.filter_id"
+                      class="ml-2 text-xs text-muted-foreground"
+                    >
+                      {{ entry.filter_id }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-2">
+                    <Badge
+                      :variant="
+                        entry.status === 'success' ? 'secondary' : 'destructive'
+                      "
+                    >
+                      {{
+                        entry.status === "success"
+                          ? t("mcp.audit_status_success")
+                          : t("mcp.audit_status_error")
+                      }}
+                    </Badge>
+                  </td>
+                  <td
+                    class="whitespace-nowrap px-4 py-2 text-xs text-muted-foreground"
+                  >
+                    {{ entry.duration_ms }} ms
+                  </td>
+                  <td class="px-4 py-2 text-xs text-muted-foreground">
+                    {{ entry.client || "—" }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
+        <!-- Permissões e boas práticas -->
         <div class="space-y-4">
           <section class="rounded-xl border bg-muted/30 p-5">
             <div class="flex items-center gap-2">
-              <FileTextIcon class="size-4 text-muted-foreground" />
+              <ShieldCheckIcon class="size-4 text-muted-foreground" />
               <h4 class="text-sm font-semibold">
-                {{ t("mcp.examples_title") }}
+                {{ t("mcp.permissions_title") }}
               </h4>
             </div>
             <p class="mt-2 text-xs text-muted-foreground">
-              {{ t("mcp.examples_description") }}
+              {{ t("mcp.permissions_description") }}
             </p>
 
-            <ul class="mt-3 space-y-2">
-              <li
-                v-for="index in 4"
-                :key="index"
-                class="rounded-md border bg-background p-3 text-xs"
-              >
-                {{ t(`mcp.example_${index}`) }}
+            <ul class="mt-4 space-y-4">
+              <li v-for="permission in permissions" :key="permission.scope">
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="text-xs font-medium">
+                    {{ t(permission.labelKey) }}
+                  </p>
+                  <code
+                    class="rounded border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground"
+                  >
+                    {{ permission.scope }}
+                  </code>
+                </div>
+                <p class="mt-1 text-xs text-muted-foreground">
+                  {{ t(permission.descriptionKey) }}
+                </p>
               </li>
             </ul>
           </section>
@@ -297,123 +398,6 @@ onMounted(loadAudit);
           </section>
         </div>
       </div>
-
-      <!-- Auditoria de uso -->
-      <section class="pt-4">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h4 class="text-base font-semibold">{{ t("mcp.audit_title") }}</h4>
-            <p class="mt-1 text-sm text-muted-foreground">
-              {{ t("mcp.audit_description") }}
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            :disabled="auditLoading"
-            @click="loadAudit"
-          >
-            <RefreshCwIcon
-              class="size-4"
-              :class="auditLoading ? 'animate-spin' : ''"
-            />
-          </Button>
-        </div>
-
-        <div v-if="auditLoading" class="mt-4 space-y-2">
-          <Skeleton v-for="n in 3" :key="n" class="h-11 w-full rounded-lg" />
-        </div>
-
-        <div
-          v-else-if="auditError"
-          class="mt-4 rounded-xl border border-dashed p-8 text-center"
-        >
-          <TriangleAlertIcon class="mx-auto size-5 text-destructive" />
-          <p class="mt-2 text-sm font-medium">{{ t("mcp.audit_error") }}</p>
-          <Button variant="outline" size="sm" class="mt-3" @click="loadAudit">
-            {{ t("mcp.audit_retry") }}
-          </Button>
-        </div>
-
-        <div
-          v-else-if="auditEntries.length === 0"
-          class="mt-4 rounded-xl border border-dashed p-8 text-center"
-        >
-          <PlugIcon class="mx-auto size-5 text-muted-foreground" />
-          <p class="mt-2 text-sm font-medium">{{ t("mcp.audit_empty") }}</p>
-          <p class="mt-1 text-xs text-muted-foreground">
-            {{ t("mcp.audit_empty_hint") }}
-          </p>
-        </div>
-
-        <div v-else class="mt-4 overflow-x-auto rounded-xl border">
-          <table class="w-full text-sm">
-            <thead class="bg-muted/40 text-xs text-muted-foreground">
-              <tr>
-                <th class="px-4 py-2 text-left font-medium">
-                  {{ t("mcp.audit_column_date") }}
-                </th>
-                <th class="px-4 py-2 text-left font-medium">
-                  {{ t("mcp.audit_column_tool") }}
-                </th>
-                <th class="px-4 py-2 text-left font-medium">
-                  {{ t("mcp.audit_column_status") }}
-                </th>
-                <th class="px-4 py-2 text-left font-medium">
-                  {{ t("mcp.audit_column_duration") }}
-                </th>
-                <th class="px-4 py-2 text-left font-medium">
-                  {{ t("mcp.audit_column_client") }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="entry in auditEntries"
-                :key="entry.id"
-                class="border-t"
-              >
-                <td
-                  class="whitespace-nowrap px-4 py-2 text-xs text-muted-foreground"
-                >
-                  {{ formatDate(entry.occurred_at) }}
-                </td>
-                <td class="px-4 py-2">
-                  <span class="font-medium">{{ entry.tool }}</span>
-                  <span
-                    v-if="entry.filter_id"
-                    class="ml-2 text-xs text-muted-foreground"
-                  >
-                    {{ entry.filter_id }}
-                  </span>
-                </td>
-                <td class="px-4 py-2">
-                  <Badge
-                    :variant="
-                      entry.status === 'success' ? 'secondary' : 'destructive'
-                    "
-                  >
-                    {{
-                      entry.status === "success"
-                        ? t("mcp.audit_status_success")
-                        : t("mcp.audit_status_error")
-                    }}
-                  </Badge>
-                </td>
-                <td
-                  class="whitespace-nowrap px-4 py-2 text-xs text-muted-foreground"
-                >
-                  {{ entry.duration_ms }} ms
-                </td>
-                <td class="px-4 py-2 text-xs text-muted-foreground">
-                  {{ entry.client || "—" }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
     </div>
   </div>
 </template>
