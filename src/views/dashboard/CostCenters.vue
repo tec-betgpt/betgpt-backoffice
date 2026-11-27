@@ -47,6 +47,12 @@
               </TableCell>
               <CostCenterRowActions v-if="columnVisibility.acoes !== false" :row="row" :reload="fetchCosts" :destroy="remove" />
             </TableRow>
+            <CustomTableEmpty
+              v-if="!isLoading && !costs?.length"
+              :colspan="visibleTableColumns.length"
+              title="Nenhum centro de custo cadastrado"
+              description="Crie um centro de custo para classificar os lançamentos."
+            />
           </TableBody>
         </Table>
       </CardContent>
@@ -64,6 +70,7 @@
 </template>
 
 <script setup lang="ts">
+import CustomTableEmpty from "@/components/custom/CustomTableEmpty.vue";
 import { computed, ref, onMounted, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { useWorkspaceScope } from "@/composables/useWorkspaceScope";

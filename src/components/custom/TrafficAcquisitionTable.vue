@@ -71,13 +71,7 @@
                 </TableCell>
               </TableRow>
             </template>
-            <template v-else>
-              <TableRow>
-                <TableCell :colspan="columns.filter(c => columnVisibility[c.id]).length" class="h-24 text-center">
-                  Sem resultados.
-                </TableCell>
-              </TableRow>
-            </template>
+            <CustomTableEmpty v-else :colspan="columns.filter(c => columnVisibility[c.id]).length" />
           </TableBody>
           <TableFooter>
             <TableRow v-if="pageTotal">
@@ -104,6 +98,7 @@
 </template>
 
 <script setup lang="ts">
+import CustomTableEmpty from "@/components/custom/CustomTableEmpty.vue";
 import {
   ChevronsUpDown,
   ArrowDown,

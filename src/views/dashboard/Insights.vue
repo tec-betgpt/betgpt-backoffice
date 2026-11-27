@@ -55,6 +55,11 @@
                 </div>
               </TableCell>
             </TableRow>
+            <CustomTableEmpty
+              v-if="!isLoading && !valuesTable?.length"
+              :colspan="visibleTableColumns.length"
+              title="Nenhum texto cadastrado"
+            />
           </TableBody>
         </Table>
       </CardContent>
@@ -72,6 +77,7 @@
 </template>
 
 <script setup lang="ts">
+import CustomTableEmpty from "@/components/custom/CustomTableEmpty.vue";
 import { onMounted, ref, computed, watch } from "vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 import { Button } from "@/components/ui/button";

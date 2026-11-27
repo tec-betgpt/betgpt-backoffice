@@ -161,6 +161,11 @@
           />
         </TableCell>
       </TableRow>
+
+      <CustomTableEmpty
+        v-if="!loading && !table.getRowModel().rows.length"
+        :colspan="table.getVisibleLeafColumns().length + (props.select ? 1 : 0)"
+      />
     </TableBody>
 
     <TableFooter v-if="footer">
@@ -187,6 +192,7 @@
 </template>
 
 <script setup lang="ts">
+import CustomTableEmpty from "@/components/custom/CustomTableEmpty.vue";
 import { PropType, ref, watch, computed, useAttrs } from "vue";
 import {
   Table,
