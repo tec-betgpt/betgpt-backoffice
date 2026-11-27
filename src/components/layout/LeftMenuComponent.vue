@@ -376,6 +376,7 @@ import {
   Waypoints,
   RadioReceiver,
   Server,
+  ServerCog,
 } from "lucide-vue-next";
 import {
   Collapsible,
@@ -717,6 +718,14 @@ const navMenu = computed(() => {
           show:
             canAccess("manage-project-api-keys") &&
             activeGroupProject.value?.type === "project",
+        },
+        {
+          name: "MCP",
+          url: { name: "mcp" },
+          icon: ServerCog,
+          show:
+            canAccess("access-to-client-management") ||
+            canAccess("access-to-member-management"),
         },
         {
           name: "Fontes de Dados",

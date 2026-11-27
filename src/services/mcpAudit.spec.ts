@@ -12,7 +12,7 @@ describe("mcpAudit.list", () => {
     vi.mocked(api.get).mockReset();
   });
 
-  it("consulta /mcp/audit e devolve os itens", async () => {
+  it("consulta /mcp/audit e devolve itens e métricas", async () => {
     const items = [
       {
         id: 1,
@@ -25,18 +25,22 @@ describe("mcpAudit.list", () => {
         occurred_at: "2026-11-26T12:00:00+00:00",
       },
     ];
+    const stats = { calls_last_7_days: 12, failures_last_7_days: 2 };
 
     vi.mocked(api.get).mockResolvedValue({
-      data: { success: true, data: { items } },
+      data: { success: true, data: { items, stats } },
     } as never);
 
-    await expect(McpAuditService.list()).resolves.toEqual(items);
+    await expect(McpAuditService.list()).resolves.toEqual({ items, stats });
     expect(api.get).toHaveBeenCalledWith("/mcp/audit");
   });
 
-  it("devolve lista vazia quando a API não envia itens", async () => {
+  it("usa valores neutros quando a API não envia dados", async () => {
     vi.mocked(api.get).mockResolvedValue({ data: { data: {} } } as never);
 
-    await expect(McpAuditService.list()).resolves.toEqual([]);
+    await expect(McpAuditService.list()).resolves.toEqual({
+      items: [],
+      stats: { calls_last_7_days: 0, failures_last_7_days: 0 },
+    });
   });
 });

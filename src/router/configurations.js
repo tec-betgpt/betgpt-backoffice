@@ -8,7 +8,6 @@ import ServiceConsumeds from "@/views/configurations/ServiceConsumeds.vue";
 import Invoices from "@/views/configurations/Invoices.vue";
 import InvoiceShow from "@/views/configurations/InvoiceShow.vue";
 import MarketingApiKeys from "@/views/configurations/MarketingApiKeys.vue";
-import ConfigurationMcp from "@/views/configurations/MCP.vue";
 
 export default [
   {
@@ -78,14 +77,7 @@ export default [
       },
       {
         path: "mcp",
-        name: "configurations.mcp",
-        component: ConfigurationMcp,
-        meta: {
-          layout: DefaultLayout,
-          requiresAuth: true,
-          title: "MCP",
-          roles: "member|client",
-        },
+        redirect: { name: "mcp" },
       },
       {
         path: "service-consumeds",

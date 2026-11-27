@@ -9,6 +9,7 @@ import Webhooks from "@/views/dashboard/Webhooks.vue";
 import ProjectPreferences from "@/views/dashboard/ProjectPreferences.vue";
 import WebhookOperations from "@/views/dashboard/WebhookOperations.vue";
 import ProjectApiKeys from "@/views/dashboard/ProjectApiKeys.vue";
+import Mcp from "@/views/dashboard/Mcp.vue";
 
 export default [
   {
@@ -55,6 +56,21 @@ export default [
           roles: "member",
           permissions: "manage-project-api-keys",
           title: "Chaves de API",
+        },
+      },
+      {
+        path: "mcp",
+        name: "mcp",
+        component: Mcp,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          roles: "member|client",
+          permissions: [
+            "access-to-client-management",
+            "access-to-member-management",
+          ],
+          title: "MCP",
         },
       },
       {

@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { UserRoundIcon, LucideLock, ClipboardPenIcon, MessageCircle, CreditCard, KeyRound, ServerCogIcon } from "lucide-vue-next";
+import { UserRoundIcon, LucideLock, ClipboardPenIcon, MessageCircle, CreditCard, KeyRound } from "lucide-vue-next";
 import { cn } from "@/lib/utils";
 import { useRouter, RouterView } from "vue-router";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -38,12 +38,6 @@ const sidebarNavItems = computed(() => [
     route: "configurations.api-keys",
     show: canManageMarketingApiKeys.value,
     icon: KeyRound
-  },
-  {
-    title: "MCP",
-    route: "configurations.mcp",
-    show: true,
-    icon: ServerCogIcon
   },
   {
     title: "Notificações",
