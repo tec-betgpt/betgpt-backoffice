@@ -62,6 +62,7 @@
               <TableCell class="text-right">{{ formatCount(day.recovered) }}</TableCell>
               <TableCell class="text-right">{{ formatMoney(day.recovered_value) }}</TableCell>
             </TableRow>
+            <CustomTableEmpty v-if="!report.daily?.length" :colspan="7" title="Nenhum dia no período" />
           </TableBody>
         </Table>
       </template>
@@ -70,6 +71,7 @@
 </template>
 
 <script setup lang="ts">
+import CustomTableEmpty from "@/components/custom/CustomTableEmpty.vue";
 import { computed, onMounted, ref } from "vue";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

@@ -94,11 +94,7 @@
             </TableRow>
           </template>
 
-          <TableRow v-if="data.length === 0">
-            <TableCell :colspan="visibleColumns.length" class="text-center">
-              Nenhum registro encontrado
-            </TableCell>
-          </TableRow>
+          <CustomTableEmpty v-if="data.length === 0" :colspan="visibleColumns.length" />
 
         </template>
       </TableBody>
@@ -119,6 +115,7 @@
 </template>
 
 <script setup lang="ts">
+import CustomTableEmpty from "@/components/custom/CustomTableEmpty.vue";
 import { ref, watch, computed, type PropType } from "vue";
 import {
   Table,

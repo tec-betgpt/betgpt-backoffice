@@ -64,6 +64,12 @@
               </TableCell>
               <SectorRowActions v-if="columnVisibility.acoes !== false" :row="row" :reload="fetchSectors" :destroy="remove" />
             </TableRow>
+            <CustomTableEmpty
+              v-if="!isLoading && !sectors?.length"
+              :colspan="visibleTableColumns.length"
+              title="Nenhum setor cadastrado"
+              description="Crie um setor para organizar os custos e as receitas."
+            />
           </TableBody>
         </Table>
       </CardContent>
@@ -79,6 +85,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import CustomTableEmpty from "@/components/custom/CustomTableEmpty.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { X } from "lucide-vue-next";

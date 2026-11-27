@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CustomTableEmpty from "@/components/custom/CustomTableEmpty.vue";
 import {ref, watch, onMounted, computed} from "vue";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -177,6 +178,11 @@ useScreenContext(
                   <TableCell v-if="columnVisibility.churn !== false" class="text-right">{{ formatMinifiedNumber(row['Churn']) }}</TableCell>
                   <TableCell v-if="columnVisibility.inativos !== false" class="text-right">{{ formatMinifiedNumber(row['Inativos']) }}</TableCell>
                 </TableRow>
+                <CustomTableEmpty
+                  v-if="!isLoading && !retentionData.length"
+                  :colspan="9 - Object.values(columnVisibility).filter((v) => v === false).length"
+                  title="Nenhum dado no período"
+                />
               </TableBody>
             </Table>
           </div>

@@ -132,11 +132,7 @@
           </TableRow>
         </template>
       </template>
-      <TableRow v-else>
-        <TableCell :colspan="visibleColumns.length + (props.select ? 1 : 0)" class="h-24 text-center">
-          Nenhum resultado.
-        </TableCell>
-      </TableRow>
+      <CustomTableEmpty v-else :colspan="visibleColumns.length + (props.select ? 1 : 0)" />
     </TableBody>
 
     <TableFooter v-if="footer">
@@ -171,6 +167,7 @@
 </template>
 
 <script setup lang="ts">
+import CustomTableEmpty from "@/components/custom/CustomTableEmpty.vue";
 import { PropType, ref, watch, computed, h } from "vue";
 import {
   Table,
