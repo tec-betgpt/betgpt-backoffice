@@ -250,13 +250,18 @@ import {
 } from "@/contracts/financialLedger";
 import { getLedger } from "@/services/financialLedger";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import ProjectAvatar from "@/components/custom/ProjectAvatar.vue";
 import { useScreenContext } from "@/composables/useScreenContext";
 
 const route = useRoute();
 const router = useRouter();
 const workspaceStore = useWorkspaceStore();
-const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
+const { fixedScope } = useWorkspaceScope();
+// Também mostra a coluna Projeto quando a tela junta todas as contas.
+const isGroupWorkspace = computed(
+  () => fixedScope.value === "all" || (!fixedScope.value && workspaceStore.activeGroupProject?.type === "group"),
+);
 
 const entries = ref<LedgerEntry[]>([]);
 const loading = ref(false);
@@ -304,7 +309,7 @@ const filters = reactive<{
 });
 
 function buildParams(page = pages.value.current): LedgerParams {
-  const filterId = workspaceStore.activeGroupProject?.id ?? "";
+  const filterId = fixedScope.value ?? workspaceStore.activeGroupProject?.id ?? "";
   return {
     filter_id: filterId || "all",
     page,

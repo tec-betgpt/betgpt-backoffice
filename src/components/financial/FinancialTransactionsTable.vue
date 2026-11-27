@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <div class="grid w-full gap-2 md:grid-cols-[minmax(220px,1fr)_180px_220px_220px_auto] md:items-center">
+      <div class="grid w-full gap-2 sm:grid-cols-2 2xl:grid-cols-[minmax(220px,1fr)_180px_220px_220px_auto] 2xl:items-center">
         <Input
           :model-value="search"
           type="search"

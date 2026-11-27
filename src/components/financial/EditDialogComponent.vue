@@ -17,7 +17,7 @@
       <form @submit.prevent="onSubmit()">
         <div class="grid gap-4 py-4">
           <div class="grid items-center gap-1.5">
-            <Label for="edit_project_scope">Projeto</Label>
+            <Label for="edit_project_scope">{{ isElevate ? "Financeiro" : "Projeto" }}</Label>
             <ProjectScopeSelect v-model="selectedScope" />
           </div>
 
@@ -178,6 +178,7 @@ import DatePicker from "@/components/custom/DatePicker.vue";
 import ProjectScopeSelect from "@/components/financial/ProjectScopeSelect.vue";
 import FinancialTransactions from "@/services/financialTransactions";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useFormErrors } from "@/composables/useFormErrors";
 
 interface FinancialData {
@@ -219,7 +220,7 @@ const selectedScope = ref("group");
 const { handleError, clearErrors, errorFor } = useFormErrors();
 
 const workspaceStore = useWorkspaceStore();
-const isGroupWorkspace = computed(() => workspaceStore.activeGroupProject?.type === "group");
+const { isElevate, isGroupWorkspace } = useWorkspaceScope();
 
 const displayAmount = computed({
   get() {

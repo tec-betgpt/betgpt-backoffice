@@ -70,7 +70,7 @@
             size="sm"
             variant="outline"
             :disabled="!campaignId"
-            @click="router.push({ name: 'financial.resource-usage', query: { campaign_id: campaignId } })"
+            @click="router.push({ name: router.hasRoute('workspace.financial.resource-usage') ? 'workspace.financial.resource-usage' : 'financial.resource-usage', query: { campaign_id: campaignId } })"
           >Uso de recursos</Button>
           <Button size="icon" variant="outline" class="size-8" title="Atualizar" aria-label="Atualizar" :disabled="isLoading" @click="refreshAll">
             <RefreshCw class="size-4" :class="isLoading ? 'animate-spin' : ''" />

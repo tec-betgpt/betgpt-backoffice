@@ -81,6 +81,7 @@ import { ref } from "vue";
 import { Plus } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import { useFormErrors } from "@/composables/useFormErrors";
 import { Spinner } from "@/components/ui/spinner";
 import CostCenter from "@/services/costCenters";
@@ -90,6 +91,7 @@ const props = defineProps<{ reload: () => Promise<void> }>();
 
 const sectors = ref<{ id: number; name: string; }[]>([]);
 const workspaceStore = useWorkspaceStore();
+const { isElevate } = useWorkspaceScope();
 const activeGroupProjectId = workspaceStore.activeGroupProject?.id ?? null;
 const isLoadingSectors = ref(false);
 const isDialog = ref(false);
@@ -107,17 +109,18 @@ const loadingSub = ref(false);
 const { handleError, clearErrors, errorFor } = useFormErrors();
 
 const onSubmit = async () => {
-  if (costForm.value.project_id == null) {
+  if (costForm.value.project_id == null && !isElevate.value) {
     toast.error("Projeto não selecionado", { description: "Selecione um workspace com projeto ativo." });
     return;
   }
   try {
     clearErrors();
 
-    await CostCenter.store({
-      ...costForm.value,
-      project_id: workspaceStore.activeGroupProject!.project_id
-    })
+    await CostCenter.store(
+      isElevate.value
+        ? { ...costForm.value, project_id: null, is_elevate: true }
+        : { ...costForm.value, project_id: workspaceStore.activeGroupProject!.project_id },
+    )
     await props.reload();
     isDialog.value = false;
     toast("Sucesso", { description: "Centro de custo salvo com sucesso." });

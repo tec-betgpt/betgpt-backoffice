@@ -17,7 +17,7 @@
       <form @submit.prevent="onSubmit()">
         <div class="grid gap-4 py-2">
           <div class="grid items-center gap-1.5">
-            <Label for="project_scope">Projeto</Label>
+            <Label for="project_scope">{{ isElevate ? "Financeiro" : "Projeto" }}</Label>
             <ProjectScopeSelect v-model="selectedScope" />
             <p class="text-xs mt-1 text-right text-muted-foreground">
               Obrigatório
@@ -201,6 +201,7 @@
 import { ref, watch, computed } from "vue";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useWorkspaceStore } from "@/stores/workspace";
+import { useWorkspaceScope } from "@/composables/useWorkspaceScope";
 import financialTransactionsApi from "@/services/financialTransactions";
 import DatePicker from "@/components/custom/DatePicker.vue";
 import ProjectScopeSelect from "@/components/financial/ProjectScopeSelect.vue";
@@ -222,7 +223,7 @@ const props = defineProps<{
 
 const workspaceStore = useWorkspaceStore();
 const activeGroupProject = computed(() => workspaceStore.activeGroupProject);
-const isGroupWorkspace = computed(() => activeGroupProject.value?.type === "group");
+const { isElevate, isGroupWorkspace } = useWorkspaceScope();
 const isDialog = ref(false);
 const loading = ref(false);
 const sectorId = ref<number | null>(null);
@@ -267,7 +268,11 @@ const openDialog = () => {
   isDialog.value = true;
 }
 
-const scopePayload = (): { project_id: number } | { group_id: number } => {
+const scopePayload = (): { project_id: number } | { group_id: number } | { is_elevate: true } => {
+  if (isElevate.value) {
+    return { is_elevate: true };
+  }
+
   if (!isGroupWorkspace.value) {
     return { project_id: Number(activeGroupProject.value?.project_id) };
   }
