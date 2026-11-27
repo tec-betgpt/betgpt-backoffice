@@ -1,14 +1,25 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { Separator } from "@/components/ui/separator";
+import { computed, type Component } from "vue";
 import { Button } from "@/components/ui/button";
-import { UserRoundIcon, LucideLock, ClipboardPenIcon, MessageCircle, CreditCard, KeyRound } from "lucide-vue-next";
+import {
+  UserRoundIcon,
+  SlidersHorizontalIcon,
+  LockKeyholeIcon,
+  BellIcon,
+  ReceiptTextIcon,
+  GaugeIcon,
+  KeyRound,
+} from "lucide-vue-next";
 import { cn } from "@/lib/utils";
-import { useRouter, RouterView } from "vue-router";
+import { useRoute, RouterView } from "vue-router";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useMarketingApiKeysStore } from "@/stores/marketingApiKeys";
 import { resolveGroupIdFromWorkspaceKey } from "@/services/marketingApiKeys";
 
+type NavItem = { title: string; route: string; icon: Component; show: boolean };
+type NavGroup = { title: string; items: NavItem[] };
+
+const route = useRoute();
 const workspaceStore = useWorkspaceStore();
 const marketingApiKeysStore = useMarketingApiKeysStore();
 
@@ -20,80 +31,92 @@ const canManageMarketingApiKeys = computed(() =>
   ),
 );
 
-const sidebarNavItems = computed(() => [
-  {
-    title: "Perfil",
-    route: "configurations.profile",
-    show: true,
-    icon: UserRoundIcon
-  },
-  {
-    title: "Segurança",
-    route: "configurations.security",
-    show: true,
-    icon: LucideLock
-  },
-  {
-    title: "API Keys",
-    route: "configurations.api-keys",
-    show: canManageMarketingApiKeys.value,
-    icon: KeyRound
-  },
-  {
-    title: "Notificações",
-    route: "configurations.notifications",
-    show: true,
-    icon: MessageCircle
-  },
-  {
-    title: "Consumo",
-    route: "service-consumeds.index",
-    show: true,
-    icon: ClipboardPenIcon
-  },
-  {
-    title: "Faturas",
-    route: "invoices.index",
-    show: true,
-    icon: CreditCard
-  },
-]);
+const navGroups = computed<NavGroup[]>(() =>
+  [
+    {
+      title: "Conta",
+      items: [
+        { title: "Perfil", route: "configurations.profile", icon: UserRoundIcon, show: true },
+        { title: "Preferências", route: "configurations.preferences", icon: SlidersHorizontalIcon, show: true },
+        { title: "Segurança", route: "configurations.security", icon: LockKeyholeIcon, show: true },
+        { title: "Notificações", route: "configurations.notifications", icon: BellIcon, show: true },
+      ],
+    },
+    {
+      title: "Cobrança",
+      items: [
+        { title: "Faturas", route: "invoices.index", icon: ReceiptTextIcon, show: true },
+        { title: "Consumo", route: "service-consumeds.index", icon: GaugeIcon, show: true },
+      ],
+    },
+    {
+      title: "Integrações",
+      items: [
+        { title: "API Keys", route: "configurations.api-keys", icon: KeyRound, show: canManageMarketingApiKeys.value },
+      ],
+    },
+  ]
+    .map((group) => ({ ...group, items: group.items.filter((item) => item.show) }))
+    .filter((group) => group.items.length > 0),
+);
 
-const router = useRouter();
+const navItems = computed(() => navGroups.value.flatMap((group) => group.items));
+
+const activeRoute = computed(() => route.meta.navRoute ?? route.name);
+const isActive = (item: NavItem) => activeRoute.value === item.route;
 </script>
 
 <template>
-  <div class="h-fit w-full">
-    <div class="space-y-0.5">
-      <h2 class="text-2xl font-bold tracking-tight">Configurações</h2>
-      <p class="text-muted-foreground">
-        Gerencie as configurações das suas contas e preferências de e-mail.
-      </p>
-    </div>
-    <Separator class="my-6" />
-    <div
-      class="flex gap-4 sm:flex-row flex-col"
-    >
-      <nav class=" flex sm:flex-col flex-row gap-2 text-sm text-muted-foreground  w-full sm:max-w-60">
-        <Button
-          v-for="item in sidebarNavItems.filter((item) => item.show)"
-          :key="item.title"
-          variant="ghost"
-          :class="
-            cn(
-              'w-full text-left justify-start',
-              (router.currentRoute.value.meta.navRoute ?? router.currentRoute.value.name) === `${item.route}` &&
-                'bg-muted hover:bg-muted'
-            )
-          "
-          as-child
-        >
-          <router-link :to="{ name: item.route }">
-            <component :is="item.icon" /> {{ item.title }}
-          </router-link>
-        </Button>
+  <div class="mx-auto w-full max-w-5xl pb-10">
+    <div class="flex flex-col gap-6 md:flex-row md:gap-10">
+      <nav class="md:w-52 md:shrink-0">
+        <div class="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 md:hidden">
+          <Button
+            v-for="item in navItems"
+            :key="item.route"
+            variant="ghost"
+            size="sm"
+            :class="cn('shrink-0', isActive(item) ? 'bg-muted hover:bg-muted' : 'text-muted-foreground')"
+            as-child
+          >
+            <router-link :to="{ name: item.route }">
+              <component :is="item.icon" class="size-4" />
+              {{ item.title }}
+            </router-link>
+          </Button>
+        </div>
+
+        <div class="hidden md:sticky md:top-4 md:flex md:flex-col md:gap-6">
+          <div v-for="group in navGroups" :key="group.title" class="flex flex-col gap-1">
+            <p class="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {{ group.title }}
+            </p>
+            <Button
+              v-for="item in group.items"
+              :key="item.route"
+              variant="ghost"
+              :class="
+                cn(
+                  'w-full justify-start font-normal',
+                  isActive(item)
+                    ? 'bg-muted font-medium text-foreground hover:bg-muted'
+                    : 'text-muted-foreground',
+                )
+              "
+              as-child
+            >
+              <router-link :to="{ name: item.route }">
+                <component :is="item.icon" class="size-4" />
+                {{ item.title }}
+              </router-link>
+            </Button>
+          </div>
+        </div>
       </nav>
-      <router-view />
+
+      <div class="min-w-0 flex-1">
+        <RouterView />
+      </div>
     </div>
   </div>
 </template>

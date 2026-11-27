@@ -1,6 +1,7 @@
 import ConfigurationLayout from "@/views/configurations/Layout.vue";
 import ConfigurationProfile from "@/views/configurations/Profile.vue";
 import DefaultLayout from "@/layouts/default.vue";
+import ConfigurationPreferences from "@/views/configurations/Preferences.vue";
 import ConfigurationSecurity from "@/views/configurations/Security.vue";
 import ConfigurationNotifications from "@/views/configurations/Notifications.vue";
 import ConfigurationConfirmEmailChange from "@/views/configurations/ConfirmEmailChange.vue";
@@ -28,6 +29,17 @@ export default [
           layout: DefaultLayout,
           requiresAuth: true,
           title: "Perfil",
+          roles: "member|client",
+        },
+      },
+      {
+        path: "preferences",
+        name: "configurations.preferences",
+        component: ConfigurationPreferences,
+        meta: {
+          layout: DefaultLayout,
+          requiresAuth: true,
+          title: "Preferências",
           roles: "member|client",
         },
       },
@@ -86,7 +98,7 @@ export default [
         meta: {
           layout: DefaultLayout,
           requiresAuth: true,
-          title: "Serviços Consumidos",
+          title: "Consumo",
           roles: "member|client",
         },
       },

@@ -1,16 +1,12 @@
 <template>
-  <div class="w-full">
-    <div class="mb-4">
-      <h3 class="text-lg font-medium">Consumo</h3>
-      <p class="text-sm text-muted-foreground">
-        Veja a lista em detalhes de todos os recursos utilizados pelo seu projeto durante o período.
-      </p>
-    </div>
+  <div class="space-y-6">
+    <SettingsHeader
+      title="Consumo"
+      description="Recursos usados pelo seu projeto em cada período."
+    />
 
-    <Separator class="mb-3" />
-
-    <div class="flex justify-start items-start  gap-8 flex-wrap w-full border rounded-lg">
-      <div class="flex justify-end mb-2 w-full">
+    <div class="w-full overflow-x-auto rounded-lg border">
+      <div class="flex w-full justify-end p-2">
         <ColumnVisibilityToggle v-model="columnVisibility" :columns="tableColumns" />
       </div>
       <Table class="w-full">
@@ -108,6 +104,7 @@ import { toast } from "vue-sonner";
 import ServiceConsumeds from "@/services/serviceConsumeds";
 import CustomPagination from "@/components/custom/CustomPagination.vue";
 import ColumnVisibilityToggle from "@/components/custom/ColumnVisibilityToggle.vue";
+import SettingsHeader from "@/views/configurations/components/SettingsHeader.vue";
 
 
 const tableColumns = [

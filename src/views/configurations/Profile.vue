@@ -1,151 +1,99 @@
 <template>
-  <div class="w-full pb-10">
-    <div class="mb-4">
-      <h3 class="text-lg font-medium">Perfil</h3>
-      <p class="text-sm text-muted-foreground">
-        Aqui estão as informações principais do seu perfil.
-      </p>
+  <div class="space-y-6">
+    <SettingsHeader
+      title="Perfil"
+      description="Seus dados de identificação na plataforma."
+    />
+
+    <div class="flex flex-wrap items-center gap-4 rounded-lg border p-4">
+      <Avatar size="base">
+        <AvatarImage v-if="authStore.user?.icon" :src="authStore.user.icon" />
+        <AvatarFallback>{{ authStore.user?.initials }}</AvatarFallback>
+      </Avatar>
+      <div class="min-w-0 flex-1">
+        <p class="truncate font-medium">{{ authStore.user?.name }}</p>
+        <p class="truncate text-sm text-muted-foreground">{{ authStore.user?.email }}</p>
+      </div>
+      <Button type="button" variant="outline" size="sm" @click="openSheet">
+        <Camera class="size-4" />
+        {{ hasImage ? "Trocar foto" : "Adicionar foto" }}
+      </Button>
     </div>
-    <Separator class="mb-3" />
-    <div class="flex justify-start items-start  gap-8 flex-wrap w-full">
 
-      <form class="w-full sm:max-w-sm" @submit.prevent="submit" @keydown="form.onKeydown($event)">
-        <div class="my-2">
-          <Label for="theme">Tema</Label>
-          <Select v-model="theme" id="theme">
-            <SelectTrigger class="col-span-3">
-              <SelectValue placeholder="Selecione um Tema" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="auto">Sistema</SelectItem>
-              <SelectItem value="dark">Preto</SelectItem>
-              <SelectItem value="light">Claro</SelectItem>
-            </SelectContent>
-          </Select>
+    <form class="rounded-lg border" @submit.prevent="submit">
+      <div class="border-b px-4 py-3 sm:px-6">
+        <h4 class="font-medium">Dados pessoais</h4>
+        <p class="text-sm text-muted-foreground">
+          Usados nas faturas e na comunicação com você.
+        </p>
+      </div>
+
+      <div class="grid gap-4 p-4 sm:grid-cols-2 sm:p-6">
+        <div class="space-y-2">
+          <Label for="first_name">Nome</Label>
+          <Input id="first_name" v-model="form.first_name" placeholder="Seu nome" />
         </div>
-        <div class="mb-3">
-          <Label for="first_name">Primeiro nome</Label>
-          <Input
-              type="text"
-              id="first_name"
-              placeholder="Informe o seu primeiro nome"
-              v-model="form.first_name"
-              class="mt-1"
-          />
-        </div>
-        <div class="mb-3">
+        <div class="space-y-2">
           <Label for="last_name">Sobrenome</Label>
-          <Input
-              type="text"
-              id="last_name"
-              placeholder="Informe o seu sobrenome"
-              v-model="form.last_name"
-              class="mt-1"
-          />
+          <Input id="last_name" v-model="form.last_name" placeholder="Seu sobrenome" />
         </div>
-
-        <div class="mb-3">
-          <Label for="email">Documento</Label>
-          <Input
-            id="document_number"
-            v-model="form.document_number"
-            placeholder="Digite o CPF ou CNPJ"
-            required
-          />
-        </div>
-
-        <div class="mb-3">
-          <Label for="access_type">Pessoa</Label>
-          <Select id="access_type" v-model="form.kind_person">
-            <SelectTrigger class="col-span-3">
+        <div class="space-y-2">
+          <Label for="kind_person">Tipo de pessoa</Label>
+          <Select v-model="form.kind_person">
+            <SelectTrigger id="kind_person">
               <SelectValue placeholder="Selecione um tipo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="PF">Física</SelectItem>
-              <SelectItem value="PJ">Jurídica</SelectItem>
+              <SelectItem value="PF">Pessoa física</SelectItem>
+              <SelectItem value="PJ">Pessoa jurídica</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
-        <div class="mb-3">
+        <div class="space-y-2">
+          <Label for="document_number">{{ form.kind_person === "PJ" ? "CNPJ" : "CPF" }}</Label>
+          <Input
+            id="document_number"
+            v-model="form.document_number"
+            :placeholder="form.kind_person === 'PJ' ? 'Digite o CNPJ' : 'Digite o CPF'"
+            required
+          />
+        </div>
+        <div class="space-y-2 sm:col-span-2">
           <Label for="email">E-mail</Label>
           <Input
-              type="text"
-              id="email"
-              placeholder="Informe o seu e-mail"
-              v-model="form.email"
-              class="mt-1"
-              :disabled="emailChangeRequest"
+            id="email"
+            v-model="form.email"
+            placeholder="Seu e-mail"
+            :disabled="emailChangeRequest"
           />
-
           <div
-              class="flex align-items-center text-sm font-medium mt-2"
-              v-if="emailChangeRequest"
+            v-if="emailChangeRequest"
+            class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed p-3 text-sm"
           >
-            Existe uma solicitação de troca de e-mail, você poderá cancelar a
-            solicitação clicando a seguir:
+            <p class="text-muted-foreground">
+              A troca para este e-mail aguarda confirmação no novo endereço.
+            </p>
             <Button
-                variant="outline"
-                @click="cancelEmailChange"
-                :disabled="loadingCancelEmailChange"
-                class="mt-2"
+              type="button"
+              variant="outline"
+              size="sm"
+              :disabled="loadingCancelEmailChange"
+              @click="cancelEmailChange"
             >
-              <LucideSpinner
-                  v-if="loadingCancelEmailChange"
-                  class="mr-2 h-4 w-4 animate-spin"
-              />
-              Cancelar Solicitação
+              <LucideSpinner v-if="loadingCancelEmailChange" class="size-4 animate-spin" />
+              Cancelar solicitação
             </Button>
           </div>
         </div>
-        <div class="mb-3">
-          <Label for="language_id">Idioma</Label>
-          <Select id="language_id" v-model="form.language_id">
-            <SelectTrigger class="col-span-3">
-              <SelectValue placeholder="Selecione um idioma" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Português</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div class="flex gap-2 justify-start">
-          <Button :disabled="loading" type="submit">
-            <LucideSpinner v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-            Atualizar perfil
-          </Button>
-        </div>
-      </form>
-      <div class="flex-1">
-        <div class="my-2 flex flex-col items-center justify-center gap-2">
-          <div class="mb-4 flex items-center justify-center gap-2">
-            <p class="text-lg font-medium">Foto de Perfil</p>
-            <Pencil
-              :size="20"
-              :stroke-width="1.55"
-              @click="openSheet"
-              class="cursor-pointer"
-            />
-          </div>
-          <div class="mb-4 flex flex-col items-center justify-center gap-2">
-            <Avatar size="lg">
-              <AvatarImage
-                v-if="authStore.user.icon"
-                :src="authStore.user?.icon"
-              />
-              <AvatarFallback>
-                {{ authStore.user?.initials }}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p>
-                {{ authStore.user.name }}
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
-    </div>
+
+      <div class="flex justify-end border-t px-4 py-3 sm:px-6">
+        <Button :disabled="loading" type="submit">
+          <LucideSpinner v-if="loading" class="size-4 animate-spin" />
+          Salvar alterações
+        </Button>
+      </div>
+    </form>
   </div>
 
   <Sheet v-model:open="imageSheet">
@@ -178,7 +126,7 @@
       >
         <p>Pré-visualização:</p>
         <Avatar size="lg">
-          <AvatarImage :src="selectedImagePreview" />>
+          <AvatarImage :src="selectedImagePreview" />
         </Avatar>
       </div>
       <div v-if="error" class="text-red-500 mt-2">
@@ -193,9 +141,9 @@ import Users from '@/services/users'
 import { toast } from "vue-sonner";
 import { useAuthStore } from "@/stores/auth";
 
-import { Loader2 as LucideSpinner, Pencil } from "lucide-vue-next";
-import { useColorMode } from "@vueuse/core";
-const theme = ref(localStorage.getItem("theme") || "auto");
+import { Loader2 as LucideSpinner, Camera } from "lucide-vue-next";
+import SettingsHeader from "@/views/configurations/components/SettingsHeader.vue";
+
 const authStore = useAuthStore();
 const loading = ref(false);
 const loadingCancelEmailChange = ref(false);
@@ -210,16 +158,6 @@ const form = ref({
   language_id: "",
   image: "",
 })
-
-watch(theme, () => {
-  setTheme();
-});
-
-const setTheme = async () => {
-  localStorage.setItem("theme", theme.value);
-  const mode = useColorMode();
-  mode.value = theme.value;
-};
 
 const submit = async () => {
   loading.value = true;

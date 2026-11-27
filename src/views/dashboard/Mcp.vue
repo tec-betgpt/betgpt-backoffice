@@ -119,7 +119,7 @@ onMounted(loadAudit);
 </script>
 
 <template>
-  <div class="w-full space-y-6 p-10 pb-16 max-[450px]:p-2">
+  <div class="mx-auto w-full max-w-5xl space-y-6 p-10 pb-16 max-[450px]:p-2">
     <div class="space-y-0.5">
       <div class="flex items-center gap-2">
         <ServerCogIcon class="size-6" />
@@ -130,7 +130,7 @@ onMounted(loadAudit);
       </p>
     </div>
 
-    <div class="max-w-4xl space-y-4">
+    <div class="space-y-4">
       <!-- URL do servidor -->
       <section class="rounded-xl border bg-muted/30 p-5">
         <div class="flex items-center gap-2">

@@ -1,79 +1,33 @@
 <template>
-  <div>
-    <div class="mb-4">
-      <h3 class="text-lg font-medium">Notificações</h3>
-      <p class="text-sm text-muted-foreground">
-        Configure como você recebe as notificações.
-      </p>
-    </div>
-    <Separator class="mb-3" />
+  <div class="space-y-6">
+    <SettingsHeader
+      title="Notificações"
+      description="Escolha quais e-mails você quer receber."
+    />
+
     <form @submit.prevent="submit">
-      <div>
-        <div class="space-y-4">
-          <div class="flex items-center justify-between rounded-lg border p-4">
-            <div>
-              <Label for="communication_emails">E-mails de comunicação</Label>
-              <p class="text-sm text-muted-foreground">
-                Receber e-mails sobre a atividade da sua conta.
-              </p>
-            </div>
-            <Checkbox
-              :checked="form.communication_emails"
-              @update:checked="
-                (checked) => (form.communication_emails = checked)
-              "
-              id="communication_emails"
-            />
+      <div class="divide-y rounded-lg border">
+        <div
+          v-for="option in options"
+          :key="option.key"
+          class="flex items-center justify-between gap-4 p-4"
+        >
+          <div class="space-y-1">
+            <Label :for="option.key">{{ option.label }}</Label>
+            <p class="text-sm text-muted-foreground">{{ option.description }}</p>
           </div>
-
-          <div class="flex items-center justify-between rounded-lg border p-4">
-            <div>
-              <Label for="marketing_emails">E-mails de marketing</Label>
-              <p class="text-sm text-muted-foreground">
-                Receber e-mails sobre novos produtos, recursos e mais.
-              </p>
-            </div>
-            <Checkbox
-              :checked="form.marketing_emails"
-              @update:checked="(checked) => (form.marketing_emails = checked)"
-              id="marketing_emails"
-            />
-          </div>
-
-          <div class="flex items-center justify-between rounded-lg border p-4">
-            <div>
-              <Label for="social_emails">E-mails sociais</Label>
-              <p class="text-sm text-muted-foreground">
-                Receber e-mails para solicitações enviadas ao seu perfil.
-              </p>
-            </div>
-            <Checkbox
-              :checked="form.social_emails"
-              @update:checked="(checked) => (form.social_emails = checked)"
-              id="social_emails"
-            />
-          </div>
-
-          <div class="flex items-center justify-between rounded-lg border p-4">
-            <div>
-              <Label for="security_emails">E-mails de segurança</Label>
-              <p class="text-sm text-muted-foreground">
-                Receber e-mails sobre sua atividade de conta e segurança.
-              </p>
-            </div>
-            <Checkbox
-              :checked="form.security_emails"
-              @update:checked="(checked) => (form.security_emails = checked)"
-              id="security_emails"
-            />
-          </div>
+          <Switch
+            :id="option.key"
+            :checked="form[option.key]"
+            @update:checked="(checked: boolean) => (form[option.key] = checked)"
+          />
         </div>
       </div>
 
-      <div class="flex gap-2 justify-start mt-4">
+      <div class="mt-4 flex justify-end">
         <Button :disabled="loading" type="submit">
-          <LucideSpinner v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-          Atualizar Notificações
+          <LucideSpinner v-if="loading" class="size-4 animate-spin" />
+          Salvar preferências
         </Button>
       </div>
     </form>
@@ -86,11 +40,21 @@ import { toast } from "vue-sonner";
 import { Loader2 as LucideSpinner } from "lucide-vue-next";
 import { useAuthStore } from "@/stores/auth";
 import Users from '@/services/users'
+import SettingsHeader from "@/views/configurations/components/SettingsHeader.vue";
+
+type NotificationKey = "communication_emails" | "marketing_emails" | "social_emails" | "security_emails";
+
+const options: { key: NotificationKey; label: string; description: string }[] = [
+  { key: "communication_emails", label: "E-mails de comunicação", description: "Avisos sobre a atividade da sua conta." },
+  { key: "marketing_emails", label: "E-mails de marketing", description: "Novidades sobre produtos e recursos." },
+  { key: "social_emails", label: "E-mails sociais", description: "Solicitações enviadas ao seu perfil." },
+  { key: "security_emails", label: "E-mails de segurança", description: "Alertas de acesso e de segurança da conta." },
+];
 
 const authStore = useAuthStore();
 
 const loading = ref(false);
-const form = ref({
+const form = ref<Record<NotificationKey, boolean>>({
   communication_emails: false,
   marketing_emails: false,
   social_emails: false,
